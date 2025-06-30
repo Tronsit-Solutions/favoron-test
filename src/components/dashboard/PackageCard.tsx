@@ -27,6 +27,95 @@ const PackageCard = ({
     onUploadDocument(pkg.id, 'payment_receipt', paymentData);
   };
 
+  const renderTravelerAddress = () => {
+    if (!pkg.travelerAddress) return null;
+    
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-start space-x-2 mb-2">
+          <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
+          <p className="text-sm font-medium text-green-800">Dirección del viajero para envío:</p>
+        </div>
+        <div className="text-sm text-green-700 ml-6">
+          <p>{pkg.travelerAddress.streetAddress}</p>
+          <p>{pkg.travelerAddress.cityArea}</p>
+          {pkg.travelerAddress.hotelAirbnbName && (
+            <p>{pkg.travelerAddress.hotelAirbnbName}</p>
+          )}
+          <p>📞 {pkg.travelerAddress.contactNumber}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDeliveryAddress = () => {
+    if (!pkg.confirmedDeliveryAddress) return null;
+    
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-start space-x-2 mb-2">
+          <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
+          <p className="text-sm font-medium text-green-800">Dirección de envío confirmada:</p>
+        </div>
+        <div className="text-sm text-green-700 ml-6">
+          <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
+          <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
+          {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
+            <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
+          )}
+          <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderQuoteInfo = () => {
+    if (!pkg.quote) return null;
+    
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
+        <p className="text-sm text-blue-700">
+          Servicio: ${pkg.quote.price}
+          {pkg.quote.serviceFee && ` + Adicionales: $${pkg.quote.serviceFee}`}
+        </p>
+        {pkg.quote.message && (
+          <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
+        )}
+      </div>
+    );
+  };
+
+  const renderActionButtons = () => {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {/* Shopper actions */}
+        {viewMode === 'shopper' && (
+          <>
+            {pkg.status === 'quote_sent' && pkg.quote && (
+              <Button 
+                size="sm"
+                onClick={() => onQuote(pkg, 'shopper')}
+              >
+                Ver y Responder Cotización
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Traveler actions - only for sending quotes */}
+        {viewMode === 'traveler' && pkg.status === 'matched' && (
+          <Button 
+            size="sm"
+            onClick={() => onQuote(pkg, 'traveler')}
+          >
+            Enviar Cotización
+          </Button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card key={pkg.id}>
       <CardHeader>
@@ -51,81 +140,16 @@ const PackageCard = ({
             </p>
             
             {/* Show quote information */}
-            {pkg.quote && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
-                <p className="text-sm text-blue-700">
-                  Servicio: ${pkg.quote.price}
-                  {pkg.quote.serviceFee && ` + Adicionales: $${pkg.quote.serviceFee}`}
-                </p>
-                {pkg.quote.message && (
-                  <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
-                )}
-              </div>
-            )}
+            {renderQuoteInfo()}
 
             {/* Show traveler address if payment is confirmed */}
-            {pkg.status === 'payment_confirmed' && pkg.travelerAddress && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="flex items-start space-x-2 mb-2">
-                  <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
-                  <p className="text-sm font-medium text-green-800">Dirección del viajero para envío:</p>
-                </div>
-                <div className="text-sm text-green-700 ml-6">
-                  <p>{pkg.travelerAddress.streetAddress}</p>
-                  <p>{pkg.travelerAddress.cityArea}</p>
-                  {pkg.travelerAddress.hotelAirbnbName && (
-                    <p>{pkg.travelerAddress.hotelAirbnbName}</p>
-                  )}
-                  <p>📞 {pkg.travelerAddress.contactNumber}</p>
-                </div>
-              </div>
-            )}
+            {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
 
             {/* Show delivery address if confirmed (for later stages) */}
-            {pkg.confirmedDeliveryAddress && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="flex items-start space-x-2 mb-2">
-                  <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
-                  <p className="text-sm font-medium text-green-800">Dirección de envío confirmada:</p>
-                </div>
-                <div className="text-sm text-green-700 ml-6">
-                  <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
-                  <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
-                  {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
-                    <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
-                  )}
-                  <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
-                </div>
-              </div>
-            )}
+            {renderDeliveryAddress()}
 
             {/* Action buttons based on view mode and status */}
-            <div className="flex flex-wrap gap-2">
-              {/* Shopper actions */}
-              {viewMode === 'shopper' && (
-                <>
-                  {pkg.status === 'quote_sent' && pkg.quote && (
-                    <Button 
-                      size="sm"
-                      onClick={() => onQuote(pkg, 'shopper')}
-                    >
-                      Ver y Responder Cotización
-                    </Button>
-                  )}
-                </>
-              )}
-
-              {/* Traveler actions - only for sending quotes */}
-              {viewMode === 'traveler' && pkg.status === 'matched' && (
-                <Button 
-                  size="sm"
-                  onClick={() => onQuote(pkg, 'traveler')}
-                >
-                  Enviar Cotización
-                </Button>
-              )}
-            </div>
+            {renderActionButtons()}
 
             {pkg.additionalNotes && (
               <p className="text-sm">

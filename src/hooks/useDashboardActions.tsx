@@ -137,40 +137,58 @@ export const useDashboardActions = (
       return pkg;
     }));
 
-    if (type === 'payment_receipt') {
-      toast({
+    const messages = {
+      payment_receipt: {
         title: "¡Pago registrado!",
-        description: "Tu pago está en revisión. Te notificaremos cuando sea confirmado.",
-      });
-    } else if (type === 'confirmation') {
-      toast({
+        description: "Tu pago está en revisión. Te notificaremos cuando sea confirmado."
+      },
+      confirmation: {
         title: "¡Comprobante de compra subido!",
-        description: "Se ha registrado tu comprobante de compra.",
-      });
-    } else if (type === 'tracking') {
-      toast({
+        description: "Se ha registrado tu comprobante de compra."
+      },
+      tracking: {
         title: "¡Información de seguimiento actualizada!",
-        description: "Se ha registrado la información de envío.",
-      });
+        description: "Se ha registrado la información de envío."
+      }
+    };
+
+    const message = messages[type];
+    if (message) {
+      toast(message);
     }
   };
 
-  const handleConfirmPayment = (packageId: number) => {
-    // Find the matched trip to get traveler's address
-    const pkg = packages.find(p => p.id === packageId);
-    const matchedTrip = pkg ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
+  const buildTravelerAddress = (matchedTrip: any) => {
+    if (!matchedTrip) return null;
     
-    const travelerAddress = matchedTrip ? {
-      streetAddress: matchedTrip.packageReceivingAddress,
-      cityArea: matchedTrip.toCity,
+    return {
+      streetAddress: matchedTrip.packageReceivingAddress || "Dirección no disponible",
+      cityArea: matchedTrip.toCity || "Ciudad no disponible",
       hotelAirbnbName: matchedTrip.accommodationType === 'hotel' ? matchedTrip.hotelName : null,
-      contactNumber: matchedTrip.contactNumber
-    } : null;
+      contactNumber: matchedTrip.contactNumber || "Teléfono no disponible"
+    };
+  };
 
-    setPackages(packages.map(pkg => 
-      pkg.id === packageId 
-        ? { ...pkg, status: 'payment_confirmed', travelerAddress }
-        : pkg
+  const handleConfirmPayment = (packageId: number) => {
+    console.log('Confirming payment for package:', packageId);
+    
+    // Find the package and matched trip
+    const pkg = packages.find(p => p.id === packageId);
+    if (!pkg) {
+      console.error('Package not found:', packageId);
+      return;
+    }
+    
+    const matchedTrip = pkg.matchedTripId ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
+    console.log('Found matched trip:', matchedTrip);
+    
+    const travelerAddress = buildTravelerAddress(matchedTrip);
+    console.log('Built traveler address:', travelerAddress);
+
+    setPackages(packages.map(currentPkg => 
+      currentPkg.id === packageId 
+        ? { ...currentPkg, status: 'payment_confirmed', travelerAddress }
+        : currentPkg
     ));
     
     toast({
