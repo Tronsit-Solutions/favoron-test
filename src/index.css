@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Favorón Design System - Guatemala inspired colors */
+/* Favorón Brand Colors */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -15,24 +15,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 142 71% 45%; /* Guatemala Green */
+    --primary: 214 88% 27%; /* Favorón Main Blue */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 33 100% 64%; /* Warm Orange */
+    --secondary: 210 40% 96%; /* Light Blue/Gray */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 24 100% 50%; /* Vibrant Orange */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 209 95% 90%; /* Light Blue Accent */
+    --accent-foreground: 214 88% 27%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 142 71% 45%;
+    --ring: 214 88% 27%;
 
     --radius: 0.75rem;
 
@@ -53,19 +53,19 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 142 71% 45%;
+    --primary: 214 88% 27%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 33 100% 64%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 24 100% 50%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 142 71% 45%;
+    --ring: 214 88% 27%;
   }
 }
 
@@ -78,11 +78,11 @@
   }
 }
 
-/* Custom gradient backgrounds */
+/* Custom gradient backgrounds using brand colors */
 .gradient-hero {
-  background: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(24 100% 50%) 100%);
+  background: linear-gradient(135deg, hsl(214 88% 27%) 0%, hsl(209 95% 90%) 100%);
 }
 
 .gradient-card {
-  background: linear-gradient(135deg, hsl(142 71% 45% / 0.05) 0%, hsl(24 100% 50% / 0.05) 100%);
+  background: linear-gradient(135deg, hsl(214 88% 27% / 0.05) 0%, hsl(209 95% 90% / 0.1) 100%);
 }

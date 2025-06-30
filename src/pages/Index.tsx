@@ -38,10 +38,11 @@ const Index = () => {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Plane className="h-5 w-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-primary">Favorón</h1>
+            <img 
+              src="/lovable-uploads/f2f6b820-8e72-40a8-a7b5-c4dbaafd6a7e.png" 
+              alt="Favorón Logo" 
+              className="h-8"
+            />
           </div>
           <div className="space-x-2">
             <Button variant="ghost" onClick={() => openAuth('login')}>
@@ -214,10 +215,11 @@ const Index = () => {
       <footer className="bg-primary text-white py-12">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Plane className="h-5 w-5 text-primary" />
-            </div>
-            <h4 className="text-2xl font-bold">Favorón</h4>
+            <img 
+              src="/lovable-uploads/f2f6b820-8e72-40a8-a7b5-c4dbaafd6a7e.png" 
+              alt="Favorón Logo" 
+              className="h-8 brightness-0 invert"
+            />
           </div>
           <p className="text-white/80 mb-4">
             Conectando Guatemala con el mundo, un paquete a la vez
