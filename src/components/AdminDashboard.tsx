@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import PackageDetailModal from "./admin/PackageDetailModal";
+import TripDetailModal from "./admin/TripDetailModal";
 
 interface AdminDashboardProps {
   packages: any[];
@@ -27,13 +29,17 @@ const AdminDashboard = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");
+  const [showPackageDetail, setShowPackageDetail] = useState(false);
+  const [showTripDetail, setShowTripDetail] = useState(false);
+  const [selectedDetailPackage, setSelectedDetailPackage] = useState<any>(null);
+  const [selectedDetailTrip, setSelectedDetailTrip] = useState<any>(null);
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente', variant: 'secondary' as const },
       'approved': { label: 'Aprobado', variant: 'default' as const },
-      'matched': { label: 'Emparejado', variant: 'default' as const },
+      'matched': { label: 'Match realizado', variant: 'default' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
@@ -52,12 +58,46 @@ const AdminDashboard = ({
     if (selectedPackage && matchingTrip) {
       onMatchPackage(selectedPackage.id, parseInt(matchingTrip));
       toast({
-        title: "¡Emparejamiento exitoso!",
+        title: "¡Match exitoso!",
         description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip}`,
       });
       setSelectedPackage(null);
       setMatchingTrip("");
     }
+  };
+
+  const handleViewPackageDetail = (pkg: any) => {
+    // Add mock user data for demo
+    const packageWithUser = {
+      ...pkg,
+      user: {
+        id: pkg.userId,
+        name: `Usuario ${pkg.userId}`,
+        email: `usuario${pkg.userId}@email.com`,
+        phone: `+502 ${1000 + pkg.userId}-5678`,
+        totalRequests: Math.floor(Math.random() * 10) + 1,
+        completedRequests: Math.floor(Math.random() * 5)
+      }
+    };
+    setSelectedDetailPackage(packageWithUser);
+    setShowPackageDetail(true);
+  };
+
+  const handleViewTripDetail = (trip: any) => {
+    // Add mock user data for demo
+    const tripWithUser = {
+      ...trip,
+      user: {
+        id: trip.userId,
+        name: `Viajero ${trip.userId}`,
+        email: `viajero${trip.userId}@email.com`,
+        phone: `+502 ${2000 + trip.userId}-1234`,
+        totalTrips: Math.floor(Math.random() * 8) + 1,
+        completedDeliveries: Math.floor(Math.random() * 15)
+      }
+    };
+    setSelectedDetailTrip(tripWithUser);
+    setShowTripDetail(true);
   };
 
   const availableTrips = trips.filter(trip => trip.status === 'active');
@@ -67,7 +107,7 @@ const AdminDashboard = ({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold">Panel de Administración</h2>
-          <p className="text-muted-foreground">Gestiona solicitudes, viajes y emparejamientos</p>
+          <p className="text-muted-foreground">Gestiona solicitudes, viajes y matches</p>
         </div>
       </div>
 
@@ -101,7 +141,7 @@ const AdminDashboard = ({
               <Users className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">{packages.filter(p => p.status === 'matched').length}</p>
-                <p className="text-xs text-muted-foreground">Emparejamientos activos</p>
+                <p className="text-xs text-muted-foreground">Matches activos</p>
               </div>
             </div>
           </CardContent>
@@ -129,12 +169,12 @@ const AdminDashboard = ({
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Solicitudes pendientes de emparejamiento</CardTitle>
+              <CardTitle>Solicitudes pendientes de Match</CardTitle>
               <CardDescription>Solicitudes aprobadas esperando ser emparejadas con viajeros</CardDescription>
             </CardHeader>
             <CardContent>
               {packages.filter(p => p.status === 'approved').length === 0 ? (
-                <p className="text-muted-foreground">No hay solicitudes pendientes de emparejamiento</p>
+                <p className="text-muted-foreground">No hay solicitudes pendientes de Match</p>
               ) : (
                 <div className="space-y-2">
                   {packages.filter(p => p.status === 'approved').map(pkg => (
@@ -146,14 +186,14 @@ const AdminDashboard = ({
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button size="sm" onClick={() => setSelectedPackage(pkg)}>
-                            Emparejar
+                            Hacer Match
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Emparejar solicitud</DialogTitle>
+                            <DialogTitle>Hacer Match de solicitud</DialogTitle>
                             <DialogDescription>
-                              Selecciona un viaje para emparejar con esta solicitud
+                              Selecciona un viaje para hacer match con esta solicitud
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
@@ -174,7 +214,7 @@ const AdminDashboard = ({
                               </SelectContent>
                             </Select>
                             <Button onClick={handleMatch} className="w-full">
-                              Confirmar emparejamiento
+                              Confirmar Match
                             </Button>
                           </div>
                         </DialogContent>
@@ -208,6 +248,15 @@ const AdminDashboard = ({
                     </div>
                     
                     <div className="flex space-x-2 mt-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewPackageDetail(pkg)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Detalles
+                      </Button>
+
                       {pkg.status === 'pending_approval' && (
                         <>
                           <Button 
@@ -275,6 +324,15 @@ const AdminDashboard = ({
                     </div>
                     
                     <div className="flex space-x-2 mt-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewTripDetail(trip)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Ver Detalles
+                      </Button>
+
                       {trip.status === 'pending_approval' && (
                         <>
                           <Button 
@@ -302,6 +360,36 @@ const AdminDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Package Detail Modal */}
+      <PackageDetailModal
+        package={selectedDetailPackage}
+        isOpen={showPackageDetail}
+        onClose={() => setShowPackageDetail(false)}
+        onApprove={(id) => {
+          onApproveReject('package', id, 'approve');
+          setShowPackageDetail(false);
+        }}
+        onReject={(id) => {
+          onApproveReject('package', id, 'reject');
+          setShowPackageDetail(false);
+        }}
+      />
+
+      {/* Trip Detail Modal */}
+      <TripDetailModal
+        trip={selectedDetailTrip}
+        isOpen={showTripDetail}
+        onClose={() => setShowTripDetail(false)}
+        onApprove={(id) => {
+          onApproveReject('trip', id, 'approve');
+          setShowTripDetail(false);
+        }}
+        onReject={(id) => {
+          onApproveReject('trip', id, 'reject');
+          setShowTripDetail(false);
+        }}
+      />
     </div>
   );
 };

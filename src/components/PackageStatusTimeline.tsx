@@ -10,7 +10,7 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   const statuses = [
     { key: 'pending_approval', label: 'Solicitud creada', icon: Circle },
     { key: 'approved', label: 'Aprobada', icon: Check },
-    { key: 'matched', label: 'Emparejada', icon: Package },
+    { key: 'matched', label: 'Match realizado', icon: Package },
     { key: 'quote_accepted', label: 'Cotización aceptada', icon: Check },
     { key: 'paid', label: 'Pagado', icon: CreditCard },
     { key: 'purchased', label: 'Comprado', icon: Package },

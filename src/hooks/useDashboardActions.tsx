@@ -141,7 +141,7 @@ export const useDashboardActions = (
     ));
     
     toast({
-      title: "¡Paquete emparejado!",
+      title: "¡Match realizado!",
       description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
     });
   };

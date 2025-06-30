@@ -70,7 +70,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente', variant: 'secondary' as const },
       'approved': { label: 'Aprobado', variant: 'default' as const },
-      'matched': { label: 'Emparejado', variant: 'default' as const },
+      'matched': { label: 'Match realizado', variant: 'default' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
