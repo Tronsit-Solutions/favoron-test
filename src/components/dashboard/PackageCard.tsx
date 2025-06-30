@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, DollarSign } from "lucide-react";
+import { MapPin } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 
@@ -12,6 +12,7 @@ interface PackageCardProps {
   onConfirmAddress: (pkg: any) => void;
   onMarkAsPaid: (packageId: number) => void;
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking', data: any) => void;
+  viewMode?: 'shopper' | 'traveler';
 }
 
 const PackageCard = ({ 
@@ -20,7 +21,8 @@ const PackageCard = ({
   onQuote, 
   onConfirmAddress, 
   onMarkAsPaid, 
-  onUploadDocument 
+  onUploadDocument,
+  viewMode = 'shopper'
 }: PackageCardProps) => {
   return (
     <Card key={pkg.id}>
@@ -77,42 +79,47 @@ const PackageCard = ({
               </div>
             )}
 
-            {/* Action buttons based on status */}
+            {/* Action buttons based on view mode and status */}
             <div className="flex flex-wrap gap-2">
-              {pkg.status === 'matched' && (
+              {/* Shopper actions - only for receiving quotes and confirming address */}
+              {viewMode === 'shopper' && (
+                <>
+                  {pkg.status === 'quote_sent' && pkg.quote && (
+                    <Button 
+                      size="sm"
+                      onClick={() => onQuote(pkg, 'shopper')}
+                    >
+                      Ver y Responder Cotización
+                    </Button>
+                  )}
+
+                  {pkg.status === 'quote_accepted' && (
+                    <Button 
+                      size="sm"
+                      onClick={() => onConfirmAddress(pkg)}
+                    >
+                      Confirmar Dirección
+                    </Button>
+                  )}
+
+                  {pkg.status === 'address_confirmed' && (
+                    <Button 
+                      size="sm"
+                      onClick={() => onMarkAsPaid(pkg.id)}
+                    >
+                      Marcar como Pagado
+                    </Button>
+                  )}
+                </>
+              )}
+
+              {/* Traveler actions - only for sending quotes */}
+              {viewMode === 'traveler' && pkg.status === 'matched' && (
                 <Button 
                   size="sm"
                   onClick={() => onQuote(pkg, 'traveler')}
                 >
-                  <DollarSign className="h-4 w-4 mr-1" />
                   Enviar Cotización
-                </Button>
-              )}
-
-              {pkg.status === 'quote_sent' && pkg.quote && (
-                <Button 
-                  size="sm"
-                  onClick={() => onQuote(pkg, 'shopper')}
-                >
-                  Ver Cotización
-                </Button>
-              )}
-
-              {pkg.status === 'quote_accepted' && (
-                <Button 
-                  size="sm"
-                  onClick={() => onConfirmAddress(pkg)}
-                >
-                  Confirmar Dirección
-                </Button>
-              )}
-
-              {pkg.status === 'address_confirmed' && (
-                <Button 
-                  size="sm"
-                  onClick={() => onMarkAsPaid(pkg.id)}
-                >
-                  Marcar como Pagado
                 </Button>
               )}
             </div>
