@@ -211,7 +211,8 @@ const Index = () => {
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
-        onLogin={handleLogin}
+        mode="register"
+        onAuth={handleLogin}
       />
     </div>
   );
