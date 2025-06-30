@@ -60,6 +60,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleConfirmAddress,
     handleMarkAsPaid,
     handleUploadDocument,
+    handleConfirmPayment,
     handleMatchPackage,
     handleStatusUpdate,
     handleApproveReject
@@ -132,6 +133,15 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       </div>
     );
   }
+
+  // Enhanced handleStatusUpdate to include payment confirmation
+  const enhancedHandleStatusUpdate = (type: 'package' | 'trip', id: number, status: string) => {
+    if (status === 'payment_confirmed') {
+      handleConfirmPayment(id);
+    } else {
+      handleStatusUpdate(type, id, status);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,7 +271,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 packages={packages}
                 trips={trips}
                 onMatchPackage={handleMatchPackage}
-                onUpdateStatus={handleStatusUpdate}
+                onUpdateStatus={enhancedHandleStatusUpdate}
                 onApproveReject={handleApproveReject}
               />
             </TabsContent>

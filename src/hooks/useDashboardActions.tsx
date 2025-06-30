@@ -83,7 +83,7 @@ export const useDashboardActions = (
         ));
         toast({
           title: "¡Cotización aceptada!",
-          description: "Procede a confirmar tu dirección de entrega.",
+          description: "Ahora debes hacer el pago a Favorón.",
         });
       }
     }
@@ -118,7 +118,7 @@ export const useDashboardActions = (
     });
   };
 
-  const handleUploadDocument = (packageId: number, type: 'confirmation' | 'tracking', data: any) => {
+  const handleUploadDocument = (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
     setPackages(packages.map(pkg => {
       if (pkg.id === packageId) {
         const updatedPkg = { ...pkg };
@@ -128,11 +128,45 @@ export const useDashboardActions = (
         } else if (type === 'tracking') {
           updatedPkg.trackingInfo = data;
           updatedPkg.status = 'in_transit';
+        } else if (type === 'payment_receipt') {
+          updatedPkg.paymentReceipt = data;
+          updatedPkg.status = 'payment_pending';
         }
         return updatedPkg;
       }
       return pkg;
     }));
+
+    if (type === 'payment_receipt') {
+      toast({
+        title: "¡Comprobante enviado!",
+        description: "Tu comprobante está en revisión. Te notificaremos cuando sea confirmado.",
+      });
+    }
+  };
+
+  const handleConfirmPayment = (packageId: number) => {
+    // Find the matched trip to get traveler's address
+    const pkg = packages.find(p => p.id === packageId);
+    const matchedTrip = pkg ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
+    
+    const travelerAddress = matchedTrip ? {
+      streetAddress: matchedTrip.packageReceivingAddress,
+      cityArea: matchedTrip.toCity,
+      hotelAirbnbName: matchedTrip.accommodationType === 'hotel' ? matchedTrip.hotelName : null,
+      contactNumber: matchedTrip.contactNumber
+    } : null;
+
+    setPackages(packages.map(pkg => 
+      pkg.id === packageId 
+        ? { ...pkg, status: 'payment_confirmed', travelerAddress }
+        : pkg
+    ));
+    
+    toast({
+      title: "¡Pago confirmado!",
+      description: "El shopper ahora puede ver la dirección del viajero para enviar el paquete.",
+    });
   };
 
   const handleMatchPackage = (packageId: number, tripId: number) => {
@@ -177,6 +211,7 @@ export const useDashboardActions = (
     handleConfirmAddress,
     handleMarkAsPaid,
     handleUploadDocument,
+    handleConfirmPayment,
     handleMatchPackage,
     handleStatusUpdate,
     handleApproveReject

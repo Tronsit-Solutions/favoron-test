@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -231,6 +230,55 @@ const AdminDashboard = ({
               </CardContent>
             </Card>
           )}
+
+          {/* New section for payment confirmations */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pagos pendientes de confirmación</CardTitle>
+              <CardDescription>Solicitudes con comprobantes de pago que requieren revisión</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {packages.filter(pkg => pkg.status === 'payment_pending').length === 0 ? (
+                <p className="text-muted-foreground">No hay pagos pendientes de confirmación</p>
+              ) : (
+                <div className="space-y-2">
+                  {packages.filter(pkg => pkg.status === 'payment_pending').map(pkg => (
+                    <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex-1">
+                        <p className="font-medium">{pkg.itemDescription}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                        </p>
+                        {pkg.paymentReceipt && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Comprobante: {pkg.paymentReceipt.filename} • 
+                            Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Confirmar Pago
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-4">
@@ -249,6 +297,11 @@ const AdminDashboard = ({
                         <p className="text-sm text-muted-foreground">
                           Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
                         </p>
+                        {pkg.paymentReceipt && (
+                          <p className="text-xs text-blue-600">
+                            Comprobante de pago subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                       {getStatusBadge(pkg.status)}
                     </div>
@@ -281,6 +334,16 @@ const AdminDashboard = ({
                             Rechazar
                           </Button>
                         </>
+                      )}
+
+                      {pkg.status === 'payment_pending' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Confirmar Pago
+                        </Button>
                       )}
                       
                       {(pkg.status === 'paid' || pkg.status === 'purchased') && (

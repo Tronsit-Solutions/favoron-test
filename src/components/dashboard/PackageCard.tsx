@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
+import PaymentUpload from "@/components/PaymentUpload";
 
 interface PackageCardProps {
   pkg: any;
@@ -11,7 +12,7 @@ interface PackageCardProps {
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
   onConfirmAddress: (pkg: any) => void;
   onMarkAsPaid: (packageId: number) => void;
-  onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking', data: any) => void;
+  onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   viewMode?: 'shopper' | 'traveler';
 }
 
@@ -24,6 +25,10 @@ const PackageCard = ({
   onUploadDocument,
   viewMode = 'shopper'
 }: PackageCardProps) => {
+  const handlePaymentUpload = (paymentData: any) => {
+    onUploadDocument(pkg.id, 'payment_receipt', paymentData);
+  };
+
   return (
     <Card key={pkg.id}>
       <CardHeader>
@@ -61,7 +66,25 @@ const PackageCard = ({
               </div>
             )}
 
-            {/* Show delivery address if confirmed */}
+            {/* Show traveler address if payment is confirmed */}
+            {pkg.status === 'payment_confirmed' && pkg.travelerAddress && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2 mb-2">
+                  <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
+                  <p className="text-sm font-medium text-green-800">Dirección del viajero para envío:</p>
+                </div>
+                <div className="text-sm text-green-700 ml-6">
+                  <p>{pkg.travelerAddress.streetAddress}</p>
+                  <p>{pkg.travelerAddress.cityArea}</p>
+                  {pkg.travelerAddress.hotelAirbnbName && (
+                    <p>{pkg.travelerAddress.hotelAirbnbName}</p>
+                  )}
+                  <p>📞 {pkg.travelerAddress.contactNumber}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Show delivery address if confirmed (for later stages) */}
             {pkg.confirmedDeliveryAddress && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-start space-x-2 mb-2">
@@ -136,6 +159,15 @@ const PackageCard = ({
 
           <div className="space-y-4">
             <PackageStatusTimeline currentStatus={pkg.status} />
+            
+            {/* Show payment upload component after quote acceptance */}
+            {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
+              <PaymentUpload 
+                packageId={pkg.id}
+                onUpload={handlePaymentUpload}
+              />
+            )}
+            
             <UploadDocuments 
               packageId={pkg.id}
               currentStatus={pkg.status}
