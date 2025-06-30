@@ -13,6 +13,8 @@ import AdminDashboard from "./AdminDashboard";
 import QuoteDialog from "./QuoteDialog";
 import PackageStatusTimeline from "./PackageStatusTimeline";
 import UploadDocuments from "./UploadDocuments";
+import UserProfile from "./UserProfile";
+import UserDashboard from "./UserDashboard";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardProps {
@@ -22,6 +24,7 @@ interface DashboardProps {
 
 const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [currentUser, setCurrentUser] = useState(user);
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [showTripForm, setShowTripForm] = useState(false);
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
@@ -39,7 +42,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       ...packageData,
       status: 'pending_approval',
       createdAt: new Date().toISOString(),
-      userId: user.id
+      userId: currentUser.id
     };
     setPackages(prev => [...prev, newPackage]);
     setShowPackageForm(false);
@@ -55,7 +58,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       ...tripData,
       status: 'pending_approval',
       createdAt: new Date().toISOString(),
-      userId: user.id
+      userId: currentUser.id
     };
     setTrips(prev => [...prev, newTrip]);
     setShowTripForm(false);
@@ -174,6 +177,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     }));
   };
 
+  const handleUpdateUser = (userData: any) => {
+    setCurrentUser(userData);
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente aprobación', variant: 'secondary' as const },
@@ -194,7 +201,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const isAdmin = user.role === 'admin';
+  const isAdmin = currentUser.role === 'admin';
 
   return (
     <div className="min-h-screen bg-background">
@@ -216,11 +223,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             
             <div className="flex items-center space-x-2">
               <Avatar>
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
+                <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
               </Avatar>
               <div className="hidden md:block">
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <p className="text-sm font-medium">{currentUser.name}</p>
+                <p className="text-xs text-muted-foreground">{currentUser.email}</p>
               </div>
             </div>
 
@@ -234,15 +241,17 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">¡Hola, {user.name}! 👋</h2>
+          <h2 className="text-3xl font-bold mb-2">¡Hola, {currentUser.name}! 👋</h2>
           <p className="text-muted-foreground">
             Gestiona tus solicitudes de paquetes y viajes desde aquí
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
+            <TabsTrigger value="dashboard">Mi Dashboard</TabsTrigger>
+            <TabsTrigger value="profile">Mi Perfil</TabsTrigger>
             <TabsTrigger value="packages">Mis Paquetes</TabsTrigger>
             <TabsTrigger value="trips">Mis Viajes</TabsTrigger>
             {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
@@ -329,6 +338,21 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <UserDashboard 
+              user={currentUser} 
+              packages={packages} 
+              trips={trips} 
+            />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6">
+            <UserProfile 
+              user={currentUser} 
+              onUpdateUser={handleUpdateUser} 
+            />
           </TabsContent>
 
           <TabsContent value="packages" className="space-y-6">

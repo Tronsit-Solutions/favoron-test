@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Lock, Phone } from "lucide-react";
+import { User, Mail, Lock, Phone, CreditCard, AtSign } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,8 +15,11 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    idNumber: '',
     email: '',
     password: '',
     phone: '',
@@ -28,7 +31,20 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
     
     if (mode === 'register') {
       if (formData.password !== formData.confirmPassword) {
-        alert('Las contraseñas no coinciden');
+        toast({
+          title: "Error",
+          description: "Las contraseñas no coinciden",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (!formData.firstName || !formData.lastName || !formData.idNumber || !formData.phone) {
+        toast({
+          title: "Error",
+          description: "Todos los campos son obligatorios",
+          variant: "destructive"
+        });
         return;
       }
     }
@@ -36,14 +52,28 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
     // Simulate successful authentication
     const userData = {
       id: Date.now(),
-      name: formData.name || formData.email.split('@')[0],
+      firstName: formData.firstName || formData.email.split('@')[0],
+      lastName: formData.lastName || '',
+      name: `${formData.firstName || formData.email.split('@')[0]} ${formData.lastName || ''}`.trim(),
       email: formData.email,
       phone: formData.phone,
-      joinedAt: new Date().toISOString()
+      idNumber: formData.idNumber,
+      username: '',
+      joinedAt: new Date().toISOString(),
+      stats: {
+        packagesRequested: 0,
+        packagesCompleted: 0,
+        totalTips: 0,
+        packagesDelivered: 0
+      }
     };
 
     onAuth(userData);
-    setFormData({ name: '', email: '', password: '', phone: '', confirmPassword: '' });
+    setFormData({ firstName: '', lastName: '', idNumber: '', email: '', password: '', phone: '', confirmPassword: '' });
+    toast({
+      title: "¡Bienvenido!",
+      description: mode === 'login' ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente"
+    });
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -52,7 +82,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold text-primary">
             {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
@@ -67,25 +97,61 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre completo</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Tu nombre completo"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="pl-10"
-                  required
-                />
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Nombre *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Apellido *</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="lastName"
+                      type="text"
+                      placeholder="Tu apellido"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="idNumber">DPI o Pasaporte *</Label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="idNumber"
+                    type="text"
+                    placeholder="Número de identificación"
+                    value={formData.idNumber}
+                    onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Correo electrónico</Label>
+            <Label htmlFor="email">Correo electrónico *</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -102,7 +168,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
 
           {mode === 'register' && (
             <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono (WhatsApp)</Label>
+              <Label htmlFor="phone">WhatsApp (con código de país) *</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -119,7 +185,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password">Contraseña *</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -136,7 +202,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
 
           {mode === 'register' && (
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+              <Label htmlFor="confirmPassword">Confirmar contraseña *</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input

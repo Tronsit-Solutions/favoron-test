@@ -17,7 +17,13 @@ const Index = () => {
     // Add admin role for demo purposes
     const userWithRole = {
       ...userData,
-      role: userData.email === 'admin@favaron.com' ? 'admin' : 'user'
+      role: userData.email === 'admin@favaron.com' ? 'admin' : 'user',
+      stats: userData.stats || {
+        packagesRequested: 0,
+        packagesCompleted: 0,
+        totalTips: 0,
+        packagesDelivered: 0
+      }
     };
     setUser(userWithRole);
     setShowAuth(false);
