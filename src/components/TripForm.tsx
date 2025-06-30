@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Home, AlertCircle, Phone } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Home, AlertCircle, Phone, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -25,7 +26,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     availableSpace: '',
     deliveryMethod: '',
     additionalInfo: '',
-    deliveryAddress: {
+    packageReceivingAddress: {
       streetAddress: '',
       cityArea: '',
       hotelAirbnbName: '',
@@ -56,7 +57,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     e.preventDefault();
     
     if (!formData.fromCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod ||
-        !formData.deliveryAddress.streetAddress || !formData.deliveryAddress.cityArea || !formData.deliveryAddress.contactNumber) {
+        !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.contactNumber) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -69,7 +70,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       availableSpace: '',
       deliveryMethod: '',
       additionalInfo: '',
-      deliveryAddress: {
+      packageReceivingAddress: {
         streetAddress: '',
         cityArea: '',
         hotelAirbnbName: '',
@@ -85,8 +86,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
   const handleAddressChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      deliveryAddress: {
-        ...prev.deliveryAddress,
+      packageReceivingAddress: {
+        ...prev.packageReceivingAddress,
         [field]: value
       }
     }));
@@ -194,14 +195,14 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </p>
           </div>
 
-          {/* Delivery Address Section */}
+          {/* Package Receiving Address Section */}
           <div className="border rounded-lg p-4 space-y-4 bg-muted/10">
             <div className="flex items-center space-x-2 mb-3">
-              <Home className="h-5 w-5 text-primary" />
-              <Label className="text-lg font-medium">Dirección de entrega en Guatemala *</Label>
+              <Package className="h-5 w-5 text-primary" />
+              <Label className="text-lg font-medium">Dirección para recibir paquetes *</Label>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Esta será la dirección donde los compradores enviarán los paquetes. Solo necesitas completarla una vez.
+              Esta será la dirección en <strong>{formData.fromCity || 'tu ciudad de origen'}</strong> donde los compradores enviarán los paquetes que debes traer. Debe ser donde te hospedas (hotel, Airbnb, etc.).
             </p>
 
             <div className="space-y-2">
@@ -209,45 +210,49 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               <Input
                 id="streetAddress"
                 type="text"
-                placeholder="Ej: 5ta Avenida 12-34, Zona 10"
-                value={formData.deliveryAddress.streetAddress}
+                placeholder="Ej: 123 Main Street, Apt 4B"
+                value={formData.packageReceivingAddress.streetAddress}
                 onChange={(e) => handleAddressChange('streetAddress', e.target.value)}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cityArea">Ciudad/Área *</Label>
+              <Label htmlFor="cityArea">Ciudad/Estado/Código postal *</Label>
               <Input
                 id="cityArea"
                 type="text"
-                placeholder="Ej: Guatemala City, Zona 10"
-                value={formData.deliveryAddress.cityArea}
+                placeholder="Ej: Miami, FL 33101"
+                value={formData.packageReceivingAddress.cityArea}
                 onChange={(e) => handleAddressChange('cityArea', e.target.value)}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hotelAirbnbName">Nombre del hotel/Airbnb (opcional)</Label>
+              <Label htmlFor="hotelAirbnbName">Nombre del hotel/Airbnb *</Label>
               <Input
                 id="hotelAirbnbName"
                 type="text"
-                placeholder="Ej: Hotel Casa Santo Domingo"
-                value={formData.deliveryAddress.hotelAirbnbName}
+                placeholder="Ej: Hotel InterContinental Miami"
+                value={formData.packageReceivingAddress.hotelAirbnbName}
                 onChange={(e) => handleAddressChange('hotelAirbnbName', e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Importante: Los paquetes se enviarán aquí antes de tu viaje
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contactNumber">Número de contacto *</Label>
+              <Label htmlFor="contactNumber">Número de contacto en {formData.fromCity || 'ciudad de origen'} *</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="contactNumber"
                   type="tel"
-                  placeholder="+502 1234-5678"
-                  value={formData.deliveryAddress.contactNumber}
+                  placeholder="+1 (305) 123-4567"
+                  value={formData.packageReceivingAddress.contactNumber}
                   onChange={(e) => handleAddressChange('contactNumber', e.target.value)}
                   className="pl-10"
                   required
@@ -256,8 +261,19 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </div>
           </div>
 
+          {/* Favorón Office Information */}
+          <div className="border rounded-lg p-4 space-y-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center space-x-2 mb-3">
+              <Building2 className="h-5 w-5 text-blue-600" />
+              <Label className="text-lg font-medium text-blue-800">Entrega en Guatemala</Label>
+            </div>
+            <p className="text-sm text-blue-700">
+              <strong>Importante:</strong> Al llegar a Guatemala, deberás entregar todos los paquetes en la oficina de Favorón ubicada en Zona 14, Guatemala City. Te proporcionaremos la dirección exacta y horarios de atención una vez confirmado tu viaje.
+            </p>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="deliveryMethod">Método de entrega preferido *</Label>
+            <Label htmlFor="deliveryMethod">Método de entrega preferido en Guatemala *</Label>
             <Select value={formData.deliveryMethod} onValueChange={(value) => handleInputChange('deliveryMethod', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona método de entrega" />
@@ -274,7 +290,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              ¿Cómo prefieres hacer las entregas finales a los compradores?
+              ¿Cómo prefieres hacer las entregas finales a los compradores después de recoger en nuestra oficina?
             </p>
           </div>
 
@@ -295,10 +311,11 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               <div className="text-sm text-orange-800">
                 <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• Los compradores enviarán paquetes a tu dirección de entrega</li>
+                  <li>• Los compradores enviarán paquetes a tu hotel/dirección en {formData.fromCity || 'tu ciudad de origen'}</li>
                   <li>• Podrás cotizar el precio por traer cada paquete</li>
+                  <li>• Al llegar a Guatemala, entregas en nuestra oficina en Zona 14</li>
+                  <li>• Nosotros coordinamos la entrega final al comprador</li>
                   <li>• Ganas entre $20-100+ por viaje</li>
-                  <li>• Te ayudamos con el proceso completo de entrega</li>
                 </ul>
               </div>
             </div>

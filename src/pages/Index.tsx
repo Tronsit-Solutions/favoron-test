@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plane, Package, Users, MapPin, CheckCircle, DollarSign } from "lucide-react";
+import { Plane, Package, Users, MapPin, CheckCircle, DollarSign, LogIn } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
   const [user, setUser] = useState<any>(null);
 
   const handleLogin = (userData: any) => {
@@ -22,6 +23,11 @@ const Index = () => {
 
   const handleLogout = () => {
     setUser(null);
+  };
+
+  const openAuthModal = (mode: "login" | "register") => {
+    setAuthMode(mode);
+    setShowAuth(true);
   };
 
   if (user) {
@@ -47,14 +53,21 @@ const Index = () => {
           Te conectamos para hacer que ambos ganen.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" onClick={() => setShowAuth(true)} className="text-lg px-8 py-3">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+          <Button size="lg" onClick={() => openAuthModal("register")} className="text-lg px-8 py-3">
             <Package className="h-5 w-5 mr-2" />
             Solicitar Paquete
           </Button>
-          <Button size="lg" variant="secondary" onClick={() => setShowAuth(true)} className="text-lg px-8 py-3">
+          <Button size="lg" variant="secondary" onClick={() => openAuthModal("register")} className="text-lg px-8 py-3">
             <Plane className="h-5 w-5 mr-2" />
             Registrar Viaje
+          </Button>
+        </div>
+
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={() => openAuthModal("login")} className="text-lg px-6 py-2">
+            <LogIn className="h-4 w-4 mr-2" />
+            Iniciar Sesión
           </Button>
         </div>
       </header>
@@ -199,7 +212,7 @@ const Index = () => {
         <p className="text-xl text-gray-600 mb-8">
           Únete a nuestra comunidad y comienza a enviar o traer paquetes hoy mismo
         </p>
-        <Button size="lg" onClick={() => setShowAuth(true)} className="text-lg px-8 py-3">
+        <Button size="lg" onClick={() => openAuthModal("register")} className="text-lg px-8 py-3">
           Crear Cuenta Gratis
         </Button>
         
@@ -211,7 +224,7 @@ const Index = () => {
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
-        mode="register"
+        mode={authMode}
         onAuth={handleLogin}
       />
     </div>
