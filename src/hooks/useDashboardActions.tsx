@@ -161,11 +161,15 @@ export const useDashboardActions = (
   const buildTravelerAddress = (matchedTrip: any) => {
     if (!matchedTrip) return null;
     
+    // Extract address data properly from the nested structure
+    const addressData = matchedTrip.packageReceivingAddress;
+    if (!addressData) return null;
+    
     return {
-      streetAddress: matchedTrip.packageReceivingAddress || "Dirección no disponible",
-      cityArea: matchedTrip.toCity || "Ciudad no disponible",
-      hotelAirbnbName: matchedTrip.accommodationType === 'hotel' ? matchedTrip.hotelName : null,
-      contactNumber: matchedTrip.contactNumber || "Teléfono no disponible"
+      streetAddress: addressData.streetAddress || "Dirección no disponible",
+      cityArea: matchedTrip.toCity || "Ciudad no disponible", 
+      hotelAirbnbName: addressData.accommodationType === 'hotel' ? addressData.hotelAirbnbName : null,
+      contactNumber: addressData.contactNumber || "Teléfono no disponible"
     };
   };
 
