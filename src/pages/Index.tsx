@@ -36,15 +36,30 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Top Navigation Bar */}
+      <nav className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+              <Plane className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-primary">Favorón</h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={() => openAuthModal("login")}>
+              <LogIn className="h-4 w-4 mr-2" />
+              Iniciar Sesión
+            </Button>
+            <Button onClick={() => openAuthModal("register")}>
+              Registrarse
+            </Button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-16 pb-24 text-center">
-        <div className="flex items-center justify-center space-x-2 mb-8">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <Plane className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-primary">Favorón</h1>
-        </div>
-        
         <h2 className="text-5xl font-bold text-gray-900 mb-6">
           Conectamos viajeros con compradores
         </h2>
@@ -53,7 +68,7 @@ const Index = () => {
           Te conectamos para hacer que ambos ganen.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" onClick={() => openAuthModal("register")} className="text-lg px-8 py-3">
             <Package className="h-5 w-5 mr-2" />
             Solicitar Paquete
@@ -61,13 +76,6 @@ const Index = () => {
           <Button size="lg" variant="secondary" onClick={() => openAuthModal("register")} className="text-lg px-8 py-3">
             <Plane className="h-5 w-5 mr-2" />
             Registrar Viaje
-          </Button>
-        </div>
-
-        <div className="flex justify-center">
-          <Button variant="outline" onClick={() => openAuthModal("login")} className="text-lg px-6 py-2">
-            <LogIn className="h-4 w-4 mr-2" />
-            Iniciar Sesión
           </Button>
         </div>
       </header>
