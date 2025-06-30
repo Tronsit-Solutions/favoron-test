@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Home, AlertCircle, Phone, Building2 } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -25,6 +25,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     arrivalDate: null as Date | null,
     availableSpace: '',
     deliveryMethod: '',
+    deliveryDate: null as Date | null,
     additionalInfo: '',
     packageReceivingAddress: {
       streetAddress: '',
@@ -46,18 +47,12 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     'Otra ciudad'
   ];
 
-  const deliveryMethods = [
-    'Entrega en domicilio',
-    'Entrega en hotel/Airbnb',
-    'Punto de encuentro público',
-    'Oficina de courier'
-  ];
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.fromCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod ||
-        !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.contactNumber) {
+        !formData.deliveryDate || !formData.packageReceivingAddress.streetAddress || 
+        !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.contactNumber) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -69,6 +64,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       arrivalDate: null,
       availableSpace: '',
       deliveryMethod: '',
+      deliveryDate: null,
       additionalInfo: '',
       packageReceivingAddress: {
         streetAddress: '',
@@ -272,26 +268,59 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="deliveryMethod">Método de entrega preferido en Guatemala *</Label>
-            <Select value={formData.deliveryMethod} onValueChange={(value) => handleInputChange('deliveryMethod', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona método de entrega" />
-              </SelectTrigger>
-              <SelectContent>
-                {deliveryMethods.map((method) => (
-                  <SelectItem key={method} value={method}>
-                    <div className="flex items-center space-x-2">
-                      <Home className="h-4 w-4" />
-                      <span>{method}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              ¿Cómo prefieres hacer las entregas finales a los compradores después de recoger en nuestra oficina?
+          {/* New Delivery Method Options */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes en Guatemala? *</Label>
+            <RadioGroup 
+              value={formData.deliveryMethod} 
+              onValueChange={(value) => handleInputChange('deliveryMethod', value)}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="oficina" id="oficina" />
+                <Label htmlFor="oficina" className="cursor-pointer">
+                  Llevaré los paquetes a la oficina de Favorón (zona 14)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="mensajero" id="mensajero" />
+                <Label htmlFor="mensajero" className="cursor-pointer">
+                  Que los recoja un mensajero
+                </Label>
+              </div>
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground bg-yellow-50 border border-yellow-200 rounded p-3">
+              📌 <strong>Nota:</strong> El servicio de mensajero tiene un costo de Q25 a Q40 para el remitente (válido solo en Ciudad de Guatemala y municipios cercanos).
             </p>
+          </div>
+
+          {/* New Delivery Date Field */}
+          <div className="space-y-2">
+            <Label>¿En qué fecha vas a entregar los paquetes en la oficina de Favorón o al mensajero? *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.deliveryDate ? (
+                    format(formData.deliveryDate, "PPP", { locale: es })
+                  ) : (
+                    <span>Selecciona fecha de entrega</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.deliveryDate || undefined}
+                  onSelect={(date) => handleInputChange('deliveryDate', date)}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
