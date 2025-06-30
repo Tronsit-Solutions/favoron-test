@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,10 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Plane, Package, Plus, LogOut, User, Bell, MapPin, Home, Phone, Upload } from "lucide-react";
+import { Plane, Package, Plus, LogOut, User, Bell, MapPin, Home, Phone, Upload, Settings, DollarSign } from "lucide-react";
 import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
+import AdminDashboard from "./AdminDashboard";
+import QuoteDialog from "./QuoteDialog";
+import PackageStatusTimeline from "./PackageStatusTimeline";
+import UploadDocuments from "./UploadDocuments";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardProps {
@@ -22,7 +25,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [showTripForm, setShowTripForm] = useState(false);
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
+  const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
+  const [quoteUserType, setQuoteUserType] = useState<'traveler' | 'shopper'>('traveler');
   const [packages, setPackages] = useState<any[]>([]);
   const [trips, setTrips] = useState<any[]>([]);
   const { toast } = useToast();
@@ -47,7 +53,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     const newTrip = {
       id: Date.now(),
       ...tripData,
-      status: 'active',
+      status: 'pending_approval',
       createdAt: new Date().toISOString(),
       userId: user.id
     };
@@ -55,13 +61,12 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     setShowTripForm(false);
     toast({
       title: "¡Viaje registrado!",
-      description: "Tu viaje ha sido registrado exitosamente. Podrás ver solicitudes compatibles pronto.",
+      description: "Tu viaje ha sido registrado exitosamente. Está en revisión.",
     });
   };
 
   const handleAddressConfirmation = (confirmedAddress: any) => {
     if (selectedPackageForAddress) {
-      // Update package with confirmed address and new status
       setPackages(prev => prev.map(pkg => 
         pkg.id === selectedPackageForAddress.id 
           ? { ...pkg, status: 'address_confirmed', confirmedDeliveryAddress: confirmedAddress }
@@ -76,51 +81,120 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     }
   };
 
-  const mockQuoteAcceptance = (packageId: number) => {
-    // Simulate a traveler accepting a quote - this would trigger address confirmation
-    const packageItem = packages.find(p => p.id === packageId);
-    if (packageItem) {
-      // For demo purposes, we'll use a mock trip with delivery address
-      const mockTripAddress = {
-        streetAddress: "5ta Avenida 12-34, Zona 10",
-        cityArea: "Guatemala City, Zona 10",
-        hotelAirbnbName: "Hotel Casa Santo Domingo",
-        contactNumber: "+502 1234-5678"
-      };
-      
-      setSelectedPackageForAddress({ ...packageItem, deliveryAddress: mockTripAddress });
-      setShowAddressConfirmation(true);
+  const handleMatchPackage = (packageId: number, tripId: number) => {
+    setPackages(prev => prev.map(pkg => 
+      pkg.id === packageId ? { ...pkg, status: 'matched', matchedTripId: tripId } : pkg
+    ));
+    
+    // Simulate notification to shopper
+    toast({
+      title: "¡Paquete emparejado!",
+      description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
+    });
+  };
+
+  const handleQuoteSubmit = (quoteData: any) => {
+    if (selectedPackageForQuote) {
+      if (quoteUserType === 'traveler') {
+        // Traveler sending quote
+        setPackages(prev => prev.map(pkg => 
+          pkg.id === selectedPackageForQuote.id 
+            ? { ...pkg, status: 'quote_sent', quote: quoteData }
+            : pkg
+        ));
+        toast({
+          title: "¡Cotización enviada!",
+          description: "Tu cotización ha sido enviada al comprador.",
+        });
+      } else {
+        // Shopper accepting quote
+        if (quoteData.message === 'accepted') {
+          setPackages(prev => prev.map(pkg => 
+            pkg.id === selectedPackageForQuote.id 
+              ? { ...pkg, status: 'quote_accepted' }
+              : pkg
+          ));
+          toast({
+            title: "¡Cotización aceptada!",
+            description: "Procede a confirmar tu dirección de entrega.",
+          });
+        }
+      }
     }
+    setShowQuoteDialog(false);
+    setSelectedPackageForQuote(null);
+  };
+
+  const handleStatusUpdate = (type: 'package' | 'trip', id: number, status: string) => {
+    if (type === 'package') {
+      setPackages(prev => prev.map(pkg => 
+        pkg.id === id ? { ...pkg, status } : pkg
+      ));
+    } else {
+      setTrips(prev => prev.map(trip => 
+        trip.id === id ? { ...trip, status } : trip
+      ));
+    }
+    
+    toast({
+      title: "Estado actualizado",
+      description: `El estado ha sido actualizado a: ${status}`,
+    });
+  };
+
+  const handleApproveReject = (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => {
+    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    handleStatusUpdate(type, id, newStatus);
+  };
+
+  const handleMarkAsPaid = (packageId: number) => {
+    setPackages(prev => prev.map(pkg => 
+      pkg.id === packageId ? { ...pkg, status: 'paid' } : pkg
+    ));
+    toast({
+      title: "¡Marcado como pagado!",
+      description: "Ahora puedes subir la información de seguimiento.",
+    });
+  };
+
+  const handleUploadDocument = (packageId: number, type: 'confirmation' | 'tracking', data: any) => {
+    setPackages(prev => prev.map(pkg => {
+      if (pkg.id === packageId) {
+        const updatedPkg = { ...pkg };
+        if (type === 'confirmation') {
+          updatedPkg.purchaseConfirmation = data;
+          updatedPkg.status = 'purchased';
+        } else if (type === 'tracking') {
+          updatedPkg.trackingInfo = data;
+          updatedPkg.status = 'in_transit';
+        }
+        return updatedPkg;
+      }
+      return pkg;
+    }));
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending_approval':
-        return <Badge variant="secondary">Pendiente aprobación</Badge>;
-      case 'approved':
-        return <Badge variant="default">Aprobado</Badge>;
-      case 'matched':
-        return <Badge className="bg-blue-500">Emparejado</Badge>;
-      case 'quote_accepted':
-        return <Badge className="bg-purple-500">Cotización aceptada</Badge>;
-      case 'address_confirmed':
-        return <Badge className="bg-green-500">Dirección confirmada</Badge>;
-      case 'awaiting_purchase':
-        return <Badge className="bg-yellow-500">Esperando compra</Badge>;
-      case 'purchased':
-        return <Badge className="bg-indigo-500">Comprado</Badge>;
-      case 'shipped_to_traveler':
-        return <Badge className="bg-orange-500">Enviado al viajero</Badge>;
-      case 'in_transit':
-        return <Badge className="bg-orange-500">En tránsito</Badge>;
-      case 'delivered':
-        return <Badge className="bg-green-500">Entregado</Badge>;
-      case 'active':
-        return <Badge variant="default">Activo</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+    const statusMap = {
+      'pending_approval': { label: 'Pendiente aprobación', variant: 'secondary' as const },
+      'approved': { label: 'Aprobado', variant: 'default' as const },
+      'matched': { label: 'Emparejado', variant: 'default' as const },
+      'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
+      'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
+      'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
+      'paid': { label: 'Pagado', variant: 'default' as const },
+      'purchased': { label: 'Comprado', variant: 'default' as const },
+      'in_transit': { label: 'En tránsito', variant: 'default' as const },
+      'delivered': { label: 'Entregado', variant: 'default' as const },
+      'rejected': { label: 'Rechazado', variant: 'destructive' as const },
+      'active': { label: 'Activo', variant: 'default' as const },
+    };
+    
+    const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
+
+  const isAdmin = user.role === 'admin';
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,10 +241,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="packages">Mis Paquetes</TabsTrigger>
             <TabsTrigger value="trips">Mis Viajes</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -283,7 +358,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-6">
                 {packages.map((pkg) => (
                   <Card key={pkg.id}>
                     <CardHeader>
@@ -298,59 +373,122 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        <p className="text-sm">
-                          <strong>Link del producto:</strong>{' '}
-                          <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                            Ver producto
-                          </a>
-                        </p>
-                        
-                        {/* Show delivery address if confirmed */}
-                        {pkg.confirmedDeliveryAddress && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <div className="flex items-start space-x-2 mb-2">
-                              <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
-                              <p className="text-sm font-medium text-green-800">Dirección de envío confirmada:</p>
-                            </div>
-                            <div className="text-sm text-green-700 ml-6">
-                              <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
-                              <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
-                              {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
-                                <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
-                              )}
-                              <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Action buttons based on status */}
-                        {pkg.status === 'approved' && (
-                          <Button 
-                            onClick={() => mockQuoteAcceptance(pkg.id)}
-                            className="w-full"
-                            variant="outline"
-                          >
-                            Simular aceptación de cotización (Demo)
-                          </Button>
-                        )}
-
-                        {pkg.status === 'address_confirmed' && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <p className="text-sm text-blue-800">
-                              ✅ <strong>Siguiente paso:</strong> El viajero puede proceder con la compra del producto y enviarlo a la dirección confirmada.
-                            </p>
-                          </div>
-                        )}
-
-                        {pkg.additionalNotes && (
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
                           <p className="text-sm">
-                            <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+                            <strong>Link del producto:</strong>{' '}
+                            <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              Ver producto
+                            </a>
                           </p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
-                        </p>
+                          
+                          {/* Show quote information */}
+                          {pkg.quote && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
+                              <p className="text-sm text-blue-700">
+                                Servicio: ${pkg.quote.price}
+                                {pkg.quote.serviceFee && ` + Adicionales: $${pkg.quote.serviceFee}`}
+                              </p>
+                              {pkg.quote.message && (
+                                <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Show delivery address if confirmed */}
+                          {pkg.confirmedDeliveryAddress && (
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                              <div className="flex items-start space-x-2 mb-2">
+                                <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
+                                <p className="text-sm font-medium text-green-800">Dirección de envío confirmada:</p>
+                              </div>
+                              <div className="text-sm text-green-700 ml-6">
+                                <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
+                                <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
+                                {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
+                                  <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
+                                )}
+                                <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action buttons based on status */}
+                          <div className="flex flex-wrap gap-2">
+                            {pkg.status === 'matched' && (
+                              <Button 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPackageForQuote(pkg);
+                                  setQuoteUserType('traveler');
+                                  setShowQuoteDialog(true);
+                                }}
+                              >
+                                <DollarSign className="h-4 w-4 mr-1" />
+                                Enviar Cotización
+                              </Button>
+                            )}
+
+                            {pkg.status === 'quote_sent' && pkg.quote && (
+                              <Button 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPackageForQuote(pkg);
+                                  setQuoteUserType('shopper');
+                                  setShowQuoteDialog(true);
+                                }}
+                              >
+                                Ver Cotización
+                              </Button>
+                            )}
+
+                            {pkg.status === 'quote_accepted' && (
+                              <Button 
+                                size="sm"
+                                onClick={() => {
+                                  const mockTripAddress = {
+                                    streetAddress: "5ta Avenida 12-34, Zona 10",
+                                    cityArea: "Guatemala City, Zona 10",
+                                    hotelAirbnbName: "Hotel Casa Santo Domingo",
+                                    contactNumber: "+502 1234-5678"
+                                  };
+                                  setSelectedPackageForAddress({ ...pkg, deliveryAddress: mockTripAddress });
+                                  setShowAddressConfirmation(true);
+                                }}
+                              >
+                                Confirmar Dirección
+                              </Button>
+                            )}
+
+                            {pkg.status === 'address_confirmed' && (
+                              <Button 
+                                size="sm"
+                                onClick={() => handleMarkAsPaid(pkg.id)}
+                              >
+                                Marcar como Pagado
+                              </Button>
+                            )}
+                          </div>
+
+                          {pkg.additionalNotes && (
+                            <p className="text-sm">
+                              <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <PackageStatusTimeline currentStatus={pkg.status} />
+                          <UploadDocuments 
+                            packageId={pkg.id}
+                            currentStatus={pkg.status}
+                            onUpload={(type, data) => handleUploadDocument(pkg.id, type, data)}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -442,9 +580,22 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               </div>
             )}
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin">
+              <AdminDashboard 
+                packages={packages}
+                trips={trips}
+                onMatchPackage={handleMatchPackage}
+                onUpdateStatus={handleStatusUpdate}
+                onApproveReject={handleApproveReject}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
+      {/* Modals */}
       <PackageRequestForm
         isOpen={showPackageForm}
         onClose={() => setShowPackageForm(false)}
@@ -470,6 +621,24 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             itemDescription: selectedPackageForAddress.itemDescription,
             estimatedPrice: selectedPackageForAddress.estimatedPrice
           }}
+        />
+      )}
+
+      {selectedPackageForQuote && (
+        <QuoteDialog
+          isOpen={showQuoteDialog}
+          onClose={() => {
+            setShowQuoteDialog(false);
+            setSelectedPackageForQuote(null);
+          }}
+          onSubmit={handleQuoteSubmit}
+          packageDetails={{
+            itemDescription: selectedPackageForQuote.itemDescription,
+            estimatedPrice: selectedPackageForQuote.estimatedPrice,
+            deliveryAddress: selectedPackageForQuote.confirmedDeliveryAddress
+          }}
+          userType={quoteUserType}
+          existingQuote={selectedPackageForQuote.quote}
         />
       )}
     </div>
