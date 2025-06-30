@@ -14,8 +14,14 @@ import QuoteDialog from "./QuoteDialog";
 import PackageStatusTimeline from "./PackageStatusTimeline";
 import UploadDocuments from "./UploadDocuments";
 import UserProfile from "./UserProfile";
-import UserDashboard from "./UserDashboard";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardProps {
   user: any;
@@ -29,6 +35,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [showTripForm, setShowTripForm] = useState(false);
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
   const [quoteUserType, setQuoteUserType] = useState<'traveler' | 'shopper'>('traveler');
@@ -203,6 +210,52 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const isAdmin = currentUser.role === 'admin';
 
+  if (showProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-white sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Plane className="h-5 w-5 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-primary">Favorón</h1>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm">
+                <Bell className="h-4 w-4 mr-2" />
+                Notificaciones
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setShowProfile(false)}
+              >
+                Volver al Dashboard
+              </Button>
+
+              <Button variant="ghost" size="sm" onClick={onLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Salir
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8">
+          <UserProfile 
+            user={currentUser} 
+            packages={packages}
+            trips={trips}
+            onUpdateUser={handleUpdateUser} 
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -221,20 +274,32 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               Notificaciones
             </Button>
             
-            <div className="flex items-center space-x-2">
-              <Avatar>
-                <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
-              </Avatar>
-              <div className="hidden md:block">
-                <p className="text-sm font-medium">{currentUser.name}</p>
-                <p className="text-xs text-muted-foreground">{currentUser.email}</p>
-              </div>
-            </div>
-
-            <Button variant="ghost" size="sm" onClick={onLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Salir
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="text-xs">{currentUser.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline">Mi Perfil</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5 text-sm">
+                  <p className="font-medium">{currentUser.name}</p>
+                  <p className="text-xs text-muted-foreground">{currentUser.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                  <User className="h-4 w-4 mr-2" />
+                  Mi Perfil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Salir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
@@ -248,10 +313,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="dashboard">Mi Dashboard</TabsTrigger>
-            <TabsTrigger value="profile">Mi Perfil</TabsTrigger>
             <TabsTrigger value="packages">Mis Paquetes</TabsTrigger>
             <TabsTrigger value="trips">Mis Viajes</TabsTrigger>
             {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
@@ -338,21 +401,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="dashboard" className="space-y-6">
-            <UserDashboard 
-              user={currentUser} 
-              packages={packages} 
-              trips={trips} 
-            />
-          </TabsContent>
-
-          <TabsContent value="profile" className="space-y-6">
-            <UserProfile 
-              user={currentUser} 
-              onUpdateUser={handleUpdateUser} 
-            />
           </TabsContent>
 
           <TabsContent value="packages" className="space-y-6">
