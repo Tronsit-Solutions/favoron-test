@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { User, Mail, Phone, CreditCard, AtSign, Edit2, Save, X, Package, Plane, DollarSign, Trophy, TrendingUp, Clock } from "lucide-react";
+import { Package, Plane, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ProfileHeader from "./profile/ProfileHeader";
+import UserLevelCard from "./profile/UserLevelCard";
+import UserStats from "./profile/UserStats";
+import PersonalInfoForm from "./profile/PersonalInfoForm";
+import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
 
 interface UserProfileProps {
   user: any;
@@ -144,112 +144,17 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
 
   return (
     <div className="space-y-6">
-      {/* Profile Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
-                <AvatarFallback className="text-2xl">
-                  {user.firstName?.[0]}{user.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-2xl">{user.name}</CardTitle>
-                <CardDescription>
-                  {user.username ? `@${user.username}` : 'Sin nombre de usuario'}
-                </CardDescription>
-                <div className="flex items-center space-x-2 mt-2">
-                  <Badge className={`${userLevel.color} text-white`}>
-                    {userLevel.level}
-                  </Badge>
-                  <Badge variant="outline">
-                    Miembro desde {new Date(user.joinedAt).getFullYear()}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            <Button
-              variant={isEditing ? "destructive" : "outline"}
-              onClick={isEditing ? handleCancel : () => setIsEditing(true)}
-            >
-              {isEditing ? <X className="h-4 w-4 mr-2" /> : <Edit2 className="h-4 w-4 mr-2" />}
-              {isEditing ? "Cancelar" : "Editar Perfil"}
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+      <ProfileHeader 
+        user={user}
+        userLevel={userLevel}
+        isEditing={isEditing}
+        onEdit={() => setIsEditing(true)}
+        onCancel={handleCancel}
+      />
 
-      {/* User Level and Progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="h-5 w-5" />
-            <span>Tu Nivel: {userLevel.level}</span>
-          </CardTitle>
-          <CardDescription>{userLevel.next}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progreso al siguiente nivel</span>
-              <span>{Math.round(userLevel.progress)}%</span>
-            </div>
-            <Progress value={userLevel.progress} className="w-full" />
-          </div>
-        </CardContent>
-      </Card>
+      <UserLevelCard userLevel={userLevel} />
 
-      {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesRequested}</p>
-                <p className="text-xs text-muted-foreground">Favorones pedidos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Plane className="h-5 w-5 text-accent" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesDelivered}</p>
-                <p className="text-xs text-muted-foreground">Favorones entregados</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-2xl font-bold">${stats.totalTips}</p>
-                <p className="text-xs text-muted-foreground">Propinas ganadas</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Trophy className="h-5 w-5 text-yellow-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesCompleted}</p>
-                <p className="text-xs text-muted-foreground">Completados</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <UserStats stats={stats} />
 
       {/* Current Status and Recent Activity */}
       <div className="grid md:grid-cols-2 gap-6">
@@ -325,119 +230,13 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         </CardHeader>
         <CardContent className="space-y-4">
           {isEditing ? (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Nombre</Label>
-                  <Input
-                    id="firstName"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    placeholder="Tu nombre"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Apellido</Label>
-                  <Input
-                    id="lastName"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    placeholder="Tu apellido"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="username">Nombre de usuario</Label>
-                <div className="relative">
-                  <AtSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                    placeholder="usuario123"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">WhatsApp</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+502 1234 5678"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="idNumber">DPI/Pasaporte</Label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="idNumber"
-                    value={formData.idNumber}
-                    onChange={(e) => setFormData(prev => ({ ...prev, idNumber: e.target.value }))}
-                    placeholder="Número de identificación"
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <Button onClick={handleSave} className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-                Guardar Cambios
-              </Button>
-            </>
+            <PersonalInfoForm 
+              formData={formData}
+              setFormData={setFormData}
+              onSave={handleSave}
+            />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Nombre completo</p>
-                  <p className="text-sm text-muted-foreground">{user.name}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Correo electrónico</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">WhatsApp</p>
-                  <p className="text-sm text-muted-foreground">{user.phone || 'No registrado'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Identificación</p>
-                  <p className="text-sm text-muted-foreground">{user.idNumber || 'No registrado'}</p>
-                </div>
-              </div>
-
-              {user.username && (
-                <div className="flex items-center space-x-3">
-                  <AtSign className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Nombre de usuario</p>
-                    <p className="text-sm text-muted-foreground">@{user.username}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            <PersonalInfoDisplay user={user} />
           )}
         </CardContent>
       </Card>
