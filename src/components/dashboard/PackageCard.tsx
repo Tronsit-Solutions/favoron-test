@@ -11,7 +11,6 @@ interface PackageCardProps {
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
   onConfirmAddress: (pkg: any) => void;
-  onMarkAsPaid: (packageId: number) => void;
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   viewMode?: 'shopper' | 'traveler';
 }
@@ -21,7 +20,6 @@ const PackageCard = ({
   getStatusBadge, 
   onQuote, 
   onConfirmAddress, 
-  onMarkAsPaid, 
   onUploadDocument,
   viewMode = 'shopper'
 }: PackageCardProps) => {

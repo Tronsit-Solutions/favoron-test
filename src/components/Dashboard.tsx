@@ -58,7 +58,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleQuoteSubmit,
     handleQuote,
     handleConfirmAddress,
-    handleMarkAsPaid,
     handleUploadDocument,
     handleConfirmPayment,
     handleMatchPackage,
@@ -204,7 +203,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                     getStatusBadge={getStatusBadge}
                     onQuote={handleQuote}
                     onConfirmAddress={handleConfirmAddress}
-                    onMarkAsPaid={handleMarkAsPaid}
                     onUploadDocument={handleUploadDocument}
                     viewMode="shopper"
                   />
@@ -217,7 +215,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-bold">Mis Viajes</h3>
-                <p className="text-muted-foreforeground">
+                <p className="text-muted-foreground">
                   Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
                 </p>
               </div>
