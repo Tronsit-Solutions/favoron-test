@@ -6,9 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Plane, Package, Plus, LogOut, User, Bell } from "lucide-react";
+import { Plane, Package, Plus, LogOut, User, Bell, MapPin, Home, Phone, Upload } from "lucide-react";
 import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
+import AddressConfirmationModal from "./AddressConfirmationModal";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardProps {
@@ -20,6 +21,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [showTripForm, setShowTripForm] = useState(false);
+  const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
+  const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [packages, setPackages] = useState<any[]>([]);
   const [trips, setTrips] = useState<any[]>([]);
   const { toast } = useToast();
@@ -56,6 +59,40 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     });
   };
 
+  const handleAddressConfirmation = (confirmedAddress: any) => {
+    if (selectedPackageForAddress) {
+      // Update package with confirmed address and new status
+      setPackages(prev => prev.map(pkg => 
+        pkg.id === selectedPackageForAddress.id 
+          ? { ...pkg, status: 'address_confirmed', confirmedDeliveryAddress: confirmedAddress }
+          : pkg
+      ));
+      setShowAddressConfirmation(false);
+      setSelectedPackageForAddress(null);
+      toast({
+        title: "¡Dirección confirmada!",
+        description: "El comprador ya puede proceder con la compra y envío.",
+      });
+    }
+  };
+
+  const mockQuoteAcceptance = (packageId: number) => {
+    // Simulate a traveler accepting a quote - this would trigger address confirmation
+    const packageItem = packages.find(p => p.id === packageId);
+    if (packageItem) {
+      // For demo purposes, we'll use a mock trip with delivery address
+      const mockTripAddress = {
+        streetAddress: "5ta Avenida 12-34, Zona 10",
+        cityArea: "Guatemala City, Zona 10",
+        hotelAirbnbName: "Hotel Casa Santo Domingo",
+        contactNumber: "+502 1234-5678"
+      };
+      
+      setSelectedPackageForAddress({ ...packageItem, deliveryAddress: mockTripAddress });
+      setShowAddressConfirmation(true);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_approval':
@@ -64,6 +101,16 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         return <Badge variant="default">Aprobado</Badge>;
       case 'matched':
         return <Badge className="bg-blue-500">Emparejado</Badge>;
+      case 'quote_accepted':
+        return <Badge className="bg-purple-500">Cotización aceptada</Badge>;
+      case 'address_confirmed':
+        return <Badge className="bg-green-500">Dirección confirmada</Badge>;
+      case 'awaiting_purchase':
+        return <Badge className="bg-yellow-500">Esperando compra</Badge>;
+      case 'purchased':
+        return <Badge className="bg-indigo-500">Comprado</Badge>;
+      case 'shipped_to_traveler':
+        return <Badge className="bg-orange-500">Enviado al viajero</Badge>;
       case 'in_transit':
         return <Badge className="bg-orange-500">En tránsito</Badge>;
       case 'delivered':
@@ -166,7 +213,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               </Card>
             </div>
 
-            {/* Recent Activity */}
             <Card>
               <CardHeader>
                 <CardTitle>Actividad Reciente</CardTitle>
@@ -252,13 +298,51 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <p className="text-sm">
                           <strong>Link del producto:</strong>{' '}
                           <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                             Ver producto
                           </a>
                         </p>
+                        
+                        {/* Show delivery address if confirmed */}
+                        {pkg.confirmedDeliveryAddress && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-start space-x-2 mb-2">
+                              <MapPin className="h-4 w-4 text-green-600 mt-0.5" />
+                              <p className="text-sm font-medium text-green-800">Dirección de envío confirmada:</p>
+                            </div>
+                            <div className="text-sm text-green-700 ml-6">
+                              <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
+                              <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
+                              {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
+                                <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
+                              )}
+                              <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action buttons based on status */}
+                        {pkg.status === 'approved' && (
+                          <Button 
+                            onClick={() => mockQuoteAcceptance(pkg.id)}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            Simular aceptación de cotización (Demo)
+                          </Button>
+                        )}
+
+                        {pkg.status === 'address_confirmed' && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p className="text-sm text-blue-800">
+                              ✅ <strong>Siguiente paso:</strong> El viajero puede proceder con la compra del producto y enviarlo a la dirección confirmada.
+                            </p>
+                          </div>
+                        )}
+
                         {pkg.additionalNotes && (
                           <p className="text-sm">
                             <strong>Notas adicionales:</strong> {pkg.additionalNotes}
@@ -317,10 +401,32 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <p className="text-sm">
                           <strong>Método de entrega:</strong> {trip.deliveryMethod}
                         </p>
+
+                        {/* Display delivery address */}
+                        {trip.deliveryAddress && (
+                          <div className="bg-muted/50 border rounded-lg p-3">
+                            <div className="flex items-start space-x-2 mb-2">
+                              <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
+                              <p className="text-sm font-medium">Dirección de entrega registrada:</p>
+                            </div>
+                            <div className="text-sm text-muted-foreground ml-6">
+                              <p>{trip.deliveryAddress.streetAddress}</p>
+                              <p>{trip.deliveryAddress.cityArea}</p>
+                              {trip.deliveryAddress.hotelAirbnbName && (
+                                <p>{trip.deliveryAddress.hotelAirbnbName}</p>
+                              )}
+                              <div className="flex items-center space-x-1 mt-1">
+                                <Phone className="h-3 w-3" />
+                                <span>{trip.deliveryAddress.contactNumber}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {trip.additionalInfo && (
                           <p className="text-sm">
                             <strong>Información adicional:</strong> {trip.additionalInfo}
@@ -350,6 +456,22 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         onClose={() => setShowTripForm(false)}
         onSubmit={handleTripSubmit}
       />
+
+      {selectedPackageForAddress && (
+        <AddressConfirmationModal
+          isOpen={showAddressConfirmation}
+          onClose={() => {
+            setShowAddressConfirmation(false);
+            setSelectedPackageForAddress(null);
+          }}
+          onConfirm={handleAddressConfirmation}
+          currentAddress={selectedPackageForAddress.deliveryAddress}
+          packageDetails={{
+            itemDescription: selectedPackageForAddress.itemDescription,
+            estimatedPrice: selectedPackageForAddress.estimatedPrice
+          }}
+        />
+      )}
     </div>
   );
 };
