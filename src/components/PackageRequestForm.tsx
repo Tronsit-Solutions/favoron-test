@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -23,30 +25,75 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     itemDescription: '',
     estimatedPrice: '',
     deliveryDeadline: null as Date | null,
-    additionalNotes: ''
+    additionalNotes: '',
+    packageDestination: '',
+    packageDestinationOther: '',
+    purchaseOrigin: '',
+    purchaseOriginOther: '',
+    deliveryMethod: ''
   });
+
+  const destinationCities = [
+    'Guatemala City',
+    'Antigua Guatemala',
+    'Quetzaltenango',
+    'Escuintla',
+    'Otra ciudad'
+  ];
+
+  const purchaseOrigins = [
+    { value: 'USA', label: 'USA' },
+    { value: 'España', label: 'España' },
+    { value: 'México', label: 'México' },
+    { value: 'Otro', label: 'Otro' }
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.itemLink || !formData.itemDescription || !formData.estimatedPrice || !formData.deliveryDeadline) {
+    const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
+    const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
+    
+    if (!formData.itemLink || !formData.itemDescription || !formData.estimatedPrice || 
+        !formData.deliveryDeadline || !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
 
-    onSubmit(formData);
+    // Validar delivery method si destino es Guatemala
+    if (finalDestination.toLowerCase().includes('guatemala') && !formData.deliveryMethod) {
+      alert('Por favor selecciona cómo quieres recibir tu paquete en Guatemala');
+      return;
+    }
+
+    const submitData = {
+      ...formData,
+      packageDestination: finalDestination,
+      purchaseOrigin: finalOrigin
+    };
+
+    onSubmit(submitData);
+    
+    // Reset form
     setFormData({
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
       deliveryDeadline: null,
-      additionalNotes: ''
+      additionalNotes: '',
+      packageDestination: '',
+      packageDestinationOther: '',
+      purchaseOrigin: '',
+      purchaseOriginOther: '',
+      deliveryMethod: ''
     });
   };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -115,6 +162,98 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
               Precio aproximado del producto sin incluir envío
             </p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="packageDestination">Destino del paquete *</Label>
+            <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona el destino del paquete" />
+              </SelectTrigger>
+              <SelectContent>
+                {destinationCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{city}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.packageDestination === 'Otra ciudad' && (
+              <Input
+                placeholder="Escribe la ciudad de destino"
+                value={formData.packageDestinationOther}
+                onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+                className="mt-2"
+                required
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              ¿A dónde necesitas que llegue el paquete?
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
+            <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="¿Desde qué país estás comprando?" />
+              </SelectTrigger>
+              <SelectContent>
+                {purchaseOrigins.map((origin) => (
+                  <SelectItem key={origin.value} value={origin.value}>
+                    <div className="flex items-center space-x-2">
+                      <Globe className="h-4 w-4" />
+                      <span>{origin.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.purchaseOrigin === 'Otro' && (
+              <Input
+                placeholder="Escribe el país de origen"
+                value={formData.purchaseOriginOther}
+                onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
+                className="mt-2"
+                required
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              ¿Desde qué país estás comprando tu producto?
+            </p>
+          </div>
+
+          {/* Delivery method for Guatemala only */}
+          {isGuatemalaDestination && (
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
+              <RadioGroup 
+                value={formData.deliveryMethod} 
+                onValueChange={(value) => handleInputChange('deliveryMethod', value)}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="pickup" id="pickup" />
+                  <Label htmlFor="pickup" className="cursor-pointer">
+                    Lo recojo en zona 14
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="delivery" id="delivery" />
+                  <Label htmlFor="delivery" className="cursor-pointer">
+                    Enviarlo a mi domicilio
+                  </Label>
+                </div>
+              </RadioGroup>
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <p className="text-sm text-blue-800">
+                  📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional entre Q25 y Q40 (solo válido en Ciudad de Guatemala y municipios cercanos).
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Fecha límite de entrega *</Label>

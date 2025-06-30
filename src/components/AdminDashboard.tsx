@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle, Eye } from "lucide-react";
+import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle, Eye, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
@@ -29,6 +30,7 @@ const AdminDashboard = ({
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");
+  const [showMatchDialog, setShowMatchDialog] = useState(false);
   const [showPackageDetail, setShowPackageDetail] = useState(false);
   const [showTripDetail, setShowTripDetail] = useState(false);
   const [selectedDetailPackage, setSelectedDetailPackage] = useState<any>(null);
@@ -48,6 +50,7 @@ const AdminDashboard = ({
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
+      'active': { label: 'Activo', variant: 'default' as const },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
@@ -63,7 +66,13 @@ const AdminDashboard = ({
       });
       setSelectedPackage(null);
       setMatchingTrip("");
+      setShowMatchDialog(false);
     }
+  };
+
+  const handleOpenMatchDialog = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setShowMatchDialog(true);
   };
 
   const handleViewPackageDetail = (pkg: any) => {
@@ -100,7 +109,9 @@ const AdminDashboard = ({
     setShowTripDetail(true);
   };
 
-  const availableTrips = trips.filter(trip => trip.status === 'active');
+  // Filter trips that are approved and active for matching
+  const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
+  const approvedPackages = packages.filter(p => p.status === 'approved');
 
   return (
     <div className="space-y-6">
@@ -138,7 +149,7 @@ const AdminDashboard = ({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-green-600" />
+              <Zap className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">{packages.filter(p => p.status === 'matched').length}</p>
                 <p className="text-xs text-muted-foreground">Matches activos</p>
@@ -169,62 +180,57 @@ const AdminDashboard = ({
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Solicitudes pendientes de Match</CardTitle>
+              <CardTitle>Solicitudes listas para Match</CardTitle>
               <CardDescription>Solicitudes aprobadas esperando ser emparejadas con viajeros</CardDescription>
             </CardHeader>
             <CardContent>
-              {packages.filter(p => p.status === 'approved').length === 0 ? (
+              {approvedPackages.length === 0 ? (
                 <p className="text-muted-foreground">No hay solicitudes pendientes de Match</p>
               ) : (
                 <div className="space-y-2">
-                  {packages.filter(p => p.status === 'approved').map(pkg => (
+                  {approvedPackages.map(pkg => (
                     <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">{pkg.itemDescription}</p>
-                        <p className="text-sm text-muted-foreground">Precio: ${pkg.estimatedPrice}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId} • Destino: {pkg.packageDestination || 'Guatemala City'}
+                        </p>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" onClick={() => setSelectedPackage(pkg)}>
-                            Hacer Match
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Hacer Match de solicitud</DialogTitle>
-                            <DialogDescription>
-                              Selecciona un viaje para hacer match con esta solicitud
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <p className="font-medium">{selectedPackage?.itemDescription}</p>
-                              <p className="text-sm text-muted-foreground">Precio: ${selectedPackage?.estimatedPrice}</p>
-                            </div>
-                            <Select value={matchingTrip} onValueChange={setMatchingTrip}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar viaje" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {availableTrips.map(trip => (
-                                  <SelectItem key={trip.id} value={trip.id.toString()}>
-                                    {trip.fromCity} → {trip.toCity} - {new Date(trip.arrivalDate).toLocaleDateString()}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button onClick={handleMatch} className="w-full">
-                              Confirmar Match
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleOpenMatchDialog(pkg)}
+                          disabled={availableTrips.length === 0}
+                        >
+                          <Zap className="h-4 w-4 mr-1" />
+                          Hacer Match
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {availableTrips.length === 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2 text-amber-600">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="text-sm">No hay viajes activos disponibles para hacer Match. Revisa la sección de Viajes para aprobar algunos.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-4">
@@ -360,6 +366,70 @@ const AdminDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Enhanced Match Dialog */}
+      <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Hacer Match de solicitud</DialogTitle>
+            <DialogDescription>
+              Selecciona un viaje para hacer match con esta solicitud
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedPackage && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <h4 className="font-medium text-blue-900">Solicitud seleccionada:</h4>
+                <p className="text-sm text-blue-800">{selectedPackage.itemDescription}</p>
+                <p className="text-xs text-blue-700">
+                  Precio: ${selectedPackage.estimatedPrice} • Destino: {selectedPackage.packageDestination || 'Guatemala City'}
+                </p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="matchingTrip">Seleccionar viaje disponible:</Label>
+              <Select value={matchingTrip} onValueChange={setMatchingTrip}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar viaje" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTrips.map(trip => (
+                    <SelectItem key={trip.id} value={trip.id.toString()}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {trip.fromCity} → {trip.toCity}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Llegada: {new Date(trip.arrivalDate).toLocaleDateString()} • Espacio: {trip.availableSpace}kg
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleMatch} 
+                className="flex-1"
+                disabled={!matchingTrip}
+              >
+                <Zap className="h-4 w-4 mr-1" />
+                Confirmar Match
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMatchDialog(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Package Detail Modal */}
       <PackageDetailModal
