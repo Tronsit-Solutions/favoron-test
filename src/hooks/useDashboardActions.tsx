@@ -83,7 +83,17 @@ export const useDashboardActions = (
         ));
         toast({
           title: "¡Cotización aceptada!",
-          description: "Ahora debes hacer el pago a Favorón.",
+          description: "Ahora debes hacer el pago a la cuenta bancaria de Favorón.",
+        });
+      } else {
+        setPackages(packages.map(pkg => 
+          pkg.id === selectedPackage.id 
+            ? { ...pkg, status: 'quote_rejected' }
+            : pkg
+        ));
+        toast({
+          title: "Cotización rechazada",
+          description: "Has rechazado la cotización del viajero.",
         });
       }
     }
@@ -108,16 +118,6 @@ export const useDashboardActions = (
     setShowAddressConfirmation(true);
   };
 
-  const handleMarkAsPaid = (packageId: number) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === packageId ? { ...pkg, status: 'paid' } : pkg
-    ));
-    toast({
-      title: "¡Marcado como pagado!",
-      description: "Ahora puedes subir la información de seguimiento.",
-    });
-  };
-
   const handleUploadDocument = (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
     setPackages(packages.map(pkg => {
       if (pkg.id === packageId) {
@@ -139,8 +139,18 @@ export const useDashboardActions = (
 
     if (type === 'payment_receipt') {
       toast({
-        title: "¡Comprobante enviado!",
-        description: "Tu comprobante está en revisión. Te notificaremos cuando sea confirmado.",
+        title: "¡Pago registrado!",
+        description: "Tu pago está en revisión. Te notificaremos cuando sea confirmado.",
+      });
+    } else if (type === 'confirmation') {
+      toast({
+        title: "¡Comprobante de compra subido!",
+        description: "Se ha registrado tu comprobante de compra.",
+      });
+    } else if (type === 'tracking') {
+      toast({
+        title: "¡Información de seguimiento actualizada!",
+        description: "Se ha registrado la información de envío.",
       });
     }
   };
@@ -209,7 +219,6 @@ export const useDashboardActions = (
     handleQuoteSubmit,
     handleQuote,
     handleConfirmAddress,
-    handleMarkAsPaid,
     handleUploadDocument,
     handleConfirmPayment,
     handleMatchPackage,

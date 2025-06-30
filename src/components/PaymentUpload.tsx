@@ -48,6 +48,20 @@ const PaymentUpload = ({ packageId, onUpload }: PaymentUploadProps) => {
       });
       
       setSelectedFile(null);
+    } else {
+      // Allow submitting without file (optional)
+      const paymentData = {
+        filename: null,
+        uploadedAt: new Date().toISOString(),
+        type: 'payment_receipt'
+      };
+      
+      onUpload(paymentData);
+      
+      toast({
+        title: "¡Pago registrado!",
+        description: "Tu pago ha sido registrado para revisión.",
+      });
     }
   };
 
@@ -59,7 +73,7 @@ const PaymentUpload = ({ packageId, onUpload }: PaymentUploadProps) => {
           <span>Pago a Favorón</span>
         </CardTitle>
         <CardDescription className="text-green-700">
-          Ahora debes hacer el pago a la cuenta bancaria de Favorón. Puedes subir una foto del comprobante en este mismo formulario.
+          Realiza el pago a la cuenta bancaria de Favorón. Puedes subir una foto del comprobante aquí.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -85,12 +99,10 @@ const PaymentUpload = ({ packageId, onUpload }: PaymentUploadProps) => {
           </div>
         </div>
         
-        {selectedFile && (
-          <Button onClick={handleUpload} className="w-full">
-            <FileText className="h-4 w-4 mr-2" />
-            Subir Comprobante
-          </Button>
-        )}
+        <Button onClick={handleUpload} className="w-full">
+          <FileText className="h-4 w-4 mr-2" />
+          {selectedFile ? 'Subir Comprobante' : 'Confirmar Pago (sin comprobante)'}
+        </Button>
         
         <div className="text-xs text-green-600 border-t border-green-200 pt-2">
           <p><strong>Información de pago:</strong></p>

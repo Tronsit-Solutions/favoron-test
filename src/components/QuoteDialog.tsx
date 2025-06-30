@@ -48,6 +48,16 @@ const QuoteDialog = ({
     }
   };
 
+  const handleAccept = () => {
+    onSubmit({ price: 0, message: 'accepted' });
+    onClose();
+  };
+
+  const handleReject = () => {
+    onSubmit({ price: 0, message: 'rejected' });
+    onClose();
+  };
+
   const totalCost = price + serviceFee;
 
   return (
@@ -189,10 +199,10 @@ const QuoteDialog = ({
               </div>
 
               <div className="flex space-x-3">
-                <Button variant="outline" onClick={onClose} className="flex-1">
+                <Button variant="outline" onClick={handleReject} className="flex-1">
                   Rechazar
                 </Button>
-                <Button onClick={() => onSubmit({ price: 0, message: 'accepted' })} className="flex-1">
+                <Button onClick={handleAccept} className="flex-1">
                   Aceptar Cotización
                 </Button>
               </div>

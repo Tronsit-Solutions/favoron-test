@@ -104,7 +104,7 @@ const PackageCard = ({
 
             {/* Action buttons based on view mode and status */}
             <div className="flex flex-wrap gap-2">
-              {/* Shopper actions - only for receiving quotes and confirming address */}
+              {/* Shopper actions */}
               {viewMode === 'shopper' && (
                 <>
                   {pkg.status === 'quote_sent' && pkg.quote && (
@@ -113,24 +113,6 @@ const PackageCard = ({
                       onClick={() => onQuote(pkg, 'shopper')}
                     >
                       Ver y Responder Cotización
-                    </Button>
-                  )}
-
-                  {pkg.status === 'quote_accepted' && (
-                    <Button 
-                      size="sm"
-                      onClick={() => onConfirmAddress(pkg)}
-                    >
-                      Confirmar Dirección
-                    </Button>
-                  )}
-
-                  {pkg.status === 'address_confirmed' && (
-                    <Button 
-                      size="sm"
-                      onClick={() => onMarkAsPaid(pkg.id)}
-                    >
-                      Marcar como Pagado
                     </Button>
                   )}
                 </>
@@ -168,11 +150,14 @@ const PackageCard = ({
               />
             )}
             
-            <UploadDocuments 
-              packageId={pkg.id}
-              currentStatus={pkg.status}
-              onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-            />
+            {/* Show upload documents after payment confirmation */}
+            {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (
+              <UploadDocuments 
+                packageId={pkg.id}
+                currentStatus={pkg.status}
+                onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+              />
+            )}
           </div>
         </div>
       </CardContent>
