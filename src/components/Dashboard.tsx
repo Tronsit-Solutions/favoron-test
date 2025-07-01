@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
@@ -146,7 +147,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">¡Hola, {currentUser.name}! 👋</h2>
           <p className="text-muted-foreground">
-            Gestiona tus solicitudes de paquetes y viajes desde aquí
+            {isAdmin ? 'Panel de administración del sistema' : 'Gestiona tus solicitudes de paquetes y viajes desde aquí'}
           </p>
         </div>
 
@@ -157,6 +158,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             onMatchPackage={handleMatchPackage}
             onUpdateStatus={enhancedHandleStatusUpdate}
             onApproveReject={handleApproveReject}
+            onShowPackageForm={() => setShowPackageForm(true)}
+            onShowTripForm={() => setShowTripForm(true)}
           />
         ) : (
           <DashboardContent
@@ -177,7 +180,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Modals - Available for both admin and regular users */}
       <PackageRequestForm
         isOpen={showPackageForm}
         onClose={() => setShowPackageForm(false)}

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, XCircle } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
@@ -18,6 +18,8 @@ interface AdminDashboardProps {
   onMatchPackage: (packageId: number, tripId: number) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
+  onShowPackageForm: () => void;
+  onShowTripForm: () => void;
 }
 
 const AdminDashboard = ({ 
@@ -25,7 +27,9 @@ const AdminDashboard = ({
   trips, 
   onMatchPackage, 
   onUpdateStatus, 
-  onApproveReject 
+  onApproveReject,
+  onShowPackageForm,
+  onShowTripForm
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -119,6 +123,16 @@ const AdminDashboard = ({
         <div>
           <h2 className="text-3xl font-bold">Panel de Administración</h2>
           <p className="text-muted-foreground">Gestiona solicitudes, viajes y matches</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button onClick={onShowPackageForm} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Solicitud
+          </Button>
+          <Button onClick={onShowTripForm} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Viaje
+          </Button>
         </div>
       </div>
 
