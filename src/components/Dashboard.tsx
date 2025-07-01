@@ -9,7 +9,7 @@ import UserProfile from "./UserProfile";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
-import PackageCard from "./dashboard/PackageCard";
+import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import TravelerPackageCard from "./dashboard/TravelerPackageCard";
 import EmptyState from "./dashboard/EmptyState";
@@ -197,7 +197,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             ) : (
               <div className="grid gap-6">
                 {userPackages.map((pkg) => (
-                  <PackageCard
+                  <CollapsiblePackageCard
                     key={pkg.id}
                     pkg={pkg}
                     getStatusBadge={getStatusBadge}

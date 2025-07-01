@@ -89,8 +89,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || 
         !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType ||
         !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || 
-        !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages ||
-        !formData.fromCountry) {
+        !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || 
+        !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -286,7 +286,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </p>
           </div>
 
-          {/* Package Receiving Address Section */}
+          {/* Package Receiving Address Section - UPDATED with separated postal code */}
           <div className="border rounded-lg p-4 space-y-4 bg-muted/10">
             <div className="flex items-center space-x-2 mb-3">
               <Package className="h-5 w-5 text-primary" />
@@ -350,6 +350,9 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
                   onChange={(e) => handleAddressChange('postalCode', e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Muy importante para el envío internacional
+                </p>
               </div>
             </div>
 
