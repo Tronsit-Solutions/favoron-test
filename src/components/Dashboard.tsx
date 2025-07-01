@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PackageRequestForm from "./PackageRequestForm";
@@ -140,26 +141,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     } else {
       handleStatusUpdate(type, id, status);
     }
-  };
-
-  const handleQuote = (pkg: any, userType: 'traveler' | 'shopper') => {
-    // Find the matched trip to get dates
-    const matchedTrip = pkg.matchedTripId ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
-    
-    // Prepare trip dates for the quote dialog
-    let tripDates = null;
-    if (matchedTrip) {
-      tripDates = {
-        firstDayPackages: matchedTrip.firstDayPackages,
-        lastDayPackages: matchedTrip.lastDayPackages, 
-        deliveryDate: matchedTrip.deliveryDate,
-        arrivalDate: matchedTrip.arrivalDate
-      };
-    }
-    
-    setSelectedPackageForQuote({ ...pkg, tripDates });
-    setQuoteUserType(userType);
-    setShowQuoteDialog(true);
   };
 
   return (
