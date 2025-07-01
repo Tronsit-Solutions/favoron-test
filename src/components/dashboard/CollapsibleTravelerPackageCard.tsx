@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin } from "lucide-react";
+import TravelerPackageTimeline from "./TravelerPackageTimeline";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -42,6 +43,11 @@ const CollapsibleTravelerPackageCard = ({
         <CollapsibleContent>
           <CardContent>
             <div className="space-y-4">
+              {/* Traveler Package Timeline - Show for relevant statuses */}
+              {(['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status)) && (
+                <TravelerPackageTimeline currentStatus={pkg.status} />
+              )}
+
               {/* Package details */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start space-x-2 mb-2">
@@ -126,7 +132,19 @@ const CollapsibleTravelerPackageCard = ({
 
                 {pkg.status === 'quote_accepted' && (
                   <div className="text-sm text-green-600 font-medium">
-                    ✅ Cotización aceptada - Esperando confirmación de dirección
+                    ✅ Cotización aceptada - Esperando confirmación de pago
+                  </div>
+                )}
+
+                {pkg.status === 'payment_confirmed' && (
+                  <div className="text-sm text-blue-600 font-medium">
+                    💳 Pago confirmado - Esperando que el shopper envíe el paquete
+                  </div>
+                )}
+
+                {pkg.status === 'in_transit' && (
+                  <div className="text-sm text-orange-600 font-medium">
+                    🚚 Paquete en tránsito - El shopper ya lo envió
                   </div>
                 )}
               </div>
