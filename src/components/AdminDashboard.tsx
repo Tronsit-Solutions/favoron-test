@@ -1,16 +1,15 @@
-
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, XCircle, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle, Eye, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
-import AdminStats from "./admin/AdminStats";
-import AdminOverview from "./admin/AdminOverview";
-import AdminMatchDialog from "./admin/AdminMatchDialog";
 
 interface AdminDashboardProps {
   packages: any[];
@@ -18,8 +17,6 @@ interface AdminDashboardProps {
   onMatchPackage: (packageId: number, tripId: number) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
-  onShowPackageForm: () => void;
-  onShowTripForm: () => void;
 }
 
 const AdminDashboard = ({ 
@@ -27,9 +24,7 @@ const AdminDashboard = ({
   trips, 
   onMatchPackage, 
   onUpdateStatus, 
-  onApproveReject,
-  onShowPackageForm,
-  onShowTripForm
+  onApproveReject 
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -80,6 +75,7 @@ const AdminDashboard = ({
   };
 
   const handleViewPackageDetail = (pkg: any) => {
+    // Add mock user data for demo
     const packageWithUser = {
       ...pkg,
       user: {
@@ -96,6 +92,7 @@ const AdminDashboard = ({
   };
 
   const handleViewTripDetail = (trip: any) => {
+    // Add mock user data for demo
     const tripWithUser = {
       ...trip,
       user: {
@@ -111,11 +108,9 @@ const AdminDashboard = ({
     setShowTripDetail(true);
   };
 
-  const handleConfirmPayment = (packageId: number) => {
-    onUpdateStatus('package', packageId, 'payment_confirmed');
-  };
-
+  // Filter trips that are approved and active for matching
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
+  const approvedPackages = packages.filter(p => p.status === 'approved');
 
   return (
     <div className="space-y-6">
@@ -124,19 +119,55 @@ const AdminDashboard = ({
           <h2 className="text-3xl font-bold">Panel de Administración</h2>
           <p className="text-muted-foreground">Gestiona solicitudes, viajes y matches</p>
         </div>
-        <div className="flex space-x-2">
-          <Button onClick={onShowPackageForm} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Solicitud
-          </Button>
-          <Button onClick={onShowTripForm} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Viaje
-          </Button>
-        </div>
       </div>
 
-      <AdminStats packages={packages} trips={trips} />
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Package className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-2xl font-bold">{packages.length}</p>
+                <p className="text-xs text-muted-foreground">Solicitudes totales</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Plane className="h-4 w-4 text-accent" />
+              <div>
+                <p className="text-2xl font-bold">{trips.length}</p>
+                <p className="text-xs text-muted-foreground">Viajes registrados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Zap className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{packages.filter(p => p.status === 'matched').length}</p>
+                <p className="text-xs text-muted-foreground">Matches activos</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{packages.filter(p => p.status === 'delivered').length}</p>
+                <p className="text-xs text-muted-foreground">Entregados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
@@ -146,14 +177,111 @@ const AdminDashboard = ({
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <AdminOverview
-            packages={packages}
-            trips={trips}
-            onViewPackageDetail={handleViewPackageDetail}
-            onOpenMatchDialog={handleOpenMatchDialog}
-            onConfirmPayment={handleConfirmPayment}
-            availableTrips={availableTrips}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes listas para Match</CardTitle>
+              <CardDescription>Solicitudes aprobadas esperando ser emparejadas con viajeros</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {approvedPackages.length === 0 ? (
+                <p className="text-muted-foreground">No hay solicitudes pendientes de Match</p>
+              ) : (
+                <div className="space-y-2">
+                  {approvedPackages.map(pkg => (
+                    <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex-1">
+                        <p className="font-medium">{pkg.itemDescription}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          📦 Origen: {pkg.purchaseCountry || 'No especificado'} → 🎯 Destino: {pkg.packageDestination || 'Guatemala'}
+                        </p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleOpenMatchDialog(pkg)}
+                          disabled={availableTrips.length === 0}
+                        >
+                          <Zap className="h-4 w-4 mr-1" />
+                          Hacer Match
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {availableTrips.length === 0 && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2 text-amber-600">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="text-sm">No hay viajes activos disponibles para hacer Match. Revisa la sección de Viajes para aprobar algunos.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* New section for payment confirmations */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pagos pendientes de confirmación</CardTitle>
+              <CardDescription>Solicitudes con comprobantes de pago que requieren revisión</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {packages.filter(pkg => pkg.status === 'payment_pending').length === 0 ? (
+                <p className="text-muted-foreground">No hay pagos pendientes de confirmación</p>
+              ) : (
+                <div className="space-y-2">
+                  {packages.filter(pkg => pkg.status === 'payment_pending').map(pkg => (
+                    <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex-1">
+                        <p className="font-medium">{pkg.itemDescription}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                        </p>
+                        {pkg.paymentReceipt && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Comprobante: {pkg.paymentReceipt.filename} • 
+                            Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Confirmar Pago
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-4">
@@ -305,16 +433,93 @@ const AdminDashboard = ({
         </TabsContent>
       </Tabs>
 
-      <AdminMatchDialog
-        isOpen={showMatchDialog}
-        onClose={() => setShowMatchDialog(false)}
-        selectedPackage={selectedPackage}
-        matchingTrip={matchingTrip}
-        setMatchingTrip={setMatchingTrip}
-        availableTrips={availableTrips}
-        onMatch={handleMatch}
-      />
+      {/* Enhanced Match Dialog with Country Information */}
+      <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Hacer Match de solicitud</DialogTitle>
+            <DialogDescription>
+              Selecciona un viaje compatible para hacer match con esta solicitud
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedPackage && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <h4 className="font-medium text-blue-900">Solicitud seleccionada:</h4>
+                <p className="text-sm text-blue-800">{selectedPackage.itemDescription}</p>
+                <p className="text-xs text-blue-700">
+                  Precio: ${selectedPackage.estimatedPrice}
+                </p>
+                <div className="mt-2 flex items-center space-x-4 text-xs">
+                  <div className="flex items-center space-x-1">
+                    <span className="font-medium">📦 Compra en:</span>
+                    <span className="bg-blue-100 px-2 py-1 rounded">
+                      {selectedPackage.purchaseCountry || 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span className="font-medium">🎯 Envío a:</span>
+                    <span className="bg-green-100 px-2 py-1 rounded">
+                      {selectedPackage.packageDestination || 'Guatemala'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="matchingTrip">Seleccionar viaje compatible:</Label>
+              <Select value={matchingTrip} onValueChange={setMatchingTrip}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar viaje" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTrips.map(trip => (
+                    <SelectItem key={trip.id} value={trip.id.toString()}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {trip.fromCountry || 'País no especificado'} ({trip.fromCity}) → {trip.toCountry || 'Guatemala'} ({trip.toCity})
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Llegada: {new Date(trip.arrivalDate).toLocaleDateString()} • Espacio: {trip.availableSpace}kg
+                        </span>
+                        <div className="flex space-x-2 mt-1">
+                          <span className="text-xs bg-blue-100 px-1 rounded">
+                            ✈️ Desde: {trip.fromCountry || 'País no especificado'}
+                          </span>
+                          <span className="text-xs bg-green-100 px-1 rounded">
+                            🏠 Hacia: {trip.toCountry || 'Guatemala'}
+                          </span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleMatch} 
+                className="flex-1"
+                disabled={!matchingTrip}
+              >
+                <Zap className="h-4 w-4 mr-1" />
+                Confirmar Match
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMatchDialog(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
+      {/* Package Detail Modal */}
       <PackageDetailModal
         package={selectedDetailPackage}
         isOpen={showPackageDetail}
@@ -329,6 +534,7 @@ const AdminDashboard = ({
         }}
       />
 
+      {/* Trip Detail Modal */}
       <TripDetailModal
         trip={selectedDetailTrip}
         isOpen={showTripDetail}
