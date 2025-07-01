@@ -116,6 +116,61 @@ const PackageCard = ({
     );
   };
 
+  // Special layout for payment pending state
+  if (pkg.status === 'quote_accepted' && viewMode === 'shopper') {
+    return (
+      <Card key={pkg.id} className="border-orange-200 bg-orange-50/30">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-lg">{pkg.itemDescription}</CardTitle>
+              <CardDescription>
+                Precio estimado: ${pkg.estimatedPrice} • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}
+              </CardDescription>
+            </div>
+            {getStatusBadge(pkg.status)}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* PAYMENT SECTION - PROMINENT AND VISIBLE */}
+          <div className="mb-6">
+            <PaymentUpload 
+              packageId={pkg.id}
+              onUpload={handlePaymentUpload}
+            />
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <p className="text-sm">
+                <strong>Link del producto:</strong>{' '}
+                <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  Ver producto
+                </a>
+              </p>
+              
+              {renderQuoteInfo()}
+              {renderActionButtons()}
+
+              {pkg.additionalNotes && (
+                <p className="text-sm">
+                  <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <PackageStatusTimeline currentStatus={pkg.status} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card key={pkg.id}>
       <CardHeader>
@@ -163,14 +218,6 @@ const PackageCard = ({
 
           <div className="space-y-4">
             <PackageStatusTimeline currentStatus={pkg.status} />
-            
-            {/* Show payment upload component after quote acceptance */}
-            {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
-              <PaymentUpload 
-                packageId={pkg.id}
-                onUpload={handlePaymentUpload}
-              />
-            )}
             
             {/* Show upload documents after payment confirmation */}
             {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (

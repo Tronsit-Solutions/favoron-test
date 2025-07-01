@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,8 +22,10 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
   const [formData, setFormData] = useState({
     fromCity: '',
     fromCityOther: '',
+    fromCountry: '',
     toCity: '',
     toCityOther: '',
+    toCountry: 'Guatemala',
     arrivalDate: null as Date | null,
     availableSpace: '',
     deliveryMethod: '',
@@ -34,6 +35,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       accommodationType: '',
       streetAddress: '',
       cityArea: '',
+      postalCode: '',
       hotelAirbnbName: '',
       contactNumber: ''
     },
@@ -62,6 +64,16 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     'Otra ciudad'
   ];
 
+  const countries = [
+    'Estados Unidos',
+    'España',
+    'México',
+    'El Salvador',
+    'Honduras',
+    'Costa Rica',
+    'Otro país'
+  ];
+
   const accommodationTypes = [
     { value: 'hotel', label: 'Hotel/Hostal' },
     { value: 'airbnb', label: 'Airbnb' },
@@ -77,7 +89,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || 
         !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType ||
         !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || 
-        !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages) {
+        !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages ||
+        !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -94,8 +107,10 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     setFormData({
       fromCity: '',
       fromCityOther: '',
+      fromCountry: '',
       toCity: '',
       toCityOther: '',
+      toCountry: 'Guatemala',
       arrivalDate: null,
       availableSpace: '',
       deliveryMethod: '',
@@ -105,6 +120,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
         accommodationType: '',
         streetAddress: '',
         cityArea: '',
+        postalCode: '',
         hotelAirbnbName: '',
         contactNumber: ''
       },
@@ -144,6 +160,25 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="fromCountry">País de origen *</Label>
+            <Select value={formData.fromCountry} onValueChange={(value) => handleInputChange('fromCountry', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona el país de origen" />
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((country) => (
+                  <SelectItem key={country} value={country}>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{country}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="fromCity">Ciudad de origen *</Label>
             <Select value={formData.fromCity} onValueChange={(value) => handleInputChange('fromCity', value)}>
@@ -292,16 +327,30 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cityArea">Ciudad/Estado/Código postal *</Label>
-              <Input
-                id="cityArea"
-                type="text"
-                placeholder="Ej: Miami, FL 33101"
-                value={formData.packageReceivingAddress.cityArea}
-                onChange={(e) => handleAddressChange('cityArea', e.target.value)}
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cityArea">Ciudad/Estado *</Label>
+                <Input
+                  id="cityArea"
+                  type="text"
+                  placeholder="Ej: Miami, FL"
+                  value={formData.packageReceivingAddress.cityArea}
+                  onChange={(e) => handleAddressChange('cityArea', e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">Código postal *</Label>
+                <Input
+                  id="postalCode"
+                  type="text"
+                  placeholder="Ej: 33101"
+                  value={formData.packageReceivingAddress.postalCode}
+                  onChange={(e) => handleAddressChange('postalCode', e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
