@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -54,8 +53,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     
+    // Updated validation - deliveryDeadline is no longer required
     if (!formData.itemLink || !formData.itemDescription || !formData.estimatedPrice || 
-        !formData.deliveryDeadline || !finalDestination || !finalOrigin) {
+        !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -256,18 +256,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
           )}
 
           <div className="space-y-2">
-            <Label>Fecha límite de entrega *</Label>
+            <Label>Fecha límite de entrega</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className="w-full justify-start text-left font-normal"
+                  type="button"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {formData.deliveryDeadline ? (
                     format(formData.deliveryDeadline, "PPP", { locale: es })
                   ) : (
-                    <span>Selecciona una fecha</span>
+                    <span>Selecciona una fecha (opcional)</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -282,7 +283,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
               </PopoverContent>
             </Popover>
             <p className="text-xs text-muted-foreground">
-              ¿Para cuándo necesitas el producto?
+              ¿Para cuándo necesitas el producto? (opcional)
             </p>
           </div>
 

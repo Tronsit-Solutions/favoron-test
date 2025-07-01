@@ -1,5 +1,5 @@
 
-import { Check, Circle, Package, CreditCard, Truck, Home } from "lucide-react";
+import { Check, Clock, Package, Truck, MapPin, Building } from "lucide-react";
 
 interface PackageStatusTimelineProps {
   currentStatus: string;
@@ -8,14 +8,60 @@ interface PackageStatusTimelineProps {
 
 const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusTimelineProps) => {
   const statuses = [
-    { key: 'pending_approval', label: 'Solicitud creada', icon: Circle },
-    { key: 'approved', label: 'Aprobada', icon: Check },
-    { key: 'matched', label: 'Match realizado', icon: Package },
-    { key: 'quote_accepted', label: 'Cotización aceptada', icon: Check },
-    { key: 'paid', label: 'Pagado', icon: CreditCard },
-    { key: 'purchased', label: 'Comprado', icon: Package },
-    { key: 'in_transit', label: 'En tránsito', icon: Truck },
-    { key: 'delivered', label: 'Entregado', icon: Home },
+    { 
+      key: 'pending_approval', 
+      label: 'Solicitud creada', 
+      icon: Package,
+      description: 'Tu solicitud está en revisión'
+    },
+    { 
+      key: 'approved', 
+      label: 'Aprobada', 
+      icon: Check,
+      description: 'Solicitud aprobada por el equipo'
+    },
+    { 
+      key: 'matched', 
+      label: 'Match realizado', 
+      icon: MapPin,
+      description: 'Emparejado con un viajero'
+    },
+    { 
+      key: 'quote_accepted', 
+      label: 'Cotización aceptada', 
+      icon: Check,
+      description: 'Aceptaste la cotización del viajero'
+    },
+    { 
+      key: 'payment_confirmed', 
+      label: 'Pago confirmado', 
+      icon: Check,
+      description: 'Tu pago fue confirmado'
+    },
+    { 
+      key: 'purchased', 
+      label: 'Comprado', 
+      icon: Package,
+      description: 'El producto fue comprado'
+    },
+    { 
+      key: 'in_transit', 
+      label: 'En tránsito', 
+      icon: Truck,
+      description: 'El paquete está en camino al viajero'
+    },
+    { 
+      key: 'received_by_traveler', 
+      label: 'Recibido por viajero', 
+      icon: Package,
+      description: 'El viajero recibió tu paquete'
+    },
+    { 
+      key: 'delivered', 
+      label: 'Entregado en oficina', 
+      icon: Building,
+      description: 'Disponible en oficina de Favorón'
+    }
   ];
 
   const currentIndex = statuses.findIndex(status => status.key === currentStatus);
@@ -27,9 +73,13 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <h4 className="font-medium text-sm text-muted-foreground">Estado del paquete</h4>
-      <div className="space-y-3">
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 ${className}`}>
+      <div className="flex items-center space-x-2 mb-3">
+        <Package className="h-4 w-4 text-blue-600" />
+        <p className="text-sm font-medium text-blue-800">Estado de tu pedido:</p>
+      </div>
+      
+      <div className="space-y-2 ml-6">
         {statuses.map((status, index) => {
           const state = getStatusState(index);
           const Icon = status.icon;
@@ -37,30 +87,37 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
           return (
             <div key={status.key} className="flex items-center space-x-3">
               <div className={`
-                w-8 h-8 rounded-full flex items-center justify-center border-2 
+                w-6 h-6 rounded-full flex items-center justify-center border-2 
                 ${state === 'completed' 
                   ? 'bg-green-500 border-green-500 text-white' 
                   : state === 'current'
-                  ? 'bg-primary border-primary text-white'
-                  : 'bg-background border-muted-foreground text-muted-foreground'
+                  ? 'bg-blue-500 border-blue-500 text-white'
+                  : 'bg-background border-gray-300 text-gray-400'
                 }
               `}>
                 {state === 'completed' ? (
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3 w-3" />
+                ) : state === 'current' ? (
+                  <Icon className="h-3 w-3" />
                 ) : (
-                  <Icon className="h-4 w-4" />
+                  <Clock className="h-3 w-3" />
                 )}
               </div>
               
               <div className="flex-1">
                 <p className={`text-sm font-medium ${
-                  state === 'pending' ? 'text-muted-foreground' : 'text-foreground'
+                  state === 'pending' ? 'text-gray-500' : 'text-blue-800'
                 }`}>
                   {status.label}
                 </p>
+                <p className={`text-xs ${
+                  state === 'pending' ? 'text-gray-400' : 'text-blue-600'
+                }`}>
+                  {status.description}
+                </p>
               </div>
               
-              {index < currentIndex && (
+              {state === 'completed' && (
                 <div className="text-xs text-green-600 font-medium">✓</div>
               )}
             </div>
