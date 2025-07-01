@@ -189,9 +189,17 @@ export const useDashboardActions = (
     const travelerAddress = buildTravelerAddress(matchedTrip);
     console.log('Built traveler address:', travelerAddress);
 
+    // NEW: Include trip dates for shipping information
+    const matchedTripDates = matchedTrip ? {
+      firstDayPackages: matchedTrip.firstDayPackages,
+      lastDayPackages: matchedTrip.lastDayPackages,
+      deliveryDate: matchedTrip.deliveryDate,
+      arrivalDate: matchedTrip.arrivalDate
+    } : null;
+
     setPackages(packages.map(currentPkg => 
       currentPkg.id === packageId 
-        ? { ...currentPkg, status: 'payment_confirmed', travelerAddress }
+        ? { ...currentPkg, status: 'payment_confirmed', travelerAddress, matchedTripDates }
         : currentPkg
     ));
     

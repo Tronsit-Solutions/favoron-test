@@ -11,7 +11,7 @@ import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
-import TravelerPackageCard from "./dashboard/TravelerPackageCard";
+import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPackageCard";
 import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
@@ -142,6 +142,26 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     }
   };
 
+  const handleQuote = (pkg: any, userType: 'traveler' | 'shopper') => {
+    // Find the matched trip to get dates
+    const matchedTrip = pkg.matchedTripId ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
+    
+    // Prepare trip dates for the quote dialog
+    let tripDates = null;
+    if (matchedTrip) {
+      tripDates = {
+        firstDayPackages: matchedTrip.firstDayPackages,
+        lastDayPackages: matchedTrip.lastDayPackages, 
+        deliveryDate: matchedTrip.deliveryDate,
+        arrivalDate: matchedTrip.arrivalDate
+      };
+    }
+    
+    setSelectedPackageForQuote({ ...pkg, tripDates });
+    setQuoteUserType(userType);
+    setShowQuoteDialog(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader 
@@ -244,13 +264,13 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 )}
               </div>
 
-              {/* Show packages assigned to user's trips */}
+              {/* Show packages assigned to user's trips - NOW COLLAPSIBLE */}
               {assignedPackages.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                   <div className="grid gap-6">
                     {assignedPackages.map((pkg) => (
-                      <TravelerPackageCard
+                      <CollapsibleTravelerPackageCard
                         key={pkg.id}
                         pkg={pkg}
                         getStatusBadge={getStatusBadge}
@@ -321,6 +341,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote}
+          tripDates={selectedPackageForQuote.tripDates}
         />
       )}
     </div>

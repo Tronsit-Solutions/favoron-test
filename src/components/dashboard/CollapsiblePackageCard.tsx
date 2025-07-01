@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, Calendar, Clock, MapPin } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import PaymentUpload from "@/components/PaymentUpload";
@@ -47,6 +47,34 @@ const CollapsiblePackageCard = ({
             <p>{pkg.travelerAddress.hotelAirbnbName}</p>
           )}
           <p>📞 {pkg.travelerAddress.contactNumber}</p>
+        </div>
+      </div>
+    );
+  };
+
+  // NEW: Render key shipping dates for shopper after payment confirmation
+  const renderShippingDates = () => {
+    if (!pkg.matchedTripDates || viewMode !== 'shopper' || pkg.status !== 'payment_confirmed') return null;
+    
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-start space-x-2 mb-2">
+          <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+          <p className="text-sm font-medium text-blue-800">Fechas importantes para tu envío:</p>
+        </div>
+        <div className="text-sm text-blue-700 ml-6 space-y-1">
+          <div className="flex items-center space-x-2">
+            <Clock className="h-3 w-3" />
+            <span><strong>Primer día para enviar:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Clock className="h-3 w-3" />
+            <span><strong>Último día para enviar:</strong> {new Date(pkg.matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-3 w-3" />
+            <span><strong>Entrega en oficina Favorón:</strong> {new Date(pkg.matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+          </div>
         </div>
       </div>
     );
@@ -135,6 +163,9 @@ const CollapsiblePackageCard = ({
 
                 {/* Show traveler address if payment is confirmed */}
                 {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
+
+                {/* NEW: Show shipping dates after payment confirmation */}
+                {renderShippingDates()}
 
                 {/* Action buttons based on view mode and status */}
                 {renderActionButtons()}

@@ -1,27 +1,28 @@
-
-import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Package, DollarSign, MessageSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, Package, MapPin } from "lucide-react";
+import { useState } from "react";
 
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (quote: { price: number; message: string; serviceFee?: number }) => void;
+  onSubmit: (quoteData: any) => void;
   packageDetails: {
     itemDescription: string;
-    estimatedPrice: string;
+    estimatedPrice: number;
     deliveryAddress?: any;
   };
   userType: 'traveler' | 'shopper';
-  existingQuote?: {
-    price: number;
-    message: string;
-    serviceFee?: number;
+  existingQuote?: any;
+  tripDates?: {
+    firstDayPackages: string;
+    lastDayPackages: string;
+    deliveryDate: string;
+    arrivalDate: string;
   };
 }
 
@@ -30,184 +31,160 @@ const QuoteDialog = ({
   onClose, 
   onSubmit, 
   packageDetails, 
-  userType,
-  existingQuote 
+  userType, 
+  existingQuote,
+  tripDates 
 }: QuoteDialogProps) => {
-  const [price, setPrice] = useState(existingQuote?.price || 0);
-  const [serviceFee, setServiceFee] = useState(existingQuote?.serviceFee || 0);
+  const [price, setPrice] = useState(existingQuote?.price || '');
+  const [serviceFee, setServiceFee] = useState(existingQuote?.serviceFee || '');
   const [message, setMessage] = useState(existingQuote?.message || '');
 
   const handleSubmit = () => {
-    if (price > 0) {
-      onSubmit({ price, message, serviceFee });
-      onClose();
-      // Reset form
-      setPrice(0);
-      setServiceFee(0);
-      setMessage('');
+    if (userType === 'traveler') {
+      onSubmit({
+        price: parseFloat(price),
+        serviceFee: serviceFee ? parseFloat(serviceFee) : 0,
+        message
+      });
+    } else {
+      onSubmit({ message: 'accepted' });
     }
   };
 
-  const handleAccept = () => {
-    onSubmit({ price: 0, message: 'accepted' });
-    onClose();
-  };
-
   const handleReject = () => {
-    onSubmit({ price: 0, message: 'rejected' });
-    onClose();
+    onSubmit({ message: 'rejected' });
   };
-
-  const totalCost = price + serviceFee;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            <span>
-              {userType === 'traveler' ? 'Enviar Cotización' : 'Revisar Cotización'}
-            </span>
+          <DialogTitle>
+            {userType === 'traveler' ? 'Enviar Cotización' : 'Responder Cotización'}
           </DialogTitle>
           <DialogDescription>
             {userType === 'traveler' 
-              ? 'Envía tu precio para traer este paquete' 
+              ? 'Proporciona tu cotización para este Favorón'
               : 'Revisa la cotización del viajero'
             }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Package Info */}
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-2">
-                <Package className="h-4 w-4 text-primary mt-1" />
-                <div>
-                  <h4 className="font-medium mb-1">Paquete solicitado:</h4>
-                  <p className="text-sm text-muted-foreground">{packageDetails.itemDescription}</p>
-                  <p className="text-sm font-medium">Precio estimado: ${packageDetails.estimatedPrice}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {userType === 'traveler' ? (
-            // Traveler form to send quote
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="quotePrice">Tu precio por el servicio ($)</Label>
-                <Input
-                  id="quotePrice"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={price || ''}
-                  onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                  placeholder="Ej: 25.00"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Precio por traer el paquete (sin incluir el costo del producto)
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="serviceFee">Costos adicionales ($) - Opcional</Label>
-                <Input
-                  id="serviceFee"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={serviceFee || ''}
-                  onChange={(e) => setServiceFee(parseFloat(e.target.value) || 0)}
-                  placeholder="Ej: 5.00"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Hotel charges, extra handling, etc.
-                </p>
-              </div>
-
-              {(price > 0 || serviceFee > 0) && (
-                <Card className="bg-green-50 border-green-200">
-                  <CardContent className="p-3">
-                    <p className="text-sm font-medium text-green-800">
-                      Costo total del servicio: ${totalCost.toFixed(2)}
-                    </p>
-                    <p className="text-xs text-green-600">
-                      + Costo del producto (${packageDetails.estimatedPrice})
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div>
-                <Label htmlFor="quoteMessage">Mensaje adicional</Label>
-                <Textarea
-                  id="quoteMessage"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ej: Mi hotel cobra $5 por cada paquete recibido, incluido en el precio..."
-                  rows={3}
-                />
-              </div>
-
-              <Button onClick={handleSubmit} className="w-full" disabled={price <= 0}>
-                Enviar Cotización
-              </Button>
+        <div className="space-y-6">
+          {/* Package Details */}
+          <div className="bg-muted/50 border rounded-lg p-4">
+            <div className="flex items-start space-x-2 mb-2">
+              <Package className="h-4 w-4 text-primary mt-0.5" />
+              <p className="text-sm font-medium text-primary">Detalles del Favorón:</p>
             </div>
-          ) : (
-            // Shopper view to accept/reject quote
-            <div className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-3">Cotización recibida:</h4>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Servicio de traslado:</span>
-                    <span className="font-medium">${existingQuote?.price || 0}</span>
-                  </div>
-                  
-                  {(existingQuote?.serviceFee || 0) > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm">Costos adicionales:</span>
-                      <span className="font-medium">${existingQuote?.serviceFee}</span>
-                    </div>
-                  )}
-                  
-                  <div className="border-t pt-2 flex justify-between font-medium">
-                    <span>Total del servicio:</span>
-                    <span>${((existingQuote?.price || 0) + (existingQuote?.serviceFee || 0)).toFixed(2)}</span>
-                  </div>
-                  
-                  <p className="text-xs text-muted-foreground">
-                    + Costo del producto (${packageDetails.estimatedPrice}) = Total a pagar
-                  </p>
-                </div>
+            <div className="text-sm ml-6">
+              <p><strong>Producto:</strong> {packageDetails.itemDescription}</p>
+              <p><strong>Precio estimado:</strong> ${packageDetails.estimatedPrice}</p>
+            </div>
+          </div>
 
-                {existingQuote?.message && (
-                  <div className="mt-3 p-3 bg-muted rounded">
-                    <div className="flex items-start space-x-2">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">Mensaje del viajero:</p>
-                        <p className="text-sm text-muted-foreground">{existingQuote.message}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+          {/* KEY DATES - Show for shoppers viewing quotes */}
+          {userType === 'shopper' && tripDates && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-2 mb-3">
+                <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                <p className="text-sm font-medium text-blue-800">Fechas importantes del viaje:</p>
               </div>
-
-              <div className="flex space-x-3">
-                <Button variant="outline" onClick={handleReject} className="flex-1">
-                  Rechazar
-                </Button>
-                <Button onClick={handleAccept} className="flex-1">
-                  Aceptar Cotización
-                </Button>
+              <div className="text-sm text-blue-700 ml-6 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-3 w-3" />
+                  <span><strong>Fecha límite para enviar paquete:</strong> {new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-3 w-3" />
+                  <span><strong>Entrega en oficina Favorón:</strong> {new Date(tripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                </div>
               </div>
             </div>
           )}
+
+          {/* Existing Quote Display */}
+          {existingQuote && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-green-800 mb-2">Cotización del viajero:</p>
+              <div className="text-sm text-green-700 space-y-1">
+                <p><strong>Servicio:</strong> ${existingQuote.price}</p>
+                {existingQuote.serviceFee && (
+                  <p><strong>Adicionales:</strong> ${existingQuote.serviceFee}</p>
+                )}
+                {existingQuote.message && (
+                  <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
+                )}
+                <div className="mt-2 pt-2 border-t border-green-300">
+                  <p className="font-medium">
+                    <strong>Total:</strong> ${existingQuote.price + (existingQuote.serviceFee || 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Traveler Quote Form */}
+          {userType === 'traveler' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="price">Precio del servicio *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="0.00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="serviceFee">Servicios adicionales (opcional)</Label>
+                  <Input
+                    id="serviceFee"
+                    type="number"
+                    placeholder="0.00"
+                    value={serviceFee}
+                    onChange={(e) => setServiceFee(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="message">Mensaje (opcional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Añade cualquier información adicional..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            
+            {userType === 'traveler' ? (
+              <Button onClick={handleSubmit} disabled={!price}>
+                Enviar Cotización
+              </Button>
+            ) : (
+              <div className="space-x-2">
+                <Button variant="destructive" onClick={handleReject}>
+                  Rechazar
+                </Button>
+                <Button onClick={handleSubmit}>
+                  Aceptar Cotización
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
