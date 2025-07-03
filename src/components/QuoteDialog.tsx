@@ -171,9 +171,14 @@ const QuoteDialog = ({
             </Button>
             
             {userType === 'traveler' ? (
-              <Button onClick={handleSubmit} disabled={!price}>
-                Enviar Cotización
-              </Button>
+              <div className="space-x-2">
+                <Button variant="destructive" onClick={handleReject}>
+                  Rechazar Pedido
+                </Button>
+                <Button onClick={handleSubmit} disabled={!price}>
+                  Enviar Cotización
+                </Button>
+              </div>
             ) : (
               <div className="space-x-2">
                 <Button variant="destructive" onClick={handleReject}>

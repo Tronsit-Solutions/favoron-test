@@ -65,15 +65,29 @@ export const useDashboardActions = (
 
   const handleQuoteSubmit = (quoteData: any, selectedPackage: any, userType: 'traveler' | 'shopper') => {
     if (userType === 'traveler') {
-      setPackages(packages.map(pkg => 
-        pkg.id === selectedPackage.id 
-          ? { ...pkg, status: 'quote_sent', quote: quoteData }
-          : pkg
-      ));
-      toast({
-        title: "¡Cotización enviada!",
-        description: "Tu cotización ha sido enviada al comprador.",
-      });
+      if (quoteData.message === 'rejected') {
+        // If traveler rejects, package goes back to pending match
+        setPackages(packages.map(pkg => 
+          pkg.id === selectedPackage.id 
+            ? { ...pkg, status: 'approved', matchedTripId: null }
+            : pkg
+        ));
+        toast({
+          title: "Pedido rechazado",
+          description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
+        });
+      } else {
+        // Sending quote implies approval
+        setPackages(packages.map(pkg => 
+          pkg.id === selectedPackage.id 
+            ? { ...pkg, status: 'quote_sent', quote: quoteData }
+            : pkg
+        ));
+        toast({
+          title: "¡Cotización enviada!",
+          description: "Tu cotización ha sido enviada al comprador.",
+        });
+      }
     } else {
       if (quoteData.message === 'accepted') {
         setPackages(packages.map(pkg => 
