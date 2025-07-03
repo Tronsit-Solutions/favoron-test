@@ -149,30 +149,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             </div>
             
             {products.map((product, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4 relative">
+              <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3 relative">
                 {products.length > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => removeProduct(index)}
-                    className="absolute top-2 right-2 text-destructive hover:text-destructive"
+                    className="absolute top-1 right-1 text-destructive hover:text-destructive h-7 w-7 p-0"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor={`itemLink-${index}`}>Link del producto *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`itemLink-${index}`} className="text-sm">Link del producto *</Label>
                   <div className="relative">
-                    <Link2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id={`itemLink-${index}`}
                       type="url"
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink}
                       onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-9"
                       required
                     />
                   </div>
@@ -183,14 +183,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`itemDescription-${index}`}>Descripción del producto *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`itemDescription-${index}`} className="text-sm">Descripción del producto *</Label>
                   <Textarea
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
                     onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                    className="min-h-[80px]"
+                    className="min-h-[36px] resize-y"
+                    rows={1}
                     required
                   />
                   {index === 0 && (
@@ -200,10 +201,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`estimatedPrice-${index}`}>Precio estimado (USD) *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`estimatedPrice-${index}`} className="text-sm">Precio estimado (USD) *</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id={`estimatedPrice-${index}`}
                       type="number"
@@ -211,7 +212,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                       placeholder="299.99"
                       value={product.estimatedPrice}
                       onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-9"
                       required
                     />
                   </div>
