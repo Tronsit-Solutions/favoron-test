@@ -17,6 +17,7 @@ interface AdminDashboardProps {
   onMatchPackage: (packageId: number, tripId: number) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
+  onConfirmOfficeReception: (packageId: number) => void;
 }
 
 const AdminDashboard = ({ 
@@ -24,7 +25,8 @@ const AdminDashboard = ({
   trips, 
   onMatchPackage, 
   onUpdateStatus, 
-  onApproveReject 
+  onApproveReject,
+  onConfirmOfficeReception 
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -48,6 +50,8 @@ const AdminDashboard = ({
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
+      'received_by_traveler': { label: 'Recibido por viajero', variant: 'default' as const },
+      'delivered_to_office': { label: 'Entregado en oficina Favorón', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'default' as const },
     };
@@ -365,6 +369,15 @@ const AdminDashboard = ({
                           onClick={() => onUpdateStatus('package', pkg.id, 'delivered')}
                         >
                           Marcar como entregado
+                        </Button>
+                      )}
+                      
+                      {pkg.status === 'received_by_traveler' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => onConfirmOfficeReception(pkg.id)}
+                        >
+                          Confirmar recepción en oficina Favorón
                         </Button>
                       )}
                     </div>

@@ -276,6 +276,25 @@ export const useDashboardActions = (
     });
   };
 
+  const handleConfirmOfficeReception = (packageId: number) => {
+    setPackages(packages.map(pkg => 
+      pkg.id === packageId 
+        ? { 
+            ...pkg, 
+            status: 'delivered_to_office',
+            officeDelivery: {
+              confirmedAt: new Date().toISOString()
+            }
+          }
+        : pkg
+    ));
+    
+    toast({
+      title: "¡Entregado en oficina!",
+      description: "Paquete confirmado como entregado en oficina Favorón.",
+    });
+  };
+
   return {
     handlePackageSubmit,
     handleTripSubmit,
@@ -288,6 +307,7 @@ export const useDashboardActions = (
     handleMatchPackage,
     handleStatusUpdate,
     handleApproveReject,
-    handleConfirmPackageReceived
+    handleConfirmPackageReceived,
+    handleConfirmOfficeReception
   };
 };

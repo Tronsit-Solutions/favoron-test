@@ -61,10 +61,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleConfirmAddress,
     handleUploadDocument,
     handleConfirmPayment,
-    handleMatchPackage,
-    handleStatusUpdate,
-    handleApproveReject,
-    handleConfirmPackageReceived
+      handleMatchPackage,
+      handleStatusUpdate,
+      handleApproveReject,
+      handleConfirmPackageReceived,
+      handleConfirmOfficeReception
   } = useDashboardActions(
     packages,
     setPackages,
@@ -274,6 +275,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 onMatchPackage={handleMatchPackage}
                 onUpdateStatus={enhancedHandleStatusUpdate}
                 onApproveReject={handleApproveReject}
+                onConfirmOfficeReception={handleConfirmOfficeReception}
               />
             </TabsContent>
           )}
