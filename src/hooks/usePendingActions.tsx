@@ -1,0 +1,56 @@
+import { useMemo } from "react";
+
+export const usePendingActions = (packages: any[], trips: any[], currentUser: any) => {
+  const pendingActions = useMemo(() => {
+    if (!currentUser) return {};
+
+    // For shoppers
+    const shopperPackages = packages.filter(pkg => pkg.userId === currentUser.id);
+    const quotesToAccept = shopperPackages.filter(pkg => pkg.status === 'quote_sent').length;
+    const paymentsToMake = shopperPackages.filter(pkg => pkg.status === 'quote_accepted').length;
+    const uploadsNeeded = shopperPackages.filter(pkg => 
+      pkg.status === 'payment_confirmed' && !pkg.purchaseConfirmation
+    ).length;
+
+    // For travelers
+    const travelerTrips = trips.filter(trip => trip.userId === currentUser.id);
+    const matchedPackages = packages.filter(pkg => 
+      travelerTrips.some(trip => trip.id === pkg.matchedTripId)
+    );
+    const quotesToSend = matchedPackages.filter(pkg => pkg.status === 'matched').length;
+    const packagesToReceive = matchedPackages.filter(pkg => pkg.status === 'in_transit').length;
+
+    // For admin
+    const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending').length;
+    const approvalsNeeded = [
+      ...packages.filter(pkg => pkg.status === 'pending_approval'),
+      ...trips.filter(trip => trip.status === 'pending_approval')
+    ].length;
+    const unmatchedPackages = packages.filter(pkg => pkg.status === 'approved').length;
+    const rejectedByTravelers = packages.filter(pkg => pkg.status === 'quote_rejected').length;
+
+    return {
+      // Shopper actions
+      quotesToAccept,
+      paymentsToMake,
+      uploadsNeeded,
+      
+      // Traveler actions
+      quotesToSend,
+      packagesToReceive,
+      
+      // Admin actions
+      paymentsToConfirm,
+      approvalsNeeded,
+      unmatchedPackages,
+      rejectedByTravelers,
+      
+      // Totals
+      shopperTotal: quotesToAccept + paymentsToMake + uploadsNeeded,
+      travelerTotal: quotesToSend + packagesToReceive,
+      adminTotal: paymentsToConfirm + approvalsNeeded + unmatchedPackages + rejectedByTravelers
+    };
+  }, [packages, trips, currentUser]);
+
+  return pendingActions;
+};

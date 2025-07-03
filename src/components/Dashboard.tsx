@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PackageRequestForm from "./PackageRequestForm";
@@ -16,6 +15,8 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
+import { usePendingActions } from "@/hooks/usePendingActions";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -61,11 +62,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleConfirmAddress,
     handleUploadDocument,
     handleConfirmPayment,
-      handleMatchPackage,
-      handleStatusUpdate,
-      handleApproveReject,
-      handleConfirmPackageReceived,
-      handleConfirmOfficeReception
+    handleMatchPackage,
+    handleStatusUpdate,
+    handleApproveReject,
+    handleConfirmPackageReceived,
+    handleConfirmOfficeReception
   } = useDashboardActions(
     packages,
     setPackages,
@@ -80,6 +81,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     setSelectedPackageForQuote,
     setQuoteUserType
   );
+
+  const pendingActions = usePendingActions(packages, trips, currentUser);
 
   const handleUpdateUser = (userData: any) => {
     setCurrentUser(userData);
@@ -164,9 +167,26 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="packages">Mis Paquetes</TabsTrigger>
-            <TabsTrigger value="trips">Mis Viajes</TabsTrigger>
-            {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
+            <TabsTrigger value="packages" className="relative flex items-center gap-2">
+              Mis Paquetes
+              {pendingActions.shopperTotal > 0 && (
+                <NotificationBadge count={pendingActions.shopperTotal} />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="trips" className="relative flex items-center gap-2">
+              Mis Viajes
+              {pendingActions.travelerTotal > 0 && (
+                <NotificationBadge count={pendingActions.travelerTotal} />
+              )}
+            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="admin" className="relative flex items-center gap-2">
+                Admin
+                {pendingActions.adminTotal > 0 && (
+                  <NotificationBadge count={pendingActions.adminTotal} />
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

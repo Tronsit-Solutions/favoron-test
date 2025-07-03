@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, Plane, Users, CheckCircle, XCircle, AlertCircle, Eye, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 
@@ -116,6 +117,15 @@ const AdminDashboard = ({
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const approvedPackages = packages.filter(p => p.status === 'approved');
 
+  // Calculate pending actions for badges
+  const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending').length;
+  const approvalsNeeded = [
+    ...packages.filter(pkg => pkg.status === 'pending_approval'),
+    ...trips.filter(trip => trip.status === 'pending_approval')
+  ].length;
+  const unmatchedPackages = approvedPackages.length;
+  const matchingTotal = paymentsToConfirm + unmatchedPackages;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -175,10 +185,27 @@ const AdminDashboard = ({
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="packages">Solicitudes</TabsTrigger>
-          <TabsTrigger value="trips">Viajes</TabsTrigger>
-          <TabsTrigger value="matching">Matching y gestión</TabsTrigger>
+          <TabsTrigger value="overview" className="relative flex items-center gap-2">
+            Resumen
+            {(approvalsNeeded + paymentsToConfirm) > 0 && (
+              <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="packages" className="relative flex items-center gap-2">
+            Solicitudes
+            {approvalsNeeded > 0 && (
+              <NotificationBadge count={approvalsNeeded} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="trips">
+            Viajes
+          </TabsTrigger>
+          <TabsTrigger value="matching" className="relative flex items-center gap-2">
+            Matching y gestión
+            {matchingTotal > 0 && (
+              <NotificationBadge count={matchingTotal} />
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
