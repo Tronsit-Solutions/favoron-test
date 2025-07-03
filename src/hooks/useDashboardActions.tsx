@@ -296,26 +296,44 @@ export const useDashboardActions = (
   };
 
   const handleEditTrip = (editedTripData: any) => {
-    setTrips(trips.map(trip => 
-      trip.id === editedTripData.id 
-        ? { ...editedTripData, createdAt: trip.createdAt } 
-        : trip
-    ));
+    setTrips(trips.map(trip => {
+      if (trip.id === editedTripData.id) {
+        // If trip was approved, reset to pending approval for admin review
+        const newStatus = trip.status === 'approved' ? 'pending_approval' : trip.status;
+        return { ...editedTripData, createdAt: trip.createdAt, status: newStatus };
+      }
+      return trip;
+    }));
+    
+    const originalTrip = trips.find(trip => trip.id === editedTripData.id);
+    const needsReapproval = originalTrip?.status === 'approved';
+    
     toast({
       title: "¡Viaje actualizado!",
-      description: "Los cambios se han guardado correctamente.",
+      description: needsReapproval 
+        ? "Los cambios se han guardado. El viaje requiere nueva aprobación del administrador."
+        : "Los cambios se han guardado correctamente.",
     });
   };
 
   const handleEditPackage = (editedPackageData: any) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === editedPackageData.id 
-        ? { ...editedPackageData, createdAt: pkg.createdAt, userId: pkg.userId } 
-        : pkg
-    ));
+    setPackages(packages.map(pkg => {
+      if (pkg.id === editedPackageData.id) {
+        // If package was approved, reset to pending approval for admin review
+        const newStatus = pkg.status === 'approved' ? 'pending_approval' : pkg.status;
+        return { ...editedPackageData, createdAt: pkg.createdAt, userId: pkg.userId, status: newStatus };
+      }
+      return pkg;
+    }));
+    
+    const originalPackage = packages.find(pkg => pkg.id === editedPackageData.id);
+    const needsReapproval = originalPackage?.status === 'approved';
+    
     toast({
       title: "¡Solicitud actualizada!",
-      description: "Los cambios se han guardado correctamente.",
+      description: needsReapproval 
+        ? "Los cambios se han guardado. La solicitud requiere nueva aprobación del administrador."
+        : "Los cambios se han guardado correctamente.",
     });
   };
 
