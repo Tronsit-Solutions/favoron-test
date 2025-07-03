@@ -33,9 +33,17 @@ const AdminPackagesTab = ({
               <div key={pkg.id} className="border rounded-lg p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <h4 className="font-medium">{pkg.itemDescription}</h4>
+                    <h4 className="font-medium">
+                      {pkg.products && pkg.products.length > 0 
+                        ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
+                        : pkg.itemDescription
+                      }
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                      {pkg.products && pkg.products.length > 0 
+                        ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Usuario: ${pkg.userId}`
+                        : `Precio: ${pkg.estimatedPrice} • Usuario: ${pkg.userId}`
+                      }
                     </p>
                     {pkg.paymentReceipt && (
                       <p className="text-xs text-blue-600">

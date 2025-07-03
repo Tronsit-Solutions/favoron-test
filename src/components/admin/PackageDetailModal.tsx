@@ -100,24 +100,94 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-lg">
                 <Package className="h-4 w-4" />
-                <span>Detalles del Artículo</span>
+                <span>
+                  {pkg.products && pkg.products.length > 0 
+                    ? `Productos Solicitados (${pkg.products.length})`
+                    : 'Detalles del Artículo'
+                  }
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="font-medium text-lg">{pkg.itemDescription}</p>
-                <p className="text-muted-foreground">Descripción del artículo solicitado</p>
-              </div>
+              {/* Multiple products display */}
+              {pkg.products && pkg.products.length > 0 ? (
+                <div className="space-y-4">
+                  {pkg.products.map((product: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-lg">Producto #{index + 1}</p>
+                        <Badge variant="outline">${product.estimatedPrice}</Badge>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium mb-1">Descripción:</p>
+                        <p className="text-sm text-muted-foreground">{product.itemDescription}</p>
+                      </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Precio Estimado</p>
-                    <p className="text-sm text-muted-foreground">${pkg.estimatedPrice}</p>
+                      {product.itemLink && (
+                        <div>
+                          <p className="text-sm font-medium mb-1">Link del producto:</p>
+                          <a 
+                            href={product.itemLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center space-x-2 text-primary hover:underline text-sm"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            <span>Ver producto en línea</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Total price summary */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Total Estimado:</span>
+                      <span className="text-lg font-bold text-blue-800">
+                        ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
+              ) : (
+                // Single product display (backward compatibility)
+                <div>
+                  <div>
+                    <p className="font-medium text-lg">{pkg.itemDescription}</p>
+                    <p className="text-muted-foreground">Descripción del artículo solicitado</p>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Precio Estimado</p>
+                        <p className="text-sm text-muted-foreground">${pkg.estimatedPrice}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {pkg.itemLink && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Link del Producto:</p>
+                      <a 
+                        href={pkg.itemLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>Ver producto en línea</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Additional package details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -127,22 +197,39 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {pkg.itemLink && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Link del Producto:</p>
-                  <a 
-                    href={pkg.itemLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Ver producto en línea</span>
-                  </a>
-                </div>
-              )}
+                {pkg.packageDestination && (
+                  <div className="flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Destino</p>
+                      <p className="text-sm text-muted-foreground">{pkg.packageDestination}</p>
+                    </div>
+                  </div>
+                )}
+
+                {pkg.purchaseOrigin && (
+                  <div className="flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Origen de compra</p>
+                      <p className="text-sm text-muted-foreground">{pkg.purchaseOrigin}</p>
+                    </div>
+                  </div>
+                )}
+
+                {pkg.deliveryMethod && (
+                  <div className="flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Método de entrega</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.deliveryMethod === 'pickup' ? 'Recojo en zona 14' : 'Envío a domicilio'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {pkg.additionalNotes && (
                 <div>

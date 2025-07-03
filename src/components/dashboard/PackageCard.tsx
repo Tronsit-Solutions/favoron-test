@@ -1,10 +1,12 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin } from "lucide-react";
+import { MapPin, Edit } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import PaymentUpload from "@/components/PaymentUpload";
+import EditPackageModal from "@/components/EditPackageModal";
 
 interface PackageCardProps {
   pkg: any;
@@ -12,6 +14,7 @@ interface PackageCardProps {
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
   onConfirmAddress: (pkg: any) => void;
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
+  onEditPackage?: (packageData: any) => void;
   viewMode?: 'shopper' | 'traveler';
 }
 
@@ -21,8 +24,10 @@ const PackageCard = ({
   onQuote, 
   onConfirmAddress, 
   onUploadDocument,
+  onEditPackage,
   viewMode = 'shopper'
 }: PackageCardProps) => {
+  const [showEditModal, setShowEditModal] = useState(false);
   const handlePaymentUpload = (paymentData: any) => {
     onUploadDocument(pkg.id, 'payment_receipt', paymentData);
   };
@@ -87,6 +92,8 @@ const PackageCard = ({
   };
 
   const renderActionButtons = () => {
+    const canEdit = viewMode === 'shopper' && ['pending_approval', 'approved'].includes(pkg.status);
+    
     return (
       <div className="flex flex-wrap gap-2">
         {/* Shopper actions */}
@@ -98,6 +105,18 @@ const PackageCard = ({
                 onClick={() => onQuote(pkg, 'shopper')}
               >
                 Ver y Responder Cotización
+              </Button>
+            )}
+            
+            {/* Edit button for early stage packages */}
+            {canEdit && onEditPackage && (
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => setShowEditModal(true)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Editar
               </Button>
             )}
           </>
@@ -116,6 +135,13 @@ const PackageCard = ({
     );
   };
 
+  const handleEditSubmit = (editedData: any) => {
+    if (onEditPackage) {
+      onEditPackage(editedData);
+    }
+    setShowEditModal(false);
+  };
+
   // Special layout for payment pending state
   if (pkg.status === 'quote_accepted' && viewMode === 'shopper') {
     return (
@@ -123,10 +149,18 @@ const PackageCard = ({
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-lg">{pkg.itemDescription}</CardTitle>
-              <CardDescription>
-                Precio estimado: ${pkg.estimatedPrice} • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}
-              </CardDescription>
+            <CardTitle className="text-lg">
+              {pkg.products && pkg.products.length > 0 
+                ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
+                : pkg.itemDescription
+              }
+            </CardTitle>
+            <CardDescription>
+              {pkg.products && pkg.products.length > 0 
+                ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
+                : `Precio estimado: ${pkg.estimatedPrice} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
+              }
+            </CardDescription>
             </div>
             {getStatusBadge(pkg.status)}
           </div>
@@ -142,12 +176,39 @@ const PackageCard = ({
           
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <p className="text-sm">
-                <strong>Link del producto:</strong>{' '}
-                <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  Ver producto
-                </a>
-              </p>
+              {/* Multiple products display */}
+              {pkg.products && pkg.products.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Productos solicitados ({pkg.products.length}):</p>
+                  {pkg.products.map((product: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Producto #{index + 1}</span>
+                        <span className="text-sm text-muted-foreground">${product.estimatedPrice}</span>
+                      </div>
+                      <p className="text-sm">{product.itemDescription}</p>
+                      {product.itemLink && (
+                        <a href={product.itemLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block">
+                          Ver producto
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <p className="text-sm font-medium text-blue-800">
+                      Total estimado: ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                // Single product display (backward compatibility)
+                <p className="text-sm">
+                  <strong>Link del producto:</strong>{' '}
+                  <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    Ver producto
+                  </a>
+                </p>
+              )}
               
               {renderQuoteInfo()}
               {renderActionButtons()}
@@ -167,6 +228,14 @@ const PackageCard = ({
             </div>
           </div>
         </CardContent>
+        
+        {/* Edit Modal */}
+        <EditPackageModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={handleEditSubmit}
+          packageData={pkg}
+        />
       </Card>
     );
   }
@@ -176,9 +245,17 @@ const PackageCard = ({
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg">{pkg.itemDescription}</CardTitle>
+            <CardTitle className="text-lg">
+              {pkg.products && pkg.products.length > 0 
+                ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
+                : pkg.itemDescription
+              }
+            </CardTitle>
             <CardDescription>
-              Precio estimado: ${pkg.estimatedPrice} • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}
+              {pkg.products && pkg.products.length > 0 
+                ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
+                : `Precio estimado: ${pkg.estimatedPrice} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
+              }
             </CardDescription>
           </div>
           {getStatusBadge(pkg.status)}
@@ -187,12 +264,39 @@ const PackageCard = ({
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <p className="text-sm">
-              <strong>Link del producto:</strong>{' '}
-              <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                Ver producto
-              </a>
-            </p>
+            {/* Multiple products display */}
+            {pkg.products && pkg.products.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Productos solicitados ({pkg.products.length}):</p>
+                {pkg.products.map((product: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Producto #{index + 1}</span>
+                      <span className="text-sm text-muted-foreground">${product.estimatedPrice}</span>
+                    </div>
+                    <p className="text-sm">{product.itemDescription}</p>
+                    {product.itemLink && (
+                      <a href={product.itemLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block">
+                        Ver producto
+                      </a>
+                    )}
+                  </div>
+                ))}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <p className="text-sm font-medium text-blue-800">
+                    Total estimado: ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              // Single product display (backward compatibility)
+              <p className="text-sm">
+                <strong>Link del producto:</strong>{' '}
+                <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  Ver producto
+                </a>
+              </p>
+            )}
             
             {/* Show quote information */}
             {renderQuoteInfo()}
@@ -230,6 +334,14 @@ const PackageCard = ({
           </div>
         </div>
       </CardContent>
+      
+      {/* Edit Modal */}
+      <EditPackageModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+        packageData={pkg}
+      />
     </Card>
   );
 };
