@@ -544,6 +544,11 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
                   <li>• Nosotros coordinamos la entrega final al comprador</li>
                   <li>• Ganas entre $20-100+ por viaje</li>
                 </ul>
+                <div className="mt-3 pt-2 border-t border-orange-300/50">
+                  <p className="text-xs font-medium text-orange-900">
+                    🔒 Tu dirección no será compartida con nadie hasta que apruebes un pedido.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

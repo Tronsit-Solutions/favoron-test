@@ -32,6 +32,9 @@ const AdminTripsTab = ({
                     <p className="text-sm text-muted-foreground">
                       Llegada: {new Date(trip.arrivalDate).toLocaleDateString()} • 
                       Espacio: {trip.availableSpace}kg • Usuario: {trip.userId}
+                      {trip.status === 'approved' && trip.deliveryDate && (
+                        <> • <span className="font-medium text-primary">Entrega en oficina: {new Date(trip.deliveryDate).toLocaleDateString()}</span></>
+                      )}
                     </p>
                   </div>
                   {getStatusBadge(trip.status)}
