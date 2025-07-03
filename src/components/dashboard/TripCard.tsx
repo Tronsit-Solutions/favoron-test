@@ -1,14 +1,30 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Home, Phone, Edit } from "lucide-react";
+import { useState } from "react";
+import EditTripModal from "@/components/EditTripModal";
 
 interface TripCardProps {
   trip: any;
   getStatusBadge: (status: string) => JSX.Element;
+  onEditTrip?: (tripData: any) => void;
 }
 
-const TripCard = ({ trip, getStatusBadge }: TripCardProps) => {
+const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const canEdit = ['pending_approval', 'approved'].includes(trip.status);
+
+  const handleEditSubmit = (editedData: any) => {
+    if (onEditTrip) {
+      onEditTrip(editedData);
+    }
+    setShowEditModal(false);
+  };
+
   return (
+    <>
     <Card key={trip.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
@@ -53,12 +69,36 @@ const TripCard = ({ trip, getStatusBadge }: TripCardProps) => {
               <strong>Información adicional:</strong> {trip.additionalInfo}
             </p>
           )}
+
+          {/* Edit button for early stage trips */}
+          {canEdit && onEditTrip && (
+            <div className="flex justify-end mt-3">
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => setShowEditModal(true)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Editar viaje
+              </Button>
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground">
             Registrado el {new Date(trip.createdAt).toLocaleDateString('es-GT')}
           </p>
         </div>
       </CardContent>
     </Card>
+
+    {/* Edit Modal */}
+    <EditTripModal
+      isOpen={showEditModal}
+      onClose={() => setShowEditModal(false)}
+      onSubmit={handleEditSubmit}
+      tripData={trip}
+    />
+    </>
   );
 };
 

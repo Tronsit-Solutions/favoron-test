@@ -295,6 +295,30 @@ export const useDashboardActions = (
     });
   };
 
+  const handleEditTrip = (editedTripData: any) => {
+    setTrips(trips.map(trip => 
+      trip.id === editedTripData.id 
+        ? { ...editedTripData, createdAt: trip.createdAt } 
+        : trip
+    ));
+    toast({
+      title: "¡Viaje actualizado!",
+      description: "Los cambios se han guardado correctamente.",
+    });
+  };
+
+  const handleEditPackage = (editedPackageData: any) => {
+    setPackages(packages.map(pkg => 
+      pkg.id === editedPackageData.id 
+        ? { ...editedPackageData, createdAt: pkg.createdAt, userId: pkg.userId } 
+        : pkg
+    ));
+    toast({
+      title: "¡Solicitud actualizada!",
+      description: "Los cambios se han guardado correctamente.",
+    });
+  };
+
   return {
     handlePackageSubmit,
     handleTripSubmit,
@@ -308,6 +332,8 @@ export const useDashboardActions = (
     handleStatusUpdate,
     handleApproveReject,
     handleConfirmPackageReceived,
-    handleConfirmOfficeReception
+    handleConfirmOfficeReception,
+    handleEditTrip,
+    handleEditPackage
   };
 };

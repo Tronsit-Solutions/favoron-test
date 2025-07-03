@@ -66,7 +66,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleStatusUpdate,
     handleApproveReject,
     handleConfirmPackageReceived,
-    handleConfirmOfficeReception
+    handleConfirmOfficeReception,
+    handleEditTrip,
+    handleEditPackage
   } = useDashboardActions(
     packages,
     setPackages,
@@ -224,11 +226,12 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                     key={pkg.id}
                     pkg={pkg}
                     getStatusBadge={getStatusBadge}
-                    onQuote={handleQuote}
-                    onConfirmAddress={handleConfirmAddress}
-                    onUploadDocument={handleUploadDocument}
-                    viewMode="shopper"
-                  />
+                        onQuote={handleQuote}
+                        onConfirmAddress={handleConfirmAddress}
+                        onUploadDocument={handleUploadDocument}
+                        onEditPackage={handleEditPackage}
+                        viewMode="shopper"
+                      />
                 ))}
               </div>
             )}
@@ -261,6 +264,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                         key={trip.id}
                         trip={trip}
                         getStatusBadge={getStatusBadge}
+                        onEditTrip={handleEditTrip}
                       />
                     ))}
                   </div>
