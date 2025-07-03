@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -18,11 +18,17 @@ interface PackageRequestFormProps {
   onSubmit: (packageData: any) => void;
 }
 
+interface Product {
+  itemLink: string;
+  itemDescription: string;
+  estimatedPrice: string;
+}
+
 const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
+  const [products, setProducts] = useState<Product[]>([
+    { itemLink: '', itemDescription: '', estimatedPrice: '' }
+  ]);
   const [formData, setFormData] = useState({
-    itemLink: '',
-    itemDescription: '',
-    estimatedPrice: '',
     deliveryDeadline: null as Date | null,
     additionalNotes: '',
     packageDestination: '',
@@ -53,9 +59,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     
-    // Updated validation - deliveryDeadline is no longer required
-    if (!formData.itemLink || !formData.itemDescription || !formData.estimatedPrice || 
-        !finalDestination || !finalOrigin) {
+    // Validate products
+    const hasEmptyProducts = products.some(product => 
+      !product.itemLink || !product.itemDescription || !product.estimatedPrice
+    );
+    
+    if (hasEmptyProducts || !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -68,6 +77,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
     const submitData = {
       ...formData,
+      products,
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin
     };
@@ -75,10 +85,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     onSubmit(submitData);
     
     // Reset form
+    setProducts([{ itemLink: '', itemDescription: '', estimatedPrice: '' }]);
     setFormData({
-      itemLink: '',
-      itemDescription: '',
-      estimatedPrice: '',
       deliveryDeadline: null,
       additionalNotes: '',
       packageDestination: '',
@@ -87,6 +95,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       purchaseOriginOther: '',
       deliveryMethod: ''
     });
+  };
+
+  const addProduct = () => {
+    setProducts([...products, { itemLink: '', itemDescription: '', estimatedPrice: '' }]);
+  };
+
+  const removeProduct = (index: number) => {
+    if (products.length > 1) {
+      setProducts(products.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateProduct = (index: number, field: keyof Product, value: string) => {
+    const updatedProducts = [...products];
+    updatedProducts[index] = { ...updatedProducts[index], [field]: value };
+    setProducts(updatedProducts);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -109,58 +133,96 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="itemLink">Link del producto *</Label>
-            <div className="relative">
-              <Link2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="itemLink"
-                type="url"
-                placeholder="https://amazon.com/producto..."
-                value={formData.itemLink}
-                onChange={(e) => handleInputChange('itemLink', e.target.value)}
-                className="pl-10"
-                required
-              />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Productos *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addProduct}
+                className="flex items-center space-x-1"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Agregar producto</span>
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Copia el link del producto desde Amazon, eBay, u otra tienda online
-            </p>
-          </div>
+            
+            {products.map((product, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4 relative">
+                {products.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeProduct(index)}
+                    className="absolute top-2 right-2 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor={`itemLink-${index}`}>Link del producto *</Label>
+                  <div className="relative">
+                    <Link2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id={`itemLink-${index}`}
+                      type="url"
+                      placeholder="https://amazon.com/producto..."
+                      value={product.itemLink}
+                      onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                  {index === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Copia el link del producto desde Amazon, eBay, u otra tienda online
+                    </p>
+                  )}
+                </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="itemDescription">Descripción del producto *</Label>
-            <Textarea
-              id="itemDescription"
-              placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-              value={formData.itemDescription}
-              onChange={(e) => handleInputChange('itemDescription', e.target.value)}
-              className="min-h-[80px]"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Describe detalladamente el producto (marca, modelo, color, talla, etc.)
-            </p>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`itemDescription-${index}`}>Descripción del producto *</Label>
+                  <Textarea
+                    id={`itemDescription-${index}`}
+                    placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                    value={product.itemDescription}
+                    onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                    className="min-h-[80px]"
+                    required
+                  />
+                  {index === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Describe detalladamente el producto (marca, modelo, color, talla, etc.)
+                    </p>
+                  )}
+                </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="estimatedPrice">Precio estimado (USD) *</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="estimatedPrice"
-                type="number"
-                step="0.01"
-                placeholder="299.99"
-                value={formData.estimatedPrice}
-                onChange={(e) => handleInputChange('estimatedPrice', e.target.value)}
-                className="pl-10"
-                required
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Precio aproximado del producto sin incluir envío
-            </p>
+                <div className="space-y-2">
+                  <Label htmlFor={`estimatedPrice-${index}`}>Precio estimado (USD) *</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id={`estimatedPrice-${index}`}
+                      type="number"
+                      step="0.01"
+                      placeholder="299.99"
+                      value={product.estimatedPrice}
+                      onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                  {index === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Precio aproximado del producto sin incluir envío
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="space-y-2">
