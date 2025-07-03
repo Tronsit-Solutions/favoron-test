@@ -256,6 +256,26 @@ export const useDashboardActions = (
     handleStatusUpdate(type, id, newStatus);
   };
 
+  const handleConfirmPackageReceived = (packageId: number, photo?: string) => {
+    setPackages(packages.map(pkg => 
+      pkg.id === packageId 
+        ? { 
+            ...pkg, 
+            status: 'received_by_traveler',
+            travelerConfirmation: {
+              confirmedAt: new Date().toISOString(),
+              photo: photo || null
+            }
+          }
+        : pkg
+    ));
+    
+    toast({
+      title: "¡Paquete confirmado!",
+      description: "Has confirmado la recepción del paquete.",
+    });
+  };
+
   return {
     handlePackageSubmit,
     handleTripSubmit,
@@ -267,6 +287,7 @@ export const useDashboardActions = (
     handleConfirmPayment,
     handleMatchPackage,
     handleStatusUpdate,
-    handleApproveReject
+    handleApproveReject,
+    handleConfirmPackageReceived
   };
 };

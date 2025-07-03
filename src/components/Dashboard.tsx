@@ -63,7 +63,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     handleConfirmPayment,
     handleMatchPackage,
     handleStatusUpdate,
-    handleApproveReject
+    handleApproveReject,
+    handleConfirmPackageReceived
   } = useDashboardActions(
     packages,
     setPackages,
@@ -250,14 +251,15 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                   <div className="grid gap-6">
-                    {assignedPackages.map((pkg) => (
-                      <CollapsibleTravelerPackageCard
-                        key={pkg.id}
-                        pkg={pkg}
-                        getStatusBadge={getStatusBadge}
-                        onQuote={handleQuote}
-                      />
-                    ))}
+                     {assignedPackages.map((pkg) => (
+                       <CollapsibleTravelerPackageCard
+                         key={pkg.id}
+                         pkg={pkg}
+                         getStatusBadge={getStatusBadge}
+                         onQuote={handleQuote}
+                         onConfirmReceived={handleConfirmPackageReceived}
+                       />
+                     ))}
                   </div>
                 </div>
               )}

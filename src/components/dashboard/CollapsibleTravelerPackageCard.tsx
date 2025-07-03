@@ -3,21 +3,29 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle } from "lucide-react";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
+import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
+  onConfirmReceived: (packageId: number, photo?: string) => void;
 }
 
 const CollapsibleTravelerPackageCard = ({ 
   pkg, 
   getStatusBadge, 
-  onQuote
+  onQuote,
+  onConfirmReceived
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  const handleConfirmReceived = (photo?: string) => {
+    onConfirmReceived(pkg.id, photo);
+  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -143,8 +151,30 @@ const CollapsibleTravelerPackageCard = ({
                 )}
 
                 {pkg.status === 'in_transit' && (
-                  <div className="text-sm text-orange-600 font-medium">
-                    🚚 Paquete en tránsito - El shopper ya lo envió
+                  <div className="space-y-2">
+                    <div className="text-sm text-orange-600 font-medium">
+                      🚚 Paquete en tránsito - El shopper ya lo envió
+                    </div>
+                    <Button 
+                      size="sm"
+                      onClick={() => setShowConfirmationModal(true)}
+                      className="flex items-center space-x-2"
+                      variant="outline"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Confirmar que recibí el paquete</span>
+                    </Button>
+                  </div>
+                )}
+
+                {pkg.status === 'received_by_traveler' && (
+                  <div className="text-sm text-green-600 font-medium">
+                    ✅ Paquete recibido y confirmado
+                    {pkg.travelerConfirmation?.confirmedAt && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Confirmado el: {new Date(pkg.travelerConfirmation.confirmedAt).toLocaleDateString('es-GT')}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -152,6 +182,13 @@ const CollapsibleTravelerPackageCard = ({
           </CardContent>
         </CollapsibleContent>
       </Card>
+
+      <PackageReceiptConfirmation
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        onConfirm={handleConfirmReceived}
+        packageName={pkg.itemDescription}
+      />
     </Collapsible>
   );
 };
