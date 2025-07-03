@@ -146,7 +146,7 @@ const AdminMatchingTab = ({
                         )}
                         {pkg.quote && (
                           <p className="text-xs text-green-600 mt-1">
-                            💰 Cotización: ${pkg.quote.totalPrice}
+                            💰 Cotización: ${pkg.quote.price + (pkg.quote.serviceFee || 0)}
                           </p>
                         )}
                         {pkg.deliveryDeadline && (
