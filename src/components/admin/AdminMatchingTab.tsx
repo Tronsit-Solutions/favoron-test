@@ -79,7 +79,7 @@ const AdminMatchingTab = ({
           <TabsTrigger value="pending" className="relative">
             📦 Solicitudes
             {approvedPackages.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {approvedPackages.length}
               </Badge>
             )}
@@ -87,7 +87,7 @@ const AdminMatchingTab = ({
           <TabsTrigger value="trips" className="relative">
             ✈️ Viajes
             {availableTrips.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {availableTrips.length}
               </Badge>
             )}
@@ -95,7 +95,7 @@ const AdminMatchingTab = ({
           <TabsTrigger value="matches" className="relative">
             🔗 Matches
             {activeMatches.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {activeMatches.length}
               </Badge>
             )}
@@ -103,7 +103,7 @@ const AdminMatchingTab = ({
           <TabsTrigger value="payments" className="relative">
             💳 Pagos
             {pendingPayments.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {pendingPayments.length}
               </Badge>
             )}
