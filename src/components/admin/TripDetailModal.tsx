@@ -157,6 +157,19 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                     </div>
                   </div>
                 )}
+
+                {trip.officeDeliveryDate && (
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-primary">Entrega en Oficina Favorón</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(trip.officeDeliveryDate).toLocaleDateString('es-GT')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Zona 14, Guatemala</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Delivery Address */}
