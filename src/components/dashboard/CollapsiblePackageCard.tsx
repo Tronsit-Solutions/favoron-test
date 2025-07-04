@@ -91,8 +91,8 @@ const CollapsiblePackageCard = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
         <p className="text-sm text-blue-700">
-          Servicio: ${pkg.quote.price}
-          {pkg.quote.serviceFee && ` + Adicionales: $${pkg.quote.serviceFee}`}
+          Servicio: ${parseFloat(pkg.quote.price || 0).toFixed(2)}
+          {parseFloat(pkg.quote.serviceFee || 0) > 0 && ` + Adicionales: $${parseFloat(pkg.quote.serviceFee || 0).toFixed(2)}`}
         </p>
         {pkg.quote.message && (
           <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
