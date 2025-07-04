@@ -40,7 +40,7 @@ const AdminOverviewTab = ({
                       Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
-                      📦 Origen: {pkg.purchaseCountry || 'No especificado'} → 🎯 Destino: {pkg.packageDestination || 'Guatemala'}
+                      📦 Origen: {pkg.purchaseOrigin || 'No especificado'} → 🎯 Destino: {pkg.packageDestination || 'Guatemala'}
                     </p>
                   </div>
                   <div className="flex space-x-2">

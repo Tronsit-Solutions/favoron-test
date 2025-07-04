@@ -44,7 +44,7 @@ const AdminMatchDialog = ({
                 <div className="flex items-center space-x-1">
                   <span className="font-medium">📦 Compra en:</span>
                   <span className="bg-blue-100 px-2 py-1 rounded">
-                    {selectedPackage.purchaseCountry || 'No especificado'}
+                    {selectedPackage.purchaseOrigin || 'No especificado'}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
