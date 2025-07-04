@@ -22,10 +22,9 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
 
     // For admin
     const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending').length;
-    const approvalsNeeded = [
-      ...packages.filter(pkg => pkg.status === 'pending_approval'),
-      ...trips.filter(trip => trip.status === 'pending_approval')
-    ].length;
+    const packageApprovalsNeeded = packages.filter(pkg => pkg.status === 'pending_approval').length;
+    const tripApprovalsNeeded = trips.filter(trip => trip.status === 'pending_approval').length;
+    const approvalsNeeded = packageApprovalsNeeded + tripApprovalsNeeded;
     const unmatchedPackages = packages.filter(pkg => pkg.status === 'approved').length;
     const rejectedByTravelers = packages.filter(pkg => pkg.status === 'quote_rejected').length;
 
@@ -42,6 +41,8 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       // Admin actions
       paymentsToConfirm,
       approvalsNeeded,
+      packageApprovalsNeeded,
+      tripApprovalsNeeded,
       unmatchedPackages,
       rejectedByTravelers,
       

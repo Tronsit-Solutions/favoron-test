@@ -296,6 +296,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               <AdminDashboard 
                 packages={packages}
                 trips={trips}
+                currentUser={currentUser}
                 onMatchPackage={handleMatchPackage}
                 onUpdateStatus={enhancedHandleStatusUpdate}
                 onApproveReject={handleApproveReject}

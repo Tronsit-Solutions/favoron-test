@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
+import { usePendingActions } from "@/hooks/usePendingActions";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 import AdminStatsOverview from "./admin/AdminStatsOverview";
@@ -15,6 +16,7 @@ import AdminMatchDialog from "./admin/AdminMatchDialog";
 interface AdminDashboardProps {
   packages: any[];
   trips: any[];
+  currentUser?: any;
   onMatchPackage: (packageId: number, tripId: number) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
@@ -24,6 +26,7 @@ interface AdminDashboardProps {
 const AdminDashboard = ({ 
   packages, 
   trips, 
+  currentUser,
   onMatchPackage, 
   onUpdateStatus, 
   onApproveReject,
@@ -117,13 +120,9 @@ const AdminDashboard = ({
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const approvedPackages = packages.filter(p => p.status === 'approved');
 
-  // Calculate pending actions for badges
-  const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending').length;
-  const approvalsNeeded = [
-    ...packages.filter(pkg => pkg.status === 'pending_approval'),
-    ...trips.filter(trip => trip.status === 'pending_approval')
-  ].length;
-  const unmatchedPackages = approvedPackages.length;
+  // Use centralized pending actions hook for consistent notification badges
+  const pendingActions = usePendingActions(packages, trips, currentUser);
+  const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
 
   return (
@@ -147,12 +146,15 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="packages" className="relative flex items-center gap-2">
             Solicitudes
-            {approvalsNeeded > 0 && (
-              <NotificationBadge count={approvalsNeeded} />
+            {packageApprovalsNeeded > 0 && (
+              <NotificationBadge count={packageApprovalsNeeded} />
             )}
           </TabsTrigger>
-          <TabsTrigger value="trips">
+          <TabsTrigger value="trips" className="relative flex items-center gap-2">
             Viajes
+            {tripApprovalsNeeded > 0 && (
+              <NotificationBadge count={tripApprovalsNeeded} />
+            )}
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
             Matching y gestión
