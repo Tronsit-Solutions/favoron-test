@@ -138,12 +138,8 @@ export const useDashboardActions = (
         const updatedPkg = { ...pkg };
         if (type === 'confirmation') {
           updatedPkg.purchaseConfirmation = data;
-          // Check if tracking is already uploaded - if so, move to in_transit
-          if (updatedPkg.trackingInfo) {
-            updatedPkg.status = 'in_transit';
-          } else {
-            updatedPkg.status = 'purchased';
-          }
+          // Automatically move to in_transit when purchase confirmation is uploaded
+          updatedPkg.status = 'in_transit';
         } else if (type === 'tracking') {
           updatedPkg.trackingInfo = data;
           // Check if purchase confirmation is already uploaded - if so, move to in_transit
