@@ -77,22 +77,19 @@ const PackageCard = ({
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
     
-    const price = parseFloat(pkg.quote.price || 0);
-    const serviceFee = parseFloat(pkg.quote.serviceFee || 0);
-    const total = price + serviceFee;
+    const totalPrice = parseFloat(pkg.quote.totalPrice || 0);
     
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
-        <p className="text-sm text-blue-700">
-          Servicio: ${price.toFixed(2)}
-          {serviceFee > 0 && ` + Adicionales: $${serviceFee.toFixed(2)}`}
+        <p className="text-sm font-medium text-blue-800 text-lg">
+          Total: ${totalPrice.toFixed(2)}
         </p>
-        <p className="text-sm font-medium text-blue-800 mt-1">
-          Total: ${total.toFixed(2)}
+        <p className="text-xs text-blue-600 mt-1">
+          Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
         </p>
         {pkg.quote.message && (
-          <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
+          <p className="text-sm text-blue-600 mt-2">"{pkg.quote.message}"</p>
         )}
       </div>
     );

@@ -41,9 +41,16 @@ const QuoteDialog = ({
 
   const handleSubmit = () => {
     if (userType === 'traveler') {
+      const basePrice = parseFloat(price);
+      const additionalFee = serviceFee ? parseFloat(serviceFee) : 0;
+      const subtotal = basePrice + additionalFee;
+      // Add 40% Favorón fee automatically
+      const totalWithFee = subtotal * 1.4;
+      
       onSubmit({
-        price: parseFloat(price),
-        serviceFee: serviceFee ? parseFloat(serviceFee) : 0,
+        price: basePrice,
+        serviceFee: additionalFee,
+        totalPrice: totalWithFee,
         message
       });
     } else {
@@ -108,16 +115,15 @@ const QuoteDialog = ({
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm font-medium text-green-800 mb-2">Cotización del viajero:</p>
               <div className="text-sm text-green-700 space-y-1">
-                <p><strong>Servicio:</strong> ${parseFloat(existingQuote.price || 0).toFixed(2)}</p>
-                {existingQuote.serviceFee && parseFloat(existingQuote.serviceFee || 0) > 0 && (
-                  <p><strong>Adicionales:</strong> ${parseFloat(existingQuote.serviceFee || 0).toFixed(2)}</p>
-                )}
                 {existingQuote.message && (
                   <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
                 )}
                 <div className="mt-2 pt-2 border-t border-green-300">
-                  <p className="font-medium">
-                    <strong>Total:</strong> ${(parseFloat(existingQuote.price || 0) + parseFloat(existingQuote.serviceFee || 0)).toFixed(2)}
+                  <p className="font-medium text-lg">
+                    <strong>Total:</strong> ${parseFloat(existingQuote.totalPrice || 0).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
                   </p>
                 </div>
               </div>
