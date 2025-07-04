@@ -137,10 +137,10 @@ const AdminDashboard = ({
         {onLoadTestData && (
           <button
             onClick={onLoadTestData}
-            className="opacity-20 hover:opacity-60 transition-opacity text-xs text-muted-foreground"
+            className="px-3 py-1 text-sm bg-secondary hover:bg-secondary/80 rounded-md transition-colors"
             title="Cargar datos de prueba"
           >
-            🧪
+            🧪 Test Data
           </button>
         )}
       </div>
