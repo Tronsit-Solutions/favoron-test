@@ -21,10 +21,10 @@ const DashboardHeader = ({ user, onShowProfile, onLogout }: DashboardHeaderProps
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-logo rounded-lg flex items-center justify-center">
             <Plane className="h-5 w-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-primary">Favorón</h1>
+          <h1 className="text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
         </div>
 
         <div className="flex items-center space-x-4">

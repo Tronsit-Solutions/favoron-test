@@ -17,6 +17,8 @@
 
     --primary: 142 71% 45%; /* Guatemala Green */
     --primary-foreground: 210 40% 98%;
+    
+    --logo: 204 100% 62%; /* Favorón Blue #3ab5ff */
 
     --secondary: 33 100% 64%; /* Warm Orange */
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -55,6 +57,8 @@
     --popover-foreground: 210 40% 98%;
     --primary: 142 71% 45%;
     --primary-foreground: 210 40% 98%;
+    
+    --logo: 204 100% 62%; /* Favorón Blue #3ab5ff */
     --secondary: 33 100% 64%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;

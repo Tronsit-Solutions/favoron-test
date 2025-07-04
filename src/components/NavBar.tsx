@@ -11,10 +11,10 @@ const NavBar = ({ onOpenAuth }: NavBarProps) => {
     <nav className="bg-white border-b shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-logo rounded-xl flex items-center justify-center">
             <Plane className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-primary">Favorón</h1>
+          <h1 className="text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
         </div>
         
         <div className="flex items-center space-x-4">
