@@ -21,6 +21,7 @@ interface AdminDashboardProps {
   onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
   onConfirmOfficeReception: (packageId: number) => void;
+  onLoadTestData?: () => void;
 }
 
 const AdminDashboard = ({ 
@@ -30,7 +31,8 @@ const AdminDashboard = ({
   onMatchPackage, 
   onUpdateStatus, 
   onApproveReject,
-  onConfirmOfficeReception 
+  onConfirmOfficeReception,
+  onLoadTestData
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -132,6 +134,15 @@ const AdminDashboard = ({
           <h2 className="text-3xl font-bold">Panel de Administración</h2>
           <p className="text-muted-foreground">Gestiona solicitudes, viajes y matches</p>
         </div>
+        {onLoadTestData && (
+          <button
+            onClick={onLoadTestData}
+            className="opacity-20 hover:opacity-60 transition-opacity text-xs text-muted-foreground"
+            title="Cargar datos de prueba"
+          >
+            🧪
+          </button>
+        )}
       </div>
 
       <AdminStatsOverview packages={packages} trips={trips} />
