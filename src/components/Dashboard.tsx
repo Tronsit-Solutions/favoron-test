@@ -112,6 +112,73 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const isAdmin = currentUser.role === 'admin';
 
+  const handleLoadTestData = () => {
+    const now = Date.now();
+    
+    // Create test packages
+    const testPackages = [
+      {
+        id: now + 1,
+        userId: 101,
+        itemDescription: "iPhone 15 Pro Max + AirPods Pro",
+        estimatedPrice: 1200,
+        maxBudget: 1300,
+        sourceUrl: "https://apple.com",
+        productCount: 2,
+        deliveryDeadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "pending_approval",
+        createdAt: new Date().toISOString(),
+        fromCountry: "Estados Unidos",
+        fromCity: "Miami, FL"
+      },
+      {
+        id: now + 2,
+        userId: 102,
+        itemDescription: "MacBook Air M3 + Accesorios",
+        estimatedPrice: 950,
+        maxBudget: 1000,
+        sourceUrl: "https://bestbuy.com",
+        productCount: 3,
+        deliveryDeadline: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "approved",
+        createdAt: new Date().toISOString(),
+        fromCountry: "Estados Unidos",
+        fromCity: "Los Angeles, CA"
+      }
+    ];
+
+    // Create test trips  
+    const testTrips = [
+      {
+        id: now + 3,
+        userId: 201,
+        fromCity: "Miami, FL",
+        fromCountry: "Estados Unidos", 
+        toCity: "Guatemala City",
+        toCountry: "Guatemala",
+        arrivalDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        availableSpace: "5",
+        deliveryMethod: "oficina",
+        deliveryDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "approved",
+        createdAt: new Date().toISOString(),
+        packageReceivingAddress: {
+          accommodationType: "hotel",
+          streetAddress: "123 Test St",
+          cityArea: "Miami Beach",
+          postalCode: "33139",
+          hotelAirbnbName: "Test Hotel",
+          contactNumber: "+1 305 555-0123"
+        },
+        firstDayPackages: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        lastDayPackages: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    setPackages(prev => [...prev, ...testPackages]);
+    setTrips(prev => [...prev, ...testTrips]);
+  };
+
   // Filter packages and trips for current user
   const userPackages = packages.filter(pkg => pkg.userId === currentUser.id);
   const userTrips = trips.filter(trip => trip.userId === currentUser.id);
@@ -301,6 +368,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 onUpdateStatus={enhancedHandleStatusUpdate}
                 onApproveReject={handleApproveReject}
                 onConfirmOfficeReception={handleConfirmOfficeReception}
+                onLoadTestData={handleLoadTestData}
               />
             </TabsContent>
           )}
