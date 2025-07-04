@@ -47,7 +47,7 @@ const AdminMatchingTab = ({
                           ${pkg.estimatedPrice} • Usuario: {pkg.userId}
                         </p>
                         <p className="text-xs text-blue-600 mt-1">
-                          📦 {pkg.purchaseCountry || 'No especificado'} → 🎯 {pkg.packageDestination || 'Guatemala'}
+                          País de compra: {pkg.purchaseCountry || 'No especificado'} → Destino: {pkg.packageDestination || 'Guatemala'}
                         </p>
                         {pkg.deliveryDeadline && (
                           <p className="text-xs text-orange-600 mt-1">
