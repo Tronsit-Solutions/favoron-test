@@ -52,7 +52,7 @@ const PendingRequestsTab = ({
 
   // Filter packages based on search and filters
   const filteredPackages = approvedPackages.filter(pkg => {
-    const matchesSearch = pkg.itemDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (pkg.itemDescription || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (pkg.userId || '').toString().includes(searchTerm);
     const matchesDestination = destinationFilter === "all" || pkg.packageDestination === destinationFilter;
     const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
