@@ -43,7 +43,7 @@ const ActiveMatchesTab = ({
   const filteredMatches = matchedPackages.filter(pkg => {
     const matchedTrip = trips.find(trip => trip.id === pkg.matchedTripId);
     const matchesSearch = 
-      pkg.itemDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pkg.itemDescription || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (pkg.userId || '').toString().includes(searchTerm) ||
       (matchedTrip?.fromCity || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (matchedTrip?.toCity || '').toLowerCase().includes(searchTerm.toLowerCase());
