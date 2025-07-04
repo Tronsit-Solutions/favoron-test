@@ -138,10 +138,20 @@ export const useDashboardActions = (
         const updatedPkg = { ...pkg };
         if (type === 'confirmation') {
           updatedPkg.purchaseConfirmation = data;
-          updatedPkg.status = 'purchased';
+          // Check if tracking is already uploaded - if so, move to in_transit
+          if (updatedPkg.trackingInfo) {
+            updatedPkg.status = 'in_transit';
+          } else {
+            updatedPkg.status = 'purchased';
+          }
         } else if (type === 'tracking') {
           updatedPkg.trackingInfo = data;
-          updatedPkg.status = 'in_transit';
+          // Check if purchase confirmation is already uploaded - if so, move to in_transit
+          if (updatedPkg.purchaseConfirmation) {
+            updatedPkg.status = 'in_transit';
+          } else {
+            updatedPkg.status = 'purchased';
+          }
         } else if (type === 'payment_receipt') {
           updatedPkg.paymentReceipt = data;
           updatedPkg.status = 'payment_pending';
