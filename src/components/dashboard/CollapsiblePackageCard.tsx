@@ -182,6 +182,44 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent>
+            {/* PRIORITY ACTIONS SECTION - Always visible at top */}
+            {(pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed') && viewMode === 'shopper' && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {pkg.status === 'quote_sent' && pkg.quote && (
+                      <>
+                        <p className="text-sm font-medium text-primary">¡Tienes una cotización pendiente!</p>
+                        <p className="text-xs text-muted-foreground">Revisa y responde la cotización del viajero.</p>
+                        <Button 
+                          size="sm"
+                          onClick={() => onQuote(pkg, 'shopper')}
+                          className="mt-2"
+                        >
+                          Ver y Responder Cotización
+                        </Button>
+                      </>
+                    )}
+                    {pkg.status === 'quote_accepted' && (
+                      <>
+                        <p className="text-sm font-medium text-primary">¡Cotización aceptada! Sube tu comprobante de pago</p>
+                        <p className="text-xs text-muted-foreground">El viajero está esperando la confirmación de tu pago.</p>
+                      </>
+                    )}
+                    {pkg.status === 'payment_confirmed' && (
+                      <>
+                        <p className="text-sm font-medium text-primary">¡Pago confirmado! Envía el paquete</p>
+                        <p className="text-xs text-muted-foreground">Compra y envía el paquete al viajero usando la dirección proporcionada.</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 {/* Multiple products display */}
@@ -243,9 +281,13 @@ const CollapsiblePackageCard = ({
               <div className="space-y-4">
                 <PackageStatusTimeline currentStatus={pkg.status} />
                 
-                {/* Show payment upload component after quote acceptance - LEFT SIDE AND PROMINENT */}
+                {/* Show payment upload component after quote acceptance - PROMINENT */}
                 {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
-                  <div className="order-first md:order-none">
+                  <div className="order-first md:order-none bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="mb-3">
+                      <p className="text-sm font-medium text-blue-800">💳 Subir comprobante de pago</p>
+                      <p className="text-xs text-blue-600">Sube tu comprobante para que el viajero proceda con la compra.</p>
+                    </div>
                     <PaymentUpload 
                       packageId={pkg.id}
                       onUpload={handlePaymentUpload}
@@ -255,11 +297,17 @@ const CollapsiblePackageCard = ({
                 
                 {/* Show upload documents after payment confirmation */}
                 {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (
-                  <UploadDocuments 
-                    packageId={pkg.id}
-                    currentStatus={pkg.status}
-                    onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-                  />
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="mb-3">
+                      <p className="text-sm font-medium text-orange-800">📋 Subir documentos de compra</p>
+                      <p className="text-xs text-orange-600">¿Ya compraste el producto? Sube el comprobante y tracking aquí.</p>
+                    </div>
+                    <UploadDocuments 
+                      packageId={pkg.id}
+                      currentStatus={pkg.status}
+                      onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+                    />
+                  </div>
                 )}
               </div>
             </div>

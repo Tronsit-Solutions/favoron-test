@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle, Clock } from "lucide-react";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 
@@ -69,6 +69,52 @@ const CollapsibleTravelerPackageCard = ({
         
         <CollapsibleContent>
           <CardContent>
+            {/* PRIORITY ACTIONS SECTION - Always visible at top */}
+            {(pkg.status === 'matched' || pkg.status === 'in_transit') && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                    {pkg.status === 'matched' ? (
+                      <DollarSign className="h-4 w-4 text-primary" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    {pkg.status === 'matched' && (
+                      <>
+                        <p className="text-sm font-medium text-primary">¡Nuevo pedido asignado!</p>
+                        <p className="text-xs text-muted-foreground">Envía tu cotización para este Favorón.</p>
+                        <Button 
+                          size="sm"
+                          onClick={() => onQuote(pkg, 'traveler')}
+                          className="flex items-center space-x-2"
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          <span>Enviar Cotización</span>
+                        </Button>
+                      </>
+                    )}
+                    {pkg.status === 'in_transit' && (
+                      <>
+                        <p className="text-sm font-medium text-primary">¡Paquete listo para confirmar!</p>
+                        <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete del shopper?</p>
+                        <Button 
+                          size="sm"
+                          onClick={() => setShowConfirmationModal(true)}
+                          className="flex items-center space-x-2"
+                          variant="outline"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Confirmar que recibí el paquete</span>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               {/* Traveler Package Timeline - Show for relevant statuses */}
               {(['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status)) && (
