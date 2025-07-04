@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, Zap, CheckCircle } from "lucide-react";
+import { Eye, Zap, CheckCircle, CalendarDays } from "lucide-react";
 
 interface AdminMatchingTabProps {
   packages: any[];
@@ -97,6 +97,14 @@ const AdminMatchingTab = ({
                         <p className="text-xs text-red-600">
                           📅 Último día paquetes: {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString() : 'No especificado'}
                         </p>
+                        {trip.officeDeliveryDate && (
+                          <div className="flex items-center space-x-1 mt-1">
+                            <CalendarDays className="h-3 w-3 text-primary" />
+                            <p className="text-xs text-primary font-medium">
+                              Entrega oficina: {new Date(trip.officeDeliveryDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
