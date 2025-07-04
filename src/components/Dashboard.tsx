@@ -179,6 +179,54 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     setTrips(prev => [...prev, ...testTrips]);
   };
 
+  const handleLoadTestPackage = () => {
+    const now = Date.now();
+    const testPackage = {
+      id: now,
+      userId: currentUser.id, // Admin's ID
+      itemDescription: "Laptop Gaming ASUS ROG + Accesorios",
+      estimatedPrice: 850,
+      maxBudget: 900,
+      sourceUrl: "https://amazon.com/asus-rog",
+      productCount: 2,
+      deliveryDeadline: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "pending_approval",
+      createdAt: new Date().toISOString(),
+      fromCountry: "Estados Unidos",
+      fromCity: "New York, NY"
+    };
+    setPackages(prev => [...prev, testPackage]);
+  };
+
+  const handleLoadTestTrip = () => {
+    const now = Date.now();
+    const testTrip = {
+      id: now,
+      userId: currentUser.id, // Admin's ID
+      fromCity: "Orlando, FL",
+      fromCountry: "Estados Unidos", 
+      toCity: "Guatemala City",
+      toCountry: "Guatemala",
+      arrivalDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      availableSpace: "8",
+      deliveryMethod: "oficina",
+      deliveryDate: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "pending_approval",
+      createdAt: new Date().toISOString(),
+      packageReceivingAddress: {
+        accommodationType: "hotel",
+        streetAddress: "456 Admin Ave",
+        cityArea: "Orlando Downtown",
+        postalCode: "32801",
+        hotelAirbnbName: "Admin Test Hotel",
+        contactNumber: "+1 407 555-0987"
+      },
+      firstDayPackages: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      lastDayPackages: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString()
+    };
+    setTrips(prev => [...prev, testTrip]);
+  };
+
   // Filter packages and trips for current user
   const userPackages = packages.filter(pkg => pkg.userId === currentUser.id);
   const userTrips = trips.filter(trip => trip.userId === currentUser.id);
@@ -278,10 +326,17 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>
               </div>
-              <Button onClick={() => setShowPackageForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Solicitud
-              </Button>
+              <div className="flex gap-3">
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={handleLoadTestPackage}>
+                    🧪 Generar pedido de prueba
+                  </Button>
+                )}
+                <Button onClick={() => setShowPackageForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nueva Solicitud
+                </Button>
+              </div>
             </div>
 
             {userPackages.length === 0 ? (
@@ -312,10 +367,17 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
                 </p>
               </div>
-              <Button variant="secondary" onClick={() => setShowTripForm(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Viaje
-              </Button>
+              <div className="flex gap-3">
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={handleLoadTestTrip}>
+                    🧪 Generar viaje de prueba
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={() => setShowTripForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Viaje
+                </Button>
+              </div>
             </div>
 
             {/* Show user's trips */}
