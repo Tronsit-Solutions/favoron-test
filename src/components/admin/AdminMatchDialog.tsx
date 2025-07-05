@@ -157,8 +157,8 @@ const AdminMatchDialog = ({
           )}
 
           {/* Trips List */}
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
               <Label className="text-lg font-semibold text-gray-900">
                 Viajes Disponibles ({availableTrips.length})
               </Label>
@@ -167,8 +167,8 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
-            <ScrollArea className="h-[350px] w-full">
-              <div className="space-y-2 pr-4">
+            <ScrollArea className="flex-1 w-full" style={{ maxHeight: 'calc(50vh - 100px)' }}>
+              <div className="space-y-2 pr-4 pb-4">
                 {availableTrips.map((trip) => (
                   <Card 
                     key={trip.id} 
@@ -179,127 +179,127 @@ const AdminMatchDialog = ({
                     }`}
                     onClick={() => handleTripSelection(trip.id)}
                   >
-                    <CardContent className="p-4">
-                      {/* Main Trip Info Row */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 flex-1">
-                          {/* Traveler */}
-                          <div className="flex items-center space-x-2 min-w-[120px]">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                              {trip.userId.toString().slice(-2)}
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">Viajero #{trip.userId}</p>
-                            </div>
-                          </div>
+                     <CardContent className="p-3">
+                       {/* Main Trip Info Row - More Compact */}
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center space-x-3 flex-1">
+                           {/* Traveler - Compact */}
+                           <div className="flex items-center space-x-2 min-w-[100px]">
+                             <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
+                               {trip.userId.toString().slice(-2)}
+                             </div>
+                             <div>
+                               <p className="font-medium text-xs">Viajero #{trip.userId}</p>
+                             </div>
+                           </div>
 
-                          {/* Route */}
-                          <div className="flex items-center space-x-2 flex-1 min-w-[200px]">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium text-gray-700">
-                                {trip.fromCity || 'No especificado'}
-                              </span>
-                              <span className="text-gray-400">→</span>
-                              <span className="text-sm font-medium text-gray-900">
-                                {trip.toCity}
-                              </span>
-                            </div>
-                          </div>
+                           {/* Route - Compact */}
+                           <div className="flex items-center space-x-2 flex-1 min-w-[180px]">
+                             <MapPin className="h-3 w-3 text-gray-400" />
+                             <div className="flex items-center space-x-1">
+                               <span className="text-xs font-medium text-gray-700 truncate">
+                                 {trip.fromCity || 'No especificado'}
+                               </span>
+                               <span className="text-gray-400 text-xs">→</span>
+                               <span className="text-xs font-medium text-gray-900 truncate">
+                                 {trip.toCity}
+                               </span>
+                             </div>
+                           </div>
 
-                          {/* Key Dates */}
-                          <div className="flex items-center space-x-4 min-w-[160px]">
-                            <div className="text-center">
-                              <p className="text-xs text-gray-500">LLEGADA</p>
-                              <p className="text-sm font-medium">
-                                {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                              </p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs text-gray-500">ENTREGA</p>
-                              <p className="text-sm font-medium">
-                                {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
+                           {/* Key Dates - Compact */}
+                           <div className="flex items-center space-x-3 min-w-[120px]">
+                             <div className="text-center">
+                               <p className="text-xs text-gray-500">LLEGADA</p>
+                               <p className="text-xs font-medium">
+                                 {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                               </p>
+                             </div>
+                             <div className="text-center">
+                               <p className="text-xs text-gray-500">ENTREGA</p>
+                               <p className="text-xs font-medium">
+                                 {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                               </p>
+                             </div>
+                           </div>
 
-                          {/* Delivery Method & Space */}
-                          <div className="flex items-center space-x-3 min-w-[140px]">
-                            <Badge 
-                              variant="outline" 
-                              className={`${trip.deliveryMethod === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
-                            >
-                              <Truck className="h-3 w-3 mr-1" />
-                              {trip.deliveryMethod === 'oficina' ? 'Oficina' : 'Mensajero'}
-                            </Badge>
-                            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                              {trip.availableSpace}kg
-                            </Badge>
-                          </div>
-                        </div>
+                           {/* Delivery Method & Space - Compact */}
+                           <div className="flex items-center space-x-2 min-w-[120px]">
+                             <Badge 
+                               variant="outline" 
+                               className={`text-xs h-5 ${trip.deliveryMethod === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
+                             >
+                               <Truck className="h-2 w-2 mr-1" />
+                               {trip.deliveryMethod === 'oficina' ? 'Oficina' : 'Mensajero'}
+                             </Badge>
+                             <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
+                               {trip.availableSpace}kg
+                             </Badge>
+                           </div>
+                         </div>
 
-                        {/* Expand Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleTripExpansion(trip.id);
-                          }}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors"
-                        >
-                          {expandedTrips.has(trip.id) ? (
-                            <ChevronDown className="h-4 w-4 text-gray-400" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                          )}
-                        </button>
-                      </div>
+                         {/* Expand Button */}
+                         <button
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             toggleTripExpansion(trip.id);
+                           }}
+                           className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                         >
+                           {expandedTrips.has(trip.id) ? (
+                             <ChevronDown className="h-4 w-4 text-gray-400" />
+                           ) : (
+                             <ChevronRight className="h-4 w-4 text-gray-400" />
+                           )}
+                         </button>
+                       </div>
 
-                      {/* Expandable Content */}
-                      {expandedTrips.has(trip.id) && (
-                        <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
-                          <div className="grid grid-cols-2 gap-4">
-                            {/* Package Window Details */}
-                            <div className="bg-blue-50 rounded-lg p-3">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <Package className="h-4 w-4 text-blue-600" />
-                                <span className="font-medium text-blue-900">Ventana de Recepción</span>
-                              </div>
-                              <div className="space-y-1 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-blue-700">Primer día:</span>
-                                  <span className="font-medium text-blue-900">
-                                    {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-blue-700">Último día:</span>
-                                  <span className="font-medium text-blue-900">
-                                    {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+                       {/* Expandable Content */}
+                       {expandedTrips.has(trip.id) && (
+                         <div className="mt-3 pt-3 border-t border-gray-200">
+                           <div className="grid grid-cols-2 gap-3">
+                             {/* Package Window Details */}
+                             <div className="bg-blue-50 rounded-lg p-3">
+                               <div className="flex items-center space-x-2 mb-2">
+                                 <Package className="h-3 w-3 text-blue-600" />
+                                 <span className="font-medium text-blue-900 text-sm">Ventana de Recepción</span>
+                               </div>
+                               <div className="space-y-1 text-xs">
+                                 <div className="flex justify-between">
+                                   <span className="text-blue-700">Primer día:</span>
+                                   <span className="font-medium text-blue-900">
+                                     {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                   </span>
+                                 </div>
+                                 <div className="flex justify-between">
+                                   <span className="text-blue-700">Último día:</span>
+                                   <span className="font-medium text-blue-900">
+                                     {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                   </span>
+                                 </div>
+                               </div>
+                             </div>
 
-                            {/* Additional Details */}
-                            <div className="space-y-2">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4 text-gray-400" />
-                                <div>
-                                  <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
-                                  <p className="font-medium text-sm">{trip.toCountry}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <User className="h-4 w-4 text-gray-400" />
-                                <div>
-                                  <p className="text-xs text-gray-500">ID DE VIAJE</p>
-                                  <p className="font-medium text-sm">#{trip.id}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                             {/* Additional Details */}
+                             <div className="space-y-2">
+                               <div className="flex items-center space-x-2">
+                                 <Calendar className="h-3 w-3 text-gray-400" />
+                                 <div>
+                                   <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
+                                   <p className="font-medium text-xs">{trip.toCountry}</p>
+                                 </div>
+                               </div>
+                               <div className="flex items-center space-x-2">
+                                 <User className="h-3 w-3 text-gray-400" />
+                                 <div>
+                                   <p className="text-xs text-gray-500">ID DE VIAJE</p>
+                                   <p className="font-medium text-xs">#{trip.id}</p>
+                                 </div>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       )}
                     </CardContent>
                   </Card>
                 ))}
