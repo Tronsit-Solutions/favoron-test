@@ -87,15 +87,23 @@ const CollapsiblePackageCard = ({
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
     
+    // Calculate total with Favorón fee (40%)
+    const basePrice = parseFloat(pkg.quote.price || 0);
+    const additionalFee = parseFloat(pkg.quote.serviceFee || 0);
+    const subtotal = basePrice + additionalFee;
+    const totalWithFavoronFee = pkg.quote.totalPrice ? parseFloat(pkg.quote.totalPrice) : subtotal * 1.4;
+    
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
-        <p className="text-sm text-blue-700">
-          Servicio: ${parseFloat(pkg.quote.price || 0).toFixed(2)}
-          {parseFloat(pkg.quote.serviceFee || 0) > 0 && ` + Adicionales: $${parseFloat(pkg.quote.serviceFee || 0).toFixed(2)}`}
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-blue-800">Cotización recibida:</p>
+          <p className="text-lg font-bold text-blue-900">${totalWithFavoronFee.toFixed(2)}</p>
+        </div>
+        <p className="text-xs text-blue-600">
+          Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
         </p>
         {pkg.quote.message && (
-          <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
+          <p className="text-sm text-blue-600 mt-2 italic">"{pkg.quote.message}"</p>
         )}
       </div>
     );
