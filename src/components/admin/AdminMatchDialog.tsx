@@ -60,26 +60,60 @@ const AdminMatchDialog = ({
           <div className="space-y-2">
             <Label htmlFor="matchingTrip">Seleccionar viaje compatible:</Label>
             <Select value={matchingTrip} onValueChange={setMatchingTrip}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar viaje" />
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Seleccionar viaje compatible" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-80">
                 {availableTrips.map(trip => (
-                  <SelectItem key={trip.id} value={trip.id.toString()}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">
-                        {trip.fromCountry || 'País no especificado'} ({trip.fromCity}) → {trip.toCountry || 'Guatemala'} ({trip.toCity})
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Llegada: {new Date(trip.arrivalDate).toLocaleDateString()} • Espacio: {trip.availableSpace}kg
-                      </span>
-                      <div className="flex space-x-2 mt-1">
-                        <span className="text-xs bg-blue-100 px-1 rounded">
-                          ✈️ Desde: {trip.fromCountry || 'País no especificado'}
-                        </span>
-                        <span className="text-xs bg-green-100 px-1 rounded">
-                          🏠 Hacia: {trip.toCountry || 'Guatemala'}
-                        </span>
+                  <SelectItem key={trip.id} value={trip.id.toString()} className="p-4 h-auto">
+                    <div className="w-full space-y-2">
+                      {/* Header with traveler and destination */}
+                      <div className="flex justify-between items-start">
+                        <div className="font-medium text-sm">
+                          👤 Viajero ID: {trip.userId}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-primary">
+                            🎯 {trip.toCity}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {trip.toCountry}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Package receiving window */}
+                      <div className="bg-blue-50 rounded-md p-2 space-y-1">
+                        <div className="text-xs font-medium text-blue-900">
+                          📦 Ventana de recepción de paquetes:
+                        </div>
+                        <div className="text-xs text-blue-800 grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="font-medium">Primer día:</span>
+                            <br />
+                            {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString() : 'No especificado'}
+                          </div>
+                          <div>
+                            <span className="font-medium">Último día:</span>
+                            <br />
+                            {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString() : 'No especificado'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Delivery info */}
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center space-x-2">
+                          <span className="bg-green-100 px-2 py-1 rounded font-medium">
+                            🚚 {trip.deliveryMethod === 'oficina' ? 'Oficina Zona 14' : 'Mensajero'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            Entrega: {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString() : 'No especificado'}
+                          </span>
+                        </div>
+                        <div className="bg-purple-100 px-2 py-1 rounded text-purple-800 font-medium">
+                          📏 {trip.availableSpace}kg disponible
+                        </div>
                       </div>
                     </div>
                   </SelectItem>
