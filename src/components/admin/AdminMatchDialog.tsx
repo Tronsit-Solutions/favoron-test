@@ -27,18 +27,7 @@ const AdminMatchDialog = ({
   availableTrips, 
   onMatch 
 }: AdminMatchDialogProps) => {
-  const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
-
-  const toggleTripExpansion = (tripId: number) => {
-    const newExpanded = new Set(expandedTrips);
-    if (newExpanded.has(tripId)) {
-      newExpanded.delete(tripId);
-    } else {
-      newExpanded.add(tripId);
-    }
-    setExpandedTrips(newExpanded);
-  };
 
   const handleTripSelection = (tripId: number) => {
     setSelectedTripId(tripId);
@@ -52,7 +41,7 @@ const AdminMatchDialog = ({
   };
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
-      <DialogContent className="sm:max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -172,65 +161,56 @@ const AdminMatchDialog = ({
                         {/* Expand Button */}
                         <Collapsible>
                           <CollapsibleTrigger 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleTripExpansion(trip.id);
-                            }}
+                            onClick={(e) => e.stopPropagation()}
                             className="p-1 hover:bg-gray-100 rounded"
                           >
-                            {expandedTrips.has(trip.id) ? (
-                              <ChevronDown className="h-4 w-4 text-gray-400" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4 text-gray-400" />
-                            )}
+                            <ChevronRight className="h-4 w-4 text-gray-400 transition-transform duration-200 data-[state=open]:rotate-90" />
                           </CollapsibleTrigger>
                           
                           <CollapsibleContent>
-                            {expandedTrips.has(trip.id) && (
-                              <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
-                                <div className="grid grid-cols-2 gap-4">
-                                  {/* Package Window Details */}
-                                  <div className="bg-blue-50 rounded-lg p-3">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <Package className="h-4 w-4 text-blue-600" />
-                                      <span className="font-medium text-blue-900">Ventana de Recepción</span>
+                            <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
+                              <div className="grid grid-cols-2 gap-4">
+                                {/* Package Window Details */}
+                                <div className="bg-blue-50 rounded-lg p-3">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <Package className="h-4 w-4 text-blue-600" />
+                                    <span className="font-medium text-blue-900">Ventana de Recepción</span>
+                                  </div>
+                                  <div className="space-y-1 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Primer día:</span>
+                                      <span className="font-medium text-blue-900">
+                                        {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                      </span>
                                     </div>
-                                    <div className="space-y-1 text-sm">
-                                      <div className="flex justify-between">
-                                        <span className="text-blue-700">Primer día:</span>
-                                        <span className="font-medium text-blue-900">
-                                          {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-blue-700">Último día:</span>
-                                        <span className="font-medium text-blue-900">
-                                          {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                        </span>
-                                      </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Último día:</span>
+                                      <span className="font-medium text-blue-900">
+                                        {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                      </span>
                                     </div>
                                   </div>
+                                </div>
 
-                                  {/* Additional Details */}
-                                  <div className="space-y-2">
-                                    <div className="flex items-center space-x-2">
-                                      <Calendar className="h-4 w-4 text-gray-400" />
-                                      <div>
-                                        <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
-                                        <p className="font-medium text-sm">{trip.toCountry}</p>
-                                      </div>
+                                {/* Additional Details */}
+                                <div className="space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    <Calendar className="h-4 w-4 text-gray-400" />
+                                    <div>
+                                      <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
+                                      <p className="font-medium text-sm">{trip.toCountry}</p>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                      <User className="h-4 w-4 text-gray-400" />
-                                      <div>
-                                        <p className="text-xs text-gray-500">ID DE VIAJE</p>
-                                        <p className="font-medium text-sm">#{trip.id}</p>
-                                      </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <User className="h-4 w-4 text-gray-400" />
+                                    <div>
+                                      <p className="text-xs text-gray-500">ID DE VIAJE</p>
+                                      <p className="font-medium text-sm">#{trip.id}</p>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            )}
+                            </div>
                           </CollapsibleContent>
                         </Collapsible>
                       </div>
