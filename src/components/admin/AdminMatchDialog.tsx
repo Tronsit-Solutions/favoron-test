@@ -62,25 +62,22 @@ const AdminMatchDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {/* Package Summary */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {/* Compact Package Summary */}
           {selectedPackage && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-blue-900 mb-2">📦 Solicitud Seleccionada</h4>
-                  <p className="font-medium text-gray-900 mb-2">{selectedPackage.itemDescription}</p>
-                  <div className="flex items-center space-x-4">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      💰 ${selectedPackage.estimatedPrice}
-                    </Badge>
-                    <Badge variant="outline" className="border-gray-300">
-                      🛒 {selectedPackage.purchaseOrigin || 'No especificado'}
-                    </Badge>
-                    <Badge variant="outline" className="border-gray-300">
-                      🎯 {selectedPackage.packageDestination || 'Guatemala'}
-                    </Badge>
-                  </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
+                  <span className="font-medium text-gray-900 text-sm truncate max-w-[200px]">
+                    {selectedPackage.itemDescription}
+                  </span>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                    ${selectedPackage.estimatedPrice}
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-300 text-xs">
+                    🎯 {selectedPackage.packageDestination || 'Guatemala'}
+                  </Badge>
                 </div>
               </div>
             </div>
