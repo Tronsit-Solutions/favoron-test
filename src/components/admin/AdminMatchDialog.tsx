@@ -67,14 +67,17 @@ const AdminMatchDialog = ({
                 {availableTrips.map(trip => (
                   <SelectItem key={trip.id} value={trip.id.toString()} className="p-4 h-auto">
                     <div className="w-full space-y-2">
-                      {/* Header with traveler and destination */}
+                      {/* Header with traveler and route */}
                       <div className="flex justify-between items-start">
                         <div className="font-medium text-sm">
                           👤 Viajero ID: {trip.userId}
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-1">
+                          <div className="text-xs text-muted-foreground">
+                            🛫 <span className="font-medium">Desde:</span> {trip.fromCity || 'No especificado'}
+                          </div>
                           <div className="text-sm font-medium text-primary">
-                            🎯 {trip.toCity}
+                            🛬 <span>Hacia:</span> {trip.toCity}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {trip.toCountry}
