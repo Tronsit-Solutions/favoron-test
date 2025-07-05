@@ -22,7 +22,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button className="w-full">
+          <Button variant="shopper" className="w-full">
             <Plus className="h-4 w-4 mr-2" />
             Nueva Solicitud
           </Button>

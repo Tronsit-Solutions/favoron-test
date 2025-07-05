@@ -32,7 +32,7 @@ const EmptyState = ({ type, onAction }: EmptyStateProps) => {
         <Icon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
         <h4 className="text-lg font-semibold mb-2">{title}</h4>
         <p className="text-muted-foreground mb-4">{description}</p>
-        <Button variant={type === 'trips' ? 'secondary' : 'default'} onClick={onAction}>
+        <Button variant={type === 'trips' ? 'secondary' : 'shopper'} onClick={onAction}>
           <Plus className="h-4 w-4 mr-2" />
           {buttonText}
         </Button>

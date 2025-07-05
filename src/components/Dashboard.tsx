@@ -332,7 +332,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                     🧪 Generar pedido de prueba
                   </Button>
                 )}
-                <Button onClick={() => setShowPackageForm(true)}>
+                <Button variant="shopper" onClick={() => setShowPackageForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nueva Solicitud
                 </Button>

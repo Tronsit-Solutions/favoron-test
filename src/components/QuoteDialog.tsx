@@ -190,7 +190,7 @@ const QuoteDialog = ({
                 <Button variant="destructive" onClick={handleReject}>
                   Rechazar
                 </Button>
-                <Button onClick={handleSubmit}>
+                <Button variant="shopper" onClick={handleSubmit}>
                   Aceptar Cotización
                 </Button>
               </div>

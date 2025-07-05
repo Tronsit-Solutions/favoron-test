@@ -380,7 +380,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
+            <Button type="submit" variant="shopper" className="flex-1">
               Enviar Solicitud
             </Button>
           </div>

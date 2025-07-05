@@ -106,6 +106,7 @@ const PackageCard = ({
             {pkg.status === 'quote_sent' && pkg.quote && (
               <Button 
                 size="sm"
+                variant="shopper"
                 onClick={() => onQuote(pkg, 'shopper')}
               >
                 Ver y Responder Cotización
