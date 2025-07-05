@@ -157,7 +157,7 @@ const AdminMatchDialog = ({
           )}
 
           {/* Trips List */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <Label className="text-lg font-semibold text-gray-900">
                 Viajes Disponibles ({availableTrips.length})
@@ -167,7 +167,7 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
-            <ScrollArea className="flex-1 w-full max-h-[400px]">
+            <ScrollArea className="h-[350px] w-full">
               <div className="space-y-2 pr-4">
                 {availableTrips.map((trip) => (
                   <Card 
