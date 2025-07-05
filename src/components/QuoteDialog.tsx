@@ -92,12 +92,12 @@ const QuoteDialog = ({
 
           {/* KEY DATES - Show for shoppers viewing quotes */}
           {userType === 'shopper' && tripDates && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
-                <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
-                <p className="text-sm font-medium text-blue-800">Fechas importantes del viaje:</p>
+                <Calendar className="h-4 w-4 text-shopper mt-0.5" />
+                <p className="text-sm font-medium text-shopper">Fechas importantes del viaje:</p>
               </div>
-              <div className="text-sm text-blue-700 ml-6 space-y-2">
+              <div className="text-sm text-shopper ml-6 space-y-2">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
                   <span><strong>Fecha límite para enviar paquete:</strong> {new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>

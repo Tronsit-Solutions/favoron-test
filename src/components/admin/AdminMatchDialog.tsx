@@ -34,16 +34,16 @@ const AdminMatchDialog = ({
         </DialogHeader>
         <div className="space-y-4">
           {selectedPackage && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <h4 className="font-medium text-blue-900">Solicitud seleccionada:</h4>
-              <p className="text-sm text-blue-800">{selectedPackage.itemDescription}</p>
-              <p className="text-xs text-blue-700">
+            <div className="bg-shopper-hover border border-shopper/20 rounded p-3">
+              <h4 className="font-medium text-shopper">Solicitud seleccionada:</h4>
+              <p className="text-sm text-shopper">{selectedPackage.itemDescription}</p>
+              <p className="text-xs text-shopper">
                 Precio: ${selectedPackage.estimatedPrice}
               </p>
               <div className="mt-2 flex items-center space-x-4 text-xs">
                 <div className="flex items-center space-x-1">
                   <span className="font-medium">📦 Compra en:</span>
-                  <span className="bg-blue-100 px-2 py-1 rounded">
+                  <span className="bg-shopper-hover px-2 py-1 rounded">
                     {selectedPackage.purchaseOrigin || 'No especificado'}
                   </span>
                 </div>
@@ -83,11 +83,11 @@ const AdminMatchDialog = ({
                       </div>
                       
                       {/* Package receiving window */}
-                      <div className="bg-blue-50 rounded-md p-2 space-y-1">
-                        <div className="text-xs font-medium text-blue-900">
+                      <div className="bg-shopper-hover rounded-md p-2 space-y-1">
+                        <div className="text-xs font-medium text-shopper">
                           📦 Ventana de recepción de paquetes:
                         </div>
-                        <div className="text-xs text-blue-800 grid grid-cols-2 gap-2">
+                        <div className="text-xs text-shopper grid grid-cols-2 gap-2">
                           <div>
                             <span className="font-medium">Primer día:</span>
                             <br />

@@ -144,9 +144,9 @@ const AddressConfirmationModal = ({
             )}
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
-              <strong>Importante:</strong> El comprador enviará el paquete a esta dirección. 
+          <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-3">
+            <p className="text-sm text-shopper">
+              <strong>Importante:</strong> El comprador enviará el paquete a esta dirección.
               Asegúrate de que esté correcta y que estarás disponible para recibirlo.
             </p>
           </div>
