@@ -28,6 +28,7 @@ const AdminMatchDialog = ({
 }: AdminMatchDialogProps) => {
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
+  const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
 
   const toggleTripExpansion = (tripId: number) => {
     const newExpanded = new Set(expandedTrips);
@@ -63,7 +64,7 @@ const AdminMatchDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Compact Package Summary */}
+          {/* Expandable Package Summary */}
           {selectedPackage && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
               <div className="flex items-center justify-between">
@@ -79,12 +80,84 @@ const AdminMatchDialog = ({
                     🎯 {selectedPackage.packageDestination || 'Guatemala'}
                   </Badge>
                 </div>
+                
+                {/* Expand Button */}
+                <button
+                  onClick={() => setPackageExpanded(!packageExpanded)}
+                  className="p-1 hover:bg-blue-100 rounded transition-colors"
+                >
+                  {packageExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-blue-600" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-blue-600" />
+                  )}
+                </button>
               </div>
+
+              {/* Expandable Package Details */}
+              {packageExpanded && (
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Shopper Info */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <p className="text-xs text-blue-700">SHOPPER</p>
+                          <p className="font-medium text-sm text-blue-900">
+                            {selectedPackage.shopperName || `Usuario #${selectedPackage.userId || 'N/A'}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <p className="text-xs text-blue-700">ORIGEN DE COMPRA</p>
+                          <p className="font-medium text-sm text-blue-900">
+                            {selectedPackage.purchaseOrigin || 'No especificado'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="space-y-2">
+                      {selectedPackage.productLink && (
+                        <div className="flex items-center space-x-2">
+                          <Package className="h-4 w-4 text-blue-600" />
+                          <div className="flex-1">
+                            <p className="text-xs text-blue-700">ENLACE DEL PRODUCTO</p>
+                            <a 
+                              href={selectedPackage.productLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="font-medium text-sm text-blue-600 hover:underline truncate block"
+                            >
+                              Ver producto
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {selectedPackage.notes && (
+                        <div className="flex items-start space-x-2">
+                          <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-blue-700">NOTAS</p>
+                            <p className="font-medium text-sm text-blue-900">
+                              {selectedPackage.notes}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Trips List */}
-          <div className="space-y-3">
+          <div className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-4">
               <Label className="text-lg font-semibold text-gray-900">
                 Viajes Disponibles ({availableTrips.length})
@@ -94,7 +167,7 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
-            <ScrollArea className="h-[400px] w-full">
+            <ScrollArea className="flex-1 w-full">
               <div className="space-y-2 pr-4">
                 {availableTrips.map((trip) => (
                   <Card 
