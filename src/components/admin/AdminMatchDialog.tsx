@@ -167,7 +167,7 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
-            <ScrollArea className="flex-1 w-full">
+            <ScrollArea className="flex-1 w-full max-h-[400px]">
               <div className="space-y-2 pr-4">
                 {availableTrips.map((trip) => (
                   <Card 
