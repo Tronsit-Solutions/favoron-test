@@ -257,47 +257,49 @@ const AdminMatchDialog = ({
                        {/* Expandable Content */}
                        {expandedTrips.has(trip.id) && (
                          <div className="mt-3 pt-3 border-t border-gray-200">
-                           <div className="grid grid-cols-2 gap-3">
-                             {/* Package Window Details */}
-                             <div className="bg-blue-50 rounded-lg p-3">
-                               <div className="flex items-center space-x-2 mb-2">
-                                 <Package className="h-3 w-3 text-blue-600" />
-                                 <span className="font-medium text-blue-900 text-sm">Ventana de Recepción</span>
-                               </div>
-                               <div className="space-y-1 text-xs">
-                                 <div className="flex justify-between">
-                                   <span className="text-blue-700">Primer día:</span>
-                                   <span className="font-medium text-blue-900">
-                                     {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                   </span>
+                           <ScrollArea className="max-h-[200px] w-full">
+                             <div className="grid grid-cols-2 gap-3 pr-2">
+                               {/* Package Window Details */}
+                               <div className="bg-blue-50 rounded-lg p-3">
+                                 <div className="flex items-center space-x-2 mb-2">
+                                   <Package className="h-3 w-3 text-blue-600" />
+                                   <span className="font-medium text-blue-900 text-sm">Ventana de Recepción</span>
                                  </div>
-                                 <div className="flex justify-between">
-                                   <span className="text-blue-700">Último día:</span>
-                                   <span className="font-medium text-blue-900">
-                                     {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                   </span>
+                                 <div className="space-y-1 text-xs">
+                                   <div className="flex justify-between">
+                                     <span className="text-blue-700">Primer día:</span>
+                                     <span className="font-medium text-blue-900">
+                                       {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                     </span>
+                                   </div>
+                                   <div className="flex justify-between">
+                                     <span className="text-blue-700">Último día:</span>
+                                     <span className="font-medium text-blue-900">
+                                       {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                                     </span>
+                                   </div>
                                  </div>
                                </div>
-                             </div>
 
-                             {/* Additional Details */}
-                             <div className="space-y-2">
-                               <div className="flex items-center space-x-2">
-                                 <Calendar className="h-3 w-3 text-gray-400" />
-                                 <div>
-                                   <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
-                                   <p className="font-medium text-xs">{trip.toCountry}</p>
+                               {/* Additional Details */}
+                               <div className="space-y-2">
+                                 <div className="flex items-center space-x-2">
+                                   <Calendar className="h-3 w-3 text-gray-400" />
+                                   <div>
+                                     <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
+                                     <p className="font-medium text-xs">{trip.toCountry}</p>
+                                   </div>
                                  </div>
-                               </div>
-                               <div className="flex items-center space-x-2">
-                                 <User className="h-3 w-3 text-gray-400" />
-                                 <div>
-                                   <p className="text-xs text-gray-500">ID DE VIAJE</p>
-                                   <p className="font-medium text-xs">#{trip.id}</p>
+                                 <div className="flex items-center space-x-2">
+                                   <User className="h-3 w-3 text-gray-400" />
+                                   <div>
+                                     <p className="text-xs text-gray-500">ID DE VIAJE</p>
+                                     <p className="font-medium text-xs">#{trip.id}</p>
+                                   </div>
                                  </div>
                                </div>
                              </div>
-                           </div>
+                           </ScrollArea>
                          </div>
                        )}
                     </CardContent>
