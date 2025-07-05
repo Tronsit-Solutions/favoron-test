@@ -285,7 +285,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="packages" className="relative flex items-center gap-2">
-              Mis Paquetes
+              Mis Pedidos
               {pendingActions.shopperTotal > 0 && (
                 <NotificationBadge count={pendingActions.shopperTotal} />
               )}
