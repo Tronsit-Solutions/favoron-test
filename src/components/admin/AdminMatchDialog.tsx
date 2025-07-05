@@ -257,7 +257,7 @@ const AdminMatchDialog = ({
                        {/* Expandable Content */}
                        {expandedTrips.has(trip.id) && (
                          <div className="mt-3 pt-3 border-t border-gray-200">
-                           <ScrollArea className="max-h-[200px] w-full">
+                           <ScrollArea className="max-h-[600px] w-full">
                              <div className="grid grid-cols-2 gap-3 pr-2">
                                {/* Package Window Details */}
                                <div className="bg-blue-50 rounded-lg p-3">
