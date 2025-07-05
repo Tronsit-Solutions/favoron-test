@@ -25,97 +25,158 @@ const AdminMatchDialog = ({
 }: AdminMatchDialogProps) => {
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Hacer Match de solicitud</DialogTitle>
-          <DialogDescription>
-            Selecciona un viaje compatible para hacer match con esta solicitud
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-6">
+          <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
+            <Zap className="h-6 w-6 text-primary" />
+            <span>Hacer Match de Solicitud</span>
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Conecta esta solicitud con un viaje compatible para completar el match
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        
+        <div className="space-y-8">
+          {/* Package Information Section */}
           {selectedPackage && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <h4 className="font-medium text-blue-900">Solicitud seleccionada:</h4>
-              <p className="text-sm text-blue-800">{selectedPackage.itemDescription}</p>
-              <p className="text-xs text-blue-700">
-                Precio: ${selectedPackage.estimatedPrice}
-              </p>
-              <div className="mt-2 flex items-center space-x-4 text-xs">
-                <div className="flex items-center space-x-1">
-                  <span className="font-medium">📦 Compra en:</span>
-                  <span className="bg-blue-100 px-2 py-1 rounded">
-                    {selectedPackage.purchaseOrigin || 'No especificado'}
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 rounded-lg p-6">
+              <h4 className="font-semibold text-lg text-blue-900 mb-3 flex items-center space-x-2">
+                <span>📦</span>
+                <span>Solicitud Seleccionada</span>
+              </h4>
+              
+              <div className="bg-white rounded-lg p-4 space-y-3">
+                <p className="font-medium text-gray-900">{selectedPackage.itemDescription}</p>
+                <div className="flex items-center space-x-4">
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                    💰 ${selectedPackage.estimatedPrice}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <span className="font-medium">🎯 Envío a:</span>
-                  <span className="bg-green-100 px-2 py-1 rounded">
-                    {selectedPackage.packageDestination || 'Guatemala'}
-                  </span>
+                
+                <div className="grid md:grid-cols-2 gap-4 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span>🛒</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">COMPRAR EN</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedPackage.purchaseOrigin || 'No especificado'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span>🎯</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">ENTREGAR EN</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedPackage.packageDestination || 'Guatemala'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label htmlFor="matchingTrip">Seleccionar viaje compatible:</Label>
+          {/* Trip Selection Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <span>✈️</span>
+              </div>
+              <div>
+                <Label htmlFor="matchingTrip" className="text-lg font-semibold text-gray-900">
+                  Seleccionar Viaje Compatible
+                </Label>
+                <p className="text-sm text-gray-600">
+                  Elige el viaje que mejor coincida con los requerimientos de la solicitud
+                </p>
+              </div>
+            </div>
+            
             <Select value={matchingTrip} onValueChange={setMatchingTrip}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Seleccionar viaje compatible" />
+              <SelectTrigger className="h-16 border-2 border-gray-200 hover:border-primary/50 transition-colors">
+                <SelectValue placeholder="👆 Haz clic para ver los viajes disponibles" />
               </SelectTrigger>
-              <SelectContent className="max-h-80">
+              <SelectContent className="max-h-96 w-full min-w-[600px]">
                 {availableTrips.map(trip => (
-                  <SelectItem key={trip.id} value={trip.id.toString()} className="p-4 h-auto">
-                    <div className="w-full space-y-2">
-                      {/* Header with traveler and route */}
-                      <div className="flex justify-between items-start">
-                        <div className="font-medium text-sm">
-                          👤 Viajero ID: {trip.userId}
+                  <SelectItem key={trip.id} value={trip.id.toString()} className="p-0 h-auto">
+                    <div className="w-full p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                      {/* Trip Header */}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium">
+                            {trip.userId.toString().slice(-2)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">Viajero #{trip.userId}</p>
+                            <p className="text-sm text-gray-500">ID del viaje: {trip.id}</p>
+                          </div>
                         </div>
-                        <div className="text-right space-y-1">
-                          <div className="text-xs text-muted-foreground">
-                            🛫 <span className="font-medium">Desde:</span> {trip.fromCity || 'No especificado'}
+                        
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-xs text-gray-500">RUTA:</span>
                           </div>
-                          <div className="text-sm font-medium text-primary">
-                            🛬 <span>Hacia:</span> {trip.toCity}
+                          <div className="flex items-center space-x-2">
+                            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm font-medium">
+                              🛫 {trip.fromCity || 'No especificado'}
+                            </span>
+                            <span className="text-gray-400">→</span>
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
+                              🛬 {trip.toCity}
+                            </span>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {trip.toCountry}
+                          <p className="text-xs text-gray-500 mt-1">{trip.toCountry}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Package Window */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-blue-600">📦</span>
+                          <span className="text-sm font-semibold text-blue-900">Ventana de Recepción</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center">
+                            <p className="text-xs text-blue-600 font-medium">PRIMER DÍA</p>
+                            <p className="font-semibold text-blue-900">
+                              {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-blue-600 font-medium">ÚLTIMO DÍA</p>
+                            <p className="font-semibold text-blue-900">
+                              {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
+                            </p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Package receiving window */}
-                      <div className="bg-blue-50 rounded-md p-2 space-y-1">
-                        <div className="text-xs font-medium text-blue-900">
-                          📦 Ventana de recepción de paquetes:
-                        </div>
-                        <div className="text-xs text-blue-800 grid grid-cols-2 gap-2">
-                          <div>
-                            <span className="font-medium">Primer día:</span>
-                            <br />
-                            {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString() : 'No especificado'}
+                      {/* Delivery Info */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                              🚚 {trip.deliveryMethod === 'oficina' ? 'Oficina Zona 14' : 'Mensajero'}
+                            </span>
                           </div>
-                          <div>
-                            <span className="font-medium">Último día:</span>
-                            <br />
-                            {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString() : 'No especificado'}
+                          <div className="text-sm">
+                            <p className="text-gray-500">Entrega:</p>
+                            <p className="font-medium text-gray-900">
+                              {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString('es-GT') : 'No especificado'}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                      
-                      {/* Delivery info */}
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center space-x-2">
-                          <span className="bg-green-100 px-2 py-1 rounded font-medium">
-                            🚚 {trip.deliveryMethod === 'oficina' ? 'Oficina Zona 14' : 'Mensajero'}
-                          </span>
-                          <span className="text-muted-foreground">
-                            Entrega: {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString() : 'No especificado'}
-                          </span>
-                        </div>
-                        <div className="bg-purple-100 px-2 py-1 rounded text-purple-800 font-medium">
-                          📏 {trip.availableSpace}kg disponible
+                        
+                        <div className="text-right">
+                          <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-bold">
+                            📏 {trip.availableSpace}kg disponible
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -125,19 +186,21 @@ const AdminMatchDialog = ({
             </Select>
           </div>
           
-          <div className="flex space-x-2">
+          {/* Action Buttons */}
+          <div className="flex space-x-4 pt-6 border-t border-gray-200">
             <Button 
               onClick={onMatch} 
-              className="flex-1"
+              className="flex-1 h-12 text-base font-semibold"
               disabled={!matchingTrip}
+              variant="shopper"
             >
-              <Zap className="h-4 w-4 mr-1" />
+              <Zap className="h-5 w-5 mr-2" />
               Confirmar Match
             </Button>
             <Button 
               variant="outline" 
               onClick={() => setShowMatchDialog(false)}
-              className="flex-1"
+              className="flex-1 h-12 text-base"
             >
               Cancelar
             </Button>
