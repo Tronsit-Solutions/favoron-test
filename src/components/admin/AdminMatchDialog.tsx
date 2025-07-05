@@ -52,7 +52,7 @@ const AdminMatchDialog = ({
   };
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
-      <DialogContent className="sm:max-w-3xl max-h-[75vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
             <Zap className="h-5 w-5 text-primary" />
