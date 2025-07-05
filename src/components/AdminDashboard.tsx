@@ -11,7 +11,7 @@ import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
-import AdminPaymentsTab from "./admin/AdminPaymentsTab";
+
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 
 interface AdminDashboardProps {
@@ -128,10 +128,6 @@ const AdminDashboard = ({
   const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
   
-  // Calculate pending payments for the new payments tab
-  const pendingPayments = packages.filter(pkg => 
-    pkg.status === 'paid' && pkg.paymentProof && !pkg.paymentApproved
-  ).length;
 
   return (
     <div className="space-y-6">
@@ -154,7 +150,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -177,12 +173,6 @@ const AdminDashboard = ({
             Matching y gestión
             {matchingTotal > 0 && (
               <NotificationBadge count={matchingTotal} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="relative flex items-center gap-2">
-            Gestión de Pagos
-            {pendingPayments > 0 && (
-              <NotificationBadge count={pendingPayments} />
             )}
           </TabsTrigger>
         </TabsList>
@@ -229,13 +219,6 @@ const AdminDashboard = ({
           />
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
-          <AdminPaymentsTab 
-            packages={packages}
-            onUpdateStatus={onUpdateStatus}
-            onViewPackageDetail={handleViewPackageDetail}
-          />
-        </TabsContent>
       </Tabs>
 
       <AdminMatchDialog 
