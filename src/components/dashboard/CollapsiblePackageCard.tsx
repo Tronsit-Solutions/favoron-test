@@ -61,12 +61,12 @@ const CollapsiblePackageCard = ({
     if (!pkg.matchedTripDates || viewMode !== 'shopper' || pkg.status !== 'payment_confirmed') return null;
     
     return (
-      <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div className="flex items-start space-x-2 mb-2">
-          <Calendar className="h-4 w-4 text-shopper mt-0.5" />
-          <p className="text-sm font-medium text-shopper">Fechas importantes para tu envío:</p>
+          <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+          <p className="text-sm font-medium text-blue-800">Fechas importantes para tu envío:</p>
         </div>
-        <div className="text-sm text-shopper ml-6 space-y-1">
+        <div className="text-sm text-blue-700 ml-6 space-y-1">
           <div className="flex items-center space-x-2">
             <Clock className="h-3 w-3" />
             <span><strong>Primer día para enviar:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
@@ -88,14 +88,14 @@ const CollapsiblePackageCard = ({
     if (!pkg.quote) return null;
     
     return (
-      <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-3">
-        <p className="text-sm font-medium text-shopper mb-1">Cotización recibida:</p>
-        <p className="text-sm text-shopper">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
+        <p className="text-sm text-blue-700">
           Servicio: ${parseFloat(pkg.quote.price || 0).toFixed(2)}
           {parseFloat(pkg.quote.serviceFee || 0) > 0 && ` + Adicionales: $${parseFloat(pkg.quote.serviceFee || 0).toFixed(2)}`}
         </p>
         {pkg.quote.message && (
-          <p className="text-sm text-shopper mt-1">"{pkg.quote.message}"</p>
+          <p className="text-sm text-blue-600 mt-1">"{pkg.quote.message}"</p>
         )}
       </div>
     );
@@ -240,8 +240,8 @@ const CollapsiblePackageCard = ({
                         )}
                       </div>
                     ))}
-                    <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-2">
-                      <p className="text-sm font-medium text-shopper">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                      <p className="text-sm font-medium text-blue-800">
                         Total estimado: ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
                       </p>
                     </div>
@@ -283,10 +283,10 @@ const CollapsiblePackageCard = ({
                 
                 {/* Show payment upload component after quote acceptance - PROMINENT */}
                 {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
-                  <div className="order-first md:order-none bg-shopper-hover border border-shopper/20 rounded-lg p-4">
+                  <div className="order-first md:order-none bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="mb-3">
-                      <p className="text-sm font-medium text-shopper">💳 Subir comprobante de pago</p>
-                      <p className="text-xs text-shopper">Sube tu comprobante para que el viajero proceda con la compra.</p>
+                      <p className="text-sm font-medium text-blue-800">💳 Subir comprobante de pago</p>
+                      <p className="text-xs text-blue-600">Sube tu comprobante para que el viajero proceda con la compra.</p>
                     </div>
                     <PaymentUpload 
                       packageId={pkg.id}

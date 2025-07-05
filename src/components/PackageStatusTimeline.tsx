@@ -73,10 +73,10 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   };
 
   return (
-    <div className={`bg-shopper-hover border border-shopper/20 rounded-lg p-3 ${className}`}>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 ${className}`}>
       <div className="flex items-center space-x-2 mb-3">
-        <Package className="h-4 w-4 text-shopper" />
-        <p className="text-sm font-medium text-shopper">Estado de tu pedido:</p>
+        <Package className="h-4 w-4 text-blue-600" />
+        <p className="text-sm font-medium text-blue-800">Estado de tu pedido:</p>
       </div>
       
       <div className="space-y-2 ml-6">
@@ -91,7 +91,7 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
                 ${state === 'completed' 
                   ? 'bg-green-500 border-green-500 text-white' 
                   : state === 'current'
-                  ? 'bg-shopper border-shopper text-white'
+                  ? 'bg-blue-500 border-blue-500 text-white'
                   : 'bg-background border-gray-300 text-gray-400'
                 }
               `}>
@@ -106,12 +106,12 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
               
               <div className="flex-1">
                 <p className={`text-sm font-medium ${
-                  state === 'pending' ? 'text-gray-500' : 'text-shopper'
+                  state === 'pending' ? 'text-gray-500' : 'text-blue-800'
                 }`}>
                   {status.label}
                 </p>
                 <p className={`text-xs ${
-                  state === 'pending' ? 'text-gray-400' : 'text-shopper'
+                  state === 'pending' ? 'text-gray-400' : 'text-blue-600'
                 }`}>
                   {status.description}
                 </p>

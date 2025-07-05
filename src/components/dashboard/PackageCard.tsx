@@ -80,16 +80,16 @@ const PackageCard = ({
     const totalPrice = parseFloat(pkg.quote.totalPrice || 0);
     
     return (
-      <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-3">
-        <p className="text-sm font-medium text-shopper mb-1">Cotización recibida:</p>
-        <p className="text-sm font-medium text-shopper text-lg">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p className="text-sm font-medium text-blue-800 mb-1">Cotización recibida:</p>
+        <p className="text-sm font-medium text-blue-800 text-lg">
           Total: ${totalPrice.toFixed(2)}
         </p>
-        <p className="text-xs text-shopper mt-1">
+        <p className="text-xs text-blue-600 mt-1">
           Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
         </p>
         {pkg.quote.message && (
-          <p className="text-sm text-shopper mt-2">"{pkg.quote.message}"</p>
+          <p className="text-sm text-blue-600 mt-2">"{pkg.quote.message}"</p>
         )}
       </div>
     );
@@ -198,8 +198,8 @@ const PackageCard = ({
                       )}
                     </div>
                   ))}
-                  <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-2">
-                    <p className="text-sm font-medium text-shopper">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                    <p className="text-sm font-medium text-blue-800">
                       Total estimado: ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
                     </p>
                   </div>
@@ -286,8 +286,8 @@ const PackageCard = ({
                     )}
                   </div>
                 ))}
-                <div className="bg-shopper-hover border border-shopper/20 rounded-lg p-2">
-                  <p className="text-sm font-medium text-shopper">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <p className="text-sm font-medium text-blue-800">
                     Total estimado: ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
                   </p>
                 </div>

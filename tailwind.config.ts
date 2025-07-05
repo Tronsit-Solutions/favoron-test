@@ -56,11 +56,6 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				logo: 'hsl(var(--logo))',
-				shopper: {
-					DEFAULT: 'hsl(var(--shopper))',
-					foreground: 'hsl(var(--shopper-foreground))',
-					hover: 'hsl(var(--shopper-hover))'
-				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
