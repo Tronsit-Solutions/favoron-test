@@ -381,13 +381,13 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             </div>
 
             {/* Show user's trips */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
+                <h4 className="text-lg font-semibold mb-4">Mis Viajes Registrados</h4>
                 {userTrips.length === 0 ? (
                   <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
                 ) : (
-                  <div className="grid gap-3">
+                  <div className="grid gap-4">
                     {userTrips.map((trip) => (
                       <TripCard
                         key={trip.id}
@@ -403,8 +403,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               {/* Show packages assigned to user's trips - NOW COLLAPSIBLE WITH PRIORITY ORDERING */}
               {assignedPackages.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold mb-3">Paquetes Asignados a Mis Viajes</h4>
-                  <div className="grid gap-4">
+                  <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
+                  <div className="grid gap-6">
                      {assignedPackages
                        // Sort packages: priority actions first, then by creation date
                        .sort((a, b) => {

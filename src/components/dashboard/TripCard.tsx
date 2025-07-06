@@ -29,7 +29,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>{trip.fromCity} → {trip.toCity}</CardTitle>
+            <CardTitle className="text-lg">{trip.fromCity} → {trip.toCity}</CardTitle>
             <CardDescription>
               Llegada: {new Date(trip.arrivalDate).toLocaleDateString('es-GT')} • Espacio: {trip.availableSpace} kg
             </CardDescription>
@@ -38,19 +38,19 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <p className="text-xs">
+        <div className="space-y-3">
+          <p className="text-sm">
             <strong>Método de entrega:</strong> {trip.deliveryMethod}
           </p>
 
           {/* Display delivery address */}
           {trip.deliveryAddress && (
-            <div className="bg-muted/50 border rounded p-2">
-              <div className="flex items-start space-x-2 mb-1">
+            <div className="bg-muted/50 border rounded-lg p-3">
+              <div className="flex items-start space-x-2 mb-2">
                 <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <p className="text-xs font-medium">Dirección de entrega registrada:</p>
+                <p className="text-sm font-medium">Dirección de entrega registrada:</p>
               </div>
-              <div className="text-xs text-muted-foreground ml-6">
+              <div className="text-sm text-muted-foreground ml-6">
                 <p>{trip.deliveryAddress.streetAddress}</p>
                 <p>{trip.deliveryAddress.cityArea}</p>
                 {trip.deliveryAddress.hotelAirbnbName && (
@@ -65,20 +65,20 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
           )}
 
           {trip.additionalInfo && (
-            <p className="text-xs">
+            <p className="text-sm">
               <strong>Información adicional:</strong> {trip.additionalInfo}
             </p>
           )}
 
           {/* Edit button for early stage trips */}
           {canEdit && onEditTrip && (
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end mt-3">
               <Button 
                 size="sm"
                 variant="outline"
                 onClick={() => setShowEditModal(true)}
               >
-                <Edit className="h-3 w-3 mr-1" />
+                <Edit className="h-4 w-4 mr-1" />
                 Editar viaje
               </Button>
             </div>
