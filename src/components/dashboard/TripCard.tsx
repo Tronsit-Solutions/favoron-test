@@ -26,31 +26,31 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
   return (
     <>
     <Card key={trip.id}>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg">{trip.fromCity} → {trip.toCity}</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-base">{trip.fromCity} → {trip.toCity}</CardTitle>
+            <CardDescription className="text-xs">
               Llegada: {new Date(trip.arrivalDate).toLocaleDateString('es-GT')} • Espacio: {trip.availableSpace} kg
             </CardDescription>
           </div>
           {getStatusBadge(trip.status)}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <p className="text-sm">
+      <CardContent className="pt-0">
+        <div className="space-y-2">
+          <p className="text-xs">
             <strong>Método de entrega:</strong> {trip.deliveryMethod}
           </p>
 
           {/* Display delivery address */}
           {trip.deliveryAddress && (
-            <div className="bg-muted/50 border rounded-lg p-3">
-              <div className="flex items-start space-x-2 mb-2">
-                <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <p className="text-sm font-medium">Dirección de entrega registrada:</p>
+            <div className="bg-muted/50 border rounded p-2">
+              <div className="flex items-start space-x-2 mb-1">
+                <Home className="h-3 w-3 text-muted-foreground mt-0.5" />
+                <p className="text-xs font-medium">Dirección de entrega registrada:</p>
               </div>
-              <div className="text-sm text-muted-foreground ml-6">
+              <div className="text-xs text-muted-foreground ml-5">
                 <p>{trip.deliveryAddress.streetAddress}</p>
                 <p>{trip.deliveryAddress.cityArea}</p>
                 {trip.deliveryAddress.hotelAirbnbName && (
@@ -65,20 +65,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
           )}
 
           {trip.additionalInfo && (
-            <p className="text-sm">
+            <p className="text-xs">
               <strong>Información adicional:</strong> {trip.additionalInfo}
             </p>
           )}
 
           {/* Edit button for early stage trips */}
           {canEdit && onEditTrip && (
-            <div className="flex justify-end mt-3">
+            <div className="flex justify-end mt-2">
               <Button 
                 size="sm"
                 variant="outline"
                 onClick={() => setShowEditModal(true)}
+                className="h-7 px-2 text-xs"
               >
-                <Edit className="h-4 w-4 mr-1" />
+                <Edit className="h-3 w-3 mr-1" />
                 Editar viaje
               </Button>
             </div>
