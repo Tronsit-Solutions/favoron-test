@@ -26,18 +26,18 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
   return (
     <>
     <Card key={trip.id}>
-      <CardHeader className="pb-3">
+      <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-base">{trip.fromCity} → {trip.toCity}</CardTitle>
-            <CardDescription className="text-xs">
+            <CardTitle>{trip.fromCity} → {trip.toCity}</CardTitle>
+            <CardDescription>
               Llegada: {new Date(trip.arrivalDate).toLocaleDateString('es-GT')} • Espacio: {trip.availableSpace} kg
             </CardDescription>
           </div>
           {getStatusBadge(trip.status)}
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent>
         <div className="space-y-2">
           <p className="text-xs">
             <strong>Método de entrega:</strong> {trip.deliveryMethod}
@@ -47,10 +47,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
           {trip.deliveryAddress && (
             <div className="bg-muted/50 border rounded p-2">
               <div className="flex items-start space-x-2 mb-1">
-                <Home className="h-3 w-3 text-muted-foreground mt-0.5" />
+                <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <p className="text-xs font-medium">Dirección de entrega registrada:</p>
               </div>
-              <div className="text-xs text-muted-foreground ml-5">
+              <div className="text-xs text-muted-foreground ml-6">
                 <p>{trip.deliveryAddress.streetAddress}</p>
                 <p>{trip.deliveryAddress.cityArea}</p>
                 {trip.deliveryAddress.hotelAirbnbName && (
@@ -77,7 +77,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
                 size="sm"
                 variant="outline"
                 onClick={() => setShowEditModal(true)}
-                className="h-7 px-2 text-xs"
               >
                 <Edit className="h-3 w-3 mr-1" />
                 Editar viaje

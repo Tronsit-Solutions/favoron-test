@@ -29,18 +29,18 @@ const CollapsibleTravelerPackageCard = ({
   return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className={hasPendingAction ? "ring-2 ring-primary/50 shadow-lg" : ""}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`pb-3 cursor-pointer transition-colors ${hasPendingAction ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" : "hover:bg-muted/50"}`}>
+          <CardHeader className={`cursor-pointer transition-colors ${hasPendingAction ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" : "hover:bg-muted/50"}`}>
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <CardTitle className="text-base flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2">
                   <Package className="h-4 w-4 text-primary" />
                   {hasPendingAction}
                   <span>
                     {pkg.products && pkg.products.length > 0 ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}` : pkg.itemDescription || 'Pedido'}
                   </span>
-                  {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
-                <CardDescription className="text-xs">
+                <CardDescription>
                   {pkg.products && pkg.products.length > 0 ? <>
                       Total estimado: ${pkg.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
                       {pkg.deliveryDeadline && <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>}
@@ -174,39 +174,39 @@ const CollapsibleTravelerPackageCard = ({
               </div>
 
               {/* Shopper information */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="bg-success-muted border border-success-border rounded-lg p-3">
                 <div className="flex items-start space-x-2 mb-2">
-                  <User className="h-4 w-4 text-green-600 mt-0.5" />
-                  <p className="text-sm font-medium text-green-800">Información del shopper:</p>
+                  <User className="h-4 w-4 text-success mt-0.5" />
+                  <p className="text-sm font-medium text-success-foreground">Información del shopper:</p>
                 </div>
-                <div className="text-sm text-green-700 ml-6">
+                <div className="text-xs text-success-foreground ml-6">
                   <p>Solicitante: Usuario #{pkg.userId}</p>
                   <p>Creado el: {new Date(pkg.createdAt).toLocaleDateString('es-GT')}</p>
                 </div>
               </div>
 
               {/* Show quote information if sent */}
-              {pkg.quote && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-sm font-medium text-yellow-800 mb-1">Tu cotización enviada:</p>
-                  <p className="text-sm font-bold text-yellow-800 text-lg">
+              {pkg.quote && <div className="bg-warning-muted border border-warning-border rounded-lg p-3">
+                  <p className="text-sm font-medium text-warning-foreground mb-1">Tu cotización enviada:</p>
+                  <p className="text-base font-bold text-warning-foreground">
                     Total para el shopper: ${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}
                   </p>
-                  <p className="text-xs text-yellow-600 mt-1">
+                  <p className="text-xs text-warning-foreground/80 mt-1">
                     Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
                   </p>
-                  {pkg.quote.message && <p className="text-sm text-yellow-600 mt-2">Mensaje: "{pkg.quote.message}"</p>}
-                  <p className="text-xs text-yellow-600 mt-2">
+                  {pkg.quote.message && <p className="text-sm text-warning-foreground mt-2">Mensaje: "{pkg.quote.message}"</p>}
+                  <p className="text-xs text-warning-foreground/80 mt-2">
                     Estado: {pkg.status === 'quote_accepted' ? 'Aceptada ✅' : 'Esperando respuesta ⏳'}
                   </p>
                 </div>}
 
               {/* Delivery address if confirmed */}
-              {pkg.confirmedDeliveryAddress && <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              {pkg.confirmedDeliveryAddress && <div className="bg-info-muted border border-info-border rounded-lg p-3">
                   <div className="flex items-start space-x-2 mb-2">
-                    <MapPin className="h-4 w-4 text-purple-600 mt-0.5" />
-                    <p className="text-sm font-medium text-purple-800">Dirección de entrega confirmada:</p>
+                    <MapPin className="h-4 w-4 text-info mt-0.5" />
+                    <p className="text-sm font-medium text-info-foreground">Dirección de entrega confirmada:</p>
                   </div>
-                  <div className="text-sm text-purple-700 ml-6">
+                  <div className="text-xs text-info-foreground ml-6">
                     <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
                     <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
                     {pkg.confirmedDeliveryAddress.hotelAirbnbName && <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>}
@@ -216,23 +216,23 @@ const CollapsibleTravelerPackageCard = ({
 
               {/* Action buttons for travelers */}
               <div className="flex flex-wrap gap-2">
-                {pkg.status === 'quote_sent' && <div className="text-sm text-muted-foreground">
+                {pkg.status === 'quote_sent' && <div className="text-xs text-muted-foreground">
                     Cotización enviada - Esperando respuesta del shopper
                   </div>}
 
-                {pkg.status === 'quote_accepted' && <div className="text-sm text-green-600 font-medium">
+                {pkg.status === 'quote_accepted' && <div className="text-xs text-success font-medium">
                     ✅ Cotización aceptada - Esperando confirmación de pago
                   </div>}
 
-                {pkg.status === 'payment_confirmed' && <div className="text-sm text-blue-600 font-medium">
+                {pkg.status === 'payment_confirmed' && <div className="text-xs text-info font-medium">
                     💳 Pago confirmado - Esperando que el shopper envíe el paquete
                   </div>}
 
-                {pkg.status === 'in_transit' && <div className="text-sm text-orange-600 font-medium">
+                {pkg.status === 'in_transit' && <div className="text-xs text-warning font-medium">
                     🚚 Paquete en tránsito - El shopper ya lo envió
                   </div>}
 
-                {pkg.status === 'received_by_traveler' && <div className="text-sm text-green-600 font-medium">
+                {pkg.status === 'received_by_traveler' && <div className="text-xs text-success font-medium">
                     ✅ Paquete recibido y confirmado
                     {pkg.travelerConfirmation?.confirmedAt && <div className="text-xs text-muted-foreground mt-1">
                         Confirmado el: {new Date(pkg.travelerConfirmation.confirmedAt).toLocaleDateString('es-GT')}
