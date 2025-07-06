@@ -176,6 +176,8 @@ const PackageCard = ({
             <PaymentUpload 
               packageId={pkg.id}
               onUpload={handlePaymentUpload}
+              currentPaymentReceipt={pkg.paymentReceipt}
+              isPaymentApproved={pkg.status === 'payment_confirmed' || pkg.status === 'in_transit' || pkg.status === 'delivered'}
             />
           </div>
           
