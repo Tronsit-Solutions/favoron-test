@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronUp, Package } from "lucide-react";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
+import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityActions";
+import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
+import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
+
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
   getStatusBadge: (status: string) => JSX.Element;
@@ -14,6 +17,7 @@ interface CollapsibleTravelerPackageCardProps {
   hasPendingAction?: boolean;
   autoExpand?: boolean;
 }
+
 const CollapsibleTravelerPackageCard = ({
   pkg,
   getStatusBadge,
@@ -24,13 +28,43 @@ const CollapsibleTravelerPackageCard = ({
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
   const handleConfirmReceived = (photo?: string) => {
     onConfirmReceived(pkg.id, photo);
   };
-  return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+
+  const handleConfirmReceivedClick = () => {
+    setShowConfirmationModal(true);
+  };
+
+  const getPackageName = () => {
+    if (pkg.products && pkg.products.length > 0) {
+      return pkg.products.length > 1 
+        ? `Pedido con ${pkg.products.length} productos` 
+        : pkg.products[0].itemDescription;
+    }
+    return pkg.itemDescription || 'Pedido';
+  };
+
+  const getPackageDescription = () => {
+    if (pkg.products && pkg.products.length > 0) {
+      const total = pkg.products.reduce((sum: number, product: any) => 
+        sum + parseFloat(product.estimatedPrice || 0), 0
+      ).toFixed(2);
+      return `Total estimado: $${total}${pkg.deliveryDeadline ? ` • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}` : ''}`;
+    }
+    return `Precio estimado: $${pkg.estimatedPrice}${pkg.deliveryDeadline ? ` • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}` : ''}`;
+  };
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className={hasPendingAction ? "ring-2 ring-primary/50 shadow-lg" : ""}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-colors ${hasPendingAction ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" : "hover:bg-muted/50"}`}>
+          <CardHeader className={`cursor-pointer transition-colors ${
+            hasPendingAction 
+              ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" 
+              : "hover:bg-muted/50"
+          }`}>
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
@@ -43,20 +77,10 @@ const CollapsibleTravelerPackageCard = ({
                       />
                     )}
                   </div>
-                  <span>
-                    {pkg.products && pkg.products.length > 0 ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}` : pkg.itemDescription || 'Pedido'}
-                  </span>
+                  <span>{getPackageName()}</span>
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
-                <CardDescription>
-                  {pkg.products && pkg.products.length > 0 ? <>
-                      Total estimado: ${pkg.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
-                      {pkg.deliveryDeadline && <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>}
-                    </> : <>
-                      Precio estimado: ${pkg.estimatedPrice}
-                      {pkg.deliveryDeadline && <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>}
-                    </>}
-                </CardDescription>
+                <CardDescription>{getPackageDescription()}</CardDescription>
               </div>
               {getStatusBadge(pkg.status)}
             </div>
@@ -65,194 +89,36 @@ const CollapsibleTravelerPackageCard = ({
         
         <CollapsibleContent>
           <CardContent className="pt-3">
-            {/* PRIORITY ACTIONS SECTION - Always visible at top */}
-            {(pkg.status === 'matched' || pkg.status === 'in_transit') && <div className="mb-2 p-2 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
-                <div className="flex items-start space-x-1.5">
-                  <div className="flex-shrink-0 w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
-                    {pkg.status === 'matched' ? <DollarSign className="h-2.5 w-2.5 text-primary" /> : <CheckCircle className="h-2.5 w-2.5 text-primary" />}
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    {pkg.status === 'matched' && <>
-                        <p className="text-sm font-bold text-primary">¿Te interesa este pedido?</p>
-                        <p className="text-xs text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
-                        <Button size="sm" onClick={() => onQuote(pkg, 'traveler')} className="flex items-center space-x-1 bg-primary hover:bg-primary/90 text-white font-semibold px-3">
-                          <DollarSign className="h-3 w-3" />
-                          <span>Cotizar</span>
-                        </Button>
-                      </>}
-                    {pkg.status === 'in_transit' && <>
-                        <p className="text-xs font-medium text-primary">¡Paquete listo para confirmar!</p>
-                        <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete del shopper?</p>
-                        <Button size="sm" onClick={() => setShowConfirmationModal(true)} className="flex items-center space-x-1" variant="outline">
-                          <CheckCircle className="h-3 w-3" />
-                          <span>Confirmar que recibí el paquete</span>
-                        </Button>
-                      </>}
-                  </div>
-                </div>
-              </div>}
+            <TravelerPackagePriorityActions
+              pkg={pkg}
+              onQuote={onQuote}
+              onConfirmReceived={handleConfirmReceivedClick}
+            />
 
             <div className="space-y-3">
               {/* Traveler Package Timeline - Show for relevant statuses */}
-              {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && <TravelerPackageTimeline currentStatus={pkg.status} />}
+              {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                <TravelerPackageTimeline currentStatus={pkg.status} />
+              )}
 
               {/* Package details */}
-              <div className="bg-gradient-to-br from-info-muted to-info-muted/50 border border-info-border rounded-lg p-3">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="flex-shrink-0 w-5 h-5 bg-info/10 rounded-full flex items-center justify-center">
-                    <Package className="h-3 w-3 text-info" />
-                  </div>
-                  <h3 className="text-sm font-medium text-foreground">Detalles del pedido</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  {/* Origin and Destination */}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="bg-card/50 border border-border/50 rounded p-1.5">
-                      <p className="text-xs text-muted-foreground">Origen</p>
-                      <p className="text-xs font-medium text-foreground">{pkg.purchaseOrigin}</p>
-                    </div>
-                    <div className="bg-card/50 border border-border/50 rounded p-1.5">
-                      <p className="text-xs text-muted-foreground">Destino</p>
-                      <p className="text-xs font-medium text-foreground">{pkg.packageDestination}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Products section */}
-                  <div className="space-y-1.5">
-                    <h4 className="text-xs font-medium text-foreground">Productos solicitados</h4>
-                    <div className="space-y-1.5">
-                      {pkg.products ? pkg.products.map((product: any, index: number) => (
-                        <div key={index} className="bg-card border border-border rounded p-2">
-                          <div className="flex items-start justify-between mb-1">
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-foreground">
-                                Producto {index + 1}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
-                            </div>
-                          </div>
-                          <a 
-                            href={product.itemLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-xs text-primary hover:underline"
-                          >
-                            Ver producto →
-                          </a>
-                        </div>
-                      )) : (
-                        // Fallback for old single-product format
-                        <div className="bg-card border border-border rounded p-2">
-                          <div className="flex items-start justify-between mb-1">
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-foreground">Producto</p>
-                              <p className="text-xs text-muted-foreground">{pkg.itemDescription}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs font-bold text-primary">${pkg.estimatedPrice}</p>
-                            </div>
-                          </div>
-                          {pkg.itemLink && (
-                            <a 
-                              href={pkg.itemLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="text-xs text-primary hover:underline"
-                            >
-                              Ver producto →
-                            </a>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              <TravelerPackageDetails pkg={pkg} />
 
-                  {/* Additional notes */}
-                  {pkg.additionalNotes && (
-                    <div className="bg-card/30 border border-border/50 rounded p-1.5">
-                      <p className="text-xs font-medium text-muted-foreground mb-0.5">Notas adicionales</p>
-                      <p className="text-xs text-foreground">{pkg.additionalNotes}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Shopper information */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                <div className="flex items-start space-x-1.5 mb-1">
-                  <User className="h-3 w-3 text-green-600 mt-0.5" />
-                  <p className="text-xs font-medium text-green-800">Información del shopper:</p>
-                </div>
-                <div className="text-xs text-green-700 ml-4.5">
-                  <p>Solicitante: Usuario #{pkg.userId}</p>
-                  <p>Creado el: {new Date(pkg.createdAt).toLocaleDateString('es-GT')}</p>
-                </div>
-              </div>
-
-              {/* Show quote information if sent */}
-              {pkg.quote && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
-                  <p className="text-xs font-medium text-yellow-800 mb-1">Tu cotización enviada:</p>
-                  <p className="text-sm font-bold text-yellow-800">
-                    Total para el shopper: ${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
-                  </p>
-                  {pkg.quote.message && <p className="text-xs text-yellow-600 mt-1">Mensaje: "{pkg.quote.message}"</p>}
-                  <p className="text-xs text-yellow-600 mt-1">
-                    Estado: {pkg.status === 'quote_accepted' ? 'Aceptada ✅' : 'Esperando respuesta ⏳'}
-                  </p>
-                </div>}
-
-              {/* Delivery address if confirmed */}
-              {pkg.confirmedDeliveryAddress && <div className="bg-purple-50 border border-purple-200 rounded-lg p-2">
-                  <div className="flex items-start space-x-1.5 mb-1">
-                    <MapPin className="h-3 w-3 text-purple-600 mt-0.5" />
-                    <p className="text-xs font-medium text-purple-800">Dirección de entrega confirmada:</p>
-                  </div>
-                  <div className="text-xs text-purple-700 ml-4.5">
-                    <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
-                    <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
-                    {pkg.confirmedDeliveryAddress.hotelAirbnbName && <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>}
-                    <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
-                  </div>
-                </div>}
-
-               {/* Action buttons for travelers */}
-               <div className="flex flex-wrap gap-1">
-                 {pkg.status === 'quote_sent' && <div className="text-xs text-muted-foreground">
-                     Cotización enviada - Esperando respuesta del shopper
-                   </div>}
-
-                 {pkg.status === 'quote_accepted' && <div className="text-xs text-green-600 font-medium">
-                     ✅ Cotización aceptada - Esperando confirmación de pago
-                   </div>}
-
-                 {pkg.status === 'payment_confirmed' && <div className="text-xs text-blue-600 font-medium">
-                     💳 Pago confirmado - Esperando que el shopper envíe el paquete
-                   </div>}
-
-                 {pkg.status === 'in_transit' && <div className="text-xs text-orange-600 font-medium">
-                     🚚 Paquete en tránsito - El shopper ya lo envió
-                   </div>}
-
-                 {pkg.status === 'received_by_traveler' && <div className="text-xs text-green-600 font-medium">
-                     ✅ Paquete recibido y confirmado
-                     {pkg.travelerConfirmation?.confirmedAt && <div className="text-xs text-muted-foreground mt-0.5">
-                         Confirmado el: {new Date(pkg.travelerConfirmation.confirmedAt).toLocaleDateString('es-GT')}
-                       </div>}
-                   </div>}
-               </div>
+              {/* Package info sections */}
+              <TravelerPackageInfo pkg={pkg} />
             </div>
           </CardContent>
         </CollapsibleContent>
       </Card>
 
-      <PackageReceiptConfirmation isOpen={showConfirmationModal} onClose={() => setShowConfirmationModal(false)} onConfirm={handleConfirmReceived} packageName={pkg.products && pkg.products.length > 0 ? pkg.products.length > 1 ? `Pedido con ${pkg.products.length} productos` : pkg.products[0].itemDescription : pkg.itemDescription || 'Pedido'} />
-    </Collapsible>;
+      <PackageReceiptConfirmation 
+        isOpen={showConfirmationModal} 
+        onClose={() => setShowConfirmationModal(false)} 
+        onConfirm={handleConfirmReceived} 
+        packageName={getPackageName()}
+      />
+    </Collapsible>
+  );
 };
+
 export default CollapsibleTravelerPackageCard;
