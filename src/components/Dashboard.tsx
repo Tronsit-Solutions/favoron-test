@@ -347,13 +347,13 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   <CollapsiblePackageCard
                     key={pkg.id}
                     pkg={pkg}
-                    getStatusBadge={getStatusBadge}
-                        onQuote={handleQuote}
-                        onConfirmAddress={handleConfirmAddress}
-                        onUploadDocument={handleUploadDocument}
-                        onEditPackage={handleEditPackage}
-                        viewMode="shopper"
-                      />
+                    packages={packages}
+                    setPackages={setPackages}
+                    onQuote={handleQuote}
+                    onConfirmAddress={handleConfirmAddress}
+                    onEditPackage={handleEditPackage}
+                    viewMode="shopper"
+                  />
                 ))}
               </div>
             )}
