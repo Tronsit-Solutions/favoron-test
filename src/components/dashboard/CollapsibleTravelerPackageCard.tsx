@@ -34,7 +34,7 @@ const CollapsibleTravelerPackageCard = ({
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
                   <Package className="h-5 w-5 text-primary" />
-                  {hasPendingAction && <AlertTriangle className="h-4 w-4 text-primary" />}
+                  {hasPendingAction}
                   <span>
                     {pkg.products && pkg.products.length > 0 ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}` : pkg.itemDescription || 'Pedido'}
                   </span>
