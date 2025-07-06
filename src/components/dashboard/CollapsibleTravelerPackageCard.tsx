@@ -58,25 +58,25 @@ const CollapsibleTravelerPackageCard = ({
         <CollapsibleContent>
           <CardContent>
             {/* PRIORITY ACTIONS SECTION - Always visible at top */}
-            {(pkg.status === 'matched' || pkg.status === 'in_transit') && <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                    {pkg.status === 'matched' ? <DollarSign className="h-4 w-4 text-primary" /> : <CheckCircle className="h-4 w-4 text-primary" />}
+            {(pkg.status === 'matched' || pkg.status === 'in_transit') && <div className="mb-3 p-3 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <div className="flex-shrink-0 w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
+                    {pkg.status === 'matched' ? <DollarSign className="h-3 w-3 text-primary" /> : <CheckCircle className="h-3 w-3 text-primary" />}
                   </div>
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-2">
                     {pkg.status === 'matched' && <>
-                        <p className="text-lg font-bold text-primary">¿Te interesa este pedido?</p>
-                        <p className="text-sm text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
-                        <Button size="default" onClick={() => onQuote(pkg, 'traveler')} className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white font-semibold px-6">
-                          <DollarSign className="h-4 w-4" />
-                          <span>Cotizar </span>
+                        <p className="text-sm font-semibold text-primary">¿Te interesa este pedido?</p>
+                        <p className="text-xs text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
+                        <Button size="sm" onClick={() => onQuote(pkg, 'traveler')} className="flex items-center space-x-1 bg-primary hover:bg-primary/90 text-white font-medium px-3 h-7 text-xs">
+                          <DollarSign className="h-3 w-3" />
+                          <span>Cotizar</span>
                         </Button>
                       </>}
                     {pkg.status === 'in_transit' && <>
-                        <p className="text-sm font-medium text-primary">¡Paquete listo para confirmar!</p>
+                        <p className="text-xs font-medium text-primary">¡Paquete listo para confirmar!</p>
                         <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete del shopper?</p>
-                        <Button size="sm" onClick={() => setShowConfirmationModal(true)} className="flex items-center space-x-2" variant="outline">
-                          <CheckCircle className="h-4 w-4" />
+                        <Button size="sm" onClick={() => setShowConfirmationModal(true)} className="flex items-center space-x-1 h-7 text-xs" variant="outline">
+                          <CheckCircle className="h-3 w-3" />
                           <span>Confirmar que recibí el paquete</span>
                         </Button>
                       </>}
