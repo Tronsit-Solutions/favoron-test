@@ -39,12 +39,7 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
     setShowPaymentUpload(false);
   };
 
-  const handlePurchaseUpload = () => {
-    const purchaseData = {
-      filename: `purchase_confirmation_${pkg.id}_${Date.now()}.pdf`,
-      uploadedAt: new Date().toISOString(),
-      type: 'confirmation'
-    };
+  const handlePurchaseUpload = (purchaseData: any) => {
     onUploadDocument(pkg.id, 'confirmation', purchaseData);
     setShowPurchaseUpload(false);
   };
@@ -232,7 +227,7 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
                           Subido: {new Date(pkg.purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
                         </p>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
+                      <Button size="sm" variant="outline" onClick={() => setShowPurchaseUpload(true)}>
                         <Edit className="h-3 w-3 mr-1" />
                         Reemplazar
                       </Button>
@@ -240,13 +235,32 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
                   ) : (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">Sube el comprobante de compra del producto</p>
-                      <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
+                      <Button size="sm" variant="outline" onClick={() => setShowPurchaseUpload(true)}>
                         <Upload className="h-3 w-3 mr-1" />
                         Subir Comprobante
                       </Button>
                     </div>
                   )}
                 </div>
+
+                {showPurchaseUpload && (
+                  <div className="mt-3 p-4 border border-blue-200 rounded-lg bg-blue-50/30">
+                    <PaymentUpload 
+                      packageId={pkg.id}
+                      onUpload={handlePurchaseUpload}
+                      currentPaymentReceipt={pkg.purchaseConfirmation}
+                      isPaymentApproved={false}
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowPurchaseUpload(false)}
+                      className="mt-2"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Tracking Information */}
