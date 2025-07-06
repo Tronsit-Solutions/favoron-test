@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileText, Link, Package } from "lucide-react";
+import { Upload, FileText, Link, Package, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadDocumentsProps {
@@ -18,6 +18,8 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const [confirmationUploaded, setConfirmationUploaded] = useState(false);
+  const [trackingUploaded, setTrackingUploaded] = useState(false);
   const { toast } = useToast();
 
   const handleTrackingUpload = () => {
@@ -29,9 +31,11 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
         timestamp: new Date().toISOString()
       });
       
+      setTrackingUploaded(true);
+      
       toast({
-        title: "¡Información de envío actualizada!",
-        description: "Se ha guardado el número de seguimiento.",
+        title: "¡Información de envío guardada!",
+        description: "El número de seguimiento se ha registrado correctamente.",
       });
       
       setTrackingNumber("");
@@ -48,8 +52,10 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
       type: type
     });
     
+    setConfirmationUploaded(true);
+    
     toast({
-      title: "¡Archivo subido!",
+      title: "¡Comprobante subido!",
       description: "La confirmación de compra se ha guardado correctamente.",
     });
   };
@@ -62,88 +68,147 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
   return (
     <div className="space-y-4">
       {/* Purchase Confirmation Upload */}
-      <Card>
+      <Card className={confirmationUploaded ? "border-green-200 bg-green-50/30" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5" />
-            <span>Confirmación de Compra</span>
+            <span>Paso 1: Confirmación de Compra</span>
+            {confirmationUploaded && <CheckCircle className="h-5 w-5 text-green-600" />}
           </CardTitle>
           <CardDescription>
-            Sube la confirmación de compra del producto que compraste
+            {confirmationUploaded 
+              ? "✅ Comprobante de compra subido correctamente"
+              : "Sube la confirmación de compra del producto que compraste"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-            <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mb-4">
-              Arrastra tu confirmación de compra aquí o haz clic para seleccionar
-            </p>
-            <Button 
-              onClick={() => handleFileUpload('confirmation')}
-              className="w-full"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Subir Confirmación de Compra
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Formatos permitidos: PDF, JPG, PNG. Máximo 5MB.
-          </p>
+          {confirmationUploaded ? (
+            <div className="flex items-center space-x-2 p-4 bg-green-100 border border-green-200 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-800">Comprobante subido exitosamente</p>
+                <p className="text-xs text-green-600">Tu confirmación de compra está guardada</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  Arrastra tu confirmación de compra aquí o haz clic para seleccionar
+                </p>
+                <Button 
+                  onClick={() => handleFileUpload('confirmation')}
+                  className="w-full"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Subir Confirmación de Compra
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Formatos permitidos: PDF, JPG, PNG. Máximo 5MB.
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 
       {/* Tracking Information */}
-      <Card>
+      <Card className={trackingUploaded ? "border-green-200 bg-green-50/30" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Link className="h-5 w-5" />
-            <span>Información de Envío</span>
+            <span>Paso 2: Información de Envío</span>
+            {trackingUploaded && <CheckCircle className="h-5 w-5 text-green-600" />}
           </CardTitle>
           <CardDescription>
-            Agrega el número de seguimiento del envío al viajero
+            {trackingUploaded 
+              ? "✅ Información de envío guardada correctamente"
+              : "Agrega el número de seguimiento cuando esté disponible (opcional por ahora)"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="trackingNumber">Número de seguimiento *</Label>
-            <Input
-              id="trackingNumber"
-              value={trackingNumber}
-              onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="Ej: 1234567890"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="trackingUrl">URL de seguimiento (opcional)</Label>
-            <Input
-              id="trackingUrl"
-              value={trackingUrl}
-              onChange={(e) => setTrackingUrl(e.target.value)}
-              placeholder="https://tracking.carrier.com/track/..."
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="notes">Notas adicionales</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Información adicional sobre el envío..."
-              rows={3}
-            />
-          </div>
-          
-          <Button 
-            onClick={handleTrackingUpload} 
-            className="w-full"
-            disabled={!trackingNumber.trim()}
-          >
-            Guardar información de envío
-          </Button>
+          {trackingUploaded ? (
+            <div className="flex items-center space-x-2 p-4 bg-green-100 border border-green-200 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-800">Información de envío guardada</p>
+                <p className="text-xs text-green-600">El viajero ya puede hacer seguimiento del paquete</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <Label htmlFor="trackingNumber">Número de seguimiento *</Label>
+                <Input
+                  id="trackingNumber"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="Ej: 1234567890"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="trackingUrl">URL de seguimiento (opcional)</Label>
+                <Input
+                  id="trackingUrl"
+                  value={trackingUrl}
+                  onChange={(e) => setTrackingUrl(e.target.value)}
+                  placeholder="https://tracking.carrier.com/track/..."
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="notes">Notas adicionales</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Información adicional sobre el envío..."
+                  rows={3}
+                />
+              </div>
+              
+              <Button 
+                onClick={handleTrackingUpload} 
+                className="w-full"
+                disabled={!trackingNumber.trim()}
+              >
+                Guardar información de envío
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
+
+      {/* Progress Summary */}
+      {(confirmationUploaded || trackingUploaded) && (
+        <Card className="border-blue-200 bg-blue-50/30">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className={`h-4 w-4 ${confirmationUploaded ? 'text-green-600' : 'text-gray-300'}`} />
+                <span className={`text-sm ${confirmationUploaded ? 'text-green-800' : 'text-gray-500'}`}>
+                  Comprobante subido
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className={`h-4 w-4 ${trackingUploaded ? 'text-green-600' : 'text-gray-300'}`} />
+                <span className={`text-sm ${trackingUploaded ? 'text-green-800' : 'text-gray-500'}`}>
+                  Tracking agregado
+                </span>
+              </div>
+            </div>
+            {confirmationUploaded && trackingUploaded && (
+              <p className="text-sm text-blue-800 mt-2 font-medium">
+                🚚 ¡Perfecto! El pedido pasará a estado "En tránsito"
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
