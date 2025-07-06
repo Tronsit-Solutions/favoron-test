@@ -7,6 +7,8 @@ import PaymentUpload from "@/components/PaymentUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import AddressDisplay from "@/components/ui/address-display";
+import StatusAlert from "@/components/ui/status-alert";
 
 interface OrderStepsFlowProps {
   pkg: any;
@@ -70,10 +72,16 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
     return 'locked';
   };
 
+  const getStepCardStyle = (status: string) => {
+    if (status === 'completed') return 'border-success-border bg-success-muted';
+    if (status === 'active') return 'border-info-border bg-info-muted';
+    return 'border-border bg-muted/30';
+  };
+
   const getStepIcon = (step: number, status: string) => {
-    if (status === 'completed') return <CheckCircle className="h-5 w-5 text-green-600" />;
-    if (status === 'active') return <Clock className="h-5 w-5 text-blue-600" />;
-    return <Lock className="h-5 w-5 text-gray-400" />;
+    if (status === 'completed') return <CheckCircle className="h-5 w-5 text-success" />;
+    if (status === 'active') return <Clock className="h-5 w-5 text-info" />;
+    return <Lock className="h-5 w-5 text-muted-foreground" />;
   };
 
   if (viewMode !== 'shopper' || pkg.status === 'pending_approval') {
@@ -81,16 +89,12 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Step 1: Payment Upload */}
-      <Card className={`${
-        getStepStatus(1) === 'completed' ? 'border-green-200 bg-green-50/30' :
-        getStepStatus(1) === 'active' ? 'border-blue-200 bg-blue-50/30' :
-        'border-gray-200 bg-gray-50/30'
-      }`}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+      <Card className={getStepCardStyle(getStepStatus(1))}>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               {getStepIcon(1, getStepStatus(1))}
               <span>Paso 1: Comprobante de Pago</span>
             </div>
@@ -100,38 +104,43 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {getStepStatus(1) === 'locked' ? (
-            <p className="text-sm text-gray-600">Acepta la cotización para desbloquear este paso</p>
+            <StatusAlert variant="pending">
+              Acepta la cotización para desbloquear este paso
+            </StatusAlert>
           ) : (
             <>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {pkg.paymentReceipt ? (
-                  <div className="flex items-center justify-between p-3 bg-green-100 border border-green-200 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-green-800">
-                        <DollarSign className="h-4 w-4 inline mr-1" />
-                        Comprobante subido
-                      </p>
-                      <p className="text-xs text-green-600">
-                        📄 {pkg.paymentReceipt.filename || 'payment_receipt.pdf'}
-                      </p>
-                      <p className="text-xs text-green-600">
-                        Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString('es-GT')}
-                      </p>
+                  <StatusAlert variant="success" title="Comprobante subido">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          <span className="font-medium">
+                            {pkg.paymentReceipt.filename || 'payment_receipt.pdf'}
+                          </span>
+                        </div>
+                        <p className="text-xs opacity-75">
+                          Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString('es-GT')}
+                        </p>
+                      </div>
+                      {!isPaymentApproved && (
+                        <Button size="sm" variant="outline" onClick={() => setShowPaymentUpload(true)}>
+                          <Edit className="h-3 w-3 mr-1" />
+                          Editar
+                        </Button>
+                      )}
                     </div>
-                    {!isPaymentApproved && (
-                      <Button size="sm" variant="outline" onClick={() => setShowPaymentUpload(true)}>
-                        <Edit className="h-3 w-3 mr-1" />
-                        Editar
-                      </Button>
-                    )}
-                  </div>
+                  </StatusAlert>
                 ) : (
-                  <div className="p-3 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2">Sube tu comprobante de pago para continuar</p>
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Sube tu comprobante de pago para continuar
+                    </p>
                     <Button size="sm" onClick={() => setShowPaymentUpload(true)}>
-                      <Upload className="h-3 w-3 mr-1" />
+                      <Upload className="h-4 w-4 mr-2" />
                       Subir Comprobante
                     </Button>
                   </div>
@@ -140,20 +149,20 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
                 {pkg.paymentReceipt && (
                   <>
                     {isPaymentApproved ? (
-                      <div className="p-2 bg-blue-100 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-800 font-medium">✅ Pago aprobado por administrador</p>
-                      </div>
+                      <StatusAlert variant="success">
+                        ✅ Pago aprobado por administrador
+                      </StatusAlert>
                     ) : (
-                      <div className="p-2 bg-yellow-100 border border-yellow-200 rounded-lg">
-                        <p className="text-sm text-yellow-800">⏳ Esperando aprobación del administrador</p>
-                      </div>
+                      <StatusAlert variant="warning">
+                        ⏳ Esperando aprobación del administrador
+                      </StatusAlert>
                     )}
                   </>
                 )}
               </div>
 
               {showPaymentUpload && (
-                <div className="mt-3 p-4 border border-blue-200 rounded-lg bg-blue-50/30">
+                <div className="p-4 border border-info-border rounded-lg bg-info-muted">
                   <PaymentUpload 
                     packageId={pkg.id}
                     onUpload={handlePaymentUpload}
@@ -164,7 +173,7 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
                     variant="outline" 
                     size="sm" 
                     onClick={() => setShowPaymentUpload(false)}
-                    className="mt-2"
+                    className="mt-3"
                   >
                     Cancelar
                   </Button>
