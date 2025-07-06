@@ -89,65 +89,63 @@ const CollapsibleTravelerPackageCard = ({
               {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && <TravelerPackageTimeline currentStatus={pkg.status} />}
 
               {/* Package details */}
-              <div className="bg-gradient-to-br from-info-muted to-info-muted/50 border border-info-border rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
-                    <Package className="h-5 w-5 text-info" />
+              <div className="bg-gradient-to-br from-info-muted to-info-muted/50 border border-info-border rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="flex-shrink-0 w-7 h-7 bg-info/10 rounded-full flex items-center justify-center">
+                    <Package className="h-4 w-4 text-info" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Detalles del pedido</h3>
+                  <h3 className="font-medium text-foreground">Detalles del pedido</h3>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* Origin and Destination */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-3">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Origen</p>
-                      <p className="font-semibold text-foreground">{pkg.purchaseOrigin}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-card/50 border border-border/50 rounded p-2">
+                      <p className="text-xs text-muted-foreground">Origen</p>
+                      <p className="text-sm font-medium text-foreground">{pkg.purchaseOrigin}</p>
                     </div>
-                    <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-3">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Destino</p>
-                      <p className="font-semibold text-foreground">{pkg.packageDestination}</p>
+                    <div className="bg-card/50 border border-border/50 rounded p-2">
+                      <p className="text-xs text-muted-foreground">Destino</p>
+                      <p className="text-sm font-medium text-foreground">{pkg.packageDestination}</p>
                     </div>
                   </div>
                   
                   {/* Products section */}
-                  <div className="space-y-3">
-                    <h4 className="font-semibold text-foreground">Productos solicitados</h4>
-                    <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-foreground">Productos solicitados</h4>
+                    <div className="space-y-2">
                       {pkg.products ? pkg.products.map((product: any, index: number) => (
-                        <div key={index} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-3">
+                        <div key={index} className="bg-card border border-border rounded p-3">
+                          <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
-                              <h5 className="font-medium text-foreground mb-1">
+                              <p className="text-sm font-medium text-foreground">
                                 Producto {index + 1}
-                              </h5>
-                              <p className="text-muted-foreground">{product.itemDescription}</p>
+                              </p>
+                              <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium text-muted-foreground">Precio estimado</p>
-                              <p className="text-lg font-bold text-primary">${product.estimatedPrice}</p>
+                              <p className="text-sm font-bold text-primary">${product.estimatedPrice}</p>
                             </div>
                           </div>
                           <a 
                             href={product.itemLink} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="inline-flex items-center text-sm text-primary hover:text-primary/80 hover:underline font-medium"
+                            className="text-xs text-primary hover:underline"
                           >
                             Ver producto →
                           </a>
                         </div>
                       )) : (
                         // Fallback for old single-product format
-                        <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-3">
+                        <div className="bg-card border border-border rounded p-3">
+                          <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
-                              <h5 className="font-medium text-foreground mb-1">Producto</h5>
-                              <p className="text-muted-foreground">{pkg.itemDescription}</p>
+                              <p className="text-sm font-medium text-foreground">Producto</p>
+                              <p className="text-xs text-muted-foreground">{pkg.itemDescription}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-medium text-muted-foreground">Precio estimado</p>
-                              <p className="text-lg font-bold text-primary">${pkg.estimatedPrice}</p>
+                              <p className="text-sm font-bold text-primary">${pkg.estimatedPrice}</p>
                             </div>
                           </div>
                           {pkg.itemLink && (
@@ -155,7 +153,7 @@ const CollapsibleTravelerPackageCard = ({
                               href={pkg.itemLink} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="inline-flex items-center text-sm text-primary hover:text-primary/80 hover:underline font-medium"
+                              className="text-xs text-primary hover:underline"
                             >
                               Ver producto →
                             </a>
@@ -167,9 +165,9 @@ const CollapsibleTravelerPackageCard = ({
 
                   {/* Additional notes */}
                   {pkg.additionalNotes && (
-                    <div className="bg-card/30 border border-border/50 rounded-lg p-4">
-                      <p className="text-sm font-medium text-muted-foreground mb-2">Notas adicionales</p>
-                      <p className="text-foreground">{pkg.additionalNotes}</p>
+                    <div className="bg-card/30 border border-border/50 rounded p-2">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Notas adicionales</p>
+                      <p className="text-sm text-foreground">{pkg.additionalNotes}</p>
                     </div>
                   )}
                 </div>
