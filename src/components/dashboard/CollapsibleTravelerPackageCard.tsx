@@ -40,16 +40,6 @@ const CollapsibleTravelerPackageCard = ({
               ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" 
               : "hover:bg-muted/50"
           }`}>
-            {/* Pending Action Alert Banner */}
-            {hasPendingAction && (
-              <div className="flex items-center space-x-2 mb-3 p-2 bg-primary/10 border border-primary/20 rounded-md">
-                <AlertTriangle className="h-4 w-4 text-primary animate-pulse" />
-                <span className="text-sm font-medium text-primary">
-                  {pkg.status === 'matched' && "💸 ¡Oportunidad de ganar dinero!"}
-                  {pkg.status === 'in_transit' && "¡Paquete listo! Confirma que lo recibiste"}
-                </span>
-              </div>
-            )}
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
