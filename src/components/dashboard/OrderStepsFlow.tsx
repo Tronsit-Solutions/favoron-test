@@ -103,8 +103,8 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
             <p className="text-sm text-gray-600">Acepta la cotización para desbloquear este paso</p>
           ) : (
             <>
-              {pkg.paymentReceipt ? (
-                <div className="space-y-2">
+              <div className="space-y-2">
+                {pkg.paymentReceipt ? (
                   <div className="flex items-center justify-between p-3 bg-green-100 border border-green-200 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-green-800">
@@ -125,26 +125,30 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
                       </Button>
                     )}
                   </div>
-                  
-                  {isPaymentApproved ? (
-                    <div className="p-2 bg-blue-100 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800 font-medium">✅ Pago aprobado por administrador</p>
-                    </div>
-                  ) : (
-                    <div className="p-2 bg-yellow-100 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">⏳ Esperando aprobación del administrador</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Sube tu comprobante de pago para continuar</p>
-                  <Button size="sm" onClick={() => setShowPaymentUpload(true)}>
-                    <Upload className="h-3 w-3 mr-1" />
-                    Subir Comprobante
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="p-3 border border-gray-200 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-2">Sube tu comprobante de pago para continuar</p>
+                    <Button size="sm" onClick={() => setShowPaymentUpload(true)}>
+                      <Upload className="h-3 w-3 mr-1" />
+                      Subir Comprobante
+                    </Button>
+                  </div>
+                )}
+                
+                {pkg.paymentReceipt && (
+                  <>
+                    {isPaymentApproved ? (
+                      <div className="p-2 bg-blue-100 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800 font-medium">✅ Pago aprobado por administrador</p>
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-yellow-100 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">⏳ Esperando aprobación del administrador</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
               {showPaymentUpload && (
                 <div className="mt-3 p-4 border border-blue-200 rounded-lg bg-blue-50/30">
@@ -213,77 +217,81 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
               {/* Purchase Confirmation */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Comprobante de Compra</h4>
-                {pkg.purchaseConfirmation ? (
-                  <div className="flex items-center justify-between p-3 bg-blue-100 border border-blue-200 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-blue-800">
-                        <FileText className="h-4 w-4 inline mr-1" />
-                        Comprobante subido
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        📄 {pkg.purchaseConfirmation.filename || 'purchase_confirmation.pdf'}
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        Subido: {new Date(pkg.purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
-                      </p>
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  {pkg.purchaseConfirmation ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-blue-800">
+                          <FileText className="h-4 w-4 inline mr-1" />
+                          Comprobante subido
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          📄 {pkg.purchaseConfirmation.filename || 'purchase_confirmation.pdf'}
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          Subido: {new Date(pkg.purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
+                        </p>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
+                        <Edit className="h-3 w-3 mr-1" />
+                        Reemplazar
+                      </Button>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => setShowPurchaseUpload(true)}>
-                      <Edit className="h-3 w-3 mr-1" />
-                      Editar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="p-3 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2">Sube el comprobante de compra del producto</p>
-                    <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
-                      <Upload className="h-3 w-3 mr-1" />
-                      Subir Comprobante
-                    </Button>
-                  </div>
-                )}
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">Sube el comprobante de compra del producto</p>
+                      <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
+                        <Upload className="h-3 w-3 mr-1" />
+                        Subir Comprobante
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Tracking Information */}
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Información de Seguimiento</h4>
-                {pkg.trackingInfo ? (
-                  <div className="flex items-center justify-between p-3 bg-orange-100 border border-orange-200 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium text-orange-800">
-                        <Package className="h-4 w-4 inline mr-1" />
-                        Tracking agregado
-                      </p>
-                      <p className="text-xs text-orange-600">
-                        📦 <span className="font-mono">{pkg.trackingInfo.trackingNumber}</span>
-                      </p>
-                      <p className="text-xs text-orange-600">
-                        Agregado: {new Date(pkg.trackingInfo.timestamp).toLocaleDateString('es-GT')}
-                      </p>
-                      {pkg.trackingInfo.trackingUrl && (
-                        <a 
-                          href={pkg.trackingInfo.trackingUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-primary hover:underline block"
-                        >
-                          🔗 Seguir paquete
-                        </a>
-                      )}
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  {pkg.trackingInfo ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-orange-800">
+                          <Package className="h-4 w-4 inline mr-1" />
+                          Tracking agregado
+                        </p>
+                        <p className="text-xs text-orange-600">
+                          📦 <span className="font-mono">{pkg.trackingInfo.trackingNumber}</span>
+                        </p>
+                        <p className="text-xs text-orange-600">
+                          Agregado: {new Date(pkg.trackingInfo.timestamp).toLocaleDateString('es-GT')}
+                        </p>
+                        {pkg.trackingInfo.trackingUrl && (
+                          <a 
+                            href={pkg.trackingInfo.trackingUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-xs text-primary hover:underline block"
+                          >
+                            🔗 Seguir paquete
+                          </a>
+                        )}
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => setShowTrackingForm(true)}>
+                        <Edit className="h-3 w-3 mr-1" />
+                        Editar
+                      </Button>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => setShowTrackingForm(true)}>
-                      <Edit className="h-3 w-3 mr-1" />
-                      Editar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="p-3 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-2">Agrega el número de seguimiento del paquete</p>
-                    <Button size="sm" variant="outline" onClick={() => setShowTrackingForm(true)}>
-                      <Upload className="h-3 w-3 mr-1" />
-                      Agregar Tracking
-                    </Button>
-                  </div>
-                )}
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">Agrega el número de seguimiento del paquete</p>
+                      <Button size="sm" variant="outline" onClick={() => setShowTrackingForm(true)}>
+                        <Upload className="h-3 w-3 mr-1" />
+                        Agregar Tracking
+                      </Button>
+                    </div>
+                  )}
+                </div>
 
                 {showTrackingForm && (
                   <div className="p-4 border border-orange-200 rounded-lg bg-orange-50/30">
