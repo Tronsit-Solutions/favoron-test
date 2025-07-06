@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,13 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
   const [trackingNumber, setTrackingNumber] = useState(pkg.trackingInfo?.trackingNumber || '');
   const [trackingUrl, setTrackingUrl] = useState(pkg.trackingInfo?.trackingUrl || '');
   const [trackingNotes, setTrackingNotes] = useState(pkg.trackingInfo?.notes || '');
+
+  // Sync local state when package updates
+  useEffect(() => {
+    setTrackingNumber(pkg.trackingInfo?.trackingNumber || '');
+    setTrackingUrl(pkg.trackingInfo?.trackingUrl || '');
+    setTrackingNotes(pkg.trackingInfo?.notes || '');
+  }, [pkg.trackingInfo]);
 
   // Determine current step based on package status
   const getCurrentStep = () => {
