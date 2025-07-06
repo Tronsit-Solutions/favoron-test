@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Edit, FileText, CheckCircle, DollarSign, Package } from "lucide-react";
+import { MapPin, Edit, FileText, CheckCircle, DollarSign, Package, Upload } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import PaymentUpload from "@/components/PaymentUpload";
@@ -308,19 +308,21 @@ const PackageCard = ({
             {/* Show quote information */}
             {renderQuoteInfo()}
 
-            {/* Shopper Actions - Show uploaded documents and tracking as expandable cards */}
+            {/* Shopper Actions - Always show action cards for transparency */}
             <div className="space-y-3">
-              {/* Payment Receipt Card */}
-              {pkg.paymentReceipt && (
-                <Card className="border-green-200 bg-green-50/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <span>Comprobante de Pago</span>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Información enviada por ti:</p>
+              
+              {/* Payment Receipt Card - Always visible */}
+              <Card className={pkg.paymentReceipt ? "border-green-200 bg-green-50/30" : "border-gray-200 bg-gray-50/30"}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center space-x-2">
+                    <DollarSign className={`h-4 w-4 ${pkg.paymentReceipt ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span>Comprobante de Pago</span>
+                    {pkg.paymentReceipt && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {pkg.paymentReceipt ? (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-green-700">
@@ -340,21 +342,29 @@ const PackageCard = ({
                         </Button>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-600">No se ha subido comprobante de pago</p>
+                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add payment receipt */}}>
+                        <Upload className="h-3 w-3 mr-1" />
+                        Subir
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              {/* Purchase Confirmation Card */}
-              {pkg.purchaseConfirmation && (
-                <Card className="border-blue-200 bg-blue-50/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-blue-600" />
-                      <span>Comprobante de Compra</span>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
+              {/* Purchase Confirmation Card - Always visible */}
+              <Card className={pkg.purchaseConfirmation ? "border-blue-200 bg-blue-50/30" : "border-gray-200 bg-gray-50/30"}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center space-x-2">
+                    <FileText className={`h-4 w-4 ${pkg.purchaseConfirmation ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <span>Comprobante de Compra</span>
+                    {pkg.purchaseConfirmation && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {pkg.purchaseConfirmation ? (
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-blue-700">
@@ -369,21 +379,29 @@ const PackageCard = ({
                         Editar
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-600">No se ha subido comprobante de compra</p>
+                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add purchase confirmation */}}>
+                        <Upload className="h-3 w-3 mr-1" />
+                        Subir
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              {/* Tracking Information Card */}
-              {pkg.trackingInfo && (
-                <Card className="border-orange-200 bg-orange-50/30">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center space-x-2">
-                      <Package className="h-4 w-4 text-orange-600" />
-                      <span>Información de Seguimiento</span>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
+              {/* Tracking Information Card - Always visible */}
+              <Card className={pkg.trackingInfo ? "border-orange-200 bg-orange-50/30" : "border-gray-200 bg-gray-50/30"}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center space-x-2">
+                    <Package className={`h-4 w-4 ${pkg.trackingInfo ? 'text-orange-600' : 'text-gray-400'}`} />
+                    <span>Información de Seguimiento</span>
+                    {pkg.trackingInfo && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {pkg.trackingInfo ? (
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <p className="text-xs text-orange-700">
@@ -413,9 +431,17 @@ const PackageCard = ({
                         Editar
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-600">No se ha agregado información de seguimiento</p>
+                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add tracking */}}>
+                        <Upload className="h-3 w-3 mr-1" />
+                        Agregar
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Show traveler address if payment is confirmed */}
