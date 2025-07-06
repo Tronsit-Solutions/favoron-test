@@ -29,18 +29,18 @@ const CollapsibleTravelerPackageCard = ({
   return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className={hasPendingAction ? "ring-2 ring-primary/50 shadow-lg" : ""}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-colors ${hasPendingAction ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" : "hover:bg-muted/50"}`}>
+          <CardHeader className={`pb-3 cursor-pointer transition-colors ${hasPendingAction ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" : "hover:bg-muted/50"}`}>
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <Package className="h-5 w-5 text-primary" />
+                <CardTitle className="text-base flex items-center space-x-2">
+                  <Package className="h-4 w-4 text-primary" />
                   {hasPendingAction}
                   <span>
                     {pkg.products && pkg.products.length > 0 ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}` : pkg.itemDescription || 'Pedido'}
                   </span>
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   {pkg.products && pkg.products.length > 0 ? <>
                       Total estimado: ${pkg.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
                       {pkg.deliveryDeadline && <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>}
