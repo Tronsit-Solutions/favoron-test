@@ -125,7 +125,7 @@ const PendingRequestsTab = ({
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="mb-1">
-                          <span className="text-xs text-muted-foreground font-medium">📦 PRODUCTO:</span>
+                          <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                         </div>
                         <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">{pkg.itemDescription}</h4>
                         <div className="flex items-center space-x-3">
