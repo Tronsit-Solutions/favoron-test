@@ -89,36 +89,89 @@ const CollapsibleTravelerPackageCard = ({
               {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && <TravelerPackageTimeline currentStatus={pkg.status} />}
 
               {/* Package details */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-start space-x-2 mb-2">
-                  <Package className="h-4 w-4 text-blue-600 mt-0.5" />
-                  <p className="text-sm font-medium text-blue-800">Detalles del pedido:</p>
+              <div className="bg-gradient-to-br from-info-muted to-info-muted/50 border border-info-border rounded-xl p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
+                    <Package className="h-5 w-5 text-info" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Detalles del pedido</h3>
                 </div>
-                <div className="text-sm text-blue-700 ml-6 space-y-3">
-                  <div>
-                    <p><strong>Origen:</strong> {pkg.purchaseOrigin}</p>
-                    <p><strong>Destino:</strong> {pkg.packageDestination}</p>
+                
+                <div className="space-y-4">
+                  {/* Origin and Destination */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-3">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Origen</p>
+                      <p className="font-semibold text-foreground">{pkg.purchaseOrigin}</p>
+                    </div>
+                    <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-3">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Destino</p>
+                      <p className="font-semibold text-foreground">{pkg.packageDestination}</p>
+                    </div>
                   </div>
                   
-                  {/* Display all products */}
-                  <div className="space-y-2">
-                    <p className="font-medium">Productos solicitados:</p>
-                    {pkg.products ? pkg.products.map((product: any, index: number) => <div key={index} className="bg-white/50 border border-blue-100 rounded p-2 space-y-1">
-                          <p><strong>Producto {index + 1}:</strong> {product.itemDescription}</p>
-                          <p><strong>Precio estimado:</strong> ${product.estimatedPrice}</p>
-                          <p><strong>Link:</strong> <a href={product.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">Ver producto</a></p>
-                        </div>) :
-                  // Fallback for old single-product format
-                  <div className="bg-white/50 border border-blue-100 rounded p-2 space-y-1">
-                        <p><strong>Producto:</strong> {pkg.itemDescription}</p>
-                        <p><strong>Precio estimado:</strong> ${pkg.estimatedPrice}</p>
-                        {pkg.itemLink && <p><strong>Link:</strong> <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">Ver producto</a></p>}
-                      </div>}
+                  {/* Products section */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-foreground">Productos solicitados</h4>
+                    <div className="space-y-3">
+                      {pkg.products ? pkg.products.map((product: any, index: number) => (
+                        <div key={index} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-foreground mb-1">
+                                Producto {index + 1}
+                              </h5>
+                              <p className="text-muted-foreground">{product.itemDescription}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-muted-foreground">Precio estimado</p>
+                              <p className="text-lg font-bold text-primary">${product.estimatedPrice}</p>
+                            </div>
+                          </div>
+                          <a 
+                            href={product.itemLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="inline-flex items-center text-sm text-primary hover:text-primary/80 hover:underline font-medium"
+                          >
+                            Ver producto →
+                          </a>
+                        </div>
+                      )) : (
+                        // Fallback for old single-product format
+                        <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-foreground mb-1">Producto</h5>
+                              <p className="text-muted-foreground">{pkg.itemDescription}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-muted-foreground">Precio estimado</p>
+                              <p className="text-lg font-bold text-primary">${pkg.estimatedPrice}</p>
+                            </div>
+                          </div>
+                          {pkg.itemLink && (
+                            <a 
+                              href={pkg.itemLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center text-sm text-primary hover:text-primary/80 hover:underline font-medium"
+                            >
+                              Ver producto →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {pkg.additionalNotes && <div>
-                      <p><strong>Notas adicionales:</strong> {pkg.additionalNotes}</p>
-                    </div>}
+                  {/* Additional notes */}
+                  {pkg.additionalNotes && (
+                    <div className="bg-card/30 border border-border/50 rounded-lg p-4">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Notas adicionales</p>
+                      <p className="text-foreground">{pkg.additionalNotes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
