@@ -128,7 +128,9 @@ const PendingRequestsTab = ({
                           <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                         </div>
                         <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">
-                          {pkg.itemDescription || "Sin descripción"}
+                          {pkg.itemDescription || 
+                           (pkg.products && pkg.products.length > 0 ? pkg.products[0].itemDescription : '') || 
+                           "Sin descripción"}
                         </h4>
                         <div className="flex items-center space-x-3">
                           <span className="text-xs text-muted-foreground">
