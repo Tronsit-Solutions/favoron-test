@@ -45,7 +45,7 @@ const CollapsibleTravelerPackageCard = ({
               <div className="flex items-center space-x-2 mb-3 p-2 bg-primary/10 border border-primary/20 rounded-md">
                 <AlertTriangle className="h-4 w-4 text-primary animate-pulse" />
                 <span className="text-sm font-medium text-primary">
-                  {pkg.status === 'matched' && "¡Nuevo pedido! Envía tu cotización"}
+                  {pkg.status === 'matched' && "💸 ¡Oportunidad de ganar dinero!"}
                   {pkg.status === 'in_transit' && "¡Paquete listo! Confirma que lo recibiste"}
                 </span>
               </div>
@@ -102,15 +102,15 @@ const CollapsibleTravelerPackageCard = ({
                   <div className="flex-1 space-y-3">
                     {pkg.status === 'matched' && (
                       <>
-                        <p className="text-sm font-medium text-primary">¡Nuevo pedido asignado!</p>
-                        <p className="text-xs text-muted-foreground">Envía tu cotización para este Favorón.</p>
+                        <p className="text-lg font-bold text-primary">¿Te interesa este pedido?</p>
+                        <p className="text-sm text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
                         <Button 
-                          size="sm"
+                          size="default"
                           onClick={() => onQuote(pkg, 'traveler')}
-                          className="flex items-center space-x-2"
+                          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white font-semibold px-6"
                         >
                           <DollarSign className="h-4 w-4" />
-                          <span>Enviar Cotización</span>
+                          <span>💸 Cotizar y Ganar</span>
                         </Button>
                       </>
                     )}
@@ -234,17 +234,6 @@ const CollapsibleTravelerPackageCard = ({
 
               {/* Action buttons for travelers */}
               <div className="flex flex-wrap gap-2">
-                {pkg.status === 'matched' && (
-                  <Button 
-                    size="sm"
-                    onClick={() => onQuote(pkg, 'traveler')}
-                    className="flex items-center space-x-2"
-                  >
-                    <DollarSign className="h-4 w-4" />
-                    <span>Enviar Cotización</span>
-                  </Button>
-                )}
-
                 {pkg.status === 'quote_sent' && (
                   <div className="text-sm text-muted-foreground">
                     Cotización enviada - Esperando respuesta del shopper
@@ -264,19 +253,8 @@ const CollapsibleTravelerPackageCard = ({
                 )}
 
                 {pkg.status === 'in_transit' && (
-                  <div className="space-y-2">
-                    <div className="text-sm text-orange-600 font-medium">
-                      🚚 Paquete en tránsito - El shopper ya lo envió
-                    </div>
-                    <Button 
-                      size="sm"
-                      onClick={() => setShowConfirmationModal(true)}
-                      className="flex items-center space-x-2"
-                      variant="outline"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Confirmar que recibí el paquete</span>
-                    </Button>
+                  <div className="text-sm text-orange-600 font-medium">
+                    🚚 Paquete en tránsito - El shopper ya lo envió
                   </div>
                 )}
 
