@@ -400,20 +400,33 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 )}
               </div>
 
-              {/* Show packages assigned to user's trips - NOW COLLAPSIBLE */}
+              {/* Show packages assigned to user's trips - NOW COLLAPSIBLE WITH PRIORITY ORDERING */}
               {assignedPackages.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                   <div className="grid gap-6">
-                     {assignedPackages.map((pkg) => (
-                       <CollapsibleTravelerPackageCard
-                         key={pkg.id}
-                         pkg={pkg}
-                         getStatusBadge={getStatusBadge}
-                         onQuote={handleQuote}
-                         onConfirmReceived={handleConfirmPackageReceived}
-                       />
-                     ))}
+                     {assignedPackages
+                       // Sort packages: priority actions first, then by creation date
+                       .sort((a, b) => {
+                         const aPriority = ['matched', 'in_transit'].includes(a.status) ? 1 : 0;
+                         const bPriority = ['matched', 'in_transit'].includes(b.status) ? 1 : 0;
+                         if (aPriority !== bPriority) return bPriority - aPriority;
+                         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                       })
+                       .map((pkg) => {
+                         const hasPendingAction = ['matched', 'in_transit'].includes(pkg.status);
+                         return (
+                           <CollapsibleTravelerPackageCard
+                             key={pkg.id}
+                             pkg={pkg}
+                             getStatusBadge={getStatusBadge}
+                             onQuote={handleQuote}
+                             onConfirmReceived={handleConfirmPackageReceived}
+                             hasPendingAction={hasPendingAction}
+                             autoExpand={hasPendingAction}
+                           />
+                         );
+                       })}
                   </div>
                 </div>
               )}

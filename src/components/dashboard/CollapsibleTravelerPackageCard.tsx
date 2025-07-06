@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 
@@ -12,15 +12,19 @@ interface CollapsibleTravelerPackageCardProps {
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
   onConfirmReceived: (packageId: number, photo?: string) => void;
+  hasPendingAction?: boolean;
+  autoExpand?: boolean;
 }
 
 const CollapsibleTravelerPackageCard = ({ 
   pkg, 
   getStatusBadge, 
   onQuote,
-  onConfirmReceived
+  onConfirmReceived,
+  hasPendingAction = false,
+  autoExpand = false
 }: CollapsibleTravelerPackageCardProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const handleConfirmReceived = (photo?: string) => {
@@ -29,13 +33,28 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card>
+      <Card className={hasPendingAction ? "ring-2 ring-primary/50 shadow-lg" : ""}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+          <CardHeader className={`cursor-pointer transition-colors ${
+            hasPendingAction 
+              ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" 
+              : "hover:bg-muted/50"
+          }`}>
+            {/* Pending Action Alert Banner */}
+            {hasPendingAction && (
+              <div className="flex items-center space-x-2 mb-3 p-2 bg-primary/10 border border-primary/20 rounded-md">
+                <AlertTriangle className="h-4 w-4 text-primary animate-pulse" />
+                <span className="text-sm font-medium text-primary">
+                  {pkg.status === 'matched' && "¡Nuevo pedido! Envía tu cotización"}
+                  {pkg.status === 'in_transit' && "¡Paquete listo! Confirma que lo recibiste"}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
                   <Package className="h-5 w-5 text-primary" />
+                  {hasPendingAction && <AlertTriangle className="h-4 w-4 text-primary" />}
                   <span>
                     {pkg.products && pkg.products.length > 0 
                       ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}`
