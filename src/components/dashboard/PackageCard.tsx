@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Edit, FileText, CheckCircle, DollarSign, Package, Upload } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -28,8 +31,53 @@ const PackageCard = ({
   viewMode = 'shopper'
 }: PackageCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPaymentUpload, setShowPaymentUpload] = useState(false);
+  const [showPurchaseUpload, setShowPurchaseUpload] = useState(false);
+  const [showTrackingForm, setShowTrackingForm] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingUrl, setTrackingUrl] = useState('');
+  const [trackingNotes, setTrackingNotes] = useState('');
+  
   const handlePaymentUpload = (paymentData: any) => {
     onUploadDocument(pkg.id, 'payment_receipt', paymentData);
+    setShowPaymentUpload(false);
+  };
+
+  const handlePurchaseUpload = () => {
+    // Simulate file upload for purchase confirmation
+    const purchaseData = {
+      filename: `purchase_confirmation_${pkg.id}_${Date.now()}.pdf`,
+      uploadedAt: new Date().toISOString(),
+      type: 'confirmation'
+    };
+    onUploadDocument(pkg.id, 'confirmation', purchaseData);
+    setShowPurchaseUpload(false);
+  };
+
+  const handleTrackingSubmit = () => {
+    if (!trackingNumber.trim()) return;
+    
+    const trackingData = {
+      trackingNumber: trackingNumber.trim(),
+      trackingUrl: trackingUrl.trim() || null,
+      notes: trackingNotes.trim() || null,
+      timestamp: new Date().toISOString()
+    };
+    onUploadDocument(pkg.id, 'tracking', trackingData);
+    setShowTrackingForm(false);
+    setTrackingNumber('');
+    setTrackingUrl('');
+    setTrackingNotes('');
+  };
+
+  const openTrackingForm = () => {
+    if (pkg.trackingInfo) {
+      // Pre-fill form with existing data when editing
+      setTrackingNumber(pkg.trackingInfo.trackingNumber || '');
+      setTrackingUrl(pkg.trackingInfo.trackingUrl || '');
+      setTrackingNotes(pkg.trackingInfo.notes || '');
+    }
+    setShowTrackingForm(true);
   };
 
   const renderTravelerAddress = () => {
@@ -336,7 +384,7 @@ const PackageCard = ({
                         )}
                       </div>
                       {!(pkg.status === 'payment_confirmed' || pkg.status === 'in_transit' || pkg.status === 'delivered') && (
-                        <Button size="sm" variant="outline" onClick={() => {/* Logic to edit payment receipt */}}>
+                        <Button size="sm" variant="outline" onClick={() => setShowPaymentUpload(true)}>
                           <Edit className="h-3 w-3 mr-1" />
                           Editar
                         </Button>
@@ -345,7 +393,7 @@ const PackageCard = ({
                   ) : (
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-600">No se ha subido comprobante de pago</p>
-                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add payment receipt */}}>
+                      <Button size="sm" variant="outline" onClick={() => setShowPaymentUpload(true)}>
                         <Upload className="h-3 w-3 mr-1" />
                         Subir
                       </Button>
@@ -374,7 +422,7 @@ const PackageCard = ({
                           Subido: {new Date(pkg.purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
                         </p>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => {/* Logic to edit purchase confirmation */}}>
+                      <Button size="sm" variant="outline" onClick={() => setShowPurchaseUpload(true)}>
                         <Edit className="h-3 w-3 mr-1" />
                         Editar
                       </Button>
@@ -382,7 +430,7 @@ const PackageCard = ({
                   ) : (
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-600">No se ha subido comprobante de compra</p>
-                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add purchase confirmation */}}>
+                      <Button size="sm" variant="outline" onClick={() => handlePurchaseUpload()}>
                         <Upload className="h-3 w-3 mr-1" />
                         Subir
                       </Button>
@@ -426,7 +474,7 @@ const PackageCard = ({
                           </p>
                         )}
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => {/* Logic to edit tracking */}}>
+                      <Button size="sm" variant="outline" onClick={() => openTrackingForm()}>
                         <Edit className="h-3 w-3 mr-1" />
                         Editar
                       </Button>
@@ -434,7 +482,7 @@ const PackageCard = ({
                   ) : (
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-600">No se ha agregado información de seguimiento</p>
-                      <Button size="sm" variant="outline" onClick={() => {/* Logic to add tracking */}}>
+                      <Button size="sm" variant="outline" onClick={() => openTrackingForm()}>
                         <Upload className="h-3 w-3 mr-1" />
                         Agregar
                       </Button>
@@ -443,6 +491,85 @@ const PackageCard = ({
                 </CardContent>
               </Card>
             </div>
+
+            {/* Inline Forms for Actions */}
+            {/* Payment Upload Form */}
+            {showPaymentUpload && (
+              <div className="mt-4">
+                <PaymentUpload 
+                  packageId={pkg.id}
+                  onUpload={handlePaymentUpload}
+                  currentPaymentReceipt={pkg.paymentReceipt}
+                  isPaymentApproved={pkg.status === 'payment_confirmed' || pkg.status === 'in_transit' || pkg.status === 'delivered'}
+                />
+              </div>
+            )}
+
+            {/* Tracking Form */}
+            {showTrackingForm && (
+              <Card className="mt-4 border-orange-200 bg-orange-50/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-orange-600" />
+                    <span>Agregar/Editar Información de Seguimiento</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <Label htmlFor="trackingNumber">Número de seguimiento *</Label>
+                    <Input
+                      id="trackingNumber"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      placeholder="Ej: 1234567890"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="trackingUrl">URL de seguimiento (opcional)</Label>
+                    <Input
+                      id="trackingUrl"
+                      value={trackingUrl}
+                      onChange={(e) => setTrackingUrl(e.target.value)}
+                      placeholder="https://tracking.carrier.com/track/..."
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="trackingNotes">Notas adicionales</Label>
+                    <Textarea
+                      id="trackingNotes"
+                      value={trackingNotes}
+                      onChange={(e) => setTrackingNotes(e.target.value)}
+                      placeholder="Información adicional sobre el envío..."
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleTrackingSubmit} 
+                      disabled={!trackingNumber.trim()}
+                      size="sm"
+                    >
+                      Guardar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowTrackingForm(false);
+                        setTrackingNumber('');
+                        setTrackingUrl('');
+                        setTrackingNotes('');
+                      }}
+                      size="sm"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Show traveler address if payment is confirmed */}
             {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
