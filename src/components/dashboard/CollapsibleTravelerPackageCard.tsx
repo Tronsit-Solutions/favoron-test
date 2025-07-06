@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, DollarSign, User, MapPin, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 interface CollapsibleTravelerPackageCardProps {
@@ -33,8 +34,15 @@ const CollapsibleTravelerPackageCard = ({
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
-                  <Package className="h-5 w-5 text-primary" />
-                  {hasPendingAction}
+                  <div className="relative">
+                    <Package className="h-5 w-5 text-primary" />
+                    {hasPendingAction && (
+                      <NotificationBadge 
+                        count={1} 
+                        className="absolute -top-2 -right-2 w-3 h-3 min-w-[12px] text-[10px]" 
+                      />
+                    )}
+                  </div>
                   <span>
                     {pkg.products && pkg.products.length > 0 ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}` : pkg.itemDescription || 'Pedido'}
                   </span>
