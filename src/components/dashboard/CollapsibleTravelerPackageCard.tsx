@@ -65,7 +65,7 @@ const CollapsibleTravelerPackageCard = ({
                   </div>
                   <div className="flex-1 space-y-3">
                     {pkg.status === 'matched' && <>
-                        <p className="text-lg font-bold text-primary">¿Te interesa este pedido?</p>
+                        <p className="text-lg font-bold text-primary"></p>
                         <p className="text-sm text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
                         <Button size="default" onClick={() => onQuote(pkg, 'traveler')} className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-white font-semibold px-6">
                           <DollarSign className="h-4 w-4" />
