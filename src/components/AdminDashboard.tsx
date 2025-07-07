@@ -177,7 +177,7 @@ const AdminDashboard = ({
             )}
           </TabsTrigger>
           <TabsTrigger value="financial" className="relative flex items-center gap-2">
-            💰 Financiero
+            Financiero
           </TabsTrigger>
         </TabsList>
 
