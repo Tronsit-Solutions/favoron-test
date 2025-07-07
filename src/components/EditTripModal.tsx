@@ -298,7 +298,7 @@ const EditTripModal = ({
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Textarea 
                     id="messengerPickupLocation"
-                    placeholder="Ingresa la dirección completa donde deseas recibir los paquetes..."
+                    placeholder="Ingresa la dirección completa donde deseas entregar los paquetes al mensajero..."
                     value={formData.messengerPickupLocation}
                     onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
                     className="pl-10 min-h-[80px]"
