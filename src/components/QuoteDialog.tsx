@@ -38,6 +38,8 @@ const QuoteDialog = ({
   const [price, setPrice] = useState(existingQuote?.price || '');
   const [serviceFee, setServiceFee] = useState(existingQuote?.serviceFee || '');
   const [message, setMessage] = useState(existingQuote?.message || '');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [showRejectionForm, setShowRejectionForm] = useState(false);
 
   const handleSubmit = () => {
     if (userType === 'traveler') {
@@ -59,7 +61,14 @@ const QuoteDialog = ({
   };
 
   const handleReject = () => {
-    onSubmit({ message: 'rejected' });
+    if (userType === 'shopper' && !rejectionReason.trim()) {
+      setShowRejectionForm(true);
+      return;
+    }
+    onSubmit({ 
+      message: 'rejected',
+      rejectionReason: userType === 'shopper' ? rejectionReason : undefined
+    });
   };
 
   return (
@@ -173,6 +182,27 @@ const QuoteDialog = ({
             </div>
           )}
 
+          {/* Shopper Rejection Form */}
+          {userType === 'shopper' && showRejectionForm && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <Label htmlFor="rejectionReason" className="text-red-800 font-medium">
+                Razón del rechazo (para administración) *
+              </Label>
+              <Textarea
+                id="rejectionReason"
+                placeholder="Explica por qué rechazas esta cotización..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={3}
+                className="mt-2"
+                required
+              />
+              <p className="text-xs text-red-600 mt-1">
+                Este mensaje será enviado al equipo de Favorón para revisión
+              </p>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3">
             <Button variant="outline" onClick={onClose}>
@@ -190,12 +220,29 @@ const QuoteDialog = ({
               </div>
             ) : (
               <div className="space-x-2">
-                <Button variant="destructive" onClick={handleReject}>
-                  Rechazar
-                </Button>
-                <Button variant="success" onClick={handleSubmit}>
-                  Aceptar Cotización
-                </Button>
+                {!showRejectionForm ? (
+                  <>
+                    <Button variant="destructive" onClick={handleReject}>
+                      Rechazar
+                    </Button>
+                    <Button variant="success" onClick={handleSubmit}>
+                      Aceptar Cotización
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setShowRejectionForm(false)}>
+                      Cancelar
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleReject}
+                      disabled={!rejectionReason.trim()}
+                    >
+                      Confirmar Rechazo
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </div>
