@@ -290,6 +290,23 @@ const EditTripModal = ({
                 </Label>
               </div>
             </RadioGroup>
+            
+            {formData.deliveryMethod === 'delivery' && (
+              <div className="space-y-2 mt-4 p-4 border rounded-lg bg-muted/10">
+                <Label htmlFor="messengerPickupLocation">Dirección de entrega *</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Textarea 
+                    id="messengerPickupLocation"
+                    placeholder="Ingresa la dirección completa donde deseas recibir los paquetes..."
+                    value={formData.messengerPickupLocation}
+                    onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
+                    className="pl-10 min-h-[80px]"
+                    required={formData.deliveryMethod === 'delivery'}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
