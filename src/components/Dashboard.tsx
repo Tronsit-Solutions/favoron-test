@@ -382,9 +382,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             </div>
 
             {/* Show user's trips */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <h4 className="text-lg font-semibold mb-4">Mis Viajes Registrados</h4>
+                <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
                 {userTrips.length === 0 ? (
                   <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
                 ) : (
