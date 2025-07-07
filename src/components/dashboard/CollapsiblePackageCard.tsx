@@ -137,19 +137,19 @@ const CollapsiblePackageCard = ({
                         <div className="grid grid-cols-1 gap-2 text-sm">
                           <div className="flex justify-between">
                             <span className="font-medium">Nombre de la cuenta:</span>
-                            <span className="text-primary font-semibold">Favorón S.A.</span>
+                            <span className="text-black font-semibold">Favorón S.A.</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Número de cuenta:</span>
-                            <span className="text-primary font-semibold font-mono">84V050N</span>
+                            <span className="text-black font-semibold font-mono">84V050N</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium">Banco:</span>
-                            <span className="text-primary font-semibold">Banco Industrial</span>
+                            <span className="text-black font-semibold">Banco Industrial</span>
                           </div>
                           <div className="flex justify-between border-t border-border pt-2 mt-2">
                             <span className="font-medium">Monto:</span>
-                            <span className="text-primary font-bold text-lg">
+                            <span className="text-black font-bold text-lg">
                               ${pkg.quote?.totalPrice ? parseFloat(pkg.quote.totalPrice).toFixed(2) : '0.00'}
                             </span>
                           </div>
