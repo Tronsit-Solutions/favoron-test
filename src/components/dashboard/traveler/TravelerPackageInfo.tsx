@@ -1,4 +1,4 @@
-import { User, MapPin } from "lucide-react";
+import { User, MapPin, DollarSign } from "lucide-react";
 
 interface TravelerPackageInfoProps {
   pkg: any;
@@ -21,20 +21,52 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
 
       {/* Show quote information if sent */}
       {pkg.quote && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
-          <p className="text-xs font-medium text-yellow-800 mb-1">Tu cotización enviada:</p>
-          <p className="text-sm font-bold text-yellow-800">
-            Total para el shopper: ${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}
-          </p>
-          <p className="text-xs text-yellow-600 mt-1">
-            Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
-          </p>
+        <div className="bg-success-muted border border-success-border rounded-lg p-3 space-y-2">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="h-4 w-4 text-success" />
+            <p className="text-sm font-medium text-success">💰 Información de compensación</p>
+          </div>
+          
+          {/* Traveler compensation - most prominent */}
+          <div className="bg-success/10 border border-success/20 rounded-md p-3">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-semibold text-success">Tu ganancia:</p>
+                <p className="text-xl font-bold text-success">
+                  ${parseFloat(pkg.quote.price || 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right text-xs text-success/80">
+                <p>Por este Favorón</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total price breakdown */}
+          <div className="text-xs text-success/80 space-y-1 pt-2 border-t border-success/20">
+            <div className="flex justify-between">
+              <span>Total que paga el shopper:</span>
+              <span className="font-medium">${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tu compensación:</span>
+              <span className="font-medium text-success">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Servicio Favorón + Seguro:</span>
+              <span className="font-medium">${(parseFloat(pkg.quote.totalPrice || 0) - parseFloat(pkg.quote.price || 0)).toFixed(2)}</span>
+            </div>
+          </div>
+
           {pkg.quote.message && (
-            <p className="text-xs text-yellow-600 mt-1">Mensaje: "{pkg.quote.message}"</p>
+            <div className="border-t border-success/20 pt-2">
+              <p className="text-xs text-success/80">Mensaje: "{pkg.quote.message}"</p>
+            </div>
           )}
-          <p className="text-xs text-yellow-600 mt-1">
-            Estado: {pkg.status === 'quote_accepted' ? 'Aceptada ✅' : 'Esperando respuesta ⏳'}
-          </p>
+          
+          <div className="flex items-center gap-1 text-xs text-success/80">
+            Estado: {pkg.status === 'quote_accepted' ? '✅ Aceptada' : '⏳ Esperando respuesta'}
+          </div>
         </div>
       )}
 

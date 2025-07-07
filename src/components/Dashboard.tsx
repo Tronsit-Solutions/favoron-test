@@ -12,6 +12,7 @@ import RecentActivity from "./dashboard/RecentActivity";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPackageCard";
+import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
@@ -404,6 +405,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               {assignedPackages.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
+                  
+                  {/* Tips Overview */}
+                  <TravelerTipsOverview packages={assignedPackages} />
+                  
                   <div className="grid gap-6">
                      {assignedPackages
                        // Sort packages: priority actions first, then by creation date
