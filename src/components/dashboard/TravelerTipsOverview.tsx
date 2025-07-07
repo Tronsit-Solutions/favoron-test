@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, Package, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { DollarSign, TrendingUp, Package, ChevronDown, ChevronUp, Filter, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,12 +13,18 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
 
-  // Filter packages based on selected trip
-  const filteredPackages = selectedTripFilter === "all" 
+  // Filter packages based on selected trip, excluding rejected ones for active counts
+  const allFilteredPackages = selectedTripFilter === "all" 
     ? packages 
     : packages.filter(pkg => pkg.matchedTripId === parseInt(selectedTripFilter));
 
-  // Calculate total tips from filtered packages
+  // Active packages (excluding rejected)
+  const filteredPackages = allFilteredPackages.filter(pkg => pkg.status !== 'rejected');
+  
+  // Rejected packages (to show separately)
+  const rejectedPackages = allFilteredPackages.filter(pkg => pkg.status === 'rejected');
+
+  // Calculate total tips from active packages only
   const totalTips = filteredPackages.reduce((sum, pkg) => {
     if (pkg.quote?.price) {
       return sum + parseFloat(pkg.quote.price);
@@ -26,15 +32,15 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
     return sum;
   }, 0);
 
-  // Count packages with confirmed tips
+  // Count packages with confirmed tips (active only)
   const packagesWithTips = filteredPackages.filter(pkg => pkg.quote?.price).length;
   
   // Count pending quotes (packages that could generate tips)
   const pendingQuotes = filteredPackages.filter(pkg => pkg.status === 'matched').length;
 
-  // Group packages by trip for breakdown
+  // Group packages by trip for breakdown (excluding rejected)
   const packagesByTrip = trips.reduce((acc, trip) => {
-    const tripPackages = packages.filter(pkg => pkg.matchedTripId === trip.id);
+    const tripPackages = packages.filter(pkg => pkg.matchedTripId === trip.id && pkg.status !== 'rejected');
     if (tripPackages.length > 0) {
       acc[trip.id] = {
         trip,
@@ -47,8 +53,8 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
     return acc;
   }, {} as Record<number, any>);
 
-  // Only show if there are tips or pending opportunities
-  if (totalTips === 0 && pendingQuotes === 0) return null;
+  // Show if there are tips, pending opportunities, or rejected packages
+  if (totalTips === 0 && pendingQuotes === 0 && rejectedPackages.length === 0) return null;
 
   const selectedTripName = selectedTripFilter === "all" 
     ? "Todos los viajes" 
@@ -128,6 +134,49 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
             </p>
           </div>
         </div>
+
+        {/* Rejected Packages Section */}
+        {rejectedPackages.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <XCircle className="h-4 w-4 text-red-600" />
+                <p className="text-sm font-medium text-red-800">
+                  Paquetes Rechazados ({rejectedPackages.length})
+                </p>
+              </div>
+              <div className="space-y-2">
+                {rejectedPackages.map((pkg, index) => (
+                  <div key={pkg.id} className="bg-white rounded border border-red-100 p-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {pkg.products?.[0]?.itemDescription || pkg.itemDescription}
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                          💰 Cotización rechazada: ${pkg.quote?.totalPrice || 'N/A'}
+                        </p>
+                        {pkg.rejectionReason && (
+                          <p className="text-xs text-red-700 mt-1">
+                            📝 Razón: {pkg.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-red-600">
+                          Rechazado
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-red-600 mt-3 italic">
+                💡 Los paquetes rechazados no afectan tus estadísticas de compensaciones ni paquetes activos.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Multi-trip breakdown - show only when viewing all trips */}
         {selectedTripFilter === "all" && Object.keys(packagesByTrip).length > 1 && (
