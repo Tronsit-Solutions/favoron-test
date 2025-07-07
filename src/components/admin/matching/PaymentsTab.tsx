@@ -1,0 +1,164 @@
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye, CheckCircle } from "lucide-react";
+
+interface PaymentsTabProps {
+  packages: any[];
+  onViewPackageDetail: (pkg: any) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
+  getStatusBadge: (status: string) => JSX.Element;
+}
+
+const PaymentsTab = ({ 
+  packages, 
+  onViewPackageDetail, 
+  onUpdateStatus, 
+  getStatusBadge 
+}: PaymentsTabProps) => {
+  const [activeTab, setActiveTab] = useState("pending");
+
+  // Separate payments by status
+  const pendingPayments = packages.filter(pkg => pkg.status === 'payment_pending');
+  const approvedPayments = packages.filter(pkg => pkg.status === 'payment_confirmed' || (pkg.paymentReceipt && pkg.status !== 'payment_pending'));
+
+  const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
+    <Card key={pkg.id} className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-2">
+              <h4 className="font-medium">{pkg.itemDescription}</h4>
+              {getStatusBadge(pkg.status)}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+            </p>
+            {pkg.paymentReceipt && (
+              <div className="mt-2 p-2 bg-blue-50 rounded">
+                <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
+                <p className="text-xs text-blue-600">
+                  📄 {pkg.paymentReceipt.filename}
+                </p>
+                <p className="text-xs text-blue-600">
+                  📅 Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => onViewPackageDetail(pkg)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Ver Comprobante
+            </Button>
+            {showConfirmButton && (
+              <Button 
+                size="sm" 
+                onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Confirmar Pago
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{pendingPayments.length}</div>
+              <div className="text-xs text-muted-foreground">Pendientes de Aprobar</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{approvedPayments.length}</div>
+              <div className="text-xs text-muted-foreground">Pagos Aprobados</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Payment Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pending" className="relative">
+            ⏳ Pendientes de Aprobar
+            {pendingPayments.length > 0 && (
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                {pendingPayments.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="approved" className="relative">
+            ✅ Aprobados
+            {approvedPayments.length > 0 && (
+              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                {approvedPayments.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>💳 Pagos Pendientes de Aprobación</CardTitle>
+              <CardDescription>Revisa y confirma los comprobantes de pago subidos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pendingPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-2">⏳</div>
+                  <p className="text-muted-foreground">No hay pagos pendientes de aprobación</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingPayments.map(pkg => renderPaymentCard(pkg, true))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="approved" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>✅ Pagos Aprobados</CardTitle>
+              <CardDescription>Historial de pagos confirmados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {approvedPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-2">✅</div>
+                  <p className="text-muted-foreground">No hay pagos aprobados aún</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {approvedPayments.map(pkg => renderPaymentCard(pkg, false))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default PaymentsTab;

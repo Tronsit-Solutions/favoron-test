@@ -7,6 +7,7 @@ import { Eye, CheckCircle } from "lucide-react";
 import PendingRequestsTab from "./matching/PendingRequestsTab";
 import AvailableTripsTab from "./matching/AvailableTripsTab";
 import ActiveMatchesTab from "./matching/ActiveMatchesTab";
+import PaymentsTab from "./matching/PaymentsTab";
 
 interface AdminMatchingTabProps {
   packages: any[];
@@ -139,70 +140,12 @@ const AdminMatchingTab = ({
         </TabsContent>
 
         <TabsContent value="payments" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>💳 Gestión de pagos</CardTitle>
-              <CardDescription>Confirmación de pagos y revisión de comprobantes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pendingPayments.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-2">💳</div>
-                  <p className="text-muted-foreground">No hay pagos pendientes ni comprobantes</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {pendingPayments.map(pkg => (
-                    <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="font-medium">{pkg.itemDescription}</h4>
-                              {getStatusBadge(pkg.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
-                            </p>
-                            {pkg.paymentReceipt && (
-                              <div className="mt-2 p-2 bg-blue-50 rounded">
-                                <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
-                                <p className="text-xs text-blue-600">
-                                  📄 {pkg.paymentReceipt.filename}
-                                </p>
-                                <p className="text-xs text-blue-600">
-                                  📅 Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => onViewPackageDetail(pkg)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Ver Comprobante
-                            </Button>
-                            {pkg.status === 'payment_pending' && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Confirmar Pago
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <PaymentsTab 
+            packages={packages}
+            onViewPackageDetail={onViewPackageDetail}
+            onUpdateStatus={onUpdateStatus}
+            getStatusBadge={getStatusBadge}
+          />
         </TabsContent>
       </Tabs>
     </div>
