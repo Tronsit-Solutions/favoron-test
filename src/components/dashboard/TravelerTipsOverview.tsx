@@ -1,11 +1,15 @@
-import { DollarSign, TrendingUp, Package } from "lucide-react";
+import { DollarSign, TrendingUp, Package, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
 
 interface TravelerTipsOverviewProps {
   packages: any[];
 }
 
 const TravelerTipsOverview = ({ packages }: TravelerTipsOverviewProps) => {
+  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
+  
   // Calculate total tips from all packages with quotes
   const totalTips = packages.reduce((sum, pkg) => {
     if (pkg.quote?.price) {
@@ -72,23 +76,36 @@ const TravelerTipsOverview = ({ packages }: TravelerTipsOverviewProps) => {
 
         {/* Quick tip breakdown if there are multiple packages with tips */}
         {packagesWithTips > 1 && (
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-xs text-muted-foreground mb-2">Desglose por paquete:</p>
-            <div className="grid gap-1 text-xs">
-              {packages
-                .filter(pkg => pkg.quote?.price)
-                .map((pkg, index) => (
-                  <div key={pkg.id} className="flex justify-between items-center py-1">
-                    <span className="text-muted-foreground truncate max-w-[200px]">
-                      Paquete #{index + 1}: {pkg.products?.[0]?.itemDescription || pkg.itemDescription}
-                    </span>
-                    <span className="font-medium">
-                      +${parseFloat(pkg.quote.price).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+          <Collapsible open={isBreakdownOpen} onOpenChange={setIsBreakdownOpen}>
+            <div className="mt-4 pt-4 border-t">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full text-left hover:bg-muted/50 rounded p-2 transition-colors">
+                  <p className="text-xs text-muted-foreground">Desglose por paquete:</p>
+                  {isBreakdownOpen ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="grid gap-1 text-xs mt-2">
+                  {packages
+                    .filter(pkg => pkg.quote?.price)
+                    .map((pkg, index) => (
+                      <div key={pkg.id} className="flex justify-between items-center py-1">
+                        <span className="text-muted-foreground truncate max-w-[200px]">
+                          Paquete #{index + 1}: {pkg.products?.[0]?.itemDescription || pkg.itemDescription}
+                        </span>
+                        <span className="font-medium">
+                          +${parseFloat(pkg.quote.price).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </CollapsibleContent>
             </div>
-          </div>
+          </Collapsible>
         )}
       </CardContent>
     </Card>
