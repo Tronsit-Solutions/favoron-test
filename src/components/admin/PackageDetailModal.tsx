@@ -266,6 +266,21 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               </CardContent>
             </Card>
           )}
+          
+          {/* Show rejection debug for any rejected package */}
+          {pkg.status === 'rejected' && !pkg.rejectionReason && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-red-700">Debug: Paquete rechazado sin razón</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Este paquete está marcado como rechazado pero no tiene rejectionReason.</p>
+                <pre className="text-xs bg-gray-100 p-2 rounded mt-2">
+                  {JSON.stringify(pkg, null, 2)}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Action Buttons */}
           {pkg.status === 'pending_approval' && (
