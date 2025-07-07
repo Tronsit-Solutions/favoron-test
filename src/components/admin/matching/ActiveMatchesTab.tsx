@@ -22,7 +22,8 @@ const getStatusInfo = (status: string) => {
     'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
     'delivered': { icon: '📦', label: 'Entregado', color: 'bg-emerald-100 text-emerald-800' },
     'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' },
-    'rejected': { icon: '❌', label: 'Match roto', color: 'bg-red-100 text-red-800' }
+    'rejected': { icon: '❌', label: 'Match roto', color: 'bg-red-100 text-red-800' },
+    'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-red-100 text-red-800' }
   };
   return statusMap[status] || { icon: '⏳', label: 'Pendiente', color: 'bg-gray-100 text-gray-800' };
 };
@@ -74,7 +75,7 @@ const ActiveMatchesTab = ({
             {matchedPackages.filter(p => ['payment_pending', 'in_transit'].includes(p.status)).length} En proceso
           </Badge>
           <Badge variant="secondary" className="bg-red-50 text-red-700">
-            {matchedPackages.filter(p => p.status === 'rejected').length} Matches rotos
+            {matchedPackages.filter(p => ['rejected', 'quote_rejected'].includes(p.status)).length} Matches rotos
           </Badge>
         </div>
       </div>
@@ -161,7 +162,7 @@ const ActiveMatchesTab = ({
                       </div>
 
                        {/* Match info */}
-                       {matchedTrip && pkg.status !== 'rejected' && (
+                       {matchedTrip && !['rejected', 'quote_rejected'].includes(pkg.status) && (
                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                            <div className="flex items-center space-x-2 mb-2">
                              <LinkIcon className="h-3 w-3 text-blue-600" />
@@ -175,17 +176,22 @@ const ActiveMatchesTab = ({
                        )}
 
                        {/* Rejected Match info */}
-                       {matchedTrip && pkg.status === 'rejected' && (
+                       {matchedTrip && ['rejected', 'quote_rejected'].includes(pkg.status) && (
                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                            <div className="flex items-center space-x-2 mb-2">
                              <XCircle className="h-3 w-3 text-red-600" />
-                             <span className="text-xs font-medium text-red-800">Match roto</span>
+                             <span className="text-xs font-medium text-red-800">
+                               {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Match roto'}
+                             </span>
                            </div>
                            <div className="text-xs text-red-700 space-y-1">
                              <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
                              <p>👤 Viajero: {matchedTrip.userId}</p>
-                             {pkg.rejectionReason && (
+                             {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' && (
                                <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
+                             )}
+                             {pkg.rejectionReason && typeof pkg.rejectionReason === 'object' && pkg.rejectionReason.value && (
+                               <p className="font-medium">📝 Razón: {pkg.rejectionReason.value}</p>
                              )}
                            </div>
                          </div>

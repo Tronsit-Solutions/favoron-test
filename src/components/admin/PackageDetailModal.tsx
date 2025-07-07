@@ -247,7 +247,7 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
           </Card>
 
           {/* Rejection Information */}
-          {pkg.status === 'rejected' && pkg.rejectionReason && (
+          {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-lg text-red-700">
@@ -257,8 +257,15 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               </CardHeader>
               <CardContent>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm font-medium text-red-800 mb-2">Razón del rechazo por el shopper:</p>
-                  <p className="text-sm text-red-700">{pkg.rejectionReason}</p>
+                  <p className="text-sm font-medium text-red-800 mb-2">
+                    {pkg.status === 'quote_rejected' ? 'Razón del rechazo de cotización:' : 'Razón del rechazo por el shopper:'}
+                  </p>
+                  <p className="text-sm text-red-700">
+                    {typeof pkg.rejectionReason === 'string' 
+                      ? pkg.rejectionReason 
+                      : pkg.rejectionReason?.value || 'No especificada'
+                    }
+                  </p>
                   <div className="text-xs text-red-600 mt-2">
                     Rechazado el {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleTimeString('es-GT')}
                   </div>
@@ -268,7 +275,7 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
           )}
           
           {/* Show rejection debug for any rejected package */}
-          {pkg.status === 'rejected' && !pkg.rejectionReason && (
+          {['rejected', 'quote_rejected'].includes(pkg.status) && !pkg.rejectionReason && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-red-700">Debug: Paquete rechazado sin razón</CardTitle>
