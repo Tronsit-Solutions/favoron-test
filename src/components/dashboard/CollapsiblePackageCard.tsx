@@ -13,6 +13,7 @@ import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackage
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { usePackageActions } from "@/hooks/usePackageActions";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
 
 interface CollapsiblePackageCardProps {
@@ -39,6 +40,13 @@ const CollapsiblePackageCard = ({
   
   const { getStatusBadge } = useStatusHelpers();
   const { handleUploadDocument } = usePackageActions(packages, setPackages);
+
+  // Determine if package needs action (for shoppers)
+  const needsAction = viewMode === 'shopper' && (
+    pkg.status === 'quote_sent' || // needs to accept/reject quote
+    pkg.status === 'quote_accepted' || // needs to make payment
+    (pkg.status === 'payment_confirmed' && !pkg.purchaseConfirmation) // needs to upload documents
+  );
 
   const handlePaymentUpload = (paymentData: any) => {
     handleUploadDocument(pkg.id, 'payment_receipt', paymentData);
@@ -95,6 +103,9 @@ const CollapsiblePackageCard = ({
                       : pkg.itemDescription
                     }
                   </span>
+                  {needsAction && (
+                    <NotificationBadge count={1} className="ml-2" />
+                  )}
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
                 <CardDescription>
