@@ -263,6 +263,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           user={selectedUser}
           packages={packages}
           trips={trips}
+          allPackages={packages}
           onUpdateUser={handleUpdateUser}
         />
       )}

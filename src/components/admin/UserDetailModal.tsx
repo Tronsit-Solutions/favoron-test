@@ -21,6 +21,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserStatusBadge from "./UserStatusBadge";
 import UserActivityTimeline from "./UserActivityTimeline";
+import UserPackagesTab from "./UserPackagesTab";
+import UserTripsTab from "./UserTripsTab";
+import UserFinancialSummary from "./UserFinancialSummary";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,6 +35,7 @@ interface UserDetailModalProps {
   user: User;
   packages: Package[];
   trips: Trip[];
+  allPackages: Package[]; // All packages in system for cross-reference
   onUpdateUser: (userId: number, updates: Partial<User>) => void;
 }
 
@@ -41,6 +45,7 @@ const UserDetailModal = ({
   user, 
   packages, 
   trips, 
+  allPackages,
   onUpdateUser 
 }: UserDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -89,10 +94,13 @@ const UserDetailModal = ({
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Información Personal</TabsTrigger>
-            <TabsTrigger value="activity">Actividad</TabsTrigger>
-            <TabsTrigger value="admin">Gestión Admin</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="packages">Pedidos</TabsTrigger>
+            <TabsTrigger value="trips">Viajes</TabsTrigger>
+            <TabsTrigger value="financial">Financiero</TabsTrigger>
+            <TabsTrigger value="activity">Historial</TabsTrigger>
+            <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4">
@@ -242,6 +250,22 @@ const UserDetailModal = ({
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="packages">
+            <UserPackagesTab packages={userPackages} />
+          </TabsContent>
+
+          <TabsContent value="trips">
+            <UserTripsTab trips={userTrips} allPackages={allPackages} />
+          </TabsContent>
+
+          <TabsContent value="financial">
+            <UserFinancialSummary 
+              packages={userPackages} 
+              trips={userTrips} 
+              allPackages={allPackages}
+            />
           </TabsContent>
 
           <TabsContent value="activity">
