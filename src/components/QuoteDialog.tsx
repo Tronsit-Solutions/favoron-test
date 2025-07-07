@@ -144,6 +144,9 @@ const QuoteDialog = ({
                     onChange={(e) => setPrice(e.target.value)}
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    💰 Esta es tu compensación como viajero por realizar el Favorón
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="serviceFee">Servicios adicionales (opcional)</Label>
