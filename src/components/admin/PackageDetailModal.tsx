@@ -246,6 +246,27 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
             </CardContent>
           </Card>
 
+          {/* Rejection Information */}
+          {pkg.status === 'rejected' && pkg.rejectionReason && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-lg text-red-700">
+                  <XCircle className="h-4 w-4" />
+                  <span>Información del Rechazo</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm font-medium text-red-800 mb-2">Razón del rechazo por el shopper:</p>
+                  <p className="text-sm text-red-700">{pkg.rejectionReason}</p>
+                  <div className="text-xs text-red-600 mt-2">
+                    Rechazado el {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleTimeString('es-GT')}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Action Buttons */}
           {pkg.status === 'pending_approval' && (
             <div className="flex space-x-2 pt-4 border-t">
