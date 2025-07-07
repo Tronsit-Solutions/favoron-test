@@ -73,7 +73,7 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   };
 
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-1.5 max-w-xs ${className}`}>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-1.5 max-w-xs ml-auto ${className}`}>
       <div className="flex items-center space-x-1 mb-1">
         <Package className="h-3 w-3 text-blue-600" />
         <p className="text-xs font-medium text-blue-800">Estado:</p>
