@@ -112,14 +112,6 @@ const AdminPackagesTab = ({
                     </Button>
                   )}
                   
-                  {pkg.status === 'received_by_traveler' && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => onConfirmOfficeReception(pkg.id)}
-                    >
-                      Confirmar recepción en oficina Favorón
-                    </Button>
-                  )}
                 </div>
               </div>
             ))}

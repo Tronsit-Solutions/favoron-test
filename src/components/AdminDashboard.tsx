@@ -223,6 +223,7 @@ const AdminDashboard = ({
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
             onUpdateStatus={onUpdateStatus}
+            onConfirmOfficeReception={onConfirmOfficeReception}
             getStatusBadge={getStatusBadge}
           />
         </TabsContent>

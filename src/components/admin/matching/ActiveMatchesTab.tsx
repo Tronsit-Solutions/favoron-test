@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Eye, CalendarDays, Link as LinkIcon } from "lucide-react";
+import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle } from "lucide-react";
 
 interface ActiveMatchesTabProps {
   packages: any[];
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
+  onConfirmOfficeReception: (packageId: number) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -29,6 +30,7 @@ const ActiveMatchesTab = ({
   packages, 
   trips, 
   onViewPackageDetail,
+  onConfirmOfficeReception,
   getStatusBadge 
 }: ActiveMatchesTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -192,7 +194,7 @@ const ActiveMatchesTab = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="ml-4">
+                    <div className="ml-4 space-y-2">
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -201,6 +203,17 @@ const ActiveMatchesTab = ({
                         <Eye className="h-4 w-4 mr-1" />
                         Ver Detalles
                       </Button>
+                      
+                      {pkg.status === 'received_by_traveler' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => onConfirmOfficeReception(pkg.id)}
+                          className="w-full"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Confirmar recepción en oficina
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
