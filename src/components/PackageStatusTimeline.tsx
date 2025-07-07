@@ -73,21 +73,21 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   };
 
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 ${className}`}>
-      <div className="flex items-center space-x-2 mb-3">
-        <Package className="h-4 w-4 text-blue-600" />
-        <p className="text-sm font-medium text-blue-800">Estado de tu pedido:</p>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-2 ${className}`}>
+      <div className="flex items-center space-x-1 mb-2">
+        <Package className="h-3 w-3 text-blue-600" />
+        <p className="text-xs font-medium text-blue-800">Estado:</p>
       </div>
       
-      <div className="space-y-2 ml-6">
+      <div className="space-y-1 ml-4">
         {statuses.map((status, index) => {
           const state = getStatusState(index);
           const Icon = status.icon;
           
           return (
-            <div key={status.key} className="flex items-center space-x-3">
+            <div key={status.key} className="flex items-center space-x-2">
               <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center border-2 
+                w-4 h-4 rounded-full flex items-center justify-center border 
                 ${state === 'completed' 
                   ? 'bg-green-500 border-green-500 text-white' 
                   : state === 'current'
@@ -96,25 +96,25 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
                 }
               `}>
                 {state === 'completed' ? (
-                  <Check className="h-3 w-3" />
+                  <Check className="h-2 w-2" />
                 ) : state === 'current' ? (
-                  <Icon className="h-3 w-3" />
+                  <Icon className="h-2 w-2" />
                 ) : (
-                  <Clock className="h-3 w-3" />
+                  <Clock className="h-2 w-2" />
                 )}
               </div>
               
-              <div className="flex-1">
-                <p className={`text-sm font-medium ${
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-medium truncate ${
                   state === 'pending' ? 'text-gray-500' : 'text-blue-800'
                 }`}>
                   {status.label}
                 </p>
-                <p className={`text-xs ${
-                  state === 'pending' ? 'text-gray-400' : 'text-blue-600'
-                }`}>
-                  {status.description}
-                </p>
+                {state === 'current' && (
+                  <p className="text-xs text-blue-600 truncate">
+                    {status.description}
+                  </p>
+                )}
               </div>
               
               {state === 'completed' && (
