@@ -32,6 +32,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     deliveryDate: null as Date | null,
     additionalInfo: '',
     packageReceivingAddress: {
+      recipientName: '',
       accommodationType: '',
       streetAddress: '',
       cityArea: '',
@@ -87,10 +88,10 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
     
     if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || 
-        !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType ||
-        !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || 
-        !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || 
-        !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
+        !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.recipientName ||
+        !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || 
+        !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || 
+        !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -117,6 +118,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       deliveryDate: null,
       additionalInfo: '',
       packageReceivingAddress: {
+        recipientName: '',
         accommodationType: '',
         streetAddress: '',
         cityArea: '',
@@ -295,6 +297,21 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             <p className="text-sm text-muted-foreground mb-4">
               <strong>Importante:</strong> Los paquetes se enviarán aquí. Esta información solo se compartirá con los shoppers cuando apruebes sus pedidos.
             </p>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipientName">Nombre de la persona que recibe el paquete *</Label>
+              <Input
+                id="recipientName"
+                type="text"
+                placeholder="Ej: Juan Pérez"
+                value={formData.packageReceivingAddress.recipientName}
+                onChange={(e) => handleAddressChange('recipientName', e.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Nombre completo de quien recibirá los paquetes en tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'}
+              </p>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="accommodationType">Tipo de alojamiento *</Label>
