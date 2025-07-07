@@ -158,9 +158,6 @@ const AdminDashboard = ({
               <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
             )}
           </TabsTrigger>
-          <TabsTrigger value="financial" className="relative flex items-center gap-2">
-            💰 Financiero
-          </TabsTrigger>
           <TabsTrigger value="packages" className="relative flex items-center gap-2">
             Solicitudes
             {packageApprovalsNeeded > 0 && (
@@ -178,6 +175,9 @@ const AdminDashboard = ({
             {matchingTotal > 0 && (
               <NotificationBadge count={matchingTotal} />
             )}
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="relative flex items-center gap-2">
+            💰 Financiero
           </TabsTrigger>
         </TabsList>
 
