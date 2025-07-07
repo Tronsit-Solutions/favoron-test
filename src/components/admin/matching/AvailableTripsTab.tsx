@@ -188,7 +188,7 @@ const AvailableTripsTab = ({ trips, onViewTripDetail }: AvailableTripsTabProps) 
                       onClick={() => onViewTripDetail(trip)}
                     >
                       <Eye className="h-4 w-4 mr-1" />
-                      Ver + Match
+                      Ver
                     </Button>
                   </div>
                 </div>
