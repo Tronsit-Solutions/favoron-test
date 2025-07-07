@@ -11,6 +11,7 @@ import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
+import FinancialDashboard from "./admin/FinancialDashboard";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 
@@ -150,12 +151,15 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
               <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
             )}
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="relative flex items-center gap-2">
+            💰 Financiero
           </TabsTrigger>
           <TabsTrigger value="packages" className="relative flex items-center gap-2">
             Solicitudes
@@ -185,6 +189,10 @@ const AdminDashboard = ({
             onOpenMatchDialog={handleOpenMatchDialog}
             onUpdateStatus={onUpdateStatus}
           />
+        </TabsContent>
+
+        <TabsContent value="financial" className="space-y-4">
+          <FinancialDashboard packages={packages} />
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-4">
