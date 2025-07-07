@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle } from "lucide-react";
+import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle, XCircle } from "lucide-react";
 
 interface ActiveMatchesTabProps {
   packages: any[];
@@ -21,7 +21,8 @@ const getStatusInfo = (status: string) => {
     'payment_confirmed': { icon: '✅', label: 'Pago confirmado', color: 'bg-green-100 text-green-800' },
     'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
     'delivered': { icon: '📦', label: 'Entregado', color: 'bg-emerald-100 text-emerald-800' },
-    'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' }
+    'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' },
+    'rejected': { icon: '❌', label: 'Match roto', color: 'bg-red-100 text-red-800' }
   };
   return statusMap[status] || { icon: '⏳', label: 'Pendiente', color: 'bg-gray-100 text-gray-800' };
 };
@@ -71,6 +72,9 @@ const ActiveMatchesTab = ({
           </Badge>
           <Badge variant="secondary" className="bg-yellow-50 text-yellow-700">
             {matchedPackages.filter(p => ['payment_pending', 'in_transit'].includes(p.status)).length} En proceso
+          </Badge>
+          <Badge variant="secondary" className="bg-red-50 text-red-700">
+            {matchedPackages.filter(p => p.status === 'rejected').length} Matches rotos
           </Badge>
         </div>
       </div>
@@ -148,19 +152,36 @@ const ActiveMatchesTab = ({
                         </Badge>
                       </div>
 
-                      {/* Match info */}
-                      {matchedTrip && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <LinkIcon className="h-3 w-3 text-blue-600" />
-                            <span className="text-xs font-medium text-blue-800">Match activo</span>
-                          </div>
-                          <div className="text-xs text-blue-700">
-                            <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
-                            <p>👤 Viajero: {matchedTrip.userId}</p>
-                          </div>
-                        </div>
-                      )}
+                       {/* Match info */}
+                       {matchedTrip && pkg.status !== 'rejected' && (
+                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                           <div className="flex items-center space-x-2 mb-2">
+                             <LinkIcon className="h-3 w-3 text-blue-600" />
+                             <span className="text-xs font-medium text-blue-800">Match activo</span>
+                           </div>
+                           <div className="text-xs text-blue-700">
+                             <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
+                             <p>👤 Viajero: {matchedTrip.userId}</p>
+                           </div>
+                         </div>
+                       )}
+
+                       {/* Rejected Match info */}
+                       {matchedTrip && pkg.status === 'rejected' && (
+                         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                           <div className="flex items-center space-x-2 mb-2">
+                             <XCircle className="h-3 w-3 text-red-600" />
+                             <span className="text-xs font-medium text-red-800">Match roto</span>
+                           </div>
+                           <div className="text-xs text-red-700 space-y-1">
+                             <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
+                             <p>👤 Viajero: {matchedTrip.userId}</p>
+                             {pkg.rejectionReason && (
+                               <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
+                             )}
+                           </div>
+                         </div>
+                       )}
 
                       {/* Financial info */}
                       {pkg.quote && (
