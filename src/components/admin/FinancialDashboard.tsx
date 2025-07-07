@@ -62,10 +62,9 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
       return sum + favoronFee;
     }, 0);
 
-    // Tips para viajeros (60% del precio base)
+    // Tips para viajeros (igual a la cotización completa)
     const travelerTips = completedPackages.reduce((sum, pkg) => {
-      const basePrice = parseFloat(pkg.quote?.price || '0');
-      const travelerTip = basePrice * 0.6; // 60% para el viajero
+      const travelerTip = parseFloat(pkg.quote?.price || '0');
       return sum + travelerTip;
     }, 0);
 
@@ -139,7 +138,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
               {formatCurrency(financialMetrics.travelerTips)}
             </div>
             <p className="text-xs text-muted-foreground">
-              60% del precio base
+              Cotización completa del viajero
             </p>
           </CardContent>
         </Card>
