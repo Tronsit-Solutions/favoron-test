@@ -8,12 +8,12 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
   return (
     <>
       {/* Shopper information */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+      <div className="bg-muted/30 border border-border rounded-lg p-2">
         <div className="flex items-start space-x-1.5 mb-1">
-          <User className="h-3 w-3 text-green-600 mt-0.5" />
-          <p className="text-xs font-medium text-green-800">Información del shopper:</p>
+          <User className="h-3 w-3 text-muted-foreground mt-0.5" />
+          <p className="text-xs font-medium">Información del shopper:</p>
         </div>
-        <div className="text-xs text-green-700 ml-4.5">
+        <div className="text-xs text-muted-foreground ml-4.5">
           <p>Solicitante: Usuario #{pkg.userId}</p>
           <p>Creado el: {new Date(pkg.createdAt).toLocaleDateString('es-GT')}</p>
         </div>
@@ -21,36 +21,36 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
 
       {/* Show quote information if sent */}
       {pkg.quote && (
-        <div className="bg-success-muted border border-success-border rounded-lg p-3 space-y-2">
+        <div className="bg-muted/30 border rounded-lg p-3 space-y-2">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4 text-success" />
-            <p className="text-sm font-medium text-success">💰 Información de compensación</p>
+            <DollarSign className="h-4 w-4" />
+            <p className="text-sm font-medium">💰 Información de compensación</p>
           </div>
           
           {/* Traveler compensation - most prominent */}
-          <div className="bg-success/10 border border-success/20 rounded-md p-3">
+          <div className="bg-background border rounded-md p-3">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-semibold text-success">Tu ganancia:</p>
-                <p className="text-xl font-bold text-success">
+                <p className="text-sm font-semibold">Tu ganancia:</p>
+                <p className="text-xl font-bold">
                   ${parseFloat(pkg.quote.price || 0).toFixed(2)}
                 </p>
               </div>
-              <div className="text-right text-xs text-success/80">
+              <div className="text-right text-xs text-muted-foreground">
                 <p>Por este Favorón</p>
               </div>
             </div>
           </div>
 
           {/* Total price breakdown */}
-          <div className="text-xs text-success/80 space-y-1 pt-2 border-t border-success/20">
+          <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
             <div className="flex justify-between">
               <span>Total que paga el shopper:</span>
               <span className="font-medium">${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Tu compensación:</span>
-              <span className="font-medium text-success">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
+              <span className="font-medium">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Servicio Favorón + Seguro:</span>
@@ -59,12 +59,12 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
           </div>
 
           {pkg.quote.message && (
-            <div className="border-t border-success/20 pt-2">
-              <p className="text-xs text-success/80">Mensaje: "{pkg.quote.message}"</p>
+            <div className="border-t pt-2">
+              <p className="text-xs text-muted-foreground">Mensaje: "{pkg.quote.message}"</p>
             </div>
           )}
           
-          <div className="flex items-center gap-1 text-xs text-success/80">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             Estado: {pkg.status === 'quote_accepted' ? '✅ Aceptada' : '⏳ Esperando respuesta'}
           </div>
         </div>
@@ -72,12 +72,12 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
 
       {/* Delivery address if confirmed */}
       {pkg.confirmedDeliveryAddress && (
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-2">
+        <div className="bg-muted/30 border rounded-lg p-2">
           <div className="flex items-start space-x-1.5 mb-1">
-            <MapPin className="h-3 w-3 text-purple-600 mt-0.5" />
-            <p className="text-xs font-medium text-purple-800">Dirección de entrega confirmada:</p>
+            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
+            <p className="text-xs font-medium">Dirección de entrega confirmada:</p>
           </div>
-          <div className="text-xs text-purple-700 ml-4.5">
+          <div className="text-xs text-muted-foreground ml-4.5">
             <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
             <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
             {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
@@ -97,25 +97,25 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
         )}
 
         {pkg.status === 'quote_accepted' && (
-          <div className="text-xs text-green-600 font-medium">
+          <div className="text-xs font-medium">
             ✅ Cotización aceptada - Esperando confirmación de pago
           </div>
         )}
 
         {pkg.status === 'payment_confirmed' && (
-          <div className="text-xs text-blue-600 font-medium">
+          <div className="text-xs font-medium">
             💳 Pago confirmado - Esperando que el shopper envíe el paquete
           </div>
         )}
 
         {pkg.status === 'in_transit' && (
-          <div className="text-xs text-orange-600 font-medium">
+          <div className="text-xs font-medium">
             🚚 Paquete en tránsito - El shopper ya lo envió
           </div>
         )}
 
         {pkg.status === 'received_by_traveler' && (
-          <div className="text-xs text-green-600 font-medium">
+          <div className="text-xs font-medium">
             ✅ Paquete recibido y confirmado
             {pkg.travelerConfirmation?.confirmedAt && (
               <div className="text-xs text-muted-foreground mt-0.5">
