@@ -73,13 +73,13 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   };
 
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-2 ${className}`}>
-      <div className="flex items-center space-x-1 mb-2">
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-1.5 max-w-xs ${className}`}>
+      <div className="flex items-center space-x-1 mb-1">
         <Package className="h-3 w-3 text-blue-600" />
         <p className="text-xs font-medium text-blue-800">Estado:</p>
       </div>
       
-      <div className="space-y-1 ml-4">
+      <div className="space-y-1 ml-3">
         {statuses.map((status, index) => {
           const state = getStatusState(index);
           const Icon = status.icon;
