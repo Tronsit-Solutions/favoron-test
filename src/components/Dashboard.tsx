@@ -12,6 +12,7 @@ import RecentActivity from "./dashboard/RecentActivity";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPackageCard";
+import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
@@ -401,37 +402,34 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 )}
               </div>
 
-              {/* Show packages assigned to user's trips - NOW COLLAPSIBLE WITH PRIORITY ORDERING */}
+              {/* Show packages assigned to user's trips - NOW GROUPED BY TRIP */}
               {assignedPackages.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
+                   
+                  {/* Tips Overview with trip filter */}
+                  <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
                   
-                  {/* Tips Overview */}
-                  <TravelerTipsOverview packages={assignedPackages} />
-                  
-                  <div className="grid gap-6">
-                     {assignedPackages
-                       // Sort packages: priority actions first, then by creation date
-                       .sort((a, b) => {
-                         const aPriority = ['matched', 'in_transit'].includes(a.status) ? 1 : 0;
-                         const bPriority = ['matched', 'in_transit'].includes(b.status) ? 1 : 0;
-                         if (aPriority !== bPriority) return bPriority - aPriority;
-                         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                       })
-                       .map((pkg) => {
-                         const hasPendingAction = ['matched', 'in_transit'].includes(pkg.status);
-                         return (
-                           <CollapsibleTravelerPackageCard
-                             key={pkg.id}
-                             pkg={pkg}
-                             getStatusBadge={getStatusBadge}
-                             onQuote={handleQuote}
-                             onConfirmReceived={handleConfirmPackageReceived}
-                             hasPendingAction={hasPendingAction}
-                             autoExpand={hasPendingAction}
-                           />
-                         );
-                       })}
+                  {/* Group packages by trip */}
+                  <div className="space-y-6">
+                    {userTrips
+                      .filter(trip => assignedPackages.some(pkg => pkg.matchedTripId === trip.id))
+                      .map((trip) => {
+                        const tripPackages = assignedPackages.filter(pkg => pkg.matchedTripId === trip.id);
+                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
+                        
+                        return (
+                          <TripPackagesGroup
+                            key={trip.id}
+                            trip={trip}
+                            packages={tripPackages}
+                            getStatusBadge={getStatusBadge}
+                            onQuote={handleQuote}
+                            onConfirmReceived={handleConfirmPackageReceived}
+                            defaultExpanded={hasPendingActions}
+                          />
+                        );
+                      })}
                   </div>
                 </div>
               )}
