@@ -175,6 +175,41 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
                 
+                {/* Show shipping instructions after payment confirmation - PROMINENT IN LEFT COLUMN */}
+                {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && pkg.travelerAddress && (
+                  <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 mb-4 shadow-sm">
+                    <div className="mb-4">
+                      <p className="text-sm font-semibold text-primary mb-2">📦 Instrucciones para el envío</p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Tu pago ha sido confirmado. Por favor envía el producto a la siguiente dirección:
+                      </p>
+                    </div>
+                    
+                    <div className="bg-background/80 rounded-md p-3 border border-border mb-4">
+                      <div className="text-sm space-y-2">
+                        <div>
+                          <span className="font-medium text-primary">Dirección de envío:</span>
+                        </div>
+                        <div className="ml-4 space-y-1 text-muted-foreground">
+                          <p>{pkg.travelerAddress.streetAddress}</p>
+                          <p>{pkg.travelerAddress.cityArea}</p>
+                          {pkg.travelerAddress.hotelAirbnbName && (
+                            <p className="font-medium">{pkg.travelerAddress.hotelAirbnbName}</p>
+                          )}
+                          <p className="flex items-center">
+                            <span className="mr-1">📞</span>
+                            {pkg.travelerAddress.contactNumber}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground">
+                      Una vez enviado el producto, sube los documentos de compra y tracking abajo.
+                    </p>
+                  </div>
+                )}
+
                 {/* Show upload documents after payment confirmation - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (
                   <div className="bg-warning-muted border border-warning-border rounded-lg p-4 mb-4">
