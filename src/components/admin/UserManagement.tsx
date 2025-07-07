@@ -193,7 +193,6 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Usuario</TableHead>
-                <TableHead>Tipo</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>WhatsApp</TableHead>
                 <TableHead>Registro</TableHead>
@@ -211,9 +210,6 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                         @{user.username || `user${user.id}`}
                       </p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {getRoleBadge(user.role)}
                   </TableCell>
                   <TableCell className="text-sm">{user.email}</TableCell>
                   <TableCell className="text-sm">
