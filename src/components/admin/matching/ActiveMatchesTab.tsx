@@ -129,6 +129,14 @@ const ActiveMatchesTab = ({
             const matchedTrip = trips.find(trip => trip.id === pkg.matchedTripId);
             const statusInfo = getStatusInfo(pkg.status);
             
+            // Debug: Log package info to see current status
+            console.log('Package debug:', {
+              id: pkg.id,
+              status: pkg.status,
+              rejectionReason: pkg.rejectionReason,
+              quote: pkg.quote
+            });
+            
             return (
               <Card key={pkg.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
