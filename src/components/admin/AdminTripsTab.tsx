@@ -50,25 +50,6 @@ const AdminTripsTab = ({
                     Ver Detalles
                   </Button>
 
-                  {trip.status === 'pending_approval' && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        onClick={() => onApproveReject('trip', trip.id, 'approve')}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Aprobar
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => onApproveReject('trip', trip.id, 'reject')}
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Rechazar
-                      </Button>
-                    </>
-                  )}
                 </div>
               </div>
             ))}

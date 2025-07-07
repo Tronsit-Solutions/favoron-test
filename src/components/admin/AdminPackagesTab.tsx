@@ -64,26 +64,6 @@ const AdminPackagesTab = ({
                     Ver Detalles
                   </Button>
 
-                  {pkg.status === 'pending_approval' && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        onClick={() => onApproveReject('package', pkg.id, 'approve')}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Aprobar
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => onApproveReject('package', pkg.id, 'reject')}
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Rechazar
-                      </Button>
-                    </>
-                  )}
-
                   {pkg.status === 'payment_pending' && (
                     <Button 
                       size="sm" 

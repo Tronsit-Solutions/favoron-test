@@ -8,6 +8,7 @@ import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 import AdminStatsOverview from "./admin/AdminStatsOverview";
 import AdminOverviewTab from "./admin/AdminOverviewTab";
+import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
@@ -151,23 +152,17 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
               <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
             )}
           </TabsTrigger>
-          <TabsTrigger value="packages" className="relative flex items-center gap-2">
-            Solicitudes
-            {packageApprovalsNeeded > 0 && (
-              <NotificationBadge count={packageApprovalsNeeded} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="trips" className="relative flex items-center gap-2">
-            Viajes
-            {tripApprovalsNeeded > 0 && (
-              <NotificationBadge count={tripApprovalsNeeded} />
+          <TabsTrigger value="approvals" className="relative flex items-center gap-2">
+            Aprobaciones
+            {approvalsNeeded > 0 && (
+              <NotificationBadge count={approvalsNeeded} />
             )}
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
@@ -191,28 +186,19 @@ const AdminDashboard = ({
           />
         </TabsContent>
 
-        <TabsContent value="financial" className="space-y-4">
-          <FinancialDashboard packages={packages} />
-        </TabsContent>
-
-        <TabsContent value="packages" className="space-y-4">
-          <AdminPackagesTab 
+        <TabsContent value="approvals" className="space-y-4">
+          <AdminApprovalsTab 
             packages={packages}
-            onViewPackageDetail={handleViewPackageDetail}
-            onApproveReject={onApproveReject}
-            onUpdateStatus={onUpdateStatus}
-            onConfirmOfficeReception={onConfirmOfficeReception}
-            getStatusBadge={getStatusBadge}
-          />
-        </TabsContent>
-
-        <TabsContent value="trips" className="space-y-4">
-          <AdminTripsTab 
             trips={trips}
+            onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onApproveReject={onApproveReject}
             getStatusBadge={getStatusBadge}
           />
+        </TabsContent>
+
+        <TabsContent value="financial" className="space-y-4">
+          <FinancialDashboard packages={packages} />
         </TabsContent>
 
         <TabsContent value="matching" className="space-y-4">
