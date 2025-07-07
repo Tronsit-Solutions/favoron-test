@@ -194,11 +194,11 @@ const CollapsiblePackageCard = ({
                         <div className="text-sm text-info space-y-1">
                           <div className="flex items-center space-x-2">
                             <span>⏰</span>
-                            <span><strong>Primer día para enviar:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
+                            <span><strong>Primer día para recibir paquetes:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <span>⏰</span>
-                            <span><strong>Último día para enviar:</strong> {new Date(pkg.matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+                            <span><strong>Último día para recibir paquetes:</strong> {new Date(pkg.matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <span>📍</span>
