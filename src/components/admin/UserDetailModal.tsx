@@ -1,0 +1,331 @@
+import { useState } from "react";
+import { User, Package, Trip } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UserStatusBadge from "./UserStatusBadge";
+import UserActivityTimeline from "./UserActivityTimeline";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { User as UserIcon, Mail, Phone, Calendar, FileText, Shield } from "lucide-react";
+
+interface UserDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: User;
+  packages: Package[];
+  trips: Trip[];
+  onUpdateUser: (userId: number, updates: Partial<User>) => void;
+}
+
+const UserDetailModal = ({ 
+  isOpen, 
+  onClose, 
+  user, 
+  packages, 
+  trips, 
+  onUpdateUser 
+}: UserDetailModalProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState(user);
+
+  const userPackages = packages.filter(pkg => pkg.userId === user.id);
+  const userTrips = trips.filter(trip => trip.userId === user.id);
+
+  const handleSave = () => {
+    onUpdateUser(user.id, editedUser);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedUser(user);
+    setIsEditing(false);
+  };
+
+  const getTrustLevelBadge = (level: string | undefined) => {
+    const levelConfig = {
+      basic: { label: 'Básico', variant: 'secondary' as const },
+      trusted: { label: 'Confiable', variant: 'default' as const },
+      premium: { label: 'Premium', variant: 'default' as const }
+    };
+    const config = levelConfig[level as keyof typeof levelConfig] || levelConfig.basic;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getRoleLabel = (role: string) => {
+    const roleLabels = {
+      shopper: 'Comprador',
+      traveler: 'Viajero', 
+      admin: 'Administrador'
+    };
+    return roleLabels[role as keyof typeof roleLabels] || role;
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5" />
+            Perfil de Usuario: {user.name}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue="profile" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile">Información Personal</TabsTrigger>
+            <TabsTrigger value="activity">Actividad</TabsTrigger>
+            <TabsTrigger value="admin">Gestión Admin</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  Datos Personales
+                </CardTitle>
+                <Button 
+                  variant={isEditing ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => isEditing ? handleCancel() : setIsEditing(true)}
+                >
+                  {isEditing ? "Cancelar" : "Editar"}
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nombre Completo</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.name}
+                        onChange={(e) => setEditedUser(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm font-medium">{user.name}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Nombre de Usuario</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.username || ''}
+                        onChange={(e) => setEditedUser(prev => ({ ...prev, username: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm">{user.username || 'No definido'}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      Email
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        type="email"
+                        value={editedUser.email}
+                        onChange={(e) => setEditedUser(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm">{user.email}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Tipo de Usuario</Label>
+                    {isEditing ? (
+                      <Select 
+                        value={editedUser.role} 
+                        onValueChange={(value) => setEditedUser(prev => ({ ...prev, role: value as User['role'] }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="shopper">Comprador</SelectItem>
+                          <SelectItem value="traveler">Viajero</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm">{getRoleLabel(user.role)}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      Teléfono
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.phoneNumber || ''}
+                        onChange={(e) => setEditedUser(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm">{user.phoneNumber || 'No registrado'}</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>WhatsApp</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editedUser.whatsappNumber || ''}
+                        onChange={(e) => setEditedUser(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                      />
+                    ) : (
+                      <p className="text-sm">{user.whatsappNumber || 'No registrado'}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Fecha de Registro
+                    </Label>
+                    <p className="text-sm">
+                      {user.registrationDate ? 
+                        formatDistanceToNow(new Date(user.registrationDate), { addSuffix: true, locale: es }) :
+                        'No disponible'
+                      }
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Estado</Label>
+                    <UserStatusBadge status={user.status} />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Nivel de Confianza</Label>
+                    {getTrustLevelBadge(user.trustLevel)}
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button variant="outline" onClick={handleCancel}>
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleSave}>
+                      Guardar Cambios
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <UserActivityTimeline packages={userPackages} trips={userTrips} />
+          </TabsContent>
+
+          <TabsContent value="admin" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Configuración Administrativa
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Estado del Usuario</Label>
+                    <Select 
+                      value={user.status || 'active'}
+                      onValueChange={(value) => onUpdateUser(user.id, { status: value as User['status'] })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Activo</SelectItem>
+                        <SelectItem value="verified">Verificado</SelectItem>
+                        <SelectItem value="blocked">Bloqueado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Nivel de Confianza</Label>
+                    <Select 
+                      value={user.trustLevel || 'basic'}
+                      onValueChange={(value) => onUpdateUser(user.id, { trustLevel: value as User['trustLevel'] })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="basic">Básico</SelectItem>
+                        <SelectItem value="trusted">Confiable</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    Notas Administrativas
+                  </Label>
+                  <Textarea
+                    placeholder="Agregar notas internas sobre el usuario..."
+                    value={user.adminNotes || ''}
+                    onChange={(e) => onUpdateUser(user.id, { adminNotes: e.target.value })}
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Estas notas solo son visibles para administradores
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Total de Paquetes</p>
+                    <p className="text-2xl font-bold text-primary">{userPackages.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Total de Viajes</p>
+                    <p className="text-2xl font-bold text-secondary">{userTrips.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default UserDetailModal;

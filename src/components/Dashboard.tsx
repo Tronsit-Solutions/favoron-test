@@ -18,6 +18,7 @@ import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
+import UserManagement from "./admin/UserManagement";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     setShowQuoteDialog,
     showProfile,
     setShowProfile,
+    showUserManagement,
+    setShowUserManagement,
     selectedPackageForAddress,
     setSelectedPackageForAddress,
     selectedPackageForQuote,
@@ -245,6 +248,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           user={currentUser}
           onShowProfile={() => setShowProfile(false)}
           onLogout={onLogout}
+          onShowUserManagement={() => setShowUserManagement(true)}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -252,6 +256,25 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             packages={packages}
             trips={trips}
             onUpdateUser={handleUpdateUser} 
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (showUserManagement) {
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardHeader 
+          user={currentUser}
+          onShowProfile={() => setShowProfile(true)}
+          onLogout={onLogout}
+          onShowUserManagement={() => setShowUserManagement(false)}
+        />
+        <div className="container mx-auto px-4 py-8">
+          <UserManagement 
+            packages={packages}
+            trips={trips}
           />
         </div>
       </div>
@@ -273,6 +296,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         user={currentUser}
         onShowProfile={() => setShowProfile(true)}
         onLogout={onLogout}
+        onShowUserManagement={() => setShowUserManagement(true)}
       />
 
       <div className="container mx-auto px-4 py-8">

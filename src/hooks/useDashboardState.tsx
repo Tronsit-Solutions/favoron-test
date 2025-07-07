@@ -10,6 +10,7 @@ export const useDashboardState = (user: any) => {
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
   const [quoteUserType, setQuoteUserType] = useState<'traveler' | 'shopper'>('traveler');
@@ -32,6 +33,8 @@ export const useDashboardState = (user: any) => {
     setShowQuoteDialog,
     showProfile,
     setShowProfile,
+    showUserManagement,
+    setShowUserManagement,
     selectedPackageForAddress,
     setSelectedPackageForAddress,
     selectedPackageForQuote,

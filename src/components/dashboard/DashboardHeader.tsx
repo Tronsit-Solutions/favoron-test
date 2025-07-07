@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, LogOut, User, Plane } from "lucide-react";
+import { Bell, LogOut, User, Plane, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +14,10 @@ interface DashboardHeaderProps {
   user: any;
   onShowProfile: () => void;
   onLogout: () => void;
+  onShowUserManagement?: () => void;
 }
 
-const DashboardHeader = ({ user, onShowProfile, onLogout }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }: DashboardHeaderProps) => {
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -32,6 +33,14 @@ const DashboardHeader = ({ user, onShowProfile, onLogout }: DashboardHeaderProps
             <Bell className="h-4 w-4 mr-2" />
             Notificaciones
           </Button>
+          
+          {user.role === 'admin' && onShowUserManagement && (
+            <Button variant="outline" size="sm" onClick={onShowUserManagement}>
+              <Users className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">Gestión de Usuarios</span>
+              <span className="md:hidden">Usuarios</span>
+            </Button>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

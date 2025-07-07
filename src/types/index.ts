@@ -2,9 +2,24 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  username?: string;
   role: 'shopper' | 'traveler' | 'admin';
   phoneNumber?: string;
+  whatsappNumber?: string;
   preferredLanguage?: string;
+  registrationDate?: string;
+  status?: 'active' | 'verified' | 'blocked';
+  trustLevel?: 'basic' | 'trusted' | 'premium';
+  adminNotes?: string;
+  documents?: Document[];
+}
+
+export interface Document {
+  id: string;
+  type: 'dpi' | 'passport' | 'other';
+  filename: string;
+  uploadDate: string;
+  verified?: boolean;
 }
 
 export interface Address {
