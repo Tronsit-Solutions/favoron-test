@@ -121,17 +121,9 @@ const CollapsiblePackageCard = ({
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <ShopperPackageDetails pkg={pkg} />
-                <ShopperPackageInfo pkg={pkg} />
-                {renderActionButtons()}
-              </div>
-
-              <div className="space-y-4">
-                <PackageStatusTimeline currentStatus={pkg.status} />
-                
-                {/* Show payment instructions and upload component after quote acceptance - PROMINENT */}
+                {/* Show payment instructions and upload component after quote acceptance - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
-                  <div className="order-first md:order-none space-y-4">
+                  <div className="space-y-4 mb-4">
                     {/* Payment Instructions */}
                     <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 shadow-sm">
                       <div className="mb-4">
@@ -183,9 +175,9 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
                 
-                {/* Show upload documents after payment confirmation */}
+                {/* Show upload documents after payment confirmation - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (
-                  <div className="bg-warning-muted border border-warning-border rounded-lg p-4">
+                  <div className="bg-warning-muted border border-warning-border rounded-lg p-4 mb-4">
                     <div className="mb-3">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
                       <p className="text-xs text-warning">¿Ya compraste el producto? Sube el comprobante y tracking aquí.</p>
@@ -197,6 +189,14 @@ const CollapsiblePackageCard = ({
                     />
                   </div>
                 )}
+
+                <ShopperPackageDetails pkg={pkg} />
+                <ShopperPackageInfo pkg={pkg} />
+                {renderActionButtons()}
+              </div>
+
+              <div className="space-y-4">
+                <PackageStatusTimeline currentStatus={pkg.status} />
               </div>
             </div>
           </CardContent>
