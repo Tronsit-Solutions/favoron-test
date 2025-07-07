@@ -58,54 +58,60 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={hasPendingAction ? "ring-2 ring-primary/50 shadow-lg" : ""}>
+      <Card className={`transition-all duration-200 ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-colors ${
+          <CardHeader className={`cursor-pointer transition-all duration-200 py-4 ${
             hasPendingAction 
               ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" 
-              : "hover:bg-muted/50"
+              : "hover:bg-muted/30"
           }`}>
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <div className="relative">
-                    <Package className="h-5 w-5 text-primary" />
-                    {hasPendingAction && (
-                      <NotificationBadge 
-                        count={1} 
-                        className="absolute -top-2 -right-2 w-3 h-3 min-w-[12px] text-[10px]" 
-                      />
-                    )}
-                  </div>
-                  <span>{getPackageName()}</span>
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </CardTitle>
-                <CardDescription>{getPackageDescription()}</CardDescription>
+            <div className="flex justify-between items-center gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <Package className="h-5 w-5 text-primary" />
+                  {hasPendingAction && (
+                    <NotificationBadge 
+                      count={1} 
+                      className="absolute -top-2 -right-2 w-3 h-3 min-w-[12px] text-[10px]" 
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg font-semibold truncate flex items-center gap-2">
+                    <span className="truncate">{getPackageName()}</span>
+                  </CardTitle>
+                  <CardDescription className="text-sm mt-1 truncate">{getPackageDescription()}</CardDescription>
+                </div>
               </div>
-              {getStatusBadge(pkg.status)}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {getStatusBadge(pkg.status)}
+                {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </div>
             </div>
           </CardHeader>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="pt-3">
+          <CardContent className="pt-0 pb-4">
             <TravelerPackagePriorityActions
               pkg={pkg}
               onQuote={onQuote}
               onConfirmReceived={handleConfirmReceivedClick}
             />
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Traveler Package Timeline - Show for relevant statuses */}
               {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
-                <TravelerPackageTimeline currentStatus={pkg.status} />
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <TravelerPackageTimeline currentStatus={pkg.status} />
+                </div>
               )}
 
-              {/* Package details */}
-              <TravelerPackageDetails pkg={pkg} />
-
-              {/* Package info sections */}
-              <TravelerPackageInfo pkg={pkg} />
+              {/* Compact Package details and info in a grid */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <TravelerPackageDetails pkg={pkg} />
+                <TravelerPackageInfo pkg={pkg} />
+              </div>
             </div>
           </CardContent>
         </CollapsibleContent>
