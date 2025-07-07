@@ -286,7 +286,7 @@ const EditTripModal = ({
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="delivery" id="delivery" />
                 <Label htmlFor="delivery" className="cursor-pointer">
-                  Entrega a domicilio
+                  Enviar mensajero a mi domicilio
                 </Label>
               </div>
             </RadioGroup>
