@@ -183,15 +183,15 @@ const AdminMatchDialog = ({
                        {/* Main Trip Info Row - More Compact */}
                        <div className="flex items-center justify-between">
                          <div className="flex items-center space-x-3 flex-1">
-                           {/* Traveler - Compact */}
-                           <div className="flex items-center space-x-2 min-w-[100px]">
-                             <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                               {trip.userId.toString().slice(-2)}
-                             </div>
-                             <div>
-                               <p className="font-medium text-xs">Viajero #{trip.userId}</p>
-                             </div>
-                           </div>
+                            {/* Traveler - Compact */}
+                            <div className="flex items-center space-x-2 min-w-[100px]">
+                              <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
+                                {trip.userId?.toString().slice(-2) || '00'}
+                              </div>
+                              <div>
+                                <p className="font-medium text-xs">Viajero #{trip.userId || 'N/A'}</p>
+                              </div>
+                            </div>
 
                            {/* Route - Compact */}
                            <div className="flex items-center space-x-2 flex-1 min-w-[180px]">
