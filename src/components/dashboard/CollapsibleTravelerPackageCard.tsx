@@ -62,7 +62,7 @@ const CollapsibleTravelerPackageCard = ({
         <CollapsibleTrigger asChild>
           <CardHeader className={`cursor-pointer transition-all duration-200 py-4 ${
             hasPendingAction 
-              ? "bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15" 
+              ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
           }`}>
             <div className="flex justify-between items-center gap-3">
