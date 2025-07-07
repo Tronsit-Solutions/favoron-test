@@ -112,7 +112,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               <div>
                 <p className="font-medium text-lg flex items-center space-x-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{trip.fromCity} → {trip.toCity}</span>
+                  <span>{trip.fromCountry} ({trip.fromCity}) → {trip.toCountry} ({trip.toCity})</span>
                 </p>
                 <p className="text-muted-foreground">Ruta de viaje</p>
               </div>
@@ -141,43 +141,88 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <div>
                     <p className="text-sm font-medium">Método de Entrega</p>
                     <p className="text-sm text-muted-foreground">
-                      {trip.deliveryMethod === 'pickup' ? 'Recoger en oficina' : 'Entrega con mensajero'}
+                      {trip.deliveryMethod === 'oficina' ? 'Oficina de Favorón' : 
+                       trip.deliveryMethod === 'mensajero' ? 'Mensajero' : 
+                       trip.deliveryMethod === 'pickup' ? 'Recoger en oficina' : trip.deliveryMethod}
                     </p>
                   </div>
                 </div>
 
-                {trip.estimatedDeliveryDate && (
+                {trip.messengerPickupLocation && (
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Truck className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Entrega Estimada</p>
+                      <p className="text-sm font-medium">Ubicación Mensajero</p>
+                      <p className="text-sm text-muted-foreground">{trip.messengerPickupLocation}</p>
+                    </div>
+                  </div>
+                )}
+
+                {trip.deliveryDate && (
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-primary">Fecha de Entrega</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.estimatedDeliveryDate).toLocaleDateString('es-GT')}
+                        {new Date(trip.deliveryDate).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {(trip.officeDeliveryDate || trip.deliveryDate) && (
+                {trip.firstDayPackages && (
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-primary" />
+                    <Calendar className="h-4 w-4 text-green-600" />
                     <div>
-                      <p className="text-sm font-medium text-primary">Entrega en Oficina Favorón</p>
+                      <p className="text-sm font-medium text-green-600">Primer Día Recibir Paquetes</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.officeDeliveryDate || trip.deliveryDate).toLocaleDateString('es-GT')}
+                        {new Date(trip.firstDayPackages).toLocaleDateString('es-GT')}
                       </p>
-                      <p className="text-xs text-muted-foreground">Zona 14, Guatemala</p>
+                    </div>
+                  </div>
+                )}
+
+                {trip.lastDayPackages && (
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-red-600" />
+                    <div>
+                      <p className="text-sm font-medium text-red-600">Último Día Recibir Paquetes</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(trip.lastDayPackages).toLocaleDateString('es-GT')}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Delivery Address */}
+              {/* Package Receiving Address */}
+              {trip.packageReceivingAddress && (
+                <div className="bg-muted/50 border rounded-lg p-4">
+                  <div className="flex items-start space-x-2 mb-3">
+                    <Package className="h-5 w-5 text-primary mt-0.5" />
+                    <p className="text-sm font-medium text-primary">Dirección para Recibir Paquetes:</p>
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-7 space-y-2">
+                    <div>
+                      <p><strong>Tipo de alojamiento:</strong> {trip.packageReceivingAddress.accommodationType}</p>
+                      <p><strong>Dirección:</strong> {trip.packageReceivingAddress.streetAddress}</p>
+                      <p><strong>Ciudad/Estado:</strong> {trip.packageReceivingAddress.cityArea}</p>
+                      <p><strong>Código postal:</strong> {trip.packageReceivingAddress.postalCode}</p>
+                      {trip.packageReceivingAddress.hotelAirbnbName && (
+                        <p><strong>Nombre del lugar:</strong> {trip.packageReceivingAddress.hotelAirbnbName}</p>
+                      )}
+                      <p><strong>Contacto:</strong> {trip.packageReceivingAddress.contactNumber}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Delivery Address (Guatemala) */}
               {trip.deliveryAddress && (
                 <div className="bg-muted/50 border rounded-lg p-3">
                   <div className="flex items-start space-x-2 mb-2">
                     <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <p className="text-sm font-medium">Dirección de Entrega:</p>
+                    <p className="text-sm font-medium">Dirección de Entrega en Guatemala:</p>
                   </div>
                   <div className="text-sm text-muted-foreground ml-6">
                     <p>{trip.deliveryAddress.streetAddress}</p>
