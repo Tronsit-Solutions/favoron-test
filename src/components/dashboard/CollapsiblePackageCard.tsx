@@ -185,6 +185,29 @@ const CollapsiblePackageCard = ({
                       </p>
                     </div>
                     
+                    {/* Fechas importantes integradas */}
+                    {pkg.matchedTripDates && (
+                      <div className="bg-info-muted border border-info-border rounded-lg p-3 mb-4">
+                        <div className="flex items-start space-x-2 mb-2">
+                          <span className="text-sm font-medium text-info">📅 Fechas importantes para tu envío:</span>
+                        </div>
+                        <div className="text-sm text-info space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span>⏰</span>
+                            <span><strong>Primer día para enviar:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span>⏰</span>
+                            <span><strong>Último día para enviar:</strong> {new Date(pkg.matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span>📍</span>
+                            <span><strong>Entrega en oficina Favorón:</strong> {new Date(pkg.matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="bg-background/80 rounded-md p-3 border border-border mb-4">
                       <div className="text-sm space-y-2">
                         <div>

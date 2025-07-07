@@ -1,5 +1,4 @@
 import { Package, TripDates } from "@/types";
-import { Calendar, Clock, MapPin } from "lucide-react";
 
 interface ShopperPackageDetailsProps {
   pkg: Package;
@@ -45,39 +44,9 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
     );
   };
 
-  const renderShippingDates = () => {
-    if (!pkg.matchedTripDates || pkg.status !== 'payment_confirmed') return null;
-    
-    const dates = pkg.matchedTripDates;
-    
-    return (
-      <div className="bg-info-muted border border-info-border rounded-lg p-3">
-        <div className="flex items-start space-x-2 mb-2">
-          <Calendar className="h-4 w-4 text-info mt-0.5" />
-          <p className="text-sm font-medium text-info">Fechas importantes para tu envío:</p>
-        </div>
-        <div className="text-sm text-info ml-6 space-y-1">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-3 w-3" />
-            <span><strong>Primer día para enviar:</strong> {new Date(dates.firstDayPackages).toLocaleDateString('es-GT')}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Clock className="h-3 w-3" />
-            <span><strong>Último día para enviar:</strong> {new Date(dates.lastDayPackages).toLocaleDateString('es-GT')}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-3 w-3" />
-            <span><strong>Entrega en oficina Favorón:</strong> {new Date(dates.deliveryDate).toLocaleDateString('es-GT')}</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-3">
       {renderProducts()}
-      {renderShippingDates()}
       
       {pkg.additionalNotes && (
         <p className="text-sm">
