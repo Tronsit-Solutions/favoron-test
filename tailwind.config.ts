@@ -74,6 +74,7 @@ export default {
 					border: 'hsl(var(--info-border))'
 				},
 				logo: 'hsl(var(--logo))',
+				traveler: 'hsl(var(--traveler))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

@@ -19,6 +19,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         shopper: "bg-logo text-white hover:bg-logo/90",
+        traveler: "bg-traveler text-white hover:bg-traveler/90",
         success: "bg-success text-success-foreground hover:bg-success/90",
       },
       size: {
