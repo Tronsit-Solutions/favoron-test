@@ -49,8 +49,8 @@ const AdminDashboard = ({
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'pending_approval': { label: 'Pendiente', variant: 'secondary' as const },
-      'approved': { label: 'Aprobado', variant: 'default' as const },
+      'pending_approval': { label: 'Pendiente', variant: 'warning' as const },
+      'approved': { label: 'Aprobado', variant: 'success' as const },
       'matched': { label: 'Match realizado', variant: 'default' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
@@ -58,11 +58,11 @@ const AdminDashboard = ({
       'paid': { label: 'Pagado', variant: 'default' as const },
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
-      'delivered': { label: 'Entregado', variant: 'default' as const },
+      'delivered': { label: 'Entregado', variant: 'success' as const },
       'received_by_traveler': { label: 'Recibido por viajero', variant: 'default' as const },
-      'delivered_to_office': { label: 'Entregado en oficina Favorón', variant: 'default' as const },
+      'delivered_to_office': { label: 'Entregado en oficina Favorón', variant: 'success' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
-      'active': { label: 'Activo', variant: 'default' as const },
+      'active': { label: 'Activo', variant: 'success' as const },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };

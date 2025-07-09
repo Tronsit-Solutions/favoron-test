@@ -97,8 +97,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'pending_approval': { label: 'Pendiente aprobación', variant: 'secondary' as const },
-      'approved': { label: 'Aprobado', variant: 'default' as const },
+      'pending_approval': { label: 'Pendiente aprobación', variant: 'warning' as const },
+      'approved': { label: 'Aprobado', variant: 'success' as const },
       'matched': { label: 'Emparejado', variant: 'default' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
@@ -106,9 +106,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       'paid': { label: 'Pagado', variant: 'default' as const },
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
-      'delivered': { label: 'Entregado', variant: 'default' as const },
+      'delivered': { label: 'Entregado', variant: 'success' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
-      'active': { label: 'Activo', variant: 'default' as const },
+      'active': { label: 'Activo', variant: 'success' as const },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
