@@ -45,7 +45,7 @@ const PackageCard = ({
   };
 
   // Special layout for payment pending state
-  if (pkg.status === 'quote_accepted' && viewMode === 'user') {
+  if (['quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user') {
     return (
       <Card key={pkg.id} className="border-warning-border bg-warning-muted/30">
         <PackageHeader pkg={pkg} getStatusBadge={getStatusBadge} />
@@ -102,9 +102,9 @@ const PackageCard = ({
             <div className="space-y-4">
               <PackageProductDisplay 
                 products={pkg.products}
-                itemDescription={pkg.itemDescription}
-                itemLink={pkg.itemLink}
-                estimatedPrice={pkg.estimatedPrice}
+                itemDescription={pkg.item_description}
+                itemLink={pkg.item_link}
+                estimatedPrice={pkg.estimated_price}
               />
               
               <PackageQuoteInfo quote={pkg.quote} />
@@ -117,13 +117,13 @@ const PackageCard = ({
                 onEditPackage={onEditPackage}
               />
 
-              {pkg.additionalNotes && (
+              {pkg.additional_notes && (
                 <div className="text-sm">
-                  <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+                  <strong>Notas adicionales:</strong> {pkg.additional_notes}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
+                Creado el {new Date(pkg.created_at).toLocaleDateString('es-GT')}
               </p>
             </div>
 
@@ -151,9 +151,9 @@ const PackageCard = ({
           <div className="space-y-4">
             <PackageProductDisplay 
               products={pkg.products}
-              itemDescription={pkg.itemDescription}
-              itemLink={pkg.itemLink}
-              estimatedPrice={pkg.estimatedPrice}
+              itemDescription={pkg.item_description}
+              itemLink={pkg.item_link}
+              estimatedPrice={pkg.estimated_price}
             />
             
             <PackageQuoteInfo quote={pkg.quote} />
@@ -172,13 +172,13 @@ const PackageCard = ({
               onEditPackage={onEditPackage}
             />
 
-            {pkg.additionalNotes && (
+            {pkg.additional_notes && (
               <div className="text-sm">
-                <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+                <strong>Notas adicionales:</strong> {pkg.additional_notes}
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
+              Creado el {new Date(pkg.created_at).toLocaleDateString('es-GT')}
             </p>
           </div>
 
