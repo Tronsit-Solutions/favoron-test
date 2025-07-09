@@ -10,7 +10,7 @@ interface TripPackagesGroupProps {
   packages: any[];
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'user') => void;
-  onConfirmReceived: (packageId: number, photo?: string) => void;
+  onConfirmReceived: (packageId: string, photo?: string) => void;
   defaultExpanded?: boolean;
 }
 

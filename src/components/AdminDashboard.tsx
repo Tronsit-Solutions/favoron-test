@@ -20,10 +20,10 @@ interface AdminDashboardProps {
   packages: any[];
   trips: any[];
   currentUser?: any;
-  onMatchPackage: (packageId: number, tripId: number) => void;
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
-  onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
-  onConfirmOfficeReception: (packageId: number) => void;
+  onMatchPackage: (packageId: string, tripId: string) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
+  onConfirmOfficeReception: (packageId: string) => void;
   onLoadTestData?: () => void;
 }
 
@@ -71,7 +71,7 @@ const AdminDashboard = ({
 
   const handleMatch = () => {
     if (selectedPackage && matchingTrip) {
-      onMatchPackage(selectedPackage.id, parseInt(matchingTrip));
+      onMatchPackage(selectedPackage.id, matchingTrip);
       toast({
         title: "¡Match exitoso!",
         description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip}`,

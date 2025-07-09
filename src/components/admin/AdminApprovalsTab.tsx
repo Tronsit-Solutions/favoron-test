@@ -10,7 +10,7 @@ interface AdminApprovalsTabProps {
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
   onViewTripDetail: (trip: any) => void;
-  onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

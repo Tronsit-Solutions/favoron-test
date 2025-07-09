@@ -177,7 +177,7 @@ export const useDashboardActions = (
     setShowAddressConfirmation(true);
   };
 
-  const handleUploadDocument = (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
+  const handleUploadDocument = (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
     setPackages(packages.map(pkg => {
       if (pkg.id === packageId) {
         const updatedPkg = { ...pkg };
@@ -239,7 +239,7 @@ export const useDashboardActions = (
     };
   };
 
-  const handleConfirmPayment = (packageId: number) => {
+  const handleConfirmPayment = (packageId: string) => {
     console.log('Confirming payment for package:', packageId);
     
     // Find the package and matched trip
@@ -275,7 +275,7 @@ export const useDashboardActions = (
     });
   };
 
-  const handleMatchPackage = (packageId: number, tripId: number) => {
+  const handleMatchPackage = (packageId: string, tripId: string) => {
     setPackages(packages.map(pkg => 
       pkg.id === packageId ? { ...pkg, status: 'matched', matchedTripId: tripId } : pkg
     ));
@@ -286,7 +286,7 @@ export const useDashboardActions = (
     });
   };
 
-  const handleStatusUpdate = (type: 'package' | 'trip', id: number, status: string) => {
+  const handleStatusUpdate = async (type: 'package' | 'trip', id: string, status: string) => {
     if (type === 'package') {
       setPackages(packages.map(pkg => 
         pkg.id === id ? { ...pkg, status } : pkg
@@ -303,12 +303,36 @@ export const useDashboardActions = (
     });
   };
 
-  const handleApproveReject = (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => {
+  const handleApproveReject = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => {
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
-    handleStatusUpdate(type, id, newStatus);
+    
+    try {
+      if (type === 'package' && updatePackage) {
+        await updatePackage(id, { status: newStatus });
+        toast({
+          title: action === 'approve' ? "¡Solicitud aprobada!" : "Solicitud rechazada",
+          description: `La solicitud de paquete ha sido ${action === 'approve' ? 'aprobada' : 'rechazada'}.`,
+        });
+      } else if (type === 'trip' && updateTrip) {
+        await updateTrip(id, { status: newStatus });
+        toast({
+          title: action === 'approve' ? "¡Viaje aprobado!" : "Viaje rechazado",
+          description: `El viaje ha sido ${action === 'approve' ? 'aprobado' : 'rechazado'}.`,
+        });
+      } else {
+        console.error(`Update function not available for ${type}`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing ${type}:`, error);
+      toast({
+        title: "Error",
+        description: `No se pudo ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud. Inténtalo de nuevo.`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleConfirmPackageReceived = (packageId: number, photo?: string) => {
+  const handleConfirmPackageReceived = (packageId: string, photo?: string) => {
     setPackages(packages.map(pkg => 
       pkg.id === packageId 
         ? { 
@@ -328,7 +352,7 @@ export const useDashboardActions = (
     });
   };
 
-  const handleConfirmOfficeReception = (packageId: number) => {
+  const handleConfirmOfficeReception = (packageId: string) => {
     setPackages(packages.map(pkg => 
       pkg.id === packageId 
         ? { 

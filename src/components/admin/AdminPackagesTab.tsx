@@ -6,9 +6,9 @@ import { CheckCircle, XCircle, Eye } from "lucide-react";
 interface AdminPackagesTabProps {
   packages: any[];
   onViewPackageDetail: (pkg: any) => void;
-  onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
-  onConfirmOfficeReception: (packageId: number) => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
+  onConfirmOfficeReception: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

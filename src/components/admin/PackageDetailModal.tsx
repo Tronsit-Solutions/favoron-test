@@ -9,8 +9,8 @@ interface PackageDetailModalProps {
   package: any;
   isOpen: boolean;
   onClose: () => void;
-  onApprove: (id: number) => void;
-  onReject: (id: number) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
 }
 
 const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {

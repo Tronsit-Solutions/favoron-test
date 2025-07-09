@@ -8,7 +8,7 @@ import { Eye, CheckCircle } from "lucide-react";
 interface PaymentsTabProps {
   packages: any[];
   onViewPackageDetail: (pkg: any) => void;
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

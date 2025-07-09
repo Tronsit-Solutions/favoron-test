@@ -192,7 +192,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   }
 
   // Enhanced handleStatusUpdate to include payment confirmation
-  const enhancedHandleStatusUpdate = (type: 'package' | 'trip', id: number, status: string) => {
+  const enhancedHandleStatusUpdate = (type: 'package' | 'trip', id: string, status: string) => {
     if (status === 'payment_confirmed') {
       handleConfirmPayment(id);
     } else {

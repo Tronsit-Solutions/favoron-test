@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Eye } from "lucide-react";
 interface AdminTripsTabProps {
   trips: any[];
   onViewTripDetail: (trip: any) => void;
-  onApproveReject: (type: 'package' | 'trip', id: number, action: 'approve' | 'reject') => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

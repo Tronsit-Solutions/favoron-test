@@ -10,7 +10,7 @@ interface ActiveMatchesTabProps {
   packages: any[];
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
-  onConfirmOfficeReception: (packageId: number) => void;
+  onConfirmOfficeReception: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

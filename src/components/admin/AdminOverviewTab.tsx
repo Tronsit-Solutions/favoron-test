@@ -7,7 +7,7 @@ interface AdminOverviewTabProps {
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
 }
 
 const AdminOverviewTab = ({ 

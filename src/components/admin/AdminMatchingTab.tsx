@@ -15,8 +15,8 @@ interface AdminMatchingTabProps {
   onViewPackageDetail: (pkg: any) => void;
   onViewTripDetail: (trip: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
-  onConfirmOfficeReception: (packageId: number) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
+  onConfirmOfficeReception: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 

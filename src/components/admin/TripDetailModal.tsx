@@ -9,8 +9,8 @@ interface TripDetailModalProps {
   trip: any;
   isOpen: boolean;
   onClose: () => void;
-  onApprove: (id: number) => void;
-  onReject: (id: number) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
 }
 
 const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
