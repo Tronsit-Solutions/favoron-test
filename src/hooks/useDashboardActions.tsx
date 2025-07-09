@@ -64,6 +64,11 @@ export const useDashboardActions = (
         return;
       }
 
+      // Validate required date fields
+      if (!tripData.departureDate || !tripData.arrivalDate || !tripData.firstDayPackages || !tripData.lastDayPackages || !tripData.deliveryDate) {
+        throw new Error('Faltan fechas requeridas para el viaje');
+      }
+
       // Transform form data to database format
       const dbTripData = {
         from_city: tripData.fromCity,
