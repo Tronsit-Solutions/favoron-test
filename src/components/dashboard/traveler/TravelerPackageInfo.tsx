@@ -14,8 +14,8 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
           <p className="text-xs font-medium">Información del shopper:</p>
         </div>
         <div className="text-xs text-muted-foreground ml-4.5">
-          <p>Solicitante: Usuario #{pkg.userId}</p>
-          <p>Creado el: {new Date(pkg.createdAt).toLocaleDateString('es-GT')}</p>
+          <p>Solicitante: Usuario #{pkg.user_id}</p>
+          <p>Creado el: {new Date(pkg.created_at).toLocaleDateString('es-GT')}</p>
         </div>
       </div>
 
@@ -71,19 +71,19 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
       )}
 
       {/* Delivery address if confirmed */}
-      {pkg.confirmedDeliveryAddress && (
+      {pkg.confirmed_delivery_address && (
         <div className="bg-muted/30 border rounded-lg p-2">
           <div className="flex items-start space-x-1.5 mb-1">
             <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
             <p className="text-xs font-medium">Dirección de entrega confirmada:</p>
           </div>
           <div className="text-xs text-muted-foreground ml-4.5">
-            <p>{pkg.confirmedDeliveryAddress.streetAddress}</p>
-            <p>{pkg.confirmedDeliveryAddress.cityArea}</p>
-            {pkg.confirmedDeliveryAddress.hotelAirbnbName && (
-              <p>{pkg.confirmedDeliveryAddress.hotelAirbnbName}</p>
+            <p>{pkg.confirmed_delivery_address.streetAddress}</p>
+            <p>{pkg.confirmed_delivery_address.cityArea}</p>
+            {pkg.confirmed_delivery_address.hotelAirbnbName && (
+              <p>{pkg.confirmed_delivery_address.hotelAirbnbName}</p>
             )}
-            <p>📞 {pkg.confirmedDeliveryAddress.contactNumber}</p>
+            <p>📞 {pkg.confirmed_delivery_address.contactNumber}</p>
           </div>
         </div>
       )}
@@ -116,12 +116,12 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
 
         {pkg.status === 'received_by_traveler' && (
           <div className="text-xs font-medium">
-            ✅ Paquete recibido y confirmado
-            {pkg.travelerConfirmation?.confirmedAt && (
-              <div className="text-xs text-muted-foreground mt-0.5">
-                Confirmado el: {new Date(pkg.travelerConfirmation.confirmedAt).toLocaleDateString('es-GT')}
-              </div>
-            )}
+          ✅ Paquete recibido y confirmado
+          {pkg.traveler_confirmation?.confirmedAt && (
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+            </div>
+          )}
           </div>
         )}
       </div>

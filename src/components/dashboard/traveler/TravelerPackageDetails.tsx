@@ -19,11 +19,11 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
         <div className="grid grid-cols-2 gap-1.5">
           <div className="bg-card/50 border border-border/50 rounded p-1.5">
             <p className="text-xs text-muted-foreground">Origen</p>
-            <p className="text-xs font-medium text-foreground">{pkg.purchaseOrigin}</p>
+            <p className="text-xs font-medium text-foreground">{pkg.purchase_origin}</p>
           </div>
           <div className="bg-card/50 border border-border/50 rounded p-1.5">
             <p className="text-xs text-muted-foreground">Destino</p>
-            <p className="text-xs font-medium text-foreground">{pkg.packageDestination}</p>
+            <p className="text-xs font-medium text-foreground">{pkg.package_destination}</p>
           </div>
         </div>
         
@@ -59,15 +59,15 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex-1">
                     <p className="text-xs font-medium text-foreground">Producto</p>
-                    <p className="text-xs text-muted-foreground">{pkg.itemDescription}</p>
+                    <p className="text-xs text-muted-foreground">{pkg.item_description}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-primary">${pkg.estimatedPrice}</p>
+                    <p className="text-xs font-bold text-primary">${pkg.estimated_price}</p>
                   </div>
                 </div>
-                {pkg.itemLink && (
+                {pkg.item_link && (
                   <a 
-                    href={pkg.itemLink} 
+                    href={pkg.item_link} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="text-xs text-primary hover:underline"
@@ -81,10 +81,10 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
         </div>
 
         {/* Additional notes */}
-        {pkg.additionalNotes && (
+        {pkg.additional_notes && (
           <div className="bg-card/30 border border-border/50 rounded p-1.5">
             <p className="text-xs font-medium text-muted-foreground mb-0.5">Notas adicionales</p>
-            <p className="text-xs text-foreground">{pkg.additionalNotes}</p>
+            <p className="text-xs text-foreground">{pkg.additional_notes}</p>
           </div>
         )}
       </div>
