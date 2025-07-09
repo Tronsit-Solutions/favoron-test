@@ -40,7 +40,10 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
                     )}
                     <div>
                       <p className="font-medium">
-                        {item.itemLink ? `Paquete: ${item.itemDescription}` : `Viaje: ${item.fromCity} → ${item.toCity}`}
+                        {item.itemLink ? 
+                          `Paquete: ${item.itemDescription || 'Sin descripción'}` : 
+                          `Viaje: ${item.fromCity || 'Origen'} → ${item.toCity || 'Destino'}`
+                        }
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(item.createdAt).toLocaleDateString('es-GT')}
