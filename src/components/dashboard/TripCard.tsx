@@ -14,6 +14,10 @@ interface TripCardProps {
 const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // Debug logging
+  console.log('🚗 TripCard - trip data:', trip);
+  console.log('🚗 TripCard - package_receiving_address:', trip?.package_receiving_address);
+
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
 
   const handleEditSubmit = (editedData: any) => {
@@ -60,14 +64,19 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
                 <p className="text-sm font-medium">Dirección para recibir paquetes:</p>
               </div>
               <div className="text-sm text-muted-foreground ml-6">
-                <p>{trip.package_receiving_address.street_address}</p>
-                <p>{trip.package_receiving_address.city_area}</p>
-                {trip.package_receiving_address.hotel_airbnb_name && (
-                  <p>{trip.package_receiving_address.hotel_airbnb_name}</p>
+                <p><strong>{trip.package_receiving_address.recipientName}</strong></p>
+                <p>{trip.package_receiving_address.accommodationType}</p>
+                <p>{trip.package_receiving_address.streetAddress}</p>
+                <p>{trip.package_receiving_address.cityArea}</p>
+                {trip.package_receiving_address.postalCode && (
+                  <p>CP: {trip.package_receiving_address.postalCode}</p>
+                )}
+                {trip.package_receiving_address.hotelAirbnbName && (
+                  <p>{trip.package_receiving_address.hotelAirbnbName}</p>
                 )}
                 <div className="flex items-center space-x-1 mt-1">
                   <Phone className="h-3 w-3" />
-                  <span>{trip.package_receiving_address.contact_number}</span>
+                  <span>{trip.package_receiving_address.contactNumber}</span>
                 </div>
               </div>
             </div>
