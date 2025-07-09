@@ -89,17 +89,30 @@ const AdminApprovalsTab = ({
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h4 className="font-medium">
-                            {pkg.products && pkg.products.length > 0 
-                              ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
-                              : pkg.itemDescription
-                            }
+                            {pkg.item_description}
                           </h4>
                           <p className="text-sm text-muted-foreground">
-                            {pkg.products && pkg.products.length > 0 
-                              ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Usuario: ${pkg.userId}`
-                              : `Precio: ${pkg.estimatedPrice} • Usuario: ${pkg.userId}`
-                            }
+                            Precio estimado: ${pkg.estimated_price || 0} • Usuario: {pkg.user_id}
                           </p>
+                          <p className="text-sm text-muted-foreground">
+                            Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                          </p>
+                          {pkg.item_link && (
+                            <p className="text-sm">
+                              <strong>Link:</strong>{' '}
+                              <a href={pkg.item_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                                Ver producto
+                              </a>
+                            </p>
+                          )}
+                          {pkg.additional_notes && (
+                            <p className="text-sm">
+                              <strong>Notas:</strong> {pkg.additional_notes}
+                            </p>
+                          )}
                         </div>
                         {getStatusBadge(pkg.status)}
                       </div>
@@ -156,10 +169,19 @@ const AdminApprovalsTab = ({
                     <div key={trip.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-medium">{trip.fromCity} → {trip.toCity}</h4>
+                          <h4 className="font-medium">{trip.from_city} → {trip.to_city}</h4>
                           <p className="text-sm text-muted-foreground">
-                            Llegada: {new Date(trip.arrivalDate).toLocaleDateString()} • 
-                            Espacio: {trip.availableSpace}kg • Usuario: {trip.userId}
+                            Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
+                            Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Usuario: {trip.user_id}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Recepción paquetes: {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
                           </p>
                         </div>
                         {getStatusBadge(trip.status)}
