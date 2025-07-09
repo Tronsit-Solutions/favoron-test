@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 
 export const useDashboardActions = (
@@ -148,6 +147,13 @@ export const useDashboardActions = (
             status: 'quote_accepted'
           });
           
+          // Update local state immediately to reflect the change
+          setPackages(packages.map(pkg => 
+            pkg.id === selectedPackage.id 
+              ? { ...pkg, status: 'quote_accepted' }
+              : pkg
+          ));
+          
           // Force close dialog and reset selection to trigger re-render
           setShowQuoteDialog(false);
           setSelectedPackageForQuote(null);
@@ -160,6 +166,14 @@ export const useDashboardActions = (
           await updatePackage(selectedPackage.id, {
             status: 'quote_rejected'
           });
+          
+          // Update local state immediately
+          setPackages(packages.map(pkg => 
+            pkg.id === selectedPackage.id 
+              ? { ...pkg, status: 'quote_rejected' }
+              : pkg
+          ));
+          
           toast({
             title: "Cotización rechazada",
             description: "Has rechazado la cotización del viajero.",
