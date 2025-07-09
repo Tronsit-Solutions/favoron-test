@@ -18,8 +18,8 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
   const { getStatusBadge } = useStatusHelpers();
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
-  const getAssignedPackages = (tripId: number) => {
-    return allPackages.filter(pkg => pkg.matchedTripId === tripId);
+  const getAssignedPackages = (tripId: string) => {
+    return allPackages.filter(pkg => pkg.matched_trip_id === tripId);
   };
 
   const handleViewDetails = (trip: Trip) => {
@@ -77,7 +77,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
                         <span className="font-medium">
-                          {trip.fromCity} → {trip.toCity}
+                          {trip.from_city} → {trip.to_city}
                         </span>
                       </div>
                     </TableCell>
@@ -88,11 +88,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Salida: {new Date(trip.departureDate).toLocaleDateString()}</span>
+                          <span>Salida: {new Date(trip.departure_date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Llegada: {new Date(trip.arrivalDate).toLocaleDateString()}</span>
+                          <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </TableCell>
@@ -115,10 +115,10 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p>{trip.packageReceivingAddress.streetAddress}</p>
-                        <p className="text-muted-foreground">{trip.packageReceivingAddress.cityArea}</p>
-                        {trip.packageReceivingAddress.hotelAirbnbName && (
-                          <p className="text-muted-foreground">{trip.packageReceivingAddress.hotelAirbnbName}</p>
+                        <p>{(trip.package_receiving_address as any)?.streetAddress || 'No definido'}</p>
+                        <p className="text-muted-foreground">{(trip.package_receiving_address as any)?.cityArea || ''}</p>
+                        {(trip.package_receiving_address as any)?.hotelAirbnbName && (
+                          <p className="text-muted-foreground">{(trip.package_receiving_address as any).hotelAirbnbName}</p>
                         )}
                       </div>
                     </TableCell>
@@ -167,7 +167,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                   <div key={trip.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium">
-                        Viaje: {trip.fromCity} → {trip.toCity}
+                        Viaje: {trip.from_city} → {trip.to_city}
                       </h4>
                       <Badge variant="outline">{assignedPackages.length} paquetes</Badge>
                     </div>
@@ -178,17 +178,17 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium">
-                                {pkg.itemDescription || pkg.products?.[0]?.itemDescription || 'Sin descripción'}
+                                {pkg.item_description || 'Sin descripción'}
                               </span>
                               {getStatusBadge(pkg.status)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Comprador: Usuario #{pkg.userId}
+                              Comprador: Usuario #{pkg.user_id}
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">
-                              ${pkg.estimatedPrice || pkg.products?.[0]?.estimatedPrice || '--'}
+                              ${pkg.estimated_price || '--'}
                             </p>
                           </div>
                         </div>

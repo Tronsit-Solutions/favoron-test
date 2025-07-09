@@ -11,15 +11,17 @@ interface UserFinancialSummaryProps {
 const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSummaryProps) => {
   // Calculate total paid as shopper
   const totalPaidAsShopper = packages.reduce((total, pkg) => {
-    const price = parseFloat(pkg.quote?.totalPrice || pkg.estimatedPrice || '0');
+    const quote = pkg.quote as any;
+    const price = parseFloat(quote?.totalPrice || pkg.estimated_price?.toString() || '0');
     return total + (isNaN(price) ? 0 : price);
   }, 0);
 
   // Calculate tips earned as traveler (from packages assigned to user's trips)
   const tipsEarned = trips.reduce((total, trip) => {
-    const assignedPackages = allPackages.filter(pkg => pkg.matchedTripId === trip.id);
+    const assignedPackages = allPackages.filter(pkg => pkg.matched_trip_id === trip.id);
     return total + assignedPackages.reduce((tripTotal, pkg) => {
-      const serviceFee = parseFloat(pkg.quote?.serviceFee || '0');
+      const quote = pkg.quote as any;
+      const serviceFee = parseFloat(quote?.serviceFee || '0');
       return tripTotal + (isNaN(serviceFee) ? 0 : serviceFee);
     }, 0);
   }, 0);
@@ -32,7 +34,7 @@ const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSum
   // Calculate total packages transported as traveler
   const packagesTransported = trips.reduce((total, trip) => {
     const assignedPackages = allPackages.filter(pkg => 
-      pkg.matchedTripId === trip.id && 
+      pkg.matched_trip_id === trip.id && 
       (pkg.status === 'delivered_to_office' || pkg.status === 'received_by_traveler')
     );
     return total + assignedPackages.length;

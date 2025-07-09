@@ -69,12 +69,12 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
                   <TableCell>
                     <div className="space-y-1">
                       <p className="font-medium">
-                        {pkg.itemDescription || pkg.products?.[0]?.itemDescription || 'Sin descripción'}
+                        {pkg.item_description || 'Sin descripción'}
                       </p>
-                      {pkg.itemLink && (
+                      {pkg.item_link && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <ExternalLink className="h-3 w-3" />
-                          <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          <a href={pkg.item_link} target="_blank" rel="noopener noreferrer" className="hover:underline">
                             Ver producto
                           </a>
                         </div>
@@ -87,18 +87,18 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <MapPin className="h-3 w-3" />
-                      {pkg.purchaseOrigin} → {pkg.packageDestination}
+                      {pkg.purchase_origin} → {pkg.package_destination}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm">
                       <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(pkg.createdAt), { addSuffix: true, locale: es })}
+                      {formatDistanceToNow(new Date(pkg.created_at), { addSuffix: true, locale: es })}
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="font-medium">
-                      ${pkg.estimatedPrice || pkg.products?.[0]?.estimatedPrice || '--'}
+                      ${pkg.estimated_price || '--'}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -134,8 +134,8 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {packages.filter(pkg => pkg.paymentReceipt).length > 0 ? (
-                packages.filter(pkg => pkg.paymentReceipt).map(pkg => (
+              {packages.filter(pkg => pkg.payment_receipt).length > 0 ? (
+                packages.filter(pkg => pkg.payment_receipt).map(pkg => (
                   <div key={pkg.id} className="flex items-center justify-between p-2 border rounded">
                     <span className="text-sm truncate">Paquete #{pkg.id}</span>
                     <Button
@@ -160,8 +160,8 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {packages.filter(pkg => pkg.purchaseConfirmation).length > 0 ? (
-                packages.filter(pkg => pkg.purchaseConfirmation).map(pkg => (
+              {packages.filter(pkg => pkg.purchase_confirmation).length > 0 ? (
+                packages.filter(pkg => pkg.purchase_confirmation).map(pkg => (
                   <div key={pkg.id} className="flex items-center justify-between p-2 border rounded">
                     <span className="text-sm truncate">Paquete #{pkg.id}</span>
                     <Button
@@ -186,8 +186,8 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {packages.filter(pkg => pkg.trackingInfo).length > 0 ? (
-                packages.filter(pkg => pkg.trackingInfo).map(pkg => (
+              {packages.filter(pkg => pkg.tracking_info).length > 0 ? (
+                packages.filter(pkg => pkg.tracking_info).map(pkg => (
                   <div key={pkg.id} className="flex items-center justify-between p-2 border rounded">
                     <span className="text-sm truncate">Paquete #{pkg.id}</span>
                     <Button

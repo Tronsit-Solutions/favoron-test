@@ -51,8 +51,8 @@ const UserDetailModal = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
 
-  const userPackages = packages.filter(pkg => pkg.userId === user.id);
-  const userTrips = trips.filter(trip => trip.userId === user.id);
+  const userPackages = packages.filter(pkg => pkg.user_id === user.id.toString());
+  const userTrips = trips.filter(trip => trip.user_id === user.id.toString());
 
   const handleSave = () => {
     onUpdateUser(user.id, editedUser);

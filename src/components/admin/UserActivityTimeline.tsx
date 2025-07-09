@@ -16,17 +16,17 @@ const UserActivityTimeline = ({ packages, trips }: UserActivityTimelineProps) =>
     ...packages.map(pkg => ({
       type: 'package' as const,
       id: pkg.id,
-      title: pkg.itemDescription || pkg.products?.[0]?.itemDescription || 'Paquete',
+      title: pkg.item_description || 'Paquete',
       status: pkg.status,
-      date: pkg.createdAt,
-      price: pkg.estimatedPrice
+      date: pkg.created_at,
+      price: pkg.estimated_price?.toString()
     })),
     ...trips.map(trip => ({
       type: 'trip' as const,
       id: trip.id,
-      title: `${trip.fromCity} → ${trip.toCity}`,
+      title: `${trip.from_city} → ${trip.to_city}`,
       status: trip.status,
-      date: trip.createdAt,
+      date: trip.created_at,
       price: null
     }))
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

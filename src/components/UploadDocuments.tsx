@@ -9,7 +9,7 @@ import { Upload, FileText, Link, Package, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UploadDocumentsProps {
-  packageId: number;
+  packageId: string;
   currentStatus: string;
   onUpload: (type: 'confirmation' | 'tracking', data: any) => void;
 }

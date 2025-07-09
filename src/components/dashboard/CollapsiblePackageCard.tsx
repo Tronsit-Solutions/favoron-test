@@ -45,11 +45,11 @@ const CollapsiblePackageCard = ({
   const needsAction = viewMode === 'user' && (
     pkg.status === 'quote_sent' || // needs to accept/reject quote
     pkg.status === 'quote_accepted' || // needs to make payment
-    (pkg.status === 'payment_confirmed' && !pkg.purchaseConfirmation) // needs to upload documents
+    (pkg.status === 'payment_confirmed' && !pkg.purchase_confirmation) // needs to upload documents
   );
 
   const handlePaymentUpload = (paymentData: any) => {
-    handleUploadDocument(pkg.id, 'payment_receipt', paymentData);
+    handleUploadDocument(pkg.id.toString(), 'payment_receipt', paymentData);
   };
 
   // Removed individual render functions - now handled by dedicated components
@@ -97,11 +97,8 @@ const CollapsiblePackageCard = ({
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <CardTitle className="text-lg flex items-center space-x-2">
-                  <span>
-                    {pkg.products && pkg.products.length > 0 
-                      ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
-                      : pkg.itemDescription
-                    }
+                   <span>
+                    {pkg.item_description || 'Sin descripción'}
                   </span>
                   {needsAction && (
                     <NotificationBadge count={1} className="ml-2" />
@@ -109,10 +106,7 @@ const CollapsiblePackageCard = ({
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
                 <CardDescription>
-                  {pkg.products && pkg.products.length > 0 
-                    ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
-                    : `Precio estimado: ${pkg.estimatedPrice} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`
-                  }
+                  Precio estimado: ${pkg.estimated_price} • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                 </CardDescription>
               </div>
               {getStatusBadge(pkg.status)}
@@ -161,7 +155,7 @@ const CollapsiblePackageCard = ({
                           <div className="flex justify-between border-t border-border pt-2 mt-2">
                             <span className="font-medium">Monto:</span>
                             <span className="text-black font-bold text-lg">
-                              ${pkg.quote?.totalPrice ? parseFloat(pkg.quote.totalPrice).toFixed(2) : '0.00'}
+                              ${pkg.quote && typeof pkg.quote === 'object' ? parseFloat((pkg.quote as any).totalPrice || '0').toFixed(2) : '0.00'}
                             </span>
                           </div>
                         </div>
@@ -187,7 +181,7 @@ const CollapsiblePackageCard = ({
                 )}
                 
                 {/* Show shipping instructions after payment confirmation - PROMINENT IN LEFT COLUMN */}
-                {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.travelerAddress && (
+                {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.traveler_address && (
                   <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 mb-4 shadow-sm">
                     <div className="mb-4">
                       <p className="text-sm font-semibold text-primary mb-2">📦 Instrucciones para el envío</p>
@@ -197,7 +191,7 @@ const CollapsiblePackageCard = ({
                     </div>
                     
                     {/* Fechas importantes integradas */}
-                    {pkg.matchedTripDates && (
+                    {pkg.matched_trip_dates && (
                       <div className="bg-info-muted border border-info-border rounded-lg p-3 mb-4">
                         <div className="flex items-start space-x-2 mb-2">
                           <span className="text-sm font-medium text-info">📅 Fechas importantes para tu envío:</span>
@@ -205,15 +199,15 @@ const CollapsiblePackageCard = ({
                         <div className="text-sm text-info space-y-1">
                           <div className="flex items-center space-x-2">
                             <span>⏰</span>
-                            <span><strong>Primer día para recibir paquetes:</strong> {new Date(pkg.matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
+                            <span><strong>Primer día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).firstDayPackages).toLocaleDateString('es-GT')}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <span>⏰</span>
-                            <span><strong>Último día para recibir paquetes:</strong> {new Date(pkg.matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+                            <span><strong>Último día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).lastDayPackages).toLocaleDateString('es-GT')}</span>
                           </div>
                           <div className="flex items-center space-x-2">
                             <span>📍</span>
-                            <span><strong>Entrega en oficina Favorón:</strong> {new Date(pkg.matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                            <span><strong>Entrega en oficina Favorón:</strong> {new Date((pkg.matched_trip_dates as any).deliveryDate).toLocaleDateString('es-GT')}</span>
                           </div>
                         </div>
                       </div>
@@ -225,14 +219,14 @@ const CollapsiblePackageCard = ({
                           <span className="font-medium text-primary">Dirección de envío:</span>
                         </div>
                         <div className="ml-4 space-y-1 text-muted-foreground">
-                          <p>{pkg.travelerAddress.streetAddress}</p>
-                          <p>{pkg.travelerAddress.cityArea}</p>
-                          {pkg.travelerAddress.hotelAirbnbName && (
-                            <p className="font-medium">{pkg.travelerAddress.hotelAirbnbName}</p>
+                          <p>{(pkg.traveler_address as any)?.streetAddress}</p>
+                          <p>{(pkg.traveler_address as any)?.cityArea}</p>
+                          {(pkg.traveler_address as any)?.hotelAirbnbName && (
+                            <p className="font-medium">{(pkg.traveler_address as any).hotelAirbnbName}</p>
                           )}
                           <p className="flex items-center">
                             <span className="mr-1">📞</span>
-                            {pkg.travelerAddress.contactNumber}
+                            {(pkg.traveler_address as any)?.contactNumber}
                           </p>
                         </div>
                       </div>

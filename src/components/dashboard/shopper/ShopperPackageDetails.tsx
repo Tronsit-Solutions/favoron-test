@@ -6,41 +6,24 @@ interface ShopperPackageDetailsProps {
 
 const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
   const renderProducts = () => {
-    if (pkg.products && pkg.products.length > 0) {
-      return (
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Productos solicitados ({pkg.products.length}):</p>
-          {pkg.products.map((product, index) => (
-            <div key={index} className="border rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Producto #{index + 1}</span>
-                <span className="text-sm text-muted-foreground">${product.estimatedPrice}</span>
-              </div>
-              <p className="text-sm">{product.itemDescription}</p>
-              {product.itemLink && (
-                <a href={product.itemLink} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline block">
-                  Ver producto
-                </a>
-              )}
-            </div>
-          ))}
-          <div className="bg-info-muted border border-info-border rounded-lg p-2">
-            <p className="text-sm font-medium text-info">
-              Total estimado: ${pkg.products.reduce((sum, p) => sum + parseFloat(p.estimatedPrice || '0'), 0).toFixed(2)}
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    // Single product display (backward compatibility)
+    // Single product display from Supabase schema
     return (
-      <p className="text-sm">
-        <strong>Link del producto:</strong>{' '}
-        <a href={pkg.itemLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-          Ver producto
-        </a>
-      </p>
+      <div className="space-y-3">
+        <p className="text-sm">
+          <strong>Descripción:</strong> {pkg.item_description}
+        </p>
+        {pkg.item_link && (
+          <p className="text-sm">
+            <strong>Link del producto:</strong>{' '}
+            <a href={pkg.item_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              Ver producto
+            </a>
+          </p>
+        )}
+        <p className="text-sm">
+          <strong>Precio estimado:</strong> ${pkg.estimated_price}
+        </p>
+      </div>
     );
   };
 
@@ -48,14 +31,14 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
     <div className="space-y-3">
       {renderProducts()}
       
-      {pkg.additionalNotes && (
+      {pkg.additional_notes && (
         <p className="text-sm">
-          <strong>Notas adicionales:</strong> {pkg.additionalNotes}
+          <strong>Notas adicionales:</strong> {pkg.additional_notes}
         </p>
       )}
       
       <p className="text-xs text-muted-foreground">
-        Creado el {new Date(pkg.createdAt).toLocaleDateString('es-GT')}
+        Creado el {new Date(pkg.created_at).toLocaleDateString('es-GT')}
       </p>
     </div>
   );

@@ -7,22 +7,22 @@ export const usePackageActions = (
 ) => {
   const { toast } = useToast();
 
-  const handleUploadDocument = (packageId: number, type: DocumentType, data: any) => {
+  const handleUploadDocument = (packageId: string, type: DocumentType, data: any) => {
     setPackages(packages.map(pkg => {
       if (pkg.id === packageId) {
         const updatedPkg = { ...pkg };
         if (type === 'confirmation') {
-          updatedPkg.purchaseConfirmation = data;
-          if (updatedPkg.trackingInfo) {
+          updatedPkg.purchase_confirmation = data;
+          if (updatedPkg.tracking_info) {
             updatedPkg.status = 'in_transit';
           }
         } else if (type === 'tracking') {
-          updatedPkg.trackingInfo = data;
-          if (updatedPkg.purchaseConfirmation) {
+          updatedPkg.tracking_info = data;
+          if (updatedPkg.purchase_confirmation) {
             updatedPkg.status = 'in_transit';
           }
         } else if (type === 'payment_receipt') {
-          updatedPkg.paymentReceipt = data;
+          updatedPkg.payment_receipt = data;
           updatedPkg.status = 'payment_pending';
         }
         return updatedPkg;
@@ -51,9 +51,9 @@ export const usePackageActions = (
     }
   };
 
-  const handleConfirmPackageReceived = (packageId: number, photo?: string) => {
+  const handleConfirmPackageReceived = (packageId: string, photo?: string) => {
     setPackages(packages.map(pkg => 
-      pkg.id === packageId 
+      pkg.id === packageId
         ? { 
             ...pkg, 
             status: 'received_by_traveler',
@@ -75,7 +75,7 @@ export const usePackageActions = (
     setPackages(packages.map(pkg => {
       if (pkg.id === editedPackageData.id) {
         const newStatus = pkg.status === 'approved' ? 'pending_approval' : pkg.status;
-        return { ...editedPackageData, createdAt: pkg.createdAt, userId: pkg.userId, status: newStatus };
+        return { ...editedPackageData, created_at: pkg.created_at, user_id: pkg.user_id, status: newStatus };
       }
       return pkg;
     }));

@@ -8,7 +8,7 @@ import { Upload, FileText, DollarSign, Edit, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface PaymentUploadProps {
-  packageId: number;
+  packageId: string;
   onUpload: (paymentData: any) => void;
   currentPaymentReceipt?: any;
   isPaymentApproved?: boolean;

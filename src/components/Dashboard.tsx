@@ -81,9 +81,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditPackage
   } = useDashboardActions(
     packages,
-    updatePackage,
+    (packages: any[]) => {}, // Legacy compatibility - not used with Supabase
     trips,
-    updateTrip,
+    (trips: any[]) => {}, // Legacy compatibility - not used with Supabase
     currentUser,
     setShowPackageForm,
     setShowTripForm,
@@ -276,16 +276,16 @@ const Dashboard = ({ user }: DashboardProps) => {
             ) : (
               <div className="grid gap-6">
                 {userPackages.map((pkg) => (
-                  <CollapsiblePackageCard
-                    key={pkg.id}
-                    pkg={pkg}
-                    packages={packages}
-                    setPackages={updatePackage}
-                    onQuote={handleQuote}
-                    onConfirmAddress={handleConfirmAddress}
-                    onEditPackage={handleEditPackage}
-                    viewMode="user"
-                  />
+                    <CollapsiblePackageCard
+                      key={pkg.id}
+                      pkg={pkg}
+                      packages={packages}
+                      setPackages={(packages: any[]) => {}} // Legacy compatibility
+                      onQuote={handleQuote}
+                      onConfirmAddress={handleConfirmAddress}
+                      onEditPackage={handleEditPackage}
+                      viewMode="user"
+                    />
                 ))}
               </div>
             )}
@@ -343,9 +343,9 @@ const Dashboard = ({ user }: DashboardProps) => {
                   {/* Group packages by trip */}
                   <div className="space-y-6">
                     {userTrips
-                      .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
-                      .map((trip) => {
-                        const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
+                       .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
+                       .map((trip) => {
+                         const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
                         const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
                         
                         return (
@@ -369,14 +369,14 @@ const Dashboard = ({ user }: DashboardProps) => {
           {isAdmin && (
             <TabsContent value="admin">
               <AdminDashboard 
-                packages={packages}
-                trips={trips}
-                currentUser={currentUser}
-                onMatchPackage={handleMatchPackage}
-                onUpdateStatus={enhancedHandleStatusUpdate}
-                onApproveReject={handleApproveReject}
-                onConfirmOfficeReception={handleConfirmOfficeReception}
-                onLoadTestData={handleLoadTestData}
+              packages={packages}
+              trips={trips}
+              currentUser={currentUser}
+              onMatchPackage={handleMatchPackage}
+              onUpdateStatus={enhancedHandleStatusUpdate}
+              onApproveReject={handleApproveReject}
+              onConfirmOfficeReception={handleConfirmOfficeReception}
+              onLoadTestData={handleLoadTestData}
               />
             </TabsContent>
           )}

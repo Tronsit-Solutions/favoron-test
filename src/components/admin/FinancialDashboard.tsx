@@ -31,40 +31,39 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
         return packages;
     }
     
-    return packages.filter(pkg => new Date(pkg.createdAt) >= startDate);
+    return packages.filter(pkg => new Date(pkg.created_at) >= startDate);
   }, [packages, dateFilter]);
 
   const financialMetrics = useMemo(() => {
     const completedPackages = filteredPackages.filter(pkg => 
-      ['delivered_to_office', 'received_by_traveler'].includes(pkg.status) && pkg.quote?.totalPrice
+      ['delivered_to_office', 'received_by_traveler'].includes(pkg.status) && 
+      pkg.quote && typeof pkg.quote === 'object' && (pkg.quote as any).totalPrice
     );
 
     // Total pagado por shoppers (órdenes completadas)
     const totalOrderValue = completedPackages.reduce((sum, pkg) => {
-      return sum + parseFloat(pkg.quote?.totalPrice || '0');
+      const quote = pkg.quote as any;
+      return sum + parseFloat(quote?.totalPrice || '0');
     }, 0);
 
     // GMV - Valor bruto de mercancías (precio estimado de productos)
     const totalGMV = completedPackages.reduce((sum, pkg) => {
-      if (pkg.products && pkg.products.length > 0) {
-        return sum + pkg.products.reduce((productSum, product) => {
-          return productSum + parseFloat(product.estimatedPrice || '0');
-        }, 0);
-      }
-      return sum + parseFloat(pkg.estimatedPrice || '0');
+      return sum + parseFloat(pkg.estimated_price?.toString() || '0');
     }, 0);
 
     // Ingresos Favorón (40% del precio base + fees adicionales)
     const favoronRevenue = completedPackages.reduce((sum, pkg) => {
-      const basePrice = parseFloat(pkg.quote?.price || '0');
-      const serviceFee = parseFloat(pkg.quote?.serviceFee || '0');
+      const quote = pkg.quote as any;
+      const basePrice = parseFloat(quote?.price || '0');
+      const serviceFee = parseFloat(quote?.serviceFee || '0');
       const favoronFee = (basePrice + serviceFee) * 0.4; // 40% fee
       return sum + favoronFee;
     }, 0);
 
     // Tips para viajeros (igual a la cotización completa)
     const travelerTips = completedPackages.reduce((sum, pkg) => {
-      const travelerTip = parseFloat(pkg.quote?.price || '0');
+      const quote = pkg.quote as any;
+      const travelerTip = parseFloat(quote?.price || '0');
       return sum + travelerTip;
     }, 0);
 
