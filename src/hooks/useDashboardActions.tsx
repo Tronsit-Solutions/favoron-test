@@ -145,13 +145,54 @@ export const useDashboardActions = (
         if (quoteData.message === 'accepted') {
           console.log('🎯 ACCEPTING QUOTE for package:', selectedPackage.id);
           console.log('🎯 Current package status:', selectedPackage.status);
-          console.log('🎯 About to update to quote_accepted');
+          console.log('🎯 Package matched_trip_id:', selectedPackage.matched_trip_id);
           
+          // Find the matched trip to get traveler information
+          const matchedTrip = selectedPackage.matched_trip_id ? 
+            trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
+          
+          console.log('🎯 Found matched trip:', matchedTrip);
+          
+          if (!matchedTrip) {
+            console.error('No matched trip found for package:', selectedPackage.id);
+            toast({
+              title: "Error",
+              description: "No se encontró el viaje asociado a este paquete.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Build traveler address from trip data
+          const travelerAddress = matchedTrip.package_receiving_address ? {
+            recipientName: matchedTrip.package_receiving_address.recipientName,
+            streetAddress: matchedTrip.package_receiving_address.streetAddress,
+            cityArea: matchedTrip.package_receiving_address.cityArea,
+            postalCode: matchedTrip.package_receiving_address.postalCode,
+            contactNumber: matchedTrip.package_receiving_address.contactNumber,
+            hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
+            accommodationType: matchedTrip.package_receiving_address.accommodationType
+          } : null;
+
+          // Build trip dates information
+          const matchedTripDates = {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          };
+
+          console.log('🎯 Built traveler address:', travelerAddress);
+          console.log('🎯 Built trip dates:', matchedTripDates);
+          
+          // Update package with traveler info and change status to awaiting_payment
           await updatePackage(selectedPackage.id, {
-            status: 'quote_accepted'
+            status: 'awaiting_payment',
+            traveler_address: travelerAddress,
+            matched_trip_dates: matchedTripDates
           });
           
-          console.log('🎯 Package updated to quote_accepted');
+          console.log('🎯 Package updated to awaiting_payment with traveler info');
           
           // Force close dialog and reset selection to trigger re-render
           setShowQuoteDialog(false);

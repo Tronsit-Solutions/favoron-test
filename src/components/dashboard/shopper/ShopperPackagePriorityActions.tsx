@@ -11,7 +11,7 @@ const ShopperPackagePriorityActions = ({
   pkg,
   onQuote
 }: ShopperPackagePriorityActionsProps) => {
-  if (!['quote_sent', 'quote_accepted', 'payment_confirmed'].includes(pkg.status)) {
+  if (!['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_confirmed'].includes(pkg.status)) {
     return null;
   }
 
@@ -32,6 +32,13 @@ const ShopperPackagePriorityActions = ({
           icon: CreditCard,
           title: "¡Cotización aceptada! Ahora debes realizar el pago",
           description: "Transfiere a la cuenta de Favorón S.A. y sube tu comprobante de pago abajo.",
+          button: null
+        };
+      case 'awaiting_payment':
+        return {
+          icon: CreditCard,
+          title: "💰 Realizar Pago",
+          description: "Tu cotización fue aceptada. Ahora necesitas realizar el pago para que el viajero pueda comprar tu producto.",
           button: null
         };
       case 'payment_confirmed':
