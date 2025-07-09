@@ -3,7 +3,7 @@ import { DollarSign, CheckCircle } from "lucide-react";
 
 interface TravelerPackagePriorityActionsProps {
   pkg: any;
-  onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
+  onQuote: (pkg: any, userType: 'user') => void;
   onConfirmReceived: () => void;
 }
 
@@ -76,7 +76,7 @@ const TravelerPackagePriorityActions = ({
             {pkg.status === 'matched' && (
               <Button 
                 size="sm" 
-                onClick={() => onQuote(pkg, 'traveler')} 
+                onClick={() => onQuote(pkg, 'user')} 
                 className="font-semibold px-4 py-2 h-8"
               >
                 <DollarSign className="h-3 w-3 mr-1" />

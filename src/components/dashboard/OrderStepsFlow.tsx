@@ -12,7 +12,7 @@ import StatusAlert from "@/components/ui/status-alert";
 
 interface OrderStepsFlowProps {
   pkg: any;
-  viewMode: 'shopper' | 'traveler';
+  viewMode: 'user';
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
 }
 
@@ -84,7 +84,7 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
     return <Lock className="h-5 w-5 text-muted-foreground" />;
   };
 
-  if (viewMode !== 'shopper' || pkg.status === 'pending_approval') {
+  if (viewMode !== 'user' || pkg.status === 'pending_approval') {
     return null;
   }
 

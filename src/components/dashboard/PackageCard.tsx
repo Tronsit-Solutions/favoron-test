@@ -45,7 +45,7 @@ const PackageCard = ({
   };
 
   // Special layout for payment pending state
-  if (pkg.status === 'quote_accepted' && viewMode === 'shopper') {
+  if (pkg.status === 'quote_accepted' && viewMode === 'user') {
     return (
       <Card key={pkg.id} className="border-warning-border bg-warning-muted/30">
         <PackageHeader pkg={pkg} getStatusBadge={getStatusBadge} />
