@@ -126,15 +126,15 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
         </Card>
 
         {/* Tips para viajeros */}
-        <Card className="border-2 border-accent/20 bg-accent/5">
+        <Card className="border-2 border-traveler/20 bg-traveler/5">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-accent">
+            <CardTitle className="text-sm font-medium text-traveler">
               🎒 Tips para Viajeros
             </CardTitle>
-            <Backpack className="h-4 w-4 text-accent" />
+            <Backpack className="h-4 w-4 text-traveler" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">
+            <div className="text-2xl font-bold text-traveler">
               {formatCurrency(financialMetrics.travelerTips)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -193,7 +193,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
             </div>
             <div>
               <p className="font-medium">Ticket promedio</p>
-              <p className="text-2xl font-bold text-accent">
+              <p className="text-2xl font-bold text-traveler">
                 {financialMetrics.completedOrders > 0 
                   ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders)
                   : formatCurrency(0)

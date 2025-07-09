@@ -36,7 +36,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
                     {item.itemLink ? (
                       <Package className="h-5 w-5 text-primary" />
                     ) : (
-                      <Plane className="h-5 w-5 text-accent" />
+                      <Plane className="h-5 w-5 text-traveler" />
                     )}
                     <div>
                       <p className="font-medium">

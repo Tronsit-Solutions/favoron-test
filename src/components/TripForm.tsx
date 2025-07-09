@@ -153,7 +153,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Plane className="h-5 w-5 text-accent" />
+            <Plane className="h-5 w-5 text-traveler" />
             <span>Registrar Nuevo Viaje</span>
           </DialogTitle>
           <DialogDescription>
@@ -549,10 +549,10 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             />
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="bg-traveler/10 border border-traveler/30 rounded-lg p-4">
             <div className="flex items-start space-x-2">
-              <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div className="text-sm text-orange-800">
+              <AlertCircle className="h-5 w-5 text-traveler mt-0.5" />
+              <div className="text-sm text-traveler">
                 <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
                 <ul className="space-y-1 text-xs">
                   <li>• Los compradores enviarán paquetes a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity || 'tu ciudad de origen'}</li>
@@ -561,8 +561,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
                   <li>• Nosotros coordinamos la entrega final al comprador</li>
                   <li>• Ganas entre $20-100+ por viaje</li>
                 </ul>
-                <div className="mt-3 pt-2 border-t border-orange-300/50">
-                  <p className="text-xs font-medium text-orange-900">
+                <div className="mt-3 pt-2 border-t border-traveler/20">
+                  <p className="text-xs font-medium text-traveler">
                     🔒 Tu dirección no será compartida con nadie hasta que apruebes un pedido.
                   </p>
                 </div>

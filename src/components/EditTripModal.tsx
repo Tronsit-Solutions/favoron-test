@@ -97,7 +97,7 @@ const EditTripModal = ({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Plane className="h-5 w-5 text-accent" />
+            <Plane className="h-5 w-5 text-traveler" />
             <span>Editar Viaje #{tripData.id}</span>
           </DialogTitle>
           <DialogDescription>

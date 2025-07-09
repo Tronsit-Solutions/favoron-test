@@ -23,7 +23,7 @@ const AdminStatsOverview = ({ packages, trips }: AdminStatsOverviewProps) => {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center space-x-2">
-            <Plane className="h-4 w-4 text-accent" />
+            <Plane className="h-4 w-4 text-traveler" />
             <div>
               <p className="text-2xl font-bold">{trips.length}</p>
               <p className="text-xs text-muted-foreground">Viajes registrados</p>

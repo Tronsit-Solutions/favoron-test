@@ -23,7 +23,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
       icon: Plane,
       value: stats.packagesDelivered,
       label: "Favorones entregados",
-      color: "text-accent"
+      color: "text-traveler"
     },
     {
       icon: DollarSign,

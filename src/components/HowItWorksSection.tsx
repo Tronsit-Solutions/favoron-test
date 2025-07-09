@@ -59,34 +59,34 @@ const HowItWorksSection = () => {
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center space-x-2 mb-4">
-              <Plane className="h-8 w-8 text-accent" />
+              <Plane className="h-8 w-8 text-traveler" />
               <CardTitle className="text-2xl">Para Viajeros</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+              <div className="w-6 h-6 bg-traveler rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
               <div>
                 <h4 className="font-semibold">Registra tu viaje</h4>
                 <p className="text-gray-600">Comparte detalles de tu viaje y dirección donde pueden enviarte paquetes</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
+              <div className="w-6 h-6 bg-traveler rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
               <div>
                 <h4 className="font-semibold">Te emparejamos</h4>
                 <p className="text-gray-600">Te conectamos con solicitudes compatibles con tu viaje</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center text-white text-sm font-bold">3</div>
+              <div className="w-6 h-6 bg-traveler rounded-full flex items-center justify-center text-white text-sm font-bold">3</div>
               <div>
                 <h4 className="font-semibold">Envía tu cotización</h4>
                 <p className="text-gray-600">Propón tu precio por traer el paquete, incluyendo cualquier costo adicional</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center text-white text-sm font-bold">4</div>
+              <div className="w-6 h-6 bg-traveler rounded-full flex items-center justify-center text-white text-sm font-bold">4</div>
               <div>
                 <h4 className="font-semibold">Recibe el paquete</h4>
                 <p className="text-gray-600">El comprador envía el producto a tu hotel/dirección</p>

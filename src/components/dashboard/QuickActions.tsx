@@ -32,7 +32,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
       <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onShowTripForm}>
         <CardHeader>
           <div className="flex items-center space-x-2">
-            <Plane className="h-6 w-6 text-accent" />
+            <Plane className="h-6 w-6 text-traveler" />
             <CardTitle>Registrar Viaje</CardTitle>
           </div>
           <CardDescription>

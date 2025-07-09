@@ -105,7 +105,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Plane className="h-5 w-5 text-accent" />
+              <Plane className="h-5 w-5 text-traveler" />
               <div>
                 <p className="text-2xl font-bold">{stats.packagesDelivered}</p>
                 <p className="text-xs text-muted-foreground">Favorones entregados</p>
@@ -177,7 +177,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Plane className="h-4 w-4 text-accent" />
+                <Plane className="h-4 w-4 text-traveler" />
                 <span className="text-sm">Viajes activos</span>
               </div>
               <Badge variant="outline">{activeTrips}</Badge>
@@ -206,7 +206,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
                       {activity.type === 'package' ? (
                         <Package className="h-4 w-4 text-primary" />
                       ) : (
-                        <Plane className="h-4 w-4 text-accent" />
+                        <Plane className="h-4 w-4 text-traveler" />
                       )}
                       <div>
                         <p className="text-sm font-medium">{activity.description}</p>
