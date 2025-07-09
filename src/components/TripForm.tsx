@@ -26,7 +26,6 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     toCity: '',
     toCityOther: '',
     toCountry: 'Guatemala',
-    departureDate: null as Date | null,
     arrivalDate: null as Date | null,
     availableSpace: '',
     deliveryMethod: '',
@@ -88,7 +87,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
     
-    if (!finalFromCity || !finalToCity || !formData.departureDate || !formData.arrivalDate || !formData.availableSpace || 
+    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || 
         !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.recipientName ||
         !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || 
         !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || 
@@ -113,7 +112,6 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       toCity: '',
       toCityOther: '',
       toCountry: 'Guatemala',
-      departureDate: null,
       arrivalDate: null,
       availableSpace: '',
       deliveryMethod: '',
@@ -240,34 +238,6 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
                 required
               />
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Fecha de salida de {formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity || 'origen'} *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.departureDate ? (
-                    format(formData.departureDate, "PPP", { locale: es })
-                  ) : (
-                    <span>Selecciona fecha de salida</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.departureDate || undefined}
-                  onSelect={(date) => handleInputChange('departureDate', date)}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
           </div>
 
           <div className="space-y-2">

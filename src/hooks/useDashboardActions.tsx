@@ -65,7 +65,7 @@ export const useDashboardActions = (
       }
 
       // Validate required date fields
-      if (!tripData.departureDate || !tripData.arrivalDate || !tripData.firstDayPackages || !tripData.lastDayPackages || !tripData.deliveryDate) {
+      if (!tripData.arrivalDate || !tripData.firstDayPackages || !tripData.lastDayPackages || !tripData.deliveryDate) {
         throw new Error('Faltan fechas requeridas para el viaje');
       }
 
@@ -73,7 +73,7 @@ export const useDashboardActions = (
       const dbTripData = {
         from_city: tripData.fromCity,
         to_city: tripData.toCity,
-        departure_date: tripData.departureDate.toISOString(),
+        departure_date: tripData.departureDate ? tripData.departureDate.toISOString() : tripData.arrivalDate.toISOString(),
         arrival_date: tripData.arrivalDate.toISOString(),
         first_day_packages: tripData.firstDayPackages.toISOString(),
         last_day_packages: tripData.lastDayPackages.toISOString(),
