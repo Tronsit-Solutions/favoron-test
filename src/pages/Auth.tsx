@@ -17,6 +17,7 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [username, setUsername] = useState('');
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
@@ -47,6 +48,7 @@ const Auth = () => {
             first_name: firstName,
             last_name: lastName,
             phone_number: phoneNumber,
+            username: username,
           }
         }
       });
@@ -71,6 +73,7 @@ const Auth = () => {
       setFirstName('');
       setLastName('');
       setPhoneNumber('');
+      setUsername('');
       setPassword('');
       
     } catch (error: any) {
@@ -235,6 +238,22 @@ const Auth = () => {
                       placeholder="+502 1234 5678"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nombre de usuario</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="tu_usuario"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="pl-10"
                       required
                     />
