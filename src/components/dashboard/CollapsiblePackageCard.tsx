@@ -31,11 +31,21 @@ const CollapsiblePackageCard = ({
   onEditPackage,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(
+    // Auto-open when user needs to take action
+    pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed' || pkg.status === 'quote_sent'
+  );
   const [showEditModal, setShowEditModal] = React.useState(false);
   
   const { getStatusBadge } = useStatusHelpers();
   const { handleUploadDocument } = usePackageActions();
+
+  // Auto-open when status changes to require action
+  React.useEffect(() => {
+    if (pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed' || pkg.status === 'quote_sent') {
+      setIsOpen(true);
+    }
+  }, [pkg.status]);
 
   // Determine if package needs action (for users)
   const needsAction = viewMode === 'user' && (
@@ -163,16 +173,12 @@ const CollapsiblePackageCard = ({
                     </div>
                     
                     {/* Payment Upload */}
-                    <div className="bg-info-muted border border-info-border rounded-lg p-4">
-                      <div className="mb-3">
-                        <p className="text-sm font-medium text-info">📄 Subir comprobante de pago</p>
-                        <p className="text-xs text-info">Adjunta tu comprobante de transferencia aquí.</p>
-                      </div>
-                      <PaymentUpload 
-                        packageId={pkg.id}
-                        onUpload={handlePaymentUpload}
-                      />
-                    </div>
+                    <PaymentUpload 
+                      packageId={pkg.id}
+                      onUpload={handlePaymentUpload}
+                      currentPaymentReceipt={pkg.payment_receipt}
+                      isPaymentApproved={['payment_confirmed', 'in_transit', 'delivered'].includes(pkg.status)}
+                    />
                   </div>
                 )}
                 

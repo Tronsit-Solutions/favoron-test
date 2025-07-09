@@ -30,8 +30,8 @@ const ShopperPackagePriorityActions = ({
       case 'quote_accepted':
         return {
           icon: CreditCard,
-          title: "¡Cotización aceptada! Sube tu comprobante de pago",
-          description: "El viajero está esperando la confirmación de tu pago.",
+          title: "¡Cotización aceptada! Ahora debes realizar el pago",
+          description: "Transfiere a la cuenta de Favorón S.A. y sube tu comprobante de pago abajo.",
           button: null
         };
       case 'payment_confirmed':
