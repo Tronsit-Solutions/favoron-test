@@ -46,7 +46,7 @@ const TripPackagesGroup = ({
                 <CardTitle className="text-lg flex items-center gap-3 mb-2">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <span>{trip.fromCity} → {trip.toCity}</span>
+                    <span>{trip.from_city} → {trip.to_city}</span>
                   </div>
                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
@@ -54,7 +54,7 @@ const TripPackagesGroup = ({
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>{new Date(trip.departureDate).toLocaleDateString('es-GT')} - {new Date(trip.returnDate).toLocaleDateString('es-GT')}</span>
+                    <span>{new Date(trip.departure_date).toLocaleDateString('es-GT')} - {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">
                     {packages.length} paquete{packages.length !== 1 ? 's' : ''}
@@ -108,7 +108,7 @@ const TripPackagesGroup = ({
                   const aPriority = ['matched', 'in_transit'].includes(a.status) ? 1 : 0;
                   const bPriority = ['matched', 'in_transit'].includes(b.status) ? 1 : 0;
                   if (aPriority !== bPriority) return bPriority - aPriority;
-                  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((pkg) => {
                   const hasPendingAction = ['matched', 'in_transit'].includes(pkg.status);
