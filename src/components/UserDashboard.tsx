@@ -89,50 +89,50 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
   return (
     <div className="space-y-6">
       {/* Estadísticas principales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesRequested}</p>
-                <p className="text-xs text-muted-foreground">Favorones pedidos</p>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary self-start sm:self-auto" />
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{stats.packagesRequested}</p>
+                <p className="text-xs text-muted-foreground leading-tight">Favorones pedidos</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Plane className="h-5 w-5 text-traveler" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesDelivered}</p>
-                <p className="text-xs text-muted-foreground">Favorones entregados</p>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+              <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-traveler self-start sm:self-auto" />
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{stats.packagesDelivered}</p>
+                <p className="text-xs text-muted-foreground leading-tight">Favorones entregados</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="text-2xl font-bold">${stats.totalTips}</p>
-                <p className="text-xs text-muted-foreground">Propinas ganadas</p>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 self-start sm:self-auto" />
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">${stats.totalTips}</p>
+                <p className="text-xs text-muted-foreground leading-tight">Propinas ganadas</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Trophy className="h-5 w-5 text-yellow-600" />
-              <div>
-                <p className="text-2xl font-bold">{stats.packagesCompleted}</p>
-                <p className="text-xs text-muted-foreground">Completados</p>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 self-start sm:self-auto" />
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{stats.packagesCompleted}</p>
+                <p className="text-xs text-muted-foreground leading-tight">Completados</p>
               </div>
             </div>
           </CardContent>
@@ -160,7 +160,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
       </Card>
 
       {/* Estado actual */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Estado Actual</CardTitle>

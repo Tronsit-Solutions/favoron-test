@@ -300,15 +300,15 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">¡Hola, {currentUser.name}! 👋</h2>
-          <p className="text-muted-foreground">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2">¡Hola, {currentUser.name}! 👋</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Gestiona tus solicitudes de paquetes y viajes desde aquí
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className={`grid w-full text-xs sm:text-sm ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="packages" className="relative flex items-center gap-2">
               Mis Pedidos
@@ -345,22 +345,23 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           </TabsContent>
 
           <TabsContent value="packages" className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-2xl font-bold">Mis Solicitudes de Paquetes</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl sm:text-2xl font-bold">Mis Solicitudes de Paquetes</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={handleLoadTestPackage}>
+                  <Button variant="outline" size="sm" onClick={handleLoadTestPackage} className="text-xs">
                     🧪 Generar pedido de prueba
                   </Button>
                 )}
-                <Button variant="shopper" onClick={() => setShowPackageForm(true)}>
+                <Button variant="shopper" onClick={() => setShowPackageForm(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
-                  Nueva Solicitud
+                  <span className="hidden sm:inline">Nueva Solicitud</span>
+                  <span className="sm:hidden">Nuevo Pedido</span>
                 </Button>
               </div>
             </div>
@@ -386,20 +387,20 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-2xl font-bold">Mis Viajes</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">
                   Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={handleLoadTestTrip}>
+                  <Button variant="outline" size="sm" onClick={handleLoadTestTrip} className="text-xs">
                     🧪 Generar viaje de prueba
                   </Button>
                 )}
-                <Button variant="traveler" onClick={() => setShowTripForm(true)}>
+                <Button variant="traveler" onClick={() => setShowTripForm(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Viaje
                 </Button>

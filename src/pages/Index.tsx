@@ -45,10 +45,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar onOpenAuth={openAuthModal} />
-      <HeroSection onOpenAuth={openAuthModal} />
-      <HowItWorksSection />
-      <BenefitsSection />
-      <CTASection onOpenAuth={openAuthModal} />
+      <main className="pb-safe">
+        <HeroSection onOpenAuth={openAuthModal} />
+        <HowItWorksSection />
+        <BenefitsSection />
+        <CTASection onOpenAuth={openAuthModal} />
+      </main>
 
       <AuthModal
         isOpen={showAuth}

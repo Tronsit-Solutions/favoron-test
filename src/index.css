@@ -124,3 +124,65 @@
 .gradient-card {
   background: linear-gradient(135deg, hsl(142 71% 45% / 0.05) 0%, hsl(24 100% 50% / 0.05) 100%);
 }
+
+/* Mobile optimizations */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Better mobile button interactions */
+  .mobile-button {
+    @apply touch-manipulation tap-highlight-transparent min-h-[44px] min-w-[44px];
+  }
+  
+  /* Mobile-friendly spacing */
+  .mobile-spacing {
+    @apply px-4 py-3 sm:px-6 sm:py-4;
+  }
+  
+  /* Mobile text sizing */
+  .mobile-text {
+    @apply text-sm sm:text-base;
+  }
+  
+  /* Safe area padding for mobile devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Better mobile card layout */
+  .mobile-card {
+    @apply rounded-lg shadow-sm border border-border/50;
+  }
+  
+  /* Mobile-optimized form elements */
+  .mobile-input {
+    @apply min-h-[44px] text-base;
+  }
+}

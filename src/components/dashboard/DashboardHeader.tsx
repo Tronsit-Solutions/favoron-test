@@ -20,35 +20,43 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }: DashboardHeaderProps) => {
   return (
     <header className="border-b bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-logo rounded-lg flex items-center justify-center">
-            <Plane className="h-5 w-5 text-white" />
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-logo rounded-lg flex items-center justify-center">
+            <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
           </div>
-          <h1 className="text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
+          <h1 className="text-lg sm:text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Bell className="h-4 w-4 mr-2" />
             Notificaciones
           </Button>
           
+          <Button variant="ghost" size="sm" className="sm:hidden">
+            <Bell className="h-4 w-4" />
+          </Button>
+          
           {user.role === 'admin' && onShowUserManagement && (
-            <Button variant="outline" size="sm" onClick={onShowUserManagement}>
-              <Users className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Gestión de Usuarios</span>
-              <span className="md:hidden">Usuarios</span>
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={onShowUserManagement} className="hidden sm:flex">
+                <Users className="h-4 w-4 mr-2" />
+                Gestión de Usuarios
+              </Button>
+              <Button variant="outline" size="sm" onClick={onShowUserManagement} className="sm:hidden">
+                <Users className="h-4 w-4" />
+              </Button>
+            </>
           )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                <Avatar className="h-6 w-6">
+              <Button variant="outline" size="sm" className="flex items-center space-x-1 sm:space-x-2">
+                <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
                   <AvatarFallback className="text-xs">{user.name[0]}</AvatarFallback>
                 </Avatar>
-                <span className="hidden md:inline">Mi Perfil</span>
+                <span className="hidden sm:inline text-sm">Mi Perfil</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
