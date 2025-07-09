@@ -112,7 +112,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               <div>
                 <p className="font-medium text-lg flex items-center space-x-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{trip.fromCountry} ({trip.fromCity}) → {trip.toCountry} ({trip.toCity})</span>
+                  <span>{trip.from_city} → {trip.to_city}</span>
                 </p>
                 <p className="text-muted-foreground">Ruta de viaje</p>
               </div>
@@ -123,7 +123,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <div>
                     <p className="text-sm font-medium">Fecha de Llegada</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(trip.arrivalDate).toLocaleDateString('es-GT')}
+                      {new Date(trip.arrival_date).toLocaleDateString('es-GT')}
                     </p>
                   </div>
                 </div>
@@ -158,37 +158,37 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   </div>
                 )}
 
-                {trip.deliveryDate && (
+                {trip.delivery_date && (
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium text-primary">Fecha de Entrega</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.deliveryDate).toLocaleDateString('es-GT')}
+                        {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {trip.firstDayPackages && (
+                {trip.first_day_packages && (
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-green-600" />
                     <div>
                       <p className="text-sm font-medium text-green-600">Primer Día Recibir Paquetes</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.firstDayPackages).toLocaleDateString('es-GT')}
+                        {new Date(trip.first_day_packages).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {trip.lastDayPackages && (
+                {trip.last_day_packages && (
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-red-600" />
                     <div>
                       <p className="text-sm font-medium text-red-600">Último Día Recibir Paquetes</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.lastDayPackages).toLocaleDateString('es-GT')}
+                        {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
@@ -196,7 +196,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               </div>
 
               {/* Package Receiving Address */}
-              {trip.packageReceivingAddress && (
+              {trip.package_receiving_address && (
                 <div className="bg-muted/50 border rounded-lg p-4">
                   <div className="flex items-start space-x-2 mb-3">
                     <Package className="h-5 w-5 text-primary mt-0.5" />
@@ -204,14 +204,18 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   </div>
                   <div className="text-sm text-muted-foreground ml-7 space-y-2">
                     <div>
-                      <p><strong>Tipo de alojamiento:</strong> {trip.packageReceivingAddress.accommodationType}</p>
-                      <p><strong>Dirección:</strong> {trip.packageReceivingAddress.streetAddress}</p>
-                      <p><strong>Ciudad/Estado:</strong> {trip.packageReceivingAddress.cityArea}</p>
-                      <p><strong>Código postal:</strong> {trip.packageReceivingAddress.postalCode}</p>
-                      {trip.packageReceivingAddress.hotelAirbnbName && (
-                        <p><strong>Nombre del lugar:</strong> {trip.packageReceivingAddress.hotelAirbnbName}</p>
-                      )}
-                      <p><strong>Contacto:</strong> {trip.packageReceivingAddress.contactNumber}</p>
+                      <p><strong>Dirección de recepción de paquetes:</strong></p>
+                      <div className="ml-2">
+                        {typeof trip.package_receiving_address === 'object' ? (
+                          <>
+                            <p>{trip.package_receiving_address?.streetAddress || ''}</p>
+                            <p>{trip.package_receiving_address?.cityArea || ''}</p>
+                            <p>{trip.package_receiving_address?.contactNumber || ''}</p>
+                          </>
+                        ) : (
+                          <p>{trip.package_receiving_address}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -245,7 +249,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               )}
 
               <div className="text-xs text-muted-foreground">
-                Viaje registrado el {new Date(trip.createdAt).toLocaleDateString('es-GT')} a las {new Date(trip.createdAt).toLocaleTimeString('es-GT')}
+                Viaje registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')} a las {new Date(trip.created_at).toLocaleTimeString('es-GT')}
               </div>
             </CardContent>
           </Card>

@@ -155,7 +155,7 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                 // Single product display (backward compatibility)
                 <div>
                   <div>
-                    <p className="font-medium text-lg">{pkg.itemDescription}</p>
+                    <p className="font-medium text-lg">{pkg.item_description}</p>
                     <p className="text-muted-foreground">Descripción del artículo solicitado</p>
                   </div>
 
@@ -164,16 +164,16 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Precio Estimado</p>
-                        <p className="text-sm text-muted-foreground">${pkg.estimatedPrice}</p>
+                        <p className="text-sm text-muted-foreground">${pkg.estimated_price}</p>
                       </div>
                     </div>
                   </div>
 
-                  {pkg.itemLink && (
+                  {pkg.item_link && (
                     <div>
                       <p className="text-sm font-medium mb-2">Link del Producto:</p>
                       <a 
-                        href={pkg.itemLink} 
+                        href={pkg.item_link}
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 text-primary hover:underline"
@@ -193,27 +193,27 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                   <div>
                     <p className="text-sm font-medium">Fecha Límite</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}
+                      {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                     </p>
                   </div>
                 </div>
 
-                {pkg.packageDestination && (
+                {pkg.package_destination && (
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Destino</p>
-                      <p className="text-sm text-muted-foreground">{pkg.packageDestination}</p>
+                      <p className="text-sm text-muted-foreground">{pkg.package_destination}</p>
                     </div>
                   </div>
                 )}
 
-                {pkg.purchaseOrigin && (
+                {pkg.purchase_origin && (
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Origen de compra</p>
-                      <p className="text-sm text-muted-foreground">{pkg.purchaseOrigin}</p>
+                      <p className="text-sm text-muted-foreground">{pkg.purchase_origin}</p>
                     </div>
                   </div>
                 )}
@@ -231,17 +231,17 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                 )}
               </div>
 
-              {pkg.additionalNotes && (
+              {pkg.additional_notes && (
                 <div>
                   <p className="text-sm font-medium mb-1">Notas Adicionales:</p>
                   <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                    {pkg.additionalNotes}
+                    {pkg.additional_notes}
                   </p>
                 </div>
               )}
 
               <div className="text-xs text-muted-foreground">
-                Solicitud creada el {new Date(pkg.createdAt).toLocaleDateString('es-GT')} a las {new Date(pkg.createdAt).toLocaleTimeString('es-GT')}
+                Solicitud creada el {new Date(pkg.created_at).toLocaleDateString('es-GT')} a las {new Date(pkg.created_at).toLocaleTimeString('es-GT')}
               </div>
             </CardContent>
           </Card>
@@ -267,7 +267,7 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                     }
                   </p>
                   <div className="text-xs text-red-600 mt-2">
-                    Rechazado el {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updatedAt).toLocaleTimeString('es-GT')}
+                    Rechazado el {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleTimeString('es-GT')}
                   </div>
                 </div>
               </CardContent>
