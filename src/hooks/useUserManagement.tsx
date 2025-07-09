@@ -13,6 +13,7 @@ export const useUserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      console.log('Fetching users from Supabase...');
       
       // Get profiles with their roles
       const { data: profiles, error: profilesError } = await supabase
@@ -26,27 +27,30 @@ export const useUserManagement = () => {
           created_at
         `);
 
-      if (profilesError) throw profilesError;
+      console.log('Profiles fetched:', profiles);
+      if (profilesError) {
+        console.error('Profiles error:', profilesError);
+        throw profilesError;
+      }
 
       // Get user roles separately
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
-      if (rolesError) throw rolesError;
-
-      // Get auth users to get email information
-      let authUsersData: any[] = [];
-      try {
-        const { data: authUsers } = await supabase.auth.admin.listUsers();
-        authUsersData = authUsers?.users || [];
-      } catch (error) {
-        console.log('Could not fetch auth users, continuing with profiles only');
+      console.log('User roles fetched:', userRoles);
+      if (rolesError) {
+        console.error('Roles error:', rolesError);
+        throw rolesError;
       }
+
+      // Since we can't access auth.users from client, we'll need to store email in profiles
+      // For now, let's check if we can get current user's email and use a placeholder for others
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      console.log('Current user:', currentUser);
 
       const formattedUsers: User[] = profiles?.map((profile: any, index: number) => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
-        const authUser = authUsersData.find(auth => auth.id === profile.id);
         
         // Map roles correctly
         let role: 'shopper' | 'traveler' | 'admin' = 'shopper';
@@ -56,21 +60,25 @@ export const useUserManagement = () => {
           role = 'shopper'; // Default for regular users
         }
 
+        // If this profile matches current user, use their email, otherwise use placeholder
+        const email = profile.id === currentUser?.id ? currentUser.email : `usuario-${profile.id.slice(0, 8)}@email.com`;
+
         return {
           id: index + 1, // Using index as ID since our types expect number
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
-          email: authUser?.email || 'Email no disponible',
+          email: email || 'Email no disponible',
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
           registrationDate: profile.created_at,
-          status: authUser?.email_confirmed_at ? 'verified' as const : 'active' as const,
+          status: 'verified' as const, // Since they have profiles, assume verified
           trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
                      profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
           adminNotes: ''
         };
       }) || [];
 
+      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
