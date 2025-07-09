@@ -284,7 +284,11 @@ const Dashboard = ({ user }: DashboardProps) => {
                     <CollapsiblePackageCard
                       key={pkg.id}
                       pkg={pkg}
-                      onQuote={(pkg) => handleQuoteSubmit({}, pkg, 'user')}
+                       onQuote={(pkg, userType) => {
+                         setSelectedPackageForQuote(pkg);
+                         setQuoteUserType(userType);
+                         setShowQuoteDialog(true);
+                       }}
                       onConfirmAddress={handleAddressConfirmation}
                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
                       viewMode="user"

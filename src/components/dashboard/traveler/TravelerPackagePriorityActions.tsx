@@ -3,7 +3,7 @@ import { DollarSign, CheckCircle } from "lucide-react";
 
 interface TravelerPackagePriorityActionsProps {
   pkg: any;
-  onQuote: (pkg: any, userType: 'user') => void;
+  onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: () => void;
 }
 

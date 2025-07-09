@@ -4,7 +4,7 @@ import { Edit } from "lucide-react";
 interface PackageActionButtonsProps {
   pkg: any;
   viewMode: 'user' | 'admin';
-  onQuote: (pkg: any, userType: 'user') => void;
+  onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onEditClick: () => void;
   onEditPackage?: (packageData: any) => void;
 }

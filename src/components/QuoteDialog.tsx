@@ -16,7 +16,7 @@ interface QuoteDialogProps {
     estimated_price: number;
     deliveryAddress?: any;
   };
-  userType: 'user';
+  userType: 'user' | 'admin';
   existingQuote?: any;
   tripDates?: {
     first_day_packages: string;

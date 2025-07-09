@@ -4,7 +4,7 @@ import { Package } from "@/types";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
-  onQuote: (pkg: Package, userType: 'user') => void;
+  onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
 }
 
 const ShopperPackagePriorityActions = ({

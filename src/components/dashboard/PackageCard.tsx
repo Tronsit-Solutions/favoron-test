@@ -13,7 +13,7 @@ import PackageActionButtons from "@/components/dashboard/PackageActionButtons";
 interface PackageCardProps {
   pkg: any;
   getStatusBadge: (status: string) => JSX.Element;
-  onQuote: (pkg: any, userType: 'user') => void;
+  onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmAddress: (pkg: any) => void;
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   onEditPackage?: (packageData: any) => void;

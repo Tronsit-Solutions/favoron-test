@@ -14,7 +14,7 @@ export const useDashboardState = (user: any) => {
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
-  const [quoteUserType, setQuoteUserType] = useState<'user'>('user');
+  const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
   // Use real data hooks
   const { packages, createPackage, updatePackage, deletePackage } = usePackagesData();
