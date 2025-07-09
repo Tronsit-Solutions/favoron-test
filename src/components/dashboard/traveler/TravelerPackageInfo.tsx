@@ -1,16 +1,27 @@
 import { User, MapPin, DollarSign } from "lucide-react";
+
 interface TravelerPackageInfoProps {
   pkg: any;
 }
-const TravelerPackageInfo = ({
-  pkg
-}: TravelerPackageInfoProps) => {
-  return <>
+
+const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
+  return (
+    <>
       {/* Shopper information */}
-      
+      <div className="bg-muted/30 border border-border rounded-lg p-2">
+        <div className="flex items-start space-x-1.5 mb-1">
+          <User className="h-3 w-3 text-muted-foreground mt-0.5" />
+          <p className="text-xs font-medium">Información del shopper:</p>
+        </div>
+        <div className="text-xs text-muted-foreground ml-4.5">
+          <p>Solicitante: Usuario #{pkg.user_id}</p>
+          <p>Creado el: {new Date(pkg.created_at).toLocaleDateString('es-GT')}</p>
+        </div>
+      </div>
 
       {/* Show quote information if sent */}
-      {pkg.quote && <div className="bg-muted/30 border rounded-lg p-3 space-y-2">
+      {pkg.quote && (
+        <div className="bg-muted/30 border rounded-lg p-3 space-y-2">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-4 w-4" />
             <p className="text-sm font-medium">💰 Información de compensación</p>
@@ -47,17 +58,21 @@ const TravelerPackageInfo = ({
             </div>
           </div>
 
-          {pkg.quote.message && <div className="border-t pt-2">
+          {pkg.quote.message && (
+            <div className="border-t pt-2">
               <p className="text-xs text-muted-foreground">Mensaje: "{pkg.quote.message}"</p>
-            </div>}
+            </div>
+          )}
           
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             Estado: {pkg.status === 'quote_accepted' ? '✅ Aceptada' : '⏳ Esperando respuesta'}
           </div>
-        </div>}
+        </div>
+      )}
 
       {/* Delivery address if confirmed */}
-      {pkg.confirmed_delivery_address && <div className="bg-muted/30 border rounded-lg p-2">
+      {pkg.confirmed_delivery_address && (
+        <div className="bg-muted/30 border rounded-lg p-2">
           <div className="flex items-start space-x-1.5 mb-1">
             <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
             <p className="text-xs font-medium">Dirección de entrega confirmada:</p>
@@ -65,36 +80,53 @@ const TravelerPackageInfo = ({
           <div className="text-xs text-muted-foreground ml-4.5">
             <p>{pkg.confirmed_delivery_address.streetAddress}</p>
             <p>{pkg.confirmed_delivery_address.cityArea}</p>
-            {pkg.confirmed_delivery_address.hotelAirbnbName && <p>{pkg.confirmed_delivery_address.hotelAirbnbName}</p>}
+            {pkg.confirmed_delivery_address.hotelAirbnbName && (
+              <p>{pkg.confirmed_delivery_address.hotelAirbnbName}</p>
+            )}
             <p>📞 {pkg.confirmed_delivery_address.contactNumber}</p>
           </div>
-        </div>}
+        </div>
+      )}
 
       {/* Action buttons for travelers */}
       <div className="flex flex-wrap gap-1">
-        {pkg.status === 'quote_sent' && <div className="text-xs text-muted-foreground">
+        {pkg.status === 'quote_sent' && (
+          <div className="text-xs text-muted-foreground">
             Cotización enviada - Esperando respuesta del shopper
-          </div>}
+          </div>
+        )}
 
-        {pkg.status === 'quote_accepted' && <div className="text-xs font-medium">
+        {pkg.status === 'quote_accepted' && (
+          <div className="text-xs font-medium">
             ✅ Cotización aceptada - Esperando confirmación de pago
-          </div>}
+          </div>
+        )}
 
-        {pkg.status === 'payment_confirmed' && <div className="text-xs font-medium">
+        {pkg.status === 'payment_confirmed' && (
+          <div className="text-xs font-medium">
             💳 Pago confirmado - Esperando que el shopper envíe el paquete
-          </div>}
+          </div>
+        )}
 
-        {pkg.status === 'in_transit' && <div className="text-xs font-medium">
+        {pkg.status === 'in_transit' && (
+          <div className="text-xs font-medium">
             🚚 Paquete en tránsito - El shopper ya lo envió
-          </div>}
+          </div>
+        )}
 
-        {pkg.status === 'received_by_traveler' && <div className="text-xs font-medium">
+        {pkg.status === 'received_by_traveler' && (
+          <div className="text-xs font-medium">
           ✅ Paquete recibido y confirmado
-          {pkg.traveler_confirmation?.confirmedAt && <div className="text-xs text-muted-foreground mt-0.5">
+          {pkg.traveler_confirmation?.confirmedAt && (
+            <div className="text-xs text-muted-foreground mt-0.5">
               Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
-            </div>}
-          </div>}
+            </div>
+          )}
+          </div>
+        )}
       </div>
-    </>;
+    </>
+  );
 };
+
 export default TravelerPackageInfo;
