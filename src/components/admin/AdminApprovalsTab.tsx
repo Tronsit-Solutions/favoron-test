@@ -115,6 +115,7 @@ const AdminApprovalsTab = ({
                         </Button>
                         <Button 
                           size="sm" 
+                          variant="success"
                           onClick={() => onApproveReject('package', pkg.id, 'approve')}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
@@ -175,6 +176,7 @@ const AdminApprovalsTab = ({
                         </Button>
                         <Button 
                           size="sm" 
+                          variant="success"
                           onClick={() => onApproveReject('trip', trip.id, 'approve')}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
