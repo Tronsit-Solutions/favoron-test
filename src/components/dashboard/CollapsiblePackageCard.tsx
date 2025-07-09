@@ -196,20 +196,20 @@ const CollapsiblePackageCard = ({
                         <div className="flex items-start space-x-2 mb-2">
                           <span className="text-sm font-medium text-info">📅 Fechas importantes para tu envío:</span>
                         </div>
-                        <div className="text-sm text-info space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span>⏰</span>
-                            <span><strong>Primer día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).firstDayPackages).toLocaleDateString('es-GT')}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span>⏰</span>
-                            <span><strong>Último día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).lastDayPackages).toLocaleDateString('es-GT')}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span>📍</span>
-                            <span><strong>Entrega en oficina Favorón:</strong> {new Date((pkg.matched_trip_dates as any).deliveryDate).toLocaleDateString('es-GT')}</span>
-                          </div>
-                        </div>
+                         <div className="text-sm text-info space-y-1">
+                           <div className="flex items-center space-x-2">
+                             <span>⏰</span>
+                             <span><strong>Primer día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).first_day_packages).toLocaleDateString('es-GT')}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span>⏰</span>
+                             <span><strong>Último día para recibir paquetes:</strong> {new Date((pkg.matched_trip_dates as any).last_day_packages).toLocaleDateString('es-GT')}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span>📍</span>
+                             <span><strong>Entrega en oficina Favorón:</strong> {new Date((pkg.matched_trip_dates as any).delivery_date).toLocaleDateString('es-GT')}</span>
+                           </div>
+                         </div>
                       </div>
                     )}
                     

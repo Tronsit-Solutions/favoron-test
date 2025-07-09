@@ -147,6 +147,11 @@ export const useDashboardActions = (
           await updatePackage(selectedPackage.id, {
             status: 'quote_accepted'
           });
+          
+          // Force close dialog and reset selection to trigger re-render
+          setShowQuoteDialog(false);
+          setSelectedPackageForQuote(null);
+          
           toast({
             title: "¡Cotización aceptada!",
             description: "Ahora debes hacer el pago a la cuenta bancaria de Favorón.",
@@ -161,8 +166,12 @@ export const useDashboardActions = (
           });
         }
       }
-      setShowQuoteDialog(false);
-      setSelectedPackageForQuote(null);
+      
+      // Only close dialog here if not already closed above
+      if (quoteData.message !== 'accepted') {
+        setShowQuoteDialog(false);
+        setSelectedPackageForQuote(null);
+      }
     } catch (error) {
       console.error('Error updating quote:', error);
       toast({
