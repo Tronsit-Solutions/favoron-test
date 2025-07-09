@@ -22,7 +22,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           <Package className="h-5 w-5 mr-2" />
           Solicitar Paquete
         </Button>
-        <Button size="lg" variant="secondary" onClick={() => onOpenAuth("register")} className="text-lg px-8 py-3">
+        <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-lg px-8 py-3">
           <Plane className="h-5 w-5 mr-2" />
           Registrar Viaje
         </Button>
