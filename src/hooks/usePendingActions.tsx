@@ -5,17 +5,17 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     if (!currentUser) return {};
 
     // For shoppers
-    const shopperPackages = packages.filter(pkg => pkg.userId === currentUser.id);
+    const shopperPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
     const quotesToAccept = shopperPackages.filter(pkg => pkg.status === 'quote_sent').length;
     const paymentsToMake = shopperPackages.filter(pkg => pkg.status === 'quote_accepted').length;
     const uploadsNeeded = shopperPackages.filter(pkg => 
-      pkg.status === 'payment_confirmed' && !pkg.purchaseConfirmation
+      pkg.status === 'payment_confirmed' && !pkg.purchase_confirmation
     ).length;
 
     // For travelers
-    const travelerTrips = trips.filter(trip => trip.userId === currentUser.id);
+    const travelerTrips = trips.filter(trip => trip.user_id === currentUser.id);
     const matchedPackages = packages.filter(pkg => 
-      travelerTrips.some(trip => trip.id === pkg.matchedTripId)
+      travelerTrips.some(trip => trip.id === pkg.matched_trip_id)
     );
     const quotesToSend = matchedPackages.filter(pkg => pkg.status === 'matched').length;
     const packagesToReceive = matchedPackages.filter(pkg => pkg.status === 'in_transit').length;
