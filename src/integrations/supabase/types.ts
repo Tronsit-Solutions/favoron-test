@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      packages: {
+        Row: {
+          additional_notes: string | null
+          confirmed_delivery_address: Json | null
+          created_at: string
+          delivery_deadline: string
+          estimated_price: number | null
+          id: string
+          item_description: string
+          item_link: string | null
+          matched_trip_dates: Json | null
+          matched_trip_id: string | null
+          office_delivery: Json | null
+          package_destination: string
+          payment_receipt: Json | null
+          purchase_confirmation: Json | null
+          purchase_origin: string
+          quote: Json | null
+          status: string
+          tracking_info: Json | null
+          traveler_address: Json | null
+          traveler_confirmation: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          confirmed_delivery_address?: Json | null
+          created_at?: string
+          delivery_deadline: string
+          estimated_price?: number | null
+          id?: string
+          item_description: string
+          item_link?: string | null
+          matched_trip_dates?: Json | null
+          matched_trip_id?: string | null
+          office_delivery?: Json | null
+          package_destination: string
+          payment_receipt?: Json | null
+          purchase_confirmation?: Json | null
+          purchase_origin: string
+          quote?: Json | null
+          status?: string
+          tracking_info?: Json | null
+          traveler_address?: Json | null
+          traveler_confirmation?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          confirmed_delivery_address?: Json | null
+          created_at?: string
+          delivery_deadline?: string
+          estimated_price?: number | null
+          id?: string
+          item_description?: string
+          item_link?: string | null
+          matched_trip_dates?: Json | null
+          matched_trip_id?: string | null
+          office_delivery?: Json | null
+          package_destination?: string
+          payment_receipt?: Json | null
+          purchase_confirmation?: Json | null
+          purchase_origin?: string
+          quote?: Json | null
+          status?: string
+          tracking_info?: Json | null
+          traveler_address?: Json | null
+          traveler_confirmation?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_packages_matched_trip"
+            columns: ["matched_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -49,6 +139,62 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      trips: {
+        Row: {
+          arrival_date: string
+          created_at: string
+          delivery_date: string
+          departure_date: string
+          first_day_packages: string
+          from_city: string
+          id: string
+          last_day_packages: string
+          package_receiving_address: Json
+          status: string
+          to_city: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arrival_date: string
+          created_at?: string
+          delivery_date: string
+          departure_date: string
+          first_day_packages: string
+          from_city: string
+          id?: string
+          last_day_packages: string
+          package_receiving_address: Json
+          status?: string
+          to_city: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arrival_date?: string
+          created_at?: string
+          delivery_date?: string
+          departure_date?: string
+          first_day_packages?: string
+          from_city?: string
+          id?: string
+          last_day_packages?: string
+          package_receiving_address?: Json
+          status?: string
+          to_city?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

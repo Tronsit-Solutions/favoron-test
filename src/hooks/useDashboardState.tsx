@@ -1,6 +1,7 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { usePackagesData } from './usePackagesData';
+import { useTripsData } from './useTripsData';
 
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
@@ -14,8 +15,10 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user'>('user');
-  const [packages, setPackages] = useState<any[]>([]);
-  const [trips, setTrips] = useState<any[]>([]);
+  
+  // Use real data hooks
+  const { packages, createPackage, updatePackage, deletePackage } = usePackagesData();
+  const { trips, createTrip, updateTrip, deleteTrip } = useTripsData();
   const { toast } = useToast();
 
   return {
@@ -42,9 +45,14 @@ export const useDashboardState = (user: any) => {
     quoteUserType,
     setQuoteUserType,
     packages,
-    setPackages,
     trips,
-    setTrips,
+    // Database operations
+    createPackage,
+    updatePackage,
+    deletePackage,
+    createTrip,
+    updateTrip,
+    deleteTrip,
     toast
   };
 };
