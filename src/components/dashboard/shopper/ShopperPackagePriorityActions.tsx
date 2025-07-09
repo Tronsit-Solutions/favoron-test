@@ -4,7 +4,7 @@ import { Package } from "@/types";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
-  onQuote: (pkg: Package, userType: 'traveler' | 'shopper') => void;
+  onQuote: (pkg: Package, userType: 'user') => void;
 }
 
 const ShopperPackagePriorityActions = ({
@@ -24,7 +24,7 @@ const ShopperPackagePriorityActions = ({
           description: "Revisa y responde la cotización del viajero.",
           button: {
             text: "Ver y Responder Cotización",
-            onClick: () => onQuote(pkg, 'shopper')
+            onClick: () => onQuote(pkg, 'user')
           }
         };
       case 'quote_accepted':

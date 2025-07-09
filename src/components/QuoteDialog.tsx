@@ -16,7 +16,7 @@ interface QuoteDialogProps {
     estimatedPrice: number;
     deliveryAddress?: any;
   };
-  userType: 'traveler' | 'shopper';
+  userType: 'user';
   existingQuote?: any;
   tripDates?: {
     firstDayPackages: string;
@@ -42,7 +42,11 @@ const QuoteDialog = ({
   const [showRejectionForm, setShowRejectionForm] = useState(false);
 
   const handleSubmit = () => {
-    if (userType === 'traveler') {
+    // Since there's only one type of user now, we need to determine context differently
+    // For now, if we have price/serviceFee fields, it's sending a quote
+    // If we just have a quote to accept, it's accepting
+    if (price || serviceFee) {
+      // Sending a quote
       const basePrice = parseFloat(price);
       const additionalFee = serviceFee ? parseFloat(serviceFee) : 0;
       const subtotal = basePrice + additionalFee;
@@ -56,18 +60,20 @@ const QuoteDialog = ({
         message
       });
     } else {
+      // Accepting a quote
       onSubmit({ message: 'accepted' });
     }
   };
 
   const handleReject = () => {
-    if (userType === 'shopper' && !rejectionReason.trim()) {
+    // If we're viewing an existing quote (not sending one), ask for rejection reason
+    if (existingQuote && !rejectionReason.trim()) {
       setShowRejectionForm(true);
       return;
     }
     onSubmit({ 
       message: 'rejected',
-      rejectionReason: userType === 'shopper' ? rejectionReason : undefined
+      rejectionReason: existingQuote ? rejectionReason : undefined
     });
   };
 
@@ -76,10 +82,10 @@ const QuoteDialog = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {userType === 'traveler' ? 'Enviar Cotización' : 'Responder Cotización'}
+            {!existingQuote ? 'Enviar Cotización' : 'Responder Cotización'}
           </DialogTitle>
           <DialogDescription>
-            {userType === 'traveler' 
+            {!existingQuote 
               ? 'Proporciona tu cotización para este Favorón'
               : 'Revisa la cotización del viajero'
             }
@@ -100,7 +106,7 @@ const QuoteDialog = ({
           </div>
 
           {/* KEY DATES - Show for shoppers viewing quotes */}
-          {userType === 'shopper' && tripDates && (
+          {existingQuote && tripDates && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
                 <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
@@ -139,8 +145,8 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {/* Traveler Quote Form */}
-          {userType === 'traveler' && (
+          {/* Quote Form - Show when sending a quote */}
+          {!existingQuote && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -182,8 +188,8 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {/* Shopper Rejection Form */}
-          {userType === 'shopper' && showRejectionForm && (
+          {/* Rejection Form */}
+          {existingQuote && showRejectionForm && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <Label htmlFor="rejectionReason" className="text-red-800 font-medium">
                 Razón del rechazo (para administración) *
@@ -209,7 +215,7 @@ const QuoteDialog = ({
               Cancelar
             </Button>
             
-            {userType === 'traveler' ? (
+            {!existingQuote ? (
               <div className="space-x-2">
                 <Button variant="destructive" onClick={handleReject}>
                   Rechazar Pedido

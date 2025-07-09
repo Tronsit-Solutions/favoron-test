@@ -13,7 +13,7 @@ export const useDashboardState = (user: any) => {
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
-  const [quoteUserType, setQuoteUserType] = useState<'traveler' | 'shopper'>('traveler');
+  const [quoteUserType, setQuoteUserType] = useState<'user'>('user');
   const [packages, setPackages] = useState<any[]>([]);
   const [trips, setTrips] = useState<any[]>([]);
   const { toast } = useToast();

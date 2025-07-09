@@ -13,7 +13,7 @@ export const useDashboardActions = (
   setSelectedPackageForAddress: (pkg: any) => void,
   setShowQuoteDialog: (show: boolean) => void,
   setSelectedPackageForQuote: (pkg: any) => void,
-  setQuoteUserType: (type: 'traveler' | 'shopper') => void
+  setQuoteUserType: (type: 'user') => void
 ) => {
   const { toast } = useToast();
 
@@ -63,8 +63,9 @@ export const useDashboardActions = (
     });
   };
 
-  const handleQuoteSubmit = (quoteData: any, selectedPackage: any, userType: 'traveler' | 'shopper') => {
-    if (userType === 'traveler') {
+  const handleQuoteSubmit = (quoteData: any, selectedPackage: any, userType: 'user') => {
+    // For sending a quote (when we have price data)
+    if (quoteData.price !== undefined || quoteData.message === 'rejected') {
       if (quoteData.message === 'rejected') {
         // If traveler rejects, package goes back to pending match
         setPackages(packages.map(pkg => 
@@ -115,7 +116,7 @@ export const useDashboardActions = (
     setSelectedPackageForQuote(null);
   };
 
-  const handleQuote = (pkg: any, userType: 'traveler' | 'shopper') => {
+  const handleQuote = (pkg: any, userType: 'user') => {
     setSelectedPackageForQuote(pkg);
     setQuoteUserType(userType);
     setShowQuoteDialog(true);

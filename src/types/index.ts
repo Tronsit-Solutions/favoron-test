@@ -3,7 +3,7 @@ export interface User {
   email: string;
   name: string;
   username?: string;
-  role: 'shopper' | 'traveler' | 'admin';
+  role: 'user' | 'admin';
   phoneNumber?: string;
   whatsappNumber?: string;
   preferredLanguage?: string;
@@ -94,5 +94,5 @@ export interface Trip {
   createdAt: string;
 }
 
-export type UserType = 'traveler' | 'shopper';
+export type UserType = 'user' | 'admin';
 export type DocumentType = 'confirmation' | 'tracking' | 'payment_receipt';

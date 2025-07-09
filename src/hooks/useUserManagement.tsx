@@ -53,11 +53,11 @@ export const useUserManagement = () => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         
         // Map roles correctly
-        let role: 'shopper' | 'traveler' | 'admin' = 'shopper';
+        let role: 'user' | 'admin' = 'user';
         if (userRole?.role === 'admin') {
           role = 'admin';
         } else {
-          role = 'shopper'; // Default for regular users
+          role = 'user'; // Default for regular users
         }
 
         // If this profile matches current user, use their email, otherwise use placeholder

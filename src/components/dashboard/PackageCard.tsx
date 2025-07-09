@@ -13,11 +13,11 @@ import PackageActionButtons from "@/components/dashboard/PackageActionButtons";
 interface PackageCardProps {
   pkg: any;
   getStatusBadge: (status: string) => JSX.Element;
-  onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
+  onQuote: (pkg: any, userType: 'user') => void;
   onConfirmAddress: (pkg: any) => void;
   onUploadDocument: (packageId: number, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   onEditPackage?: (packageData: any) => void;
-  viewMode?: 'shopper' | 'traveler';
+  viewMode?: 'user';
 }
 
 const PackageCard = ({ 
@@ -27,7 +27,7 @@ const PackageCard = ({
   onConfirmAddress, 
   onUploadDocument,
   onEditPackage,
-  viewMode = 'shopper'
+  viewMode = 'user'
 }: PackageCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPaymentUpload, setShowPaymentUpload] = useState(false);

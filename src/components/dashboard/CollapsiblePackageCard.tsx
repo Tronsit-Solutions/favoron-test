@@ -23,7 +23,7 @@ interface CollapsiblePackageCardProps {
   onQuote: (pkg: Package, userType: UserType) => void;
   onConfirmAddress: (pkg: Package) => void;
   onEditPackage?: (packageData: Package) => void;
-  viewMode?: 'shopper' | 'traveler';
+  viewMode?: 'user';
 }
 
 const CollapsiblePackageCard = ({ 
@@ -33,7 +33,7 @@ const CollapsiblePackageCard = ({
   onQuote, 
   onConfirmAddress,
   onEditPackage,
-  viewMode = 'shopper'
+  viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
@@ -41,8 +41,8 @@ const CollapsiblePackageCard = ({
   const { getStatusBadge } = useStatusHelpers();
   const { handleUploadDocument } = usePackageActions(packages, setPackages);
 
-  // Determine if package needs action (for shoppers)
-  const needsAction = viewMode === 'shopper' && (
+  // Determine if package needs action (for users)
+  const needsAction = viewMode === 'user' && (
     pkg.status === 'quote_sent' || // needs to accept/reject quote
     pkg.status === 'quote_accepted' || // needs to make payment
     (pkg.status === 'payment_confirmed' && !pkg.purchaseConfirmation) // needs to upload documents
@@ -55,11 +55,11 @@ const CollapsiblePackageCard = ({
   // Removed individual render functions - now handled by dedicated components
 
   const renderActionButtons = () => {
-    const canEdit = viewMode === 'shopper' && ['pending_approval', 'approved'].includes(pkg.status);
+    const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
     
     return (
       <div className="flex flex-wrap gap-2">
-        {viewMode === 'shopper' && canEdit && onEditPackage && (
+        {viewMode === 'user' && canEdit && onEditPackage && (
           <Button 
             size="sm"
             variant="outline"
@@ -70,10 +70,10 @@ const CollapsiblePackageCard = ({
           </Button>
         )}
         
-        {viewMode === 'traveler' && pkg.status === 'matched' && (
+        {viewMode === 'user' && pkg.status === 'matched' && (
           <Button 
             size="sm"
-            onClick={() => onQuote(pkg, 'traveler')}
+            onClick={() => onQuote(pkg, 'user')}
           >
             Enviar Cotización
           </Button>
@@ -123,7 +123,7 @@ const CollapsiblePackageCard = ({
         <CollapsibleContent>
           <CardContent>
             {/* Priority Actions Section */}
-            {viewMode === 'shopper' && (
+            {viewMode === 'user' && (
               <ShopperPackagePriorityActions 
                 pkg={pkg}
                 onQuote={onQuote}
@@ -133,7 +133,7 @@ const CollapsiblePackageCard = ({
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 {/* Show payment instructions and upload component after quote acceptance - PROMINENT IN LEFT COLUMN */}
-                {pkg.status === 'quote_accepted' && viewMode === 'shopper' && (
+                {pkg.status === 'quote_accepted' && viewMode === 'user' && (
                   <div className="space-y-4 mb-4">
                     {/* Payment Instructions */}
                     <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 shadow-sm">
@@ -187,7 +187,7 @@ const CollapsiblePackageCard = ({
                 )}
                 
                 {/* Show shipping instructions after payment confirmation - PROMINENT IN LEFT COLUMN */}
-                {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && pkg.travelerAddress && (
+                {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.travelerAddress && (
                   <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 mb-4 shadow-sm">
                     <div className="mb-4">
                       <p className="text-sm font-semibold text-primary mb-2">📦 Instrucciones para el envío</p>
@@ -245,7 +245,7 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Show upload documents after payment confirmation - PROMINENT IN LEFT COLUMN */}
-                {pkg.status === 'payment_confirmed' && viewMode === 'shopper' && (
+                {pkg.status === 'payment_confirmed' && viewMode === 'user' && (
                   <div className="bg-warning-muted border border-warning-border rounded-lg p-4 mb-4">
                     <div className="mb-3">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>

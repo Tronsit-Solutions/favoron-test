@@ -380,7 +380,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                     onQuote={handleQuote}
                     onConfirmAddress={handleConfirmAddress}
                     onEditPackage={handleEditPackage}
-                    viewMode="shopper"
+                    viewMode="user"
                   />
                 ))}
               </div>

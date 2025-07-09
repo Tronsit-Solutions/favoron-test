@@ -49,8 +49,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
 
   const getRoleLabel = (role: string) => {
     const roleLabels = {
-      shopper: 'Comprador',
-      traveler: 'Viajero',
+      user: 'Usuario',
       admin: 'Admin'
     };
     return roleLabels[role as keyof typeof roleLabels] || role;
@@ -58,8 +57,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      shopper: { variant: 'default' as const },
-      traveler: { variant: 'secondary' as const },
+      user: { variant: 'default' as const },
       admin: { variant: 'destructive' as const }
     };
     const config = roleConfig[role as keyof typeof roleConfig] || { variant: 'outline' as const };
@@ -107,9 +105,9 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-success">
-                {users.filter(u => u.role === 'shopper').length}
+                {users.filter(u => u.role === 'user').length}
               </p>
-              <p className="text-sm text-muted-foreground">Compradores</p>
+              <p className="text-sm text-muted-foreground">Usuarios</p>
             </div>
           </CardContent>
         </Card>
@@ -117,9 +115,9 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-secondary">
-                {users.filter(u => u.role === 'traveler').length}
+                {users.filter(u => u.role === 'admin').length}
               </p>
-              <p className="text-sm text-muted-foreground">Viajeros</p>
+              <p className="text-sm text-muted-foreground">Administradores</p>
             </div>
           </CardContent>
         </Card>
@@ -163,8 +161,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
-                <SelectItem value="shopper">Compradores</SelectItem>
-                <SelectItem value="traveler">Viajeros</SelectItem>
+                <SelectItem value="user">Usuarios</SelectItem>
                 <SelectItem value="admin">Administradores</SelectItem>
               </SelectContent>
             </Select>
