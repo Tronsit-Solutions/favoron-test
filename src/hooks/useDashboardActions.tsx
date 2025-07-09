@@ -112,57 +112,65 @@ export const useDashboardActions = (
     });
   };
 
-  const handleQuoteSubmit = (quoteData: any, selectedPackage: any, userType: 'user') => {
-    // For sending a quote (when we have price data)
-    if (quoteData.price !== undefined || quoteData.message === 'rejected') {
-      if (quoteData.message === 'rejected') {
-        // If traveler rejects, package goes back to pending match
-        setPackages(packages.map(pkg => 
-          pkg.id === selectedPackage.id 
-            ? { ...pkg, status: 'approved', matchedTripId: null }
-            : pkg
-        ));
-        toast({
-          title: "Pedido rechazado",
-          description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
-        });
-      } else {
-        // Sending quote implies approval
-        setPackages(packages.map(pkg => 
-          pkg.id === selectedPackage.id 
-            ? { ...pkg, status: 'quote_sent', quote: quoteData }
-            : pkg
-        ));
-        toast({
-          title: "¡Cotización enviada!",
-          description: "Tu cotización ha sido enviada al comprador.",
-        });
+  const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user') => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
       }
-    } else {
-      if (quoteData.message === 'accepted') {
-        setPackages(packages.map(pkg => 
-          pkg.id === selectedPackage.id 
-            ? { ...pkg, status: 'quote_accepted' }
-            : pkg
-        ));
-        toast({
-          title: "¡Cotización aceptada!",
-          description: "Ahora debes hacer el pago a la cuenta bancaria de Favorón.",
-        });
+
+      // For sending a quote (when we have price data)
+      if (quoteData.price !== undefined || quoteData.message === 'rejected') {
+        if (quoteData.message === 'rejected') {
+          // If traveler rejects, package goes back to pending match
+          await updatePackage(selectedPackage.id, {
+            status: 'approved',
+            matched_trip_id: null
+          });
+          toast({
+            title: "Pedido rechazado",
+            description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
+          });
+        } else {
+          // Sending quote implies approval
+          await updatePackage(selectedPackage.id, {
+            status: 'quote_sent',
+            quote: quoteData
+          });
+          toast({
+            title: "¡Cotización enviada!",
+            description: "Tu cotización ha sido enviada al comprador.",
+          });
+        }
       } else {
-        setPackages(packages.map(pkg => 
-          pkg.id === selectedPackage.id 
-            ? { ...pkg, status: 'quote_rejected' }
-            : pkg
-        ));
-        toast({
-          title: "Cotización rechazada",
-          description: "Has rechazado la cotización del viajero.",
-        });
+        if (quoteData.message === 'accepted') {
+          await updatePackage(selectedPackage.id, {
+            status: 'quote_accepted'
+          });
+          toast({
+            title: "¡Cotización aceptada!",
+            description: "Ahora debes hacer el pago a la cuenta bancaria de Favorón.",
+          });
+        } else {
+          await updatePackage(selectedPackage.id, {
+            status: 'quote_rejected'
+          });
+          toast({
+            title: "Cotización rechazada",
+            description: "Has rechazado la cotización del viajero.",
+          });
+        }
       }
+      setShowQuoteDialog(false);
+      setSelectedPackageForQuote(null);
+    } catch (error) {
+      console.error('Error updating quote:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la cotización. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
-    setShowQuoteDialog(false);
-    setSelectedPackageForQuote(null);
   };
 
   const handleQuote = (pkg: any, userType: 'user') => {
@@ -233,79 +241,120 @@ export const useDashboardActions = (
     if (!matchedTrip) return null;
     
     // Extract address data properly from the nested structure
-    const addressData = matchedTrip.packageReceivingAddress;
+    const addressData = matchedTrip.package_receiving_address;
     if (!addressData) return null;
     
     return {
       streetAddress: addressData.streetAddress || "Dirección no disponible",
-      cityArea: matchedTrip.toCity || "Ciudad no disponible", 
+      cityArea: matchedTrip.to_city || "Ciudad no disponible", 
       hotelAirbnbName: addressData.accommodationType === 'hotel' ? addressData.hotelAirbnbName : null,
       contactNumber: addressData.contactNumber || "Teléfono no disponible"
     };
   };
 
-  const handleConfirmPayment = (packageId: string) => {
-    console.log('Confirming payment for package:', packageId);
-    
-    // Find the package and matched trip
-    const pkg = packages.find(p => p.id === packageId);
-    if (!pkg) {
-      console.error('Package not found:', packageId);
-      return;
+  const handleConfirmPayment = async (packageId: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      console.log('Confirming payment for package:', packageId);
+      
+      // Find the package and matched trip
+      const pkg = packages.find(p => p.id === packageId);
+      if (!pkg) {
+        console.error('Package not found:', packageId);
+        return;
+      }
+      
+      const matchedTrip = pkg.matched_trip_id ? trips.find(trip => trip.id === pkg.matched_trip_id) : null;
+      console.log('Found matched trip:', matchedTrip);
+      
+      const travelerAddress = buildTravelerAddress(matchedTrip);
+      console.log('Built traveler address:', travelerAddress);
+
+      // NEW: Include trip dates for shipping information
+      const matchedTripDates = matchedTrip ? {
+        first_day_packages: matchedTrip.first_day_packages,
+        last_day_packages: matchedTrip.last_day_packages,
+        delivery_date: matchedTrip.delivery_date,
+        arrival_date: matchedTrip.arrival_date
+      } : null;
+
+      // Update package in Supabase
+      await updatePackage(packageId, {
+        status: 'payment_confirmed',
+        traveler_address: travelerAddress,
+        matched_trip_dates: matchedTripDates
+      });
+      
+      toast({
+        title: "¡Pago confirmado!",
+        description: "El shopper ahora puede ver la dirección del viajero para enviar el paquete.",
+      });
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar el pago. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
-    
-    const matchedTrip = pkg.matchedTripId ? trips.find(trip => trip.id === pkg.matchedTripId) : null;
-    console.log('Found matched trip:', matchedTrip);
-    
-    const travelerAddress = buildTravelerAddress(matchedTrip);
-    console.log('Built traveler address:', travelerAddress);
-
-    // NEW: Include trip dates for shipping information
-    const matchedTripDates = matchedTrip ? {
-      firstDayPackages: matchedTrip.firstDayPackages,
-      lastDayPackages: matchedTrip.lastDayPackages,
-      deliveryDate: matchedTrip.deliveryDate,
-      arrivalDate: matchedTrip.arrivalDate
-    } : null;
-
-    setPackages(packages.map(currentPkg => 
-      currentPkg.id === packageId 
-        ? { ...currentPkg, status: 'payment_confirmed', travelerAddress, matchedTripDates }
-        : currentPkg
-    ));
-    
-    toast({
-      title: "¡Pago confirmado!",
-      description: "El shopper ahora puede ver la dirección del viajero para enviar el paquete.",
-    });
   };
 
-  const handleMatchPackage = (packageId: string, tripId: string) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === packageId ? { ...pkg, status: 'matched', matchedTripId: tripId } : pkg
-    ));
-    
-    toast({
-      title: "¡Match realizado!",
-      description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
-    });
+  const handleMatchPackage = async (packageId: string, tripId: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      // Update package in Supabase with match information
+      await updatePackage(packageId, {
+        status: 'matched',
+        matched_trip_id: tripId
+      });
+
+      toast({
+        title: "¡Match realizado!",
+        description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
+      });
+    } catch (error) {
+      console.error('Error matching package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo realizar el match. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleStatusUpdate = async (type: 'package' | 'trip', id: string, status: string) => {
-    if (type === 'package') {
-      setPackages(packages.map(pkg => 
-        pkg.id === id ? { ...pkg, status } : pkg
-      ));
-    } else {
-      setTrips(trips.map(trip => 
-        trip.id === id ? { ...trip, status } : trip
-      ));
+    try {
+      if (type === 'package' && updatePackage) {
+        await updatePackage(id, { status });
+        toast({
+          title: "Estado actualizado",
+          description: `El estado del paquete ha sido actualizado a: ${status}`,
+        });
+      } else if (type === 'trip' && updateTrip) {
+        await updateTrip(id, { status });
+        toast({
+          title: "Estado actualizado",
+          description: `El estado del viaje ha sido actualizado a: ${status}`,
+        });
+      } else {
+        console.error(`Update function not available for ${type}`);
+      }
+    } catch (error) {
+      console.error(`Error updating ${type} status:`, error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
-    
-    toast({
-      title: "Estado actualizado",
-      description: `El estado ha sido actualizado a: ${status}`,
-    });
   };
 
   const handleApproveReject = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => {
@@ -337,43 +386,61 @@ export const useDashboardActions = (
     }
   };
 
-  const handleConfirmPackageReceived = (packageId: string, photo?: string) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === packageId 
-        ? { 
-            ...pkg, 
-            status: 'received_by_traveler',
-            travelerConfirmation: {
-              confirmedAt: new Date().toISOString(),
-              photo: photo || null
-            }
-          }
-        : pkg
-    ));
-    
-    toast({
-      title: "¡Paquete confirmado!",
-      description: "Has confirmado la recepción del paquete.",
-    });
+  const handleConfirmPackageReceived = async (packageId: string, photo?: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      await updatePackage(packageId, {
+        status: 'received_by_traveler',
+        traveler_confirmation: {
+          confirmedAt: new Date().toISOString(),
+          photo: photo || null
+        }
+      });
+      
+      toast({
+        title: "¡Paquete confirmado!",
+        description: "Has confirmado la recepción del paquete.",
+      });
+    } catch (error) {
+      console.error('Error confirming package received:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar la recepción del paquete. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleConfirmOfficeReception = (packageId: string) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === packageId 
-        ? { 
-            ...pkg, 
-            status: 'delivered_to_office',
-            officeDelivery: {
-              confirmedAt: new Date().toISOString()
-            }
-          }
-        : pkg
-    ));
-    
-    toast({
-      title: "¡Entregado en oficina!",
-      description: "Paquete confirmado como entregado en oficina Favorón.",
-    });
+  const handleConfirmOfficeReception = async (packageId: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      await updatePackage(packageId, {
+        status: 'delivered_to_office',
+        office_delivery: {
+          confirmedAt: new Date().toISOString()
+        }
+      });
+      
+      toast({
+        title: "¡Entregado en oficina!",
+        description: "Paquete confirmado como entregado en oficina Favorón.",
+      });
+    } catch (error) {
+      console.error('Error confirming office reception:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar la entrega en oficina. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditTrip = (editedTripData: any) => {
