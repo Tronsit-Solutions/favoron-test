@@ -13,40 +13,84 @@ export const useDashboardActions = (
   setSelectedPackageForAddress: (pkg: any) => void,
   setShowQuoteDialog: (show: boolean) => void,
   setSelectedPackageForQuote: (pkg: any) => void,
-  setQuoteUserType: (type: 'user') => void
+  setQuoteUserType: (type: 'user') => void,
+  // Supabase functions
+  createPackage?: (packageData: any) => Promise<any>,
+  createTrip?: (tripData: any) => Promise<any>,
+  updatePackage?: (id: string, updates: any) => Promise<any>,
+  updateTrip?: (id: string, updates: any) => Promise<any>
 ) => {
   const { toast } = useToast();
 
-  const handlePackageSubmit = (packageData: any) => {
-    const newPackage = {
-      id: Date.now(),
-      ...packageData,
-      status: 'pending_approval',
-      createdAt: new Date().toISOString(),
-      userId: currentUser.id
-    };
-    setPackages([...packages, newPackage]);
-    setShowPackageForm(false);
-    toast({
-      title: "¡Solicitud enviada!",
-      description: "Tu solicitud de paquete está en revisión. Te notificaremos pronto.",
-    });
+  const handlePackageSubmit = async (packageData: any) => {
+    try {
+      if (!createPackage) {
+        console.error('createPackage function not available');
+        return;
+      }
+
+      // Transform form data to database format
+      const dbPackageData = {
+        item_description: packageData.products?.[0]?.itemDescription || packageData.itemDescription,
+        item_link: packageData.products?.[0]?.itemLink || packageData.itemLink,
+        estimated_price: packageData.products?.[0]?.estimatedPrice ? parseFloat(packageData.products[0].estimatedPrice) : null,
+        delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
+        package_destination: packageData.packageDestination,
+        purchase_origin: packageData.purchaseOrigin,
+        additional_notes: packageData.additionalNotes || null,
+        status: 'pending_approval'
+      };
+
+      await createPackage(dbPackageData);
+      setShowPackageForm(false);
+      toast({
+        title: "¡Solicitud enviada!",
+        description: "Tu solicitud de paquete está en revisión. Te notificaremos pronto.",
+      });
+    } catch (error) {
+      console.error('Error creating package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleTripSubmit = (tripData: any) => {
-    const newTrip = {
-      id: Date.now(),
-      ...tripData,
-      status: 'pending_approval',
-      createdAt: new Date().toISOString(),
-      userId: currentUser.id
-    };
-    setTrips([...trips, newTrip]);
-    setShowTripForm(false);
-    toast({
-      title: "¡Viaje registrado!",
-      description: "Tu viaje ha sido registrado exitosamente. Está en revisión.",
-    });
+  const handleTripSubmit = async (tripData: any) => {
+    try {
+      if (!createTrip) {
+        console.error('createTrip function not available');
+        return;
+      }
+
+      // Transform form data to database format
+      const dbTripData = {
+        from_city: tripData.fromCity,
+        to_city: tripData.toCity,
+        departure_date: tripData.departureDate.toISOString(),
+        arrival_date: tripData.arrivalDate.toISOString(),
+        first_day_packages: tripData.firstDayPackages.toISOString(),
+        last_day_packages: tripData.lastDayPackages.toISOString(),
+        delivery_date: tripData.deliveryDate.toISOString(),
+        package_receiving_address: tripData.packageReceivingAddress,
+        status: 'pending_approval'
+      };
+
+      await createTrip(dbTripData);
+      setShowTripForm(false);
+      toast({
+        title: "¡Viaje registrado!",
+        description: "Tu viaje ha sido registrado exitosamente. Está en revisión.",
+      });
+    } catch (error) {
+      console.error('Error creating trip:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo registrar el viaje. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddressConfirmation = (confirmedAddress: any) => {

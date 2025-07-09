@@ -91,7 +91,12 @@ const Dashboard = ({ user }: DashboardProps) => {
     setSelectedPackageForAddress,
     setShowQuoteDialog,
     setSelectedPackageForQuote,
-    setQuoteUserType
+    setQuoteUserType,
+    // Pass Supabase functions
+    createPackage,
+    createTrip,
+    updatePackage,
+    updateTrip
   );
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
