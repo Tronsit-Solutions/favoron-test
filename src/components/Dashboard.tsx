@@ -411,8 +411,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           onConfirm={handleAddressConfirmation}
           currentAddress={selectedPackageForAddress.deliveryAddress}
           packageDetails={{
-            itemDescription: selectedPackageForAddress.itemDescription,
-            estimatedPrice: selectedPackageForAddress.estimatedPrice
+            itemDescription: selectedPackageForAddress.item_description,
+            estimatedPrice: selectedPackageForAddress.estimated_price
           }}
         />
       )}
@@ -426,13 +426,13 @@ const Dashboard = ({ user }: DashboardProps) => {
           }}
           onSubmit={(quoteData) => handleQuoteSubmit(quoteData, selectedPackageForQuote, quoteUserType)}
           packageDetails={{
-            itemDescription: selectedPackageForQuote.itemDescription,
-            estimatedPrice: selectedPackageForQuote.estimatedPrice,
-            deliveryAddress: selectedPackageForQuote.confirmedDeliveryAddress
+            item_description: selectedPackageForQuote.item_description,
+            estimated_price: selectedPackageForQuote.estimated_price,
+            deliveryAddress: selectedPackageForQuote.confirmed_delivery_address
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote}
-          tripDates={selectedPackageForQuote.tripDates}
+          tripDates={selectedPackageForQuote.matched_trip_dates}
         />
       )}
     </div>

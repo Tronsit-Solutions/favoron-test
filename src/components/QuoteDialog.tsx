@@ -12,17 +12,17 @@ interface QuoteDialogProps {
   onClose: () => void;
   onSubmit: (quoteData: any) => void;
   packageDetails: {
-    itemDescription: string;
-    estimatedPrice: number;
+    item_description: string;
+    estimated_price: number;
     deliveryAddress?: any;
   };
   userType: 'user';
   existingQuote?: any;
   tripDates?: {
-    firstDayPackages: string;
-    lastDayPackages: string;
-    deliveryDate: string;
-    arrivalDate: string;
+    first_day_packages: string;
+    last_day_packages: string;
+    delivery_date: string;
+    arrival_date: string;
   };
 }
 
@@ -100,8 +100,8 @@ const QuoteDialog = ({
               <p className="text-sm font-medium text-primary">Detalles del Favorón:</p>
             </div>
             <div className="text-sm ml-6">
-              <p><strong>Producto:</strong> {packageDetails.itemDescription}</p>
-              <p><strong>Precio estimado:</strong> ${packageDetails.estimatedPrice}</p>
+              <p><strong>Producto:</strong> {packageDetails.item_description}</p>
+              <p><strong>Precio estimado:</strong> ${packageDetails.estimated_price}</p>
             </div>
           </div>
 
@@ -115,11 +115,11 @@ const QuoteDialog = ({
               <div className="text-sm text-blue-700 ml-6 space-y-2">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
-                  <span><strong>Fecha límite para enviar paquete:</strong> {new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Fecha límite para enviar paquete:</strong> {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-3 w-3" />
-                  <span><strong>Entrega en oficina Favorón:</strong> {new Date(tripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Entrega en oficina Favorón:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
                 </div>
               </div>
             </div>
