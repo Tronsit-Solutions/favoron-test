@@ -27,23 +27,38 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
           </div>
         ) : (
           <div className="space-y-4">
-            {[...packages, ...trips]
+            {/* Primero mostrar paquetes */}
+            {packages
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .slice(0, 5)
+              .slice(0, 3)
               .map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div key={`package-${item.id}`} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-3">
-                    {item.itemLink ? (
-                      <Package className="h-5 w-5 text-primary" />
-                    ) : (
-                      <Plane className="h-5 w-5 text-traveler" />
-                    )}
+                    <Package className="h-5 w-5 text-primary" />
                     <div>
                       <p className="font-medium">
-                        {item.itemLink ? 
-                          `Paquete: ${item.itemDescription || 'Sin descripción'}` : 
-                          `Viaje: ${item.fromCity || 'Origen'} → ${item.toCity || 'Destino'}`
-                        }
+                        Paquete: {item.itemDescription || (item.products?.[0]?.itemDescription) || 'Sin descripción'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(item.createdAt).toLocaleDateString('es-GT')}
+                      </p>
+                    </div>
+                  </div>
+                  {getStatusBadge(item.status)}
+                </div>
+              ))}
+            
+            {/* Luego mostrar viajes */}
+            {trips
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 2)
+              .map((item) => (
+                <div key={`trip-${item.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Plane className="h-5 w-5 text-traveler" />
+                    <div>
+                      <p className="font-medium">
+                        Viaje: {item.fromCity || 'Origen'} → {item.toCity || 'Destino'}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(item.createdAt).toLocaleDateString('es-GT')}
