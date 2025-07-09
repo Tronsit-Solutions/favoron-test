@@ -38,19 +38,19 @@ const ActiveMatchesTab = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const matchedPackages = packages.filter(pkg => pkg.matchedTripId);
+  const matchedPackages = packages.filter(pkg => pkg.matched_trip_id);
   
   // Get unique statuses for filter
   const statuses = [...new Set(matchedPackages.map(pkg => pkg.status))];
 
   // Filter packages based on search and filters
   const filteredMatches = matchedPackages.filter(pkg => {
-    const matchedTrip = trips.find(trip => trip.id === pkg.matchedTripId);
+    const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
     const matchesSearch = 
-      (pkg.itemDescription || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (pkg.userId || '').toString().includes(searchTerm) ||
-      (matchedTrip?.fromCity || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (matchedTrip?.toCity || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pkg.user_id || '').toString().includes(searchTerm) ||
+      (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
     
@@ -127,7 +127,7 @@ const ActiveMatchesTab = ({
           </Card>
         ) : (
           filteredMatches.map(pkg => {
-            const matchedTrip = trips.find(trip => trip.id === pkg.matchedTripId);
+            const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
             const statusInfo = getStatusInfo(pkg.status);
             
             // Debug: Log package info to see current status
@@ -146,13 +146,13 @@ const ActiveMatchesTab = ({
                       {/* Header with status */}
                       <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-medium text-sm leading-tight">{pkg.itemDescription}</h4>
+                          <h4 className="font-medium text-sm leading-tight">{pkg.item_description}</h4>
                           <div className="flex items-center space-x-3 mt-1">
                             <span className="text-xs text-muted-foreground">
-                              👤 Shopper: {pkg.userId}
+                              👤 Shopper: {pkg.user_id}
                             </span>
                             <span className="text-xs font-medium text-primary">
-                              ${pkg.estimatedPrice}
+                              ${pkg.estimated_price}
                             </span>
                           </div>
                         </div>
@@ -169,8 +169,8 @@ const ActiveMatchesTab = ({
                              <span className="text-xs font-medium text-blue-800">Match activo</span>
                            </div>
                            <div className="text-xs text-blue-700">
-                             <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
-                             <p>👤 Viajero: {matchedTrip.userId}</p>
+                              <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                              <p>👤 Viajero: {matchedTrip.user_id}</p>
                            </div>
                          </div>
                        )}
@@ -185,8 +185,8 @@ const ActiveMatchesTab = ({
                              </span>
                            </div>
                            <div className="text-xs text-red-700 space-y-1">
-                             <p>🛫 {matchedTrip.fromCity} → {matchedTrip.toCity}</p>
-                             <p>👤 Viajero: {matchedTrip.userId}</p>
+                              <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                              <p>👤 Viajero: {matchedTrip.user_id}</p>
                              {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' && (
                                <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
                              )}
@@ -208,22 +208,22 @@ const ActiveMatchesTab = ({
 
                       {/* Important dates */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        {pkg.deliveryDeadline && (
-                          <div className="flex items-center space-x-1">
-                            <CalendarDays className="h-3 w-3 text-orange-500" />
-                            <span className="text-orange-600">
-                              Límite: {new Date(pkg.deliveryDeadline).toLocaleDateString()}
-                            </span>
-                          </div>
+                         {pkg.delivery_deadline && (
+                           <div className="flex items-center space-x-1">
+                             <CalendarDays className="h-3 w-3 text-orange-500" />
+                             <span className="text-orange-600">
+                               Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                             </span>
+                           </div>
                         )}
                         
-                        {matchedTrip?.deliveryDate && (
-                          <div className="flex items-center space-x-1">
-                            <CalendarDays className="h-3 w-3 text-purple-500" />
-                            <span className="text-purple-600">
-                              Entrega: {new Date(matchedTrip.deliveryDate).toLocaleDateString()}
-                            </span>
-                          </div>
+                         {matchedTrip?.delivery_date && (
+                           <div className="flex items-center space-x-1">
+                             <CalendarDays className="h-3 w-3 text-purple-500" />
+                             <span className="text-purple-600">
+                               Entrega: {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}
+                             </span>
+                           </div>
                         )}
                       </div>
                     </div>

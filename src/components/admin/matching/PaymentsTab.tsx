@@ -22,7 +22,7 @@ const PaymentsTab = ({
 
   // Separate payments by status
   const pendingPayments = packages.filter(pkg => pkg.status === 'payment_pending');
-  const approvedPayments = packages.filter(pkg => pkg.status === 'payment_confirmed' || (pkg.paymentReceipt && pkg.status !== 'payment_pending'));
+  const approvedPayments = packages.filter(pkg => pkg.status === 'payment_confirmed' || (pkg.payment_receipt && pkg.status !== 'payment_pending'));
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
     <Card key={pkg.id} className="hover:shadow-md transition-shadow">
@@ -30,20 +30,20 @@ const PaymentsTab = ({
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <h4 className="font-medium">{pkg.itemDescription}</h4>
+              <h4 className="font-medium">{pkg.item_description}</h4>
               {getStatusBadge(pkg.status)}
             </div>
             <p className="text-sm text-muted-foreground">
-              Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+              Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
             </p>
-            {pkg.paymentReceipt && (
+            {pkg.payment_receipt && (
               <div className="mt-2 p-2 bg-blue-50 rounded">
                 <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
                 <p className="text-xs text-blue-600">
-                  📄 {pkg.paymentReceipt.filename}
+                  📄 {pkg.payment_receipt.filename}
                 </p>
                 <p className="text-xs text-blue-600">
-                  📅 Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                  📅 Subido: {new Date(pkg.payment_receipt.uploadedAt).toLocaleDateString('es-GT')}
                 </p>
               </div>
             )}

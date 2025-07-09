@@ -48,13 +48,13 @@ const PendingRequestsTab = ({
   const approvedPackages = packages.filter(p => p.status === 'approved');
   
   // Get unique destinations for filter
-  const destinations = [...new Set(approvedPackages.map(pkg => pkg.packageDestination || 'Guatemala'))];
+  const destinations = [...new Set(approvedPackages.map(pkg => pkg.package_destination || 'Guatemala'))];
 
   // Filter packages based on search and filters
   const filteredPackages = approvedPackages.filter(pkg => {
-    const matchesSearch = (pkg.itemDescription || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (pkg.userId || '').toString().includes(searchTerm);
-    const matchesDestination = destinationFilter === "all" || pkg.packageDestination === destinationFilter;
+    const matchesSearch = (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (pkg.user_id || '').toString().includes(searchTerm);
+    const matchesDestination = destinationFilter === "all" || pkg.package_destination === destinationFilter;
     const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
     
     return matchesSearch && matchesDestination && matchesStatus;
@@ -127,18 +127,19 @@ const PendingRequestsTab = ({
                         <div className="mb-1">
                           <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                         </div>
-                        <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">
-                          {pkg.itemDescription || 
-                           (pkg.products && pkg.products.length > 0 ? pkg.products[0].itemDescription : '') || 
-                           "Sin descripción"}
-                        </h4>
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xs text-muted-foreground">
-                            👤 Usuario: {pkg.userId}
-                          </span>
-                          <span className="text-sm font-semibold text-primary">
-                            ${pkg.estimatedPrice}
-                          </span>
+                         <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">
+                           {pkg.item_description || "Sin descripción"}
+                         </h4>
+                         <div className="flex items-center space-x-3">
+                           <span className="text-xs text-muted-foreground">
+                             👤 Usuario: {pkg.user_id}
+                           </span>
+                           <span className="text-sm font-semibold text-primary">
+                             ${pkg.estimated_price}
+                           </span>
+                           <span className="text-xs text-muted-foreground">
+                             📍 {pkg.purchase_origin} → {pkg.package_destination}
+                           </span>
                         </div>
                       </div>
                       <Badge className={`text-xs ${getStatusColor(pkg.status)}`}>
@@ -149,20 +150,20 @@ const PendingRequestsTab = ({
                     {/* Route info */}
                     <div className="flex items-center space-x-2 text-xs">
                       <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                        🌎 {pkg.purchaseOrigin || 'País no especificado'}
+                        🌎 {pkg.purchase_origin || 'País no especificado'}
                       </span>
                       <span className="text-muted-foreground">→</span>
                       <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
-                        🏠 {pkg.packageDestination || 'Guatemala'}
+                        🏠 {pkg.package_destination || 'Guatemala'}
                       </span>
                     </div>
 
                     {/* Deadline */}
-                    {pkg.deliveryDeadline && (
+                    {pkg.delivery_deadline && (
                       <div className="flex items-center space-x-1 text-xs">
                         <CalendarDays className="h-3 w-3 text-orange-500" />
                         <span className="text-orange-600">
-                          Límite: {new Date(pkg.deliveryDeadline).toLocaleDateString()}
+                          Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                         </span>
                       </div>
                     )}
