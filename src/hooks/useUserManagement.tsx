@@ -1,66 +1,88 @@
-import { useState, useMemo } from 'react';
-import { User, Package, Trip } from '@/types';
+import { useState, useMemo, useEffect } from 'react';
+import { User } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useUserManagement = () => {
-  // Mock users data - in real app this would come from API
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      name: "Ana García",
-      username: "ana_garcia",
-      email: "ana.garcia@email.com",
-      role: "shopper",
-      phoneNumber: "+502 1234-5678",
-      whatsappNumber: "+502 1234-5678",
-      registrationDate: "2024-01-15T10:00:00Z",
-      status: "verified",
-      trustLevel: "trusted",
-      adminNotes: "Usuario muy activo, siempre paga a tiempo"
-    },
-    {
-      id: 2,
-      name: "Carlos Mendoza",
-      username: "carlos_viajero",
-      email: "carlos.mendoza@email.com", 
-      role: "traveler",
-      phoneNumber: "+502 9876-5432",
-      whatsappNumber: "+502 9876-5432",
-      registrationDate: "2024-02-20T14:30:00Z",
-      status: "active",
-      trustLevel: "basic",
-      adminNotes: ""
-    },
-    {
-      id: 3,
-      name: "María López",
-      username: "maria_shop",
-      email: "maria.lopez@email.com",
-      role: "shopper",
-      phoneNumber: "+502 5555-7777",
-      whatsappNumber: "+502 5555-7777", 
-      registrationDate: "2024-03-10T09:15:00Z",
-      status: "blocked",
-      trustLevel: "basic",
-      adminNotes: "Bloqueado temporalmente por reportes de otros usuarios"
-    },
-    {
-      id: 4,
-      name: "José Ramírez",
-      username: "jose_travels",
-      email: "jose.ramirez@email.com",
-      role: "traveler",
-      phoneNumber: "+502 3333-9999",
-      whatsappNumber: "+502 3333-9999",
-      registrationDate: "2024-01-05T16:45:00Z", 
-      status: "verified",
-      trustLevel: "premium",
-      adminNotes: "Viajero premium con excelente reputación"
-    }
-  ]);
-
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Get profiles with their roles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          phone_number,
+          trust_level,
+          created_at
+        `);
+
+      if (profilesError) throw profilesError;
+
+      // Get user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Get auth users to get email information
+      let authUsersData: any[] = [];
+      try {
+        const { data: authUsers } = await supabase.auth.admin.listUsers();
+        authUsersData = authUsers?.users || [];
+      } catch (error) {
+        console.log('Could not fetch auth users, continuing with profiles only');
+      }
+
+      const formattedUsers: User[] = profiles?.map((profile: any, index: number) => {
+        const userRole = userRoles?.find(role => role.user_id === profile.id);
+        const authUser = authUsersData.find(auth => auth.id === profile.id);
+        
+        // Map roles correctly
+        let role: 'shopper' | 'traveler' | 'admin' = 'shopper';
+        if (userRole?.role === 'admin') {
+          role = 'admin';
+        } else {
+          role = 'shopper'; // Default for regular users
+        }
+
+        return {
+          id: index + 1, // Using index as ID since our types expect number
+          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
+          email: authUser?.email || 'Email no disponible',
+          role,
+          phoneNumber: profile.phone_number || undefined,
+          whatsappNumber: profile.phone_number || undefined,
+          registrationDate: profile.created_at,
+          status: authUser?.email_confirmed_at ? 'verified' as const : 'active' as const,
+          trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
+                     profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
+          adminNotes: ''
+        };
+      }) || [];
+
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -96,6 +118,7 @@ export const useUserManagement = () => {
 
   return {
     users: filteredUsers,
+    loading,
     searchTerm,
     setSearchTerm,
     roleFilter, 
@@ -105,6 +128,7 @@ export const useUserManagement = () => {
     updateUser,
     updateUserStatus,
     updateTrustLevel,
-    updateAdminNotes
+    updateAdminNotes,
+    refreshUsers: fetchUsers
   };
 };

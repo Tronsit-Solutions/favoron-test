@@ -34,6 +34,7 @@ interface UserManagementProps {
 const UserManagement = ({ packages, trips }: UserManagementProps) => {
   const {
     users,
+    loading,
     searchTerm,
     setSearchTerm,
     roleFilter,
@@ -201,46 +202,57 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        @{user.username || `user${user.id}`}
-                      </p>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      <span>Cargando usuarios...</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm">{user.email}</TableCell>
-                  <TableCell className="text-sm">
-                    {user.whatsappNumber || 'No registrado'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {user.registrationDate ? 
-                      formatDistanceToNow(new Date(user.registrationDate), { addSuffix: true, locale: es }) :
-                      'No disponible'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <UserStatusBadge status={user.status} />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewUser(user)}
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="h-3 w-3" />
-                      Ver Perfil
-                    </Button>
-                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          @{user.username || `user${user.id}`}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{user.email}</TableCell>
+                    <TableCell className="text-sm">
+                      {user.whatsappNumber || 'No registrado'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {user.registrationDate ? 
+                        formatDistanceToNow(new Date(user.registrationDate), { addSuffix: true, locale: es }) :
+                        'No disponible'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <UserStatusBadge status={user.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewUser(user)}
+                        className="flex items-center gap-1"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Ver Perfil
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
 
-          {users.length === 0 && (
+          {!loading && users.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No se encontraron usuarios con los filtros aplicados
             </div>
