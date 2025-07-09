@@ -12,7 +12,6 @@ import ShopperPackagePriorityActions from "@/components/dashboard/shopper/Shoppe
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
-import { usePackageActions } from "@/hooks/usePackageActions";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
 
@@ -20,6 +19,7 @@ interface CollapsiblePackageCardProps {
   pkg: Package;
   onQuote: (pkg: Package, userType: UserType) => void;
   onConfirmAddress: (pkg: Package) => void;
+  onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
   viewMode?: 'user';
 }
@@ -28,6 +28,7 @@ const CollapsiblePackageCard = ({
   pkg, 
   onQuote, 
   onConfirmAddress,
+  onUploadDocument,
   onEditPackage,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
@@ -38,7 +39,6 @@ const CollapsiblePackageCard = ({
   const [showEditModal, setShowEditModal] = React.useState(false);
   
   const { getStatusBadge } = useStatusHelpers();
-  const { handleUploadDocument } = usePackageActions();
 
   // Auto-open when status changes to require action
   React.useEffect(() => {
@@ -55,7 +55,7 @@ const CollapsiblePackageCard = ({
   );
 
   const handlePaymentUpload = (paymentData: any) => {
-    handleUploadDocument(pkg.id.toString(), 'payment_receipt', paymentData);
+    onUploadDocument(pkg.id, 'payment_receipt', paymentData);
   };
 
   // Removed individual render functions - now handled by dedicated components
@@ -254,7 +254,7 @@ const CollapsiblePackageCard = ({
                     <UploadDocuments 
                       packageId={pkg.id}
                       currentStatus={pkg.status}
-                      onUpload={(type, data) => handleUploadDocument(pkg.id, type as DocumentType, data)}
+                      onUpload={(type, data) => onUploadDocument(pkg.id, type as DocumentType, data)}
                     />
                   </div>
                 )}

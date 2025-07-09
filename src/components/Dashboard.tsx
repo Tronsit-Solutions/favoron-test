@@ -290,6 +290,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                          setShowQuoteDialog(true);
                        }}
                       onConfirmAddress={handleAddressConfirmation}
+                      onUploadDocument={handleUploadDocument}
                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
                       viewMode="user"
                     />
