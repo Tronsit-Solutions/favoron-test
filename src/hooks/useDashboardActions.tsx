@@ -143,9 +143,15 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
+          console.log('🎯 ACCEPTING QUOTE for package:', selectedPackage.id);
+          console.log('🎯 Current package status:', selectedPackage.status);
+          console.log('🎯 About to update to quote_accepted');
+          
           await updatePackage(selectedPackage.id, {
             status: 'quote_accepted'
           });
+          
+          console.log('🎯 Package updated to quote_accepted');
           
           // Force close dialog and reset selection to trigger re-render
           setShowQuoteDialog(false);

@@ -135,6 +135,10 @@ const CollapsiblePackageCard = ({
                 {/* Show payment instructions and upload component after quote acceptance - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'quote_accepted' && viewMode === 'user' && (
                   <div className="space-y-4 mb-4">
+                    {(() => {
+                      console.log('💰 RENDERING PAYMENT INSTRUCTIONS for package:', pkg.id, 'status:', pkg.status);
+                      return null;
+                    })()}
                     {/* Payment Instructions */}
                     <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 shadow-sm">
                       <div className="mb-4">

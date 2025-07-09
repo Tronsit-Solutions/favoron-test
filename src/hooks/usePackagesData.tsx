@@ -69,6 +69,8 @@ export const usePackagesData = () => {
 
   const updatePackage = async (id: string, updates: PackageUpdate) => {
     try {
+      console.log('🔄 UPDATING PACKAGE:', id, 'with updates:', updates);
+      
       const { data, error } = await supabase
         .from('packages')
         .update(updates)
@@ -78,9 +80,15 @@ export const usePackagesData = () => {
 
       if (error) throw error;
       
-      setPackages(prev => prev.map(pkg => 
-        pkg.id === id ? { ...pkg, ...data } : pkg
-      ));
+      console.log('✅ Package updated successfully:', data);
+      
+      setPackages(prev => {
+        const updated = prev.map(pkg => 
+          pkg.id === id ? { ...pkg, ...data } : pkg
+        );
+        console.log('📦 Updated packages state:', updated.find(p => p.id === id));
+        return updated;
+      });
       
       return data;
     } catch (error: any) {
