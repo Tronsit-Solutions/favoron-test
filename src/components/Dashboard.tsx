@@ -54,9 +54,13 @@ const Dashboard = ({ user }: DashboardProps) => {
     quoteUserType,
     setQuoteUserType,
     packages,
-    setPackages,
     trips,
-    setTrips
+    createPackage,
+    updatePackage,
+    deletePackage,
+    createTrip,
+    updateTrip,
+    deleteTrip
   } = useDashboardState(user);
 
   const {
@@ -77,9 +81,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditPackage
   } = useDashboardActions(
     packages,
-    setPackages,
+    updatePackage,
     trips,
-    setTrips,
+    updateTrip,
     currentUser,
     setShowPackageForm,
     setShowTripForm,
@@ -118,128 +122,28 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const isAdmin = currentUser.role === 'admin';
 
-  const handleLoadTestData = () => {
-    const now = Date.now();
-    
-    // Create test packages
-    const testPackages = [
-      {
-        id: now + 1,
-        userId: 101,
-        itemDescription: "iPhone 15 Pro Max + AirPods Pro",
-        estimatedPrice: 1200,
-        maxBudget: 1300,
-        sourceUrl: "https://apple.com",
-        productCount: 2,
-        deliveryDeadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-        status: "pending_approval",
-        createdAt: new Date().toISOString(),
-        fromCountry: "Estados Unidos",
-        fromCity: "Miami, FL"
-      },
-      {
-        id: now + 2,
-        userId: 102,
-        itemDescription: "MacBook Air M3 + Accesorios",
-        estimatedPrice: 950,
-        maxBudget: 1000,
-        sourceUrl: "https://bestbuy.com",
-        productCount: 3,
-        deliveryDeadline: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-        status: "approved",
-        createdAt: new Date().toISOString(),
-        fromCountry: "Estados Unidos",
-        fromCity: "Los Angeles, CA"
-      }
-    ];
-
-    // Create test trips  
-    const testTrips = [
-      {
-        id: now + 3,
-        userId: 201,
-        fromCity: "Miami, FL",
-        fromCountry: "Estados Unidos", 
-        toCity: "Guatemala City",
-        toCountry: "Guatemala",
-        arrivalDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-        availableSpace: "5",
-        deliveryMethod: "oficina",
-        deliveryDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
-        status: "approved",
-        createdAt: new Date().toISOString(),
-        packageReceivingAddress: {
-          accommodationType: "hotel",
-          streetAddress: "123 Test St",
-          cityArea: "Miami Beach",
-          postalCode: "33139",
-          hotelAirbnbName: "Test Hotel",
-          contactNumber: "+1 305 555-0123"
-        },
-        firstDayPackages: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        lastDayPackages: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    ];
-
-    setPackages(prev => [...prev, ...testPackages]);
-    setTrips(prev => [...prev, ...testTrips]);
+  const handleLoadTestData = async () => {
+    // Remove test data functions since we're using real database
+    console.log('Test data loading not needed with real database');
   };
 
-  const handleLoadTestPackage = () => {
-    const now = Date.now();
-    const testPackage = {
-      id: now,
-      userId: currentUser.id, // Admin's ID
-      itemDescription: "Laptop Gaming ASUS ROG + Accesorios",
-      estimatedPrice: 850,
-      maxBudget: 900,
-      sourceUrl: "https://amazon.com/asus-rog",
-      productCount: 2,
-      deliveryDeadline: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "pending_approval",
-      createdAt: new Date().toISOString(),
-      fromCountry: "Estados Unidos",
-      fromCity: "New York, NY"
-    };
-    setPackages(prev => [...prev, testPackage]);
+  const handleLoadTestPackage = async () => {
+    // Remove test package function since we're using real database
+    console.log('Test package loading not needed with real database');
   };
 
-  const handleLoadTestTrip = () => {
-    const now = Date.now();
-    const testTrip = {
-      id: now,
-      userId: currentUser.id, // Admin's ID
-      fromCity: "Orlando, FL",
-      fromCountry: "Estados Unidos", 
-      toCity: "Guatemala City",
-      toCountry: "Guatemala",
-      arrivalDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      availableSpace: "8",
-      deliveryMethod: "oficina",
-      deliveryDate: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "pending_approval",
-      createdAt: new Date().toISOString(),
-      packageReceivingAddress: {
-        accommodationType: "hotel",
-        streetAddress: "456 Admin Ave",
-        cityArea: "Orlando Downtown",
-        postalCode: "32801",
-        hotelAirbnbName: "Admin Test Hotel",
-        contactNumber: "+1 407 555-0987"
-      },
-      firstDayPackages: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      lastDayPackages: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString()
-    };
-    setTrips(prev => [...prev, testTrip]);
+  const handleLoadTestTrip = async () => {
+    // Remove test trip function since we're using real database
+    console.log('Test trip loading not needed with real database');
   };
 
   // Filter packages and trips for current user
-  const userPackages = packages.filter(pkg => pkg.userId === currentUser.id);
-  const userTrips = trips.filter(trip => trip.userId === currentUser.id);
+  const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
+  const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => 
-    userTrips.some(trip => trip.id === pkg.matchedTripId)
+    userTrips.some(trip => trip.id === pkg.matched_trip_id)
   );
 
   if (showProfile) {
@@ -376,7 +280,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                     key={pkg.id}
                     pkg={pkg}
                     packages={packages}
-                    setPackages={setPackages}
+                    setPackages={updatePackage}
                     onQuote={handleQuote}
                     onConfirmAddress={handleConfirmAddress}
                     onEditPackage={handleEditPackage}
@@ -439,9 +343,9 @@ const Dashboard = ({ user }: DashboardProps) => {
                   {/* Group packages by trip */}
                   <div className="space-y-6">
                     {userTrips
-                      .filter(trip => assignedPackages.some(pkg => pkg.matchedTripId === trip.id))
+                      .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
                       .map((trip) => {
-                        const tripPackages = assignedPackages.filter(pkg => pkg.matchedTripId === trip.id);
+                        const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
                         const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
                         
                         return (
