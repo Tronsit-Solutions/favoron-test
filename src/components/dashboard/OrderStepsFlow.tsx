@@ -33,7 +33,7 @@ const OrderStepsFlow = ({ pkg, viewMode, onUploadDocument }: OrderStepsFlowProps
 
   // Determine current step based on package status
   const getCurrentStep = () => {
-    if (pkg.status === 'quote_accepted' || pkg.status === 'awaiting_payment') return 1; // Payment step
+    if (pkg.status === 'quote_accepted') return 1; // Payment step
     if (pkg.status === 'payment_pending') return 1; // Payment step (waiting approval)
     if (pkg.status === 'payment_confirmed') return 2; // Shipping info + upload documents
     if (pkg.status === 'in_transit' || pkg.status === 'delivered') return 3; // Completed

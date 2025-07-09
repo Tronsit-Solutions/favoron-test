@@ -186,14 +186,14 @@ export const useDashboardActions = (
           console.log('🎯 Built traveler address:', travelerAddress);
           console.log('🎯 Built trip dates:', matchedTripDates);
           
-          // Update package with traveler info and change status to awaiting_payment
+          // Update package with traveler info and change status to quote_accepted
           await updatePackage(selectedPackage.id, {
-            status: 'awaiting_payment',
+            status: 'quote_accepted',
             traveler_address: travelerAddress,
             matched_trip_dates: matchedTripDates
           });
           
-          console.log('🎯 Package updated to awaiting_payment with traveler info');
+          console.log('🎯 Package updated to quote_accepted with traveler info');
           
           // Force close dialog and reset selection to trigger re-render
           setShowQuoteDialog(false);
