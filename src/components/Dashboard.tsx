@@ -22,13 +22,14 @@ import UserManagement from "./admin/UserManagement";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardProps {
   user: any;
-  onLogout: () => void;
 }
 
-const Dashboard = ({ user, onLogout }: DashboardProps) => {
+const Dashboard = ({ user }: DashboardProps) => {
+  const { signOut } = useAuth();
   const {
     currentUser,
     setCurrentUser,
@@ -247,7 +248,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <DashboardHeader 
           user={currentUser}
           onShowProfile={() => setShowProfile(false)}
-          onLogout={onLogout}
+          onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
         />
         <div className="container mx-auto px-4 py-8">
@@ -268,7 +269,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         <DashboardHeader 
           user={currentUser}
           onShowProfile={() => setShowProfile(true)}
-          onLogout={onLogout}
+          onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
         />
         <div className="container mx-auto px-4 py-8">
@@ -295,7 +296,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       <DashboardHeader 
         user={currentUser}
         onShowProfile={() => setShowProfile(true)}
-        onLogout={onLogout}
+        onLogout={signOut}
         onShowUserManagement={() => setShowUserManagement(true)}
       />
 

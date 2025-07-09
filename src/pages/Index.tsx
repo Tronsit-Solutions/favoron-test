@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
@@ -9,55 +9,57 @@ import BenefitsSection from "@/components/BenefitsSection";
 import CTASection from "@/components/CTASection";
 
 const Index = () => {
-  const [showAuth, setShowAuth] = useState(false);
-  const [authMode, setAuthMode] = useState<"login" | "register">("register");
-  const [user, setUser] = useState<any>(null);
+  const { user, profile, userRole, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (userData: any) => {
-    // Add admin role for demo purposes
-    const userWithRole = {
-      ...userData,
-      role: userData.email === 'admin@favaron.com' ? 'admin' : 'user',
-      stats: userData.stats || {
+  const openAuth = () => {
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && profile && userRole) {
+    // Create user object compatible with existing Dashboard component
+    const userData = {
+      id: user.id,
+      name: `${profile.first_name} ${profile.last_name}`.trim(),
+      firstName: profile.first_name,
+      lastName: profile.last_name,
+      email: user.email,
+      phone: profile.phone_number,
+      role: userRole.role,
+      trustLevel: profile.trust_level,
+      avatar_url: profile.avatar_url,
+      joinedAt: profile.created_at,
+      stats: {
         packagesRequested: 0,
         packagesCompleted: 0,
         totalTips: 0,
         packagesDelivered: 0
       }
     };
-    setUser(userWithRole);
-    setShowAuth(false);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  const openAuthModal = (mode: "login" | "register") => {
-    setAuthMode(mode);
-    setShowAuth(true);
-  };
-
-  if (user) {
-    return <Dashboard user={user} onLogout={handleLogout} />;
+    
+    return <Dashboard user={userData} />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <NavBar onOpenAuth={openAuthModal} />
+      <NavBar onOpenAuth={openAuth} />
       <main className="pb-safe">
-        <HeroSection onOpenAuth={openAuthModal} />
+        <HeroSection onOpenAuth={openAuth} />
         <HowItWorksSection />
         <BenefitsSection />
-        <CTASection onOpenAuth={openAuthModal} />
+        <CTASection onOpenAuth={openAuth} />
       </main>
-
-      <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
-        mode={authMode}
-        onAuth={handleLogin}
-      />
     </div>
   );
 };
