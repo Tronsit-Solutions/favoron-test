@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, Phone } from 'lucide-react';
+import { Plane, Mail, Lock, User, Phone, CheckCircle, MailOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Auth = () => {
@@ -16,6 +17,8 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -50,14 +53,32 @@ const Auth = () => {
 
       if (error) throw error;
 
+      // Mostrar confirmación prominente
+      setShowEmailConfirmation(true);
+      
+      // Cambiar a pestaña de iniciar sesión después de 2 segundos
+      setTimeout(() => {
+        setCurrentTab('signin');
+      }, 2000);
+
       toast({
-        title: "¡Cuenta creada!",
-        description: "Revisa tu email para confirmar tu cuenta.",
+        title: "¡Cuenta creada exitosamente! ✅",
+        description: `Hemos enviado un enlace de confirmación a ${email}. Revisa tu bandeja de entrada (y spam) para activar tu cuenta.`,
+        duration: 8000,
       });
+
+      // Limpiar formulario
+      setFirstName('');
+      setLastName('');
+      setPhoneNumber('');
+      setPassword('');
+      
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error al crear cuenta",
+        description: error.message === "over_email_send_rate_limit" 
+          ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
+          : error.message,
         variant: "destructive",
       });
     } finally {
@@ -105,7 +126,24 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          {/* Alerta de confirmación de email */}
+          {showEmailConfirmation && (
+            <Alert className="mb-6 border-green-200 bg-green-50 animate-fade-in">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <MailOpen className="h-5 w-5 text-green-600" />
+              </div>
+              <AlertDescription className="ml-12 text-green-800">
+                <div className="space-y-2">
+                  <p className="font-semibold">¡Cuenta creada exitosamente!</p>
+                  <p>Te hemos enviado un enlace de confirmación a <strong>{email}</strong></p>
+                  <p className="text-sm">Revisa tu bandeja de entrada (y carpeta de spam) para activar tu cuenta.</p>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
               <TabsTrigger value="signup">Registrarse</TabsTrigger>
