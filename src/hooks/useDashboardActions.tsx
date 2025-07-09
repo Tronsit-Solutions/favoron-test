@@ -247,50 +247,77 @@ export const useDashboardActions = (
     setShowAddressConfirmation(true);
   };
 
-  const handleUploadDocument = (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
-    setPackages(packages.map(pkg => {
-      if (pkg.id === packageId) {
-        const updatedPkg = { ...pkg };
-        if (type === 'confirmation') {
-          updatedPkg.purchaseConfirmation = data;
-          // Keep current status - don't automatically advance to in_transit
-          // Only advance when both confirmation AND tracking are present
-          if (updatedPkg.trackingInfo) {
-            updatedPkg.status = 'in_transit';
-          }
-        } else if (type === 'tracking') {
-          updatedPkg.trackingInfo = data;
-          // Only move to in_transit if BOTH confirmation and tracking are present
-          if (updatedPkg.purchaseConfirmation) {
-            updatedPkg.status = 'in_transit';
-          }
-        } else if (type === 'payment_receipt') {
-          updatedPkg.paymentReceipt = data;
-          updatedPkg.status = 'payment_pending';
+  const handleUploadDocument = async (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      const pkg = packages.find(p => p.id === packageId);
+      if (!pkg) {
+        console.error('Package not found:', packageId);
+        return;
+      }
+
+      let updatedData: any = {};
+      let newStatus = pkg.status;
+
+      if (type === 'confirmation') {
+        updatedData.purchase_confirmation = data;
+        // Keep current status - don't automatically advance to in_transit
+        // Only advance when both confirmation AND tracking are present
+        if (pkg.tracking_info) {
+          newStatus = 'in_transit';
         }
-        return updatedPkg;
+      } else if (type === 'tracking') {
+        updatedData.tracking_info = data;
+        // Only move to in_transit if BOTH confirmation and tracking are present
+        if (pkg.purchase_confirmation) {
+          newStatus = 'in_transit';
+        }
+      } else if (type === 'payment_receipt') {
+        updatedData.payment_receipt = data;
+        newStatus = 'payment_pending';
       }
-      return pkg;
-    }));
 
-    const messages = {
-      payment_receipt: {
-        title: "¡Pago registrado!",
-        description: "Tu pago está en revisión. Te notificaremos cuando sea confirmado."
-      },
-      confirmation: {
-        title: "¡Comprobante de compra subido!",
-        description: "Se ha registrado tu comprobante de compra."
-      },
-      tracking: {
-        title: "¡Información de seguimiento actualizada!",
-        description: "Se ha registrado la información de envío."
+      // Update status if it changed
+      if (newStatus !== pkg.status) {
+        updatedData.status = newStatus;
       }
-    };
 
-    const message = messages[type];
-    if (message) {
-      toast(message);
+      // Update package in Supabase
+      await updatePackage(packageId, updatedData);
+
+      const messages = {
+        payment_receipt: {
+          title: "¡Pago registrado!",
+          description: "Tu pago está en revisión. Te notificaremos cuando sea confirmado."
+        },
+        confirmation: {
+          title: "¡Comprobante de compra subido!",
+          description: "Se ha registrado tu comprobante de compra."
+        },
+        tracking: {
+          title: "¡Información de seguimiento actualizada!",
+          description: "Se ha registrado la información de envío."
+        }
+      };
+
+      const message = messages[type];
+      if (message) {
+        toast(message);
+      }
+
+      console.log(`📄 Document uploaded: ${type} for package ${packageId}, new status: ${newStatus}`);
+      
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el documento. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
   };
 
