@@ -280,15 +280,13 @@ const Dashboard = ({ user }: DashboardProps) => {
               <EmptyState type="packages" onAction={() => setShowPackageForm(true)} />
             ) : (
               <div className="grid gap-6">
-                {userPackages.map((pkg) => (
+                 {userPackages.map((pkg) => (
                     <CollapsiblePackageCard
                       key={pkg.id}
                       pkg={pkg}
-                      packages={packages}
-                      setPackages={(packages: any[]) => {}} // Legacy compatibility
-                      onQuote={handleQuote}
-                      onConfirmAddress={handleConfirmAddress}
-                      onEditPackage={handleEditPackage}
+                      onQuote={(pkg) => handleQuoteSubmit({}, pkg, 'user')}
+                      onConfirmAddress={handleAddressConfirmation}
+                      onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
                       viewMode="user"
                     />
                 ))}

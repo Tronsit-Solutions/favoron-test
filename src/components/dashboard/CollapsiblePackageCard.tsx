@@ -18,8 +18,6 @@ import { Package, UserType, DocumentType } from "@/types";
 
 interface CollapsiblePackageCardProps {
   pkg: Package;
-  packages: Package[];
-  setPackages: (packages: Package[]) => void;
   onQuote: (pkg: Package, userType: UserType) => void;
   onConfirmAddress: (pkg: Package) => void;
   onEditPackage?: (packageData: Package) => void;
@@ -28,8 +26,6 @@ interface CollapsiblePackageCardProps {
 
 const CollapsiblePackageCard = ({ 
   pkg, 
-  packages,
-  setPackages,
   onQuote, 
   onConfirmAddress,
   onEditPackage,
@@ -39,7 +35,7 @@ const CollapsiblePackageCard = ({
   const [showEditModal, setShowEditModal] = React.useState(false);
   
   const { getStatusBadge } = useStatusHelpers();
-  const { handleUploadDocument } = usePackageActions(packages, setPackages);
+  const { handleUploadDocument } = usePackageActions();
 
   // Determine if package needs action (for users)
   const needsAction = viewMode === 'user' && (
