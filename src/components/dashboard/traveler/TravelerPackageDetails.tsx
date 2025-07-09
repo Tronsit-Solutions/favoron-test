@@ -6,10 +6,10 @@ interface TravelerPackageDetailsProps {
 
 const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
   return (
-    <div className="bg-gradient-to-br from-info-muted to-info-muted/50 border border-info-border rounded-lg p-3">
+    <div className="bg-gradient-to-br from-traveler-muted to-traveler-muted/50 border border-traveler-border rounded-lg p-3">
       <div className="flex items-center space-x-2 mb-2">
-        <div className="flex-shrink-0 w-5 h-5 bg-info/10 rounded-full flex items-center justify-center">
-          <Package className="h-3 w-3 text-info" />
+        <div className="flex-shrink-0 w-5 h-5 bg-traveler/10 rounded-full flex items-center justify-center">
+          <Package className="h-3 w-3 text-traveler" />
         </div>
         <h3 className="text-sm font-medium text-foreground">Detalles del pedido</h3>
       </div>
