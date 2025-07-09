@@ -93,7 +93,7 @@ const HowItWorksSection = () => {
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-sm font-bold">5</div>
+              <div className="w-6 h-6 bg-traveler rounded-full flex items-center justify-center text-white text-sm font-bold">5</div>
               <div>
                 <h4 className="font-semibold">Entrega y gana</h4>
                 <p className="text-gray-600">Entregas el paquete en Guatemala y recibes tu pago</p>
