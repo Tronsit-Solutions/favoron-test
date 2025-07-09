@@ -43,11 +43,15 @@ const QuoteDialog = ({
 
   const handleSubmit = () => {
     console.log('🟡 QuoteDialog handleSubmit called with:', { price, serviceFee, existingQuote });
-    // Since there's only one type of user now, we need to determine context differently
-    // For now, if we have price/serviceFee fields, it's sending a quote
-    // If we just have a quote to accept, it's accepting
-    if (price || serviceFee) {
-      // Sending a quote
+    
+    // Correct logic: base decision on whether we have an existing quote
+    if (existingQuote) {
+      // We're viewing an existing quote - this means ACCEPTING it
+      console.log('🟢 QuoteDialog sending acceptance message');
+      onSubmit({ message: 'accepted' });
+    } else {
+      // We're creating a new quote - this means SENDING it
+      console.log('🔴 QuoteDialog sending new quote');
       const basePrice = parseFloat(price);
       const additionalFee = serviceFee ? parseFloat(serviceFee) : 0;
       const subtotal = basePrice + additionalFee;
@@ -60,10 +64,6 @@ const QuoteDialog = ({
         totalPrice: totalWithFee,
         message
       });
-    } else {
-      // Accepting a quote
-      console.log('🟢 QuoteDialog sending acceptance message');
-      onSubmit({ message: 'accepted' });
     }
   };
 
