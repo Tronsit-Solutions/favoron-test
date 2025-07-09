@@ -18,7 +18,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button size="lg" onClick={() => onOpenAuth("register")} className="text-lg px-8 py-3">
+        <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-lg px-8 py-3">
           <Package className="h-5 w-5 mr-2" />
           Solicitar Paquete
         </Button>
