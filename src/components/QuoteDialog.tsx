@@ -42,6 +42,7 @@ const QuoteDialog = ({
   const [showRejectionForm, setShowRejectionForm] = useState(false);
 
   const handleSubmit = () => {
+    console.log('🟡 QuoteDialog handleSubmit called with:', { price, serviceFee, existingQuote });
     // Since there's only one type of user now, we need to determine context differently
     // For now, if we have price/serviceFee fields, it's sending a quote
     // If we just have a quote to accept, it's accepting
@@ -61,6 +62,7 @@ const QuoteDialog = ({
       });
     } else {
       // Accepting a quote
+      console.log('🟢 QuoteDialog sending acceptance message');
       onSubmit({ message: 'accepted' });
     }
   };

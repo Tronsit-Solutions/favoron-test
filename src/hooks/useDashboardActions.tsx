@@ -112,6 +112,7 @@ export const useDashboardActions = (
   };
 
   const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user' | 'admin') => {
+    console.log('🔵 EXECUTING handleQuoteSubmit with:', { quoteData, selectedPackage: selectedPackage?.id, userType });
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
