@@ -70,15 +70,15 @@ const AdminMatchDialog = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
-                  <span className="font-medium text-gray-900 text-sm truncate max-w-[200px]">
-                    {selectedPackage.itemDescription}
-                  </span>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                    ${selectedPackage.estimatedPrice}
-                  </Badge>
-                  <Badge variant="outline" className="border-gray-300 text-xs">
-                    🎯 {selectedPackage.packageDestination || 'Guatemala'}
-                  </Badge>
+                   <span className="font-medium text-gray-900 text-sm truncate max-w-[200px]">
+                     {selectedPackage.item_description}
+                   </span>
+                   <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                     ${selectedPackage.estimated_price}
+                   </Badge>
+                   <Badge variant="outline" className="border-gray-300 text-xs">
+                     🎯 {selectedPackage.package_destination || 'Guatemala'}
+                   </Badge>
                 </div>
                 
                 {/* Expand Button */}
@@ -104,31 +104,31 @@ const AdminMatchDialog = ({
                         <User className="h-4 w-4 text-blue-600" />
                         <div>
                           <p className="text-xs text-blue-700">SHOPPER</p>
-                          <p className="font-medium text-sm text-blue-900">
-                            {selectedPackage.shopperName || `Usuario #${selectedPackage.userId || 'N/A'}`}
-                          </p>
+                           <p className="font-medium text-sm text-blue-900">
+                             {selectedPackage.shopperName || `Usuario #${selectedPackage.user_id || 'N/A'}`}
+                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4 text-blue-600" />
                         <div>
                           <p className="text-xs text-blue-700">ORIGEN DE COMPRA</p>
-                          <p className="font-medium text-sm text-blue-900">
-                            {selectedPackage.purchaseOrigin || 'No especificado'}
-                          </p>
+                           <p className="font-medium text-sm text-blue-900">
+                             {selectedPackage.purchase_origin || 'No especificado'}
+                           </p>
                         </div>
                       </div>
                     </div>
 
                     {/* Product Details */}
                     <div className="space-y-2">
-                      {selectedPackage.productLink && (
-                        <div className="flex items-center space-x-2">
-                          <Package className="h-4 w-4 text-blue-600" />
-                          <div className="flex-1">
-                            <p className="text-xs text-blue-700">ENLACE DEL PRODUCTO</p>
-                            <a 
-                              href={selectedPackage.productLink} 
+                       {selectedPackage.item_link && (
+                         <div className="flex items-center space-x-2">
+                           <Package className="h-4 w-4 text-blue-600" />
+                           <div className="flex-1">
+                             <p className="text-xs text-blue-700">ENLACE DEL PRODUCTO</p>
+                             <a 
+                               href={selectedPackage.item_link}
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="font-medium text-sm text-blue-600 hover:underline truncate block"
@@ -138,14 +138,14 @@ const AdminMatchDialog = ({
                           </div>
                         </div>
                       )}
-                      {selectedPackage.notes && (
-                        <div className="flex items-start space-x-2">
-                          <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-blue-700">NOTAS</p>
-                            <p className="font-medium text-sm text-blue-900">
-                              {selectedPackage.notes}
-                            </p>
+                       {selectedPackage.additional_notes && (
+                         <div className="flex items-start space-x-2">
+                           <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                           <div>
+                             <p className="text-xs text-blue-700">NOTAS</p>
+                             <p className="font-medium text-sm text-blue-900">
+                               {selectedPackage.additional_notes}
+                             </p>
                           </div>
                         </div>
                       )}
@@ -183,58 +183,58 @@ const AdminMatchDialog = ({
                        {/* Main Trip Info Row - More Compact */}
                        <div className="flex items-center justify-between">
                          <div className="flex items-center space-x-3 flex-1">
-                            {/* Traveler - Compact */}
-                            <div className="flex items-center space-x-2 min-w-[100px]">
-                              <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                                {trip.userId?.toString().slice(-2) || '00'}
-                              </div>
-                              <div>
-                                <p className="font-medium text-xs">Viajero #{trip.userId || 'N/A'}</p>
-                              </div>
-                            </div>
+                             {/* Traveler - Compact */}
+                             <div className="flex items-center space-x-2 min-w-[100px]">
+                               <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
+                                 {trip.user_id?.toString().slice(-2) || '00'}
+                               </div>
+                               <div>
+                                 <p className="font-medium text-xs">Viajero #{trip.user_id || 'N/A'}</p>
+                               </div>
+                             </div>
 
                            {/* Route - Compact */}
                            <div className="flex items-center space-x-2 flex-1 min-w-[180px]">
                              <MapPin className="h-3 w-3 text-gray-400" />
-                             <div className="flex items-center space-x-1">
-                               <span className="text-xs font-medium text-gray-700 truncate">
-                                 {trip.fromCity || 'No especificado'}
-                               </span>
-                               <span className="text-gray-400 text-xs">→</span>
-                               <span className="text-xs font-medium text-gray-900 truncate">
-                                 {trip.toCity}
-                               </span>
-                             </div>
+                              <div className="flex items-center space-x-1">
+                                <span className="text-xs font-medium text-gray-700 truncate">
+                                  {trip.from_city || 'No especificado'}
+                                </span>
+                                <span className="text-gray-400 text-xs">→</span>
+                                <span className="text-xs font-medium text-gray-900 truncate">
+                                  {trip.to_city}
+                                </span>
+                              </div>
                            </div>
 
                            {/* Key Dates - Compact */}
                            <div className="flex items-center space-x-3 min-w-[120px]">
                              <div className="text-center">
                                <p className="text-xs text-gray-500">LLEGADA</p>
-                               <p className="text-xs font-medium">
-                                 {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                               </p>
-                             </div>
-                             <div className="text-center">
-                               <p className="text-xs text-gray-500">ENTREGA</p>
-                               <p className="text-xs font-medium">
-                                 {trip.deliveryDate ? new Date(trip.deliveryDate).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                               </p>
+                                <p className="text-xs font-medium">
+                                  {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-gray-500">ENTREGA</p>
+                                <p className="text-xs font-medium">
+                                  {trip.delivery_date ? new Date(trip.delivery_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                </p>
                              </div>
                            </div>
 
                            {/* Delivery Method & Space - Compact */}
                            <div className="flex items-center space-x-2 min-w-[120px]">
-                             <Badge 
-                               variant="outline" 
-                               className={`text-xs h-5 ${trip.deliveryMethod === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
-                             >
-                               <Truck className="h-2 w-2 mr-1" />
-                               {trip.deliveryMethod === 'oficina' ? 'Oficina' : 'Mensajero'}
-                             </Badge>
-                             <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
-                               {trip.availableSpace}kg
-                             </Badge>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-xs h-5 ${trip.delivery_method === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
+                              >
+                                <Truck className="h-2 w-2 mr-1" />
+                                {trip.delivery_method === 'oficina' ? 'Oficina' : 'Mensajero'}
+                              </Badge>
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
+                                {trip.available_space}kg
+                              </Badge>
                            </div>
                          </div>
 
@@ -268,15 +268,15 @@ const AdminMatchDialog = ({
                                  <div className="space-y-1 text-xs">
                                    <div className="flex justify-between">
                                      <span className="text-blue-700">Primer día:</span>
-                                     <span className="font-medium text-blue-900">
-                                       {trip.firstDayPackages ? new Date(trip.firstDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                     </span>
-                                   </div>
-                                   <div className="flex justify-between">
-                                     <span className="text-blue-700">Último día:</span>
-                                     <span className="font-medium text-blue-900">
-                                       {trip.lastDayPackages ? new Date(trip.lastDayPackages).toLocaleDateString('es-GT') : 'No especificado'}
-                                     </span>
+                                      <span className="font-medium text-blue-900">
+                                        {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT') : 'No especificado'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Último día:</span>
+                                      <span className="font-medium text-blue-900">
+                                        {trip.last_day_packages ? new Date(trip.last_day_packages).toLocaleDateString('es-GT') : 'No especificado'}
+                                      </span>
                                    </div>
                                  </div>
                                </div>
@@ -286,8 +286,8 @@ const AdminMatchDialog = ({
                                  <div className="flex items-center space-x-2">
                                    <Calendar className="h-3 w-3 text-gray-400" />
                                    <div>
-                                     <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
-                                     <p className="font-medium text-xs">{trip.toCountry}</p>
+                                      <p className="text-xs text-gray-500">PAÍS DE DESTINO</p>
+                                      <p className="font-medium text-xs">{trip.to_country || 'Guatemala'}</p>
                                    </div>
                                  </div>
                                  <div className="flex items-center space-x-2">
@@ -322,7 +322,7 @@ const AdminMatchDialog = ({
             Confirmar Match
             {selectedTripId && (
               <span className="ml-2 text-xs opacity-75">
-                (Viajero #{availableTrips.find(t => t.id === selectedTripId)?.userId})
+                (Viajero #{availableTrips.find(t => t.id === selectedTripId)?.user_id})
               </span>
             )}
           </Button>
