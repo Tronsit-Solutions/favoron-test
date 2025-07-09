@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import AddressForm from "@/components/AddressForm";
 
 interface PackageRequestFormProps {
   isOpen: boolean;
@@ -37,6 +38,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     purchaseOriginOther: '',
     deliveryMethod: ''
   });
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressData, setAddressData] = useState(null);
 
   const destinationCities = [
     'Guatemala City',
@@ -75,11 +78,18 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       return;
     }
 
+    // Validar dirección si seleccionó delivery
+    if (formData.deliveryMethod === 'delivery' && !addressData) {
+      alert('Por favor completa la información de entrega a domicilio');
+      return;
+    }
+
     const submitData = {
       ...formData,
       products,
       packageDestination: finalDestination,
-      purchaseOrigin: finalOrigin
+      purchaseOrigin: finalOrigin,
+      deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null
     };
 
     onSubmit(submitData);
@@ -95,6 +105,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       purchaseOriginOther: '',
       deliveryMethod: ''
     });
+    setShowAddressForm(false);
+    setAddressData(null);
   };
 
   const addProduct = () => {
@@ -115,6 +127,26 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Mostrar formulario de dirección si selecciona delivery
+    if (field === 'deliveryMethod') {
+      if (value === 'delivery') {
+        setShowAddressForm(true);
+      } else {
+        setShowAddressForm(false);
+        setAddressData(null);
+      }
+    }
+  };
+
+  const handleAddressSubmit = (address: any) => {
+    setAddressData(address);
+    setShowAddressForm(false);
+  };
+
+  const handleAddressCancel = () => {
+    setShowAddressForm(false);
+    setFormData(prev => ({ ...prev, deliveryMethod: '' }));
   };
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
@@ -310,6 +342,33 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                   </Label>
                 </div>
               </RadioGroup>
+              
+              {/* Mostrar formulario de dirección si seleccionó delivery */}
+              {showAddressForm && (
+                <AddressForm
+                  onSubmit={handleAddressSubmit}
+                  onCancel={handleAddressCancel}
+                  initialData={addressData}
+                />
+              )}
+              
+              {/* Mostrar resumen de dirección si ya la completó */}
+              {formData.deliveryMethod === 'delivery' && addressData && !showAddressForm && (
+                <div className="bg-green-50 border border-green-200 rounded p-3">
+                  <p className="text-sm font-medium text-green-800 mb-1">✓ Dirección de entrega confirmada</p>
+                  <p className="text-xs text-green-700">{addressData.streetAddress}, {addressData.cityArea}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddressForm(true)}
+                    className="mt-2"
+                  >
+                    Editar dirección
+                  </Button>
+                </div>
+              )}
+              
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <p className="text-sm text-blue-800">
                   📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional entre Q25 y Q40 (solo válido en Ciudad de Guatemala y municipios cercanos).
