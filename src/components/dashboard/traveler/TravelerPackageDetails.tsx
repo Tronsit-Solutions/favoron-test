@@ -1,4 +1,7 @@
-import { Package } from "lucide-react";
+import { useState } from "react";
+import { Package, FileText, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 
 interface TravelerPackageDetailsProps {
@@ -6,17 +9,29 @@ interface TravelerPackageDetailsProps {
 }
 
 const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
+  const [showPackageDetails, setShowPackageDetails] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+
+  const getTotalProducts = () => {
+    if (pkg.products) return pkg.products.length;
+    return 1;
+  };
+
+  const getTotalValue = () => {
+    if (pkg.products) {
+      return pkg.products.reduce((sum: number, product: any) => 
+        sum + parseFloat(product.estimatedPrice || 0), 0
+      ).toFixed(2);
+    }
+    return pkg.estimated_price;
+  };
+
+  const hasDocuments = pkg.purchase_confirmation || pkg.tracking_info;
+
   return (
-    <div className="bg-gradient-to-br from-traveler-muted to-traveler-muted/50 border border-traveler-border rounded-lg p-3">
-      <div className="flex items-center space-x-2 mb-2">
-        <div className="flex-shrink-0 w-5 h-5 bg-traveler/10 rounded-full flex items-center justify-center">
-          <Package className="h-3 w-3 text-traveler" />
-        </div>
-        <h3 className="text-sm font-medium text-foreground">Detalles del pedido</h3>
-      </div>
-      
-      <div className="space-y-2">
-        {/* Origin and Destination */}
+    <div className="space-y-2">
+      {/* Basic Info */}
+      <div className="bg-gradient-to-br from-traveler-muted to-traveler-muted/50 border border-traveler-border rounded-lg p-3">
         <div className="grid grid-cols-2 gap-1.5">
           <div className="bg-card/50 border border-border/50 rounded p-1.5">
             <p className="text-xs text-muted-foreground">Origen</p>
@@ -28,53 +43,144 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
           </div>
         </div>
         
-        {/* Products section - Compact version */}
-        <div className="space-y-1">
-          <h4 className="text-xs font-medium text-foreground">Productos ({pkg.products ? pkg.products.length : 1})</h4>
-          <div className="space-y-1">
+        <div className="mt-2 bg-card/50 border border-border/50 rounded p-1.5">
+          <p className="text-xs text-muted-foreground">Resumen del pedido</p>
+          <p className="text-xs font-medium text-foreground">{getTotalProducts()} producto(s) • Total: ${getTotalValue()}</p>
+        </div>
+      </div>
+
+      {/* Expandable Package Details */}
+      <Collapsible open={showPackageDetails} onOpenChange={setShowPackageDetails}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full justify-between text-xs h-8">
+            <div className="flex items-center gap-2">
+              <Package className="h-3 w-3" />
+              Ver detalles de productos
+            </div>
+            {showPackageDetails ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="mt-2 bg-card border border-border rounded-lg p-3 space-y-2">
             {pkg.products ? pkg.products.map((product: any, index: number) => (
-              <div key={index} className="bg-card border border-border rounded p-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground truncate flex-1 mr-2">
-                    {product.itemDescription}
-                  </span>
-                  <span className="font-bold text-primary">${product.estimatedPrice}</span>
+              <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                <div className="flex items-start justify-between mb-1">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">
+                      Producto {index + 1}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
+                  </div>
                 </div>
+                {product.itemLink && (
+                  <a 
+                    href={product.itemLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Ver producto
+                  </a>
+                )}
               </div>
             )) : (
               // Fallback for old single-product format
-              <div className="bg-card border border-border rounded p-1.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground truncate flex-1 mr-2">
-                    {pkg.item_description}
-                  </span>
-                  <span className="font-bold text-primary">${pkg.estimated_price}</span>
+              <div className="bg-muted/30 border border-border/50 rounded p-2">
+                <div className="flex items-start justify-between mb-1">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">Producto</p>
+                    <p className="text-xs text-muted-foreground">{pkg.item_description}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-primary">${pkg.estimated_price}</p>
+                  </div>
                 </div>
+                {pkg.item_link && (
+                  <a 
+                    href={pkg.item_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Ver producto
+                  </a>
+                )}
+              </div>
+            )}
+            
+            {/* Additional notes */}
+            {pkg.additional_notes && (
+              <div className="bg-muted/30 border border-border/50 rounded p-2">
+                <p className="text-xs font-medium text-muted-foreground mb-0.5">Notas adicionales</p>
+                <p className="text-xs text-foreground">{pkg.additional_notes}</p>
               </div>
             )}
           </div>
-        </div>
+        </CollapsibleContent>
+      </Collapsible>
 
-        {/* Additional notes */}
-        {pkg.additional_notes && (
-          <div className="bg-card/30 border border-border/50 rounded p-1.5">
-            <p className="text-xs font-medium text-muted-foreground mb-0.5">Notas adicionales</p>
-            <p className="text-xs text-foreground">{pkg.additional_notes}</p>
-          </div>
-        )}
-
-        {/* Purchase confirmation */}
-        {pkg.purchase_confirmation && (
-          <div className="bg-card/30 border border-border/50 rounded p-1.5">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Comprobante de Compra</p>
-            <PurchaseConfirmationViewer 
-              purchaseConfirmation={pkg.purchase_confirmation} 
-              packageId={pkg.id}
-              className="scale-90 origin-top-left"
-            />
-          </div>
-        )}
-      </div>
+      {/* Expandable Documents Section */}
+      {hasDocuments && (
+        <Collapsible open={showDocuments} onOpenChange={setShowDocuments}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full justify-between text-xs h-8">
+              <div className="flex items-center gap-2">
+                <FileText className="h-3 w-3" />
+                Ver comprobantes y seguimiento
+              </div>
+              {showDocuments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <div className="mt-2 space-y-2">
+              {/* Purchase confirmation */}
+              {pkg.purchase_confirmation && (
+                <div className="bg-card border border-border rounded-lg p-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Comprobante de Compra</p>
+                  <PurchaseConfirmationViewer 
+                    purchaseConfirmation={pkg.purchase_confirmation} 
+                    packageId={pkg.id}
+                    className="scale-90 origin-top-left"
+                  />
+                </div>
+              )}
+              
+              {/* Tracking info */}
+              {pkg.tracking_info && (
+                <div className="bg-card border border-border rounded-lg p-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Información de Seguimiento</p>
+                  <div className="text-xs text-foreground">
+                    <p><strong>Número de seguimiento:</strong> {pkg.tracking_info.trackingNumber}</p>
+                    {pkg.tracking_info.trackingUrl && (
+                      <p>
+                        <strong>Enlace:</strong>{" "}
+                        <a 
+                          href={pkg.tracking_info.trackingUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-primary hover:underline"
+                        >
+                          Ver seguimiento
+                        </a>
+                      </p>
+                    )}
+                    {pkg.tracking_info.notes && (
+                      <p><strong>Notas:</strong> {pkg.tracking_info.notes}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 };

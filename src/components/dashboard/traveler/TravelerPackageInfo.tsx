@@ -1,4 +1,4 @@
-import { User, MapPin, DollarSign } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface TravelerPackageInfoProps {
   pkg: any;
@@ -6,62 +6,7 @@ interface TravelerPackageInfoProps {
 
 const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
   return (
-    <>
-      {/* Shopper information */}
-      <div className="bg-muted/30 border border-border rounded-lg p-2">
-        <div className="flex items-start space-x-1.5 mb-1">
-          <User className="h-3 w-3 text-muted-foreground mt-0.5" />
-          <p className="text-xs font-medium">Información del shopper:</p>
-        </div>
-        <div className="text-xs text-muted-foreground ml-4.5">
-          <p>Solicitante: Usuario #{pkg.user_id}</p>
-          <p>Creado el: {new Date(pkg.created_at).toLocaleDateString('es-GT')}</p>
-        </div>
-      </div>
-
-      {/* Show quote information if sent */}
-      {pkg.quote && (
-        <div className="bg-muted/30 border rounded-lg p-3 space-y-2">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4" />
-            <p className="text-sm font-medium">💰 Información de compensación</p>
-          </div>
-          
-          {/* Traveler compensation - most prominent */}
-          <div className="bg-background border rounded-md p-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-semibold">Tu ganancia:</p>
-                <p className="text-xl font-bold">
-                  ${parseFloat(pkg.quote.price || 0).toFixed(2)}
-                </p>
-              </div>
-              <div className="text-right text-xs text-muted-foreground">
-                <p>Por este Favorón</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Total price info - only show what traveler receives */}
-          <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-            <div className="flex justify-between">
-              <span>Tu compensación confirmada:</span>
-              <span className="font-medium text-green-600">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
-            </div>
-          </div>
-
-          {pkg.quote.message && (
-            <div className="border-t pt-2">
-              <p className="text-xs text-muted-foreground">Mensaje: "{pkg.quote.message}"</p>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            Estado: {pkg.status === 'quote_accepted' ? '✅ Aceptada' : '⏳ Esperando respuesta'}
-          </div>
-        </div>
-      )}
-
+    <div className="space-y-2">
       {/* Delivery address if confirmed */}
       {pkg.confirmed_delivery_address && (
         <div className="bg-muted/30 border rounded-lg p-2">
@@ -80,44 +25,46 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
         </div>
       )}
 
-      {/* Action buttons for travelers */}
-      <div className="flex flex-wrap gap-1">
-        {pkg.status === 'quote_sent' && (
-          <div className="text-xs text-muted-foreground">
-            Cotización enviada - Esperando respuesta del shopper
-          </div>
-        )}
-
-        {pkg.status === 'quote_accepted' && (
-          <div className="text-xs font-medium">
-            ✅ Cotización aceptada - Esperando confirmación de pago
-          </div>
-        )}
-
-        {pkg.status === 'payment_confirmed' && (
-          <div className="text-xs font-medium">
-            💳 Pago confirmado - Esperando que el shopper envíe el paquete
-          </div>
-        )}
-
-        {pkg.status === 'in_transit' && (
-          <div className="text-xs font-medium">
-            🚚 Paquete en tránsito - El shopper ya lo envió
-          </div>
-        )}
-
-        {pkg.status === 'received_by_traveler' && (
-          <div className="text-xs font-medium">
-          ✅ Paquete recibido y confirmado
-          {pkg.traveler_confirmation?.confirmedAt && (
-            <div className="text-xs text-muted-foreground mt-0.5">
-              Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+      {/* Status messages */}
+      <div className="bg-muted/30 border rounded-lg p-2">
+        <div className="text-xs">
+          {pkg.status === 'quote_sent' && (
+            <div className="text-muted-foreground">
+              Cotización enviada - Esperando respuesta del shopper
             </div>
           )}
-          </div>
-        )}
+
+          {pkg.status === 'quote_accepted' && (
+            <div className="font-medium text-green-600">
+              ✅ Cotización aceptada - Esperando confirmación de pago
+            </div>
+          )}
+
+          {pkg.status === 'payment_confirmed' && (
+            <div className="font-medium text-blue-600">
+              💳 Pago confirmado - Esperando que el shopper envíe el paquete
+            </div>
+          )}
+
+          {pkg.status === 'in_transit' && (
+            <div className="font-medium text-orange-600">
+              🚚 Paquete en tránsito - El shopper ya lo envió
+            </div>
+          )}
+
+          {pkg.status === 'received_by_traveler' && (
+            <div className="font-medium text-green-600">
+              ✅ Paquete recibido y confirmado
+              {pkg.traveler_confirmation?.confirmedAt && (
+                <div className="text-muted-foreground mt-0.5">
+                  Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
