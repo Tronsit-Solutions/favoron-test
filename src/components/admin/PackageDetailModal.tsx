@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
+import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 
 interface PackageDetailModalProps {
   package: any;
@@ -253,6 +254,14 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               paymentReceipt={pkg.payment_receipt} 
               packageId={pkg.id}
               quote={pkg.quote}
+            />
+          )}
+
+          {/* Purchase Confirmation Section */}
+          {pkg.purchase_confirmation && (
+            <PurchaseConfirmationViewer
+              purchaseConfirmation={pkg.purchase_confirmation}
+              packageId={pkg.id}
             />
           )}
 
