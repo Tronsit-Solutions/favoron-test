@@ -268,8 +268,8 @@ const CollapsiblePackageCard = ({
               <div className="space-y-4">
                 <PackageStatusTimeline currentStatus={pkg.status} />
                 
-                {/* Package Chat Timeline - Show for matched packages */}
-                {pkg.matched_trip_id && (
+                {/* Package Chat Timeline - Show only after payment confirmation */}
+                {pkg.matched_trip_id && ['payment_confirmed', 'in_transit', 'delivered'].includes(pkg.status) && (
                   <div className="mt-6">
                     <PackageTimeline pkg={pkg} />
                   </div>

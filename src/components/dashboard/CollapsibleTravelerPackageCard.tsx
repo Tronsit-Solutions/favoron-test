@@ -114,10 +114,12 @@ const CollapsibleTravelerPackageCard = ({
                 <TravelerPackageInfo pkg={pkg} />
               </div>
               
-              {/* Package Chat Timeline - Always show for matched packages */}
-              <div className="mt-6">
-                <PackageTimeline pkg={pkg} />
-              </div>
+              {/* Package Chat Timeline - Show only after payment confirmation */}
+              {['payment_confirmed', 'in_transit', 'delivered'].includes(pkg.status) && (
+                <div className="mt-6">
+                  <PackageTimeline pkg={pkg} />
+                </div>
+              )}
             </div>
           </CardContent>
         </CollapsibleContent>
