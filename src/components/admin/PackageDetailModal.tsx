@@ -249,9 +249,10 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
 
           {/* Payment Receipt Section */}
           {pkg.payment_receipt && (
-            <PaymentReceiptViewer
-              paymentReceipt={pkg.payment_receipt}
+            <PaymentReceiptViewer 
+              paymentReceipt={pkg.payment_receipt} 
               packageId={pkg.id}
+              quote={pkg.quote}
             />
           )}
 
