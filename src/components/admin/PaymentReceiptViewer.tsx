@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Download, Eye, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PaymentReceiptViewerProps {
   paymentReceipt?: {
@@ -31,14 +33,48 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className }: PaymentR
   const isImage = paymentReceipt.filename?.match(/\.(jpg|jpeg|png|gif)$/i);
   const isPDF = paymentReceipt.filename?.match(/\.pdf$/i);
 
-  const handleDownload = () => {
-    if (paymentReceipt.fileUrl) {
+  const handleDownload = async () => {
+    if (!paymentReceipt.fileUrl) return;
+
+    try {
+      // Extract the file path from the URL
+      const url = new URL(paymentReceipt.fileUrl);
+      const pathParts = url.pathname.split('/');
+      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+      
+      if (bucketIndex === -1) {
+        toast.error("Error en la URL del archivo");
+        return;
+      }
+      
+      const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+      // Download the file using Supabase client
+      const { data, error } = await supabase.storage
+        .from('payment-receipts')
+        .download(filePath);
+
+      if (error) {
+        console.error('Error downloading file:', error);
+        toast.error("Error al descargar el archivo");
+        return;
+      }
+
+      // Create a blob URL and download
+      const blob = new Blob([data], { type: data.type });
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = paymentReceipt.fileUrl;
+      link.href = blobUrl;
       link.download = paymentReceipt.filename || `comprobante_${packageId}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      
+      toast.success("Archivo descargado exitosamente");
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error("Error al descargar el archivo");
     }
   };
 
