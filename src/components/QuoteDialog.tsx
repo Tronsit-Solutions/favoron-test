@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Package, MapPin } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 interface QuoteDialogProps {
@@ -14,6 +14,7 @@ interface QuoteDialogProps {
   packageDetails: {
     item_description: string;
     estimated_price: number;
+    item_link?: string;
     deliveryAddress?: any;
   };
   userType: 'user' | 'admin';
@@ -101,9 +102,22 @@ const QuoteDialog = ({
               <Package className="h-4 w-4 text-primary mt-0.5" />
               <p className="text-sm font-medium text-primary">Detalles del Favorón:</p>
             </div>
-            <div className="text-sm ml-6">
+            <div className="text-sm ml-6 space-y-1">
               <p><strong>Producto:</strong> {packageDetails.item_description}</p>
               <p><strong>Precio estimado:</strong> ${packageDetails.estimated_price}</p>
+              {packageDetails.item_link && (
+                <div className="flex items-center gap-1">
+                  <ExternalLink className="h-3 w-3 text-primary" />
+                  <a 
+                    href={packageDetails.item_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-primary hover:underline text-sm"
+                  >
+                    Ver producto
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
