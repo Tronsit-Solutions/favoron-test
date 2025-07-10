@@ -9,6 +9,7 @@ import { Upload, FileText, Link, Package, CheckCircle, Loader2 } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePackageChat } from "@/hooks/usePackageChat";
 
 interface UploadDocumentsProps {
   packageId: string;
@@ -26,6 +27,7 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { sendMessage } = usePackageChat({ packageId });
 
   const handleTrackingUpload = () => {
     if (trackingNumber.trim()) {
@@ -106,6 +108,9 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
       });
       
       setConfirmationUploaded(true);
+      
+      // Send message to chat about the uploaded confirmation
+      await sendMessage(`📄 He subido la confirmación de compra: ${file.name}`, 'status_update');
       
       toast({
         title: "¡Comprobante subido!",
