@@ -12,6 +12,7 @@ import ShopperPackagePriorityActions from "@/components/dashboard/shopper/Shoppe
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
+import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
@@ -260,6 +261,7 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
+                <UploadedDocumentsRegistry pkg={pkg} className="mb-4" />
                 <ShopperPackageDetails pkg={pkg} />
                 <ShopperPackageInfo pkg={pkg} />
                 {renderActionButtons()}
