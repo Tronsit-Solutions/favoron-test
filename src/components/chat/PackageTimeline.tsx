@@ -168,9 +168,11 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
                     </div>
                     
                     <div className={`p-3 rounded-lg ${
-                      message.user_id === user?.id 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-muted border border-border'
+                      role === 'shopper'
+                        ? 'bg-blue-50 border border-blue-200 ml-0' 
+                        : role === 'traveler'
+                        ? 'bg-cyan-50 border border-cyan-200 mr-0'
+                        : 'bg-purple-50 border border-purple-200'
                     }`}>
                       <div className="flex items-start gap-2">
                         {renderMessageIcon(message.message_type)}
