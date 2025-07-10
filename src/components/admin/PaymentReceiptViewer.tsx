@@ -10,6 +10,7 @@ interface PaymentReceiptViewerProps {
   paymentReceipt?: {
     filename?: string;
     fileUrl?: string;
+    filePath?: string;
     uploadedAt?: string;
   };
   packageId: string;
@@ -30,23 +31,29 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
   // Generate signed URL for private files
   useEffect(() => {
     const getSignedUrl = async () => {
-      if (!paymentReceipt?.fileUrl) return;
+      const filePath = paymentReceipt?.filePath || paymentReceipt?.fileUrl;
+      if (!filePath) return;
 
       try {
         setLoading(true);
-        // Extract the file path from the URL
-        const url = new URL(paymentReceipt.fileUrl);
-        const pathParts = url.pathname.split('/');
-        const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
         
-        if (bucketIndex === -1) return;
+        let actualFilePath = filePath;
         
-        const filePath = pathParts.slice(bucketIndex + 1).join('/');
+        // If it's a full URL, extract the file path
+        if (filePath.startsWith('http')) {
+          const url = new URL(filePath);
+          const pathParts = url.pathname.split('/');
+          const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+          
+          if (bucketIndex === -1) return;
+          
+          actualFilePath = pathParts.slice(bucketIndex + 1).join('/');
+        }
 
         // Create signed URL for viewing (valid for 1 hour)
         const { data, error } = await supabase.storage
           .from('payment-receipts')
-          .createSignedUrl(filePath, 3600);
+          .createSignedUrl(actualFilePath, 3600);
 
         if (!error && data.signedUrl) {
           setSignedUrl(data.signedUrl);
@@ -59,9 +66,9 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
     };
 
     getSignedUrl();
-  }, [paymentReceipt?.fileUrl]);
+  }, [paymentReceipt?.filePath, paymentReceipt?.fileUrl]);
 
-  if (!paymentReceipt?.fileUrl) {
+  if (!paymentReceipt?.filePath && !paymentReceipt?.fileUrl) {
     return (
       <Card className={`border-gray-200 bg-gray-50 ${className}`}>
         <CardContent className="p-4 text-center">
@@ -76,25 +83,30 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
   const isPDF = paymentReceipt.filename?.match(/\.pdf$/i);
 
   const handleDownload = async () => {
-    if (!paymentReceipt.fileUrl) return;
+    const filePath = paymentReceipt.filePath || paymentReceipt.fileUrl;
+    if (!filePath) return;
 
     try {
-      // Extract the file path from the URL
-      const url = new URL(paymentReceipt.fileUrl);
-      const pathParts = url.pathname.split('/');
-      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+      let actualFilePath = filePath;
       
-      if (bucketIndex === -1) {
-        toast.error("Error en la URL del archivo");
-        return;
+      // If it's a full URL, extract the file path
+      if (filePath.startsWith('http')) {
+        const url = new URL(filePath);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+        
+        if (bucketIndex === -1) {
+          toast.error("Error en la URL del archivo");
+          return;
+        }
+        
+        actualFilePath = pathParts.slice(bucketIndex + 1).join('/');
       }
-      
-      const filePath = pathParts.slice(bucketIndex + 1).join('/');
 
       // Download the file using Supabase client
       const { data, error } = await supabase.storage
         .from('payment-receipts')
-        .download(filePath);
+        .download(actualFilePath);
 
       if (error) {
         console.error('Error downloading file:', error);

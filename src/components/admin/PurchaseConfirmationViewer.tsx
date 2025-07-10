@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +24,13 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const { toast } = useToast();
 
   const isImage = purchaseConfirmation.filename?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
+
+  // Auto-generate signed URL on mount
+  useEffect(() => {
+    if (!signedUrl) {
+      generateSignedUrl();
+    }
+  }, [signedUrl]);
 
   const generateSignedUrl = async () => {
     if (signedUrl) return signedUrl;
@@ -121,13 +128,18 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
             {/* Preview thumbnail for images */}
             {isImage && (
               <div className="mt-3">
-                <img 
-                  src={signedUrl || ''} 
-                  alt="Vista previa del comprobante"
-                  className="max-w-32 max-h-32 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={handleView}
-                  onLoad={() => generateSignedUrl()}
-                />
+                {signedUrl ? (
+                  <img 
+                    src={signedUrl} 
+                    alt="Vista previa del comprobante"
+                    className="max-w-32 max-h-32 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={handleView}
+                  />
+                ) : (
+                  <div className="w-32 h-32 bg-gray-200 rounded border flex items-center justify-center">
+                    <p className="text-gray-500 text-sm">Cargando...</p>
+                  </div>
+                )}
               </div>
             )}
 
