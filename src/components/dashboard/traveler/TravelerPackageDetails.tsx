@@ -28,54 +28,28 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
           </div>
         </div>
         
-        {/* Products section */}
-        <div className="space-y-1.5">
-          <h4 className="text-xs font-medium text-foreground">Productos solicitados</h4>
-          <div className="space-y-1.5">
+        {/* Products section - Compact version */}
+        <div className="space-y-1">
+          <h4 className="text-xs font-medium text-foreground">Productos ({pkg.products ? pkg.products.length : 1})</h4>
+          <div className="space-y-1">
             {pkg.products ? pkg.products.map((product: any, index: number) => (
-              <div key={index} className="bg-card border border-border rounded p-2">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-foreground">
-                      Producto {index + 1}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
-                  </div>
+              <div key={index} className="bg-card border border-border rounded p-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground truncate flex-1 mr-2">
+                    {product.itemDescription}
+                  </span>
+                  <span className="font-bold text-primary">${product.estimatedPrice}</span>
                 </div>
-                <a 
-                  href={product.itemLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-xs text-primary hover:underline"
-                >
-                  Ver producto →
-                </a>
               </div>
             )) : (
               // Fallback for old single-product format
-              <div className="bg-card border border-border rounded p-2">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-foreground">Producto</p>
-                    <p className="text-xs text-muted-foreground">{pkg.item_description}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-primary">${pkg.estimated_price}</p>
-                  </div>
+              <div className="bg-card border border-border rounded p-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground truncate flex-1 mr-2">
+                    {pkg.item_description}
+                  </span>
+                  <span className="font-bold text-primary">${pkg.estimated_price}</span>
                 </div>
-                {pkg.item_link && (
-                  <a 
-                    href={pkg.item_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Ver producto →
-                  </a>
-                )}
               </div>
             )}
           </div>
