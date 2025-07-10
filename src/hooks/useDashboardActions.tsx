@@ -513,10 +513,22 @@ export const useDashboardActions = (
         }
       });
       
+      // Find the package to get user info
+      const updatedPackage = packages?.find(pkg => pkg.id === packageId);
+      
       toast({
         title: "¡Entregado en oficina!",
         description: "Paquete confirmado como entregado en oficina Favorón.",
       });
+
+      // Send notification to shopper
+      if (updatedPackage) {
+        toast({
+          title: "🏢 Notificación para el shopper",
+          description: `Se ha notificado al shopper que su paquete "${updatedPackage.item_description}" está listo para recoger en la oficina de Favorón.`,
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error('Error confirming office reception:', error);
       toast({
