@@ -43,62 +43,60 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <p>
-              <strong>Fecha de entrega:</strong> {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
-            </p>
-            <p>
-              <strong>Primer día paquetes:</strong> {new Date(trip.first_day_packages).toLocaleDateString('es-GT')}
-            </p>
-            <p>
-              <strong>Último día paquetes:</strong> {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
-            </p>
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Entrega:</span>
+              <span>{new Date(trip.delivery_date).toLocaleDateString('es-GT')}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Paquetes:</span>
+              <span>{new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}</span>
+            </div>
           </div>
 
           {/* Display package receiving address */}
           {trip.package_receiving_address && (
-            <div className="bg-muted/50 border rounded-lg p-3">
-              <div className="flex items-start space-x-2 mb-2">
-                <Home className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <p className="text-sm font-medium">Dirección para recibir paquetes:</p>
+            <div className="bg-muted/30 border rounded p-2">
+              <div className="flex items-center space-x-1 mb-1">
+                <Home className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs font-medium">Dirección:</span>
               </div>
-              <div className="text-sm text-muted-foreground ml-6">
-                <p><strong>{trip.package_receiving_address.recipientName}</strong></p>
-                <p>{trip.package_receiving_address.accommodationType}</p>
-                <p>{trip.package_receiving_address.streetAddress}</p>
-                <p>{trip.package_receiving_address.cityArea}</p>
-                {trip.package_receiving_address.postalCode && (
-                  <p>CP: {trip.package_receiving_address.postalCode}</p>
-                )}
-                {trip.package_receiving_address.hotelAirbnbName && (
-                  <p>{trip.package_receiving_address.hotelAirbnbName}</p>
-                )}
-                <div className="flex items-center space-x-1 mt-1">
-                  <Phone className="h-3 w-3" />
-                  <span>{trip.package_receiving_address.contactNumber}</span>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                <div className="font-medium">{trip.package_receiving_address.recipientName}</div>
+                <div>{trip.package_receiving_address.streetAddress}</div>
+                <div className="flex items-center justify-between">
+                  <span>{trip.package_receiving_address.cityArea} {trip.package_receiving_address.postalCode && `CP: ${trip.package_receiving_address.postalCode}`}</span>
+                  <div className="flex items-center space-x-1">
+                    <Phone className="h-3 w-3" />
+                    <span>{trip.package_receiving_address.contactNumber}</span>
+                  </div>
                 </div>
+                {trip.package_receiving_address.hotelAirbnbName && (
+                  <div className="text-xs italic">{trip.package_receiving_address.hotelAirbnbName}</div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Edit button for early stage trips */}
-          {canEdit && onEditTrip && (
-            <div className="flex justify-end mt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+            </span>
+            
+            {/* Edit button for early stage trips */}
+            {canEdit && onEditTrip && (
               <Button 
                 size="sm"
                 variant="outline"
                 onClick={() => setShowEditModal(true)}
+                className="h-6 px-2"
               >
-                <Edit className="h-4 w-4 mr-1" />
-                Editar viaje
+                <Edit className="h-3 w-3 mr-1" />
+                <span className="text-xs">Editar</span>
               </Button>
-            </div>
-          )}
-
-          <p className="text-xs text-muted-foreground">
-            Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-          </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
