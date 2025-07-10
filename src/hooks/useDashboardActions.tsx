@@ -1,4 +1,5 @@
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useDashboardActions = (
   packages: any[],
@@ -290,6 +291,26 @@ export const useDashboardActions = (
 
       // Update package in Supabase
       await updatePackage(packageId, updatedData);
+
+      // Create automatic message in chat for document uploads
+      if (type === 'confirmation' || type === 'tracking') {
+        try {
+          const messageContent = type === 'confirmation' 
+            ? '📄 Comprobante de compra subido correctamente'
+            : '📦 Información de seguimiento actualizada';
+            
+          await supabase
+            .from('package_messages')
+            .insert({
+              package_id: packageId,
+              user_id: currentUser?.id,
+              message_type: 'status_update',
+              content: messageContent
+            });
+        } catch (error) {
+          console.error('Error creating chat message:', error);
+        }
+      }
 
       const messages = {
         payment_receipt: {
