@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import PaymentReceiptViewer from "./PaymentReceiptViewer";
 
 interface PackageDetailModalProps {
   package: any;
@@ -245,6 +246,14 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               </div>
             </CardContent>
           </Card>
+
+          {/* Payment Receipt Section */}
+          {pkg.payment_receipt && (
+            <PaymentReceiptViewer
+              paymentReceipt={pkg.payment_receipt}
+              packageId={pkg.id}
+            />
+          )}
 
           {/* Rejection Information */}
           {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, DollarSign, Edit, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentUploadProps {
   packageId: string;
@@ -17,6 +18,7 @@ interface PaymentUploadProps {
 const PaymentUpload = ({ packageId, onUpload, currentPaymentReceipt, isPaymentApproved = false }: PaymentUploadProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState(!currentPaymentReceipt);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,10 +37,48 @@ const PaymentUpload = ({ packageId, onUpload, currentPaymentReceipt, isPaymentAp
     }
   };
 
-  const handleUpload = () => {
-    if (selectedFile) {
+  const handleUpload = async () => {
+    setIsUploading(true);
+    
+    try {
+      let fileUrl = null;
+      let filename = null;
+      
+      if (selectedFile) {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("Usuario no autenticado");
+        }
+
+        // Create unique filename with user ID and timestamp
+        const fileExtension = selectedFile.name.split('.').pop();
+        const uniqueFilename = `${user.id}/${packageId}_${Date.now()}.${fileExtension}`;
+        
+        // Upload file to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('payment-receipts')
+          .upload(uniqueFilename, selectedFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        // Get public URL for the uploaded file
+        const { data: urlData } = supabase.storage
+          .from('payment-receipts')
+          .getPublicUrl(uniqueFilename);
+
+        fileUrl = urlData.publicUrl;
+        filename = selectedFile.name;
+      }
+
       const paymentData = {
-        filename: selectedFile.name,
+        filename: filename,
+        fileUrl: fileUrl,
         uploadedAt: new Date().toISOString(),
         type: 'payment_receipt'
       };
@@ -52,22 +92,15 @@ const PaymentUpload = ({ packageId, onUpload, currentPaymentReceipt, isPaymentAp
       
       setSelectedFile(null);
       setIsEditing(false);
-    } else {
-      // Allow submitting without file (optional)
-      const paymentData = {
-        filename: null,
-        uploadedAt: new Date().toISOString(),
-        type: 'payment_receipt'
-      };
-      
-      onUpload(paymentData);
-      
+    } catch (error) {
+      console.error('Error uploading file:', error);
       toast({
-        title: "¡Pago registrado!",
-        description: "Tu pago ha sido registrado para revisión.",
+        title: "Error al subir archivo",
+        description: "No se pudo subir el comprobante. Inténtalo de nuevo.",
+        variant: "destructive",
       });
-      
-      setIsEditing(false);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -140,11 +173,13 @@ const PaymentUpload = ({ packageId, onUpload, currentPaymentReceipt, isPaymentAp
             </div>
             
             <div className="flex gap-2">
-              <Button onClick={handleUpload} className="flex-1">
+              <Button onClick={handleUpload} className="flex-1" disabled={isUploading}>
                 <FileText className="h-4 w-4 mr-2" />
-                {currentPaymentReceipt 
-                  ? (selectedFile ? 'Actualizar Comprobante' : 'Confirmar sin archivo') 
-                  : (selectedFile ? 'Subir Comprobante' : 'Confirmar Pago (sin comprobante)')
+                {isUploading 
+                  ? 'Subiendo...'
+                  : currentPaymentReceipt 
+                    ? (selectedFile ? 'Actualizar Comprobante' : 'Confirmar sin archivo') 
+                    : (selectedFile ? 'Subir Comprobante' : 'Confirmar Pago (sin comprobante)')
                 }
               </Button>
               {currentPaymentReceipt && (
