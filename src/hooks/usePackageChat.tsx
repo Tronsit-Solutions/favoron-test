@@ -20,7 +20,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         .from('package_messages')
         .select(`
           *,
-          user_profile:profiles!package_messages_user_id_fkey (
+          user_profile:profiles!user_id (
             first_name,
             last_name,
             username
