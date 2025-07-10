@@ -11,6 +11,7 @@ interface PurchaseConfirmationViewerProps {
     filename: string;
     uploadedAt: string;
     type?: string;
+    filePath?: string;
   };
   packageId: string;
   className?: string;
@@ -29,7 +30,19 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     
     setLoading(true);
     try {
-      const filePath = `${packageId}/${purchaseConfirmation.filename}`;
+      // Determine the correct file path
+      let filePath: string;
+      
+      if ('filePath' in purchaseConfirmation && purchaseConfirmation.filePath) {
+        // New format: has filePath
+        filePath = purchaseConfirmation.filePath;
+      } else {
+        // Old format: construct path with packageId
+        filePath = `${packageId}/${purchaseConfirmation.filename}`;
+      }
+
+      console.log('Attempting to access file at path:', filePath);
+      
       const { data, error } = await supabase.storage
         .from('payment-receipts')
         .createSignedUrl(filePath, 3600); // 1 hour expiry
