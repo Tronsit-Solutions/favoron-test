@@ -129,6 +129,36 @@ export const usePackagesData = () => {
 
   useEffect(() => {
     fetchPackages();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('packages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'packages'
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setPackages(prev => [payload.new as Package, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setPackages(prev => prev.map(pkg => 
+              pkg.id === payload.new.id ? { ...pkg, ...payload.new } : pkg
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setPackages(prev => prev.filter(pkg => pkg.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

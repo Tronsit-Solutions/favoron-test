@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
+import { useRealtimePackages } from "@/hooks/useRealtimePackages";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 import AdminStatsOverview from "./admin/AdminStatsOverview";
@@ -129,6 +130,11 @@ const AdminDashboard = ({
   const pendingActions = usePendingActions(packages, trips, currentUser);
   const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
+  
+  // Set up real-time notifications for document uploads
+  useRealtimePackages({
+    userRole: 'admin'
+  });
   
 
   return (

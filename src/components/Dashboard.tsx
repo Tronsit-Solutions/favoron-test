@@ -18,6 +18,7 @@ import EmptyState from "./dashboard/EmptyState";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
+import { useRealtimePackages } from "@/hooks/useRealtimePackages";
 import UserManagement from "./admin/UserManagement";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
@@ -101,6 +102,22 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
 
+  const isAdmin = currentUser.role === 'admin';
+  
+  // Filter packages and trips for current user
+  const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
+  const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
+  
+  // Get packages assigned to user's trips (for traveler view)
+  const assignedPackages = packages.filter(pkg => 
+    userTrips.some(trip => trip.id === pkg.matched_trip_id)
+  );
+
+  // Set up real-time notifications based on user context
+  useRealtimePackages({
+    userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')
+  });
+
   const handleUpdateUser = (userData: any) => {
     setCurrentUser(userData);
   };
@@ -125,8 +142,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const isAdmin = currentUser.role === 'admin';
-
   const handleLoadTestData = async () => {
     // Remove test data functions since we're using real database
     console.log('Test data loading not needed with real database');
@@ -141,15 +156,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     // Remove test trip function since we're using real database
     console.log('Test trip loading not needed with real database');
   };
-
-  // Filter packages and trips for current user
-  const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
-  const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
-  
-  // Get packages assigned to user's trips (for traveler view)
-  const assignedPackages = packages.filter(pkg => 
-    userTrips.some(trip => trip.id === pkg.matched_trip_id)
-  );
 
   if (showProfile) {
     return (
