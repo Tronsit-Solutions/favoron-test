@@ -42,19 +42,11 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
             </div>
           </div>
 
-          {/* Total price breakdown */}
+          {/* Total price info - only show what traveler receives */}
           <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
             <div className="flex justify-between">
-              <span>Total que paga el shopper:</span>
-              <span className="font-medium">${parseFloat(pkg.quote.totalPrice || 0).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tu compensación:</span>
-              <span className="font-medium">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Servicio Favorón + Seguro:</span>
-              <span className="font-medium">${(parseFloat(pkg.quote.totalPrice || 0) - parseFloat(pkg.quote.price || 0)).toFixed(2)}</span>
+              <span>Tu compensación confirmada:</span>
+              <span className="font-medium text-green-600">${parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
             </div>
           </div>
 
