@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,42 @@ interface PaymentReceiptViewerProps {
 
 const PaymentReceiptViewer = ({ paymentReceipt, packageId, className }: PaymentReceiptViewerProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Generate signed URL for private files
+  useEffect(() => {
+    const getSignedUrl = async () => {
+      if (!paymentReceipt?.fileUrl) return;
+
+      try {
+        setLoading(true);
+        // Extract the file path from the URL
+        const url = new URL(paymentReceipt.fileUrl);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+        
+        if (bucketIndex === -1) return;
+        
+        const filePath = pathParts.slice(bucketIndex + 1).join('/');
+
+        // Create signed URL for viewing (valid for 1 hour)
+        const { data, error } = await supabase.storage
+          .from('payment-receipts')
+          .createSignedUrl(filePath, 3600);
+
+        if (!error && data.signedUrl) {
+          setSignedUrl(data.signedUrl);
+        }
+      } catch (error) {
+        console.error('Error creating signed URL:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSignedUrl();
+  }, [paymentReceipt?.fileUrl]);
 
   if (!paymentReceipt?.fileUrl) {
     return (
@@ -99,12 +135,22 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className }: PaymentR
           {/* Preview thumbnail for images */}
           {isImage && (
             <div className="mb-3">
-              <img 
-                src={paymentReceipt.fileUrl} 
-                alt="Comprobante de pago"
-                className="w-full h-32 object-cover rounded border cursor-pointer"
-                onClick={() => setShowModal(true)}
-              />
+              {loading ? (
+                <div className="w-full h-32 bg-gray-200 rounded border flex items-center justify-center">
+                  <p className="text-gray-500 text-sm">Cargando imagen...</p>
+                </div>
+              ) : signedUrl ? (
+                <img 
+                  src={signedUrl} 
+                  alt="Comprobante de pago"
+                  className="w-full h-32 object-cover rounded border cursor-pointer"
+                  onClick={() => setShowModal(true)}
+                />
+              ) : (
+                <div className="w-full h-32 bg-gray-200 rounded border flex items-center justify-center">
+                  <p className="text-gray-500 text-sm">Error al cargar imagen</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -145,11 +191,18 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className }: PaymentR
           
           <div className="mt-4">
             {isImage ? (
-              <img 
-                src={paymentReceipt.fileUrl} 
-                alt="Comprobante de pago"
-                className="w-full h-auto max-h-[70vh] object-contain rounded border"
-              />
+              signedUrl ? (
+                <img 
+                  src={signedUrl} 
+                  alt="Comprobante de pago"
+                  className="w-full h-auto max-h-[70vh] object-contain rounded border"
+                />
+              ) : (
+                <div className="bg-gray-100 p-8 text-center rounded">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+                  <p className="text-gray-700 mb-4">Cargando imagen...</p>
+                </div>
+              )
             ) : isPDF ? (
               <div className="bg-gray-100 p-8 text-center rounded">
                 <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
