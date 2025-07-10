@@ -29,7 +29,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
           <div className="space-y-4">
             {/* Primero mostrar paquetes */}
             {packages
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .slice(0, 3)
               .map((item) => (
                 <div key={`package-${item.id}`} className="flex items-center justify-between p-4 border rounded-lg">
@@ -37,10 +37,10 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
                     <Package className="h-5 w-5 text-primary" />
                     <div>
                       <p className="font-medium">
-                        Paquete: {item.itemDescription || (item.products?.[0]?.itemDescription) || 'Sin descripción'}
+                        Paquete: {item.item_description || 'Sin descripción'}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(item.createdAt).toLocaleDateString('es-GT')}
+                        {new Date(item.created_at).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
@@ -50,7 +50,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
             
             {/* Luego mostrar viajes */}
             {trips
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .slice(0, 2)
               .map((item) => (
                 <div key={`trip-${item.id}`} className="flex items-center justify-between p-4 border rounded-lg">
@@ -58,10 +58,10 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
                     <Plane className="h-5 w-5 text-traveler" />
                     <div>
                       <p className="font-medium">
-                        Viaje: {item.fromCity || 'Origen'} → {item.toCity || 'Destino'}
+                        Viaje: {item.from_city || 'Origen'} → {item.to_city || 'Destino'}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(item.createdAt).toLocaleDateString('es-GT')}
+                        {new Date(item.created_at).toLocaleDateString('es-GT')}
                       </p>
                     </div>
                   </div>
