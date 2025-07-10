@@ -49,7 +49,8 @@ export const usePackagesData = () => {
 
       if (error) throw error;
       
-      setPackages(prev => [data, ...prev]);
+      // Don't manually update state here - let real-time subscription handle it
+      // This prevents duplicate entries
       toast({
         title: "¡Éxito!",
         description: "Paquete creado correctamente",
