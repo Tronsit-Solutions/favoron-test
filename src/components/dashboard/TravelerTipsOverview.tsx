@@ -61,21 +61,21 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
     : trips.find(t => t.id === parseInt(selectedTripFilter))?.fromCity + " → " + trips.find(t => t.id === parseInt(selectedTripFilter))?.toCity;
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-3">
+    <Card className="mb-4">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            💰 Resumen de Compensaciones
+          <CardTitle className="flex items-center gap-2 text-base">
+            <DollarSign className="h-4 w-4" />
+            💰 Compensaciones
           </CardTitle>
           
           {/* Trip Filter */}
           {Object.keys(packagesByTrip).length > 1 && (
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1">
+              <Filter className="h-3 w-3 text-muted-foreground" />
               <Select value={selectedTripFilter} onValueChange={setSelectedTripFilter}>
-                <SelectTrigger className="w-[200px] h-8">
-                  <SelectValue placeholder="Filtrar por viaje" />
+                <SelectTrigger className="w-[160px] h-7 text-xs">
+                  <SelectValue placeholder="Filtrar viaje" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los viajes</SelectItem>
@@ -91,46 +91,46 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
         </div>
         
         {selectedTripFilter !== "all" && (
-          <p className="text-sm text-muted-foreground">
-            Mostrando datos de: {selectedTripName}
+          <p className="text-xs text-muted-foreground">
+            {selectedTripName}
           </p>
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-2 md:grid-cols-3">
           {/* Total Tips */}
-          <div className="text-center p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4" />
-              <p className="text-sm font-medium">Total Ganado</p>
+          <div className="text-center p-3 bg-muted/30 rounded border">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <TrendingUp className="h-3 w-3" />
+              <p className="text-xs font-medium">Total Ganado</p>
             </div>
-            <p className="text-2xl font-bold">${totalTips.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {packagesWithTips} paquete{packagesWithTips !== 1 ? 's' : ''} confirmado{packagesWithTips !== 1 ? 's' : ''}
+            <p className="text-lg font-bold">${totalTips.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">
+              {packagesWithTips} confirmado{packagesWithTips !== 1 ? 's' : ''}
             </p>
           </div>
 
           {/* Packages Count */}
-          <div className="text-center p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Package className="h-4 w-4" />
-              <p className="text-sm font-medium">Paquetes Activos</p>
+          <div className="text-center p-3 bg-muted/30 rounded border">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Package className="h-3 w-3" />
+              <p className="text-xs font-medium">Activos</p>
             </div>
-            <p className="text-2xl font-bold">{filteredPackages.length}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {selectedTripFilter === "all" ? "Total de todos los viajes" : "En este viaje"}
+            <p className="text-lg font-bold">{filteredPackages.length}</p>
+            <p className="text-xs text-muted-foreground">
+              {selectedTripFilter === "all" ? "todos los viajes" : "este viaje"}
             </p>
           </div>
 
           {/* Opportunities */}
-          <div className="text-center p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <DollarSign className="h-4 w-4" />
-              <p className="text-sm font-medium">Oportunidades</p>
+          <div className="text-center p-3 bg-muted/30 rounded border">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <DollarSign className="h-3 w-3" />
+              <p className="text-xs font-medium">Oportunidades</p>
             </div>
-            <p className="text-2xl font-bold">{pendingQuotes}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Paquete{pendingQuotes !== 1 ? 's' : ''} esperando cotización
+            <p className="text-lg font-bold">{pendingQuotes}</p>
+            <p className="text-xs text-muted-foreground">
+              esperando cotización
             </p>
           </div>
         </div>
