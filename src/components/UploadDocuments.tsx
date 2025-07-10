@@ -1,12 +1,14 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileText, Link, Package, CheckCircle } from "lucide-react";
+import { Upload, FileText, Link, Package, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UploadDocumentsProps {
   packageId: string;
@@ -20,7 +22,10 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
   const [notes, setNotes] = useState("");
   const [confirmationUploaded, setConfirmationUploaded] = useState(false);
   const [trackingUploaded, setTrackingUploaded] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleTrackingUpload = () => {
     if (trackingNumber.trim()) {
@@ -44,20 +49,87 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
     }
   };
 
-  const handleFileUpload = (type: 'confirmation') => {
-    // Simulate file upload
-    onUpload(type, {
-      filename: `purchase_confirmation_${packageId}.pdf`,
-      uploadedAt: new Date().toISOString(),
-      type: type
-    });
-    
-    setConfirmationUploaded(true);
-    
-    toast({
-      title: "¡Comprobante subido!",
-      description: "La confirmación de compra se ha guardado correctamente.",
-    });
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Formato no válido",
+        description: "Solo se permiten archivos JPG, PNG, GIF, WebP o PDF",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo debe ser menor a 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Generate unique filename
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${packageId}_${Date.now()}.${fileExtension}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('payment-receipts')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        toast({
+          title: "Error al subir archivo",
+          description: "No se pudo subir el archivo. Intenta de nuevo.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call onUpload with file information
+      onUpload('confirmation', {
+        filename: file.name,
+        uploadedAt: new Date().toISOString(),
+        type: 'confirmation',
+        filePath: filePath
+      });
+      
+      setConfirmationUploaded(true);
+      
+      toast({
+        title: "¡Comprobante subido!",
+        description: "La confirmación de compra se ha guardado correctamente.",
+      });
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Error inesperado",
+        description: "Ocurrió un error al subir el archivo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   // Only show for payment_confirmed status
@@ -93,21 +165,38 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
             </div>
           ) : (
             <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*,.pdf"
+                className="hidden"
+              />
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                 <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground mb-4">
                   Arrastra tu confirmación de compra aquí o haz clic para seleccionar
                 </p>
                 <Button 
-                  onClick={() => handleFileUpload('confirmation')}
+                  onClick={handleUploadClick}
                   className="w-full"
+                  disabled={uploading}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Subir Confirmación de Compra
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Subir Confirmación de Compra
+                    </>
+                  )}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Formatos permitidos: PDF, JPG, PNG. Máximo 5MB.
+                Formatos permitidos: PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
               </p>
             </>
           )}
