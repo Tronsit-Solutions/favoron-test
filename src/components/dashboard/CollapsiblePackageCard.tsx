@@ -11,6 +11,7 @@ import EditPackageModal from "@/components/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
+import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
@@ -266,6 +267,13 @@ const CollapsiblePackageCard = ({
 
               <div className="space-y-4">
                 <PackageStatusTimeline currentStatus={pkg.status} />
+                
+                {/* Package Chat Timeline - Show for matched packages */}
+                {pkg.matched_trip_id && (
+                  <div className="mt-6">
+                    <PackageTimeline pkg={pkg} />
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

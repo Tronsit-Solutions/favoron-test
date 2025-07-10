@@ -8,6 +8,7 @@ import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityActions";
 import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
+import { PackageTimeline } from "@/components/chat/PackageTimeline";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -111,6 +112,11 @@ const CollapsibleTravelerPackageCard = ({
               <div className="grid gap-4 md:grid-cols-2">
                 <TravelerPackageDetails pkg={pkg} />
                 <TravelerPackageInfo pkg={pkg} />
+              </div>
+              
+              {/* Package Chat Timeline - Always show for matched packages */}
+              <div className="mt-6">
+                <PackageTimeline pkg={pkg} />
               </div>
             </div>
           </CardContent>

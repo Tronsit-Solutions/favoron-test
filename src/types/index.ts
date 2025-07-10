@@ -57,3 +57,22 @@ export type Trip = Tables<'trips'>;
 
 export type UserType = 'user' | 'admin';
 export type DocumentType = 'confirmation' | 'tracking' | 'payment_receipt';
+
+// Chat message types
+export interface PackageMessage {
+  id: string;
+  package_id: string;
+  user_id: string;
+  message_type: 'text' | 'file_upload' | 'status_update';
+  content?: string;
+  file_url?: string;
+  file_name?: string;
+  file_type?: string;
+  created_at: string;
+  updated_at: string;
+  user_profile?: {
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+  };
+}
