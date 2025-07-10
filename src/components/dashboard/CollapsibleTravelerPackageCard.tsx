@@ -106,7 +106,7 @@ const CollapsibleTravelerPackageCard = ({
                     )}
                     {pkg.status === 'in_transit' && (
                       <div className="font-medium text-orange-600">
-                        🚚 Paquete en tránsito - El shopper ya lo envió
+                        🚚 En tránsito
                       </div>
                     )}
                     {pkg.status === 'received_by_traveler' && (
