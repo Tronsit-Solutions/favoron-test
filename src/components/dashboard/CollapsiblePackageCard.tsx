@@ -13,6 +13,7 @@ import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackage
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
+import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
@@ -39,6 +40,13 @@ const CollapsiblePackageCard = ({
     pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed' || pkg.status === 'quote_sent'
   );
   const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editDocumentModal, setEditDocumentModal] = React.useState<{
+    isOpen: boolean;
+    documentType: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info' | null;
+  }>({
+    isOpen: false,
+    documentType: null
+  });
   
   const { getStatusBadge } = useStatusHelpers();
 
@@ -58,6 +66,20 @@ const CollapsiblePackageCard = ({
 
   const handlePaymentUpload = (paymentData: any) => {
     onUploadDocument(pkg.id, 'payment_receipt', paymentData);
+  };
+
+  const handleEditDocument = (type: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info') => {
+    setEditDocumentModal({
+      isOpen: true,
+      documentType: type
+    });
+  };
+
+  const handleCloseEditModal = () => {
+    setEditDocumentModal({
+      isOpen: false,
+      documentType: null
+    });
   };
 
   // Removed individual render functions - now handled by dedicated components
@@ -261,7 +283,11 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                <UploadedDocumentsRegistry pkg={pkg} className="mb-4" />
+                <UploadedDocumentsRegistry 
+                  pkg={pkg} 
+                  className="mb-4"
+                  onEditDocument={handleEditDocument}
+                />
                 <ShopperPackageDetails pkg={pkg} />
                 <ShopperPackageInfo pkg={pkg} />
                 {renderActionButtons()}
@@ -288,6 +314,14 @@ const CollapsiblePackageCard = ({
         onClose={() => setShowEditModal(false)}
         onSubmit={handleEditSubmit}
         packageData={pkg}
+      />
+
+      <EditDocumentModal
+        isOpen={editDocumentModal.isOpen}
+        onClose={handleCloseEditModal}
+        documentType={editDocumentModal.documentType}
+        pkg={pkg}
+        onUpdate={(type, data) => onUploadDocument(pkg.id, type, data)}
       />
     </Collapsible>
   );

@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Truck, CreditCard, Download, Eye, Calendar } from "lucide-react";
+import { FileText, Truck, CreditCard, Download, Eye, Calendar, Edit, Upload } from "lucide-react";
 import { Package } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface UploadedDocumentsRegistryProps {
   pkg: Package;
   className?: string;
+  onEditDocument?: (type: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info') => void;
 }
 
 interface DocumentData {
@@ -21,7 +22,7 @@ interface DocumentData {
   timestamp?: string;
 }
 
-const UploadedDocumentsRegistry = ({ pkg, className }: UploadedDocumentsRegistryProps) => {
+const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedDocumentsRegistryProps) => {
   const { toast } = useToast();
 
   // Helper function to download payment receipt
@@ -137,9 +138,21 @@ const UploadedDocumentsRegistry = ({ pkg, className }: UploadedDocumentsRegistry
                 variant="ghost"
                 className="h-6 w-6 p-0"
                 onClick={() => downloadPaymentReceipt(paymentReceipt)}
+                title="Ver documento"
               >
                 <Eye className="h-3 w-3" />
               </Button>
+              {onEditDocument && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                  onClick={() => onEditDocument('payment_receipt')}
+                  title="Editar documento"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -168,9 +181,21 @@ const UploadedDocumentsRegistry = ({ pkg, className }: UploadedDocumentsRegistry
                 variant="ghost"
                 className="h-6 w-6 p-0"
                 onClick={() => downloadPurchaseConfirmation(purchaseConfirmation)}
+                title="Ver documento"
               >
                 <Eye className="h-3 w-3" />
               </Button>
+              {onEditDocument && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                  onClick={() => onEditDocument('purchase_confirmation')}
+                  title="Editar documento"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -200,8 +225,20 @@ const UploadedDocumentsRegistry = ({ pkg, className }: UploadedDocumentsRegistry
                   variant="ghost"
                   className="h-6 w-6 p-0"
                   onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
+                  title="Ver seguimiento"
                 >
                   <Eye className="h-3 w-3" />
+                </Button>
+              )}
+              {onEditDocument && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                  onClick={() => onEditDocument('tracking_info')}
+                  title="Editar información"
+                >
+                  <Edit className="h-3 w-3" />
                 </Button>
               )}
             </div>
