@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle, XCircle, MessageCircle } from "lucide-react";
+import { PackageTimeline } from "@/components/chat/PackageTimeline";
 
 interface ActiveMatchesTabProps {
   packages: any[];
@@ -37,6 +39,7 @@ const ActiveMatchesTab = ({
 }: ActiveMatchesTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
 
   const matchedPackages = packages.filter(pkg => pkg.matched_trip_id);
   
@@ -228,28 +231,38 @@ const ActiveMatchesTab = ({
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="ml-4 space-y-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => onViewPackageDetail(pkg)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Ver Detalles
-                      </Button>
-                      
-                      {pkg.status === 'received_by_traveler' && (
-                        <Button 
-                          size="sm" 
-                          onClick={() => onConfirmOfficeReception(pkg.id)}
-                          className="w-full"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Confirmar recepción en oficina
-                        </Button>
-                      )}
-                    </div>
+                     {/* Actions */}
+                     <div className="ml-4 space-y-2">
+                       <Button 
+                         size="sm" 
+                         variant="outline"
+                         onClick={() => onViewPackageDetail(pkg)}
+                       >
+                         <Eye className="h-4 w-4 mr-1" />
+                         Ver Detalles
+                       </Button>
+
+                       <Button 
+                         size="sm" 
+                         variant="outline"
+                         onClick={() => setSelectedChatPackage(pkg)}
+                         className="w-full"
+                       >
+                         <MessageCircle className="h-4 w-4 mr-1" />
+                         Ver Chat
+                       </Button>
+                       
+                       {pkg.status === 'received_by_traveler' && (
+                         <Button 
+                           size="sm" 
+                           onClick={() => onConfirmOfficeReception(pkg.id)}
+                           className="w-full"
+                         >
+                           <CheckCircle className="h-4 w-4 mr-1" />
+                           Confirmar recepción en oficina
+                         </Button>
+                       )}
+                     </div>
                   </div>
                 </CardContent>
               </Card>
@@ -257,6 +270,46 @@ const ActiveMatchesTab = ({
           })
         )}
       </div>
+
+      {/* Chat Modal */}
+      <Dialog open={!!selectedChatPackage} onOpenChange={() => setSelectedChatPackage(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <MessageCircle className="h-5 w-5" />
+              <span>Chat del Match</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedChatPackage && (
+            <div className="flex-1 overflow-hidden">
+              <div className="mb-4 p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{selectedChatPackage.item_description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Shopper: {selectedChatPackage.user_id} | 
+                      {selectedChatPackage.matched_trip_id && (
+                        <span> Viajero: {trips.find(t => t.id === selectedChatPackage.matched_trip_id)?.user_id}</span>
+                      )}
+                    </p>
+                  </div>
+                  <Badge className={`text-xs ${getStatusInfo(selectedChatPackage.status).color}`}>
+                    {getStatusInfo(selectedChatPackage.status).icon} {getStatusInfo(selectedChatPackage.status).label}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="h-[500px] overflow-hidden">
+                <PackageTimeline 
+                  pkg={selectedChatPackage} 
+                  className="h-full"
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
