@@ -205,7 +205,9 @@ export const useDashboardActions = (
           });
         } else {
           await updatePackage(selectedPackage.id, {
-            status: 'quote_rejected'
+            status: 'quote_rejected',
+            quote: null, // Clear the quote when rejected
+            matched_trip_id: null // Clear the match when quote is rejected
           });
           
           toast({
@@ -395,9 +397,11 @@ export const useDashboardActions = (
       }
 
       // Update package in Supabase with match information
+      // Clear any previous quote data to ensure fresh start
       await updatePackage(packageId, {
         status: 'matched',
-        matched_trip_id: tripId
+        matched_trip_id: tripId,
+        quote: null // Clear any previous quote from previous match
       });
 
       toast({
