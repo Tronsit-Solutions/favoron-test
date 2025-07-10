@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package } from "lucide-react";
+import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 
 interface TravelerPackageCardProps {
   pkg: any;
@@ -122,6 +123,16 @@ const TravelerPackageCard = ({
               <p className="text-xs text-yellow-600 mt-2">
                 Estado: {pkg.status === 'quote_accepted' ? 'Aceptada ✅' : 'Esperando respuesta ⏳'}
               </p>
+            </div>
+          )}
+
+          {/* Purchase confirmation */}
+          {pkg.purchase_confirmation && (
+            <div className="mb-4">
+              <PurchaseConfirmationViewer 
+                purchaseConfirmation={pkg.purchase_confirmation} 
+                packageId={pkg.id}
+              />
             </div>
           )}
 

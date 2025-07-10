@@ -1,4 +1,5 @@
 import { Package } from "lucide-react";
+import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 
 interface TravelerPackageDetailsProps {
   pkg: any;
@@ -85,6 +86,18 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
           <div className="bg-card/30 border border-border/50 rounded p-1.5">
             <p className="text-xs font-medium text-muted-foreground mb-0.5">Notas adicionales</p>
             <p className="text-xs text-foreground">{pkg.additional_notes}</p>
+          </div>
+        )}
+
+        {/* Purchase confirmation */}
+        {pkg.purchase_confirmation && (
+          <div className="bg-card/30 border border-border/50 rounded p-1.5">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Comprobante de Compra</p>
+            <PurchaseConfirmationViewer 
+              purchaseConfirmation={pkg.purchase_confirmation} 
+              packageId={pkg.id}
+              className="scale-90 origin-top-left"
+            />
           </div>
         )}
       </div>
