@@ -117,6 +117,11 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
+      // Get public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('package-chat-files')
+        .getPublicUrl(filePath);
+
       // Create message record
       const { error: messageError } = await supabase
         .from('package_messages')
@@ -125,7 +130,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
           user_id: user.id,
           message_type: 'file_upload',
           content: description || `Archivo subido: ${file.name}`,
-          file_url: filePath,
+          file_url: urlData.publicUrl,
           file_name: file.name,
           file_type: file.type,
         });
