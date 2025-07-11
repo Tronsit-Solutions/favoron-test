@@ -218,8 +218,8 @@ const CollapsiblePackageCard = ({
                         <span className="text-lg">📦</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-primary">Instrucciones para el envío</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="text-lg font-bold text-foreground">Instrucciones para el envío</h3>
+                        <p className="text-sm text-foreground">
                           Tu pago ha sido confirmado. Envía el producto a esta dirección:
                         </p>
                       </div>
