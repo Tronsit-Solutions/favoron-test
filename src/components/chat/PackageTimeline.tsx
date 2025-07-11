@@ -182,21 +182,43 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
                           )}
                           
                           {message.message_type === 'file_upload' && message.file_url && (
-                            <div className="mt-2 p-2 bg-background rounded border">
+                            <div className="mt-3 p-3 bg-background rounded-lg border shadow-sm">
+                              {/* Preview de imagen si es imagen */}
+                              {message.file_type?.startsWith('image/') && (
+                                <div className="mb-3">
+                                  <img 
+                                    src={message.file_url} 
+                                    alt={message.file_name || 'Imagen'} 
+                                    className="max-w-xs max-h-48 rounded-lg object-cover border"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              )}
+                              
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <File className="h-4 w-4 text-muted-foreground shrink-0" />
-                                  <span className="text-sm truncate">
-                                    {message.file_name || 'Archivo'}
-                                  </span>
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="p-2 bg-primary/10 rounded-lg">
+                                    <File className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">
+                                      {message.file_name || 'Archivo'}
+                                    </p>
+                                    {message.file_type && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {message.file_type}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                                 <Button
                                   size="sm"
-                                  variant="ghost"
+                                  variant="outline"
                                   onClick={() => downloadFile(message.file_url!, message.file_name || 'archivo')}
-                                  className="shrink-0"
+                                  className="shrink-0 hover:bg-primary/10"
                                 >
-                                  <Download className="h-3 w-3" />
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Descargar
                                 </Button>
                               </div>
                             </div>
