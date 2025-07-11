@@ -1,18 +1,12 @@
-import { useState } from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Package, Trip } from '@/types';
-import { PackageMessage } from '@/types';
+import { Package } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
-import { usePackageChat } from '@/hooks/usePackageChat';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageCircle, File, Upload, Download, Send, Paperclip } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+import { getUserRole } from '@/utils/chatHelpers';
+import { usePackageTimeline } from '@/hooks/usePackageTimeline';
+import { MessageBubble } from './MessageBubble';
+import { MessageInput } from './MessageInput';
 
 interface PackageTimelineProps {
   pkg: Package;
@@ -21,90 +15,15 @@ interface PackageTimelineProps {
 
 export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
   const { user } = useAuth();
-  const { messages, loading, sendMessage, uploadFile, downloadFile } = usePackageChat({
+  const { 
+    messages, 
+    loading, 
+    handleSendMessage, 
+    handleFileUpload, 
+    handleDownload 
+  } = usePackageTimeline({
     packageId: pkg.id,
   });
-  
-  const [newMessage, setNewMessage] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-
-  const getUserRole = (userId: string): 'shopper' | 'traveler' | 'admin' => {
-    if (userId === pkg.user_id) return 'shopper';
-    if (pkg.matched_trip_id) return 'traveler'; // Assuming current user is traveler if viewing matched package
-    return 'admin';
-  };
-
-  const getUserName = (message: PackageMessage): string => {
-    const profile = message.user_profile;
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.username) {
-      return profile.username;
-    }
-    return getUserRole(message.user_id) === 'shopper' ? 'Shopper' : 'Viajero';
-  };
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || isSending) return;
-
-    setIsSending(true);
-    const success = await sendMessage(newMessage.trim());
-    if (success) {
-      setNewMessage('');
-    }
-    setIsSending(false);
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || isUploading) return;
-
-    setIsUploading(true);
-    await uploadFile(file);
-    setIsUploading(false);
-    
-    // Reset input
-    event.target.value = '';
-  };
-
-  const renderMessageIcon = (type: string) => {
-    switch (type) {
-      case 'file_upload':
-        return <File className="h-4 w-4" />;
-      case 'status_update':
-        return <Upload className="h-4 w-4" />;
-      default:
-        return <MessageCircle className="h-4 w-4" />;
-    }
-  };
-
-  const getRoleColor = (role: 'shopper' | 'traveler' | 'admin') => {
-    switch (role) {
-      case 'shopper':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'traveler':
-        return 'bg-cyan-100 text-cyan-800 border-cyan-200';
-      case 'admin':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getRoleLabel = (role: 'shopper' | 'traveler' | 'admin') => {
-    switch (role) {
-      case 'shopper':
-        return 'Shopper';
-      case 'traveler':
-        return 'Viajero';
-      case 'admin':
-        return 'Admin';
-      default:
-        return 'Usuario';
-    }
-  };
 
   if (loading) {
     return (
@@ -145,173 +64,26 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
             </div>
           ) : (
             messages.map((message) => {
-              const role = getUserRole(message.user_id);
-              const userName = getUserName(message);
+              const role = getUserRole(message.user_id, pkg);
               
               return (
-                <div key={message.id} className="flex gap-3 group">
-                  <Avatar className="h-8 w-8 shrink-0">
-                    <div className={`h-full w-full rounded-full flex items-center justify-center text-xs font-medium ${getRoleColor(role)}`}>
-                      {userName.charAt(0).toUpperCase()}
-                    </div>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">{userName}</span>
-                      <Badge variant="outline" className={`text-xs ${getRoleColor(role)}`}>
-                        {getRoleLabel(role)}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(message.created_at), 'dd MMM, HH:mm', { locale: es })}
-                      </span>
-                    </div>
-                    
-                    <div className={`p-3 rounded-lg ${
-                      role === 'shopper'
-                        ? 'bg-blue-50 border border-blue-200 ml-0' 
-                        : role === 'traveler'
-                        ? 'bg-cyan-50 border border-cyan-200 mr-0'
-                        : 'bg-purple-50 border border-purple-200'
-                    }`}>
-                      <div className="flex items-start gap-2">
-                        {renderMessageIcon(message.message_type)}
-                        <div className="flex-1">
-                          {message.content && (
-                            <p className="text-sm break-words">{message.content}</p>
-                          )}
-                          
-                          {message.message_type === 'file_upload' && message.file_url && (
-                            <div className="mt-3">
-                              {/* Si es imagen, mostrar como WhatsApp */}
-                              {message.file_type?.startsWith('image/') ? (
-                                <div className="relative group max-w-xs">
-                                  <img 
-                                    src={message.file_url} 
-                                    alt={message.file_name || 'Imagen'} 
-                                    className="w-full max-h-64 rounded-lg object-cover border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
-                                    loading="lazy"
-                                    onClick={() => window.open(message.file_url!, '_blank')}
-                                  />
-                                  {/* Overlay sutil con opción de descarga */}
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      size="sm"
-                                      variant="secondary"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        downloadFile(message.file_url!, message.file_name || 'imagen');
-                                      }}
-                                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
-                                    >
-                                      <Download className="h-4 w-4 text-white" />
-                                    </Button>
-                                  </div>
-                                  {message.file_name && (
-                                    <p className="text-xs text-muted-foreground mt-1 px-1">
-                                      {message.file_name}
-                                    </p>
-                                  )}
-                                </div>
-                              ) : (
-                                /* Para otros tipos de archivo, mostrar como documento */
-                                <div className="p-3 bg-background rounded-lg border shadow-sm">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <div className="p-2 bg-primary/10 rounded-lg">
-                                        <File className="h-5 w-5 text-primary" />
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-medium truncate">
-                                          {message.file_name || 'Archivo'}
-                                        </p>
-                                        {message.file_type && (
-                                          <p className="text-xs text-muted-foreground">
-                                            {message.file_type}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => downloadFile(message.file_url!, message.file_name || 'archivo')}
-                                      className="shrink-0 hover:bg-primary/10"
-                                    >
-                                      <Download className="h-4 w-4 mr-1" />
-                                      Descargar
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  role={role}
+                  onDownload={handleDownload}
+                />
               );
             })
           )}
         </div>
 
         {/* Message Input */}
-        <div className="border-t pt-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Textarea
-                placeholder="Escribe un mensaje... (máx 300 caracteres)"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value.slice(0, 300))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                className="min-h-[60px] resize-none"
-                disabled={isSending}
-              />
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-xs text-muted-foreground">
-                  {newMessage.length}/300
-                </span>
-                <div className="flex gap-2">
-                  <label htmlFor="file-upload">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      disabled={isUploading}
-                      asChild
-                    >
-                      <span className="cursor-pointer">
-                        <Paperclip className="h-3 w-3 mr-1" />
-                        {isUploading ? 'Subiendo...' : 'Adjuntar'}
-                      </span>
-                    </Button>
-                  </label>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    accept="image/*,.pdf,.doc,.docx,.txt"
-                  />
-                  <Button 
-                    size="sm" 
-                    onClick={handleSendMessage}
-                    disabled={!newMessage.trim() || isSending}
-                  >
-                    <Send className="h-3 w-3 mr-1" />
-                    {isSending ? 'Enviando...' : 'Enviar'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          onFileUpload={handleFileUpload}
+          disabled={loading}
+        />
       </div>
     </Card>
   );

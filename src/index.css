@@ -20,6 +20,8 @@
     
     --logo: 204 100% 62%; /* Favorón Blue #3ab5ff */
     --traveler: 203 54% 50%; /* Traveler Blue #3a8ec1 */
+    --shopper: 204 100% 62%; /* Shopper Blue - same as primary */
+    --admin: 24 100% 50%; /* Admin Orange - same as accent */
 
     --secondary: 33 100% 64%; /* Warm Orange */
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -77,6 +79,8 @@
     
     --logo: 204 100% 62%; /* Favorón Blue #3ab5ff */
     --traveler: 203 54% 50%; /* Traveler Blue #3a8ec1 */
+    --shopper: 204 100% 62%; /* Shopper Blue - same as primary */
+    --admin: 24 100% 50%; /* Admin Orange - same as accent */
     --secondary: 33 100% 64%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;

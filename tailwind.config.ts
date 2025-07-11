@@ -86,6 +86,8 @@ export default {
 				},
 				logo: 'hsl(var(--logo))',
 				traveler: 'hsl(var(--traveler))',
+				shopper: 'hsl(var(--shopper))',
+				admin: 'hsl(var(--admin))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
