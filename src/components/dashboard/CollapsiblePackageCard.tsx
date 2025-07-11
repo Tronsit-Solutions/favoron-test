@@ -212,12 +212,17 @@ const CollapsiblePackageCard = ({
                 
                 {/* Show shipping instructions after payment confirmation - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.traveler_address && (
-                  <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 mb-4 shadow-sm">
-                    <div className="mb-4">
-                      <p className="text-sm font-semibold text-primary mb-2">📦 Instrucciones para el envío</p>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Tu pago ha sido confirmado. Por favor envía el producto a la siguiente dirección:
-                      </p>
+                  <div className="bg-gradient-subtle border-2 border-primary/30 rounded-xl p-6 mb-6 shadow-elegant">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-lg">📦</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-primary">Instrucciones para el envío</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Tu pago ha sido confirmado. Envía el producto a esta dirección:
+                        </p>
+                      </div>
                     </div>
                     
                     {/* Fechas importantes integradas */}
