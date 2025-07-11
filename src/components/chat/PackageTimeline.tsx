@@ -182,45 +182,68 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
                           )}
                           
                           {message.message_type === 'file_upload' && message.file_url && (
-                            <div className="mt-3 p-3 bg-background rounded-lg border shadow-sm">
-                              {/* Preview de imagen si es imagen */}
-                              {message.file_type?.startsWith('image/') && (
-                                <div className="mb-3">
+                            <div className="mt-3">
+                              {/* Si es imagen, mostrar como WhatsApp */}
+                              {message.file_type?.startsWith('image/') ? (
+                                <div className="relative group max-w-xs">
                                   <img 
                                     src={message.file_url} 
                                     alt={message.file_name || 'Imagen'} 
-                                    className="max-w-xs max-h-48 rounded-lg object-cover border"
+                                    className="w-full max-h-64 rounded-lg object-cover border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
                                     loading="lazy"
+                                    onClick={() => window.open(message.file_url!, '_blank')}
                                   />
+                                  {/* Overlay sutil con opción de descarga */}
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        downloadFile(message.file_url!, message.file_name || 'imagen');
+                                      }}
+                                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 border-0"
+                                    >
+                                      <Download className="h-4 w-4 text-white" />
+                                    </Button>
+                                  </div>
+                                  {message.file_name && (
+                                    <p className="text-xs text-muted-foreground mt-1 px-1">
+                                      {message.file_name}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                /* Para otros tipos de archivo, mostrar como documento */
+                                <div className="p-3 bg-background rounded-lg border shadow-sm">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="p-2 bg-primary/10 rounded-lg">
+                                        <File className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">
+                                          {message.file_name || 'Archivo'}
+                                        </p>
+                                        {message.file_type && (
+                                          <p className="text-xs text-muted-foreground">
+                                            {message.file_type}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => downloadFile(message.file_url!, message.file_name || 'archivo')}
+                                      className="shrink-0 hover:bg-primary/10"
+                                    >
+                                      <Download className="h-4 w-4 mr-1" />
+                                      Descargar
+                                    </Button>
+                                  </div>
                                 </div>
                               )}
-                              
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="p-2 bg-primary/10 rounded-lg">
-                                    <File className="h-5 w-5 text-primary" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium truncate">
-                                      {message.file_name || 'Archivo'}
-                                    </p>
-                                    {message.file_type && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {message.file_type}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => downloadFile(message.file_url!, message.file_name || 'archivo')}
-                                  className="shrink-0 hover:bg-primary/10"
-                                >
-                                  <Download className="h-4 w-4 mr-1" />
-                                  Descargar
-                                </Button>
-                              </div>
                             </div>
                           )}
                         </div>
