@@ -87,7 +87,7 @@ const TravelerPackagePriorityActions = ({
               <Button 
                 size="sm" 
                 onClick={onConfirmReceived} 
-                variant="outline"
+                variant="success"
                 className="font-medium px-4 py-2 h-8"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
