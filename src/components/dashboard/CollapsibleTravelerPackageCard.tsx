@@ -9,6 +9,7 @@ import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityAc
 import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
+import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -147,6 +148,9 @@ const CollapsibleTravelerPackageCard = ({
                 {/* Package details and info */}
                 <TravelerPackageDetails pkg={pkg} />
                 <TravelerPackageInfo pkg={pkg} />
+                
+                {/* Show traveler's own confirmation photo */}
+                <TravelerConfirmationDisplay pkg={pkg} />
               </div>
 
               <div className="space-y-4">
