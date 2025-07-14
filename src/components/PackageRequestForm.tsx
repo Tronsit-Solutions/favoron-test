@@ -153,37 +153,37 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[95vh] overflow-y-auto p-3 sm:p-6">
-        <DialogHeader className="pb-4 border-b">
-          <DialogTitle className="flex items-center space-x-2 text-lg sm:text-xl">
-            <Package className="h-5 w-5 text-primary flex-shrink-0" />
-            <span className="truncate">Nueva Solicitud de Paquete</span>
+      <DialogContent className="sm:max-w-lg max-w-[98vw] max-h-[98vh] overflow-y-auto p-2 sm:p-6">
+        <DialogHeader className="pb-2 sm:pb-4 border-b">
+          <DialogTitle className="flex items-center space-x-2 text-base sm:text-xl">
+            <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+            <span className="truncate">Nueva Solicitud</span>
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground mt-2">
-            Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Completa la información del producto que necesitas.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pt-4">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <Label className="text-base font-medium">Productos *</Label>
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6 pt-2 sm:pt-4">
+          <div className="space-y-2 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+              <Label className="text-sm font-medium">Productos *</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={addProduct}
-                className="flex items-center justify-center space-x-1 w-full sm:w-auto"
+                className="flex items-center justify-center space-x-1 w-full sm:w-auto h-8 text-xs"
               >
-                <Plus className="h-4 w-4" />
-                <span>Agregar producto</span>
+                <Plus className="h-3 w-3" />
+                <span>Agregar</span>
               </Button>
             </div>
             
             {products.map((product, index) => (
-              <div key={index} className="border border-border rounded-lg p-3 sm:p-4 space-y-3 relative bg-card">
+              <div key={index} className="border border-border rounded-lg p-2 sm:p-4 space-y-2 sm:space-y-3 relative bg-card">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Producto {index + 1}
                   </span>
                   {products.length > 1 && (
@@ -192,56 +192,56 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                       variant="ghost"
                       size="sm"
                       onClick={() => removeProduct(index)}
-                      className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                      className="text-destructive hover:text-destructive h-6 w-6 p-0"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   )}
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor={`itemLink-${index}`} className="text-sm font-medium">Link del producto *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`itemLink-${index}`} className="text-xs sm:text-sm font-medium">Link *</Label>
                   <div className="relative">
-                    <Link2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Link2 className="absolute left-2 top-2.5 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground z-10" />
                     <Input
                       id={`itemLink-${index}`}
                       type="url"
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink}
                       onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                      className="pl-10 h-11 text-sm"
+                      className="pl-7 sm:pl-10 h-9 text-xs sm:text-sm"
                       required
                     />
                   </div>
                   {index === 0 && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Copia el link del producto desde Amazon, eBay, u otra tienda online
+                    <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                      Link desde Amazon, eBay, etc.
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`itemDescription-${index}`} className="text-sm font-medium">Descripción del producto *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`itemDescription-${index}`} className="text-xs sm:text-sm font-medium">Descripción *</Label>
                   <Textarea
                     id={`itemDescription-${index}`}
-                    placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                    placeholder="iPhone 15 Pro Max 256GB Azul"
                     value={product.itemDescription}
                     onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                    className="min-h-[60px] resize-y text-sm"
+                    className="min-h-[50px] sm:min-h-[60px] resize-y text-xs sm:text-sm"
                     rows={2}
                     required
                   />
                   {index === 0 && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Describe detalladamente el producto (marca, modelo, color, talla, etc.)
+                    <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                      Marca, modelo, color, talla, etc.
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`estimatedPrice-${index}`} className="text-sm font-medium">Precio estimado (USD) *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor={`estimatedPrice-${index}`} className="text-xs sm:text-sm font-medium">Precio USD *</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <DollarSign className="absolute left-2 top-2.5 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground z-10" />
                     <Input
                       id={`estimatedPrice-${index}`}
                       type="number"
@@ -249,13 +249,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                       placeholder="299.99"
                       value={product.estimatedPrice}
                       onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
-                      className="pl-10 h-11 text-sm"
+                      className="pl-7 sm:pl-10 h-9 text-xs sm:text-sm"
                       required
                     />
                   </div>
                   {index === 0 && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Precio aproximado del producto sin incluir envío
+                    <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
+                      Precio sin envío
                     </p>
                   )}
                 </div>
@@ -263,18 +263,18 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             ))}
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="packageDestination" className="text-sm font-medium">Destino del paquete *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="packageDestination" className="text-xs sm:text-sm font-medium">Destino *</Label>
             <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Selecciona el destino del paquete" />
+              <SelectTrigger className="h-9 text-xs sm:text-sm">
+                <SelectValue placeholder="Destino del paquete" />
               </SelectTrigger>
               <SelectContent>
                 {destinationCities.map((city) => (
                   <SelectItem key={city} value={city}>
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{city}</span>
+                      <MapPin className="h-3 w-3" />
+                      <span className="text-xs">{city}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -282,30 +282,27 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             </Select>
             {formData.packageDestination === 'Otra ciudad' && (
               <Input
-                placeholder="Escribe la ciudad de destino"
+                placeholder="Escribe la ciudad"
                 value={formData.packageDestinationOther}
                 onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
-                className="h-11"
+                className="h-9 text-xs"
                 required
               />
             )}
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              ¿A dónde necesitas que llegue el paquete?
-            </p>
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="purchaseOrigin" className="text-sm font-medium">Origen de la compra *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="purchaseOrigin" className="text-xs sm:text-sm font-medium">Origen *</Label>
             <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="¿Desde qué país estás comprando?" />
+              <SelectTrigger className="h-9 text-xs sm:text-sm">
+                <SelectValue placeholder="País de compra" />
               </SelectTrigger>
               <SelectContent>
                 {purchaseOrigins.map((origin) => (
                   <SelectItem key={origin.value} value={origin.value}>
                     <div className="flex items-center space-x-2">
-                      <Globe className="h-4 w-4" />
-                      <span>{origin.label}</span>
+                      <Globe className="h-3 w-3" />
+                      <span className="text-xs">{origin.label}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -313,46 +310,43 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             </Select>
             {formData.purchaseOrigin === 'Otro' && (
               <Input
-                placeholder="Escribe el país de origen"
+                placeholder="Escribe el país"
                 value={formData.purchaseOriginOther}
                 onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
-                className="h-11"
+                className="h-9 text-xs"
                 required
               />
             )}
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              ¿Desde qué país estás comprando tu producto?
-            </p>
           </div>
 
           {/* Delivery method for Guatemala only */}
           {isGuatemalaDestination && (
-            <div className="space-y-4 p-4 bg-accent/50 rounded-lg border">
-              <Label className="text-sm font-medium">Forma de entrega en Guatemala *</Label>
+            <div className="space-y-2 p-2 sm:p-4 bg-accent/50 rounded-lg border">
+              <Label className="text-xs sm:text-sm font-medium">Entrega en Guatemala *</Label>
               <RadioGroup 
                 value={formData.deliveryMethod} 
                 onValueChange={(value) => handleInputChange('deliveryMethod', value)}
-                className="space-y-4"
+                className="space-y-2"
               >
-                <div className="flex items-start space-x-3 p-3 border rounded-lg bg-background">
-                  <RadioGroupItem value="pickup" id="pickup" className="mt-1" />
+                <div className="flex items-start space-x-2 p-2 border rounded bg-background">
+                  <RadioGroupItem value="pickup" id="pickup" className="mt-0.5" />
                   <div className="flex-1">
-                    <Label htmlFor="pickup" className="cursor-pointer font-medium text-sm">
-                      Lo recojo en zona 14
+                    <Label htmlFor="pickup" className="cursor-pointer font-medium text-xs">
+                      Recojo en zona 14
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-[10px] text-muted-foreground">
                       Sin costo adicional
                     </p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 border rounded-lg bg-background">
-                  <RadioGroupItem value="delivery" id="delivery" className="mt-1" />
+                <div className="flex items-start space-x-2 p-2 border rounded bg-background">
+                  <RadioGroupItem value="delivery" id="delivery" className="mt-0.5" />
                   <div className="flex-1">
-                    <Label htmlFor="delivery" className="cursor-pointer font-medium text-sm">
-                      Enviarlo a mi domicilio
+                    <Label htmlFor="delivery" className="cursor-pointer font-medium text-xs">
+                      Envío a domicilio
                     </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Costo adicional Q25-Q40
+                    <p className="text-[10px] text-muted-foreground">
+                      +Q25-Q40
                     </p>
                   </div>
                 </div>
@@ -369,38 +363,38 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
               
               {/* Mostrar resumen de dirección si ya la completó */}
               {formData.deliveryMethod === 'delivery' && addressData && !showAddressForm && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-sm font-medium text-green-800 mb-2">✓ Dirección de entrega confirmada</p>
-                  <p className="text-xs text-green-700 mb-3 leading-relaxed">{addressData.streetAddress}, {addressData.cityArea}</p>
+                <div className="bg-green-50 border border-green-200 rounded p-2">
+                  <p className="text-xs font-medium text-green-800 mb-1">✓ Dirección confirmada</p>
+                  <p className="text-[10px] text-green-700 mb-2">{addressData.streetAddress}, {addressData.cityArea}</p>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAddressForm(true)}
-                    className="w-full sm:w-auto"
+                    className="w-full h-7 text-xs"
                   >
-                    Editar dirección
+                    Editar
                   </Button>
                 </div>
               )}
             </div>
           )}
 
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Fecha límite de entrega</Label>
+          <div className="space-y-2">
+            <Label className="text-xs sm:text-sm font-medium">Fecha límite</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full h-11 justify-start text-left font-normal"
+                  className="w-full h-9 justify-start text-left font-normal text-xs sm:text-sm"
                   type="button"
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <CalendarIcon className="mr-2 h-3 w-3 flex-shrink-0" />
                   <span className="truncate">
                     {formData.deliveryDeadline ? (
-                      format(formData.deliveryDeadline, "PPP", { locale: es })
+                      format(formData.deliveryDeadline, "dd/MM/yyyy", { locale: es })
                     ) : (
-                      "Selecciona una fecha (opcional)"
+                      "Opcional"
                     )}
                   </span>
                 </Button>
@@ -416,43 +410,40 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                 />
               </PopoverContent>
             </Popover>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              ¿Para cuándo necesitas el producto? (opcional)
-            </p>
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="additionalNotes" className="text-sm font-medium">Notas adicionales</Label>
+          <div className="space-y-2">
+            <Label htmlFor="additionalNotes" className="text-xs sm:text-sm font-medium">Notas</Label>
             <Textarea
               id="additionalNotes"
-              placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
+              placeholder="Información adicional, instrucciones especiales..."
               value={formData.additionalNotes}
               onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
-              className="min-h-[100px] text-sm"
-              rows={4}
+              className="min-h-[60px] sm:min-h-[100px] text-xs sm:text-sm"
+              rows={2}
             />
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">¿Cómo funciona?</p>
-                <ul className="space-y-2 text-xs leading-relaxed">
-                  <li>• Revisaremos tu solicitud en 24-48 horas</li>
-                  <li>• Te conectaremos con viajeros disponibles</li>
-                  <li>• Recibirás cotizaciones y podrás elegir</li>
-                  <li>• Solo pagas cuando aceptes una cotización</li>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-4">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-xs sm:text-sm text-blue-800">
+                <p className="font-medium mb-1">¿Cómo funciona?</p>
+                <ul className="space-y-1 text-[10px] sm:text-xs leading-tight">
+                  <li>• Revisión en 24-48h</li>
+                  <li>• Te conectamos con viajeros</li>
+                  <li>• Recibes cotizaciones</li>
+                  <li>• Pagas solo si aceptas</li>
                 </ul>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-11">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 sm:pt-4 border-t">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 h-9 text-xs">
               Cancelar
             </Button>
-            <Button type="submit" variant="shopper" className="flex-1 h-11">
+            <Button type="submit" variant="shopper" className="flex-1 h-9 text-xs">
               Enviar Solicitud
             </Button>
           </div>
