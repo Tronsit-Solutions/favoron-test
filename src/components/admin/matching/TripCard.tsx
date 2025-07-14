@@ -1,0 +1,85 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Eye, CalendarDays, Plane } from "lucide-react";
+
+interface TripCardProps {
+  trip: any;
+  onViewTripDetail: (trip: any) => void;
+}
+
+export const TripCard = ({ trip, onViewTripDetail }: TripCardProps) => {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div className="flex-1 space-y-2">
+            {/* Main route info */}
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Plane className="h-4 w-4 text-blue-500" />
+                  <h4 className="font-medium text-sm">
+                    {trip.from_city} → {trip.to_city}
+                  </h4>
+                </div>
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                  <span>👤 Viajero: {trip.user_id}</span>
+                  <span>📋 Estado: {trip.status}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dates info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center space-x-1">
+                <CalendarDays className="h-3 w-3 text-orange-500" />
+                <span className="text-orange-600">
+                  Salida: {new Date(trip.departure_date).toLocaleDateString()}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <CalendarDays className="h-3 w-3 text-blue-500" />
+                <span className="text-blue-600">
+                  Llegada: {new Date(trip.arrival_date).toLocaleDateString()}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <span className="text-green-600">
+                  📥 Primer día paquetes: {new Date(trip.first_day_packages).toLocaleDateString()}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <span className="text-red-600">
+                  📤 Último día paquetes: {new Date(trip.last_day_packages).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Delivery date */}
+            <div className="flex items-center space-x-1 text-xs">
+              <CalendarDays className="h-3 w-3 text-primary" />
+              <span className="text-primary font-medium">
+                Entrega: {new Date(trip.delivery_date).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="ml-4">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => onViewTripDetail(trip)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Ver
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
