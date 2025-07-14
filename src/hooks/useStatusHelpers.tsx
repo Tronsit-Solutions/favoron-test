@@ -4,19 +4,19 @@ import { Package, Trip } from "@/types";
 export const useStatusHelpers = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending_approval: { label: "Pendiente", variant: "secondary" as const },
-      approved: { label: "Aprobado", variant: "default" as const },
-      matched: { label: "Emparejado", variant: "secondary" as const },
-      quote_sent: { label: "Cotización Enviada", variant: "outline" as const },
-      quote_accepted: { label: "Cotización Aceptada", variant: "default" as const },
+      pending_approval: { label: "Pendiente", variant: "warning" as const },
+      approved: { label: "Aprobado", variant: "success" as const },
+      matched: { label: "Emparejado", variant: "success" as const },
+      quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
+      quote_accepted: { label: "Cotización Aceptada", variant: "success" as const },
       quote_rejected: { label: "Cotización Rechazada", variant: "destructive" as const },
-      payment_confirmed: { label: "Pago Confirmado", variant: "default" as const },
-      payment_pending: { label: "Pago Pendiente", variant: "secondary" as const },
-      in_transit: { label: "En Tránsito", variant: "outline" as const },
-      received_by_traveler: { label: "Recibido", variant: "default" as const },
-      delivered_to_office: { label: "Entregado", variant: "default" as const },
-      active: { label: "Activo", variant: "default" as const },
-      completed: { label: "Completado", variant: "default" as const },
+      payment_confirmed: { label: "Pago Confirmado", variant: "success" as const },
+      payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
+      in_transit: { label: "En Tránsito", variant: "warning" as const },
+      received_by_traveler: { label: "Recibido", variant: "success" as const },
+      delivered_to_office: { label: "Entregado", variant: "success" as const },
+      active: { label: "Activo", variant: "success" as const },
+      completed: { label: "Completado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const }
     };
 
