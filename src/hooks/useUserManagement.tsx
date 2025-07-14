@@ -2,8 +2,13 @@ import { useState, useMemo, useEffect } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
+// Extended User type for management purposes that includes the Supabase profile UUID
+interface UserWithProfileId extends User {
+  profileId?: string;
+}
+
 export const useUserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserWithProfileId[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -49,7 +54,7 @@ export const useUserManagement = () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       console.log('Current user:', currentUser);
 
-      const formattedUsers: User[] = profiles?.map((profile: any, index: number) => {
+      const formattedUsers: UserWithProfileId[] = profiles?.map((profile: any, index: number) => {
         const userRole = userRoles?.find(role => role.user_id === profile.id);
         
         // Map roles correctly
@@ -65,6 +70,7 @@ export const useUserManagement = () => {
 
         return {
           id: index + 1, // Using index as ID since our types expect number
+          profileId: profile.id, // Store the real UUID for database operations
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: email || 'Email no disponible',
           role,
@@ -106,22 +112,64 @@ export const useUserManagement = () => {
     });
   }, [users, searchTerm, roleFilter, statusFilter]);
 
-  const updateUser = (userId: number, updates: Partial<User>) => {
+  const updateUser = (userId: number, updates: Partial<UserWithProfileId>) => {
     setUsers(prev => prev.map(user => 
       user.id === userId ? { ...user, ...updates } : user
     ));
   };
 
-  const updateUserStatus = (userId: number, status: User['status']) => {
-    updateUser(userId, { status });
+  const updateUserStatus = async (userId: number, status: User['status']) => {
+    try {
+      // For now, just update local state since status is not in the profiles table
+      // You might want to add a status column to profiles table in the future
+      updateUser(userId, { status });
+      console.log('User status updated locally');
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
   };
 
-  const updateTrustLevel = (userId: number, trustLevel: User['trustLevel']) => {
-    updateUser(userId, { trustLevel });
+  const updateTrustLevel = async (userId: number, trustLevel: User['trustLevel']) => {
+    try {
+      // Find the user's profile ID from the users array
+      const user = users.find(u => u.id === userId);
+      if (!user || !user.profileId) {
+        console.error('User or profile ID not found');
+        return;
+      }
+
+      // Map the trust level to the database enum
+      const dbTrustLevel = trustLevel === 'premium' ? 'verified' :
+                          trustLevel === 'trusted' ? 'earned' : 'basic';
+
+      // Update in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ trust_level: dbTrustLevel })
+        .eq('id', user.profileId);
+
+      if (error) {
+        console.error('Error updating trust level:', error);
+        return;
+      }
+
+      // Update local state
+      updateUser(userId, { trustLevel });
+      console.log('Trust level updated successfully');
+    } catch (error) {
+      console.error('Error updating trust level:', error);
+    }
   };
 
-  const updateAdminNotes = (userId: number, adminNotes: string) => {
-    updateUser(userId, { adminNotes });
+  const updateAdminNotes = async (userId: number, adminNotes: string) => {
+    try {
+      // For now, just update local state since admin_notes is not in the profiles table
+      // You might want to add an admin_notes column to profiles table in the future
+      updateUser(userId, { adminNotes });
+      console.log('Admin notes updated locally');
+    } catch (error) {
+      console.error('Error updating admin notes:', error);
+    }
   };
 
   return {
