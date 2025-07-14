@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
+import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 
 interface PackageDetailModalProps {
   package: any;
@@ -264,6 +265,9 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               packageId={pkg.id}
             />
           )}
+
+          {/* Traveler Confirmation Section */}
+          <TravelerConfirmationDisplay pkg={pkg} />
 
           {/* Rejection Information */}
           {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (

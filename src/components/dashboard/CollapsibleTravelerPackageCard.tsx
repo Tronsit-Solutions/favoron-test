@@ -167,6 +167,7 @@ const CollapsibleTravelerPackageCard = ({
         onClose={() => setShowConfirmationModal(false)} 
         onConfirm={handleConfirmReceived} 
         packageName={getPackageName()}
+        packageId={pkg.id}
       />
     </Collapsible>
   );

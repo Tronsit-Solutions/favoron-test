@@ -14,6 +14,7 @@ import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInf
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
+import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
@@ -288,7 +289,10 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                <UploadedDocumentsRegistry 
+                {/* Show traveler confirmation when package is received */}
+                <TravelerConfirmationDisplay pkg={pkg} className="mb-4" />
+
+                <UploadedDocumentsRegistry
                   pkg={pkg} 
                   className="mb-4"
                   onEditDocument={handleEditDocument}
