@@ -45,7 +45,7 @@ export const MessageBubble = ({ message, role, onDownload }: MessageBubbleProps)
               )}
               
               {message.message_type === 'file_upload' && message.file_url && (
-                <div className="mt-3 max-w-full overflow-hidden">
+                <div className="mt-3">
                   <FileAttachment
                     fileUrl={message.file_url}
                     fileName={message.file_name}
