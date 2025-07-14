@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          priority: string
+          read: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          priority?: string
+          read?: boolean
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          priority?: string
+          read?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       package_messages: {
         Row: {
           content: string | null
@@ -279,6 +321,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          _user_id: string
+          _title: string
+          _message: string
+          _type?: string
+          _priority?: string
+          _action_url?: string
+          _metadata?: Json
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string

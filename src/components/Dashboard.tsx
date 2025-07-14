@@ -18,6 +18,7 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { useNotificationGenerator } from "@/hooks/useNotificationGenerator";
 import UserManagement from "./admin/UserManagement";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
@@ -97,6 +98,9 @@ const Dashboard = ({ user }: DashboardProps) => {
   );
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
+
+  // Generate notifications automatically based on system state
+  useNotificationGenerator({ packages, trips, currentUser });
 
   const isAdmin = currentUser.role === 'admin';
   

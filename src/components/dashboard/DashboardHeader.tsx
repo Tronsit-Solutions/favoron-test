@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, LogOut, User, Plane, Users } from "lucide-react";
+import { LogOut, User, Plane, Users } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationDropdown } from "@/components/ui/notification-dropdown";
 
 interface DashboardHeaderProps {
   user: any;
@@ -29,14 +30,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
-            <Bell className="h-4 w-4 mr-2" />
-            Notificaciones
-          </Button>
-          
-          <Button variant="ghost" size="sm" className="sm:hidden">
-            <Bell className="h-4 w-4" />
-          </Button>
+          <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (
             <>
