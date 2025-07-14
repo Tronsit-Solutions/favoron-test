@@ -113,7 +113,6 @@ export const useDashboardActions = (
   };
 
   const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user' | 'admin') => {
-    console.log('🔵 EXECUTING handleQuoteSubmit with:', { quoteData, selectedPackage: selectedPackage?.id, userType });
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
@@ -145,15 +144,8 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
-          console.log('🎯 ACCEPTING QUOTE for package:', selectedPackage.id);
-          console.log('🎯 Current package status:', selectedPackage.status);
-          console.log('🎯 Package matched_trip_id:', selectedPackage.matched_trip_id);
-          
-          // Find the matched trip to get traveler information
           const matchedTrip = selectedPackage.matched_trip_id ? 
             trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
-          
-          console.log('🎯 Found matched trip:', matchedTrip);
           
           if (!matchedTrip) {
             console.error('No matched trip found for package:', selectedPackage.id);
@@ -184,17 +176,12 @@ export const useDashboardActions = (
             arrival_date: matchedTrip.arrival_date
           };
 
-          console.log('🎯 Built traveler address:', travelerAddress);
-          console.log('🎯 Built trip dates:', matchedTripDates);
-          
           // Update package with traveler info and change status to quote_accepted
           await updatePackage(selectedPackage.id, {
             status: 'quote_accepted',
             traveler_address: travelerAddress,
             matched_trip_dates: matchedTripDates
           });
-          
-          console.log('🎯 Package updated to quote_accepted with traveler info');
           
           // Force close dialog and reset selection to trigger re-render
           setShowQuoteDialog(false);
@@ -332,7 +319,7 @@ export const useDashboardActions = (
         toast(message);
       }
 
-      console.log(`📄 Document uploaded: ${type} for package ${packageId}, new status: ${newStatus}`);
+      
       
     } catch (error) {
       console.error('Error uploading document:', error);
@@ -368,7 +355,6 @@ export const useDashboardActions = (
 
       console.log('Confirming payment for package:', packageId);
       
-      // Find the package and matched trip
       const pkg = packages.find(p => p.id === packageId);
       if (!pkg) {
         console.error('Package not found:', packageId);
@@ -376,10 +362,8 @@ export const useDashboardActions = (
       }
       
       const matchedTrip = pkg.matched_trip_id ? trips.find(trip => trip.id === pkg.matched_trip_id) : null;
-      console.log('Found matched trip:', matchedTrip);
       
       const travelerAddress = buildTravelerAddress(matchedTrip);
-      console.log('Built traveler address:', travelerAddress);
 
       // NEW: Include trip dates for shipping information
       const matchedTripDates = matchedTrip ? {

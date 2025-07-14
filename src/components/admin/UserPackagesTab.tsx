@@ -22,13 +22,11 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
   };
 
   const handleEditPackage = (pkg: Package) => {
-    // TODO: Implement edit functionality
-    console.log('Edit package:', pkg.id);
+    // Edit functionality would be implemented here
   };
 
   const handleViewDocument = (type: string, pkg: Package) => {
-    // TODO: Implement document viewer
-    console.log(`View ${type} for package:`, pkg.id);
+    // Document viewer would be implemented here
   };
 
   if (packages.length === 0) {

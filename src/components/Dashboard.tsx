@@ -11,7 +11,6 @@ import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
-import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPackageCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
@@ -58,10 +57,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     trips,
     createPackage,
     updatePackage,
-    deletePackage,
     createTrip,
-    updateTrip,
-    deleteTrip
+    updateTrip
   } = useDashboardState(user);
 
   const {
@@ -82,9 +79,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditPackage
   } = useDashboardActions(
     packages,
-    (packages: any[]) => {}, // Legacy compatibility - not used with Supabase
+    () => {},
     trips,
-    (trips: any[]) => {}, // Legacy compatibility - not used with Supabase
+    () => {},
     currentUser,
     setShowPackageForm,
     setShowTripForm,
@@ -93,7 +90,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     setShowQuoteDialog,
     setSelectedPackageForQuote,
     setQuoteUserType,
-    // Pass Supabase functions
     createPackage,
     createTrip,
     updatePackage,
@@ -142,20 +138,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleLoadTestData = async () => {
-    // Remove test data functions since we're using real database
-    console.log('Test data loading not needed with real database');
-  };
-
-  const handleLoadTestPackage = async () => {
-    // Remove test package function since we're using real database
-    console.log('Test package loading not needed with real database');
-  };
-
-  const handleLoadTestTrip = async () => {
-    // Remove test trip function since we're using real database
-    console.log('Test trip loading not needed with real database');
-  };
 
   if (showProfile) {
     return (
@@ -269,11 +251,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={handleLoadTestPackage} className="text-xs">
-                    🧪 Generar pedido de prueba
-                  </Button>
-                )}
                 <Button variant="shopper" onClick={() => setShowPackageForm(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Nueva Solicitud</span>
@@ -314,11 +291,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={handleLoadTestTrip} className="text-xs">
-                    🧪 Generar viaje de prueba
-                  </Button>
-                )}
                 <Button variant="traveler" onClick={() => setShowTripForm(true)} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Viaje
@@ -390,7 +362,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
               onConfirmOfficeReception={handleConfirmOfficeReception}
-              onLoadTestData={handleLoadTestData}
+              
               />
             </TabsContent>
           )}

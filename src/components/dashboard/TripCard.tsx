@@ -14,10 +14,6 @@ interface TripCardProps {
 const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Debug logging
-  console.log('🚗 TripCard - trip data:', trip);
-  console.log('🚗 TripCard - package_receiving_address:', trip?.package_receiving_address);
-
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
 
   const handleEditSubmit = (editedData: any) => {

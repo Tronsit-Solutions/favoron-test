@@ -27,13 +27,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
   };
 
   const handleEditTrip = (trip: Trip) => {
-    // TODO: Implement edit functionality
-    console.log('Edit trip:', trip.id);
+    // Edit functionality would be implemented here  
   };
 
   const handleViewPackages = (trip: Trip) => {
-    // TODO: Implement package viewer
-    console.log('View packages for trip:', trip.id);
+    // Package viewer would be implemented here
   };
 
   if (trips.length === 0) {

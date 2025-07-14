@@ -43,16 +43,9 @@ const QuoteDialog = ({
   const [showRejectionForm, setShowRejectionForm] = useState(false);
 
   const handleSubmit = () => {
-    console.log('🟡 QuoteDialog handleSubmit called with:', { price, serviceFee, existingQuote });
-    
-    // Correct logic: base decision on whether we have an existing quote
     if (existingQuote) {
-      // We're viewing an existing quote - this means ACCEPTING it
-      console.log('🟢 QuoteDialog sending acceptance message');
       onSubmit({ message: 'accepted' });
     } else {
-      // We're creating a new quote - this means SENDING it
-      console.log('🔴 QuoteDialog sending new quote');
       const basePrice = parseFloat(price);
       const additionalFee = serviceFee ? parseFloat(serviceFee) : 0;
       const subtotal = basePrice + additionalFee;

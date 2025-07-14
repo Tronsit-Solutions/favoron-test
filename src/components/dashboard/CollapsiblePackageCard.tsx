@@ -160,7 +160,7 @@ const CollapsiblePackageCard = ({
                 {pkg.status === 'quote_accepted' && viewMode === 'user' && (
                   <div className="space-y-4 mb-4">
                     {(() => {
-                      console.log('💰 RENDERING PAYMENT INSTRUCTIONS for package:', pkg.id, 'status:', pkg.status);
+                      // Render payment instructions
                       return null;
                     })()}
                     {/* Payment Instructions */}
