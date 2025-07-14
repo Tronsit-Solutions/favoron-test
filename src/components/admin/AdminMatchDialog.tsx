@@ -179,80 +179,83 @@ const AdminMatchDialog = ({
                     }`}
                     onClick={() => handleTripSelection(trip.id)}
                   >
-                     <CardContent className="p-3">
-                       {/* Main Trip Info Row - More Compact */}
-                       <div className="flex items-center justify-between">
-                         <div className="flex items-center space-x-3 flex-1">
-                             {/* Traveler - Compact */}
-                             <div className="flex items-center space-x-2 min-w-[100px]">
-                               <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                                 {trip.user_id?.toString().slice(-2) || '00'}
-                               </div>
-                               <div>
-                                 <p className="font-medium text-xs">Viajero #{trip.user_id || 'N/A'}</p>
-                               </div>
-                             </div>
-
-                           {/* Route - Compact */}
-                           <div className="flex items-center space-x-2 flex-1 min-w-[180px]">
-                             <MapPin className="h-3 w-3 text-gray-400" />
-                              <div className="flex items-center space-x-1">
-                                <span className="text-xs font-medium text-gray-700 truncate">
-                                  {trip.from_city || 'No especificado'}
-                                </span>
-                                <span className="text-gray-400 text-xs">→</span>
-                                <span className="text-xs font-medium text-gray-900 truncate">
-                                  {trip.to_city}
-                                </span>
+                       <CardContent className="p-4">
+                        {/* Main Trip Info - Improved Layout */}
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-6 flex-1">
+                              {/* Traveler */}
+                              <div className="flex items-center space-x-2 min-w-[120px]">
+                                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
+                                  {trip.user_id?.toString().slice(-2) || '00'}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">Viajero #{trip.user_id || 'N/A'}</p>
+                                </div>
                               </div>
-                           </div>
 
-                           {/* Key Dates - Compact */}
-                           <div className="flex items-center space-x-3 min-w-[120px]">
-                             <div className="text-center">
-                               <p className="text-xs text-gray-500">LLEGADA</p>
-                                <p className="text-xs font-medium">
-                                  {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                                </p>
-                              </div>
+                            {/* Route */}
+                            <div className="flex items-center space-x-2 min-w-[200px]">
+                              <MapPin className="h-4 w-4 text-gray-400" />
+                               <div className="flex items-center space-x-2">
+                                 <span className="text-sm font-medium text-gray-700">
+                                   {trip.from_city || 'No especificado'}
+                                 </span>
+                                 <span className="text-gray-400">→</span>
+                                 <span className="text-sm font-medium text-gray-900">
+                                   {trip.to_city}
+                                 </span>
+                               </div>
+                            </div>
+                          </div>
+
+                          {/* Right side - Dates and Badges */}
+                          <div className="flex items-center gap-4">
+                            {/* Key Dates */}
+                            <div className="flex items-center space-x-4 min-w-[160px]">
                               <div className="text-center">
-                                <p className="text-xs text-gray-500">ENTREGA</p>
-                                <p className="text-xs font-medium">
-                                  {trip.delivery_date ? new Date(trip.delivery_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
-                                </p>
-                             </div>
-                           </div>
+                                <p className="text-xs text-gray-500 font-medium">LLEGADA</p>
+                                 <p className="text-sm font-semibold text-gray-800">
+                                   {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                 </p>
+                               </div>
+                               <div className="text-center">
+                                 <p className="text-xs text-gray-500 font-medium">ENTREGA</p>
+                                 <p className="text-sm font-semibold text-gray-800">
+                                   {trip.delivery_date ? new Date(trip.delivery_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                 </p>
+                              </div>
+                            </div>
 
-                           {/* Delivery Method & Space - Compact */}
-                           <div className="flex items-center space-x-2 min-w-[120px]">
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs h-5 ${trip.delivery_method === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
-                              >
-                                <Truck className="h-2 w-2 mr-1" />
-                                {trip.delivery_method === 'oficina' ? 'Oficina' : 'Mensajero'}
-                              </Badge>
-                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
-                                {trip.available_space}kg
-                              </Badge>
-                           </div>
-                         </div>
+                            {/* Badges */}
+                            <div className="flex flex-col items-center space-y-1 min-w-[100px]">
+                               <Badge 
+                                 variant="outline" 
+                                 className={`text-xs ${trip.delivery_method === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
+                               >
+                                 <Truck className="h-3 w-3 mr-1" />
+                                 {trip.delivery_method === 'oficina' ? 'Oficina' : 'Mensajero'}
+                               </Badge>
+                               <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                                 {trip.available_space}kg
+                               </Badge>
+                            </div>
 
-                         {/* Expand Button */}
-                         <button
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             toggleTripExpansion(trip.id);
-                           }}
-                           className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-                         >
-                           {expandedTrips.has(trip.id) ? (
-                             <ChevronDown className="h-4 w-4 text-gray-400" />
-                           ) : (
-                             <ChevronRight className="h-4 w-4 text-gray-400" />
-                           )}
-                         </button>
-                       </div>
+                            {/* Expand Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleTripExpansion(trip.id);
+                              }}
+                              className="p-1 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                            >
+                              {expandedTrips.has(trip.id) ? (
+                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
 
                        {/* Expandable Content */}
                        {expandedTrips.has(trip.id) && (
