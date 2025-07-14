@@ -150,7 +150,10 @@ const CollapsibleTravelerPackageCard = ({
                 <TravelerPackageInfo pkg={pkg} />
                 
                 {/* Show traveler's own confirmation photo */}
-                <TravelerConfirmationDisplay pkg={pkg} />
+                <TravelerConfirmationDisplay 
+                  pkg={pkg} 
+                  onConfirmReceived={handleConfirmReceived}
+                />
               </div>
 
               <div className="space-y-4">
