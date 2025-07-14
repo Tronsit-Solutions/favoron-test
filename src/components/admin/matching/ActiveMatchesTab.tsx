@@ -273,8 +273,8 @@ const ActiveMatchesTab = ({
 
       {/* Chat Modal */}
       <Dialog open={!!selectedChatPackage} onOpenChange={() => setSelectedChatPackage(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center space-x-2">
               <MessageCircle className="h-5 w-5" />
               <span>Chat del Match</span>
@@ -282,8 +282,8 @@ const ActiveMatchesTab = ({
           </DialogHeader>
           
           {selectedChatPackage && (
-            <div className="flex-1 overflow-hidden">
-              <div className="mb-4 p-3 bg-muted rounded-lg">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="mb-4 p-3 bg-muted rounded-lg shrink-0">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">{selectedChatPackage.item_description}</p>
@@ -300,7 +300,7 @@ const ActiveMatchesTab = ({
                 </div>
               </div>
               
-              <div className="h-[500px] overflow-hidden">
+              <div className="flex-1 min-h-0">
                 <PackageTimeline 
                   pkg={selectedChatPackage} 
                   className="h-full"
