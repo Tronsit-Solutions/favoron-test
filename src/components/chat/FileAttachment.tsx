@@ -21,7 +21,7 @@ export const FileAttachment = ({ fileUrl, fileName, fileType, onDownload }: File
         <img 
           src={fileUrl} 
           alt={fileName || 'Imagen'} 
-          className="w-full max-w-sm max-h-64 rounded-lg object-cover border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
+          className="w-full max-w-sm max-h-48 rounded-lg object-cover border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
           loading="lazy"
           onClick={() => window.open(fileUrl, '_blank')}
         />
