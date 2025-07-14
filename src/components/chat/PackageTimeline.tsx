@@ -49,44 +49,50 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-6">
-        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Historial & Mensajes
-        </h3>
+      <div className="flex flex-col h-full">
+        <div className="p-6 border-b">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Historial & Mensajes
+          </h3>
+        </div>
 
-        {/* Timeline */}
-        <ScrollArea className="h-[500px] mb-6">
-          <div className="space-y-4 pr-4">
-            {messages.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No hay mensajes aún</p>
-                <p className="text-sm">Inicia la conversación enviando un mensaje</p>
-              </div>
-            ) : (
-              messages.map((message) => {
-                const role = getUserRole(message.user_id, pkg);
-                
-                return (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    role={role}
-                    onDownload={handleDownload}
-                  />
-                );
-              })
-            )}
-          </div>
-        </ScrollArea>
+        {/* Timeline - Flexible height */}
+        <div className="flex-1 p-6">
+          <ScrollArea className="h-[calc(100vh-300px)] min-h-[400px]">
+            <div className="space-y-4 pr-4">
+              {messages.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No hay mensajes aún</p>
+                  <p className="text-sm mt-2">Inicia la conversación enviando un mensaje</p>
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const role = getUserRole(message.user_id, pkg);
+                  
+                  return (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      role={role}
+                      onDownload={handleDownload}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </ScrollArea>
+        </div>
 
-        {/* Message Input */}
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          onFileUpload={handleFileUpload}
-          disabled={loading}
-        />
+        {/* Message Input - Fixed at bottom */}
+        <div className="p-6 border-t bg-muted/20">
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            onFileUpload={handleFileUpload}
+            disabled={loading}
+          />
+        </div>
       </div>
     </Card>
   );
