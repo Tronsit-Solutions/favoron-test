@@ -27,6 +27,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
           )
         `)
         .eq('package_id', packageId)
+        .in('message_type', ['text', 'file_upload']) // Solo mostrar mensajes directos y archivos del chat
         .order('created_at', { ascending: true });
 
       if (error) {
