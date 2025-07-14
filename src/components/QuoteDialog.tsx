@@ -162,6 +162,26 @@ const QuoteDialog = ({
           {/* Quote Form - Show when sending a quote */}
           {!existingQuote && (
             <div className="space-y-4">
+              {/* Product Link for Travelers */}
+              {packageDetails.item_link && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-800 mb-1">📦 Enlace del producto a comprar:</p>
+                      <a 
+                        href={packageDetails.item_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:underline font-medium break-all"
+                      >
+                        🔗 Ver producto completo aquí
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="price">Precio del servicio *</Label>
