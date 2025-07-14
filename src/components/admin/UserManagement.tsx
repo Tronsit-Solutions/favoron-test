@@ -64,6 +64,24 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     return <Badge variant={config.variant}>{getRoleLabel(role)}</Badge>;
   };
 
+  const getTrustLevelBadge = (trustLevel: string) => {
+    const trustLevelLabels = {
+      basic: 'Básico',
+      trusted: 'Confiable', 
+      premium: 'Premium'
+    };
+    
+    const trustLevelConfig = {
+      basic: { variant: 'secondary' as const },
+      trusted: { variant: 'default' as const },
+      premium: { variant: 'success' as const }
+    };
+    
+    const label = trustLevelLabels[trustLevel as keyof typeof trustLevelLabels] || trustLevel;
+    const config = trustLevelConfig[trustLevel as keyof typeof trustLevelConfig] || { variant: 'outline' as const };
+    return <Badge variant={config.variant}>{label}</Badge>;
+  };
+
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
     setShowUserDetail(true);
@@ -195,13 +213,14 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                 <TableHead>WhatsApp</TableHead>
                 <TableHead>Registro</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Nivel de Confianza</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                       <span>Cargando usuarios...</span>
@@ -231,6 +250,9 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                     </TableCell>
                     <TableCell>
                       <UserStatusBadge status={user.status} />
+                    </TableCell>
+                    <TableCell>
+                      {getTrustLevelBadge(user.trustLevel)}
                     </TableCell>
                     <TableCell>
                       <Button
