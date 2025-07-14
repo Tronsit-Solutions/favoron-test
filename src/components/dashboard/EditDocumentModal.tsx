@@ -22,6 +22,7 @@ interface EditDocumentModalProps {
 const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: EditDocumentModalProps) => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
+  const [shippingCompany, setShippingCompany] = useState("");
   const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,6 +35,7 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
       const trackingData = pkg.tracking_info as any;
       setTrackingNumber(trackingData.trackingNumber || "");
       setTrackingUrl(trackingData.trackingUrl || "");
+      setShippingCompany(trackingData.shippingCompany || "");
       setNotes(trackingData.notes || "");
     }
   }, [isOpen, documentType, pkg.tracking_info]);
@@ -125,6 +127,7 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
       onUpdate('tracking', {
         trackingNumber: trackingNumber.trim(),
         trackingUrl: trackingUrl.trim() || null,
+        shippingCompany: shippingCompany.trim() || null,
         notes: notes.trim() || null,
         timestamp: new Date().toISOString()
       });
@@ -197,6 +200,16 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
                   placeholder="Ej: 1234567890"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="shippingCompany">Empresa de reparto</Label>
+                <Input
+                  id="shippingCompany"
+                  value={shippingCompany}
+                  onChange={(e) => setShippingCompany(e.target.value)}
+                  placeholder="Ej: DHL, FedEx, UPS, Correos..."
                 />
               </div>
               
