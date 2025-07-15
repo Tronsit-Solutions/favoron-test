@@ -153,15 +153,19 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
           {/* Quote Information */}
           {quote && (
             <div className="border-t border-green-200 pt-3 mb-3">
-              <p className="text-sm font-medium text-green-800 mb-2">Detalles de la Cotización</p>
+              <p className="text-sm font-medium text-green-800 mb-2">Desglose del Pago</p>
               <div className="text-xs text-green-600 space-y-1">
                 <div className="flex justify-between">
-                  <span>Precio del producto:</span>
+                  <span>Precio del producto (GMV):</span>
+                  <span className="font-medium">${(quote.totalPrice / 1.4).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tip del viajero:</span>
                   <span className="font-medium">Q{quote.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Fee de servicio (7%):</span>
-                  <span className="font-medium">Q{quote.serviceFee.toFixed(2)}</span>
+                  <span>Cuota Favorón (40%):</span>
+                  <span className="font-medium">Q{(quote.price * 0.4).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-green-200 pt-1 font-semibold">
                   <span>Total a pagar:</span>
