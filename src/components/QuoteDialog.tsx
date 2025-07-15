@@ -173,18 +173,22 @@ const QuoteDialog = ({
               
             <div className="space-y-4">
               <div>
-                <Label htmlFor="price">Precio del servicio (Q) *</Label>
+                <Label htmlFor="price">Precio del servicio en Quetzales (Q) *</Label>
                 <p className="text-xs text-muted-foreground mt-1 mb-2">
                   💰 Esta es tu compensación como viajero por realizar el Favorón
                 </p>
-                <Input
-                  id="price"
-                  type="number"
-                  placeholder="0.00"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">Q</span>
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="0.00"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="pl-8"
+                    required
+                  />
+                </div>
                 <p className="text-xs text-amber-600 mt-1">
                   ⚠️ Considera costos adicionales como hotel por recibir paquete
                 </p>
