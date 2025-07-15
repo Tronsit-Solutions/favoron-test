@@ -37,7 +37,6 @@ const QuoteDialog = ({
   tripDates 
 }: QuoteDialogProps) => {
   const [price, setPrice] = useState(existingQuote?.price || '');
-  const [serviceFee, setServiceFee] = useState(existingQuote?.serviceFee || '');
   const [message, setMessage] = useState(existingQuote?.message || '');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
@@ -47,14 +46,12 @@ const QuoteDialog = ({
       onSubmit({ message: 'accepted' });
     } else {
       const basePrice = parseFloat(price);
-      const additionalFee = serviceFee ? parseFloat(serviceFee) : 0;
-      const subtotal = basePrice + additionalFee;
       // Add 40% Favorón fee automatically
-      const totalWithFee = subtotal * 1.4;
+      const totalWithFee = basePrice * 1.4;
       
       onSubmit({
         price: basePrice,
-        serviceFee: additionalFee,
+        serviceFee: 0,
         totalPrice: totalWithFee,
         message
       });
@@ -174,7 +171,7 @@ const QuoteDialog = ({
                 </div>
               )}
               
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
                 <Label htmlFor="price">Precio del servicio (Q) *</Label>
                 <Input
@@ -192,17 +189,6 @@ const QuoteDialog = ({
                   ⚠️ Considera costos adicionales como hotel por recibir paquete
                 </p>
               </div>
-                <div>
-                  <Label htmlFor="serviceFee">Servicios adicionales (opcional)</Label>
-                  <Input
-                    id="serviceFee"
-                    type="number"
-                    placeholder="0.00"
-                    value={serviceFee}
-                    onChange={(e) => setServiceFee(e.target.value)}
-                  />
-                </div>
-              </div>
               
               <div>
                 <Label htmlFor="message">Mensaje (opcional)</Label>
@@ -214,6 +200,7 @@ const QuoteDialog = ({
                   rows={3}
                 />
               </div>
+            </div>
             </div>
           )}
 
