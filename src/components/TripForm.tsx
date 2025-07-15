@@ -150,13 +150,13 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto p-3">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="flex items-center space-x-2 text-base">
-            <Plane className="h-4 w-4 text-traveler" />
-            <span>Nuevo Viaje</span>
+      <DialogContent className="sm:max-w-lg max-w-[98vw] max-h-[98vh] overflow-y-auto p-2 sm:p-6">
+        <DialogHeader className="pb-2 sm:pb-4 border-b">
+          <DialogTitle className="flex items-center space-x-2 text-base sm:text-xl">
+            <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-traveler flex-shrink-0" />
+            <span className="truncate">Nuevo Viaje</span>
           </DialogTitle>
-          <DialogDescription className="text-xs">
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1">
             Registra tu viaje y gana dinero llevando paquetes.
           </DialogDescription>
         </DialogHeader>
