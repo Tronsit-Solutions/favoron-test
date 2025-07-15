@@ -464,13 +464,13 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               <div className="flex items-center space-x-2 border rounded p-2">
                 <RadioGroupItem value="oficina" id="oficina" />
                 <Label htmlFor="oficina" className="cursor-pointer text-sm">
-                  A la oficina
+                  Llevaré los paquetes a la oficina de Favorón
                 </Label>
               </div>
               <div className="flex items-center space-x-2 border rounded p-2">
                 <RadioGroupItem value="mensajero" id="mensajero" />
                 <Label htmlFor="mensajero" className="cursor-pointer text-sm">
-                  Mensajero
+                  Que los recoja un mensajero
                 </Label>
               </div>
             </RadioGroup>
