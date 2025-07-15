@@ -81,7 +81,7 @@ const MessengerPickupForm = ({ onSubmit, onCancel, initialData }: MessengerPicku
 
         <div className="space-y-2">
           <Label htmlFor="accommodationName" className="text-sm font-medium">
-            Nombre del hotel/lugar (opcional)
+            Nombre del lugar, condominio, edificio, etc (opcional)
           </Label>
           <Input
             id="accommodationName"
