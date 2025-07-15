@@ -135,17 +135,24 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                     <p className="text-sm text-muted-foreground">{trip.availableSpace} kg</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center space-x-2">
+              {/* Delivery Method - Prominente */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
                   {getDeliveryMethodIcon(trip.deliveryMethod)}
-                  <div>
-                    <p className="text-sm font-medium">Método de Entrega</p>
-                    <p className="text-sm text-muted-foreground">
-                      {trip.deliveryMethod === 'oficina' ? 'Llevar a oficina de Favorón' : 
-                       trip.deliveryMethod === 'mensajero' ? 'Recoger con mensajero' : 
-                       trip.deliveryMethod === 'pickup' ? 'Recoger en oficina' : trip.deliveryMethod}
-                    </p>
-                  </div>
+                  <p className="text-base font-semibold text-blue-800">Método de Entrega en Guatemala</p>
+                </div>
+                <div className="ml-6">
+                  <p className="text-sm text-blue-700">
+                    {trip.deliveryMethod === 'oficina' ? '🏢 Llevar paquetes a la oficina de Favorón' : 
+                     trip.deliveryMethod === 'mensajero' ? '🚚 Un mensajero recogerá los paquetes' : 
+                     trip.deliveryMethod === 'pickup' ? '🏢 Recoger en oficina' : 
+                     trip.deliveryMethod || 'No especificado'}
+                  </p>
+                  {!trip.deliveryMethod && (
+                    <p className="text-xs text-red-600 mt-1">⚠️ Método de entrega no especificado en este viaje</p>
+                  )}
                 </div>
               </div>
 
