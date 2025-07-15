@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FileText, Truck, CreditCard, Download, Eye, Calendar, Edit, Upload } from "lucide-react";
 import { Package } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -24,9 +25,11 @@ interface DocumentData {
 
 const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedDocumentsRegistryProps) => {
   const { toast } = useToast();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState<{ url: string; title: string } | null>(null);
 
-  // Helper function to download payment receipt
-  const downloadPaymentReceipt = async (paymentData: DocumentData) => {
+  // Helper function to view payment receipt
+  const viewPaymentReceipt = async (paymentData: DocumentData) => {
     if (paymentData.filePath) {
       try {
         const { data, error } = await supabase.storage
@@ -42,20 +45,24 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           return;
         }
 
-        window.open(data.signedUrl, '_blank');
+        setModalImage({
+          url: data.signedUrl,
+          title: "Comprobante de pago"
+        });
+        setModalOpen(true);
       } catch (error) {
-        console.error('Error downloading payment receipt:', error);
+        console.error('Error viewing payment receipt:', error);
         toast({
           title: "Error",
-          description: "Ocurrió un error al descargar el archivo",
+          description: "Ocurrió un error al cargar el archivo",
           variant: "destructive",
         });
       }
     }
   };
 
-  // Helper function to download purchase confirmation
-  const downloadPurchaseConfirmation = async (confirmationData: DocumentData) => {
+  // Helper function to view purchase confirmation
+  const viewPurchaseConfirmation = async (confirmationData: DocumentData) => {
     if (confirmationData.filePath) {
       try {
         const { data, error } = await supabase.storage
@@ -71,12 +78,16 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           return;
         }
 
-        window.open(data.signedUrl, '_blank');
+        setModalImage({
+          url: data.signedUrl,
+          title: "Confirmación de compra"
+        });
+        setModalOpen(true);
       } catch (error) {
-        console.error('Error downloading purchase confirmation:', error);
+        console.error('Error viewing purchase confirmation:', error);
         toast({
           title: "Error",
-          description: "Ocurrió un error al descargar el archivo",
+          description: "Ocurrió un error al cargar el archivo",
           variant: "destructive",
         });
       }
@@ -137,7 +148,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                onClick={() => downloadPaymentReceipt(paymentReceipt)}
+                onClick={() => viewPaymentReceipt(paymentReceipt)}
                 title="Ver documento"
               >
                 <Eye className="h-3 w-3" />
@@ -180,7 +191,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                onClick={() => downloadPurchaseConfirmation(purchaseConfirmation)}
+                onClick={() => viewPurchaseConfirmation(purchaseConfirmation)}
                 title="Ver documento"
               >
                 <Eye className="h-3 w-3" />
@@ -245,6 +256,24 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           </div>
         )}
       </CardContent>
+      
+      {/* Modal para ver imágenes */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{modalImage?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center">
+            {modalImage && (
+              <img 
+                src={modalImage.url} 
+                alt={modalImage.title}
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
