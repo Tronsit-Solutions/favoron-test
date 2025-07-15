@@ -321,7 +321,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
           {/* Delivery method for Guatemala only */}
           {isGuatemalaDestination && (
-            <div className="space-y-2 p-2 sm:p-4 bg-accent/50 rounded-lg border">
+            <div className="space-y-2 p-2 sm:p-4 bg-muted rounded-lg border">
               <Label className="text-xs sm:text-sm font-medium">Entrega en Guatemala *</Label>
               <RadioGroup 
                 value={formData.deliveryMethod} 
