@@ -174,6 +174,9 @@ const QuoteDialog = ({
             <div className="space-y-4">
               <div>
                 <Label htmlFor="price">Precio del servicio (Q) *</Label>
+                <p className="text-xs text-muted-foreground mt-1 mb-2">
+                  💰 Esta es tu compensación como viajero por realizar el Favorón
+                </p>
                 <Input
                   id="price"
                   type="number"
@@ -182,9 +185,6 @@ const QuoteDialog = ({
                   onChange={(e) => setPrice(e.target.value)}
                   required
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  💰 Esta es tu compensación como viajero por realizar el Favorón
-                </p>
                 <p className="text-xs text-amber-600 mt-1">
                   ⚠️ Considera costos adicionales como hotel por recibir paquete
                 </p>
