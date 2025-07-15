@@ -204,6 +204,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          email: string | null
           first_name: string | null
           id: string
           last_name: string | null
@@ -215,6 +216,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
@@ -226,6 +228,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
@@ -321,6 +324,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_old_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_notification: {
         Args: {
           _user_id: string
@@ -332,6 +339,15 @@ export type Database = {
           _metadata?: Json
         }
         Returns: string
+      }
+      get_database_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          row_count: number
+          table_size: string
+          index_size: string
+        }[]
       }
       has_role: {
         Args: {
