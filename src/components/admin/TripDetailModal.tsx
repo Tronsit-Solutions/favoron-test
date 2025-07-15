@@ -141,22 +141,66 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <div>
                     <p className="text-sm font-medium">Método de Entrega</p>
                     <p className="text-sm text-muted-foreground">
-                      {trip.deliveryMethod === 'oficina' ? 'Oficina de Favorón' : 
-                       trip.deliveryMethod === 'mensajero' ? 'Mensajero' : 
+                      {trip.deliveryMethod === 'oficina' ? 'Llevar a oficina de Favorón' : 
+                       trip.deliveryMethod === 'mensajero' ? 'Recoger con mensajero' : 
                        trip.deliveryMethod === 'pickup' ? 'Recoger en oficina' : trip.deliveryMethod}
                     </p>
                   </div>
                 </div>
+              </div>
 
-                {trip.messengerPickupLocation && (
-                  <div className="flex items-center space-x-2">
-                    <Truck className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Ubicación Mensajero</p>
-                      <p className="text-sm text-muted-foreground">{trip.messengerPickupLocation}</p>
+              {/* Messenger Pickup Information */}
+              {trip.deliveryMethod === 'mensajero' && trip.messengerPickupInfo && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2 mb-3">
+                    <Truck className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <p className="text-sm font-medium text-yellow-800">Información de Recolección por Mensajero:</p>
+                  </div>
+                  <div className="text-sm text-muted-foreground ml-7 space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <p className="font-medium text-gray-700">Dirección de recolección:</p>
+                        <p>{trip.messengerPickupInfo.streetAddress}</p>
+                        <p>{trip.messengerPickupInfo.cityArea}</p>
+                      </div>
+                      
+                      {trip.messengerPickupInfo.accommodationName && (
+                        <div>
+                          <p className="font-medium text-gray-700">Lugar:</p>
+                          <p>{trip.messengerPickupInfo.accommodationName}</p>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <p className="font-medium text-gray-700">Contacto:</p>
+                        <p>{trip.messengerPickupInfo.contactNumber}</p>
+                      </div>
+                      
+                      {trip.messengerPickupInfo.preferredTime && (
+                        <div>
+                          <p className="font-medium text-gray-700">Horario preferido:</p>
+                          <p>{trip.messengerPickupInfo.preferredTime}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {trip.messengerPickupInfo.pickupInstructions && (
+                      <div className="mt-3 pt-3 border-t border-yellow-200">
+                        <p className="font-medium text-gray-700">Instrucciones adicionales:</p>
+                        <p className="mt-1 bg-white p-2 rounded border">{trip.messengerPickupInfo.pickupInstructions}</p>
+                      </div>
+                    )}
+                    
+                    <div className="mt-3 pt-3 border-t border-yellow-200">
+                      <p className="text-xs text-yellow-700 font-medium">
+                        💰 Costo del mensajero (Q25-Q40) será descontado de las ganancias del viajero
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 {trip.delivery_date && (
                   <div className="flex items-center space-x-2">
