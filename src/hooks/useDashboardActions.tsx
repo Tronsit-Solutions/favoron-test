@@ -18,7 +18,8 @@ export const useDashboardActions = (
   createPackage?: (packageData: any) => Promise<any>,
   createTrip?: (tripData: any) => Promise<any>,
   updatePackage?: (id: string, updates: any) => Promise<any>,
-  updateTrip?: (id: string, updates: any) => Promise<any>
+  updateTrip?: (id: string, updates: any) => Promise<any>,
+  setActiveTab?: (tab: string) => void
 ) => {
   const { toast } = useToast();
 
@@ -43,10 +44,20 @@ export const useDashboardActions = (
 
       await createPackage(dbPackageData);
       setShowPackageForm(false);
-      toast({
-        title: "¡Solicitud enviada!",
-        description: "Tu solicitud de paquete está en revisión. Te notificaremos pronto.",
-      });
+      
+      // Navigate to admin tab if user is admin to see the new package
+      if (currentUser.role === 'admin' && setActiveTab) {
+        setActiveTab('admin');
+        toast({
+          title: "¡Solicitud enviada!",
+          description: "Tu solicitud se ha creado y puedes gestionarla en el panel de Admin.",
+        });
+      } else {
+        toast({
+          title: "¡Solicitud enviada!",
+          description: "Tu solicitud de paquete está en revisión. Te notificaremos pronto.",
+        });
+      }
     } catch (error) {
       console.error('Error creating package:', error);
       toast({
