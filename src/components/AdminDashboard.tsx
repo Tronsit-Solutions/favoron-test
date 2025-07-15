@@ -14,6 +14,7 @@ import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
+import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 
@@ -148,7 +149,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -169,6 +170,9 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="financial" className="relative flex items-center gap-2">
             Financiero
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="relative flex items-center gap-2">
+            Reportes
           </TabsTrigger>
         </TabsList>
 
@@ -208,6 +212,10 @@ const AdminDashboard = ({
             onConfirmOfficeReception={onConfirmOfficeReception}
             getStatusBadge={getStatusBadge}
           />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <MonthlyReportsTab />
         </TabsContent>
 
       </Tabs>
