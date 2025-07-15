@@ -125,7 +125,7 @@ const AdminApprovalsTab = ({
                         {getStatusBadge(pkg.status)}
                       </div>
                       
-                      <div className="flex space-x-2 mt-3">
+                      <div className="flex space-x-2 mt-3 justify-end">
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -195,7 +195,7 @@ const AdminApprovalsTab = ({
                         {getStatusBadge(trip.status)}
                       </div>
                       
-                      <div className="flex space-x-2 mt-3">
+                      <div className="flex space-x-2 mt-3 justify-end">
                         <Button 
                           size="sm" 
                           variant="outline"
