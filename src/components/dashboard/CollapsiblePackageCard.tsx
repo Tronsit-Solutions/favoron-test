@@ -255,20 +255,17 @@ const CollapsiblePackageCard = ({
                           <span className="font-medium text-primary text-base">📍 Dirección completa de envío:</span>
                         </div>
                         
-                        {/* NOMBRE DEL DESTINATARIO - MUY PROMINENTE */}
-                        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 -mt-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-lg">🎯</span>
-                            <span className="font-bold text-red-800 text-base">ENVIAR A NOMBRE DE:</span>
-                          </div>
-                          <p className="text-red-900 font-bold text-lg ml-7">
+                        {/* NOMBRE DEL DESTINATARIO - Prominente pero sutil */}
+                        <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
+                          <span className="font-medium text-primary">👤 Destinatario:</span>
+                          <p className="text-foreground font-semibold text-base">
                             {(pkg.traveler_address as any)?.recipientName || 
                              (pkg.traveler_address as any)?.fullName || 
-                             'NOMBRE NO ESPECIFICADO - CONTACTAR ADMINISTRACIÓN'}
+                             'Nombre no especificado'}
                           </p>
                           {!(pkg.traveler_address as any)?.recipientName && !(pkg.traveler_address as any)?.fullName && (
-                            <p className="text-red-700 text-xs mt-1 ml-7">
-                              ⚠️ Es obligatorio tener el nombre del destinatario antes de enviar
+                            <p className="text-muted-foreground text-xs mt-1">
+                              ⚠️ Contactar administración para obtener el nombre del destinatario
                             </p>
                           )}
                         </div>
