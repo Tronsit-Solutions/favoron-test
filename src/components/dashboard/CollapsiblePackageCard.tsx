@@ -259,11 +259,9 @@ const CollapsiblePackageCard = ({
                         <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
                           <span className="font-medium text-primary">👤 Destinatario:</span>
                           <p className="text-foreground font-semibold text-base">
-                            {(pkg.traveler_address as any)?.recipientName || 
-                             (pkg.traveler_address as any)?.fullName || 
-                             'Nombre no especificado'}
+                            {(pkg.traveler_address as any)?.recipientName || 'Nombre no especificado'}
                           </p>
-                          {!(pkg.traveler_address as any)?.recipientName && !(pkg.traveler_address as any)?.fullName && (
+                          {!(pkg.traveler_address as any)?.recipientName && (
                             <p className="text-muted-foreground text-xs mt-1">
                               ⚠️ Contactar administración para obtener el nombre del destinatario
                             </p>
