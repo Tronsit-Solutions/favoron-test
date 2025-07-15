@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import MessengerPickupForm from "@/components/MessengerPickupForm";
 
 interface TripFormProps {
   isOpen: boolean;
@@ -44,6 +45,9 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     lastDayPackages: null as Date | null,
     messengerPickupLocation: ''
   });
+  
+  const [showMessengerForm, setShowMessengerForm] = useState(false);
+  const [messengerData, setMessengerData] = useState(null);
 
   const popularCities = [
     'Miami, FL',
@@ -96,10 +100,17 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       return;
     }
 
+    // Validar información de mensajero si seleccionó mensajero
+    if (formData.deliveryMethod === 'mensajero' && !messengerData) {
+      alert('Por favor completa la información de recolección por mensajero');
+      return;
+    }
+
     const submitData = {
       ...formData,
       fromCity: finalFromCity,
-      toCity: finalToCity
+      toCity: finalToCity,
+      messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
     };
 
     onSubmit(submitData);
@@ -130,10 +141,22 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       lastDayPackages: null,
       messengerPickupLocation: ''
     });
+    setShowMessengerForm(false);
+    setMessengerData(null);
   };
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Mostrar formulario de mensajero si selecciona mensajero
+    if (field === 'deliveryMethod') {
+      if (value === 'mensajero') {
+        setShowMessengerForm(true);
+      } else {
+        setShowMessengerForm(false);
+        setMessengerData(null);
+      }
+    }
   };
 
   const handleAddressChange = (field: string, value: string) => {
@@ -144,6 +167,16 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
         [field]: value
       }
     }));
+  };
+
+  const handleMessengerSubmit = (pickupData: any) => {
+    setMessengerData(pickupData);
+    setShowMessengerForm(false);
+  };
+
+  const handleMessengerCancel = () => {
+    setShowMessengerForm(false);
+    setFormData(prev => ({ ...prev, deliveryMethod: '' }));
   };
 
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
@@ -487,20 +520,30 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               </div>
             </RadioGroup>
             
-            {formData.deliveryMethod === 'mensajero' && displayToCity?.toLowerCase().includes('guatemala') && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                <Label htmlFor="messengerPickup" className="font-medium text-yellow-800">
-                  ¿Dónde debe recoger el mensajero los paquetes?
-                </Label>
-                <Input
-                  id="messengerPickup"
-                  type="text"
-                  placeholder="Ej: Hotel Casa Santo Domingo, zona 10"
-                  value={formData.messengerPickupLocation}
-                  onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
+            
+            {/* Mostrar formulario de mensajero si seleccionó mensajero */}
+            {showMessengerForm && (
+              <MessengerPickupForm
+                onSubmit={handleMessengerSubmit}
+                onCancel={handleMessengerCancel}
+                initialData={messengerData}
+              />
+            )}
+            
+            {/* Mostrar resumen de información si ya la completó */}
+            {formData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && (
+              <div className="bg-green-50 border border-green-200 rounded p-3">
+                <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
+                <p className="text-xs text-green-700">{messengerData.streetAddress}, {messengerData.cityArea}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMessengerForm(true)}
                   className="mt-2"
-                  required
-                />
+                >
+                  Editar información
+                </Button>
               </div>
             )}
             
