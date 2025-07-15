@@ -142,15 +142,25 @@ export const usePackagesData = () => {
           table: 'packages'
         },
         (payload) => {
-          console.log('Real-time update received:', payload);
+          console.log('📦 Real-time update received:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setPackages(prev => [payload.new as Package, ...prev]);
+            console.log('🆕 New package inserted:', payload.new);
+            setPackages(prev => {
+              // Check if package already exists to avoid duplicates
+              const exists = prev.find(pkg => pkg.id === payload.new.id);
+              if (!exists) {
+                return [payload.new as Package, ...prev];
+              }
+              return prev;
+            });
           } else if (payload.eventType === 'UPDATE') {
+            console.log('🔄 Package updated:', payload.new);
             setPackages(prev => prev.map(pkg => 
               pkg.id === payload.new.id ? { ...pkg, ...payload.new } : pkg
             ));
           } else if (payload.eventType === 'DELETE') {
+            console.log('🗑️ Package deleted:', payload.old);
             setPackages(prev => prev.filter(pkg => pkg.id !== payload.old.id));
           }
         }
