@@ -21,9 +21,10 @@ interface PaymentReceiptViewerProps {
     totalPrice: number;
     message?: string;
   };
+  estimatedPrice?: number;
 }
 
-const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: PaymentReceiptViewerProps) => {
+const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, estimatedPrice }: PaymentReceiptViewerProps) => {
   const [showModal, setShowModal] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,7 +85,7 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
               <div className="text-xs text-gray-600 space-y-1">
                 <div className="flex justify-between">
                   <span>Precio del producto (GMV):</span>
-                  <span className="font-medium">${(quote.totalPrice / 1.4).toFixed(2)}</span>
+                  <span className="font-medium">${estimatedPrice ? estimatedPrice.toFixed(2) : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tip del viajero:</span>
@@ -189,7 +190,7 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
               <div className="text-xs text-green-600 space-y-1">
                 <div className="flex justify-between">
                   <span>Precio del producto (GMV):</span>
-                  <span className="font-medium">${(quote.totalPrice / 1.4).toFixed(2)}</span>
+                  <span className="font-medium">${estimatedPrice ? estimatedPrice.toFixed(2) : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tip del viajero:</span>
