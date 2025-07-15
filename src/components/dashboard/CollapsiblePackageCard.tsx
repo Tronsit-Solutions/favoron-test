@@ -249,21 +249,77 @@ const CollapsiblePackageCard = ({
                       </div>
                     )}
                     
-                    <div className="bg-background/80 rounded-md p-3 border border-border mb-4">
-                      <div className="text-sm space-y-2">
+                    <div className="bg-background/80 rounded-md p-4 border border-border mb-4">
+                      <div className="text-sm space-y-3">
                         <div>
-                          <span className="font-medium text-primary">Dirección de envío:</span>
+                          <span className="font-medium text-primary text-base">📍 Dirección completa de envío:</span>
                         </div>
-                        <div className="ml-4 space-y-1 text-muted-foreground">
-                          <p>{(pkg.traveler_address as any)?.streetAddress}</p>
-                          <p>{(pkg.traveler_address as any)?.cityArea}</p>
-                          {(pkg.traveler_address as any)?.hotelAirbnbName && (
-                            <p className="font-medium">{(pkg.traveler_address as any).hotelAirbnbName}</p>
+                        <div className="ml-2 space-y-2">
+                          {/* Nombre del destinatario */}
+                          {(pkg.traveler_address as any)?.recipientName && (
+                            <div className="bg-primary/5 rounded-md p-2">
+                              <span className="font-medium text-primary">👤 Destinatario:</span>
+                              <p className="text-foreground font-semibold">{(pkg.traveler_address as any).recipientName}</p>
+                            </div>
                           )}
-                          <p className="flex items-center">
-                            <span className="mr-1">📞</span>
-                            {(pkg.traveler_address as any)?.contactNumber}
-                          </p>
+                          
+                          {/* Dirección */}
+                          <div>
+                            <span className="font-medium text-muted-foreground">🏠 Dirección:</span>
+                            <p className="text-foreground font-medium">{(pkg.traveler_address as any)?.streetAddress}</p>
+                          </div>
+                          
+                          {/* Ciudad/Área y Código Postal */}
+                          <div className="grid grid-cols-1 gap-2">
+                            <div>
+                              <span className="font-medium text-muted-foreground">🌆 Ciudad/Área:</span>
+                              <p className="text-foreground">{(pkg.traveler_address as any)?.cityArea}</p>
+                            </div>
+                            {(pkg.traveler_address as any)?.zipCode && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">📮 Código Postal:</span>
+                                <p className="text-foreground font-mono">{(pkg.traveler_address as any).zipCode}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Estado/Provincia y País */}
+                          <div className="grid grid-cols-1 gap-2">
+                            {(pkg.traveler_address as any)?.state && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">🗺️ Estado/Provincia:</span>
+                                <p className="text-foreground">{(pkg.traveler_address as any).state}</p>
+                              </div>
+                            )}
+                            {(pkg.traveler_address as any)?.country && (
+                              <div>
+                                <span className="font-medium text-muted-foreground">🏳️ País:</span>
+                                <p className="text-foreground">{(pkg.traveler_address as any).country}</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Hotel/Airbnb */}
+                          {(pkg.traveler_address as any)?.hotelAirbnbName && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
+                              <span className="font-medium text-blue-700">🏨 Hotel/Alojamiento:</span>
+                              <p className="text-blue-800 font-medium">{(pkg.traveler_address as any).hotelAirbnbName}</p>
+                            </div>
+                          )}
+                          
+                          {/* Contacto */}
+                          <div className="bg-green-50 border border-green-200 rounded-md p-2">
+                            <span className="font-medium text-green-700">📞 Contacto:</span>
+                            <p className="text-green-800 font-semibold">{(pkg.traveler_address as any)?.contactNumber}</p>
+                          </div>
+                          
+                          {/* Instrucciones especiales */}
+                          {(pkg.traveler_address as any)?.specialInstructions && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-2">
+                              <span className="font-medium text-yellow-700">💬 Instrucciones especiales:</span>
+                              <p className="text-yellow-800">{(pkg.traveler_address as any).specialInstructions}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
