@@ -18,7 +18,7 @@ const ShopperPackageInfo = ({
     return <div className="bg-info-muted border border-info-border rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-info">Cotización recibida:</p>
-          <p className="text-lg font-bold text-info">${totalWithFavoronFee.toFixed(2)}</p>
+          <p className="text-lg font-bold text-info">Q{totalWithFavoronFee.toFixed(2)}</p>
         </div>
         <p className="text-xs text-info">
           Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
