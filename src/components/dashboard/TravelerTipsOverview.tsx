@@ -154,7 +154,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
                           {pkg.products?.[0]?.itemDescription || pkg.itemDescription}
                         </p>
                         <p className="text-xs text-red-600 mt-1">
-                          💰 Cotización rechazada: ${pkg.quote?.totalPrice || 'N/A'}
+                          💰 Cotización rechazada: Q{pkg.quote?.totalPrice || 'N/A'}
                         </p>
                         {pkg.rejectionReason && (
                           <p className="text-xs text-red-700 mt-1">
@@ -239,7 +239,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
                           Paquete #{index + 1}: {pkg.products?.[0]?.itemDescription || pkg.itemDescription}
                         </span>
                         <span className="font-medium">
-                          +${parseFloat(pkg.quote.price).toFixed(2)}
+                          +Q{parseFloat(pkg.quote.price).toFixed(2)}
                         </span>
                       </div>
                     ))}

@@ -138,7 +138,7 @@ const QuoteDialog = ({
                 )}
                 <div className="mt-2 pt-2 border-t border-green-300">
                   <p className="font-medium text-lg">
-                    <strong>Total:</strong> ${parseFloat(existingQuote.totalPrice || 0).toFixed(2)}
+                    <strong>Total:</strong> Q{parseFloat(existingQuote.totalPrice || 0).toFixed(2)}
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.

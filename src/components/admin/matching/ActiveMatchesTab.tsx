@@ -204,7 +204,7 @@ const ActiveMatchesTab = ({
                       {pkg.quote && (
                         <div className="flex items-center space-x-4 text-xs">
                           <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
-                            💰 Cotización: ${(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
+                            💰 Cotización: Q{(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
                           </span>
                         </div>
                       )}

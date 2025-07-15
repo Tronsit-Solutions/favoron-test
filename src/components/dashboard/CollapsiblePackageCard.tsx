@@ -190,7 +190,7 @@ const CollapsiblePackageCard = ({
                           <div className="flex justify-between border-t border-border pt-2 mt-2">
                             <span className="font-medium">Monto:</span>
                             <span className="text-black font-bold text-lg">
-                              ${pkg.quote && typeof pkg.quote === 'object' ? parseFloat((pkg.quote as any).totalPrice || '0').toFixed(2) : '0.00'}
+                              Q{pkg.quote && typeof pkg.quote === 'object' ? parseFloat((pkg.quote as any).totalPrice || '0').toFixed(2) : '0.00'}
                             </span>
                           </div>
                         </div>
