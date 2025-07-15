@@ -255,6 +255,7 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
               paymentReceipt={pkg.payment_receipt} 
               packageId={pkg.id}
               quote={pkg.quote}
+              estimatedPrice={pkg.estimated_price}
             />
           )}
 
