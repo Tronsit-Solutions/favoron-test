@@ -19,8 +19,7 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
     contactNumber: initialData?.contactNumber || ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     
     if (!formData.streetAddress || !formData.cityArea || !formData.contactNumber) {
       alert('Por favor completa todos los campos obligatorios');
@@ -41,7 +40,7 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
         <h3 className="font-medium text-orange-800">Información de entrega a domicilio</h3>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="streetAddress" className="text-sm font-medium">
             Dirección completa *
@@ -123,11 +122,11 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
             Cancelar
           </Button>
-          <Button type="submit" variant="shopper" className="flex-1">
+          <Button type="button" variant="shopper" className="flex-1" onClick={handleSubmit}>
             Confirmar Dirección
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
