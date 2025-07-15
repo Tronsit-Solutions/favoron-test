@@ -414,6 +414,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           packageDetails={{
             item_description: selectedPackageForQuote.item_description,
             estimated_price: selectedPackageForQuote.estimated_price,
+            item_link: selectedPackageForQuote.item_link,
             deliveryAddress: selectedPackageForQuote.confirmed_delivery_address
           }}
           userType={quoteUserType}
