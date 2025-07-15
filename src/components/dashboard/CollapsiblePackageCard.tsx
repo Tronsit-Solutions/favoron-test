@@ -254,15 +254,26 @@ const CollapsiblePackageCard = ({
                         <div>
                           <span className="font-medium text-primary text-base">📍 Dirección completa de envío:</span>
                         </div>
-                        <div className="ml-2 space-y-2">
-                          {/* Nombre del destinatario */}
-                          {(pkg.traveler_address as any)?.recipientName && (
-                            <div className="bg-primary/5 rounded-md p-2">
-                              <span className="font-medium text-primary">👤 Destinatario:</span>
-                              <p className="text-foreground font-semibold">{(pkg.traveler_address as any).recipientName}</p>
-                            </div>
+                        
+                        {/* NOMBRE DEL DESTINATARIO - MUY PROMINENTE */}
+                        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 -mt-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-lg">🎯</span>
+                            <span className="font-bold text-red-800 text-base">ENVIAR A NOMBRE DE:</span>
+                          </div>
+                          <p className="text-red-900 font-bold text-lg ml-7">
+                            {(pkg.traveler_address as any)?.recipientName || 
+                             (pkg.traveler_address as any)?.fullName || 
+                             'NOMBRE NO ESPECIFICADO - CONTACTAR ADMINISTRACIÓN'}
+                          </p>
+                          {!(pkg.traveler_address as any)?.recipientName && !(pkg.traveler_address as any)?.fullName && (
+                            <p className="text-red-700 text-xs mt-1 ml-7">
+                              ⚠️ Es obligatorio tener el nombre del destinatario antes de enviar
+                            </p>
                           )}
-                          
+                        </div>
+                        
+                        <div className="ml-2 space-y-2">
                           {/* Dirección */}
                           <div>
                             <span className="font-medium text-muted-foreground">🏠 Dirección:</span>
