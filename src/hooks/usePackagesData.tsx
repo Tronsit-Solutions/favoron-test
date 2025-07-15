@@ -16,7 +16,16 @@ export const usePackagesData = () => {
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(`
+          *,
+          profiles!packages_user_id_fkey (
+            id,
+            first_name,
+            last_name,
+            username,
+            email
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -16,7 +16,16 @@ export const useTripsData = () => {
     try {
       const { data, error } = await supabase
         .from('trips')
-        .select('*')
+        .select(`
+          *,
+          profiles!trips_user_id_fkey (
+            id,
+            first_name,
+            last_name,
+            username,
+            email
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
