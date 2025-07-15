@@ -35,12 +35,12 @@ const AdminOverviewTab = ({
               {approvedPackages.map(pkg => (
                 <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
                   <div className="flex-1">
-                    <p className="font-medium">{pkg.itemDescription}</p>
+                    <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                      Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
-                      📦 Origen: {pkg.purchaseOrigin || 'No especificado'} → 🎯 Destino: {pkg.packageDestination || 'Guatemala'}
+                      📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
                     </p>
                   </div>
                   <div className="flex space-x-2">
@@ -93,14 +93,14 @@ const AdminOverviewTab = ({
               {packages.filter(pkg => pkg.status === 'payment_pending').map(pkg => (
                 <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
                   <div className="flex-1">
-                    <p className="font-medium">{pkg.itemDescription}</p>
+                    <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimatedPrice} • Usuario: {pkg.userId}
+                      Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
                     </p>
-                    {pkg.paymentReceipt && (
+                    {pkg.payment_receipt && (
                       <p className="text-xs text-blue-600 mt-1">
-                        Comprobante: {pkg.paymentReceipt.filename} • 
-                        Subido: {new Date(pkg.paymentReceipt.uploadedAt).toLocaleDateString()}
+                        Comprobante: {pkg.payment_receipt.filename} • 
+                        Subido: {new Date(pkg.payment_receipt.uploadedAt).toLocaleDateString()}
                       </p>
                     )}
                   </div>
