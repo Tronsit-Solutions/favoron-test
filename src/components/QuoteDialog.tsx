@@ -178,7 +178,7 @@ const QuoteDialog = ({
                   💰 Esta es tu compensación como viajero por realizar el Favorón
                 </p>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">Q</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-sans">Q</span>
                   <Input
                     id="price"
                     type="number"
