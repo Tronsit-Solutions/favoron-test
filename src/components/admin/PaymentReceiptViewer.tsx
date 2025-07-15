@@ -71,9 +71,41 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote }: P
   if (!paymentReceipt?.filePath && !paymentReceipt?.fileUrl) {
     return (
       <Card className={`border-gray-200 bg-gray-50 ${className}`}>
-        <CardContent className="p-4 text-center">
-          <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm text-gray-600">Sin comprobante de pago</p>
+        <CardContent className="p-4">
+          <div className="text-center mb-3">
+            <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm text-gray-600">Sin comprobante de pago</p>
+          </div>
+          
+          {/* Quote Information */}
+          {quote && (
+            <div className="border-t border-gray-200 pt-3">
+              <p className="text-sm font-medium text-gray-800 mb-2">Desglose del Pago</p>
+              <div className="text-xs text-gray-600 space-y-1">
+                <div className="flex justify-between">
+                  <span>Precio del producto (GMV):</span>
+                  <span className="font-medium">${(quote.totalPrice / 1.4).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tip del viajero:</span>
+                  <span className="font-medium">Q{quote.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Cuota Favorón (40%):</span>
+                  <span className="font-medium">Q{(quote.price * 0.4).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between border-t border-gray-200 pt-1 font-semibold">
+                  <span>Total a pagar:</span>
+                  <span>Q{quote.totalPrice.toFixed(2)}</span>
+                </div>
+                {quote.message && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-xs"><strong>Mensaje:</strong> {quote.message}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
