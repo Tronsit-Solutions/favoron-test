@@ -99,22 +99,14 @@ const QuoteDialog = ({
               <p><strong>Producto:</strong> {packageDetails.item_description}</p>
               <p><strong>Precio estimado:</strong> ${packageDetails.estimated_price}</p>
               {packageDetails.item_link && (
-                <div className="bg-primary/10 border border-primary/20 rounded-md p-2 mt-2">
-                  <div className="flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4 text-primary" />
-                    <div>
-                      <p className="text-xs text-primary font-medium mb-1">Enlace del producto:</p>
-                      <a 
-                        href={packageDetails.item_link} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-primary hover:underline text-sm font-medium break-all"
-                      >
-                        🔗 Ver producto completo
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                <p><strong>Enlace del producto:</strong> <a 
+                  href={packageDetails.item_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline"
+                >
+                  Ver producto
+                </a></p>
               )}
             </div>
           </div>
