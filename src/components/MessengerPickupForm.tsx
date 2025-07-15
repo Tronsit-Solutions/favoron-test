@@ -148,7 +148,7 @@ const MessengerPickupForm = ({ onSubmit, onCancel, initialData }: MessengerPicku
         <div className="bg-amber-50 border border-amber-200 rounded p-3">
           <p className="text-sm text-amber-800">
             🚚 <strong>Importante:</strong> El mensajero se coordinará contigo el día de la recolección. 
-            El costo del servicio (Q25-Q40) será descontado de las ganancias del comprador que solicita el paquete.
+            El costo del servicio (Q25-Q40) será descontado de tus ganancias como viajero.
           </p>
         </div>
 
