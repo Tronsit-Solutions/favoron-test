@@ -89,9 +89,28 @@ const AdminDashboard = ({
   };
 
   const handleViewPackageDetail = (pkg: any) => {
+    // Extract multiple products information if stored in additional_notes
+    let products = null;
+    let originalNotes = pkg.additional_notes;
+    
+    try {
+      if (pkg.additional_notes && typeof pkg.additional_notes === 'string') {
+        const parsedNotes = JSON.parse(pkg.additional_notes);
+        if (parsedNotes.products && Array.isArray(parsedNotes.products)) {
+          products = parsedNotes.products;
+          originalNotes = parsedNotes.originalNotes;
+        }
+      }
+    } catch (error) {
+      // If parsing fails, treat as regular notes
+      console.log('Notes are not JSON, treating as regular notes');
+    }
+    
     // Add mock user data for demo
     const packageWithUser = {
       ...pkg,
+      products: products, // Add products array to the package
+      additional_notes: originalNotes, // Use original notes without JSON structure
       user: {
         id: pkg.userId,
         name: `Usuario ${pkg.userId}`,

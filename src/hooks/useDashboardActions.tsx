@@ -35,17 +35,34 @@ export const useDashboardActions = (
       console.log('🚚 Delivery Method:', packageData.deliveryMethod);
       console.log('📍 Delivery Address:', packageData.deliveryAddress);
       
+      // Handle multiple products or single product format
+      const hasMultipleProducts = packageData.products && packageData.products.length > 0;
+      const totalEstimatedPrice = hasMultipleProducts 
+        ? packageData.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0)
+        : parseFloat(packageData.estimatedPrice || 0);
+      
       const dbPackageData = {
-        item_description: packageData.products?.[0]?.itemDescription || packageData.itemDescription,
-        item_link: packageData.products?.[0]?.itemLink || packageData.itemLink,
-        estimated_price: packageData.products?.[0]?.estimatedPrice ? parseFloat(packageData.products[0].estimatedPrice) : null,
+        item_description: hasMultipleProducts 
+          ? packageData.products[0].itemDescription
+          : packageData.itemDescription,
+        item_link: hasMultipleProducts 
+          ? packageData.products[0].itemLink
+          : packageData.itemLink,
+        estimated_price: totalEstimatedPrice || null,
         delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
         delivery_method: packageData.deliveryMethod || 'pickup',
         confirmed_delivery_address: packageData.deliveryAddress || null,
-        status: 'pending_approval'
+        status: 'pending_approval',
+        // Store multiple products information in additional_notes as JSON if multiple products
+        ...(hasMultipleProducts && packageData.products.length > 1 && {
+          additional_notes: JSON.stringify({
+            products: packageData.products,
+            originalNotes: packageData.additionalNotes || null
+          })
+        })
       };
       
       console.log('💾 Database Package Data:', dbPackageData);
