@@ -41,21 +41,58 @@
 
     --radius: 0.75rem;
 
-    /* Status Colors */
+    /* Status Colors - Expanded */
     --success: 142 71% 45%;
     --success-foreground: 210 40% 98%;
     --success-muted: 142 71% 45% / 0.1;
     --success-border: 142 71% 45% / 0.3;
+    --success-hover: 142 71% 40%;
+    --success-light: 142 71% 85%;
 
     --warning: 33 100% 64%;
     --warning-foreground: 222.2 47.4% 11.2%;
     --warning-muted: 33 100% 64% / 0.1;
     --warning-border: 33 100% 64% / 0.3;
+    --warning-hover: 33 100% 58%;
+    --warning-light: 33 100% 85%;
 
     --info: 204 100% 62%;
     --info-foreground: 210 40% 98%;
     --info-muted: 204 100% 62% / 0.1;
     --info-border: 204 100% 62% / 0.3;
+    --info-hover: 204 100% 55%;
+    --info-light: 204 100% 85%;
+
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 210 40% 98%;
+    --error-muted: 0 84.2% 60.2% / 0.1;
+    --error-border: 0 84.2% 60.2% / 0.3;
+    --error-hover: 0 84.2% 55%;
+    --error-light: 0 84.2% 90%;
+
+    /* Surface Variations */
+    --surface-primary: 204 100% 62% / 0.05;
+    --surface-secondary: 33 100% 64% / 0.05;
+    --surface-success: 142 71% 45% / 0.05;
+    --surface-warning: 33 100% 64% / 0.05;
+    --surface-error: 0 84.2% 60.2% / 0.05;
+    --surface-info: 204 100% 62% / 0.05;
+
+    /* Elevation Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(222.2 84% 4.9% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222.2 84% 4.9% / 0.1), 0 2px 4px -1px hsl(222.2 84% 4.9% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(222.2 84% 4.9% / 0.1), 0 4px 6px -2px hsl(222.2 84% 4.9% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(222.2 84% 4.9% / 0.1), 0 10px 10px -5px hsl(222.2 84% 4.9% / 0.04);
+    --shadow-2xl: 0 25px 50px -12px hsl(222.2 84% 4.9% / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 hsl(222.2 84% 4.9% / 0.06);
+
+    /* Gradient Variations */
+    --gradient-primary: linear-gradient(135deg, hsl(204 100% 62%), hsl(203 54% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(33 100% 64%), hsl(24 100% 50%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 40%));
+    --gradient-warm: linear-gradient(135deg, hsl(24 100% 50%), hsl(33 100% 64%));
+    --gradient-cool: linear-gradient(135deg, hsl(204 100% 62%), hsl(142 71% 45%));
+    --gradient-subtle: linear-gradient(135deg, hsl(210 40% 98%), hsl(214.3 31.8% 96%));
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -93,21 +130,58 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 142 71% 45%;
 
-    /* Status Colors Dark Mode */
+    /* Status Colors Dark Mode - Expanded */
     --success: 142 71% 45%;
     --success-foreground: 210 40% 98%;
-    --success-muted: 142 71% 45% / 0.1;
-    --success-border: 142 71% 45% / 0.3;
+    --success-muted: 142 71% 45% / 0.15;
+    --success-border: 142 71% 45% / 0.4;
+    --success-hover: 142 71% 50%;
+    --success-light: 142 71% 20%;
 
     --warning: 33 100% 64%;
     --warning-foreground: 210 40% 98%;
-    --warning-muted: 33 100% 64% / 0.1;
-    --warning-border: 33 100% 64% / 0.3;
+    --warning-muted: 33 100% 64% / 0.15;
+    --warning-border: 33 100% 64% / 0.4;
+    --warning-hover: 33 100% 70%;
+    --warning-light: 33 100% 25%;
 
     --info: 204 100% 62%;
     --info-foreground: 210 40% 98%;
-    --info-muted: 204 100% 62% / 0.1;
-    --info-border: 204 100% 62% / 0.3;
+    --info-muted: 204 100% 62% / 0.15;
+    --info-border: 204 100% 62% / 0.4;
+    --info-hover: 204 100% 68%;
+    --info-light: 204 100% 25%;
+
+    --error: 0 84.2% 60.2%;
+    --error-foreground: 210 40% 98%;
+    --error-muted: 0 84.2% 60.2% / 0.15;
+    --error-border: 0 84.2% 60.2% / 0.4;
+    --error-hover: 0 84.2% 66%;
+    --error-light: 0 84.2% 25%;
+
+    /* Surface Variations Dark */
+    --surface-primary: 204 100% 62% / 0.08;
+    --surface-secondary: 33 100% 64% / 0.08;
+    --surface-success: 142 71% 45% / 0.08;
+    --surface-warning: 33 100% 64% / 0.08;
+    --surface-error: 0 84.2% 60.2% / 0.08;
+    --surface-info: 204 100% 62% / 0.08;
+
+    /* Elevation Shadows Dark */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.25), 0 10px 10px -5px hsl(0 0% 0% / 0.1);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 hsl(0 0% 0% / 0.06);
+
+    /* Gradient Variations Dark */
+    --gradient-primary: linear-gradient(135deg, hsl(204 100% 62%), hsl(203 54% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(33 100% 64%), hsl(24 100% 50%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 40%));
+    --gradient-warm: linear-gradient(135deg, hsl(24 100% 50%), hsl(33 100% 64%));
+    --gradient-cool: linear-gradient(135deg, hsl(204 100% 62%), hsl(142 71% 45%));
+    --gradient-subtle: linear-gradient(135deg, hsl(222.2 84% 4.9%), hsl(217.2 32.6% 17.5%));
   }
 }
 
@@ -120,13 +194,131 @@
   }
 }
 
-/* Custom gradient backgrounds */
-.gradient-hero {
-  background: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(24 100% 50%) 100%);
-}
+/* Enhanced Design System Components */
+@layer components {
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+  
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  
+  .gradient-warm {
+    background: var(--gradient-warm);
+  }
+  
+  .gradient-cool {
+    background: var(--gradient-cool);
+  }
+  
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+  
+  .gradient-hero {
+    background: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(24 100% 50%) 100%);
+  }
 
-.gradient-card {
-  background: linear-gradient(135deg, hsl(142 71% 45% / 0.05) 0%, hsl(24 100% 50% / 0.05) 100%);
+  .gradient-card {
+    background: linear-gradient(135deg, hsl(142 71% 45% / 0.05) 0%, hsl(24 100% 50% / 0.05) 100%);
+  }
+
+  /* Surface backgrounds */
+  .surface-primary {
+    background-color: hsl(var(--surface-primary));
+  }
+  
+  .surface-secondary {
+    background-color: hsl(var(--surface-secondary));
+  }
+  
+  .surface-success {
+    background-color: hsl(var(--surface-success));
+  }
+  
+  .surface-warning {
+    background-color: hsl(var(--surface-warning));
+  }
+  
+  .surface-error {
+    background-color: hsl(var(--surface-error));
+  }
+  
+  .surface-info {
+    background-color: hsl(var(--surface-info));
+  }
+
+  /* Enhanced shadows */
+  .shadow-elegant {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .shadow-soft {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .shadow-crisp {
+    box-shadow: var(--shadow-xl);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply inline-flex h-2 w-2 rounded-full;
+  }
+  
+  .status-dot-success {
+    @apply status-dot bg-success;
+  }
+  
+  .status-dot-warning {
+    @apply status-dot bg-warning;
+  }
+  
+  .status-dot-error {
+    @apply status-dot bg-error;
+  }
+  
+  .status-dot-info {
+    @apply status-dot bg-info;
+  }
+
+  /* Interactive states */
+  .interactive-hover {
+    @apply transition-all duration-200 hover:shadow-soft hover:scale-105;
+  }
+  
+  .interactive-press {
+    @apply transition-all duration-150 active:scale-95;
+  }
+  
+  .interactive-full {
+    @apply interactive-hover interactive-press;
+  }
+
+  /* Loading states */
+  .pulse-soft {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .shimmer {
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 25%, 
+      hsl(var(--muted-foreground) / 0.1) 50%, 
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
 }
 
 /* Mobile optimizations */
@@ -188,5 +380,86 @@
   /* Mobile-optimized form elements */
   .mobile-input {
     @apply min-h-[44px] text-base;
+  }
+
+  /* Enhanced animations */
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes slide-down {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes slide-in-left {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes slide-in-right {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes bounce-gentle {
+    0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+    40%, 43% { transform: translateY(-10px); }
+    70% { transform: translateY(-5px); }
+    90% { transform: translateY(-2px); }
+  }
+  
+  @keyframes rotate-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Animation utilities */
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+  
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+  }
+  
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+  }
+  
+  .animate-bounce-gentle {
+    animation: bounce-gentle 1s ease-in-out;
+  }
+  
+  .animate-rotate-smooth {
+    animation: rotate-smooth 1s linear infinite;
+  }
+
+  /* Transition utilities */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-fast {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-slow {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
