@@ -258,6 +258,12 @@ const CollapsiblePackageCard = ({
                         {/* NOMBRE DEL DESTINATARIO - Prominente pero sutil */}
                         <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
                            <span className="font-medium text-primary">👤 Destinatario:</span>
+                           {(() => {
+                             console.log('🔍 Package data:', pkg);
+                             console.log('🔍 Matched trip:', (pkg as any)?.matched_trip);
+                             console.log('🔍 Package receiving address:', (pkg as any)?.matched_trip?.package_receiving_address);
+                             return null;
+                           })()}
                            <p className="text-foreground font-semibold text-base">
                              {(pkg as any)?.matched_trip?.package_receiving_address?.recipientName || 'Nombre no especificado'}
                            </p>
