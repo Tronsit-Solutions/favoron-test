@@ -80,7 +80,7 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="hotelAirbnbName" className="text-sm font-medium">
-            Nombre del hotel/edificio/referencia (opcional)
+            Nombre del condominio/edificio/referencia (opcional)
           </Label>
           <Input
             id="hotelAirbnbName"
