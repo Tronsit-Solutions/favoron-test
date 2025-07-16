@@ -89,7 +89,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       products,
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin,
-      deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null
+      deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
+      deliveryMethod: formData.deliveryMethod
     };
 
     onSubmit(submitData);
@@ -371,7 +372,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
               
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <p className="text-sm text-blue-800">
-                  📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional entre Q25 y Q40 (solo válido en Ciudad de Guatemala y municipios cercanos).
+                  📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional de Q25 (solo válido en Ciudad de Guatemala y municipios cercanos).
                 </p>
               </div>
             </div>

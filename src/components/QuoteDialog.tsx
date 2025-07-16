@@ -16,6 +16,7 @@ interface QuoteDialogProps {
     estimated_price: number;
     item_link?: string;
     deliveryAddress?: any;
+    delivery_method?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -137,11 +138,28 @@ const QuoteDialog = ({
                   <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
                 )}
                 <div className="mt-2 pt-2 border-t border-green-300">
-                  <p className="font-medium text-lg">
-                    <strong>Total:</strong> Q{parseFloat(existingQuote.totalPrice || 0).toFixed(2)}
-                  </p>
+                  {(() => {
+                    const baseTotal = parseFloat(existingQuote.totalPrice || 0);
+                    const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
+                    const finalTotal = baseTotal + deliveryFee;
+                    
+                    return (
+                      <>
+                        {deliveryFee > 0 && (
+                          <div className="text-xs space-y-1 mb-2">
+                            <p><strong>Cotización del viajero:</strong> Q{baseTotal.toFixed(2)}</p>
+                            <p><strong>Envío a domicilio:</strong> Q{deliveryFee.toFixed(2)}</p>
+                          </div>
+                        )}
+                        <p className="font-medium text-lg">
+                          <strong>Total a pagar:</strong> Q{finalTotal.toFixed(2)}
+                        </p>
+                      </>
+                    );
+                  })()}
                   <p className="text-xs text-green-600 mt-1">
                     Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
+                    {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
                   </p>
                 </div>
               </div>

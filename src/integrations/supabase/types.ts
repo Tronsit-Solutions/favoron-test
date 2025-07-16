@@ -116,6 +116,7 @@ export type Database = {
           confirmed_delivery_address: Json | null
           created_at: string
           delivery_deadline: string
+          delivery_method: string | null
           estimated_price: number | null
           id: string
           item_description: string
@@ -140,6 +141,7 @@ export type Database = {
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline: string
+          delivery_method?: string | null
           estimated_price?: number | null
           id?: string
           item_description: string
@@ -164,6 +166,7 @@ export type Database = {
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline?: string
+          delivery_method?: string | null
           estimated_price?: number | null
           id?: string
           item_description?: string

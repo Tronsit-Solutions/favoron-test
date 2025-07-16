@@ -39,6 +39,7 @@ export const useDashboardActions = (
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
+        delivery_method: packageData.deliveryMethod || 'pickup',
         status: 'pending_approval'
       };
 
