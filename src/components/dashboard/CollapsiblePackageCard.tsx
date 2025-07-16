@@ -228,55 +228,41 @@ const CollapsiblePackageCard = ({
                     
                     {/* Fechas importantes integradas */}
                     {pkg.matched_trip_dates && (
-                       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-4 shadow-sm">
-                         <div className="flex items-center space-x-3 mb-4">
-                           <div className="bg-blue-100 rounded-full p-2">
-                             <span className="text-blue-600 text-lg">📅</span>
-                           </div>
-                           <span className="text-lg font-semibold text-blue-800">Fechas importantes para tu envío</span>
+                       <div className="bg-blue-50/50 border border-blue-200 rounded-lg p-4 mb-4">
+                         <div className="flex items-center space-x-2 mb-3">
+                           <span className="text-blue-600">📅</span>
+                           <span className="font-medium text-blue-800">Fechas importantes para tu envío</span>
                          </div>
                          
-                         <div className="space-y-4">
-                           <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
-                             <div className="flex items-center space-x-3">
-                               <div className="bg-green-100 rounded-full w-8 h-8 flex items-center justify-center">
-                                 <span className="text-green-600 text-sm">📥</span>
-                               </div>
-                               <div>
-                                 <div className="text-sm font-medium text-gray-600">Primer día para recibir paquetes</div>
-                                 <div className="text-lg font-semibold text-gray-800">
-                                   {new Date((pkg.matched_trip_dates as any).first_day_packages).toLocaleDateString('es-GT')}
-                                 </div>
-                               </div>
+                         <div className="space-y-2 text-sm">
+                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
+                             <div className="flex items-center space-x-2">
+                               <span className="text-green-600">📥</span>
+                               <span className="text-gray-700">Primer día paquetes:</span>
                              </div>
+                             <span className="font-semibold text-gray-800">
+                               {new Date((pkg.matched_trip_dates as any).first_day_packages).toLocaleDateString('es-GT')}
+                             </span>
                            </div>
                            
-                           <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
-                             <div className="flex items-center space-x-3">
-                               <div className="bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center">
-                                 <span className="text-orange-600 text-sm">📤</span>
-                               </div>
-                               <div>
-                                 <div className="text-sm font-medium text-gray-600">Último día para recibir paquetes</div>
-                                 <div className="text-lg font-semibold text-gray-800">
-                                   {new Date((pkg.matched_trip_dates as any).last_day_packages).toLocaleDateString('es-GT')}
-                                 </div>
-                               </div>
+                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
+                             <div className="flex items-center space-x-2">
+                               <span className="text-orange-600">📤</span>
+                               <span className="text-gray-700">Último día paquetes:</span>
                              </div>
+                             <span className="font-semibold text-gray-800">
+                               {new Date((pkg.matched_trip_dates as any).last_day_packages).toLocaleDateString('es-GT')}
+                             </span>
                            </div>
                            
-                           <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
-                             <div className="flex items-center space-x-3">
-                               <div className="bg-purple-100 rounded-full w-8 h-8 flex items-center justify-center">
-                                 <span className="text-purple-600 text-sm">🏢</span>
-                               </div>
-                               <div>
-                                 <div className="text-sm font-medium text-gray-600">Entrega en oficina Favorón</div>
-                                 <div className="text-lg font-semibold text-gray-800">
-                                   {new Date((pkg.matched_trip_dates as any).delivery_date).toLocaleDateString('es-GT')}
-                                 </div>
-                               </div>
+                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
+                             <div className="flex items-center space-x-2">
+                               <span className="text-purple-600">🏢</span>
+                               <span className="text-gray-700">Entrega oficina:</span>
                              </div>
+                             <span className="font-semibold text-gray-800">
+                               {new Date((pkg.matched_trip_dates as any).delivery_date).toLocaleDateString('es-GT')}
+                             </span>
                            </div>
                          </div>
                        </div>
