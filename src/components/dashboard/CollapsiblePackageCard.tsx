@@ -260,61 +260,61 @@ const CollapsiblePackageCard = ({
                            <span className="font-medium text-primary">👤 Destinatario:</span>
                            {(() => {
                              console.log('🔍 Package data:', pkg);
-                             console.log('🔍 Matched trip:', (pkg as any)?.matched_trip);
-                             console.log('🔍 Package receiving address:', (pkg as any)?.matched_trip?.package_receiving_address);
+                             console.log('🔍 Trips data:', (pkg as any)?.trips);
+                             console.log('🔍 Package receiving address:', (pkg as any)?.trips?.package_receiving_address);
                              return null;
                            })()}
                            <p className="text-foreground font-semibold text-base">
-                             {(pkg as any)?.matched_trip?.package_receiving_address?.recipientName || 'Nombre no especificado'}
+                             {(pkg as any)?.trips?.package_receiving_address?.recipientName || 'Nombre no especificado'}
                            </p>
-                           {!(pkg as any)?.matched_trip?.package_receiving_address?.recipientName && (
+                           {!(pkg as any)?.trips?.package_receiving_address?.recipientName && (
                              <p className="text-muted-foreground text-xs mt-1">
                                ⚠️ Contactar administración para obtener el nombre del destinatario
                              </p>
                            )}
-                        </div>
-                        
+                         </div>
+                         
                          <div className="ml-2 space-y-2">
                            {/* Dirección */}
                            <div>
                              <span className="font-medium text-muted-foreground">🏠 Dirección:</span>
-                             <p className="text-foreground font-medium">{(pkg as any)?.matched_trip?.package_receiving_address?.streetAddress}</p>
+                             <p className="text-foreground font-medium">{(pkg as any)?.trips?.package_receiving_address?.streetAddress}</p>
                            </div>
                            
                            {/* Ciudad/Área y Código Postal */}
                            <div className="grid grid-cols-1 gap-2">
                              <div>
                                <span className="font-medium text-muted-foreground">🌆 Ciudad/Área:</span>
-                               <p className="text-foreground">{(pkg as any)?.matched_trip?.package_receiving_address?.cityArea}</p>
+                               <p className="text-foreground">{(pkg as any)?.trips?.package_receiving_address?.cityArea}</p>
                              </div>
-                             {(pkg as any)?.matched_trip?.package_receiving_address?.postalCode && (
+                             {(pkg as any)?.trips?.package_receiving_address?.postalCode && (
                                <div>
                                  <span className="font-medium text-muted-foreground">📮 Código Postal:</span>
-                                 <p className="text-foreground font-mono">{(pkg as any)?.matched_trip?.package_receiving_address?.postalCode}</p>
+                                 <p className="text-foreground font-mono">{(pkg as any)?.trips?.package_receiving_address?.postalCode}</p>
                                </div>
                              )}
                            </div>
                            
                            {/* Tipo de alojamiento */}
-                           {(pkg as any)?.matched_trip?.package_receiving_address?.accommodationType && (
+                           {(pkg as any)?.trips?.package_receiving_address?.accommodationType && (
                              <div>
                                <span className="font-medium text-muted-foreground">🏠 Tipo de alojamiento:</span>
-                               <p className="text-foreground">{(pkg as any)?.matched_trip?.package_receiving_address?.accommodationType}</p>
+                               <p className="text-foreground">{(pkg as any)?.trips?.package_receiving_address?.accommodationType}</p>
                              </div>
                            )}
                            
                            {/* Hotel/Airbnb */}
-                           {(pkg as any)?.matched_trip?.package_receiving_address?.hotelAirbnbName && (
+                           {(pkg as any)?.trips?.package_receiving_address?.hotelAirbnbName && (
                              <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
                                <span className="font-medium text-blue-700">🏨 Hotel/Alojamiento:</span>
-                               <p className="text-blue-800 font-medium">{(pkg as any)?.matched_trip?.package_receiving_address?.hotelAirbnbName}</p>
+                               <p className="text-blue-800 font-medium">{(pkg as any)?.trips?.package_receiving_address?.hotelAirbnbName}</p>
                              </div>
                            )}
                            
                            {/* Contacto */}
                            <div className="bg-green-50 border border-green-200 rounded-md p-2">
                              <span className="font-medium text-green-700">📞 Contacto:</span>
-                             <p className="text-green-800 font-semibold">{(pkg as any)?.matched_trip?.package_receiving_address?.contactNumber}</p>
+                             <p className="text-green-800 font-semibold">{(pkg as any)?.trips?.package_receiving_address?.contactNumber}</p>
                            </div>
                          </div>
                       </div>

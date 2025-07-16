@@ -25,7 +25,7 @@ export const usePackagesData = () => {
             username,
             email
           ),
-          matched_trip:trips!packages_matched_trip_id_fkey (
+          trips!fk_packages_matched_trip (
             id,
             package_receiving_address,
             from_city,
