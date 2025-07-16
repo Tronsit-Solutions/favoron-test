@@ -31,6 +31,10 @@ export const useDashboardActions = (
       }
 
       // Transform form data to database format
+      console.log('📦 Package Data Received:', packageData);
+      console.log('🚚 Delivery Method:', packageData.deliveryMethod);
+      console.log('📍 Delivery Address:', packageData.deliveryAddress);
+      
       const dbPackageData = {
         item_description: packageData.products?.[0]?.itemDescription || packageData.itemDescription,
         item_link: packageData.products?.[0]?.itemLink || packageData.itemLink,
@@ -43,6 +47,8 @@ export const useDashboardActions = (
         confirmed_delivery_address: packageData.deliveryAddress || null,
         status: 'pending_approval'
       };
+      
+      console.log('💾 Database Package Data:', dbPackageData);
 
       await createPackage(dbPackageData);
       setShowPackageForm(false);
