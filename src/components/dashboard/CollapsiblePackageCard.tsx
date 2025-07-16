@@ -308,7 +308,7 @@ const CollapsiblePackageCard = ({
                              </div>
                              {(pkg as any)?.trips?.package_receiving_address?.postalCode && (
                                <div>
-                                 <span className="font-medium text-muted-foreground text-xs">📮 Código:</span>
+                                 <span className="font-medium text-muted-foreground text-xs">Código Postal:</span>
                                  <p className="text-foreground font-mono text-xs">{(pkg as any)?.trips?.package_receiving_address?.postalCode}</p>
                                </div>
                              )}
