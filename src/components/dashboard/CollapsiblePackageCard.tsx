@@ -213,53 +213,37 @@ const CollapsiblePackageCard = ({
                 
                 {/* Show shipping instructions after payment confirmation - PROMINENT IN LEFT COLUMN */}
                 {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.traveler_address && (
-                  <div className="bg-gradient-subtle border-2 border-primary/30 rounded-xl p-6 mb-6 shadow-elegant">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-lg">📦</span>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground">Instrucciones para el envío</h3>
-                        <p className="text-sm text-foreground">
-                          Tu pago ha sido confirmado. Envía el producto a esta dirección:
-                        </p>
-                      </div>
+                  <div className="bg-gradient-subtle border border-primary/20 rounded-lg p-4 mb-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-primary">📦</span>
+                      <h3 className="text-base font-semibold text-foreground">Instrucciones de envío</h3>
                     </div>
                     
-                    {/* Fechas importantes integradas */}
+                    {/* Fechas importantes condensadas */}
                     {pkg.matched_trip_dates && (
-                       <div className="bg-blue-50/50 border border-blue-200 rounded-lg p-4 mb-4">
-                         <div className="flex items-center space-x-2 mb-3">
-                           <span className="text-blue-600">📅</span>
-                           <span className="font-medium text-blue-800">Fechas importantes para tu envío</span>
+                       <div className="bg-blue-50/50 border border-blue-200 rounded-md p-3 mb-3">
+                         <div className="flex items-center space-x-1 mb-2">
+                           <span className="text-blue-600 text-sm">📅</span>
+                           <span className="font-medium text-blue-800 text-sm">Fechas importantes</span>
                          </div>
                          
-                         <div className="space-y-2 text-sm">
-                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
-                             <div className="flex items-center space-x-2">
-                               <span className="text-green-600">📥</span>
-                               <span className="text-gray-700">Primer día paquetes:</span>
-                             </div>
+                         <div className="space-y-1 text-xs">
+                           <div className="flex items-center justify-between py-1 px-2 bg-white/60 rounded border-l-2 border-green-400">
+                             <span className="text-gray-700">📥 Primer día:</span>
                              <span className="font-semibold text-gray-800">
                                {new Date((pkg.matched_trip_dates as any).first_day_packages).toLocaleDateString('es-GT')}
                              </span>
                            </div>
                            
-                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
-                             <div className="flex items-center space-x-2">
-                               <span className="text-orange-600">📤</span>
-                               <span className="text-gray-700">Último día paquetes:</span>
-                             </div>
+                           <div className="flex items-center justify-between py-1 px-2 bg-white/60 rounded border-l-2 border-orange-400">
+                             <span className="text-gray-700">📤 Último día:</span>
                              <span className="font-semibold text-gray-800">
                                {new Date((pkg.matched_trip_dates as any).last_day_packages).toLocaleDateString('es-GT')}
                              </span>
                            </div>
                            
-                           <div className="flex items-center justify-between p-2 bg-white/60 rounded border">
-                             <div className="flex items-center space-x-2">
-                               <span className="text-purple-600">🏢</span>
-                               <span className="text-gray-700">Entrega oficina:</span>
-                             </div>
+                           <div className="flex items-center justify-between py-1 px-2 bg-white/60 rounded border-l-2 border-purple-400">
+                             <span className="text-gray-700">🏢 Entrega:</span>
                              <span className="font-semibold text-gray-800">
                                {new Date((pkg.matched_trip_dates as any).delivery_date).toLocaleDateString('es-GT')}
                              </span>
@@ -268,79 +252,53 @@ const CollapsiblePackageCard = ({
                        </div>
                     )}
                     
-                    <div className="bg-background/80 rounded-md p-4 border border-border mb-4">
-                      <div className="text-sm space-y-3">
-                        <div>
-                          <span className="font-medium text-primary text-base">📍 Dirección completa de envío:</span>
-                        </div>
-                        
-                        {/* NOMBRE DEL DESTINATARIO - Prominente pero sutil */}
-                        <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
-                           <span className="font-medium text-primary">👤 Destinatario:</span>
-                           {(() => {
-                             console.log('🔍 Package data:', pkg);
-                             console.log('🔍 Trips data:', (pkg as any)?.trips);
-                             console.log('🔍 Package receiving address:', (pkg as any)?.trips?.package_receiving_address);
-                             return null;
-                           })()}
-                           <p className="text-foreground font-semibold text-base">
-                             {(pkg as any)?.trips?.package_receiving_address?.recipientName || 'Nombre no especificado'}
-                           </p>
-                           {!(pkg as any)?.trips?.package_receiving_address?.recipientName && (
-                             <p className="text-muted-foreground text-xs mt-1">
-                               ⚠️ Contactar administración para obtener el nombre del destinatario
-                             </p>
-                           )}
+                    <div className="bg-background/80 rounded-md p-3 border border-border">
+                      <div className="text-sm space-y-2">
+                        {/* NOMBRE DEL DESTINATARIO - Compacto */}
+                        <div className="bg-primary/10 border border-primary/20 rounded-md p-2">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-primary text-sm">👤</span>
+                             <div className="flex-1 min-w-0">
+                               <span className="font-medium text-primary text-sm">Destinatario:</span>
+                               <p className="text-foreground font-semibold text-sm truncate">
+                                 {(pkg as any)?.trips?.package_receiving_address?.recipientName || 'Nombre no especificado'}
+                               </p>
+                             </div>
+                           </div>
                          </div>
                          
-                         <div className="ml-2 space-y-2">
-                           {/* Dirección */}
-                           <div>
-                             <span className="font-medium text-muted-foreground">🏠 Dirección:</span>
-                             <p className="text-foreground font-medium">{(pkg as any)?.trips?.package_receiving_address?.streetAddress}</p>
+                         {/* Dirección condensada */}
+                         <div className="space-y-1 text-xs">
+                           <div className="flex items-start space-x-2">
+                             <span className="text-muted-foreground">🏠</span>
+                             <div className="flex-1 min-w-0">
+                               <p className="text-foreground font-medium">{(pkg as any)?.trips?.package_receiving_address?.streetAddress}</p>
+                               <p className="text-muted-foreground">{(pkg as any)?.trips?.package_receiving_address?.cityArea}</p>
+                               {(pkg as any)?.trips?.package_receiving_address?.postalCode && (
+                                 <p className="text-muted-foreground font-mono">{(pkg as any)?.trips?.package_receiving_address?.postalCode}</p>
+                               )}
+                             </div>
                            </div>
                            
-                           {/* Ciudad/Área y Código Postal */}
-                           <div className="grid grid-cols-1 gap-2">
-                             <div>
-                               <span className="font-medium text-muted-foreground">🌆 Ciudad/Área:</span>
-                               <p className="text-foreground">{(pkg as any)?.trips?.package_receiving_address?.cityArea}</p>
-                             </div>
-                             {(pkg as any)?.trips?.package_receiving_address?.postalCode && (
-                               <div>
-                                 <span className="font-medium text-muted-foreground">📮 Código Postal:</span>
-                                 <p className="text-foreground font-mono">{(pkg as any)?.trips?.package_receiving_address?.postalCode}</p>
-                               </div>
-                             )}
-                           </div>
-                           
-                           {/* Tipo de alojamiento */}
-                           {(pkg as any)?.trips?.package_receiving_address?.accommodationType && (
-                             <div>
-                               <span className="font-medium text-muted-foreground">🏠 Tipo de alojamiento:</span>
-                               <p className="text-foreground">{(pkg as any)?.trips?.package_receiving_address?.accommodationType}</p>
-                             </div>
-                           )}
-                           
-                           {/* Hotel/Airbnb */}
+                           {/* Hotel/Airbnb si existe */}
                            {(pkg as any)?.trips?.package_receiving_address?.hotelAirbnbName && (
-                             <div className="bg-blue-50 border border-blue-200 rounded-md p-2">
-                               <span className="font-medium text-blue-700">🏨 Hotel/Alojamiento:</span>
-                               <p className="text-blue-800 font-medium">{(pkg as any)?.trips?.package_receiving_address?.hotelAirbnbName}</p>
+                             <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-md p-2">
+                               <span className="text-blue-700">🏨</span>
+                               <p className="text-blue-800 font-medium text-xs">{(pkg as any)?.trips?.package_receiving_address?.hotelAirbnbName}</p>
                              </div>
                            )}
                            
                            {/* Contacto */}
-                           <div className="bg-green-50 border border-green-200 rounded-md p-2">
-                             <span className="font-medium text-green-700">📞 Contacto:</span>
-                             <p className="text-green-800 font-semibold">{(pkg as any)?.trips?.package_receiving_address?.contactNumber}</p>
+                           <div className="flex items-center space-x-2 bg-green-50 border border-green-200 rounded-md p-2">
+                             <span className="text-green-700">📞</span>
+                             <p className="text-green-800 font-semibold text-xs">{(pkg as any)?.trips?.package_receiving_address?.contactNumber}</p>
                            </div>
                          </div>
                       </div>
                     </div>
                     
-                    <p className="text-xs text-muted-foreground">
-                      Una vez enviado el producto, sube los documentos de compra y tracking abajo.
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Sube los documentos de compra y tracking abajo una vez enviado.
                     </p>
                   </div>
                 )}
