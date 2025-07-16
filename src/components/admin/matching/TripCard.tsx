@@ -12,7 +12,7 @@ export const TripCard = ({
   return <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-2">
             {/* Main route info */}
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -31,10 +31,7 @@ export const TripCard = ({
 
             {/* Dates info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center space-x-1">
-                
-                
-              </div>
+              
               
               <div className="flex items-center space-x-1">
                 <CalendarDays className="h-3 w-3 text-blue-500" />
