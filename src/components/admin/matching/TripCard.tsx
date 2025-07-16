@@ -29,10 +29,8 @@ export const TripCard = ({
               </div>
             </div>
 
-            {/* Dates info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              
-              
+            {/* Important dates - chronological order */}
+            <div className="space-y-1 text-xs">
               <div className="flex items-center space-x-1">
                 <CalendarDays className="h-3 w-3 text-blue-500" />
                 <span className="text-blue-600">
@@ -40,25 +38,26 @@ export const TripCard = ({
                 </span>
               </div>
               
-              <div className="flex items-center space-x-1">
-                <span className="text-green-600">
-                  📥 Primer día paquetes: {new Date(trip.first_day_packages).toLocaleDateString()}
-                </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                <div className="flex items-center space-x-1">
+                  <span className="text-green-600">
+                    📥 Primer día: {new Date(trip.first_day_packages).toLocaleDateString()}
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  <span className="text-red-600">
+                    📤 Último día: {new Date(trip.last_day_packages).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
-              
-              <div className="flex items-center space-x-1">
-                <span className="text-red-600">
-                  📤 Último día paquetes: {new Date(trip.last_day_packages).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
 
-            {/* Delivery date */}
-            <div className="flex items-center space-x-1 text-xs">
-              <CalendarDays className="h-3 w-3 text-primary" />
-              <span className="text-primary font-medium">
-                Entrega: {new Date(trip.delivery_date).toLocaleDateString()}
-              </span>
+              <div className="flex items-center space-x-1">
+                <CalendarDays className="h-3 w-3 text-primary" />
+                <span className="text-primary font-medium">
+                  Entrega: {new Date(trip.delivery_date).toLocaleDateString()}
+                </span>
+              </div>
             </div>
           </div>
 
