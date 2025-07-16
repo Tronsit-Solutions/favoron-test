@@ -257,21 +257,15 @@ const CollapsiblePackageCard = ({
                         
                         {/* NOMBRE DEL DESTINATARIO - Prominente pero sutil */}
                         <div className="bg-primary/10 border border-primary/20 rounded-md p-3">
-                          <span className="font-medium text-primary">👤 Destinatario:</span>
-                          {(() => {
-                            console.log('🔍 Debug traveler_address:', pkg.traveler_address);
-                            console.log('🔍 Debug recipientName:', (pkg.traveler_address as any)?.recipientName);
-                            console.log('🔍 Debug full object keys:', Object.keys(pkg.traveler_address || {}));
-                            return null;
-                          })()}
-                          <p className="text-foreground font-semibold text-base">
-                            {(pkg.traveler_address as any)?.recipientName || 'Nombre no especificado'}
-                          </p>
-                          {!(pkg.traveler_address as any)?.recipientName && (
-                            <p className="text-muted-foreground text-xs mt-1">
-                              ⚠️ Contactar administración para obtener el nombre del destinatario
-                            </p>
-                          )}
+                           <span className="font-medium text-primary">👤 Destinatario:</span>
+                           <p className="text-foreground font-semibold text-base">
+                             {(pkg as any)?.matched_trip?.package_receiving_address?.recipientName || 'Nombre no especificado'}
+                           </p>
+                           {!(pkg as any)?.matched_trip?.package_receiving_address?.recipientName && (
+                             <p className="text-muted-foreground text-xs mt-1">
+                               ⚠️ Contactar administración para obtener el nombre del destinatario
+                             </p>
+                           )}
                         </div>
                         
                         <div className="ml-2 space-y-2">
