@@ -221,15 +221,40 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                   </div>
                 )}
 
-                {pkg.deliveryMethod && (
+                {pkg.delivery_method && (
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Método de entrega</p>
+                      <p className="text-sm font-medium">Método de entrega en Guatemala</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.deliveryMethod === 'pickup' ? 'Recojo en zona 14' : 'Envío a domicilio'}
+                        {pkg.delivery_method === 'pickup' ? '🏢 Recojo en zona 14' : '🚚 Envío a domicilio (+Q25)'}
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {pkg.delivery_method === 'delivery' && pkg.confirmed_delivery_address && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                    <p className="text-sm font-medium text-blue-800 mb-2">📍 Dirección de entrega:</p>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p><strong>Dirección:</strong> {pkg.confirmed_delivery_address.streetAddress}</p>
+                      <p><strong>Área:</strong> {pkg.confirmed_delivery_address.cityArea}</p>
+                      <p><strong>Código postal:</strong> {pkg.confirmed_delivery_address.postalCode}</p>
+                      <p><strong>Teléfono:</strong> {pkg.confirmed_delivery_address.contactNumber}</p>
+                      {pkg.confirmed_delivery_address.buildingName && (
+                        <p><strong>Edificio/Condominio:</strong> {pkg.confirmed_delivery_address.buildingName}</p>
+                      )}
+                      {pkg.confirmed_delivery_address.additionalDirections && (
+                        <p><strong>Instrucciones adicionales:</strong> {pkg.confirmed_delivery_address.additionalDirections}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {pkg.delivery_method === 'delivery' && !pkg.confirmed_delivery_address && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                    <p className="text-sm font-medium text-amber-800">⚠️ Dirección de entrega no completada</p>
+                    <p className="text-sm text-amber-700">El cliente seleccionó envío a domicilio pero no completó la información de dirección.</p>
                   </div>
                 )}
               </div>

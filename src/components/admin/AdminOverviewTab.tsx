@@ -42,6 +42,9 @@ const AdminOverviewTab = ({
                     <p className="text-xs text-blue-600 mt-1">
                       📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                    </p>
                   </div>
                   <div className="flex space-x-2">
                     <Button 
@@ -96,6 +99,9 @@ const AdminOverviewTab = ({
                     <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
                       Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
                     </p>
                     {pkg.payment_receipt && (
                       <p className="text-xs text-blue-600 mt-1">

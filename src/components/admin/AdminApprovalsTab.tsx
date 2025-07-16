@@ -104,12 +104,15 @@ const AdminApprovalsTab = ({
                                `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.username || (pkg as any).profiles.email || pkg.user_id
                                : pkg.user_id}
                            </p>
-                          <p className="text-sm text-muted-foreground">
-                            Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
-                          </p>
+                           <p className="text-sm text-muted-foreground">
+                             Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
+                           </p>
+                           <p className="text-sm text-muted-foreground">
+                             Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                           </p>
+                           <p className="text-sm text-muted-foreground">
+                             Método de entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                           </p>
                           {pkg.item_link && (
                             <p className="text-sm">
                               <strong>Link:</strong>{' '}
