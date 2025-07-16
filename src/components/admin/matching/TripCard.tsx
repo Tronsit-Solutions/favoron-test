@@ -12,7 +12,7 @@ export const TripCard = ({
   return <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-1">
             {/* Main route info */}
             <div className="flex items-start justify-between">
               <div className="flex-1">
