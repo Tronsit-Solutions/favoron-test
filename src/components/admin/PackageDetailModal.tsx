@@ -238,14 +238,10 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                     <p className="text-sm font-medium text-blue-800 mb-2">📍 Dirección de entrega:</p>
                     <div className="text-sm text-blue-700 space-y-1">
                       <p><strong>Dirección:</strong> {pkg.confirmed_delivery_address.streetAddress}</p>
-                      <p><strong>Área:</strong> {pkg.confirmed_delivery_address.cityArea}</p>
-                      <p><strong>Código postal:</strong> {pkg.confirmed_delivery_address.postalCode}</p>
+                      <p><strong>Ciudad/Municipio:</strong> {pkg.confirmed_delivery_address.cityArea}</p>
                       <p><strong>Teléfono:</strong> {pkg.confirmed_delivery_address.contactNumber}</p>
-                      {pkg.confirmed_delivery_address.buildingName && (
-                        <p><strong>Edificio/Condominio:</strong> {pkg.confirmed_delivery_address.buildingName}</p>
-                      )}
-                      {pkg.confirmed_delivery_address.additionalDirections && (
-                        <p><strong>Instrucciones adicionales:</strong> {pkg.confirmed_delivery_address.additionalDirections}</p>
+                      {pkg.confirmed_delivery_address.hotelAirbnbName && (
+                        <p><strong>Edificio/Condominio:</strong> {pkg.confirmed_delivery_address.hotelAirbnbName}</p>
                       )}
                     </div>
                   </div>
