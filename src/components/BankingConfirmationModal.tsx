@@ -82,26 +82,34 @@ const BankingConfirmationModal = ({
         throw paymentError;
       }
 
-      // Create notification for admin
-      const { error: notificationError } = await supabase
-        .rpc('create_notification', {
-          _user_id: travelerProfile.id, // We'll need to get admin user ID
-          _title: 'Solicitud de pago pendiente',
-          _message: `Viaje completado. Confirmar pago a ${bankingInfo.bankAccountHolder} por $${amount.toFixed(2)}`,
-          _type: 'payment_request',
-          _priority: 'high',
-          _action_url: `/admin/payments`,
-          _metadata: {
-            packageId: pkg.id,
-            travelerId: travelerProfile.id,
-            amount: amount
-          }
-        });
+      // Get admin user ID for notification
+      const { data: adminUsers } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .limit(1);
 
-      if (notificationError) {
-        console.error('Error creating notification:', notificationError);
-        // Don't throw - payment order was created successfully
+      if (adminUsers && adminUsers.length > 0) {
+        const { error: notificationError } = await supabase
+          .rpc('create_notification', {
+            _user_id: adminUsers[0].user_id,
+            _title: 'Solicitud de pago pendiente',
+            _message: `Viaje completado. Confirmar pago a ${bankingInfo.bankAccountHolder} por $${amount.toFixed(2)}`,
+            _type: 'payment_request',
+            _priority: 'high',
+            _action_url: `/admin/payments`,
+            _metadata: {
+              packageId: pkg.id,
+              travelerId: travelerProfile.id,
+              amount: amount
+            }
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+        }
       }
+
 
       toast({
         title: "¡Solicitud de pago generada!",
