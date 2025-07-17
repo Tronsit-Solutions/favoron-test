@@ -172,131 +172,58 @@ const ActiveMatchesTab = ({
                         </div>
                       </div>
 
-                      {/* Package Milestones */}
+                      {/* Current Status */}
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-medium text-gray-700">Hitos del Paquete</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-gray-700">Estado Actual</span>
                           <span className="text-xs text-gray-500">
                             ID: {pkg.id.split('-')[0]}...
                           </span>
                         </div>
                         
-                        <div className="space-y-2">
-                          {/* Timeline of milestones */}
-                          <div className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                            <div className="flex-1 flex items-center justify-between">
-                              <span className="text-xs text-gray-600">📦 Paquete creado</span>
-                              <span className="text-xs text-gray-400">
-                                {new Date(pkg.created_at).toLocaleDateString('es-GT')}
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                            ['rejected', 'quote_rejected'].includes(pkg.status) 
+                              ? 'bg-red-500' 
+                              : pkg.status === 'completed' 
+                              ? 'bg-green-500' 
+                              : 'bg-yellow-500 animate-pulse'
+                          }`}></div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-800">
+                                {statusInfo.icon} {statusInfo.label}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
                               </span>
                             </div>
+                            {pkg.status === 'quote_sent' && pkg.quote && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                💰 Cotización: Q{(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
+                              </p>
+                            )}
+                            {pkg.status === 'payment_confirmed' && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                ✅ Listo para envío
+                              </p>
+                            )}
+                            {pkg.status === 'in_transit' && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                🚚 {pkg.tracking_info ? 'Con seguimiento' : 'En camino'}
+                              </p>
+                            )}
+                            {pkg.status === 'delivered_to_office' && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                🏢 Esperando al viajero
+                              </p>
+                            )}
+                            {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (
+                              <p className="text-xs text-red-600 mt-1">
+                                📝 {typeof pkg.rejectionReason === 'string' ? pkg.rejectionReason : pkg.rejectionReason.value}
+                              </p>
+                            )}
                           </div>
-                          
-                          <div className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                            <div className="flex-1 flex items-center justify-between">
-                              <span className="text-xs text-gray-600">🔗 Match realizado</span>
-                              <span className="text-xs text-gray-400">
-                                {pkg.matched_trip_dates ? new Date(pkg.matched_trip_dates).toLocaleDateString('es-GT') : 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {['quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">💬 Cotización enviada</span>
-                                <span className="text-xs text-gray-400">
-                                  {pkg.quote ? 'Completado' : 'Pendiente'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {['payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">💳 Pago confirmado</span>
-                                <span className="text-xs text-gray-400">
-                                  {pkg.payment_receipt ? 'Completado' : 'Verificado'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {['in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">🚚 En tránsito</span>
-                                <span className="text-xs text-gray-400">
-                                  {pkg.tracking_info ? 'Con seguimiento' : 'En proceso'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {['delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">🏢 Entregado en oficina</span>
-                                <span className="text-xs text-gray-400">
-                                  {pkg.office_delivery ? new Date(pkg.office_delivery.timestamp || new Date()).toLocaleDateString('es-GT') : 'Completado'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {['received_by_traveler', 'completed'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">👤 Recibido por viajero</span>
-                                <span className="text-xs text-gray-400">
-                                  {pkg.traveler_confirmation ? 'Confirmado' : 'Completado'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {pkg.status === 'completed' && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs text-gray-600">🎉 Proceso completado</span>
-                                <span className="text-xs text-gray-400">Finalizado</span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Current status indicator */}
-                          {!['completed', 'rejected', 'quote_rejected'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs font-medium text-yellow-700">
-                                  {statusInfo.icon} {statusInfo.label}
-                                </span>
-                                <span className="text-xs text-yellow-600">En progreso</span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {['rejected', 'quote_rejected'].includes(pkg.status) && (
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
-                              <div className="flex-1 flex items-center justify-between">
-                                <span className="text-xs font-medium text-red-700">
-                                  ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Match roto'}
-                                </span>
-                                <span className="text-xs text-red-600">Finalizado</span>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
 
