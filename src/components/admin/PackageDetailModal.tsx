@@ -357,36 +357,35 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
           {pkg.quote && pkg.quote.totalPrice && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg">
+                <CardTitle className="flex items-center space-x-2 text-base">
                   <DollarSign className="h-4 w-4" />
-                  <span>💰 Desglose Financiero</span>
+                  <span>Desglose Financiero</span>
                 </CardTitle>
-                <CardDescription>
-                  Información tipo factura con el desglose de pagos
-                </CardDescription>
               </CardHeader>
-              <CardContent className="p-3">
-                <div className="space-y-2 text-sm">
-                  {/* Total Amount */}
-                  <div className="flex justify-between font-semibold border-b pb-1">
-                    <span>Total pagado:</span>
-                    <span>Q{parseFloat(pkg.quote.totalPrice).toFixed(2)}</span>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  {/* Total */}
+                  <div className="flex justify-between items-center py-2 border-b bg-muted/20 px-3 rounded">
+                    <span className="font-medium">Total</span>
+                    <span className="font-bold text-lg">Q{parseFloat(pkg.quote.totalPrice).toFixed(2)}</span>
                   </div>
                   
-                   {/* Breakdown */}
-                   <div className="space-y-1 text-xs">
-                     <div className="flex justify-between">
-                       <span>• Viajero</span>
-                       <span>Q{parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
-                     </div>
-                     {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
-                       <div className="flex justify-between">
-                         <span>• Fee Servicio</span>
-                         <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
-                       </div>
-                     )}
+                  {/* Desglose simple */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex justify-between">
-                      <span>• Comisión Favorón</span>
+                      <span className="text-muted-foreground">Viajero:</span>
+                      <span>Q{parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
+                    </div>
+                    
+                    {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fee:</span>
+                        <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Favorón:</span>
                       <span>Q{(
                         parseFloat(pkg.quote.totalPrice) - 
                         parseFloat(pkg.quote.price || 0) - 
@@ -396,22 +395,17 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     
                     {pkg.delivery_method === 'delivery' && (
                       <div className="flex justify-between">
-                        <span>• Envío a domicilio</span>
+                        <span className="text-muted-foreground">Envío:</span>
                         <span>Q25.00</span>
                       </div>
                     )}
                   </div>
-
-                  {/* Summary */}
-                  <div className="pt-3 border-t">
-                    <div className="text-xs text-gray-500 space-y-1">
-                      <p>💡 <strong>Nota:</strong> Los montos mostrados reflejan la distribución final del pago.</p>
-                      <p>📅 <strong>Fecha de transacción:</strong> {pkg.payment_receipt ? 'Verificado' : new Date(pkg.updated_at).toLocaleDateString('es-GT')}</p>
-                      {pkg.quote.message && (
-                        <p>💬 <strong>Mensaje del viajero:</strong> {pkg.quote.message}</p>
-                      )}
+                  
+                  {pkg.quote.message && (
+                    <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                      <strong>Nota:</strong> {pkg.quote.message}
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
