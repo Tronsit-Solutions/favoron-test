@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PackageRequestForm from "./PackageRequestForm";
@@ -20,6 +21,7 @@ import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
 import { useNotificationGenerator } from "@/hooks/useNotificationGenerator";
 import UserManagement from "./admin/UserManagement";
+import BankingConfirmationModal from "./BankingConfirmationModal";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,6 +66,10 @@ const Dashboard = ({ user }: DashboardProps) => {
     updateTrip,
     refreshTrips
   } = useDashboardState(user);
+
+  // Banking confirmation modal state
+  const [showBankingModal, setShowBankingModal] = useState(false);
+  const [selectedPackageForBanking, setSelectedPackageForBanking] = useState<any>(null);
 
   const {
     handlePackageSubmit,
@@ -371,7 +377,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                             getStatusBadge={getStatusBadge}
                             onQuote={handleQuote}
                             onConfirmReceived={handleConfirmPackageReceived}
-                            onConfirmOfficeDelivery={(packageId) => handleConfirmOfficeReception(packageId, () => {})}
+                            onConfirmOfficeDelivery={(packageId) => {
+                              const pkg = packages.find(p => p.id === packageId);
+                              if (pkg) {
+                                setSelectedPackageForBanking(pkg);
+                                handleConfirmOfficeReception(packageId, () => {
+                                  setShowBankingModal(true);
+                                });
+                              }
+                            }}
                             defaultExpanded={hasPendingActions}
                           />
                         );
@@ -391,7 +405,15 @@ const Dashboard = ({ user }: DashboardProps) => {
               onMatchPackage={handleMatchPackage}
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
-              onConfirmOfficeReception={handleConfirmOfficeReception}
+               onConfirmOfficeReception={(packageId) => {
+                 const pkg = packages.find(p => p.id === packageId);
+                 if (pkg) {
+                   setSelectedPackageForBanking(pkg);
+                   handleConfirmOfficeReception(packageId, () => {
+                     setShowBankingModal(true);
+                   });
+                 }
+               }}
               onConfirmDeliveryComplete={handleConfirmDeliveryComplete}
               onDiscardPackage={handleDiscardPackage}
               />
@@ -447,6 +469,23 @@ const Dashboard = ({ user }: DashboardProps) => {
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote}
           tripDates={selectedPackageForQuote.matched_trip_dates}
+        />
+      )}
+
+      {/* Banking Confirmation Modal */}
+      {selectedPackageForBanking && (
+        <BankingConfirmationModal
+          isOpen={showBankingModal}
+          onClose={() => {
+            setShowBankingModal(false);
+            setSelectedPackageForBanking(null);
+          }}
+          pkg={selectedPackageForBanking}
+          travelerProfile={currentUser}
+          onConfirm={() => {
+            // Refresh packages after payment confirmation
+            refreshPackages();
+          }}
         />
       )}
     </div>

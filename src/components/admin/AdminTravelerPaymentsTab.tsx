@@ -39,7 +39,16 @@ type PaymentOrderWithDetails = {
 
 const AdminTravelerPaymentsTab = () => {
   const { paymentOrders, loading, updatePaymentOrder } = usePaymentOrders();
-  const orders = paymentOrders as PaymentOrderWithDetails[];
+  
+  // Filter out null/undefined orders and ensure they have proper structure
+  const orders = (paymentOrders || [])
+    .filter(order => order && order.id) // Remove null/undefined orders
+    .map(order => ({
+      ...order,
+      profiles: (order as any)?.profiles || null,
+      packages: (order as any)?.packages || null
+    })) as PaymentOrderWithDetails[];
+    
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ 
     isOpen: boolean; 
@@ -53,8 +62,8 @@ const AdminTravelerPaymentsTab = () => {
   const [notes, setNotes] = useState("");
   const { toast } = useToast();
 
-  const pendingOrders = orders.filter(order => order.status === 'pending');
-  const processedOrders = orders.filter(order => order.status !== 'pending');
+  const pendingOrders = orders.filter(order => order && order.status === 'pending');
+  const processedOrders = orders.filter(order => order && order.status !== 'pending');
 
   const handlePaymentAction = async () => {
     if (!confirmDialog.order) return;
