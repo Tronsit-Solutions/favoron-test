@@ -365,57 +365,41 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                   Información tipo factura con el desglose de pagos
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {/* Total Amount Paid by Shopper */}
-                  <div className="bg-green-50 border border-green-200 rounded p-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-green-800">💳 Total pagado</span>
-                      <span className="text-lg font-bold text-green-800">
-                        Q{parseFloat(pkg.quote.totalPrice).toFixed(2)}
-                      </span>
-                    </div>
+              <CardContent className="p-3">
+                <div className="space-y-2 text-sm">
+                  {/* Total Amount */}
+                  <div className="flex justify-between font-semibold border-b pb-1">
+                    <span>Total pagado:</span>
+                    <span>Q{parseFloat(pkg.quote.totalPrice).toFixed(2)}</span>
                   </div>
-
+                  
                   {/* Breakdown */}
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-medium text-gray-800 border-b pb-1">📊 Desglose:</h4>
-                    
-                    {/* Traveler Amount */}
-                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded text-xs">
-                      <span className="text-blue-800">✈️ Viajero</span>
-                      <span className="font-medium text-blue-800">
-                        Q{parseFloat(pkg.quote.price || 0).toFixed(2)}
-                      </span>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span>• Viajero</span>
+                      <span>Q{parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
                     </div>
-
-                    {/* Service Fee */}
+                    
                     {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-purple-50 rounded text-xs">
-                        <span className="text-purple-800">🛡️ Fee Servicio</span>
-                        <span className="font-medium text-purple-800">
-                          Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}
-                        </span>
+                      <div className="flex justify-between">
+                        <span>• Fee Servicio</span>
+                        <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
                       </div>
                     )}
-
-                    {/* Favorón Commission */}
-                    <div className="flex items-center justify-between p-2 bg-orange-50 rounded text-xs">
-                      <span className="text-orange-800">🏢 Comisión Favorón</span>
-                      <span className="font-medium text-orange-800">
-                        Q{(
-                          parseFloat(pkg.quote.totalPrice) - 
-                          parseFloat(pkg.quote.price || 0) - 
-                          parseFloat(pkg.quote.serviceFee || 0)
-                        ).toFixed(2)}
-                      </span>
+                    
+                    <div className="flex justify-between">
+                      <span>• Comisión Favorón</span>
+                      <span>Q{(
+                        parseFloat(pkg.quote.totalPrice) - 
+                        parseFloat(pkg.quote.price || 0) - 
+                        parseFloat(pkg.quote.serviceFee || 0)
+                      ).toFixed(2)}</span>
                     </div>
-
-                    {/* Shipping Fee (if delivery method is delivery) */}
+                    
                     {pkg.delivery_method === 'delivery' && (
-                      <div className="flex items-center justify-between p-2 bg-yellow-50 rounded text-xs">
-                        <span className="text-yellow-800">🚚 Envío</span>
-                        <span className="font-medium text-yellow-800">Q25.00</span>
+                      <div className="flex justify-between">
+                        <span>• Envío a domicilio</span>
+                        <span>Q25.00</span>
                       </div>
                     )}
                   </div>
