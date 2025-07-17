@@ -141,10 +141,11 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-10 h-10 bg-logo rounded-xl flex items-center justify-center">
-              <Plane className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
+            <img 
+              src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+              alt="Favorón Logo" 
+              className="h-10 w-auto"
+            />
           </div>
           <CardTitle>Bienvenido</CardTitle>
           <CardDescription>
