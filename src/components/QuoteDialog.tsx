@@ -191,7 +191,7 @@ const QuoteDialog = ({
                   />
                 </div>
                 <p className="text-xs text-amber-600 mt-1">
-                  ⚠️ Incluye cualquier costo adicional por recibir el paquete (algunos hoteles cobran por este servicio)
+                  ⚠️ Asegúrate de considerar cualquier costo adicional por recibir el paquete (algunos hoteles cobran por este servicio)
                 </p>
               </div>
               
