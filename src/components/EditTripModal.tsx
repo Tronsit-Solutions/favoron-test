@@ -24,28 +24,30 @@ const EditTripModal = ({
   tripData
 }: EditTripModalProps) => {
   const [formData, setFormData] = useState({
-    fromCity: tripData?.fromCity || '',
+    fromCity: tripData?.from_city || '',
     fromCityOther: tripData?.fromCityOther || '',
     fromCountry: tripData?.fromCountry || '',
-    toCity: tripData?.toCity || '',
+    toCity: tripData?.to_city || '',
     toCityOther: tripData?.toCityOther || '',
     toCountry: tripData?.toCountry || 'Guatemala',
-    arrivalDate: tripData?.arrivalDate ? new Date(tripData.arrivalDate) : null as Date | null,
+    arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null as Date | null,
+    departureDate: tripData?.departure_date ? new Date(tripData.departure_date) : null as Date | null,
     availableSpace: tripData?.availableSpace?.toString() || '',
-    deliveryMethod: tripData?.deliveryMethod || '',
-    deliveryDate: tripData?.deliveryDate ? new Date(tripData.deliveryDate) : null as Date | null,
+    deliveryMethod: tripData?.delivery_method || '',
+    deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null as Date | null,
     additionalInfo: tripData?.additionalInfo || '',
     packageReceivingAddress: {
-      accommodationType: tripData?.packageReceivingAddress?.accommodationType || '',
-      streetAddress: tripData?.packageReceivingAddress?.streetAddress || '',
-      cityArea: tripData?.packageReceivingAddress?.cityArea || '',
-      postalCode: tripData?.packageReceivingAddress?.postalCode || '',
-      hotelAirbnbName: tripData?.packageReceivingAddress?.hotelAirbnbName || '',
-      contactNumber: tripData?.packageReceivingAddress?.contactNumber || ''
+      accommodationType: tripData?.package_receiving_address?.accommodationType || '',
+      streetAddress: tripData?.package_receiving_address?.streetAddress || '',
+      cityArea: tripData?.package_receiving_address?.cityArea || '',
+      postalCode: tripData?.package_receiving_address?.postalCode || '',
+      hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
+      contactNumber: tripData?.package_receiving_address?.contactNumber || '',
+      recipientName: tripData?.package_receiving_address?.recipientName || ''
     },
-    firstDayPackages: tripData?.firstDayPackages ? new Date(tripData.firstDayPackages) : null as Date | null,
-    lastDayPackages: tripData?.lastDayPackages ? new Date(tripData.lastDayPackages) : null as Date | null,
-    messengerPickupLocation: tripData?.messengerPickupLocation || ''
+    firstDayPackages: tripData?.first_day_packages ? new Date(tripData.first_day_packages) : null as Date | null,
+    lastDayPackages: tripData?.last_day_packages ? new Date(tripData.last_day_packages) : null as Date | null,
+    messengerPickupLocation: tripData?.messenger_pickup_info?.location || ''
   });
   const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
@@ -64,7 +66,7 @@ const EditTripModal = ({
     e.preventDefault();
     const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
+    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.departureDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.packageReceivingAddress.recipientName || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -177,6 +179,23 @@ const EditTripModal = ({
           </div>
 
           <div className="space-y-2">
+            <Label>Fecha de partida de {displayToCity || 'destino'} *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.departureDate ? format(formData.departureDate, "PPP", {
+                  locale: es
+                }) : <span>Selecciona fecha de partida</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={formData.departureDate || undefined} onSelect={date => handleInputChange('departureDate', date)} disabled={date => date < new Date() || (formData.arrivalDate ? date < formData.arrivalDate : false)} initialFocus />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="availableSpace">Espacio disponible (kg) *</Label>
             <div className="relative">
               <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -228,6 +247,11 @@ const EditTripModal = ({
             <div className="space-y-2">
               <Label htmlFor="hotelAirbnbName">Nombre del {formData.packageReceivingAddress.accommodationType === 'hotel' ? 'hotel/hostal' : formData.packageReceivingAddress.accommodationType === 'airbnb' ? 'Airbnb' : 'lugar'} *</Label>
               <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} required />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipientName">Nombre del destinatario *</Label>
+              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
