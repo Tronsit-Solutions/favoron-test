@@ -138,9 +138,7 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">Producto *</Label>
-              {/* Múltiples productos deshabilitados temporalmente */}
-              {/* 
+              <Label className="text-base font-medium">Productos *</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -151,13 +149,10 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
                 <Plus className="h-4 w-4" />
                 <span>Agregar producto</span>
               </Button>
-              */}
             </div>
             
             {products.map((product, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3 relative">
-                {/* Botón de eliminar deshabilitado para un solo producto */}
-                {/* 
                 {products.length > 1 && (
                   <Button
                     type="button"
@@ -169,7 +164,6 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}
-                */}
                 
                 <div className="space-y-1">
                   <Label htmlFor={`itemLink-${index}`} className="text-sm">Link del producto *</Label>
