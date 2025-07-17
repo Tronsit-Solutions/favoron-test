@@ -500,152 +500,6 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
             </CardContent>
           </Card>
 
-          {/* Tracking Information */}
-          {pkg.tracking_info && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Package className="h-4 w-4" />
-                  <span>Información de Seguimiento</span>
-                </CardTitle>
-                <CardDescription>
-                  Detalles del envío y seguimiento del paquete
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Tracking Number */}
-                  {pkg.tracking_info.trackingNumber && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-blue-800">📦 Número de seguimiento</p>
-                          <p className="text-lg font-mono text-blue-900">{pkg.tracking_info.trackingNumber}</p>
-                        </div>
-                        {pkg.tracking_info.trackingUrl && (
-                          <a 
-                            href={pkg.tracking_info.trackingUrl}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            <span className="text-sm">Rastrear</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Shipping Company */}
-                  {pkg.tracking_info.shippingCompany && (
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">🚚 Empresa de envío</p>
-                        <p className="text-sm text-muted-foreground">{pkg.tracking_info.shippingCompany}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Estimated Delivery */}
-                  {pkg.tracking_info.estimatedDelivery && (
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">📅 Entrega estimada</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(pkg.tracking_info.estimatedDelivery).toLocaleDateString('es-GT')}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Current Status */}
-                  {pkg.tracking_info.currentStatus && (
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">📍 Estado actual</p>
-                        <p className="text-sm text-muted-foreground">{pkg.tracking_info.currentStatus}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Current Location */}
-                  {pkg.tracking_info.currentLocation && (
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">📍 Ubicación actual</p>
-                        <p className="text-sm text-muted-foreground">{pkg.tracking_info.currentLocation}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tracking History */}
-                  {pkg.tracking_info.trackingHistory && pkg.tracking_info.trackingHistory.length > 0 && (
-                    <div className="border-t pt-4">
-                      <p className="text-sm font-medium mb-3">📋 Historial de seguimiento</p>
-                      <div className="space-y-2">
-                        {pkg.tracking_info.trackingHistory.map((event: any, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-2 bg-gray-50 rounded">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full mt-1 flex-shrink-0"></div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium">{event.status || event.description}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(event.timestamp || event.date).toLocaleDateString('es-GT')} {new Date(event.timestamp || event.date).toLocaleTimeString('es-GT')}
-                                </p>
-                              </div>
-                              {event.location && (
-                                <p className="text-xs text-muted-foreground">📍 {event.location}</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Additional Notes */}
-                  {pkg.tracking_info.notes && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <p className="text-sm font-medium text-yellow-800">📝 Notas adicionales</p>
-                      <p className="text-sm text-yellow-700 mt-1">{pkg.tracking_info.notes}</p>
-                    </div>
-                  )}
-
-                  {/* Raw tracking data (for debugging) */}
-                  {typeof pkg.tracking_info === 'object' && Object.keys(pkg.tracking_info).length > 0 && (
-                    <details className="border rounded-lg p-3">
-                      <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
-                        Ver información técnica de seguimiento
-                      </summary>
-                      <pre className="text-xs bg-gray-100 p-2 rounded mt-2 overflow-x-auto">
-                        {JSON.stringify(pkg.tracking_info, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* No tracking info message */}
-          {!pkg.tracking_info && ['in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-            <Card>
-              <CardContent className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">📦</div>
-                  <p className="text-muted-foreground">No hay información de seguimiento disponible</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    La información de seguimiento aparecerá aquí cuando esté disponible
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Payment Receipt Section */}
           {pkg.payment_receipt && (
@@ -729,6 +583,97 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
                 <XCircle className="h-4 w-4 mr-2" />
                 Rechazar Solicitud
               </Button>
+            </div>
+          )}
+
+          {/* Compact Tracking Information - Bottom Section */}
+          {pkg.tracking_info && (
+            <div className="border-t pt-4">
+              <details className="group">
+                <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground mb-2">
+                  📦 Información de seguimiento
+                </summary>
+                <div className="space-y-2 text-sm">
+                  {/* Tracking Number */}
+                  {pkg.tracking_info.trackingNumber && (
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="text-xs font-medium">Número de seguimiento:</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-mono">{pkg.tracking_info.trackingNumber}</span>
+                        {pkg.tracking_info.trackingUrl && (
+                          <a 
+                            href={pkg.tracking_info.trackingUrl}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Basic info in compact format */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {pkg.tracking_info.shippingCompany && (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Empresa:</span>
+                        <span>{pkg.tracking_info.shippingCompany}</span>
+                      </div>
+                    )}
+                    {pkg.tracking_info.currentStatus && (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Estado:</span>
+                        <span>{pkg.tracking_info.currentStatus}</span>
+                      </div>
+                    )}
+                    {pkg.tracking_info.currentLocation && (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Ubicación:</span>
+                        <span>{pkg.tracking_info.currentLocation}</span>
+                      </div>
+                    )}
+                    {pkg.tracking_info.estimatedDelivery && (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-muted-foreground">Entrega:</span>
+                        <span>{new Date(pkg.tracking_info.estimatedDelivery).toLocaleDateString('es-GT')}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Compact tracking history */}
+                  {pkg.tracking_info.trackingHistory && pkg.tracking_info.trackingHistory.length > 0 && (
+                    <div className="border-t pt-2">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Historial:</p>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {pkg.tracking_info.trackingHistory.slice(0, 3).map((event: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between text-xs p-1 bg-gray-50 rounded">
+                            <span>{event.status || event.description}</span>
+                            <span className="text-muted-foreground">
+                              {new Date(event.timestamp || event.date).toLocaleDateString('es-GT')}
+                            </span>
+                          </div>
+                        ))}
+                        {pkg.tracking_info.trackingHistory.length > 3 && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            ... y {pkg.tracking_info.trackingHistory.length - 3} eventos más
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </details>
+            </div>
+          )}
+
+          {/* No tracking info - compact message */}
+          {!pkg.tracking_info && ['in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+            <div className="border-t pt-4">
+              <p className="text-xs text-muted-foreground text-center">
+                📦 No hay información de seguimiento disponible
+              </p>
             </div>
           )}
         </div>
