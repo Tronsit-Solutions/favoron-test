@@ -37,32 +37,28 @@ export const useDashboardActions = (
       
       // Handle multiple products or single product format
       const hasMultipleProducts = packageData.products && packageData.products.length > 0;
-      const totalEstimatedPrice = hasMultipleProducts 
-        ? packageData.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0)
-        : parseFloat(packageData.estimatedPrice || 0);
+      const products = hasMultipleProducts ? packageData.products : [{
+        itemLink: packageData.itemLink || '',
+        itemDescription: packageData.itemDescription || '',
+        estimatedPrice: packageData.estimatedPrice || ''
+      }];
+      
+      const totalEstimatedPrice = products.reduce((sum: number, product: any) => 
+        sum + parseFloat(product.estimatedPrice || 0), 0
+      );
       
       const dbPackageData = {
-        item_description: hasMultipleProducts 
-          ? packageData.products[0].itemDescription
-          : packageData.itemDescription,
-        item_link: hasMultipleProducts 
-          ? packageData.products[0].itemLink
-          : packageData.itemLink,
+        item_description: products[0].itemDescription,
+        item_link: products[0].itemLink,
         estimated_price: totalEstimatedPrice || null,
+        products_data: products, // Store all products in the new field
         delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
         delivery_method: packageData.deliveryMethod || 'pickup',
         confirmed_delivery_address: packageData.deliveryAddress || null,
-        status: 'pending_approval',
-        // Store multiple products information in additional_notes as JSON if multiple products
-        ...(hasMultipleProducts && packageData.products.length > 1 && {
-          additional_notes: JSON.stringify({
-            products: packageData.products,
-            originalNotes: packageData.additionalNotes || null
-          })
-        })
+        status: 'pending_approval'
       };
       
       console.log('💾 Database Package Data:', dbPackageData);
@@ -605,25 +601,49 @@ export const useDashboardActions = (
     });
   };
 
-  const handleEditPackage = (editedPackageData: any) => {
-    setPackages(packages.map(pkg => {
-      if (pkg.id === editedPackageData.id) {
-        // If package was approved, reset to pending approval for admin review
-        const newStatus = pkg.status === 'approved' ? 'pending_approval' : pkg.status;
-        return { ...editedPackageData, createdAt: pkg.createdAt, userId: pkg.userId, status: newStatus };
+  const handleEditPackage = async (editedPackageData: any) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
       }
-      return pkg;
-    }));
-    
-    const originalPackage = packages.find(pkg => pkg.id === editedPackageData.id);
-    const needsReapproval = originalPackage?.status === 'approved';
-    
-    toast({
-      title: "¡Solicitud actualizada!",
-      description: needsReapproval 
-        ? "Los cambios se han guardado. La solicitud requiere nueva aprobación del administrador."
-        : "Los cambios se han guardado correctamente.",
-    });
+
+      const originalPackage = packages.find(pkg => pkg.id === editedPackageData.id);
+      if (!originalPackage) {
+        console.error('Original package not found');
+        return;
+      }
+
+      // If package was approved, reset to pending approval for admin review
+      const needsReapproval = originalPackage.status === 'approved';
+      const newStatus = needsReapproval ? 'pending_approval' : originalPackage.status;
+
+      // Prepare update data
+      const updateData = {
+        ...editedPackageData,
+        status: newStatus
+      };
+
+      // Remove ID from update data as it shouldn't be updated
+      delete updateData.id;
+
+      // Update package in Supabase
+      await updatePackage(editedPackageData.id, updateData);
+
+      toast({
+        title: "¡Solicitud actualizada!",
+        description: needsReapproval 
+          ? "Los cambios se han guardado. La solicitud requiere nueva aprobación del administrador."
+          : "Los cambios se han guardado correctamente.",
+      });
+    } catch (error) {
+      console.error('Error updating package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar los cambios. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
   };
 
   return {

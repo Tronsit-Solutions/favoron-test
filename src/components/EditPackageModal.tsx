@@ -27,7 +27,16 @@ interface Product {
 
 const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackageModalProps) => {
   const [products, setProducts] = useState<Product[]>(() => {
-    // Map from database structure to form structure
+    // First try to load from products_data (new format)
+    if (packageData?.products_data && Array.isArray(packageData.products_data) && packageData.products_data.length > 0) {
+      return packageData.products_data.map((product: any) => ({
+        itemLink: product.itemLink || '',
+        itemDescription: product.itemDescription || '',
+        estimatedPrice: product.estimatedPrice?.toString() || ''
+      }));
+    }
+    
+    // Fallback to individual fields (old format)
     return [{
       itemLink: packageData?.item_link || '',
       itemDescription: packageData?.item_description || '',
@@ -82,12 +91,20 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
       return;
     }
 
+    // Calculate total estimated price
+    const totalEstimatedPrice = products.reduce((sum, product) => 
+      sum + parseFloat(product.estimatedPrice || '0'), 0
+    );
+
     // Map form data back to database structure
     const submitData = {
       id: packageData.id,
+      // Keep individual fields for compatibility (use first product)
       item_link: products[0].itemLink,
       item_description: products[0].itemDescription,
       estimated_price: parseFloat(products[0].estimatedPrice),
+      // Store all products in the new format
+      products_data: products,
       package_destination: finalDestination,
       purchase_origin: finalOrigin,
       delivery_method: formData.deliveryMethod || null,

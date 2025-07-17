@@ -129,6 +129,7 @@ export type Database = {
           office_delivery: Json | null
           package_destination: string
           payment_receipt: Json | null
+          products_data: Json | null
           purchase_confirmation: Json | null
           purchase_origin: string
           quote: Json | null
@@ -157,6 +158,7 @@ export type Database = {
           office_delivery?: Json | null
           package_destination: string
           payment_receipt?: Json | null
+          products_data?: Json | null
           purchase_confirmation?: Json | null
           purchase_origin: string
           quote?: Json | null
@@ -185,6 +187,7 @@ export type Database = {
           office_delivery?: Json | null
           package_destination?: string
           payment_receipt?: Json | null
+          products_data?: Json | null
           purchase_confirmation?: Json | null
           purchase_origin?: string
           quote?: Json | null
