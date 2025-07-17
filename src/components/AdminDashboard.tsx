@@ -189,7 +189,7 @@ const AdminDashboard = ({
             )}
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
-            Pedidos activos
+            Gestión
             {matchingTotal > 0 && (
               <NotificationBadge count={matchingTotal} />
             )}
