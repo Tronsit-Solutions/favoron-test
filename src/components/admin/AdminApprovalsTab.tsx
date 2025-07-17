@@ -99,11 +99,11 @@ const AdminApprovalsTab = ({
                           <h4 className="font-medium">
                             {pkg.item_description}
                           </h4>
-                           <p className="text-sm text-muted-foreground">
-                             Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
-                               `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.username || (pkg as any).profiles.email || pkg.user_id
-                               : pkg.user_id}
-                           </p>
+                            <p className="text-sm text-muted-foreground">
+                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
+                                (pkg as any).profiles.username || `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.email || pkg.user_id
+                                : pkg.user_id}
+                            </p>
                            <p className="text-sm text-muted-foreground">
                              Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
                            </p>
@@ -187,11 +187,11 @@ const AdminApprovalsTab = ({
                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
-                           <p className="text-sm text-muted-foreground">
-                             Usuario: {(trip as any).profiles ? 
-                               `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || trip.user_id
-                               : trip.user_id}
-                           </p>
+                            <p className="text-sm text-muted-foreground">
+                              Usuario: {(trip as any).profiles ? 
+                                (trip as any).profiles.username || `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.email || trip.user_id
+                                : trip.user_id}
+                            </p>
                           <p className="text-sm text-muted-foreground">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                           </p>
