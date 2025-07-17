@@ -111,6 +111,7 @@ export const useDashboardActions = (
         last_day_packages: tripData.lastDayPackages.toISOString(),
         delivery_date: tripData.deliveryDate.toISOString(),
         delivery_method: tripData.deliveryMethod || 'oficina',
+        messenger_pickup_info: tripData.messengerPickupInfo || null,
         package_receiving_address: tripData.packageReceivingAddress,
         status: 'pending_approval'
       };

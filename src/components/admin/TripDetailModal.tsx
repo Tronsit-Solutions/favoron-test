@@ -157,7 +157,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               </div>
 
               {/* Messenger Pickup Information */}
-              {trip.delivery_method === 'mensajero' && trip.messengerPickupInfo && (
+              {trip.delivery_method === 'mensajero' && trip.messenger_pickup_info && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start space-x-2 mb-3">
                     <Truck className="h-5 w-5 text-yellow-600 mt-0.5" />
@@ -167,34 +167,34 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <p className="font-medium text-gray-700">Dirección de recolección:</p>
-                        <p>{trip.messengerPickupInfo.streetAddress}</p>
-                        <p>{trip.messengerPickupInfo.cityArea}</p>
+                        <p>{trip.messenger_pickup_info.streetAddress}</p>
+                        <p>{trip.messenger_pickup_info.cityArea}</p>
                       </div>
                       
-                      {trip.messengerPickupInfo.accommodationName && (
+                      {trip.messenger_pickup_info.accommodationName && (
                         <div>
                           <p className="font-medium text-gray-700">Lugar:</p>
-                          <p>{trip.messengerPickupInfo.accommodationName}</p>
+                          <p>{trip.messenger_pickup_info.accommodationName}</p>
                         </div>
                       )}
                       
                       <div>
                         <p className="font-medium text-gray-700">Contacto:</p>
-                        <p>{trip.messengerPickupInfo.contactNumber}</p>
+                        <p>{trip.messenger_pickup_info.contactNumber}</p>
                       </div>
                       
-                      {trip.messengerPickupInfo.preferredTime && (
+                      {trip.messenger_pickup_info.preferredTime && (
                         <div>
                           <p className="font-medium text-gray-700">Horario preferido:</p>
-                          <p>{trip.messengerPickupInfo.preferredTime}</p>
+                          <p>{trip.messenger_pickup_info.preferredTime}</p>
                         </div>
                       )}
                     </div>
                     
-                    {trip.messengerPickupInfo.pickupInstructions && (
+                    {trip.messenger_pickup_info.pickupInstructions && (
                       <div className="mt-3 pt-3 border-t border-yellow-200">
                         <p className="font-medium text-gray-700">Instrucciones adicionales:</p>
-                        <p className="mt-1 bg-white p-2 rounded border">{trip.messengerPickupInfo.pickupInstructions}</p>
+                        <p className="mt-1 bg-white p-2 rounded border">{trip.messenger_pickup_info.pickupInstructions}</p>
                       </div>
                     )}
                     

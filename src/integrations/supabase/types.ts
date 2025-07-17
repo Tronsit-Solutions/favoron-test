@@ -343,6 +343,7 @@ export type Database = {
           from_city: string
           id: string
           last_day_packages: string
+          messenger_pickup_info: Json | null
           package_receiving_address: Json
           status: string
           to_city: string
@@ -359,6 +360,7 @@ export type Database = {
           from_city: string
           id?: string
           last_day_packages: string
+          messenger_pickup_info?: Json | null
           package_receiving_address: Json
           status?: string
           to_city: string
@@ -375,6 +377,7 @@ export type Database = {
           from_city?: string
           id?: string
           last_day_packages?: string
+          messenger_pickup_info?: Json | null
           package_receiving_address?: Json
           status?: string
           to_city?: string
