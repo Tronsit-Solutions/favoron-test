@@ -192,7 +192,14 @@ const ActiveMatchesTab = ({
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium text-gray-800">
-                                {statusInfo.icon} {statusInfo.label}
+                                {pkg.status === 'delivered_to_office' 
+                                  ? (pkg.delivery_method === 'home_delivery' 
+                                      ? '🏢 Recibido en oficina, pendiente de entrega'
+                                      : '🏢 Recibido en oficina, pendiente de recoger')
+                                  : pkg.status === 'out_for_delivery'
+                                  ? `🚚 En reparto en ${pkg.package_destination}`
+                                  : `${statusInfo.icon} ${statusInfo.label}`
+                                }
                               </span>
                               <span className="text-xs text-gray-500">
                                 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
@@ -215,7 +222,15 @@ const ActiveMatchesTab = ({
                             )}
                             {pkg.status === 'delivered_to_office' && (
                               <p className="text-xs text-gray-600 mt-1">
-                                🏢 Esperando al viajero
+                                {pkg.delivery_method === 'home_delivery' 
+                                  ? '🚚 Será entregado a domicilio'
+                                  : '👤 Esperando que el shopper recoja'
+                                }
+                              </p>
+                            )}
+                            {pkg.status === 'out_for_delivery' && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                🏠 Entrega a domicilio en progreso
                               </p>
                             )}
                             {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (
