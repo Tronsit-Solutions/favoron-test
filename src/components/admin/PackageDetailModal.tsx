@@ -25,6 +25,15 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
       'approved': { label: 'Aprobado', variant: 'default' as const },
       'matched': { label: 'Match realizado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
+      'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
+      'quote_rejected': { label: 'Cotización rechazada', variant: 'destructive' as const },
+      'payment_pending': { label: 'Pago pendiente', variant: 'secondary' as const },
+      'payment_confirmed': { label: 'Pago confirmado', variant: 'default' as const },
+      'in_transit': { label: 'En tránsito', variant: 'default' as const },
+      'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
+      'out_for_delivery': { label: 'En reparto', variant: 'default' as const },
+      'received_by_traveler': { label: 'Recibido por viajero', variant: 'default' as const },
+      'completed': { label: 'Completado', variant: 'default' as const },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
