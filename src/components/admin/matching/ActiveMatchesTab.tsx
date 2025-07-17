@@ -213,11 +213,16 @@ const ActiveMatchesTab = ({
                         </Button>
                         
                         {/* Quick Confirm Button */}
-                        {(['delivered_to_office', 'out_for_delivery'].includes(pkg.status)) && (
+                        {(() => {
+                          console.log('🔍 Checking button condition for pkg:', pkg.id, 'status:', pkg.status);
+                          console.log('🔍 Status check result:', ['delivered_to_office', 'out_for_delivery'].includes(pkg.status));
+                          return ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
+                        })() && (
                           <Button 
                             size="sm" 
                             onClick={() => {
                               console.log('🔥 BOTÓN RÁPIDO CLICKED! Package ID:', pkg.id);
+                              console.log('🔥 onConfirmDeliveryComplete function:', typeof onConfirmDeliveryComplete);
                               onConfirmDeliveryComplete(pkg.id);
                             }}
                             className="px-2 bg-green-600 hover:bg-green-700 text-white"
