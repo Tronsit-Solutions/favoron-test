@@ -27,25 +27,22 @@ interface Product {
 
 const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackageModalProps) => {
   const [products, setProducts] = useState<Product[]>(() => {
-    if (packageData?.products && packageData.products.length > 0) {
-      return packageData.products;
-    }
-    // Backward compatibility for single product
+    // Map from database structure to form structure
     return [{
-      itemLink: packageData?.itemLink || '',
-      itemDescription: packageData?.itemDescription || '',
-      estimatedPrice: packageData?.estimatedPrice?.toString() || ''
+      itemLink: packageData?.item_link || '',
+      itemDescription: packageData?.item_description || '',
+      estimatedPrice: packageData?.estimated_price?.toString() || ''
     }];
   });
 
   const [formData, setFormData] = useState({
-    deliveryDeadline: packageData?.deliveryDeadline ? new Date(packageData.deliveryDeadline) : null as Date | null,
-    additionalNotes: packageData?.additionalNotes || '',
-    packageDestination: packageData?.packageDestination || '',
-    packageDestinationOther: packageData?.packageDestinationOther || '',
-    purchaseOrigin: packageData?.purchaseOrigin || '',
-    purchaseOriginOther: packageData?.purchaseOriginOther || '',
-    deliveryMethod: packageData?.deliveryMethod || ''
+    deliveryDeadline: packageData?.delivery_deadline ? new Date(packageData.delivery_deadline) : null as Date | null,
+    additionalNotes: packageData?.additional_notes || '',
+    packageDestination: packageData?.package_destination || '',
+    packageDestinationOther: '',
+    purchaseOrigin: packageData?.purchase_origin || '',
+    purchaseOriginOther: '',
+    deliveryMethod: packageData?.delivery_method || ''
   });
 
   const destinationCities = [
@@ -85,12 +82,17 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
       return;
     }
 
+    // Map form data back to database structure
     const submitData = {
       id: packageData.id,
-      ...formData,
-      products,
-      packageDestination: finalDestination,
-      purchaseOrigin: finalOrigin
+      item_link: products[0].itemLink,
+      item_description: products[0].itemDescription,
+      estimated_price: parseFloat(products[0].estimatedPrice),
+      package_destination: finalDestination,
+      purchase_origin: finalOrigin,
+      delivery_method: formData.deliveryMethod || null,
+      delivery_deadline: formData.deliveryDeadline?.toISOString(),
+      additional_notes: formData.additionalNotes || null
     };
 
     onSubmit(submitData);
@@ -126,7 +128,7 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
-            <span>Editar Solicitud #{packageData.id}</span>
+            <span>Editar Solicitud #{packageData.id?.slice(-8)}</span>
           </DialogTitle>
           <DialogDescription>
             Modifica la información de tu solicitud de paquete.
@@ -136,7 +138,9 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">Productos *</Label>
+              <Label className="text-base font-medium">Producto *</Label>
+              {/* Múltiples productos deshabilitados temporalmente */}
+              {/* 
               <Button
                 type="button"
                 variant="outline"
@@ -147,10 +151,13 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
                 <Plus className="h-4 w-4" />
                 <span>Agregar producto</span>
               </Button>
+              */}
             </div>
             
             {products.map((product, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3 relative">
+                {/* Botón de eliminar deshabilitado para un solo producto */}
+                {/* 
                 {products.length > 1 && (
                   <Button
                     type="button"
@@ -162,6 +169,7 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 )}
+                */}
                 
                 <div className="space-y-1">
                   <Label htmlFor={`itemLink-${index}`} className="text-sm">Link del producto *</Label>
