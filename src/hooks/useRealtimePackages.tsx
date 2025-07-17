@@ -20,6 +20,30 @@ export const useRealtimePackages = ({ onPackageUpdate, userRole }: UseRealtimePa
       .on(
         'postgres_changes',
         {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'packages'
+        },
+        (payload) => {
+          const newPackage = payload.new;
+          
+          // Show notification based on user role
+          if (userRole === 'admin') {
+            toast({
+              title: "Nueva solicitud de paquete",
+              description: `${newPackage.item_description} - Requiere revisión`,
+            });
+          }
+
+          // Call the callback if provided
+          if (onPackageUpdate) {
+            onPackageUpdate(payload);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
           event: 'UPDATE',
           schema: 'public',
           table: 'packages'
