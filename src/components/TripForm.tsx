@@ -36,6 +36,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       recipientName: '',
       accommodationType: '',
       streetAddress: '',
+      streetAddress2: '',
       cityArea: '',
       postalCode: '',
       hotelAirbnbName: '',
@@ -132,6 +133,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
         recipientName: '',
         accommodationType: '',
         streetAddress: '',
+        streetAddress2: '',
         cityArea: '',
         postalCode: '',
         hotelAirbnbName: '',
@@ -366,14 +368,25 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="streetAddress">Dirección completa *</Label>
+              <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
               <Input
                 id="streetAddress"
                 type="text"
-                placeholder="Ej: 123 Main Street, Apt 4B"
+                placeholder="Ej: 123 Main Street"
                 value={formData.packageReceivingAddress.streetAddress}
                 onChange={(e) => handleAddressChange('streetAddress', e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
+              <Input
+                id="streetAddress2"
+                type="text"
+                placeholder="Ej: Apt 4B, Suite 100"
+                value={formData.packageReceivingAddress.streetAddress2}
+                onChange={(e) => handleAddressChange('streetAddress2', e.target.value)}
               />
             </div>
 
