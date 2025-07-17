@@ -67,6 +67,9 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
   const currentIndex = statuses.findIndex(status => status.key === currentStatus);
 
   const getStatusState = (index: number) => {
+    // Si el paquete está completado, todos los pasos se muestran como completados
+    if (currentStatus === 'completed') return 'completed';
+    
     if (index < currentIndex) return 'completed';
     if (index === currentIndex) return 'current';
     return 'pending';
