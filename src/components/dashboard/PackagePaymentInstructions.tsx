@@ -8,31 +8,31 @@ export const PackagePaymentInstructions = ({ quote }: PackagePaymentInstructions
   const amount = quote && typeof quote === 'object' ? parseFloat(quote.totalPrice || '0').toFixed(2) : '0.00';
 
   return (
-    <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-4 shadow-sm">
-      <div className="mb-4">
-        <p className="text-sm font-semibold text-primary mb-2">💵 Instrucciones de pago</p>
-        <p className="text-xs text-muted-foreground mb-3">
+    <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-3 md:p-4 shadow-sm">
+      <div className="mb-3 md:mb-4">
+        <p className="text-sm font-semibold text-primary mb-1 md:mb-2">💵 Instrucciones de pago</p>
+        <p className="text-xs text-muted-foreground mb-2 md:mb-3">
           Por favor realiza el pago correspondiente a tu cotización a la siguiente cuenta:
         </p>
       </div>
       
-      <div className="bg-background/80 rounded-md p-3 border border-border mb-4">
-        <div className="grid grid-cols-1 gap-2 text-sm">
-          <div className="flex justify-between">
+      <div className="bg-background/80 rounded-md p-2 md:p-3 border border-border mb-3 md:mb-4">
+        <div className="grid grid-cols-1 gap-1 md:gap-2 text-xs md:text-sm">
+          <div className="flex justify-between items-center">
             <span className="font-medium">Nombre de la cuenta:</span>
             <span className="text-black font-semibold">Favorón S.A.</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="font-medium">Número de cuenta:</span>
             <span className="text-black font-semibold font-mono">84V050N</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="font-medium">Banco:</span>
             <span className="text-black font-semibold">Banco Industrial</span>
           </div>
-          <div className="flex justify-between border-t border-border pt-2 mt-2">
+          <div className="flex justify-between items-center border-t border-border pt-1 md:pt-2 mt-1 md:mt-2">
             <span className="font-medium">Monto:</span>
-            <span className="text-black font-bold text-lg">Q{amount}</span>
+            <span className="text-black font-bold text-base md:text-lg">Q{amount}</span>
           </div>
         </div>
       </div>
