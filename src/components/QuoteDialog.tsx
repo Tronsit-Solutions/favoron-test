@@ -191,7 +191,7 @@ const QuoteDialog = ({
                   />
                 </div>
                 <p className="text-xs text-amber-600 mt-1">
-                  ⚠️ Considera costos adicionales como hotel por recibir paquete
+                  ⚠️ Incluye gastos extras como hospedaje si necesitas quedarte una noche adicional para recibir el paquete
                 </p>
               </div>
               
