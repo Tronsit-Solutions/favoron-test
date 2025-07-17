@@ -15,8 +15,10 @@ import AdminTripsTab from "./admin/AdminTripsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
+import AdminSupportTab from "./admin/AdminSupportTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
+import AdminActionsModal from "./admin/AdminActionsModal";
 
 interface AdminDashboardProps {
   packages: any[];
@@ -46,6 +48,8 @@ const AdminDashboard = ({
   const [showTripDetail, setShowTripDetail] = useState(false);
   const [selectedDetailPackage, setSelectedDetailPackage] = useState<any>(null);
   const [selectedDetailTrip, setSelectedDetailTrip] = useState<any>(null);
+  const [showActionsModal, setShowActionsModal] = useState(false);
+  const [selectedActionsPackage, setSelectedActionsPackage] = useState<any>(null);
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
@@ -168,7 +172,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -185,6 +189,12 @@ const AdminDashboard = ({
             Matching y gestión
             {matchingTotal > 0 && (
               <NotificationBadge count={matchingTotal} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="support" className="relative flex items-center gap-2">
+            🔍 Soporte
+            {packages.filter(p => p.incident_flag).length > 0 && (
+              <NotificationBadge count={packages.filter(p => p.incident_flag).length} />
             )}
           </TabsTrigger>
           <TabsTrigger value="financial" className="relative flex items-center gap-2">
@@ -233,6 +243,18 @@ const AdminDashboard = ({
           />
         </TabsContent>
 
+        <TabsContent value="support" className="space-y-4">
+          <AdminSupportTab 
+            packages={packages}
+            trips={trips}
+            onViewPackageDetail={handleViewPackageDetail}
+            onOpenActionsModal={(pkg) => {
+              setSelectedActionsPackage(pkg);
+              setShowActionsModal(true);
+            }}
+          />
+        </TabsContent>
+
         <TabsContent value="reports" className="space-y-4">
           <MonthlyReportsTab />
         </TabsContent>
@@ -247,6 +269,15 @@ const AdminDashboard = ({
         setMatchingTrip={setMatchingTrip}
         availableTrips={availableTrips}
         onMatch={handleMatch}
+      />
+
+      {/* Actions Modal */}
+      <AdminActionsModal
+        package={selectedActionsPackage}
+        trips={trips}
+        isOpen={showActionsModal}
+        onClose={() => setShowActionsModal(false)}
+        onRefresh={() => window.location.reload()}
       />
 
       {/* Package Detail Modal */}

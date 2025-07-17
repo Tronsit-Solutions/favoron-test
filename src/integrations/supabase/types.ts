@@ -113,12 +113,15 @@ export type Database = {
       packages: {
         Row: {
           additional_notes: string | null
+          admin_actions_log: Json | null
           confirmed_delivery_address: Json | null
           created_at: string
           delivery_deadline: string
           delivery_method: string | null
           estimated_price: number | null
           id: string
+          incident_flag: boolean | null
+          internal_notes: string | null
           item_description: string
           item_link: string | null
           matched_trip_dates: Json | null
@@ -138,12 +141,15 @@ export type Database = {
         }
         Insert: {
           additional_notes?: string | null
+          admin_actions_log?: Json | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline: string
           delivery_method?: string | null
           estimated_price?: number | null
           id?: string
+          incident_flag?: boolean | null
+          internal_notes?: string | null
           item_description: string
           item_link?: string | null
           matched_trip_dates?: Json | null
@@ -163,12 +169,15 @@ export type Database = {
         }
         Update: {
           additional_notes?: string | null
+          admin_actions_log?: Json | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline?: string
           delivery_method?: string | null
           estimated_price?: number | null
           id?: string
+          incident_flag?: boolean | null
+          internal_notes?: string | null
           item_description?: string
           item_link?: string | null
           matched_trip_dates?: Json | null
@@ -380,6 +389,16 @@ export type Database = {
           _role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          _package_id: string
+          _admin_id: string
+          _action_type: string
+          _action_description: string
+          _additional_data?: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {
