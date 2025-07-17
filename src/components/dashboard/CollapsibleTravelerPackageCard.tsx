@@ -10,26 +10,32 @@ import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
+import BankingConfirmationModal from "@/components/BankingConfirmationModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
+  onConfirmOfficeDelivery?: (packageId: string) => void;
   hasPendingAction?: boolean;
   autoExpand?: boolean;
 }
 
-const CollapsibleTravelerPackageCard = ({
+const CollapsibleTravelerPackageCard = ({ 
   pkg,
   getStatusBadge,
   onQuote,
   onConfirmReceived,
+  onConfirmOfficeDelivery,
   hasPendingAction = false,
   autoExpand = false
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showBankingModal, setShowBankingModal] = useState(false);
+  const { user } = useAuth();
 
   const handleConfirmReceived = (photo?: string) => {
     onConfirmReceived(pkg.id, photo);
@@ -37,6 +43,13 @@ const CollapsibleTravelerPackageCard = ({
 
   const handleConfirmReceivedClick = () => {
     setShowConfirmationModal(true);
+  };
+
+  const handleConfirmOfficeDeliveryClick = () => {
+    if (onConfirmOfficeDelivery) {
+      onConfirmOfficeDelivery(pkg.id);
+      setShowBankingModal(true);
+    }
   };
 
   const getPackageName = () => {
@@ -134,6 +147,7 @@ const CollapsibleTravelerPackageCard = ({
               pkg={pkg}
               onQuote={onQuote}
               onConfirmReceived={handleConfirmReceivedClick}
+              onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
             />
 
             <div className="grid gap-6 lg:grid-cols-2">
@@ -175,6 +189,14 @@ const CollapsibleTravelerPackageCard = ({
         onConfirm={handleConfirmReceived} 
         packageName={getPackageName()}
         packageId={pkg.id}
+      />
+      
+      <BankingConfirmationModal
+        isOpen={showBankingModal}
+        onClose={() => setShowBankingModal(false)}
+        pkg={pkg}
+        travelerProfile={user}
+        onConfirm={() => setShowBankingModal(false)}
       />
     </Collapsible>
   );

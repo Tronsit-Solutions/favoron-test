@@ -215,6 +215,69 @@ export type Database = {
           },
         ]
       }
+      payment_orders: {
+        Row: {
+          amount: number
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          package_id: string
+          status: string
+          traveler_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          package_id: string
+          status?: string
+          traveler_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_holder?: string
+          bank_account_number?: string
+          bank_account_type?: string
+          bank_name?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          package_id?: string
+          status?: string
+          traveler_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_payment_order_package"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_payment_order_traveler"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

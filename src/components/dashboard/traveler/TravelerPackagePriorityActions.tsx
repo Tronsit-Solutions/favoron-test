@@ -5,14 +5,16 @@ interface TravelerPackagePriorityActionsProps {
   pkg: any;
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: () => void;
+  onConfirmOfficeDelivery?: () => void;
 }
 
 const TravelerPackagePriorityActions = ({
   pkg,
   onQuote,
-  onConfirmReceived
+  onConfirmReceived,
+  onConfirmOfficeDelivery
 }: TravelerPackagePriorityActionsProps) => {
-  if (pkg.status !== 'matched' && pkg.status !== 'in_transit') return null;
+  if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler') return null;
 
   // Calculate tip/compensation for traveler
   const getTravelerTip = () => {
@@ -70,6 +72,12 @@ const TravelerPackagePriorityActions = ({
                   <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete del shopper?</p>
                 </div>
               )}
+              {pkg.status === 'received_by_traveler' && (
+                <div>
+                  <p className="text-sm font-semibold mb-1">¡Paquete listo para entregar!</p>
+                  <p className="text-xs text-muted-foreground">¿Ya entregaste el paquete en la oficina de Favorón?</p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex-shrink-0">
@@ -92,6 +100,17 @@ const TravelerPackagePriorityActions = ({
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Confirmar recibido
+              </Button>
+            )}
+            {pkg.status === 'received_by_traveler' && onConfirmOfficeDelivery && (
+              <Button 
+                size="sm" 
+                onClick={onConfirmOfficeDelivery} 
+                variant="success"
+                className="font-medium px-4 py-2 h-8"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Entregado en oficina
               </Button>
             )}
           </div>

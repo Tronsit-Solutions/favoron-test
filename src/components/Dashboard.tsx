@@ -364,6 +364,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                             getStatusBadge={getStatusBadge}
                             onQuote={handleQuote}
                             onConfirmReceived={handleConfirmPackageReceived}
+                            onConfirmOfficeDelivery={(packageId) => handleConfirmOfficeReception(packageId, () => {})}
                             defaultExpanded={hasPendingActions}
                           />
                         );

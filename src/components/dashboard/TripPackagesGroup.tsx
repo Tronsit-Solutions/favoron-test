@@ -11,15 +11,17 @@ interface TripPackagesGroupProps {
   getStatusBadge: (status: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
+  onConfirmOfficeDelivery?: (packageId: string) => void;
   defaultExpanded?: boolean;
 }
 
-const TripPackagesGroup = ({
-  trip,
+const TripPackagesGroup = ({ 
+  trip, 
   packages,
   getStatusBadge,
   onQuote,
   onConfirmReceived,
+  onConfirmOfficeDelivery,
   defaultExpanded = false
 }: TripPackagesGroupProps) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -119,6 +121,7 @@ const TripPackagesGroup = ({
                       getStatusBadge={getStatusBadge}
                       onQuote={onQuote}
                       onConfirmReceived={onConfirmReceived}
+                      onConfirmOfficeDelivery={onConfirmOfficeDelivery}
                       hasPendingAction={hasPendingAction}
                       autoExpand={hasPendingAction}
                     />

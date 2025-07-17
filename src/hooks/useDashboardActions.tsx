@@ -540,7 +540,7 @@ export const useDashboardActions = (
     }
   };
 
-  const handleConfirmOfficeReception = async (packageId: string) => {
+  const handleConfirmOfficeReception = async (packageId: string, onShowBankingModal?: () => void) => {
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
@@ -569,6 +569,13 @@ export const useDashboardActions = (
           description: `Se ha notificado al shopper que su paquete "${updatedPackage.item_description}" está listo para recoger en la oficina de Favorón.`,
           duration: 5000,
         });
+      }
+
+      // Show banking confirmation modal after successful office delivery
+      if (onShowBankingModal) {
+        setTimeout(() => {
+          onShowBankingModal();
+        }, 1000);
       }
     } catch (error) {
       console.error('Error confirming office reception:', error);
