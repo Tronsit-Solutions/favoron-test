@@ -270,6 +270,236 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
             </CardContent>
           </Card>
 
+          {/* Package Status Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Calendar className="h-4 w-4" />
+                <span>Hitos del Paquete</span>
+              </CardTitle>
+              <CardDescription>
+                Seguimiento completo del estado del paquete
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Package Created */}
+                <div className="flex items-center space-x-4">
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">📦 Paquete creado</p>
+                      <p className="text-xs text-muted-foreground">Solicitud enviada por el shopper</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(pkg.created_at).toLocaleDateString('es-GT')} {new Date(pkg.created_at).toLocaleTimeString('es-GT')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Package Approved */}
+                {['approved', 'matched', 'quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">✅ Paquete aprobado</p>
+                        <p className="text-xs text-muted-foreground">Aprobado por el administrador</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Match Made */}
+                {pkg.matched_trip_id && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">🔗 Match realizado</p>
+                        <p className="text-xs text-muted-foreground">Emparejado con viajero</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {pkg.matched_trip_dates ? new Date(pkg.matched_trip_dates).toLocaleDateString('es-GT') : 'Completado'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quote Sent */}
+                {['quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">💬 Cotización enviada</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.quote ? `Q${(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}` : 'Precio por definir'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {pkg.quote ? 'Completado' : 'Pendiente'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Confirmed */}
+                {['payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">💳 Pago confirmado</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.payment_receipt ? 'Recibo de pago verificado' : 'Pago procesado'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Verificado
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* In Transit */}
+                {['in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">🚚 En tránsito</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.tracking_info ? 'Con información de seguimiento' : 'Producto enviado'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        En proceso
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Delivered to Office */}
+                {['delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">🏢 Entregado en oficina</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.confirmed_delivery_address ? 'Preparado para entrega a domicilio' : 'Esperando recojo del shopper'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {pkg.office_delivery ? new Date(pkg.office_delivery.timestamp || new Date()).toLocaleDateString('es-GT') : 'Completado'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Out for Delivery */}
+                {['out_for_delivery', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">🚚 En reparto en {pkg.package_destination}</p>
+                        <p className="text-xs text-muted-foreground">Entrega a domicilio en progreso</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        En camino
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Received by Traveler */}
+                {['received_by_traveler', 'completed'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">👤 Recibido por viajero</p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.traveler_confirmation ? 'Confirmado por el viajero' : 'Entregado al viajero'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Confirmado
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Process Completed */}
+                {pkg.status === 'completed' && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">🎉 Proceso completado</p>
+                        <p className="text-xs text-muted-foreground">Paquete entregado exitosamente</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Finalizado
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Current Status (if not completed) */}
+                {!['completed', 'rejected', 'quote_rejected'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-yellow-700">
+                          {pkg.status === 'pending_approval' ? '⏳ Pendiente de aprobación' :
+                           pkg.status === 'approved' ? '✅ Aprobado, buscando match' :
+                           pkg.status === 'matched' ? '🔗 Match realizado, preparando cotización' :
+                           pkg.status === 'quote_sent' ? '💬 Cotización enviada' :
+                           pkg.status === 'payment_pending' ? '💳 Esperando pago' :
+                           pkg.status === 'payment_confirmed' ? '✅ Pago confirmado' :
+                           pkg.status === 'in_transit' ? '🚚 En tránsito' :
+                           pkg.status === 'delivered_to_office' ? '🏢 En oficina' :
+                           pkg.status === 'out_for_delivery' ? '🚚 En reparto' :
+                           pkg.status === 'received_by_traveler' ? '👤 Con viajero' :
+                           `Estado: ${pkg.status}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Estado actual del paquete</p>
+                      </div>
+                      <p className="text-xs text-yellow-600">En progreso</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejected Status */}
+                {['rejected', 'quote_rejected'].includes(pkg.status) && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-red-700">
+                          ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Solicitud rechazada'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' ? pkg.rejectionReason :
+                           pkg.rejectionReason && typeof pkg.rejectionReason === 'object' && pkg.rejectionReason.value ? pkg.rejectionReason.value :
+                           'Razón no especificada'}
+                        </p>
+                      </div>
+                      <p className="text-xs text-red-600">Finalizado</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Payment Receipt Section */}
           {pkg.payment_receipt && (
             <PaymentReceiptViewer 
