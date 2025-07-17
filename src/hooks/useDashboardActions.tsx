@@ -588,8 +588,7 @@ export const useDashboardActions = (
       }
 
       await updatePackage(packageId, {
-        status: 'completed',
-        completed_at: new Date().toISOString()
+        status: 'completed'
       });
       
       // Find the package to get user info
