@@ -58,6 +58,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     trips,
     createPackage,
     updatePackage,
+    deletePackage,
     createTrip,
     updateTrip
   } = useDashboardState(user);
@@ -198,6 +199,14 @@ const Dashboard = ({ user }: DashboardProps) => {
       handleConfirmPayment(id);
     } else {
       handleStatusUpdate(type, id, status);
+    }
+  };
+
+  const handleDiscardPackage = async (pkg: any) => {
+    try {
+      await deletePackage(pkg.id);
+    } catch (error) {
+      console.error('Error discarding package:', error);
     }
   };
 
@@ -376,6 +385,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onApproveReject={handleApproveReject}
               onConfirmOfficeReception={handleConfirmOfficeReception}
               onConfirmDeliveryComplete={handleConfirmDeliveryComplete}
+              onDiscardPackage={handleDiscardPackage}
               />
             </TabsContent>
           )}

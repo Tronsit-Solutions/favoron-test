@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Zap, Eye, CalendarDays } from "lucide-react";
+import { Search, Zap, Eye, CalendarDays, X } from "lucide-react";
 
 interface PendingRequestsTabProps {
   packages: any[];
   onOpenMatchDialog: (pkg: any) => void;
   onViewPackageDetail: (pkg: any) => void;
+  onDiscardPackage: (pkg: any) => void;
   availableTripsCount: number;
 }
 
@@ -39,6 +40,7 @@ const PendingRequestsTab = ({
   packages, 
   onOpenMatchDialog, 
   onViewPackageDetail,
+  onDiscardPackage,
   availableTripsCount
 }: PendingRequestsTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -177,6 +179,15 @@ const PendingRequestsTab = ({
                       onClick={() => onViewPackageDetail(pkg)}
                     >
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => onDiscardPackage(pkg)}
+                      className="border-red-200 text-red-600 hover:bg-red-50"
+                      title="Descartar solicitud"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                     <Button 
                       size="sm" 

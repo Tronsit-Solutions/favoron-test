@@ -29,6 +29,7 @@ interface AdminDashboardProps {
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   onConfirmOfficeReception: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
+  onDiscardPackage: (pkg: any) => void;
 }
 
 const AdminDashboard = ({ 
@@ -39,7 +40,8 @@ const AdminDashboard = ({
   onUpdateStatus, 
   onApproveReject,
   onConfirmOfficeReception,
-  onConfirmDeliveryComplete
+  onConfirmDeliveryComplete,
+  onDiscardPackage
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -238,6 +240,7 @@ const AdminDashboard = ({
             onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
+            onDiscardPackage={onDiscardPackage}
             onUpdateStatus={onUpdateStatus}
             onConfirmOfficeReception={onConfirmOfficeReception}
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}
