@@ -15,6 +15,20 @@ export const usePackagesData = () => {
   const fetchPackages = async () => {
     try {
       console.log('🔄 Fetching packages...');
+      
+      // Debug: Check current user
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user:', user?.id);
+      
+      // Debug: Check if user has admin role
+      if (user) {
+        const { data: roleData } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+        console.log('🛡️ Has admin role:', roleData);
+      }
+      
       const { data, error } = await supabase
         .from('packages')
         .select(`
@@ -33,7 +47,11 @@ export const usePackagesData = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('📦 Supabase query error:', error);
+        throw error;
+      }
+      
       console.log('📦 Packages fetched:', data?.length || 0, 'packages');
       console.log('📦 Raw packages data:', data);
       setPackages(data || []);
