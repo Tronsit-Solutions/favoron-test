@@ -9,28 +9,23 @@ const BankingInfoDisplay = ({ user }: BankingInfoDisplayProps) => {
   const bankingInfo = [
     {
       icon: CreditCard,
-      label: "Titular de la cuenta",
+      label: "Nombre de cuenta",
       value: user.bankAccountHolder || 'No registrado'
     },
     {
       icon: Building,
-      label: "Banco",
+      label: "Nombre del banco",
       value: user.bankName || 'No registrado'
     },
     {
       icon: Hash,
-      label: "Tipo de cuenta",
-      value: user.bankAccountType || 'No especificado'
-    },
-    {
-      icon: Code,
       label: "Número de cuenta",
       value: user.bankAccountNumber || 'No registrado'
     },
     {
       icon: Code,
-      label: "Código SWIFT",
-      value: user.bankSwiftCode || 'No registrado'
+      label: "Tipo de cuenta",
+      value: user.bankAccountType || 'No especificado'
     }
   ];
 

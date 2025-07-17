@@ -23,7 +23,7 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="bankAccountHolder">Nombre del titular de la cuenta</Label>
+          <Label htmlFor="bankAccountHolder">Nombre de cuenta</Label>
           <div className="relative">
             <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -51,24 +51,6 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bankAccountType">Tipo de cuenta (opcional)</Label>
-          <Select
-            value={formData.bankAccountType || ''}
-            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, bankAccountType: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona tipo de cuenta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monetaria">Cuenta Monetaria</SelectItem>
-              <SelectItem value="ahorro">Cuenta de Ahorro</SelectItem>
-              <SelectItem value="corriente">Cuenta Corriente</SelectItem>
-              <SelectItem value="deposito">Depósito a Plazo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="bankAccountNumber">Número de cuenta</Label>
           <Input
             id="bankAccountNumber"
@@ -79,13 +61,19 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bankSwiftCode">Código bancario o Swift (opcional)</Label>
-          <Input
-            id="bankSwiftCode"
-            value={formData.bankSwiftCode || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, bankSwiftCode: e.target.value }))}
-            placeholder="Código SWIFT o código bancario"
-          />
+          <Label htmlFor="bankAccountType">Tipo de cuenta</Label>
+          <Select
+            value={formData.bankAccountType || ''}
+            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, bankAccountType: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona tipo de cuenta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monetaria">Monetaria</SelectItem>
+              <SelectItem value="ahorros">Ahorros</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Button onClick={onSave} className="w-full">

@@ -32,8 +32,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     bankAccountHolder: user.bankAccountHolder || '',
     bankName: user.bankName || '',
     bankAccountType: user.bankAccountType || '',
-    bankAccountNumber: user.bankAccountNumber || '',
-    bankSwiftCode: user.bankSwiftCode || ''
+    bankAccountNumber: user.bankAccountNumber || ''
   });
   const { toast } = useToast();
 
@@ -58,8 +57,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       bankAccountHolder: formData.bankAccountHolder,
       bankName: formData.bankName,
       bankAccountType: formData.bankAccountType,
-      bankAccountNumber: formData.bankAccountNumber,
-      bankSwiftCode: formData.bankSwiftCode
+      bankAccountNumber: formData.bankAccountNumber
     };
 
     onUpdateUser(updatedUser);
@@ -80,8 +78,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       bankAccountHolder: user.bankAccountHolder || '',
       bankName: user.bankName || '',
       bankAccountType: user.bankAccountType || '',
-      bankAccountNumber: user.bankAccountNumber || '',
-      bankSwiftCode: user.bankSwiftCode || ''
+      bankAccountNumber: user.bankAccountNumber || ''
     });
     setIsEditing(false);
   };
@@ -92,8 +89,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       bankAccountHolder: formData.bankAccountHolder,
       bankName: formData.bankName,
       bankAccountType: formData.bankAccountType,
-      bankAccountNumber: formData.bankAccountNumber,
-      bankSwiftCode: formData.bankSwiftCode
+      bankAccountNumber: formData.bankAccountNumber
     };
 
     onUpdateUser(updatedUser);
@@ -110,8 +106,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       bankAccountHolder: user.bankAccountHolder || '',
       bankName: user.bankName || '',
       bankAccountType: user.bankAccountType || '',
-      bankAccountNumber: user.bankAccountNumber || '',
-      bankSwiftCode: user.bankSwiftCode || ''
+      bankAccountNumber: user.bankAccountNumber || ''
     });
     setIsBankingEditing(false);
   };
