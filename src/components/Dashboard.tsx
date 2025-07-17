@@ -128,7 +128,8 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Set up real-time notifications based on user context
   useRealtimePackages({
     onPackageUpdate: () => {
-      // Refresh packages when there are changes
+      // Force refresh packages when there are changes
+      console.log('🔄 Real-time package update received, refreshing...');
       refreshPackages();
     },
     userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')

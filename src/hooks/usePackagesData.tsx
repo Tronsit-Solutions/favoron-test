@@ -184,13 +184,16 @@ export const usePackagesData = () => {
         },
         (payload) => {
           console.log('📦 Real-time update received:', payload);
+          console.log('🔄 Fetching updated packages...');
           
           // Refetch all packages to ensure we have the latest data with profiles
           // This is more reliable than trying to merge real-time data without profiles
           fetchPackages();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
