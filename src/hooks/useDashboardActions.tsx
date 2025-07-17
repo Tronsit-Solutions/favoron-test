@@ -110,6 +110,7 @@ export const useDashboardActions = (
         first_day_packages: tripData.firstDayPackages.toISOString(),
         last_day_packages: tripData.lastDayPackages.toISOString(),
         delivery_date: tripData.deliveryDate.toISOString(),
+        delivery_method: tripData.deliveryMethod || 'oficina',
         package_receiving_address: tripData.packageReceivingAddress,
         status: 'pending_approval'
       };

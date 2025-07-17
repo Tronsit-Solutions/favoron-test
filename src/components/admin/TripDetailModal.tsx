@@ -140,24 +140,24 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               {/* Delivery Method - Prominente */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
-                  {getDeliveryMethodIcon(trip.deliveryMethod)}
+                  {getDeliveryMethodIcon(trip.delivery_method)}
                   <p className="text-base font-semibold text-blue-800">Método de Entrega en Guatemala</p>
                 </div>
                 <div className="ml-6">
                   <p className="text-sm text-blue-700">
-                    {trip.deliveryMethod === 'oficina' ? '🏢 Llevar paquetes a la oficina de Favorón' : 
-                     trip.deliveryMethod === 'mensajero' ? '🚚 Un mensajero recogerá los paquetes' : 
-                     trip.deliveryMethod === 'pickup' ? '🏢 Recoger en oficina' : 
-                     trip.deliveryMethod || 'No especificado'}
+                    {trip.delivery_method === 'oficina' ? '🏢 Llevar paquetes a la oficina de Favorón' : 
+                     trip.delivery_method === 'mensajero' ? '🚚 Un mensajero recogerá los paquetes' : 
+                     trip.delivery_method === 'pickup' ? '🏢 Recoger en oficina' : 
+                     trip.delivery_method || 'No especificado'}
                   </p>
-                  {!trip.deliveryMethod && (
+                  {!trip.delivery_method && (
                     <p className="text-xs text-red-600 mt-1">⚠️ Método de entrega no especificado en este viaje</p>
                   )}
                 </div>
               </div>
 
               {/* Messenger Pickup Information */}
-              {trip.deliveryMethod === 'mensajero' && trip.messengerPickupInfo && (
+              {trip.delivery_method === 'mensajero' && trip.messengerPickupInfo && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start space-x-2 mb-3">
                     <Truck className="h-5 w-5 text-yellow-600 mt-0.5" />

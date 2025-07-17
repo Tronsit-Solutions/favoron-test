@@ -337,6 +337,7 @@ export type Database = {
           arrival_date: string
           created_at: string
           delivery_date: string
+          delivery_method: string | null
           departure_date: string
           first_day_packages: string
           from_city: string
@@ -352,6 +353,7 @@ export type Database = {
           arrival_date: string
           created_at?: string
           delivery_date: string
+          delivery_method?: string | null
           departure_date: string
           first_day_packages: string
           from_city: string
@@ -367,6 +369,7 @@ export type Database = {
           arrival_date?: string
           created_at?: string
           delivery_date?: string
+          delivery_method?: string | null
           departure_date?: string
           first_day_packages?: string
           from_city?: string
