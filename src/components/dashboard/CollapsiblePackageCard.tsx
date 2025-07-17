@@ -124,7 +124,7 @@ const CollapsiblePackageCard = ({
                   Precio estimado: ${pkg.estimated_price} • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                 </CardDescription>
               </div>
-              {getStatusBadge(pkg.status)}
+              {getStatusBadge(pkg.status, pkg.package_destination)}
             </div>
           </CardHeader>
         </CollapsibleTrigger>

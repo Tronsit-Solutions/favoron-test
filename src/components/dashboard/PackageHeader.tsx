@@ -2,7 +2,7 @@ import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PackageHeaderProps {
   pkg: any;
-  getStatusBadge: (status: string) => JSX.Element;
+  getStatusBadge: (status: string, packageDestination?: string) => JSX.Element;
 }
 
 const PackageHeader = ({ pkg, getStatusBadge }: PackageHeaderProps) => {
@@ -33,7 +33,7 @@ const PackageHeader = ({ pkg, getStatusBadge }: PackageHeaderProps) => {
           </CardDescription>
         </div>
         <div className="ml-4">
-          {getStatusBadge(pkg.status)}
+          {getStatusBadge(pkg.status, pkg.package_destination)}
         </div>
       </div>
     </CardHeader>

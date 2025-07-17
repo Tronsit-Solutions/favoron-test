@@ -6,7 +6,7 @@ import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationV
 
 interface TravelerPackageCardProps {
   pkg: any;
-  getStatusBadge: (status: string) => JSX.Element;
+  getStatusBadge: (status: string, packageDestination?: string) => JSX.Element;
   onQuote: (pkg: any, userType: 'traveler' | 'shopper') => void;
 }
 
@@ -47,7 +47,7 @@ const TravelerPackageCard = ({
               )}
             </CardDescription>
           </div>
-          {getStatusBadge(pkg.status)}
+          {getStatusBadge(pkg.status, pkg.package_destination)}
         </div>
       </CardHeader>
       <CardContent>

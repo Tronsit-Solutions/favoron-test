@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Trip } from "@/types";
 
 export const useStatusHelpers = () => {
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, packageDestination?: string) => {
     const statusConfig = {
       pending_approval: { label: "Pendiente", variant: "warning" as const },
       approved: { label: "Aprobado", variant: "success" as const },
@@ -15,6 +15,10 @@ export const useStatusHelpers = () => {
       in_transit: { label: "En Tránsito", variant: "warning" as const },
       received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
       delivered_to_office: { label: "Entregado en oficina", variant: "success" as const },
+      out_for_delivery: { 
+        label: packageDestination ? `En reparto en ${packageDestination}` : "En reparto", 
+        variant: "warning" as const 
+      },
       active: { label: "Activo", variant: "success" as const },
       completed: { label: "Completado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const }
@@ -47,6 +51,7 @@ export const useStatusHelpers = () => {
       in_transit: "hsl(var(--info))",
       received_by_traveler: "hsl(var(--success))",
       delivered_to_office: "hsl(var(--success))",
+      out_for_delivery: "hsl(var(--warning))",
       active: "hsl(var(--success))",
       completed: "hsl(var(--success))",
       rejected: "hsl(var(--destructive))"
