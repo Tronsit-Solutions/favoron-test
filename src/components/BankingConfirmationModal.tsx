@@ -132,19 +132,19 @@ const BankingConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-lg w-full mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             <CheckCircle className="h-5 w-5 text-green-600" />
             Confirmación de pago
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Gracias por entregar los paquetes. Por favor, confirma o edita tu información bancaria para recibir tu pago.
+              Gracias por entregar los paquetes. Confirma tu información bancaria para recibir tu pago.
             </AlertDescription>
           </Alert>
 
@@ -162,76 +162,87 @@ const BankingConfirmationModal = ({
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="bankAccountHolder">Nombre de cuenta</Label>
-              <div className="relative">
-                <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="bankAccountHolder" className="text-sm font-medium">
+                  Nombre de cuenta
+                </Label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="bankAccountHolder"
+                    value={bankingInfo.bankAccountHolder}
+                    onChange={(e) => setBankingInfo(prev => ({ ...prev, bankAccountHolder: e.target.value }))}
+                    placeholder="Nombre completo del titular"
+                    className="pl-10 h-11"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bankName" className="text-sm font-medium">
+                  Nombre del banco
+                </Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="bankName"
+                    value={bankingInfo.bankName}
+                    onChange={(e) => setBankingInfo(prev => ({ ...prev, bankName: e.target.value }))}
+                    placeholder="Ej: Banco Industrial"
+                    className="pl-10 h-11"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bankAccountNumber" className="text-sm font-medium">
+                  Número de cuenta
+                </Label>
                 <Input
-                  id="bankAccountHolder"
-                  value={bankingInfo.bankAccountHolder}
-                  onChange={(e) => setBankingInfo(prev => ({ ...prev, bankAccountHolder: e.target.value }))}
-                  placeholder="Nombre completo del titular"
-                  className="pl-10"
+                  id="bankAccountNumber"
+                  value={bankingInfo.bankAccountNumber}
+                  onChange={(e) => setBankingInfo(prev => ({ ...prev, bankAccountNumber: e.target.value }))}
+                  placeholder="Número de cuenta bancaria"
+                  className="h-11"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bankName">Nombre del banco</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="bankName"
-                  value={bankingInfo.bankName}
-                  onChange={(e) => setBankingInfo(prev => ({ ...prev, bankName: e.target.value }))}
-                  placeholder="Ej: Banco Industrial"
-                  className="pl-10"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="bankAccountType" className="text-sm font-medium">
+                  Tipo de cuenta
+                </Label>
+                <Select
+                  value={bankingInfo.bankAccountType}
+                  onValueChange={(value) => setBankingInfo(prev => ({ ...prev, bankAccountType: value }))}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Selecciona tipo de cuenta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monetaria">Monetaria</SelectItem>
+                    <SelectItem value="ahorros">Ahorros</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bankAccountNumber">Número de cuenta</Label>
-              <Input
-                id="bankAccountNumber"
-                value={bankingInfo.bankAccountNumber}
-                onChange={(e) => setBankingInfo(prev => ({ ...prev, bankAccountNumber: e.target.value }))}
-                placeholder="Número de cuenta bancaria"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bankAccountType">Tipo de cuenta</Label>
-              <Select
-                value={bankingInfo.bankAccountType}
-                onValueChange={(value) => setBankingInfo(prev => ({ ...prev, bankAccountType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona tipo de cuenta" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monetaria">Monetaria</SelectItem>
-                  <SelectItem value="ahorros">Ahorros</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
             <Button 
               variant="outline" 
               onClick={onClose}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 h-11"
             >
               Cancelar
             </Button>
             <Button 
               onClick={handleConfirmPayment}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 h-11"
             >
-              {loading ? "Procesando..." : "Confirmar información y generar solicitud de pago"}
+              {loading ? "Procesando..." : "Confirmar y generar pago"}
             </Button>
           </div>
         </div>
