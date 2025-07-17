@@ -137,6 +137,10 @@ const ActiveMatchesTab = ({
             console.log('Package debug:', {
               id: pkg.id,
               status: pkg.status,
+              delivery_method: pkg.delivery_method,
+              confirmed_delivery_address: pkg.confirmed_delivery_address,
+              traveler_address: pkg.traveler_address,
+              office_delivery: pkg.office_delivery,
               rejectionReason: pkg.rejectionReason,
               quote: pkg.quote
             });
@@ -191,16 +195,16 @@ const ActiveMatchesTab = ({
                           }`}></div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-gray-800">
-                                {pkg.status === 'delivered_to_office' 
-                                  ? (pkg.delivery_method === 'home_delivery' 
-                                      ? '🏢 Recibido en oficina, pendiente de entrega'
-                                      : '🏢 Recibido en oficina, pendiente de recoger')
-                                  : pkg.status === 'out_for_delivery'
-                                  ? `🚚 En reparto en ${pkg.package_destination}`
-                                  : `${statusInfo.icon} ${statusInfo.label}`
-                                }
-                              </span>
+              <span className="text-sm font-medium text-gray-800">
+                {pkg.status === 'delivered_to_office' 
+                  ? (pkg.confirmed_delivery_address 
+                      ? '🏢 Recibido en oficina, pendiente de entrega'
+                      : '🏢 Recibido en oficina, pendiente de recoger')
+                  : pkg.status === 'out_for_delivery'
+                  ? `🚚 En reparto en ${pkg.package_destination}`
+                  : `${statusInfo.icon} ${statusInfo.label}`
+                }
+              </span>
                               <span className="text-xs text-gray-500">
                                 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
                               </span>
@@ -222,7 +226,7 @@ const ActiveMatchesTab = ({
                             )}
                             {pkg.status === 'delivered_to_office' && (
                               <p className="text-xs text-gray-600 mt-1">
-                                {pkg.delivery_method === 'home_delivery' 
+                                {pkg.confirmed_delivery_address 
                                   ? '🚚 Será entregado a domicilio'
                                   : '👤 Esperando que el shopper recoja'
                                 }
