@@ -76,10 +76,10 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
     };
   }, [filteredPackages]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'GTQ' = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       minimumFractionDigits: 2
     }).format(amount);
   };
@@ -116,7 +116,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {formatCurrency(financialMetrics.totalOrderValue)}
+              {formatCurrency(financialMetrics.totalOrderValue, 'GTQ')}
             </div>
             <p className="text-xs text-muted-foreground">
               {financialMetrics.completedOrders} órdenes completadas
@@ -134,7 +134,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-traveler">
-              {formatCurrency(financialMetrics.travelerTips)}
+              {formatCurrency(financialMetrics.travelerTips, 'GTQ')}
             </div>
             <p className="text-xs text-muted-foreground">
               Cotización completa del viajero
@@ -152,7 +152,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-700">
-              {formatCurrency(financialMetrics.favoronRevenue)}
+              {formatCurrency(financialMetrics.favoronRevenue, 'GTQ')}
             </div>
             <p className="text-xs text-muted-foreground">
               40% + fees adicionales
@@ -194,8 +194,8 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
               <p className="font-medium">Ticket promedio</p>
               <p className="text-2xl font-bold text-traveler">
                 {financialMetrics.completedOrders > 0 
-                  ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders)
-                  : formatCurrency(0)
+                  ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders, 'GTQ')
+                  : formatCurrency(0, 'GTQ')
                 }
               </p>
             </div>
