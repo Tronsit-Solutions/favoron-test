@@ -225,9 +225,10 @@ const ActiveMatchesTab = ({
                               console.log('🔥 onConfirmDeliveryComplete function:', typeof onConfirmDeliveryComplete);
                               onConfirmDeliveryComplete(pkg.id);
                             }}
-                            className="px-2 bg-green-600 hover:bg-green-700 text-white"
+                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium"
+                            title="Confirmar entrega completada"
                           >
-                            <CheckCircle className="h-3 w-3" />
+                            ✅ COMPLETAR
                           </Button>
                         )}
                       </div>
