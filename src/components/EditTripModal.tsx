@@ -26,7 +26,7 @@ const EditTripModal = ({
   const [formData, setFormData] = useState({
     fromCity: tripData?.from_city || '',
     fromCityOther: tripData?.fromCityOther || '',
-    fromCountry: tripData?.fromCountry || '',
+    fromCountry: tripData?.from_country || '',
     toCity: tripData?.to_city || '',
     toCityOther: tripData?.toCityOther || '',
     toCountry: tripData?.toCountry || 'Guatemala',

@@ -342,6 +342,7 @@ export type Database = {
           departure_date: string
           first_day_packages: string
           from_city: string
+          from_country: string | null
           id: string
           last_day_packages: string
           messenger_pickup_info: Json | null
@@ -360,6 +361,7 @@ export type Database = {
           departure_date: string
           first_day_packages: string
           from_city: string
+          from_country?: string | null
           id?: string
           last_day_packages: string
           messenger_pickup_info?: Json | null
@@ -378,6 +380,7 @@ export type Database = {
           departure_date?: string
           first_day_packages?: string
           from_city?: string
+          from_country?: string | null
           id?: string
           last_day_packages?: string
           messenger_pickup_info?: Json | null

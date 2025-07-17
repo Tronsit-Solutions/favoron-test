@@ -640,25 +640,54 @@ export const useDashboardActions = (
     }
   };
 
-  const handleEditTrip = (editedTripData: any) => {
-    setTrips(trips.map(trip => {
-      if (trip.id === editedTripData.id) {
-        // If trip was approved, reset to pending approval for admin review
-        const newStatus = trip.status === 'approved' ? 'pending_approval' : trip.status;
-        return { ...editedTripData, createdAt: trip.createdAt, status: newStatus };
+  const handleEditTrip = async (editedTripData: any) => {
+    try {
+      if (!updateTrip) {
+        console.error('updateTrip function not available');
+        return;
       }
-      return trip;
-    }));
-    
-    const originalTrip = trips.find(trip => trip.id === editedTripData.id);
-    const needsReapproval = originalTrip?.status === 'approved';
-    
-    toast({
-      title: "¡Viaje actualizado!",
-      description: needsReapproval 
-        ? "Los cambios se han guardado. El viaje requiere nueva aprobación del administrador."
-        : "Los cambios se han guardado correctamente.",
-    });
+
+      // Prepare DB data with correct field mappings
+      const dbTripData = {
+        from_country: editedTripData.fromCountry,
+        from_city: editedTripData.fromCity,
+        to_city: editedTripData.toCity,
+        arrival_date: editedTripData.arrivalDate,
+        departure_date: editedTripData.departureDate,
+        delivery_date: editedTripData.deliveryDate,
+        first_day_packages: editedTripData.firstDayPackages,
+        last_day_packages: editedTripData.lastDayPackages,
+        available_space: parseFloat(editedTripData.availableSpace),
+        package_receiving_address: editedTripData.packageReceivingAddress,
+        delivery_method: editedTripData.deliveryMethod,
+        messenger_pickup_info: editedTripData.deliveryMethod === 'delivery' ? 
+          { location: editedTripData.messengerPickupLocation } : null,
+        status: 'pending_approval' // Always reset to pending approval after edit
+      };
+
+      // Update trip in database
+      await updateTrip(editedTripData.id, dbTripData);
+
+      // Update local state
+      setTrips(trips.map(trip => {
+        if (trip.id === editedTripData.id) {
+          return { ...trip, ...dbTripData };
+        }
+        return trip;
+      }));
+      
+      toast({
+        title: "¡Viaje actualizado!",
+        description: "Los cambios se han guardado. El viaje requiere nueva aprobación del administrador.",
+      });
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el viaje. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditPackage = async (editedPackageData: any) => {
