@@ -232,7 +232,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  ¿Cuántas unidades necesitas?
+                  ¿Cuántas unidades necesitas? Si es un pack (varios productos juntos), cuenta como 1 unidad
                 </p>
               </div>
             </div>
