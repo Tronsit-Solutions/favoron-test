@@ -157,11 +157,62 @@ const ActiveMatchesTab = ({
                             <span className="text-xs font-medium text-primary">
                               ${pkg.estimated_price}
                             </span>
+                            <span className="text-xs text-muted-foreground">
+                              📅 Match: {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
+                            </span>
                           </div>
                         </div>
-                        <Badge className={`text-xs ${statusInfo.color}`}>
-                          {statusInfo.icon} {statusInfo.label}
-                        </Badge>
+                        <div className="text-right space-y-1">
+                          <Badge className={`text-xs ${statusInfo.color}`}>
+                            {statusInfo.icon} {statusInfo.label}
+                          </Badge>
+                          <div className="text-xs text-muted-foreground">
+                            Actualizado: {new Date(pkg.updated_at).toLocaleString('es-GT')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Progress indicator */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-gray-700">Estado del Match</span>
+                          <span className="text-xs text-gray-500">
+                            ID: {pkg.id.split('-')[0]}...
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                ['rejected', 'quote_rejected'].includes(pkg.status) 
+                                  ? 'bg-red-500' 
+                                  : pkg.status === 'completed' 
+                                  ? 'bg-green-500' 
+                                  : pkg.status === 'delivered_to_office' 
+                                  ? 'bg-blue-500' 
+                                  : 'bg-yellow-500'
+                              }`}
+                              style={{
+                                width: pkg.status === 'completed' ? '100%' :
+                                       pkg.status === 'delivered_to_office' ? '80%' :
+                                       pkg.status === 'in_transit' ? '60%' :
+                                       pkg.status === 'payment_confirmed' ? '40%' :
+                                       pkg.status === 'payment_pending' ? '30%' :
+                                       pkg.status === 'quote_sent' ? '20%' :
+                                       ['rejected', 'quote_rejected'].includes(pkg.status) ? '100%' : '10%'
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium">
+                            {pkg.status === 'completed' ? '100%' :
+                             pkg.status === 'delivered_to_office' ? '80%' :
+                             pkg.status === 'in_transit' ? '60%' :
+                             pkg.status === 'payment_confirmed' ? '40%' :
+                             pkg.status === 'payment_pending' ? '30%' :
+                             pkg.status === 'quote_sent' ? '20%' :
+                             ['rejected', 'quote_rejected'].includes(pkg.status) ? 'Roto' : '10%'}
+                          </span>
+                        </div>
                       </div>
 
                        {/* Match info */}
