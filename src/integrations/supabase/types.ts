@@ -335,6 +335,7 @@ export type Database = {
       trips: {
         Row: {
           arrival_date: string
+          available_space: number | null
           created_at: string
           delivery_date: string
           delivery_method: string | null
@@ -352,6 +353,7 @@ export type Database = {
         }
         Insert: {
           arrival_date: string
+          available_space?: number | null
           created_at?: string
           delivery_date: string
           delivery_method?: string | null
@@ -369,6 +371,7 @@ export type Database = {
         }
         Update: {
           arrival_date?: string
+          available_space?: number | null
           created_at?: string
           delivery_date?: string
           delivery_method?: string | null
