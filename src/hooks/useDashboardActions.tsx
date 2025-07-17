@@ -580,6 +580,44 @@ export const useDashboardActions = (
     }
   };
 
+  const handleConfirmDeliveryComplete = async (packageId: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      await updatePackage(packageId, {
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      });
+      
+      // Find the package to get user info
+      const updatedPackage = packages?.find(pkg => pkg.id === packageId);
+      
+      toast({
+        title: "¡Entrega completada!",
+        description: "El paquete ha sido marcado como entregado exitosamente.",
+      });
+
+      // Send notification to shopper and traveler
+      if (updatedPackage) {
+        toast({
+          title: "🎉 Proceso completado",
+          description: `El paquete "${updatedPackage.item_description}" ha sido entregado exitosamente al shopper.`,
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Error confirming delivery complete:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar la entrega completa. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleEditTrip = (editedTripData: any) => {
     setTrips(trips.map(trip => {
       if (trip.id === editedTripData.id) {
@@ -660,6 +698,7 @@ export const useDashboardActions = (
     handleApproveReject,
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
+    handleConfirmDeliveryComplete,
     handleEditTrip,
     handleEditPackage
   };

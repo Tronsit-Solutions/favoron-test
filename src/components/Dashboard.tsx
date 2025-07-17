@@ -76,6 +76,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleApproveReject,
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
+    handleConfirmDeliveryComplete,
     handleEditTrip,
     handleEditPackage
   } = useDashboardActions(
@@ -374,7 +375,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
               onConfirmOfficeReception={handleConfirmOfficeReception}
-              
+              onConfirmDeliveryComplete={handleConfirmDeliveryComplete}
               />
             </TabsContent>
           )}

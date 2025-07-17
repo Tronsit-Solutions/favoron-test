@@ -14,6 +14,7 @@ interface ActiveMatchesTabProps {
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
   onConfirmOfficeReception: (packageId: string) => void;
+  onConfirmDeliveryComplete: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -36,6 +37,7 @@ const ActiveMatchesTab = ({
   trips, 
   onViewPackageDetail,
   onConfirmOfficeReception,
+  onConfirmDeliveryComplete,
   getStatusBadge 
 }: ActiveMatchesTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -380,6 +382,23 @@ const ActiveMatchesTab = ({
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
                             Confirmar recepción
+                          </Button>
+                        )}
+
+                        {/* Confirm Delivery Complete - For both pickup and delivery */}
+                        {(['delivered_to_office', 'out_for_delivery'].includes(pkg.status)) && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => onConfirmDeliveryComplete(pkg.id)}
+                            className="flex-1 bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            {pkg.status === 'delivered_to_office' 
+                              ? (pkg.confirmed_delivery_address 
+                                  ? '✅ Confirmar entrega' 
+                                  : '✅ Confirmar recojo')
+                              : '✅ Confirmar entrega'
+                            }
                           </Button>
                         )}
                       </div>
