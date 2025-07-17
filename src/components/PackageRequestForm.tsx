@@ -26,9 +26,11 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
-  const [products, setProducts] = useState<Product[]>([
-    { itemLink: '', itemDescription: '', estimatedPrice: '' }
-  ]);
+  const [product, setProduct] = useState<Product>({
+    itemLink: '',
+    itemDescription: '',
+    estimatedPrice: ''
+  });
   const [formData, setFormData] = useState({
     deliveryDeadline: null as Date | null,
     additionalNotes: '',
@@ -62,12 +64,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     
-    // Validate products
-    const hasEmptyProducts = products.some(product => 
-      !product.itemLink || !product.itemDescription || !product.estimatedPrice
-    );
-    
-    if (hasEmptyProducts || !finalDestination || !finalOrigin) {
+    // Validate product
+    if (!product.itemLink || !product.itemDescription || !product.estimatedPrice || !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -86,7 +84,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
     const submitData = {
       ...formData,
-      products,
+      // Send single product in array format for compatibility
+      products: [product],
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin,
       deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
@@ -96,7 +95,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     onSubmit(submitData);
     
     // Reset form
-    setProducts([{ itemLink: '', itemDescription: '', estimatedPrice: '' }]);
+    setProduct({
+      itemLink: '',
+      itemDescription: '',
+      estimatedPrice: ''
+    });
     setFormData({
       deliveryDeadline: null,
       additionalNotes: '',
@@ -110,20 +113,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     setAddressData(null);
   };
 
-  const addProduct = () => {
-    setProducts([...products, { itemLink: '', itemDescription: '', estimatedPrice: '' }]);
-  };
-
-  const removeProduct = (index: number) => {
-    if (products.length > 1) {
-      setProducts(products.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateProduct = (index: number, field: keyof Product, value: string) => {
-    const updatedProducts = [...products];
-    updatedProducts[index] = { ...updatedProducts[index], [field]: value };
-    setProducts(updatedProducts);
+  const updateProduct = (field: keyof Product, value: string) => {
+    setProduct(prev => ({ ...prev, [field]: value }));
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -167,96 +158,64 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">Productos *</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addProduct}
-                className="flex items-center space-x-1"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Agregar producto</span>
-              </Button>
-            </div>
+            <Label className="text-base font-medium">Producto *</Label>
             
-            {products.map((product, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3 relative">
-                {products.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeProduct(index)}
-                    className="absolute top-1 right-1 text-destructive hover:text-destructive h-7 w-7 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-                
-                <div className="space-y-1">
-                  <Label htmlFor={`itemLink-${index}`} className="text-sm">Link del producto *</Label>
-                  <div className="relative">
-                    <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id={`itemLink-${index}`}
-                      type="url"
-                      placeholder="https://amazon.com/producto..."
-                      value={product.itemLink}
-                      onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                      className="pl-10 h-9"
-                      required
-                    />
-                  </div>
-                  {index === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Copia el link del producto desde Amazon, eBay, u otra tienda online
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor={`itemDescription-${index}`} className="text-sm">Descripción del producto *</Label>
-                  <Textarea
-                    id={`itemDescription-${index}`}
-                    placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                    value={product.itemDescription}
-                    onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                    className="min-h-[36px] resize-y"
-                    rows={1}
+            <div className="border border-gray-200 rounded-lg p-3 space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="itemLink" className="text-sm">Link del producto *</Label>
+                <div className="relative">
+                  <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="itemLink"
+                    type="url"
+                    placeholder="https://amazon.com/producto..."
+                    value={product.itemLink}
+                    onChange={(e) => updateProduct('itemLink', e.target.value)}
+                    className="pl-10 h-9"
                     required
                   />
-                  {index === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Describe detalladamente el producto (marca, modelo, color, talla, etc.)
-                    </p>
-                  )}
                 </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor={`estimatedPrice-${index}`} className="text-sm">Precio estimado (USD) *</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id={`estimatedPrice-${index}`}
-                      type="number"
-                      step="0.01"
-                      placeholder="299.99"
-                      value={product.estimatedPrice}
-                      onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
-                      className="pl-10 h-9"
-                      required
-                    />
-                  </div>
-                  {index === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Precio aproximado del producto sin incluir envío
-                    </p>
-                  )}
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Copia el link del producto desde Amazon, eBay, u otra tienda online
+                </p>
               </div>
-            ))}
+
+              <div className="space-y-1">
+                <Label htmlFor="itemDescription" className="text-sm">Descripción del producto *</Label>
+                <Textarea
+                  id="itemDescription"
+                  placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                  value={product.itemDescription}
+                  onChange={(e) => updateProduct('itemDescription', e.target.value)}
+                  className="min-h-[36px] resize-y"
+                  rows={1}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Describe detalladamente el producto (marca, modelo, color, talla, etc.)
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="estimatedPrice" className="text-sm">Precio estimado (USD) *</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="estimatedPrice"
+                    type="number"
+                    step="0.01"
+                    placeholder="299.99"
+                    value={product.estimatedPrice}
+                    onChange={(e) => updateProduct('estimatedPrice', e.target.value)}
+                    className="pl-10 h-9"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Precio aproximado del producto sin incluir envío
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
