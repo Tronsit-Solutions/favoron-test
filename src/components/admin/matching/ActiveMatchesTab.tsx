@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle, XCircle, MessageCircle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Search, Eye, CalendarDays, Link as LinkIcon, CheckCircle, XCircle, MessageCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 
 interface ActiveMatchesTabProps {
@@ -40,6 +41,19 @@ const ActiveMatchesTab = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
+  const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
+
+  const togglePackage = (packageId: string) => {
+    setExpandedPackages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(packageId)) {
+        newSet.delete(packageId);
+      } else {
+        newSet.add(packageId);
+      }
+      return newSet;
+    });
+  };
 
   const matchedPackages = packages.filter(pkg => pkg.matched_trip_id);
   
@@ -147,35 +161,59 @@ const ActiveMatchesTab = ({
             
             return (
               <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 space-y-3">
-                      {/* Header with status */}
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium text-sm leading-tight">{pkg.item_description}</h4>
-                          <div className="flex items-center space-x-3 mt-1">
-                            <span className="text-xs text-muted-foreground">
-                              👤 Shopper: {pkg.user_id}
-                            </span>
-                            <span className="text-xs font-medium text-primary">
-                              ${pkg.estimated_price}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              📅 Match: {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <Badge className={`text-xs ${statusInfo.color}`}>
+                <Collapsible 
+                  open={expandedPackages.has(pkg.id)}
+                  onOpenChange={() => togglePackage(pkg.id)}
+                >
+                  <CardContent className="p-4">
+                    {/* Compact Header - Always Visible */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-0 h-auto">
+                              {expandedPackages.has(pkg.id) ? 
+                                <ChevronDown className="h-4 w-4" /> : 
+                                <ChevronRight className="h-4 w-4" />
+                              }
+                            </Button>
+                          </CollapsibleTrigger>
+                          <h4 className="font-medium text-sm truncate">{pkg.item_description}</h4>
+                          <Badge className={`text-xs ${statusInfo.color} flex-shrink-0`}>
                             {statusInfo.icon} {statusInfo.label}
                           </Badge>
-                          <div className="text-xs text-muted-foreground">
-                            Actualizado: {new Date(pkg.updated_at).toLocaleString('es-GT')}
-                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                          <span>👤 {pkg.user_id}</span>
+                          <span className="font-medium text-primary">${pkg.estimated_price}</span>
+                          <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
                         </div>
                       </div>
+                      
+                      {/* Quick Actions */}
+                      <div className="flex items-center space-x-1 ml-4">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onViewPackageDetail(pkg)}
+                          className="px-2"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedChatPackage(pkg)}
+                          className="px-2"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
 
+                    {/* Detailed Information - Collapsible */}
+                    <CollapsibleContent className="space-y-3 mt-4">
                       {/* Current Status */}
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
@@ -195,16 +233,16 @@ const ActiveMatchesTab = ({
                           }`}></div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-800">
-                {pkg.status === 'delivered_to_office' 
-                  ? (pkg.confirmed_delivery_address 
-                      ? '🏢 Recibido en oficina, pendiente de entrega'
-                      : '🏢 Recibido en oficina, pendiente de recoger')
-                  : pkg.status === 'out_for_delivery'
-                  ? `🚚 En reparto en ${pkg.package_destination}`
-                  : `${statusInfo.icon} ${statusInfo.label}`
-                }
-              </span>
+                              <span className="text-sm font-medium text-gray-800">
+                                {pkg.status === 'delivered_to_office' 
+                                  ? (pkg.confirmed_delivery_address 
+                                      ? '🏢 Recibido en oficina, pendiente de entrega'
+                                      : '🏢 Recibido en oficina, pendiente de recoger')
+                                  : pkg.status === 'out_for_delivery'
+                                  ? `🚚 En reparto en ${pkg.package_destination}`
+                                  : `${statusInfo.icon} ${statusInfo.label}`
+                                }
+                              </span>
                               <span className="text-xs text-gray-500">
                                 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
                               </span>
@@ -246,41 +284,41 @@ const ActiveMatchesTab = ({
                         </div>
                       </div>
 
-                       {/* Match info */}
-                       {matchedTrip && !['rejected', 'quote_rejected'].includes(pkg.status) && (
-                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                           <div className="flex items-center space-x-2 mb-2">
-                             <LinkIcon className="h-3 w-3 text-blue-600" />
-                             <span className="text-xs font-medium text-blue-800">Match activo</span>
-                           </div>
-                           <div className="text-xs text-blue-700">
-                              <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                              <p>👤 Viajero: {matchedTrip.user_id}</p>
-                           </div>
-                         </div>
-                       )}
+                      {/* Match info */}
+                      {matchedTrip && !['rejected', 'quote_rejected'].includes(pkg.status) && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <LinkIcon className="h-3 w-3 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-800">Match activo</span>
+                          </div>
+                          <div className="text-xs text-blue-700">
+                            <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                            <p>👤 Viajero: {matchedTrip.user_id}</p>
+                          </div>
+                        </div>
+                      )}
 
-                       {/* Rejected Match info */}
-                       {matchedTrip && ['rejected', 'quote_rejected'].includes(pkg.status) && (
-                         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                           <div className="flex items-center space-x-2 mb-2">
-                             <XCircle className="h-3 w-3 text-red-600" />
-                             <span className="text-xs font-medium text-red-800">
-                               {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Match roto'}
-                             </span>
-                           </div>
-                           <div className="text-xs text-red-700 space-y-1">
-                              <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                              <p>👤 Viajero: {matchedTrip.user_id}</p>
-                             {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' && (
-                               <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
-                             )}
-                             {pkg.rejectionReason && typeof pkg.rejectionReason === 'object' && pkg.rejectionReason.value && (
-                               <p className="font-medium">📝 Razón: {pkg.rejectionReason.value}</p>
-                             )}
-                           </div>
-                         </div>
-                       )}
+                      {/* Rejected Match info */}
+                      {matchedTrip && ['rejected', 'quote_rejected'].includes(pkg.status) && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <XCircle className="h-3 w-3 text-red-600" />
+                            <span className="text-xs font-medium text-red-800">
+                              {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Match roto'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-red-700 space-y-1">
+                            <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                            <p>👤 Viajero: {matchedTrip.user_id}</p>
+                            {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' && (
+                              <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
+                            )}
+                            {pkg.rejectionReason && typeof pkg.rejectionReason === 'object' && pkg.rejectionReason.value && (
+                              <p className="font-medium">📝 Razón: {pkg.rejectionReason.value}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Financial info */}
                       {pkg.quote && (
@@ -293,60 +331,61 @@ const ActiveMatchesTab = ({
 
                       {/* Important dates */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                         {pkg.delivery_deadline && (
-                           <div className="flex items-center space-x-1">
-                             <CalendarDays className="h-3 w-3 text-orange-500" />
-                             <span className="text-orange-600">
-                               Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
-                             </span>
-                           </div>
+                        {pkg.delivery_deadline && (
+                          <div className="flex items-center space-x-1">
+                            <CalendarDays className="h-3 w-3 text-orange-500" />
+                            <span className="text-orange-600">
+                              Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                            </span>
+                          </div>
                         )}
                         
-                         {matchedTrip?.delivery_date && (
-                           <div className="flex items-center space-x-1">
-                             <CalendarDays className="h-3 w-3 text-purple-500" />
-                             <span className="text-purple-600">
-                               Entrega: {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}
-                             </span>
-                           </div>
+                        {matchedTrip?.delivery_date && (
+                          <div className="flex items-center space-x-1">
+                            <CalendarDays className="h-3 w-3 text-purple-500" />
+                            <span className="text-purple-600">
+                              Entrega: {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}
+                            </span>
+                          </div>
                         )}
                       </div>
-                    </div>
 
-                     {/* Actions */}
-                     <div className="ml-4 space-y-2">
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => onViewPackageDetail(pkg)}
-                       >
-                         <Eye className="h-4 w-4 mr-1" />
-                         Ver Detalles
-                       </Button>
+                      {/* Additional Actions */}
+                      <div className="flex space-x-2 pt-2 border-t">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onViewPackageDetail(pkg)}
+                          className="flex-1"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
 
-                       <Button 
-                         size="sm" 
-                         variant="outline"
-                         onClick={() => setSelectedChatPackage(pkg)}
-                         className="w-full"
-                       >
-                         <MessageCircle className="h-4 w-4 mr-1" />
-                         Ver Chat
-                       </Button>
-                       
-                       {pkg.status === 'received_by_traveler' && (
-                         <Button 
-                           size="sm" 
-                           onClick={() => onConfirmOfficeReception(pkg.id)}
-                           className="w-full"
-                         >
-                           <CheckCircle className="h-4 w-4 mr-1" />
-                           Confirmar recepción en oficina
-                         </Button>
-                       )}
-                     </div>
-                  </div>
-                </CardContent>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedChatPackage(pkg)}
+                          className="flex-1"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Ver Chat
+                        </Button>
+                        
+                        {pkg.status === 'received_by_traveler' && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => onConfirmOfficeReception(pkg.id)}
+                            className="flex-1"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Confirmar recepción
+                          </Button>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Collapsible>
               </Card>
             );
           })
