@@ -3,20 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp } from "lucide-react";
-
 interface FinancialDashboardProps {
   packages: Package[];
 }
-
-const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
+const FinancialDashboard = ({
+  packages
+}: FinancialDashboardProps) => {
   const [dateFilter, setDateFilter] = useState("all");
-
   const filteredPackages = useMemo(() => {
     if (dateFilter === "all") return packages;
-    
     const now = new Date();
     let startDate = new Date();
-    
     switch (dateFilter) {
       case "7days":
         startDate.setDate(now.getDate() - 7);
@@ -30,15 +27,10 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
       default:
         return packages;
     }
-    
     return packages.filter(pkg => new Date(pkg.created_at) >= startDate);
   }, [packages, dateFilter]);
-
   const financialMetrics = useMemo(() => {
-    const completedPackages = filteredPackages.filter(pkg => 
-      ['delivered_to_office', 'received_by_traveler'].includes(pkg.status) && 
-      pkg.quote && typeof pkg.quote === 'object' && (pkg.quote as any).totalPrice
-    );
+    const completedPackages = filteredPackages.filter(pkg => ['delivered_to_office', 'received_by_traveler'].includes(pkg.status) && pkg.quote && typeof pkg.quote === 'object' && (pkg.quote as any).totalPrice);
 
     // Total pagado por shoppers (órdenes completadas)
     const totalOrderValue = completedPackages.reduce((sum, pkg) => {
@@ -66,7 +58,6 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
       const travelerTip = parseFloat(quote?.price || '0');
       return sum + travelerTip;
     }, 0);
-
     return {
       totalOrderValue,
       totalGMV,
@@ -75,17 +66,14 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
       completedOrders: completedPackages.length
     };
   }, [filteredPackages]);
-
-  const formatCurrency = (amount: number, currency: 'USD' | 'GTQ' = 'USD') => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: 'USD',
       minimumFractionDigits: 2
     }).format(amount);
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Dashboard Financiero</h2>
@@ -116,7 +104,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {formatCurrency(financialMetrics.totalOrderValue, 'GTQ')}
+              {formatCurrency(financialMetrics.totalOrderValue)}
             </div>
             <p className="text-xs text-muted-foreground">
               {financialMetrics.completedOrders} órdenes completadas
@@ -134,7 +122,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-traveler">
-              {formatCurrency(financialMetrics.travelerTips, 'GTQ')}
+              {formatCurrency(financialMetrics.travelerTips)}
             </div>
             <p className="text-xs text-muted-foreground">
               Cotización completa del viajero
@@ -152,7 +140,7 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-700">
-              {formatCurrency(financialMetrics.favoronRevenue, 'GTQ')}
+              {formatCurrency(financialMetrics.favoronRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               40% + fees adicionales
@@ -193,35 +181,19 @@ const FinancialDashboard = ({ packages }: FinancialDashboardProps) => {
             <div>
               <p className="font-medium">Ticket promedio</p>
               <p className="text-2xl font-bold text-traveler">
-                {financialMetrics.completedOrders > 0 
-                  ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders, 'GTQ')
-                  : formatCurrency(0, 'GTQ')
-                }
+                {financialMetrics.completedOrders > 0 ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders) : formatCurrency(0)}
               </p>
             </div>
             <div>
               <p className="font-medium">Margen Favorón</p>
               <p className="text-2xl font-bold text-green-600">
-                {financialMetrics.totalOrderValue > 0 
-                  ? `${((financialMetrics.favoronRevenue / financialMetrics.totalOrderValue) * 100).toFixed(1)}%`
-                  : '0%'
-                }
+                {financialMetrics.totalOrderValue > 0 ? `${(financialMetrics.favoronRevenue / financialMetrics.totalOrderValue * 100).toFixed(1)}%` : '0%'}
               </p>
             </div>
-            <div>
-              <p className="font-medium">GMV vs Facturado</p>
-              <p className="text-2xl font-bold text-blue-600">
-                {financialMetrics.totalGMV > 0 
-                  ? `${((financialMetrics.totalOrderValue / financialMetrics.totalGMV) * 100).toFixed(1)}%`
-                  : '0%'
-                }
-              </p>
-            </div>
+            
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default FinancialDashboard;
