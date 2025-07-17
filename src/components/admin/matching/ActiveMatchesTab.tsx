@@ -389,7 +389,10 @@ const ActiveMatchesTab = ({
                         {(['delivered_to_office', 'out_for_delivery'].includes(pkg.status)) && (
                           <Button 
                             size="sm" 
-                            onClick={() => onConfirmDeliveryComplete(pkg.id)}
+                            onClick={() => {
+                              console.log('🔥 BOTÓN CLICKED! Package ID:', pkg.id);
+                              onConfirmDeliveryComplete(pkg.id);
+                            }}
                             className="flex-1 bg-green-600 hover:bg-green-700"
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
