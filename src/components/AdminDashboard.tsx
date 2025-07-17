@@ -12,6 +12,8 @@ import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
+import AdminPaymentsTab from "./admin/AdminPaymentsTab";
+import AdminTravelerPaymentsTab from "./admin/AdminTravelerPaymentsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
@@ -175,7 +177,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -193,6 +195,9 @@ const AdminDashboard = ({
             {matchingTotal > 0 && (
               <NotificationBadge count={matchingTotal} />
             )}
+          </TabsTrigger>
+          <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
+            Pagos Viajeros
           </TabsTrigger>
           <TabsTrigger value="support" className="relative flex items-center gap-2">
             🔍 Soporte
@@ -246,6 +251,10 @@ const AdminDashboard = ({
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}
             getStatusBadge={getStatusBadge}
           />
+        </TabsContent>
+
+        <TabsContent value="traveler-payments" className="space-y-4">
+          <AdminTravelerPaymentsTab />
         </TabsContent>
 
         <TabsContent value="support" className="space-y-4">

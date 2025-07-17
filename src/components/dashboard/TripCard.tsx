@@ -1,26 +1,45 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Phone, Edit } from "lucide-react";
+import { Home, Phone, Edit, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
+import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 
 interface TripCardProps {
   trip: any;
   getStatusBadge: (status: string) => JSX.Element;
   onEditTrip?: (tripData: any) => void;
+  packages?: any[];
+  travelerProfile?: any;
+  onDeliveryConfirmed?: () => void;
 }
 
-const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
+const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
+  
+  // Verificar si todos los paquetes del viaje están completados (comprados, recibidos, etc.)
+  const allPackagesCompleted = packages.length > 0 && packages.every(pkg => 
+    ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
+  );
+  
+  const canConfirmDelivery = trip.status === 'active' && allPackagesCompleted;
 
   const handleEditSubmit = (editedData: any) => {
     if (onEditTrip) {
       onEditTrip(editedData);
     }
     setShowEditModal(false);
+  };
+
+  const handleDeliveryConfirmed = () => {
+    setShowDeliveryModal(false);
+    if (onDeliveryConfirmed) {
+      onDeliveryConfirmed();
+    }
   };
 
   return (
@@ -80,18 +99,33 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
               Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
             </span>
             
-            {/* Edit button for early stage trips */}
-            {canEdit && onEditTrip && (
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={() => setShowEditModal(true)}
-                className="h-6 px-2"
-              >
-                <Edit className="h-3 w-3 mr-1" />
-                <span className="text-xs">Editar</span>
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {/* Edit button for early stage trips */}
+              {canEdit && onEditTrip && (
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowEditModal(true)}
+                  className="h-6 px-2"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Editar</span>
+                </Button>
+              )}
+              
+              {/* Delivery confirmation button */}
+              {canConfirmDelivery && travelerProfile && (
+                <Button 
+                  size="sm"
+                  variant="default"
+                  onClick={() => setShowDeliveryModal(true)}
+                  className="h-6 px-2 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <span className="text-xs">Confirmar entrega</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
@@ -103,6 +137,16 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip }: TripCardProps) => {
       onClose={() => setShowEditModal(false)}
       onSubmit={handleEditSubmit}
       tripData={trip}
+    />
+
+    {/* Delivery Confirmation Modal */}
+    <TravelerDeliveryConfirmationModal
+      isOpen={showDeliveryModal}
+      onClose={() => setShowDeliveryModal(false)}
+      trip={trip}
+      packages={packages}
+      travelerProfile={travelerProfile}
+      onConfirmDelivery={handleDeliveryConfirmed}
     />
     </>
   );
