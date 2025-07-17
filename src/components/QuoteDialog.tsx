@@ -147,7 +147,7 @@ const QuoteDialog = ({
                       <>
                         {deliveryFee > 0 && (
                           <div className="text-xs space-y-1 mb-2">
-                            <p><strong>Cotización del viajero:</strong> Q{baseTotal.toFixed(2)}</p>
+                            <p><strong>Cotización del viajero, fee Favorón y seguro:</strong> Q{baseTotal.toFixed(2)}</p>
                             <p><strong>Envío a domicilio:</strong> Q{deliveryFee.toFixed(2)}</p>
                           </div>
                         )}
