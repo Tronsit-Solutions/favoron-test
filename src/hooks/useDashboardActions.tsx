@@ -582,14 +582,25 @@ export const useDashboardActions = (
 
   const handleConfirmDeliveryComplete = async (packageId: string) => {
     try {
+      console.log('handleConfirmDeliveryComplete called with packageId:', packageId);
+      console.log('updatePackage function available:', !!updatePackage);
+      
       if (!updatePackage) {
         console.error('updatePackage function not available');
+        toast({
+          title: "Error",
+          description: "Función de actualización no disponible.",
+          variant: "destructive",
+        });
         return;
       }
 
+      console.log('Updating package status to completed...');
       await updatePackage(packageId, {
         status: 'completed'
       });
+      
+      console.log('Package updated successfully');
       
       // Find the package to get user info
       const updatedPackage = packages?.find(pkg => pkg.id === packageId);
