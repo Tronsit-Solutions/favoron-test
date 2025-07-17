@@ -111,28 +111,34 @@ const AdminTravelerPaymentsTab = () => {
     }
   };
 
-  const OrderDetailModal = ({ order, isOpen, onClose }: any) => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Detalles de la orden de pago</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium">Viajero</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <User className="h-4 w-4" />
-                <span>{order.profiles?.first_name} {order.profiles?.last_name}</span>
+  const OrderDetailModal = ({ order, isOpen, onClose }: any) => {
+    // Early return if order is null or undefined
+    if (!order) {
+      return null;
+    }
+
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles de la orden de pago</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Viajero</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <User className="h-4 w-4" />
+                  <span>{order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{order.profiles?.email || 'Sin email'}</p>
               </div>
-              <p className="text-sm text-muted-foreground">{order.profiles?.email}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium">Monto</Label>
-              <div className="flex items-center gap-2 mt-1">
-                <CreditCard className="h-4 w-4" />
-                <span className="text-lg font-bold">{formatCurrency(order.amount)}</span>
-              </div>
+              <div>
+                <Label className="text-sm font-medium">Monto</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="text-lg font-bold">{formatCurrency(order.amount || 0)}</span>
+                </div>
             </div>
           </div>
 
@@ -141,16 +147,16 @@ const AdminTravelerPaymentsTab = () => {
             <div className="bg-muted/30 rounded p-3 mt-1">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="font-medium">Titular:</span> {order.bank_account_holder}
+                  <span className="font-medium">Titular:</span> {order.bank_account_holder || 'N/A'}
                 </div>
                 <div>
-                  <span className="font-medium">Banco:</span> {order.bank_name}
+                  <span className="font-medium">Banco:</span> {order.bank_name || 'N/A'}
                 </div>
                 <div>
                   <span className="font-medium">Tipo:</span> {order.bank_account_type || 'N/A'}
                 </div>
                 <div>
-                  <span className="font-medium">Número:</span> {order.bank_account_number}
+                  <span className="font-medium">Número:</span> {order.bank_account_number || 'N/A'}
                 </div>
               </div>
             </div>
@@ -163,12 +169,12 @@ const AdminTravelerPaymentsTab = () => {
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="h-4 w-4" />
                   <span className="font-medium">
-                    {order.packages.trips?.from_city} → {order.packages.trips?.to_city}
+                    {order.packages.trips?.from_city || 'N/A'} → {order.packages.trips?.to_city || 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  <span>Paquete: {order.packages.item_description}</span>
+                  <span>Paquete: {order.packages.item_description || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -198,7 +204,8 @@ const AdminTravelerPaymentsTab = () => {
         </div>
       </DialogContent>
     </Dialog>
-  );
+    );
+  };
 
   if (loading) {
     return <div className="flex justify-center py-8">Cargando órdenes de pago...</div>;
