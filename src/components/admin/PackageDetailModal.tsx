@@ -379,12 +379,12 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                        <span>• Viajero</span>
                        <span>Q{parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
                      </div>
-                    {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
-                      <div className="flex justify-between">
-                        <span>• Fee Servicio</span>
-                        <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
-                      </div>
-                    )}
+                     {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
+                       <div className="flex justify-between">
+                         <span>• Fee Servicio</span>
+                         <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
+                       </div>
+                     )}
                     <div className="flex justify-between">
                       <span>• Comisión Favorón</span>
                       <span>Q{(
