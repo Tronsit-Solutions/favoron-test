@@ -218,6 +218,11 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_account_type: string | null
+          bank_name: string | null
+          bank_swift_code: string | null
           created_at: string | null
           email: string | null
           first_name: string | null
@@ -230,6 +235,11 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_name?: string | null
+          bank_swift_code?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
@@ -242,6 +252,11 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_name?: string | null
+          bank_swift_code?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null

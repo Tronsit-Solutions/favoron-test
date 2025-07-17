@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Package, Plane, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ProfileHeader from "./profile/ProfileHeader";
@@ -9,6 +10,8 @@ import UserLevelCard from "./profile/UserLevelCard";
 import UserStats from "./profile/UserStats";
 import PersonalInfoForm from "./profile/PersonalInfoForm";
 import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
+import BankingInfoForm from "./profile/BankingInfoForm";
+import BankingInfoDisplay from "./profile/BankingInfoDisplay";
 
 interface UserProfileProps {
   user: any;
@@ -19,12 +22,18 @@ interface UserProfileProps {
 
 const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isBankingEditing, setIsBankingEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user.firstName || '',
     lastName: user.lastName || '',
     username: user.username || '',
     phone: user.phone || '',
-    idNumber: user.idNumber || ''
+    idNumber: user.idNumber || '',
+    bankAccountHolder: user.bankAccountHolder || '',
+    bankName: user.bankName || '',
+    bankAccountType: user.bankAccountType || '',
+    bankAccountNumber: user.bankAccountNumber || '',
+    bankSwiftCode: user.bankSwiftCode || ''
   });
   const { toast } = useToast();
 
@@ -45,7 +54,12 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       name: `${formData.firstName} ${formData.lastName}`,
       username: formData.username,
       phone: formData.phone,
-      idNumber: formData.idNumber
+      idNumber: formData.idNumber,
+      bankAccountHolder: formData.bankAccountHolder,
+      bankName: formData.bankName,
+      bankAccountType: formData.bankAccountType,
+      bankAccountNumber: formData.bankAccountNumber,
+      bankSwiftCode: formData.bankSwiftCode
     };
 
     onUpdateUser(updatedUser);
@@ -62,9 +76,44 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       lastName: user.lastName || '',
       username: user.username || '',
       phone: user.phone || '',
-      idNumber: user.idNumber || ''
+      idNumber: user.idNumber || '',
+      bankAccountHolder: user.bankAccountHolder || '',
+      bankName: user.bankName || '',
+      bankAccountType: user.bankAccountType || '',
+      bankAccountNumber: user.bankAccountNumber || '',
+      bankSwiftCode: user.bankSwiftCode || ''
     });
     setIsEditing(false);
+  };
+
+  const handleBankingSave = () => {
+    const updatedUser = {
+      ...user,
+      bankAccountHolder: formData.bankAccountHolder,
+      bankName: formData.bankName,
+      bankAccountType: formData.bankAccountType,
+      bankAccountNumber: formData.bankAccountNumber,
+      bankSwiftCode: formData.bankSwiftCode
+    };
+
+    onUpdateUser(updatedUser);
+    setIsBankingEditing(false);
+    toast({
+      title: "¡Información bancaria actualizada!",
+      description: "Tus datos bancarios han sido guardados correctamente"
+    });
+  };
+
+  const handleBankingCancel = () => {
+    setFormData({
+      ...formData,
+      bankAccountHolder: user.bankAccountHolder || '',
+      bankName: user.bankName || '',
+      bankAccountType: user.bankAccountType || '',
+      bankAccountNumber: user.bankAccountNumber || '',
+      bankSwiftCode: user.bankSwiftCode || ''
+    });
+    setIsBankingEditing(false);
   };
 
   // Calculate user stats
@@ -237,6 +286,45 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
             />
           ) : (
             <PersonalInfoDisplay user={user} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Banking Information */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Información Bancaria (opcional)</CardTitle>
+              <CardDescription>
+                {isBankingEditing ? "Edita tu información bancaria" : "Para recibir pagos por Favorones completados"}
+              </CardDescription>
+            </div>
+            {!isBankingEditing && (
+              <Button variant="outline" onClick={() => setIsBankingEditing(true)}>
+                Editar
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isBankingEditing ? (
+            <div className="space-y-4">
+              <BankingInfoForm 
+                formData={formData}
+                setFormData={setFormData}
+                onSave={handleBankingSave}
+              />
+              <Button 
+                variant="outline" 
+                onClick={handleBankingCancel}
+                className="w-full"
+              >
+                Cancelar
+              </Button>
+            </div>
+          ) : (
+            <BankingInfoDisplay user={user} />
           )}
         </CardContent>
       </Card>
