@@ -255,16 +255,16 @@ const AdminTravelerPaymentsTab = () => {
                   <TableBody>
                     {pendingOrders.map((order) => (
                       <TableRow key={order.id}>
-                         <TableCell>
-                           <div>
-                             <p className="font-medium">
-                               {order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}
-                             </p>
-                             <p className="text-sm text-muted-foreground">
-                               {order.profiles?.email || 'Sin email'}
-                             </p>
-                           </div>
-                         </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">
+                                {order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {order.profiles?.email || 'Sin email'}
+                              </p>
+                            </div>
+                          </TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <p className="font-medium">

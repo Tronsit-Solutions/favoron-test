@@ -30,7 +30,7 @@ export const usePaymentOrders = () => {
               arrival_date
             )
           ),
-          profiles!fk_payment_order_traveler (
+          profiles!traveler_id (
             id,
             first_name,
             last_name,
