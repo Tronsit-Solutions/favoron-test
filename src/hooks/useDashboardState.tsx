@@ -17,8 +17,8 @@ export const useDashboardState = (user: any) => {
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
   // Use real data hooks
-  const { packages, createPackage, updatePackage, deletePackage } = usePackagesData();
-  const { trips, createTrip, updateTrip, deleteTrip } = useTripsData();
+  const { packages, createPackage, updatePackage, deletePackage, refreshPackages } = usePackagesData();
+  const { trips, createTrip, updateTrip, deleteTrip, refreshTrips } = useTripsData();
   const { toast } = useToast();
 
   return {
@@ -50,9 +50,11 @@ export const useDashboardState = (user: any) => {
     createPackage,
     updatePackage,
     deletePackage,
+    refreshPackages,
     createTrip,
     updateTrip,
     deleteTrip,
+    refreshTrips,
     toast
   };
 };

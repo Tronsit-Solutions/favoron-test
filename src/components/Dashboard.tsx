@@ -59,8 +59,10 @@ const Dashboard = ({ user }: DashboardProps) => {
     createPackage,
     updatePackage,
     deletePackage,
+    refreshPackages,
     createTrip,
-    updateTrip
+    updateTrip,
+    refreshTrips
   } = useDashboardState(user);
 
   const {
@@ -125,6 +127,10 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   // Set up real-time notifications based on user context
   useRealtimePackages({
+    onPackageUpdate: () => {
+      // Refresh packages when there are changes
+      refreshPackages();
+    },
     userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')
   });
 
