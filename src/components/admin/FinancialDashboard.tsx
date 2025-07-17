@@ -66,7 +66,15 @@ const FinancialDashboard = ({
       completedOrders: completedPackages.length
     };
   }, [filteredPackages]);
-  const formatCurrency = (amount: number) => {
+  const formatCurrencyGTQ = (amount: number) => {
+    return new Intl.NumberFormat('es-GT', {
+      style: 'currency',
+      currency: 'GTQ',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const formatCurrencyUSD = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -104,7 +112,7 @@ const FinancialDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {formatCurrency(financialMetrics.totalOrderValue)}
+              {formatCurrencyGTQ(financialMetrics.totalOrderValue)}
             </div>
             <p className="text-xs text-muted-foreground">
               {financialMetrics.completedOrders} órdenes completadas
@@ -122,7 +130,7 @@ const FinancialDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-traveler">
-              {formatCurrency(financialMetrics.travelerTips)}
+              {formatCurrencyGTQ(financialMetrics.travelerTips)}
             </div>
             <p className="text-xs text-muted-foreground">
               Cotización completa del viajero
@@ -140,7 +148,7 @@ const FinancialDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-700">
-              {formatCurrency(financialMetrics.favoronRevenue)}
+              {formatCurrencyGTQ(financialMetrics.favoronRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
               40% + fees adicionales
@@ -158,7 +166,7 @@ const FinancialDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-700">
-              {formatCurrency(financialMetrics.totalGMV)}
+              {formatCurrencyUSD(financialMetrics.totalGMV)}
             </div>
             <p className="text-xs text-muted-foreground">
               Valor bruto de mercancías
@@ -181,7 +189,7 @@ const FinancialDashboard = ({
             <div>
               <p className="font-medium">Ticket promedio</p>
               <p className="text-2xl font-bold text-traveler">
-                {financialMetrics.completedOrders > 0 ? formatCurrency(financialMetrics.totalOrderValue / financialMetrics.completedOrders) : formatCurrency(0)}
+                {financialMetrics.completedOrders > 0 ? formatCurrencyGTQ(financialMetrics.totalOrderValue / financialMetrics.completedOrders) : formatCurrencyGTQ(0)}
               </p>
             </div>
             <div>
