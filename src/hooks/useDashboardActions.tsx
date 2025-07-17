@@ -666,16 +666,8 @@ export const useDashboardActions = (
         status: 'pending_approval' // Always reset to pending approval after edit
       };
 
-      // Update trip in database
+      // Update trip in database (this automatically updates local state)
       await updateTrip(editedTripData.id, dbTripData);
-
-      // Update local state
-      setTrips(trips.map(trip => {
-        if (trip.id === editedTripData.id) {
-          return { ...trip, ...dbTripData };
-        }
-        return trip;
-      }));
       
       toast({
         title: "¡Viaje actualizado!",
@@ -706,19 +698,13 @@ export const useDashboardActions = (
 
       // If package was approved, reset to pending approval for admin review
       const needsReapproval = originalPackage.status === 'approved';
-      const newStatus = needsReapproval ? 'pending_approval' : originalPackage.status;
+      
+      // Prepare update data (remove ID and set status)
+      const { id, ...updateData } = editedPackageData;
+      updateData.status = needsReapproval ? 'pending_approval' : originalPackage.status;
 
-      // Prepare update data
-      const updateData = {
-        ...editedPackageData,
-        status: newStatus
-      };
-
-      // Remove ID from update data as it shouldn't be updated
-      delete updateData.id;
-
-      // Update package in Supabase
-      await updatePackage(editedPackageData.id, updateData);
+      // Update package in Supabase (this automatically updates local state)
+      await updatePackage(id, updateData);
 
       toast({
         title: "¡Solicitud actualizada!",
