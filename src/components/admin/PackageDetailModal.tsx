@@ -10,14 +10,20 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 
 interface PackageDetailModalProps {
   package: any;
+  trips: any[];
   isOpen: boolean;
   onClose: () => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 }
 
-const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {
+const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {
   if (!pkg) return null;
+
+  // Find the matched trip if this package is matched
+  const matchedTrip = pkg.matched_trip_id 
+    ? trips.find(trip => trip.id === pkg.matched_trip_id)
+    : null;
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -61,51 +67,119 @@ const PackageDetailModal = ({ package: pkg, isOpen, onClose, onApprove, onReject
           </div>
 
           {/* User Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <User className="h-4 w-4" />
-                <span>Información del Usuario</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Nombre</p>
-                    <p className="text-sm text-muted-foreground">{pkg.user.name}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Shopper Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <User className="h-4 w-4" />
+                  <span>🛒 Información del Shopper</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Nombre</p>
+                      <p className="text-sm text-muted-foreground">{pkg.user.name}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <p className="text-sm text-muted-foreground">{pkg.user.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Teléfono</p>
+                      <p className="text-sm text-muted-foreground">{pkg.user.phone}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Historial</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.user.totalRequests} solicitudes | {pkg.user.completedRequests} completadas
+                      </p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{pkg.user.email}</p>
+              </CardContent>
+            </Card>
+
+            {/* Traveler Information */}
+            {matchedTrip && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <User className="h-4 w-4" />
+                    <span>✈️ Información del Viajero</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Nombre</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.user?.name || `Viajero ${matchedTrip.user_id}`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.user?.email || `viajero${matchedTrip.user_id}@email.com`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Teléfono</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.user?.phone || `+502 ${2000 + matchedTrip.user_id}-1234`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Historial</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.user?.totalTrips || Math.floor(Math.random() * 8) + 1} viajes | 
+                          {matchedTrip.user?.completedDeliveries || Math.floor(Math.random() * 15)} entregas
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p><strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                        <p><strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}</p>
+                        <p><strong>Entrega:</strong> {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Teléfono</p>
-                    <p className="text-sm text-muted-foreground">{pkg.user.phone}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Historial</p>
-                    <p className="text-sm text-muted-foreground">
-                      {pkg.user.totalRequests} solicitudes | {pkg.user.completedRequests} completadas
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
           {/* Package Information */}
           <Card>

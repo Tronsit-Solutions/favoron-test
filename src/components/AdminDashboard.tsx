@@ -285,6 +285,7 @@ const AdminDashboard = ({
       {/* Package Detail Modal */}
       <PackageDetailModal
         package={selectedDetailPackage}
+        trips={trips}
         isOpen={showPackageDetail}
         onClose={() => setShowPackageDetail(false)}
         onApprove={(id) => {
