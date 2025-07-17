@@ -211,6 +211,20 @@ const ActiveMatchesTab = ({
                         >
                           <MessageCircle className="h-3 w-3" />
                         </Button>
+                        
+                        {/* Quick Confirm Button */}
+                        {(['delivered_to_office', 'out_for_delivery'].includes(pkg.status)) && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              console.log('🔥 BOTÓN RÁPIDO CLICKED! Package ID:', pkg.id);
+                              onConfirmDeliveryComplete(pkg.id);
+                            }}
+                            className="px-2 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
 
