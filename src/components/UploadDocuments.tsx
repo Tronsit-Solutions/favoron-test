@@ -146,10 +146,10 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-4">
       {/* Purchase Confirmation Upload */}
       <Card className={confirmationUploaded ? "border-green-200 bg-green-50/30" : ""}>
-        <CardHeader>
+        <CardHeader className="pb-3 md:pb-6">
           <CardTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5" />
             <span>Paso 1: Confirmación de Compra</span>
@@ -162,9 +162,9 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
             }
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 md:space-y-4">
           {confirmationUploaded ? (
-            <div className="flex items-center space-x-2 p-4 bg-green-100 border border-green-200 rounded-lg">
+            <div className="flex items-center space-x-2 p-2 md:p-4 bg-green-100 border border-green-200 rounded-lg">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-green-800">Comprobante subido exitosamente</p>
@@ -180,7 +180,7 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
                 accept="image/*,.pdf"
                 className="hidden"
               />
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-3 md:p-6 text-center">
                 <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground mb-4">
                   Arrastra tu confirmación de compra aquí o haz clic para seleccionar
@@ -213,7 +213,7 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
 
       {/* Tracking Information */}
       <Card className={trackingUploaded ? "border-green-200 bg-green-50/30" : ""}>
-        <CardHeader>
+        <CardHeader className="pb-3 md:pb-6">
           <CardTitle className="flex items-center space-x-2">
             <Link className="h-5 w-5" />
             <span>Paso 2: Información de Envío</span>
@@ -226,9 +226,9 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
             }
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 md:space-y-4">
           {trackingUploaded ? (
-            <div className="flex items-center space-x-2 p-4 bg-green-100 border border-green-200 rounded-lg">
+            <div className="flex items-center space-x-2 p-2 md:p-4 bg-green-100 border border-green-200 rounded-lg">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-green-800">Información de envío guardada</p>
@@ -293,7 +293,7 @@ const UploadDocuments = ({ packageId, currentStatus, onUpload }: UploadDocuments
       {/* Progress Summary */}
       {(confirmationUploaded || trackingUploaded) && (
         <Card className="border-blue-200 bg-blue-50/30">
-          <CardContent className="pt-6">
+          <CardContent className="pt-3 md:pt-6">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <CheckCircle className={`h-4 w-4 ${confirmationUploaded ? 'text-green-600' : 'text-gray-300'}`} />
