@@ -14,28 +14,15 @@ export const usePackagesData = () => {
 
   const fetchPackages = async () => {
     try {
+      console.log('🔄 Fetching packages...');
       const { data, error } = await supabase
         .from('packages')
-        .select(`
-          *,
-          profiles!packages_user_id_fkey (
-            id,
-            first_name,
-            last_name,
-            username,
-            email
-          ),
-          trips!fk_packages_matched_trip (
-            id,
-            package_receiving_address,
-            from_city,
-            to_city,
-            status
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('📦 Packages fetched:', data?.length || 0, 'packages');
+      console.log('📦 Raw packages data:', data);
       setPackages(data || []);
     } catch (error: any) {
       console.error('Error fetching packages:', error);

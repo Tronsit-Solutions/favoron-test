@@ -106,8 +106,15 @@ const Dashboard = ({ user }: DashboardProps) => {
   const isAdmin = currentUser.role === 'admin';
   
   // Filter packages and trips for current user
+  console.log('🔍 Dashboard Debug - currentUser.id:', currentUser.id);
+  console.log('🔍 Dashboard Debug - All packages:', packages.length);
+  console.log('🔍 Dashboard Debug - All packages data:', packages);
+  
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
   const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
+  
+  console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
+  console.log('🔍 Dashboard Debug - User packages data:', userPackages);
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => 
