@@ -23,13 +23,15 @@ interface Product {
   itemLink: string;
   itemDescription: string;
   estimatedPrice: string;
+  quantity: string;
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
   const [product, setProduct] = useState<Product>({
     itemLink: '',
     itemDescription: '',
-    estimatedPrice: ''
+    estimatedPrice: '',
+    quantity: '1'
   });
   const [formData, setFormData] = useState({
     deliveryDeadline: null as Date | null,
@@ -98,7 +100,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     setProduct({
       itemLink: '',
       itemDescription: '',
-      estimatedPrice: ''
+      estimatedPrice: '',
+      quantity: '1'
     });
     setFormData({
       deliveryDeadline: null,
@@ -213,6 +216,23 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Precio aproximado del producto sin incluir envío
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="quantity" className="text-sm">Cantidad *</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  placeholder="1"
+                  value={product.quantity}
+                  onChange={(e) => updateProduct('quantity', e.target.value)}
+                  className="h-9"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  ¿Cuántas unidades necesitas?
                 </p>
               </div>
             </div>
