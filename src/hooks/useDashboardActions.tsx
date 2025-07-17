@@ -104,6 +104,7 @@ export const useDashboardActions = (
       // Transform form data to database format
       const dbTripData = {
         from_city: tripData.fromCity,
+        from_country: tripData.fromCountry, // Add missing fromCountry mapping
         to_city: tripData.toCity,
         departure_date: tripData.departureDate ? tripData.departureDate.toISOString() : tripData.arrivalDate.toISOString(),
         arrival_date: tripData.arrivalDate.toISOString(),
