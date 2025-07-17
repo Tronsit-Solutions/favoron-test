@@ -23,10 +23,11 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-logo rounded-lg flex items-center justify-center">
-            <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-          </div>
-          <h1 className="text-lg sm:text-2xl font-bricolage font-extrabold text-logo">Favorón</h1>
+          <img 
+            src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+            alt="Favorón Logo" 
+            className="h-6 sm:h-8 w-auto"
+          />
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">

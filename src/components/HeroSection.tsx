@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Package, Plane } from "lucide-react";
+import { Package } from "lucide-react";
 
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
@@ -31,9 +31,13 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           size="lg" 
           variant="traveler" 
           onClick={() => onOpenAuth("register")} 
-          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
+          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto flex items-center justify-center"
         >
-          <Plane className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+          <img 
+            src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+            alt="Favorón" 
+            className="h-4 w-4 sm:h-5 sm:w-5 mr-2"
+          />
           Registrar Viaje
         </Button>
       </div>

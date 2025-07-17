@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Plane } from "lucide-react";
+import { Package } from "lucide-react";
 
 const HowItWorksSection = () => {
   return (
@@ -59,7 +59,11 @@ const HowItWorksSection = () => {
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center space-x-2 mb-4">
-              <Plane className="h-8 w-8 text-traveler" />
+              <img 
+                src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+                alt="Favorón" 
+                className="h-8 w-8"
+              />
               <CardTitle className="text-2xl">Para Viajeros</CardTitle>
             </div>
           </CardHeader>
