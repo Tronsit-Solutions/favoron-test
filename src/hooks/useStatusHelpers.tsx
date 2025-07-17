@@ -13,7 +13,7 @@ export const useStatusHelpers = () => {
       payment_confirmed: { label: "Pago Confirmado", variant: "success" as const },
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
       in_transit: { label: "En Tránsito", variant: "warning" as const },
-      received_by_traveler: { label: "Recibido", variant: "success" as const },
+      received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
       delivered_to_office: { label: "Entregado", variant: "success" as const },
       active: { label: "Activo", variant: "success" as const },
       completed: { label: "Completado", variant: "success" as const },
