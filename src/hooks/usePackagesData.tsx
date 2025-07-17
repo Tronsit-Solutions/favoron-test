@@ -17,7 +17,20 @@ export const usePackagesData = () => {
       console.log('🔄 Fetching packages...');
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(`
+          *,
+          trips:matched_trip_id (
+            id,
+            package_receiving_address,
+            departure_date,
+            arrival_date,
+            first_day_packages,
+            last_day_packages,
+            delivery_date,
+            from_city,
+            to_city
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

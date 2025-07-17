@@ -154,10 +154,10 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
                 {/* Shipping Instructions */}
-                {pkg.status === 'payment_confirmed' && viewMode === 'user' && pkg.traveler_address && (
+                {pkg.status === 'payment_confirmed' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
                   <PackageShippingInstructions 
-                    travelerAddress={(pkg as any)?.trips?.package_receiving_address}
-                    matchedTripDates={pkg.matched_trip_dates}
+                    travelerAddress={(pkg as any).trips.package_receiving_address}
+                    matchedTripDates={(pkg as any).trips}
                   />
                 )}
 
