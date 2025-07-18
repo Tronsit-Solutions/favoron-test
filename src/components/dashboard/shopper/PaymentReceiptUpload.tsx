@@ -156,14 +156,14 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <Card className="border-foreground/20">
+    <Card className="border-primary/20">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
             <Upload className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <CardTitle className="text-primary text-base">Subir comprobante de pago</CardTitle>
+            <CardTitle className="text-foreground text-base">Subir comprobante de pago</CardTitle>
             <CardDescription>
               Sube tu comprobante de transferencia bancaria
             </CardDescription>
@@ -180,12 +180,12 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
           {uploading ? (
             <div className="space-y-2">
               <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
-              <p className="text-sm text-primary">Subiendo comprobante...</p>
+              <p className="text-sm text-foreground">Subiendo comprobante...</p>
             </div>
           ) : (
             <div className="space-y-2">
               <Upload className="h-12 w-12 text-primary/60 mx-auto" />
-              <p className="text-sm text-primary font-medium">
+              <p className="text-sm text-foreground font-medium">
                 Arrastra tu comprobante aquí o haz clic para seleccionar
               </p>
               <p className="text-xs text-muted-foreground">
