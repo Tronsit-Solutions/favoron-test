@@ -39,76 +39,77 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   return (
     <>
       <Card className="bg-accent/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Banknote className="h-5 w-5" />
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Banknote className="h-4 w-4" />
             Resumen de Pagos del Viaje
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-2 pt-0">
+          <div className="grid grid-cols-2 gap-2">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Package className="h-4 w-4" />
-                <span className="text-sm text-muted-foreground">Paquetes</span>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Package className="h-3 w-3" />
+                <span className="text-xs text-muted-foreground">Paquetes</span>
               </div>
-              <div className="text-lg font-semibold">
+              <div className="text-sm font-semibold">
                 {tripPayment.delivered_packages_count} / {tripPayment.total_packages_count}
               </div>
-              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="mt-1">
-                {isAllPackagesDelivered ? "Todos entregados" : "En progreso"}
+              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="text-xs py-0 px-1">
+                {isAllPackagesDelivered ? "Completo" : "Progreso"}
               </Badge>
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Banknote className="h-4 w-4" />
-                <span className="text-sm text-muted-foreground">Total Acumulado</span>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Banknote className="h-3 w-3" />
+                <span className="text-xs text-muted-foreground">Total</span>
               </div>
-              <div className="text-lg font-semibold">
+              <div className="text-sm font-semibold">
                 {formatCurrency(tripPayment.accumulated_amount)}
               </div>
               {hasAccumulatedAmount && (
-                <Badge variant="outline" className="mt-1">
-                  Tips acumulados
+                <Badge variant="outline" className="text-xs py-0 px-1">
+                  Tips
                 </Badge>
               )}
             </div>
           </div>
 
           {hasAccumulatedAmount && (
-            <div className="border-t pt-4">
+            <div className="border-t pt-2">
               {!tripPayment.payment_order_created ? (
                 <>
                   {isAllPackagesDelivered ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-green-600">
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="text-sm">Todos los paquetes han sido entregados</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        <span className="text-xs">Listo para solicitar pago</span>
                       </div>
                       <Button 
                         onClick={() => setShowBankingModal(true)}
-                        className="w-full"
+                        className="w-full h-8 text-xs"
+                        size="sm"
                       >
-                        Solicitar Pago de {formatCurrency(tripPayment.accumulated_amount)}
+                        Solicitar {formatCurrency(tripPayment.accumulated_amount)}
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-amber-600">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm">
-                        Entrega todos los paquetes para solicitar el pago
+                    <div className="flex items-center gap-1 text-amber-600">
+                      <Clock className="h-3 w-3" />
+                      <span className="text-xs">
+                        Entrega todos para solicitar pago
                       </span>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-2">
-                  <Badge variant="default" className="mb-2">
-                    Pago solicitado
+                <div className="text-center py-1">
+                  <Badge variant="default" className="mb-1 text-xs py-0 px-1">
+                    Solicitado
                   </Badge>
-                  <p className="text-sm text-muted-foreground">
-                    Tu solicitud de pago por {formatCurrency(tripPayment.accumulated_amount)} está siendo procesada
+                  <p className="text-xs text-muted-foreground">
+                    Pago por {formatCurrency(tripPayment.accumulated_amount)} en proceso
                   </p>
                 </div>
               )}
@@ -116,8 +117,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           )}
 
           {!hasAccumulatedAmount && (
-            <div className="text-center text-muted-foreground text-sm">
-              No hay tips acumulados aún. Entrega paquetes para generar ingresos.
+            <div className="text-center text-muted-foreground text-xs">
+              Entrega paquetes para generar tips.
             </div>
           )}
         </CardContent>
