@@ -15,19 +15,30 @@ export const usePackagesData = () => {
   const fetchPackages = async () => {
     try {
       console.log('🔄 Fetching packages...');
+      console.log('⏰ Timestamp:', new Date().toISOString());
       
       // Debug: Check current user
       const { data: { user } } = await supabase.auth.getUser();
       console.log('👤 Current user:', user?.id);
+      console.log('👤 User object:', user);
       
       // Debug: Check if user has admin role
       if (user) {
-        const { data: roleData } = await supabase.rpc('has_role', {
+        const { data: roleData, error: roleError } = await supabase.rpc('has_role', {
           _user_id: user.id,
           _role: 'admin'
         });
         console.log('🛡️ Has admin role:', roleData);
+        console.log('🛡️ Role check error:', roleError);
       }
+      
+      // Debug: First, try a simple count query to see if there are any packages at all
+      const { count, error: countError } = await supabase
+        .from('packages')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('📊 Total packages count:', count);
+      console.log('📊 Count error:', countError);
       
       const { data, error } = await supabase
         .from('packages')
@@ -53,6 +64,11 @@ export const usePackagesData = () => {
           )
         `)
         .order('created_at', { ascending: false });
+
+      console.log('📦 Query executed');
+      console.log('📦 Error from query:', error);
+      console.log('📦 Data type:', typeof data);
+      console.log('📦 Data array length:', Array.isArray(data) ? data.length : 'not array');
 
       if (error) {
         console.error('📦 Supabase query error:', error);
