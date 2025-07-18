@@ -7,7 +7,7 @@ interface PackageShippingInstructionsProps {
 
 export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates }: PackageShippingInstructionsProps) => {
   return (
-    <div className="bg-gradient-subtle border-2 border-primary/30 rounded-lg p-3 mb-4 shadow-elegant">
+    <div className="bg-background border border-border rounded-md p-2 mb-3">
       <div className="flex items-center space-x-2 mb-3">
         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
           <span className="text-sm">📦</span>
