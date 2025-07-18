@@ -10,7 +10,7 @@ import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
-import BankingConfirmationModal from "@/components/BankingConfirmationModal";
+
 import { useAuth } from "@/hooks/useAuth";
 
 interface CollapsibleTravelerPackageCardProps {
@@ -34,7 +34,7 @@ const CollapsibleTravelerPackageCard = ({
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showBankingModal, setShowBankingModal] = useState(false);
+  
   const { user } = useAuth();
 
   const handleConfirmReceived = (photo?: string) => {
@@ -46,9 +46,10 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const handleConfirmOfficeDeliveryClick = () => {
-    // Para viajeros: mostrar modal bancario directamente
-    // El modal se encarga de actualizar el estado del paquete y crear la orden de pago
-    setShowBankingModal(true);
+    // Solo actualizar el status del paquete sin modal bancario
+    if (onConfirmOfficeDelivery) {
+      onConfirmOfficeDelivery(pkg.id);
+    }
   };
 
   const getPackageName = () => {
@@ -190,17 +191,6 @@ const CollapsibleTravelerPackageCard = ({
         packageId={pkg.id}
       />
       
-      <BankingConfirmationModal
-        isOpen={showBankingModal}
-        onClose={() => setShowBankingModal(false)}
-        pkg={pkg}
-        travelerProfile={user}
-        onConfirm={() => {
-          setShowBankingModal(false);
-          // Recargar para mostrar los cambios
-          window.location.reload();
-        }}
-      />
     </Collapsible>
   );
 };
