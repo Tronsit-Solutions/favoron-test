@@ -33,8 +33,6 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_rejected': { label: 'Cotización rechazada', variant: 'destructive' as const },
-      'payment_pending': { label: 'Pago pendiente', variant: 'secondary' as const },
-      'payment_confirmed': { label: 'Pago confirmado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
       'out_for_delivery': { label: 'En reparto', variant: 'default' as const },
@@ -439,7 +437,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                 </div>
 
                 {/* Package Approved */}
-                {['approved', 'matched', 'quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                {['approved', 'matched', 'quote_sent', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
                   <div className="flex items-center space-x-4">
                     <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
                     <div className="flex-1 flex items-center justify-between">
@@ -471,7 +469,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                 )}
 
                 {/* Quote Sent */}
-                {['quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                {['quote_sent', 'approved', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
                   <div className="flex items-center space-x-4">
                     <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
                     <div className="flex-1 flex items-center justify-between">
@@ -489,7 +487,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                 )}
 
                 {/* Payment Confirmed */}
-                {['payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
+                {['approved', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
                   <div className="flex items-center space-x-4">
                     <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
                     <div className="flex-1 flex items-center justify-between">
@@ -603,8 +601,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                            pkg.status === 'approved' ? '✅ Aprobado, buscando match' :
                            pkg.status === 'matched' ? '🔗 Match realizado, preparando cotización' :
                            pkg.status === 'quote_sent' ? '💬 Cotización enviada' :
-                           pkg.status === 'payment_pending' ? '💳 Esperando pago' :
-                           pkg.status === 'payment_confirmed' ? '✅ Pago confirmado' :
+                           pkg.status === 'approved' ? '✅ Aprobado' :
                            pkg.status === 'in_transit' ? '🚚 En tránsito' :
                            pkg.status === 'delivered_to_office' ? '🏢 En oficina' :
                            pkg.status === 'out_for_delivery' ? '🚚 En reparto' :

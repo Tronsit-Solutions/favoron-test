@@ -226,12 +226,11 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
-          package_id: string | null
           receipt_filename: string | null
           receipt_url: string | null
           status: string
           traveler_id: string
-          trip_id: string | null
+          trip_id: string
           updated_at: string
         }
         Insert: {
@@ -244,12 +243,11 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          package_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
           traveler_id: string
-          trip_id?: string | null
+          trip_id: string
           updated_at?: string
         }
         Update: {
@@ -262,22 +260,14 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          package_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
           traveler_id?: string
-          trip_id?: string | null
+          trip_id?: string
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_payment_order_package"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "packages"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fk_payment_order_traveler"
             columns: ["traveler_id"]

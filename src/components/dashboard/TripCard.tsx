@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Home, Phone, Edit, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
-import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
+
 import { TripPaymentSummary } from "./TripPaymentSummary";
 
 interface TripCardProps {
@@ -148,15 +148,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       tripData={trip}
     />
 
-    {/* Delivery Confirmation Modal */}
-    <TravelerDeliveryConfirmationModal
-      isOpen={showDeliveryModal}
-      onClose={() => setShowDeliveryModal(false)}
-      trip={trip}
-      packages={packages}
-      travelerProfile={travelerProfile}
-      onConfirmDelivery={handleDeliveryConfirmed}
-    />
     </>
   );
 };

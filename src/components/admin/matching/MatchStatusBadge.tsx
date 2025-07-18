@@ -8,8 +8,6 @@ export interface StatusInfo {
 
 const STATUS_MAP: Record<string, StatusInfo> = {
   'quote_sent': { icon: '💬', label: 'Cotización enviada', color: 'bg-blue-100 text-blue-800' },
-  'payment_pending': { icon: '💳', label: 'Pago pendiente', color: 'bg-yellow-100 text-yellow-800' },
-  'payment_confirmed': { icon: '✅', label: 'Pago confirmado', color: 'bg-green-100 text-green-800' },
   'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
   'delivered': { icon: '📦', label: 'Entregado', color: 'bg-emerald-100 text-emerald-800' },
   'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' },
