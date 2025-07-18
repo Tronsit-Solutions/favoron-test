@@ -87,6 +87,9 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             <div>
               <span className="font-medium text-muted-foreground text-xs">🏠 Dirección:</span>
               <p className="text-foreground font-medium text-xs">{travelerAddress?.streetAddress}</p>
+              {travelerAddress?.streetAddress2 && (
+                <p className="text-foreground font-medium text-xs">{travelerAddress.streetAddress2}</p>
+              )}
             </div>
             
             {/* Ciudad y Código Postal */}
