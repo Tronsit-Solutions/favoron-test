@@ -215,7 +215,7 @@ const AdminMatchDialog = ({
                               <div className="text-center">
                                 <p className="text-xs text-gray-500 font-medium">LLEGADA</p>
                                  <p className="text-sm font-semibold text-gray-800">
-                                   {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                   {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
                                  </p>
                                </div>
                                <div className="text-center">
