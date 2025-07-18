@@ -27,8 +27,8 @@ const UploadDocuments = ({
   };
 
   // Show sections based on individual completion status, not package status
-  const showConfirmationSection = !currentConfirmation && (currentStatus === 'approved' || currentStatus === 'in_transit');
-  const showTrackingSection = !currentTracking && (currentStatus === 'approved' || currentStatus === 'in_transit');
+  const showConfirmationSection = !currentConfirmation && (currentStatus === 'payment_confirmed' || currentStatus === 'in_transit');
+  const showTrackingSection = !currentTracking && (currentStatus === 'payment_confirmed' || currentStatus === 'in_transit');
   
   // If both sections are completed, don't show the component
   if (!showConfirmationSection && !showTrackingSection) {

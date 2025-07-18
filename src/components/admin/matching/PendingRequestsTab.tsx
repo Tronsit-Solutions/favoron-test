@@ -19,6 +19,8 @@ interface PendingRequestsTabProps {
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'quote_sent': return '💬';
+    case 'payment_pending': return '💳';
+    case 'payment_confirmed': return '✅';
     case 'in_transit': return '🚚';
     case 'delivered': return '📦';
     default: return '⏳';
@@ -28,6 +30,8 @@ const getStatusIcon = (status: string) => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'quote_sent': return 'bg-blue-100 text-blue-800';
+    case 'payment_pending': return 'bg-yellow-100 text-yellow-800';
+    case 'payment_confirmed': return 'bg-green-100 text-green-800';
     case 'in_transit': return 'bg-purple-100 text-purple-800';
     case 'delivered': return 'bg-emerald-100 text-emerald-800';
     default: return 'bg-gray-100 text-gray-800';

@@ -10,7 +10,6 @@ import EditPackageModal from "@/components/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
-import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
@@ -141,14 +140,6 @@ const CollapsiblePackageCard = ({
                   <PackageShippingInstructions 
                     travelerAddress={(pkg as any).trips.package_receiving_address}
                     matchedTripDates={(pkg as any).trips}
-                  />
-                )}
-
-                {/* Show payment receipt upload for quote_accepted status */}
-                {pkg.status === 'quote_accepted' && viewMode === 'user' && (
-                  <PaymentReceiptUpload
-                    pkg={pkg}
-                    onUpload={(data) => onUploadDocument(pkg.id, 'confirmation', data)}
                   />
                 )}
 

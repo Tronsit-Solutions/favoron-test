@@ -33,7 +33,7 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
       description: 'Aceptaste la cotización del viajero'
     },
     { 
-       
+      key: 'payment_confirmed', 
       label: 'Pago confirmado', 
       icon: Check,
       description: 'Tu pago fue confirmado'

@@ -32,7 +32,7 @@ const AdminSupportTab = ({
     { id: "all", label: "Todos", count: packages.length },
     { id: "incidents", label: "Incidencias", count: packages.filter(p => p.incident_flag).length },
     { id: "pending", label: "Pendientes", count: packages.filter(p => p.status === 'pending_approval').length },
-    { id: "approved", label: "Aprobados", count: packages.filter(p => p.status === 'approved').length },
+    { id: "payment_pending", label: "Pagos pendientes", count: packages.filter(p => p.status === 'payment_pending').length },
   ];
 
   // Search function
@@ -85,8 +85,8 @@ const AdminSupportTab = ({
         return packagesToFilter.filter(p => p.incident_flag);
       case "pending":
         return packagesToFilter.filter(p => p.status === 'pending_approval');
-      case "approved":
-        return packagesToFilter.filter(p => p.status === 'approved');
+      case "payment_pending":
+        return packagesToFilter.filter(p => p.status === 'payment_pending');
       default:
         return packagesToFilter;
     }
@@ -99,6 +99,7 @@ const AdminSupportTab = ({
       'pending_approval': { label: 'Pendiente', variant: 'secondary' as const },
       'approved': { label: 'Aprobado', variant: 'default' as const },
       'matched': { label: 'Match realizado', variant: 'default' as const },
+      'payment_pending': { label: 'Pago pendiente', variant: 'warning' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
     };
     

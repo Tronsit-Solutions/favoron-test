@@ -54,6 +54,8 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
     { value: 'quote_sent', label: 'Cotización Enviada' },
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
     { value: 'address_confirmed', label: 'Dirección Confirmada' },
+    { value: 'payment_pending', label: 'Pago Pendiente' },
+    { value: 'payment_confirmed', label: 'Pago Confirmado' },
     { value: 'purchased', label: 'Comprado' },
     { value: 'in_transit', label: 'En Tránsito' },
     { value: 'delivered_to_office', label: 'Entregado en Oficina' },

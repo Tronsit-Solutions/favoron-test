@@ -1,7 +1,5 @@
 import { Package as PackageIcon, MapPin } from "lucide-react";
 import { Package } from "@/types";
-import FavoronPaymentInfo from "./FavoronPaymentInfo";
-
 interface ShopperPackageInfoProps {
   pkg: Package;
 }
@@ -34,8 +32,7 @@ const ShopperPackageInfo = ({
   };
   return <>
       {renderQuoteInfo()}
-      {pkg.status === 'quote_accepted' && <FavoronPaymentInfo pkg={pkg} />}
-      {pkg.status === 'approved' && renderTravelerAddress()}
+      {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
     </>;
 };
 export default ShopperPackageInfo;
