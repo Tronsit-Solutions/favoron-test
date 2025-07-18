@@ -38,7 +38,7 @@ const TravelerPackagePriorityActions = ({
               </div>
               <div>
                 <p className="text-sm font-semibold mb-1">💰 Tu compensación</p>
-                <p className="text-2xl font-bold">${travelerTip}</p>
+                <p className="text-2xl font-bold">Q{travelerTip}</p>
               </div>
             </div>
             <div className="text-right">
