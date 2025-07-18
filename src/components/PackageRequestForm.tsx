@@ -60,8 +60,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     { value: 'Otro', label: 'Otro' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
     
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
@@ -94,7 +96,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       deliveryMethod: formData.deliveryMethod
     };
 
-    onSubmit(submitData);
+    console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
+    
+    try {
+      await onSubmit(submitData);
+      console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
+    } catch (error) {
+      console.error('❌ FORM SUBMIT ERROR:', error);
+      alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
+      return;
+    }
     
     // Reset form
     setProduct({

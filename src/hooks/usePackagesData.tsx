@@ -78,6 +78,15 @@ export const usePackagesData = () => {
       console.log('📦 Packages fetched:', data?.length || 0, 'packages');
       console.log('📦 Raw packages data:', data);
       
+      // Debug: Check ALL packages with their status
+      console.log('🔍 ALL PACKAGES STATUS DEBUG:', data?.map(p => ({
+        id: p.id,
+        description: p.item_description,
+        status: p.status,
+        user_id: p.user_id,
+        created_at: p.created_at
+      })));
+      
       // Debug: Check pending packages specifically
       const pendingPackages = data?.filter(p => p.status === 'pending_approval') || [];
       console.log('⏳ PENDING PACKAGES COUNT:', pendingPackages.length);
@@ -95,6 +104,16 @@ export const usePackagesData = () => {
       console.log('🔥 CRITICAL - ADMIN PENDING PACKAGES COUNT:', adminPendingPackages.length);
       console.log('🔥 CRITICAL - ADMIN PENDING PACKAGES:', adminPendingPackages);
       
+      // CRITICAL DEBUG: Check if the missing package is there with different ID
+      const missingPackageId = '3cd86e65-a1c7-4ef9-8de8-1467aecffd50';
+      const missingPackage = data?.find(p => p.id === missingPackageId);
+      console.log('🚨 CRITICAL - MISSING PACKAGE CHECK:', missingPackageId);
+      console.log('🚨 CRITICAL - MISSING PACKAGE FOUND:', missingPackage);
+      
+      // Check RLS debug - see what packages the query is returning
+      console.log('🛡️ RLS DEBUG - Query returned packages for user:', user?.id);
+      console.log('🛡️ RLS DEBUG - User object full:', user);
+      
       setPackages(data || []);
     } catch (error: any) {
       console.error('Error fetching packages:', error);
@@ -110,19 +129,36 @@ export const usePackagesData = () => {
 
   const createPackage = async (packageData: PackageInsert) => {
     try {
+      console.log('🔄 CREATING PACKAGE - Starting creation process...');
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
+      
+      console.log('👤 USER FOR PACKAGE CREATION:', user.id);
+      console.log('📦 PACKAGE DATA TO INSERT:', packageData);
+
+      const insertData = {
+        ...packageData,
+        user_id: user.id
+      };
+      
+      console.log('💾 FINAL INSERT DATA:', insertData);
 
       const { data, error } = await supabase
         .from('packages')
-        .insert({
-          ...packageData,
-          user_id: user.id
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('📊 INSERT RESULT - Data:', data);
+      console.log('📊 INSERT RESULT - Error:', error);
+
+      if (error) {
+        console.error('🚨 SUPABASE INSERT ERROR:', error);
+        throw error;
+      }
+      
+      console.log('✅ PACKAGE CREATED SUCCESSFULLY:', data.id, 'with status:', data.status);
       
       // Don't manually update state here - let real-time subscription handle it
       // This prevents duplicate entries
@@ -131,12 +167,19 @@ export const usePackagesData = () => {
         description: "Paquete creado correctamente",
       });
       
+      // Force refresh packages to ensure we get the latest data
+      setTimeout(() => {
+        console.log('🔄 FORCING PACKAGE REFRESH AFTER CREATION...');
+        fetchPackages();
+      }, 500);
+      
       return data;
     } catch (error: any) {
-      console.error('Error creating package:', error);
+      console.error('❌ CRITICAL ERROR CREATING PACKAGE:', error);
+      console.error('❌ ERROR DETAILS:', error.message, error.details, error.hint);
       toast({
         title: "Error",
-        description: "No se pudo crear el paquete",
+        description: `No se pudo crear el paquete: ${error.message}`,
         variant: "destructive",
       });
       throw error;
