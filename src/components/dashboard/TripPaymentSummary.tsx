@@ -38,38 +38,38 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
 
   return (
     <>
-      <Card className="bg-accent/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Banknote className="h-4 w-4" />
-            Resumen de Pagos del Viaje
+      <Card className="bg-muted/20 border">
+        <CardHeader className="pb-1 pt-2">
+          <CardTitle className="flex items-center gap-1 text-xs font-medium">
+            <Banknote className="h-3 w-3" />
+            Resumen de Pagos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 pt-0">
-          <div className="grid grid-cols-2 gap-2">
+        <CardContent className="space-y-1 pt-0 pb-2 px-3">
+          <div className="grid grid-cols-2 gap-1">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Package className="h-3 w-3" />
-                <span className="text-xs text-muted-foreground">Paquetes</span>
+              <div className="flex items-center justify-center gap-1 mb-0.5">
+                <Package className="h-2.5 w-2.5" />
+                <span className="text-[10px] text-muted-foreground">Paquetes</span>
               </div>
-              <div className="text-sm font-semibold">
+              <div className="text-xs font-medium">
                 {tripPayment.delivered_packages_count} / {tripPayment.total_packages_count}
               </div>
-              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="text-xs py-0 px-1">
-                {isAllPackagesDelivered ? "Completo" : "Progreso"}
+              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="text-[9px] py-0 px-1 h-4">
+                {isAllPackagesDelivered ? "✓" : "..."}
               </Badge>
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Banknote className="h-3 w-3" />
-                <span className="text-xs text-muted-foreground">Total</span>
+              <div className="flex items-center justify-center gap-1 mb-0.5">
+                <span className="font-bold text-[9px]">Q</span>
+                <span className="text-[10px] text-muted-foreground">Total</span>
               </div>
-              <div className="text-sm font-semibold">
+              <div className="text-xs font-medium">
                 {formatCurrency(tripPayment.accumulated_amount)}
               </div>
               {hasAccumulatedAmount && (
-                <Badge variant="outline" className="text-xs py-0 px-1">
+                <Badge variant="outline" className="text-[9px] py-0 px-1 h-4">
                   Tips
                 </Badge>
               )}
@@ -77,18 +77,18 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           </div>
 
           {hasAccumulatedAmount && (
-            <div className="border-t pt-2">
+            <div className="border-t pt-1">
               {!tripPayment.payment_order_created ? (
                 <>
                   {isAllPackagesDelivered ? (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-1 text-green-600">
-                        <CheckCircle className="h-3 w-3" />
-                        <span className="text-xs">Listo para solicitar pago</span>
+                        <CheckCircle className="h-2.5 w-2.5" />
+                        <span className="text-[10px]">Listo</span>
                       </div>
                       <Button 
                         onClick={() => setShowBankingModal(true)}
-                        className="w-full h-8 text-xs"
+                        className="w-full h-6 text-[10px] py-0"
                         size="sm"
                       >
                         Solicitar {formatCurrency(tripPayment.accumulated_amount)}
@@ -96,20 +96,20 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 text-amber-600">
-                      <Clock className="h-3 w-3" />
-                      <span className="text-xs">
-                        Entrega todos para solicitar pago
+                      <Clock className="h-2.5 w-2.5" />
+                      <span className="text-[10px]">
+                        Pendiente entrega
                       </span>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-1">
-                  <Badge variant="default" className="mb-1 text-xs py-0 px-1">
+                <div className="text-center py-0.5">
+                  <Badge variant="default" className="mb-0.5 text-[9px] py-0 px-1 h-4">
                     Solicitado
                   </Badge>
-                  <p className="text-xs text-muted-foreground">
-                    Pago por {formatCurrency(tripPayment.accumulated_amount)} en proceso
+                  <p className="text-[10px] text-muted-foreground">
+                    En proceso
                   </p>
                 </div>
               )}
@@ -117,8 +117,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           )}
 
           {!hasAccumulatedAmount && (
-            <div className="text-center text-muted-foreground text-xs">
-              Entrega paquetes para generar tips.
+            <div className="text-center text-muted-foreground text-[10px]">
+              Sin tips aún
             </div>
           )}
         </CardContent>
