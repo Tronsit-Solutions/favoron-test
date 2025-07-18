@@ -73,6 +73,7 @@ const PurchaseConfirmationUpload = ({
       }
 
       // Update package status to in_transit when confirmation is uploaded
+      // This is the only place where status changes automatically
       const { error: updateError } = await supabase
         .from('packages')
         .update({ status: 'in_transit' })
@@ -80,6 +81,7 @@ const PurchaseConfirmationUpload = ({
 
       if (updateError) {
         console.error('Error updating package status:', updateError);
+        // Don't fail the upload if status update fails
       }
 
       // Call onUpload with file information
@@ -95,7 +97,7 @@ const PurchaseConfirmationUpload = ({
       
       toast({
         title: "Confirmación de compra subida exitosamente",
-        description: "El paquete ahora está en tránsito. El viajero ha sido notificado.",
+        description: "El viajero puede ver tu confirmación de compra. El tracking es independiente y puedes agregarlo cuando quieras.",
       });
 
     } catch (error) {

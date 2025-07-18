@@ -26,29 +26,37 @@ const UploadDocuments = ({
     onUpload('tracking', data);
   };
 
-  // Only show for payment_confirmed status
-  if (currentStatus !== 'payment_confirmed') {
+  // Show sections based on individual completion status, not package status
+  const showConfirmationSection = !currentConfirmation && (currentStatus === 'payment_confirmed' || currentStatus === 'in_transit');
+  const showTrackingSection = !currentTracking && (currentStatus === 'payment_confirmed' || currentStatus === 'in_transit');
+  
+  // If both sections are completed, don't show the component
+  if (!showConfirmationSection && !showTrackingSection) {
     return null;
   }
 
   return (
     <div className="space-y-4">
-      {/* Purchase Confirmation Upload - Independent Section */}
-      <PurchaseConfirmationUpload
-        packageId={packageId}
-        currentConfirmation={currentConfirmation}
-        onUpload={handleConfirmationUpload}
-      />
+      {/* Purchase Confirmation Upload - Show only if not completed */}
+      {showConfirmationSection && (
+        <PurchaseConfirmationUpload
+          packageId={packageId}
+          currentConfirmation={currentConfirmation}
+          onUpload={handleConfirmationUpload}
+        />
+      )}
 
-      {/* Tracking Information - Independent Section */}
-      <TrackingInfoForm
-        packageId={packageId}
-        currentTracking={currentTracking}
-        onSubmit={handleTrackingSubmit}
-      />
+      {/* Tracking Information - Show only if not completed */}
+      {showTrackingSection && (
+        <TrackingInfoForm
+          packageId={packageId}
+          currentTracking={currentTracking}
+          onSubmit={handleTrackingSubmit}
+        />
+      )}
 
-      {/* Progress Summary */}
-      {(currentConfirmation || currentTracking) && (
+      {/* Progress Summary - Show if at least one section is visible */}
+      {(showConfirmationSection || showTrackingSection) && (currentConfirmation || currentTracking) && (
         <div className="p-4 bg-info-muted border border-info-border rounded-lg">
           <div className="flex items-center justify-center space-x-6">
             <div className="flex items-center space-x-2">
