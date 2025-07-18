@@ -69,20 +69,20 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             <span className="font-medium text-primary text-sm">📍 Dirección de envío:</span>
           </div>
           
-          {/* Destinatario */}
-          <div className="bg-primary/10 border border-primary/20 rounded-md p-2">
-            <span className="font-medium text-primary text-xs">👤 Destinatario:</span>
-            <p className="text-foreground font-semibold text-sm">
-              {travelerAddress?.recipientName || 'Nombre no especificado'}
-            </p>
-            {!travelerAddress?.recipientName && (
-              <p className="text-muted-foreground text-xs mt-1">
-                ⚠️ Contactar administración para obtener el nombre del destinatario
-              </p>
-            )}
-          </div>
-          
           <div className="space-y-1">
+            {/* Destinatario */}
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">👤 Destinatario:</span>
+              <p className="text-foreground font-semibold text-xs">
+                {travelerAddress?.recipientName || 'Nombre no especificado'}
+              </p>
+              {!travelerAddress?.recipientName && (
+                <p className="text-muted-foreground text-xs">
+                  ⚠️ Contactar administración para obtener el nombre del destinatario
+                </p>
+              )}
+            </div>
+            
             {/* Dirección */}
             <div>
               <span className="font-medium text-muted-foreground text-xs">🏠 Dirección:</span>
@@ -105,16 +105,16 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             
             {/* Hotel/Airbnb */}
             {travelerAddress?.hotelAirbnbName && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-1.5">
-                <span className="font-medium text-blue-700 text-xs">🏨 Hotel:</span>
-                <p className="text-blue-800 font-medium text-xs">{travelerAddress.hotelAirbnbName}</p>
+              <div>
+                <span className="font-medium text-muted-foreground text-xs">🏨 Hotel:</span>
+                <p className="text-foreground font-medium text-xs">{travelerAddress.hotelAirbnbName}</p>
               </div>
             )}
             
             {/* Contacto */}
-            <div className="bg-green-50 border border-green-200 rounded-md p-1.5">
-              <span className="font-medium text-green-700 text-xs">📞 Contacto:</span>
-              <p className="text-green-800 font-semibold text-xs">{travelerAddress?.contactNumber}</p>
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">📞 Contacto:</span>
+              <p className="text-foreground font-semibold text-xs">{travelerAddress?.contactNumber}</p>
             </div>
           </div>
         </div>
