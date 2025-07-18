@@ -61,6 +61,24 @@ export const usePackagesData = () => {
       
       console.log('📦 Packages fetched:', data?.length || 0, 'packages');
       console.log('📦 Raw packages data:', data);
+      
+      // Debug: Check pending packages specifically
+      const pendingPackages = data?.filter(p => p.status === 'pending_approval') || [];
+      console.log('⏳ PENDING PACKAGES COUNT:', pendingPackages.length);
+      console.log('⏳ PENDING PACKAGES DETAILS:', pendingPackages.map(p => ({
+        id: p.id,
+        description: p.item_description,
+        status: p.status,
+        user_id: p.user_id,
+        created_at: p.created_at
+      })));
+      
+      // Debug: Check SPECIFICALLY for admin user packages
+      const adminUserId = '5e3c944e-9130-4ea7-8165-b8ec9d5abf6f';
+      const adminPendingPackages = data?.filter(p => p.status === 'pending_approval' && p.user_id === adminUserId) || [];
+      console.log('🔥 CRITICAL - ADMIN PENDING PACKAGES COUNT:', adminPendingPackages.length);
+      console.log('🔥 CRITICAL - ADMIN PENDING PACKAGES:', adminPendingPackages);
+      
       setPackages(data || []);
     } catch (error: any) {
       console.error('Error fetching packages:', error);

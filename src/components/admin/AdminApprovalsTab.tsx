@@ -27,12 +27,24 @@ const AdminApprovalsTab = ({
   const pendingPackages = packages.filter(p => p.status === 'pending_approval');
   const pendingTrips = trips.filter(t => t.status === 'pending_approval');
 
-  // Debug: Log the packages data
-  console.log('🔍 AdminApprovalsTab Debug:', {
+  // Debug: Log the packages data with MORE detail
+  console.log('🔍 AdminApprovalsTab Debug - DETAILED:', {
     totalPackages: packages.length,
     pendingPackages: pendingPackages.length,
-    allPackages: packages.map(p => ({ id: p.id, description: p.item_description, status: p.status })),
-    pendingPackageDetails: pendingPackages.map(p => ({ id: p.id, description: p.item_description, status: p.status }))
+    allPackagesWithStatus: packages.map(p => ({ 
+      id: p.id, 
+      description: p.item_description, 
+      status: p.status,
+      user_id: p.user_id,
+      created_at: p.created_at 
+    })),
+    pendingPackageDetails: pendingPackages.map(p => ({ 
+      id: p.id, 
+      description: p.item_description, 
+      status: p.status,
+      user_id: p.user_id,
+      created_at: p.created_at 
+    }))
   });
 
   return (

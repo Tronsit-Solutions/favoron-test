@@ -70,8 +70,8 @@ export const useDashboardActions = (
       if (currentUser.role === 'admin' && setActiveTab) {
         setActiveTab('admin');
         toast({
-          title: "¡Solicitud enviada!",
-          description: "Tu solicitud se ha creado y puedes gestionarla en el panel de Admin.",
+          title: "¡Solicitud creada exitosamente!",
+          description: "Puedes verla y aprobarla en: Panel Admin → Aprobaciones → Solicitudes Pendientes",
         });
       } else {
         toast({
