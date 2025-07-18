@@ -46,10 +46,9 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const handleConfirmOfficeDeliveryClick = () => {
-    if (onConfirmOfficeDelivery) {
-      onConfirmOfficeDelivery(pkg.id);
-      setShowBankingModal(true);
-    }
+    // Para viajeros: mostrar modal bancario directamente
+    // El modal se encarga de actualizar el estado del paquete y crear la orden de pago
+    setShowBankingModal(true);
   };
 
   const getPackageName = () => {
@@ -196,7 +195,11 @@ const CollapsibleTravelerPackageCard = ({
         onClose={() => setShowBankingModal(false)}
         pkg={pkg}
         travelerProfile={user}
-        onConfirm={() => setShowBankingModal(false)}
+        onConfirm={() => {
+          setShowBankingModal(false);
+          // Recargar para mostrar los cambios
+          window.location.reload();
+        }}
       />
     </Collapsible>
   );

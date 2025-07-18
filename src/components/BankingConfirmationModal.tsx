@@ -46,6 +46,20 @@ const BankingConfirmationModal = ({
     setLoading(true);
     
     try {
+      // First update package status to delivered_to_office
+      const { error: packageUpdateError } = await supabase
+        .from('packages')
+        .update({
+          status: 'delivered_to_office',
+          office_delivery: {
+            confirmedAt: new Date().toISOString()
+          }
+        })
+        .eq('id', pkg.id);
+
+      if (packageUpdateError) {
+        throw packageUpdateError;
+      }
       // First, update the traveler's profile with the banking information
       const { error: profileError } = await supabase
         .from('profiles')

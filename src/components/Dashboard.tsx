@@ -378,6 +378,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                             onQuote={handleQuote}
                             onConfirmReceived={handleConfirmPackageReceived}
                             onConfirmOfficeDelivery={(packageId) => {
+                              // Esta función ahora es solo para el admin dashboard
+                              // Los viajeros usan su propio modal bancario
                               const pkg = packages.find(p => p.id === packageId);
                               if (pkg) {
                                 setSelectedPackageForBanking(pkg);
