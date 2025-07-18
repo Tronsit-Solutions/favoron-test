@@ -14,9 +14,9 @@ import { Package } from "@/types";
 interface EditDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  documentType: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info' | null;
+  documentType: 'purchase_confirmation' | 'tracking_info' | null;
   pkg: Package;
-  onUpdate: (type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
+  onUpdate: (type: 'purchase_confirmation' | 'tracking_info', data: any) => void;
 }
 
 const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: EditDocumentModalProps) => {
@@ -96,9 +96,7 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
       };
 
       if (documentType === 'purchase_confirmation') {
-        onUpdate('confirmation', updateData);
-      } else if (documentType === 'payment_receipt') {
-        onUpdate('payment_receipt', updateData);
+        onUpdate('purchase_confirmation', updateData);
       }
       
       toast({
@@ -124,7 +122,7 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
 
   const handleTrackingUpdate = () => {
     if (trackingNumber.trim()) {
-      onUpdate('tracking', {
+      onUpdate('tracking_info', {
         trackingNumber: trackingNumber.trim(),
         trackingUrl: trackingUrl.trim() || null,
         shippingCompany: shippingCompany.trim() || null,
@@ -143,8 +141,6 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
 
   const getModalTitle = () => {
     switch (documentType) {
-      case 'payment_receipt':
-        return 'Editar comprobante de pago';
       case 'purchase_confirmation':
         return 'Editar confirmación de compra';
       case 'tracking_info':
@@ -156,8 +152,6 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
 
   const getModalIcon = () => {
     switch (documentType) {
-      case 'payment_receipt':
-        return <CreditCard className="h-5 w-5" />;
       case 'purchase_confirmation':
         return <FileText className="h-5 w-5" />;
       case 'tracking_info':

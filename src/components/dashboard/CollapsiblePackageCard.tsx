@@ -6,7 +6,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, ChevronUp, Edit } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
-import PaymentUpload from "@/components/PaymentUpload";
 import EditPackageModal from "@/components/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
@@ -15,7 +14,6 @@ import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
-import { PackagePaymentInstructions } from "@/components/dashboard/PackagePaymentInstructions";
 import { PackageShippingInstructions } from "@/components/dashboard/PackageShippingInstructions";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
@@ -25,7 +23,7 @@ interface CollapsiblePackageCardProps {
   pkg: Package;
   onQuote: (pkg: Package, userType: UserType) => void;
   onConfirmAddress: (pkg: Package) => void;
-  onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
+  onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
   viewMode?: 'user';
 }
@@ -39,12 +37,12 @@ const CollapsiblePackageCard = ({
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(
-    pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed' || pkg.status === 'quote_sent'
+    pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved'
   );
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
-    documentType: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info' | null;
+    documentType: 'purchase_confirmation' | 'tracking_info' | null;
   }>({
     isOpen: false,
     documentType: null
@@ -53,7 +51,7 @@ const CollapsiblePackageCard = ({
   const { getStatusBadge } = useStatusHelpers();
 
   React.useEffect(() => {
-    if (pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed' || pkg.status === 'quote_sent') {
+    if (pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved') {
       setIsOpen(true);
     }
   }, [pkg.status]);
@@ -61,14 +59,10 @@ const CollapsiblePackageCard = ({
   const needsAction = viewMode === 'user' && (
     pkg.status === 'quote_sent' || 
     pkg.status === 'quote_accepted' || 
-    (pkg.status === 'payment_confirmed' && !pkg.purchase_confirmation)
+    (pkg.status === 'approved' && !pkg.purchase_confirmation)
   );
 
-  const handlePaymentUpload = (paymentData: any) => {
-    onUploadDocument(pkg.id, 'payment_receipt', paymentData);
-  };
-
-  const handleEditDocument = (type: 'payment_receipt' | 'purchase_confirmation' | 'tracking_info') => {
+  const handleEditDocument = (type: 'purchase_confirmation' | 'tracking_info') => {
     setEditDocumentModal({ isOpen: true, documentType: type });
   };
 
@@ -141,28 +135,16 @@ const CollapsiblePackageCard = ({
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                {/* Payment Instructions and Upload */}
-                {pkg.status === 'quote_accepted' && viewMode === 'user' && (
-                  <div className="space-y-4 mb-4">
-                    <PackagePaymentInstructions quote={pkg.quote} />
-                    <PaymentUpload 
-                      packageId={pkg.id}
-                      onUpload={handlePaymentUpload}
-                      currentPaymentReceipt={pkg.payment_receipt}
-                      isPaymentApproved={['payment_confirmed', 'in_transit', 'delivered'].includes(pkg.status)}
-                    />
-                  </div>
-                )}
                 {/* Shipping Instructions */}
-                {pkg.status === 'payment_confirmed' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
+                {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
                   <PackageShippingInstructions 
                     travelerAddress={(pkg as any).trips.package_receiving_address}
                     matchedTripDates={(pkg as any).trips}
                   />
                 )}
 
-                {/* Show upload documents after payment confirmation - Show individual sections based on completion */}
-                {(pkg.status === 'payment_confirmed' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
+                {/* Show upload documents after approval - Show individual sections based on completion */}
+                {(pkg.status === 'approved' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
                   <div className="bg-warning-muted border border-warning-border rounded-md p-2 mb-2">
                     <div className="mb-3">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
@@ -173,7 +155,7 @@ const CollapsiblePackageCard = ({
                       currentStatus={pkg.status}
                       currentConfirmation={pkg.purchase_confirmation}
                       currentTracking={pkg.tracking_info}
-                      onUpload={(type, data) => onUploadDocument(pkg.id, type as DocumentType, data)}
+                      onUpload={(type, data) => onUploadDocument(pkg.id, type as ('confirmation' | 'tracking'), data)}
                     />
                   </div>
                 )}
@@ -217,7 +199,13 @@ const CollapsiblePackageCard = ({
         onClose={handleCloseEditModal}
         documentType={editDocumentModal.documentType}
         pkg={pkg}
-        onUpdate={(type, data) => onUploadDocument(pkg.id, type, data)}
+        onUpdate={(type, data) => {
+          if (type === 'purchase_confirmation') {
+            onUploadDocument(pkg.id, 'confirmation', data);
+          } else if (type === 'tracking_info') {
+            onUploadDocument(pkg.id, 'tracking', data);
+          }
+        }}
       />
     </Collapsible>
   );
