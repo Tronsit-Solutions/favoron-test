@@ -73,7 +73,7 @@ const UploadDocuments = ({
             </div>
           </div>
           {currentConfirmation && currentTracking && (
-            <p className="text-sm text-info-foreground mt-3 font-medium text-center">
+            <p className="text-sm text-foreground mt-3 font-medium text-center">
               🚚 ¡Perfecto! Ambas secciones están completas
             </p>
           )}
