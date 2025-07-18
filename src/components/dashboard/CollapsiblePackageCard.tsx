@@ -163,7 +163,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Show upload documents after payment confirmation - Show individual sections based on completion */}
                 {(pkg.status === 'payment_confirmed' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
-                  <div className="bg-warning-muted border border-warning-border rounded-lg p-4 mb-4">
+                  <div className="bg-warning-muted border border-warning-border rounded-md p-2 mb-2">
                     <div className="mb-3">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
                       <p className="text-xs text-warning">Cada sección es independiente. Puedes subir la confirmación de compra y el tracking por separado.</p>
