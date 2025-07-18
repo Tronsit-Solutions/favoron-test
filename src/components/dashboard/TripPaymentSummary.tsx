@@ -40,8 +40,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     <>
       <Card className="bg-muted/20 border">
         <CardHeader className="pb-1 pt-2">
-          <CardTitle className="flex items-center gap-1 text-xs font-medium">
-            <Banknote className="h-3 w-3" />
+          <CardTitle className="flex items-center gap-1 text-sm font-medium">
+            <Banknote className="h-4 w-4" />
             Resumen de Pagos
           </CardTitle>
         </CardHeader>
@@ -49,27 +49,27 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           <div className="grid grid-cols-2 gap-1">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Package className="h-2.5 w-2.5" />
-                <span className="text-[10px] text-muted-foreground">Paquetes</span>
+                <Package className="h-3 w-3" />
+                <span className="text-xs text-muted-foreground">Paquetes</span>
               </div>
-              <div className="text-xs font-medium">
+              <div className="text-sm font-medium">
                 {tripPayment.delivered_packages_count} / {tripPayment.total_packages_count}
               </div>
-              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="text-[9px] py-0 px-1 h-4">
+              <Badge variant={isAllPackagesDelivered ? "default" : "secondary"} className="text-xs py-0 px-1 h-5">
                 {isAllPackagesDelivered ? "✓" : "..."}
               </Badge>
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <span className="font-bold text-[9px]">Q</span>
-                <span className="text-[10px] text-muted-foreground">Total</span>
+                <span className="font-bold text-xs">Q</span>
+                <span className="text-xs text-muted-foreground">Total</span>
               </div>
-              <div className="text-xs font-medium">
+              <div className="text-sm font-medium">
                 {formatCurrency(tripPayment.accumulated_amount)}
               </div>
               {hasAccumulatedAmount && (
-                <Badge variant="outline" className="text-[9px] py-0 px-1 h-4">
+                <Badge variant="outline" className="text-xs py-0 px-1 h-5">
                   Tips
                 </Badge>
               )}
@@ -83,12 +83,12 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                   {isAllPackagesDelivered ? (
                     <div className="space-y-1">
                       <div className="flex items-center gap-1 text-green-600">
-                        <CheckCircle className="h-2.5 w-2.5" />
-                        <span className="text-[10px]">Listo</span>
+                        <CheckCircle className="h-3 w-3" />
+                        <span className="text-xs">Listo</span>
                       </div>
                       <Button 
                         onClick={() => setShowBankingModal(true)}
-                        className="w-full h-6 text-[10px] py-0"
+                        className="w-full h-7 text-xs py-0"
                         size="sm"
                       >
                         Solicitar {formatCurrency(tripPayment.accumulated_amount)}
@@ -96,8 +96,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 text-amber-600">
-                      <Clock className="h-2.5 w-2.5" />
-                      <span className="text-[10px]">
+                      <Clock className="h-3 w-3" />
+                      <span className="text-xs">
                         Pendiente entrega
                       </span>
                     </div>
@@ -105,10 +105,10 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                 </>
               ) : (
                 <div className="text-center py-0.5">
-                  <Badge variant="default" className="mb-0.5 text-[9px] py-0 px-1 h-4">
+                  <Badge variant="default" className="mb-0.5 text-xs py-0 px-1 h-5">
                     Solicitado
                   </Badge>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     En proceso
                   </p>
                 </div>
@@ -117,7 +117,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           )}
 
           {!hasAccumulatedAmount && (
-            <div className="text-center text-muted-foreground text-[10px]">
+            <div className="text-center text-muted-foreground text-xs">
               Sin tips aún
             </div>
           )}
