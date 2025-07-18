@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Upload, Receipt, CheckCircle } from "lucide-react";
+import { Upload, Receipt, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Package } from "@/types";
@@ -14,61 +12,60 @@ interface PaymentReceiptUploadProps {
 }
 
 const PaymentReceiptUpload = ({ pkg, onUpload }: PaymentReceiptUploadProps) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      // Validate file type
-      if (!selectedFile.type.startsWith('image/')) {
-        toast({
-          title: "Error",
-          description: "Solo se permiten archivos de imagen",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-      // Validate file size (max 5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Error",
-          description: "El archivo no debe exceder 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setFile(selectedFile);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
-        title: "Error",
-        description: "Por favor selecciona un archivo",
+        title: "Formato no válido",
+        description: "Solo se permiten archivos JPG, PNG, GIF, WebP o PDF",
         variant: "destructive",
       });
       return;
     }
 
-    setLoading(true);
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo debe ser menor a 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      const timestamp = Date.now();
-      const fileName = `payment_receipt_${pkg.id}_${timestamp}.${file.name.split('.').pop()}`;
+      // Generate unique filename
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `payment_receipt_${pkg.id}_${Date.now()}.${fileExtension}`;
       const filePath = `${user.id}/${fileName}`;
 
+      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('payment-receipts')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        toast({
+          title: "Error al subir archivo",
+          description: "No se pudo subir el archivo. Intenta de nuevo.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const receiptData = {
         type: 'payment_receipt',
@@ -77,7 +74,7 @@ const PaymentReceiptUpload = ({ pkg, onUpload }: PaymentReceiptUploadProps) => {
         uploadedAt: new Date().toISOString()
       };
 
-      // Update package with payment receipt
+      // Update package with payment receipt and change status to approved
       const { error: updateError } = await supabase
         .from('packages')
         .update({
@@ -86,24 +83,41 @@ const PaymentReceiptUpload = ({ pkg, onUpload }: PaymentReceiptUploadProps) => {
         })
         .eq('id', pkg.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating package:', updateError);
+        toast({
+          title: "Error al actualizar paquete",
+          description: "No se pudo actualizar el estado del paquete",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
-        title: "¡Éxito!",
-        description: "Comprobante de pago subido correctamente",
+        title: "Comprobante de pago subido exitosamente",
+        description: "Tu pago ha sido confirmado. Ahora puedes proceder con la compra del producto.",
       });
 
       onUpload(receiptData);
+
     } catch (error: any) {
       console.error('Error uploading payment receipt:', error);
       toast({
-        title: "Error",
-        description: "No se pudo subir el comprobante de pago",
+        title: "Error inesperado",
+        description: "Ocurrió un error al subir el archivo",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   // Don't show if package is not in quote_accepted status
@@ -111,81 +125,71 @@ const PaymentReceiptUpload = ({ pkg, onUpload }: PaymentReceiptUploadProps) => {
     return null;
   }
 
-  // Show confirmation if payment receipt already exists
-  if (pkg.payment_receipt) {
-    return (
-      <Card className="border-success-border bg-success-muted">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-success">
-            <CheckCircle className="h-5 w-5" />
-            Comprobante de Pago Subido
-          </CardTitle>
-          <CardDescription>
-            Tu comprobante de pago ha sido recibido y está siendo procesado
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 text-sm text-success">
-            <Receipt className="h-4 w-4" />
-            <span>Archivo: {(pkg.payment_receipt as any)?.filename}</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const isCompleted = !!pkg.payment_receipt;
 
   return (
-    <Card className="border-warning-border bg-warning-muted">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-warning">
+    <Card className={isCompleted ? "border-success-border bg-success-muted" : ""}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center space-x-2">
           <Receipt className="h-5 w-5" />
-          Subir Comprobante de Pago
+          <span>Comprobante de Pago</span>
+          {isCompleted && <CheckCircle className="h-5 w-5 text-success" />}
         </CardTitle>
         <CardDescription>
-          Sube tu comprobante de transferencia bancaria para aprobar tu pedido
+          {isCompleted 
+            ? "✅ Comprobante de pago subido exitosamente"
+            : "Sube tu comprobante de transferencia bancaria para aprobar tu pedido"
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="payment-receipt">Comprobante de Pago</Label>
-          <Input
-            id="payment-receipt"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={loading}
-          />
-          <p className="text-xs text-muted-foreground">
-            Formatos permitidos: JPG, PNG, PDF. Tamaño máximo: 5MB
-          </p>
-        </div>
-
-        {file && (
-          <div className="p-3 bg-background rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-success" />
-              <span className="text-sm">{file.name}</span>
+        {isCompleted ? (
+          <div className="flex items-center space-x-2 p-4 bg-success-muted border border-success-border rounded-lg">
+            <CheckCircle className="h-5 w-5 text-success" />
+            <div>
+              <p className="text-sm font-medium text-success-foreground">Comprobante de pago subido exitosamente</p>
+              <p className="text-xs text-success-foreground/75">
+                {(pkg.payment_receipt as any)?.filename} • {new Date((pkg.payment_receipt as any)?.uploadedAt).toLocaleDateString('es-GT')}
+              </p>
             </div>
           </div>
+        ) : (
+          <>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*,.pdf"
+              className="hidden"
+            />
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mb-4">
+                Arrastra tu comprobante de pago aquí o haz clic para seleccionar
+              </p>
+              <Button 
+                onClick={handleUploadClick}
+                className="w-full"
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Subiendo...
+                  </>
+                ) : (
+                  <>
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Subir Comprobante de Pago
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Formatos permitidos: PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
+            </p>
+          </>
         )}
-
-        <Button
-          onClick={handleUpload}
-          disabled={!file || loading}
-          className="w-full"
-        >
-          {loading ? (
-            <>
-              <Upload className="h-4 w-4 mr-2 animate-spin" />
-              Subiendo...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Subir Comprobante
-            </>
-          )}
-        </Button>
       </CardContent>
     </Card>
   );
