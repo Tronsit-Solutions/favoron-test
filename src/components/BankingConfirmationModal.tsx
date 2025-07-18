@@ -168,7 +168,7 @@ const BankingConfirmationModal = ({
               <span className="font-medium">Pago a recibir:</span>
             </div>
             <p className="text-2xl font-bold text-green-600">
-              ${pkg.quote?.price ? parseFloat(pkg.quote.price).toFixed(2) : '0.00'}
+              Q{pkg.quote?.price ? parseFloat(pkg.quote.price).toFixed(2) : '0.00'}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Compensación por completar el Favorón

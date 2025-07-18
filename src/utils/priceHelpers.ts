@@ -8,7 +8,7 @@ export const calculateProductsTotal = (products: Product[]) => {
 
 export const formatPrice = (price: number | string) => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  return `$${numPrice.toFixed(2)}`;
+  return `Q${numPrice.toFixed(2)}`;
 };
 
 export const formatPriceRange = (min: number, max: number) => {

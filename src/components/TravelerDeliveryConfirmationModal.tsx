@@ -181,7 +181,7 @@ const TravelerDeliveryConfirmationModal = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total a recibir:</span>
-                  <span className="font-bold text-green-600 text-lg">${totalAmount.toFixed(2)}</span>
+                  <span className="font-bold text-green-600 text-lg">Q{totalAmount.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
@@ -303,7 +303,7 @@ const TravelerDeliveryConfirmationModal = ({
                       <p className="text-sm text-muted-foreground">Paquete #{pkg.id}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${pkg.quote?.price || '0.00'}</p>
+                      <p className="font-medium">Q{pkg.quote?.price || '0.00'}</p>
                       <Badge variant="outline" className="text-xs">
                         {pkg.status}
                       </Badge>
