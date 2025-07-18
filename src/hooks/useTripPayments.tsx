@@ -128,6 +128,17 @@ export const useTripPayments = (tripId?: string) => {
     fetchTripPayment();
   }, [tripId]);
 
+  // Refrescar datos cada 5 segundos para asegurar sincronización
+  useEffect(() => {
+    if (!tripId) return;
+    
+    const interval = setInterval(() => {
+      fetchTripPayment();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [tripId]);
+
   return {
     tripPayment,
     loading,
