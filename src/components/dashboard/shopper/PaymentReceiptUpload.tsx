@@ -156,7 +156,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <Card className="border-primary/20">
+    <Card className="border-foreground/20">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
