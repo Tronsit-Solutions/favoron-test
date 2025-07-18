@@ -171,6 +171,8 @@ const CollapsiblePackageCard = ({
                     <UploadDocuments 
                       packageId={pkg.id}
                       currentStatus={pkg.status}
+                      currentConfirmation={pkg.purchase_confirmation}
+                      currentTracking={pkg.tracking_info}
                       onUpload={(type, data) => onUploadDocument(pkg.id, type as DocumentType, data)}
                     />
                   </div>

@@ -121,7 +121,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           </Badge>
         </CardTitle>
         <CardDescription className="text-xs">
-          Historial de documentos y comprobantes subidos
+          Documentos subidos para este pedido (confirmación de compra y tracking son independientes)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
