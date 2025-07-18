@@ -34,7 +34,7 @@ const TravelerPackagePriorityActions = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                <DollarSign className="h-4 w-4" />
+                <span className="font-bold text-sm">Q</span>
               </div>
               <div>
                 <p className="text-sm font-semibold mb-1">💰 Tu compensación</p>
