@@ -12,8 +12,10 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
 
   useEffect(() => {
     const fetchPaymentReceipt = async () => {
+      console.log('🔍 TravelerPackageInfo - Package ID:', pkg.id, 'Status:', pkg.status);
       if (pkg.status === 'completed' || pkg.status === 'delivered_to_office') {
         try {
+          console.log('🔍 TravelerPackageInfo - Fetching payment receipt for package:', pkg.id);
           const { data, error } = await supabase
             .from('payment_orders')
             .select('receipt_url, receipt_filename, status, amount')
@@ -22,10 +24,13 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
             .single();
 
           if (!error && data) {
+            console.log('🔍 TravelerPackageInfo - Payment receipt found:', data);
             setPaymentReceipt(data);
+          } else {
+            console.log('🔍 TravelerPackageInfo - No payment receipt found. Error:', error);
           }
         } catch (error) {
-          console.error('Error fetching payment receipt:', error);
+          console.error('🔍 TravelerPackageInfo - Error fetching payment receipt:', error);
         }
       }
     };
