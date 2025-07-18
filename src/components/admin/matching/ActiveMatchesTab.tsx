@@ -419,7 +419,7 @@ const ActiveMatchesTab = ({
                             {pkg.status === 'delivered_to_office' 
                               ? (pkg.confirmed_delivery_address 
                                   ? '✅ Confirmar entrega' 
-                                  : '✅ Confirmar recojo')
+                                  : '✅ Confirmar pick-up')
                               : '✅ Confirmar entrega'
                             }
                           </Button>
