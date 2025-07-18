@@ -227,6 +227,8 @@ export type Database = {
           id: string
           notes: string | null
           package_id: string
+          receipt_filename: string | null
+          receipt_url: string | null
           status: string
           traveler_id: string
           updated_at: string
@@ -242,6 +244,8 @@ export type Database = {
           id?: string
           notes?: string | null
           package_id: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
           status?: string
           traveler_id: string
           updated_at?: string
@@ -257,6 +261,8 @@ export type Database = {
           id?: string
           notes?: string | null
           package_id?: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
           status?: string
           traveler_id?: string
           updated_at?: string

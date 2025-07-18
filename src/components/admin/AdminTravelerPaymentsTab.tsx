@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, Upload } from "lucide-react";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -23,6 +25,8 @@ type PaymentOrderWithDetails = {
   updated_at: string;
   completed_at?: string;
   notes?: string;
+  receipt_url?: string;
+  receipt_filename?: string;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -60,6 +64,8 @@ const AdminTravelerPaymentsTab = () => {
     order: null
   });
   const [notes, setNotes] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
@@ -69,6 +75,7 @@ const AdminTravelerPaymentsTab = () => {
     if (!confirmDialog.order) return;
 
     try {
+      setUploading(true);
       const newStatus = confirmDialog.action === 'complete' ? 'completed' : 'rejected';
       const updateData: any = {
         status: newStatus,
@@ -77,20 +84,78 @@ const AdminTravelerPaymentsTab = () => {
 
       if (confirmDialog.action === 'complete') {
         updateData.completed_at = new Date().toISOString();
+        
+        // Upload receipt if provided
+        if (receiptFile) {
+          const fileExt = receiptFile.name.split('.').pop();
+          const fileName = `${confirmDialog.order.id}_${Date.now()}.${fileExt}`;
+          const filePath = `${confirmDialog.order.traveler_id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('payment-receipts')
+            .upload(filePath, receiptFile);
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('payment-receipts')
+            .getPublicUrl(filePath);
+
+          updateData.receipt_url = publicUrl;
+          updateData.receipt_filename = receiptFile.name;
+        }
       }
 
       await updatePaymentOrder(confirmDialog.order.id, updateData);
       
       toast({
         title: confirmDialog.action === 'complete' ? "Pago completado" : "Pago rechazado",
-        description: `La orden de pago ha sido ${confirmDialog.action === 'complete' ? 'completada' : 'rechazada'} exitosamente.`,
+        description: `La orden de pago ha sido ${confirmDialog.action === 'complete' ? 'completada' : 'rechazada'} exitosamente.${receiptFile ? ' El comprobante ha sido adjuntado.' : ''}`,
         variant: confirmDialog.action === 'complete' ? "default" : "destructive"
       });
 
       setConfirmDialog({ isOpen: false, action: 'complete', order: null });
       setNotes("");
+      setReceiptFile(null);
     } catch (error) {
       console.error('Error updating payment order:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al procesar la acción. Inténtalo de nuevo.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Tipo de archivo no válido",
+          description: "Solo se permiten imágenes (JPEG, PNG, WebP) y PDF",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Archivo muy grande",
+          description: "El archivo no puede ser mayor a 5MB",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setReceiptFile(file);
     }
   };
 
@@ -139,8 +204,8 @@ const AdminTravelerPaymentsTab = () => {
                   <CreditCard className="h-4 w-4" />
                   <span className="text-lg font-bold">{formatCurrency(order.amount || 0)}</span>
                 </div>
+              </div>
             </div>
-          </div>
 
           <div>
             <Label className="text-sm font-medium">Información bancaria</Label>
@@ -175,6 +240,27 @@ const AdminTravelerPaymentsTab = () => {
                 <div className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   <span>Paquete: {order.packages.item_description || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {order.receipt_url && (
+            <div>
+              <Label className="text-sm font-medium">Comprobante de pago</Label>
+              <div className="bg-muted/30 rounded p-3 mt-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-4 w-4" />
+                    <span className="text-sm">{order.receipt_filename || 'Comprobante'}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(order.receipt_url, '_blank')}
+                  >
+                    Ver comprobante
+                  </Button>
                 </div>
               </div>
             </div>
@@ -465,18 +551,65 @@ const AdminTravelerPaymentsTab = () => {
               />
             </div>
             
+            {confirmDialog.action === 'complete' && (
+              <div className="space-y-2">
+                <Label htmlFor="receipt">Comprobante de pago (opcional)</Label>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <div className="text-center">
+                      <Label htmlFor="receipt" className="cursor-pointer text-primary hover:text-primary/80">
+                        Seleccionar archivo
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG, WebP o PDF (máx. 5MB)
+                      </p>
+                    </div>
+                    <Input
+                      id="receipt"
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                  {receiptFile && (
+                    <div className="mt-3 p-2 bg-muted rounded flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4" />
+                        <span className="text-sm font-medium">{receiptFile.name}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setReceiptFile(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
-                onClick={() => setConfirmDialog({ isOpen: false, action: 'complete', order: null })}
+                onClick={() => {
+                  setConfirmDialog({ isOpen: false, action: 'complete', order: null });
+                  setReceiptFile(null);
+                  setNotes("");
+                }}
+                disabled={uploading}
               >
                 Cancelar
               </Button>
               <Button
                 variant={confirmDialog.action === 'complete' ? 'default' : 'destructive'}
                 onClick={handlePaymentAction}
+                disabled={uploading}
               >
-                {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar'}
+                {uploading ? 'Procesando...' : (confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar')}
               </Button>
             </div>
           </div>
