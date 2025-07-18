@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { AdminTripPaymentsTab } from "./AdminTripPaymentsTab";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { supabase } from "@/integrations/supabase/client";
@@ -299,9 +300,17 @@ const AdminTravelerPaymentsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Nueva sección para pagos por viaje */}
+      <AdminTripPaymentsTab
+        paymentOrders={orders}
+        onUpdatePaymentStatus={(orderId, status) => updatePaymentOrder(orderId, { status })}
+        onViewPaymentDetail={setSelectedOrder}
+      />
+
+      {/* Sección existente para pagos por paquete individual */}
       <div className="flex items-center gap-2">
         <CreditCard className="h-6 w-6 text-primary" />
-        <h3 className="text-2xl font-bold">Órdenes de Pago a Viajeros</h3>
+        <h3 className="text-2xl font-bold">Pagos por Paquete Individual (Sistema Anterior)</h3>
         {pendingOrders.length > 0 && (
           <Badge variant="destructive" className="ml-2">
             {pendingOrders.length} pendientes

@@ -5,6 +5,7 @@ import { Home, Phone, Edit, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
+import { TripPaymentSummary } from "./TripPaymentSummary";
 
 interface TripCardProps {
   trip: any;
@@ -13,9 +14,10 @@ interface TripCardProps {
   packages?: any[];
   travelerProfile?: any;
   onDeliveryConfirmed?: () => void;
+  currentUser?: any;
 }
 
-const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed }: TripCardProps) => {
+const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
 
@@ -127,6 +129,13 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               )}
             </div>
           </div>
+
+          {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
+          {currentUser?.id === trip.user_id && (
+            <div className="mt-4">
+              <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

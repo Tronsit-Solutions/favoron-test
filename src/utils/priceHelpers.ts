@@ -14,3 +14,8 @@ export const formatPrice = (price: number | string) => {
 export const formatPriceRange = (min: number, max: number) => {
   return `${formatPrice(min)} - ${formatPrice(max)}`;
 };
+
+export const formatCurrency = (amount: number | string) => {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return `Q${numAmount.toFixed(2)}`;
+};

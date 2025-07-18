@@ -30,6 +30,14 @@ export const usePaymentOrders = () => {
               arrival_date
             )
           ),
+          trips (
+            id,
+            from_city,
+            to_city,
+            departure_date,
+            arrival_date,
+            user_id
+          ),
           profiles!traveler_id (
             id,
             first_name,

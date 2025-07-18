@@ -226,11 +226,12 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
-          package_id: string
+          package_id: string | null
           receipt_filename: string | null
           receipt_url: string | null
           status: string
           traveler_id: string
+          trip_id: string | null
           updated_at: string
         }
         Insert: {
@@ -243,11 +244,12 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          package_id: string
+          package_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
           traveler_id: string
+          trip_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -260,11 +262,12 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
-          package_id?: string
+          package_id?: string | null
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
           traveler_id?: string
+          trip_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -280,6 +283,13 @@ export type Database = {
             columns: ["traveler_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
             referencedColumns: ["id"]
           },
         ]
@@ -337,6 +347,57 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      trip_payment_accumulator: {
+        Row: {
+          accumulated_amount: number
+          created_at: string
+          delivered_packages_count: number
+          id: string
+          payment_order_created: boolean
+          total_packages_count: number
+          traveler_id: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          accumulated_amount?: number
+          created_at?: string
+          delivered_packages_count?: number
+          id?: string
+          payment_order_created?: boolean
+          total_packages_count?: number
+          traveler_id: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          accumulated_amount?: number
+          created_at?: string
+          delivered_packages_count?: number
+          id?: string
+          payment_order_created?: boolean
+          total_packages_count?: number
+          traveler_id?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_payment_accumulator_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_payment_accumulator_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trips: {
         Row: {

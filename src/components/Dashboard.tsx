@@ -347,6 +347,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                         trip={trip}
                         getStatusBadge={getStatusBadge}
                         onEditTrip={handleEditTrip}
+                        currentUser={currentUser}
                       />
                     ))}
                   </div>
