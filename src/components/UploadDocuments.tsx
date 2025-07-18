@@ -61,7 +61,7 @@ const UploadDocuments = ({
           <div className="flex items-center justify-center space-x-6">
             <div className="flex items-center space-x-2">
               <div className={`h-3 w-3 rounded-full ${currentConfirmation ? 'bg-success' : 'bg-muted'}`} />
-              <span className={`text-sm ${currentConfirmation ? 'text-success-foreground font-medium' : 'text-muted-foreground'}`}>
+              <span className={`text-sm ${currentConfirmation ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
                 Confirmación de compra
               </span>
             </div>
