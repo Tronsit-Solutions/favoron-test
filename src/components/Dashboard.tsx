@@ -21,7 +21,7 @@ import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
 import { useNotificationGenerator } from "@/hooks/useNotificationGenerator";
 import UserManagement from "./admin/UserManagement";
-import BankingConfirmationModal from "./BankingConfirmationModal";
+
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,9 +67,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     refreshTrips
   } = useDashboardState(user);
 
-  // Banking confirmation modal state
-  const [showBankingModal, setShowBankingModal] = useState(false);
-  const [selectedPackageForBanking, setSelectedPackageForBanking] = useState<any>(null);
 
   const {
     handlePackageSubmit,
@@ -379,15 +376,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                             onQuote={handleQuote}
                             onConfirmReceived={handleConfirmPackageReceived}
                             onConfirmOfficeDelivery={(packageId) => {
-                              // Esta función ahora es solo para el admin dashboard
-                              // Los viajeros usan su propio modal bancario
-                              const pkg = packages.find(p => p.id === packageId);
-                              if (pkg) {
-                                setSelectedPackageForBanking(pkg);
-                                handleConfirmOfficeReception(packageId, () => {
-                                  setShowBankingModal(true);
-                                });
-                              }
+                              // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
+                              handleConfirmOfficeReception(packageId);
                             }}
                             defaultExpanded={hasPendingActions}
                           />
@@ -409,13 +399,8 @@ const Dashboard = ({ user }: DashboardProps) => {
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
                onConfirmOfficeReception={(packageId) => {
-                 const pkg = packages.find(p => p.id === packageId);
-                 if (pkg) {
-                   setSelectedPackageForBanking(pkg);
-                   handleConfirmOfficeReception(packageId, () => {
-                     setShowBankingModal(true);
-                   });
-                 }
+                 // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
+                 handleConfirmOfficeReception(packageId);
                }}
               onConfirmDeliveryComplete={handleConfirmDeliveryComplete}
               onDiscardPackage={handleDiscardPackage}
@@ -475,22 +460,6 @@ const Dashboard = ({ user }: DashboardProps) => {
         />
       )}
 
-      {/* Banking Confirmation Modal */}
-      {selectedPackageForBanking && (
-        <BankingConfirmationModal
-          isOpen={showBankingModal}
-          onClose={() => {
-            setShowBankingModal(false);
-            setSelectedPackageForBanking(null);
-          }}
-          pkg={selectedPackageForBanking}
-          travelerProfile={currentUser}
-          onConfirm={() => {
-            // Refresh packages after payment confirmation
-            refreshPackages();
-          }}
-        />
-      )}
     </div>
   );
 };
