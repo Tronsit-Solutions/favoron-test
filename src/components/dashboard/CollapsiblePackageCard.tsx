@@ -169,7 +169,7 @@ const CollapsiblePackageCard = ({
                   onEditDocument={handleEditDocument}
                 />
                 <ShopperPackageDetails pkg={pkg} />
-                <ShopperPackageInfo pkg={pkg} />
+                <ShopperPackageInfo pkg={pkg} onPackageUpdate={() => window.location.reload()} />
                 {renderActionButtons()}
               </div>
 

@@ -1,10 +1,13 @@
 import { Package as PackageIcon, MapPin } from "lucide-react";
 import { Package } from "@/types";
+import PaymentReceiptUpload from "./PaymentReceiptUpload";
 interface ShopperPackageInfoProps {
   pkg: Package;
+  onPackageUpdate?: () => void;
 }
 const ShopperPackageInfo = ({
-  pkg
+  pkg,
+  onPackageUpdate
 }: ShopperPackageInfoProps) => {
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
@@ -30,8 +33,22 @@ const ShopperPackageInfo = ({
     if (!pkg.traveler_address) return null;
     return null; // Component not implemented yet
   };
+
+  const renderPaymentUpload = () => {
+    if (!['quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
+    return (
+      <div className="mt-4">
+        <PaymentReceiptUpload 
+          pkg={pkg} 
+          onUploadComplete={() => onPackageUpdate?.()} 
+        />
+      </div>
+    );
+  };
+
   return <>
       {renderQuoteInfo()}
+      {renderPaymentUpload()}
       {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
     </>;
 };
