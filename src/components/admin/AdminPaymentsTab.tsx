@@ -32,8 +32,8 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
 
   // Filtrar pagos ya aprobados/procesados
   const processedPayments = packages.filter(pkg => 
-    (pkg.status === 'approved' && pkg.payment_receipt) || 
-    (pkg.status === 'pending_approval' && pkg.payment_receipt)
+    (pkg.status === 'paid' && pkg.payment_receipt) || 
+    (pkg.status === 'payment_rejected' && pkg.payment_receipt)
   );
 
   const handlePaymentAction = () => {
