@@ -17,19 +17,6 @@ export const usePaymentOrders = () => {
         .from('payment_orders')
         .select(`
           *,
-          packages (
-            id,
-            item_description,
-            quote,
-            matched_trip_id,
-            trips (
-              id,
-              from_city,
-              to_city,
-              departure_date,
-              arrival_date
-            )
-          ),
           trips (
             id,
             from_city,
