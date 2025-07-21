@@ -13,6 +13,7 @@ import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInf
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
+import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import { PackageShippingInstructions } from "@/components/dashboard/PackageShippingInstructions";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
@@ -125,6 +126,9 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent>
+            {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
+            <ShippingInstructions pkg={pkg} />
+            
             {/* Priority Actions Section */}
             {viewMode === 'user' && (
               <ShopperPackagePriorityActions 

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Eye, FileText, DollarSign } from "lucide-react";
 
 interface AdminPaymentsTabProps {
@@ -36,19 +37,49 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
     (pkg.status === 'payment_rejected' && pkg.payment_receipt)
   );
 
-  const handlePaymentAction = () => {
+  const handlePaymentAction = async () => {
     if (!confirmDialog.payment) return;
 
     const newStatus = confirmDialog.action === 'approve' ? 'paid' : 'payment_rejected';
     
-    // Actualizar el estado del paquete
-    onUpdateStatus('package', confirmDialog.payment.id, newStatus);
-    
-    toast({
-      title: confirmDialog.action === 'approve' ? "Pago aprobado" : "Pago rechazado",
-      description: `El pago del pedido #${confirmDialog.payment.id} ha sido ${confirmDialog.action === 'approve' ? 'aprobado' : 'rechazado'}.`,
-      variant: confirmDialog.action === 'approve' ? "default" : "destructive"
-    });
+    try {
+      // Actualizar el estado del paquete
+      onUpdateStatus('package', confirmDialog.payment.id, newStatus);
+      
+      // Si se aprueba el pago, enviar notificación al shopper con información de envío
+      if (confirmDialog.action === 'approve') {
+        const pkg = confirmDialog.payment;
+        
+        // Crear notificación con información de envío
+        await supabase.rpc('create_notification', {
+          _user_id: pkg.user_id,
+          _title: '✅ ¡Pago aprobado! Información de envío',
+          _message: `Tu pago ha sido aprobado. Ahora puedes enviar el paquete "${pkg.item_description}" a la dirección del viajero.`,
+          _type: 'payment_approved',
+          _priority: 'high',
+          _metadata: {
+            package_id: pkg.id,
+            traveler_address: pkg.traveler_address,
+            shipping_instructions: `Enviar a: ${pkg.traveler_address?.recipientName || 'N/A'} - ${pkg.traveler_address?.streetAddress || 'N/A'}, ${pkg.traveler_address?.cityArea || 'N/A'}`
+          }
+        });
+      }
+      
+      toast({
+        title: confirmDialog.action === 'approve' ? "Pago aprobado" : "Pago rechazado",
+        description: confirmDialog.action === 'approve' 
+          ? `El pago ha sido aprobado y el shopper ha sido notificado con la información de envío.`
+          : `El pago del pedido #${confirmDialog.payment.id} ha sido rechazado.`,
+        variant: confirmDialog.action === 'approve' ? "default" : "destructive"
+      });
+    } catch (error) {
+      console.error('Error processing payment action:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la acción de pago.",
+        variant: "destructive"
+      });
+    }
 
     setConfirmDialog({ isOpen: false, action: 'approve', payment: null });
     setComment("");
