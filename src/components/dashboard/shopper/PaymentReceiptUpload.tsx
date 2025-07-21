@@ -8,7 +8,7 @@ import { Package } from "@/types";
 
 interface PaymentReceiptUploadProps {
   pkg: Package;
-  onUploadComplete: () => void;
+  onUploadComplete: (updatedPkg: Package) => void;
 }
 
 const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadProps) => {
@@ -87,8 +87,18 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
       if (updateError) throw updateError;
 
+      // Actualizar estado local inmediatamente
       setUploadedFile(paymentReceiptData);
-      onUploadComplete();
+      
+      // Crear el paquete actualizado para pasarlo al parent
+      const updatedPkg = {
+        ...pkg,
+        payment_receipt: paymentReceiptData,
+        status: 'payment_pending' as const
+      };
+      
+      // Llamar onUploadComplete con el paquete actualizado
+      onUploadComplete(updatedPkg);
 
       toast({
         title: "Comprobante subido exitosamente",

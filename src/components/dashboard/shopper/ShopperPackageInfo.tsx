@@ -3,7 +3,7 @@ import { Package } from "@/types";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 interface ShopperPackageInfoProps {
   pkg: Package;
-  onPackageUpdate?: () => void;
+  onPackageUpdate?: (updatedPkg?: Package) => void;
 }
 const ShopperPackageInfo = ({
   pkg,
@@ -40,7 +40,10 @@ const ShopperPackageInfo = ({
       <div className="mt-4">
         <PaymentReceiptUpload 
           pkg={pkg} 
-          onUploadComplete={() => onPackageUpdate?.()} 
+          onUploadComplete={(updatedPkg) => {
+            // Actualizar solo este paquete específico sin hacer refresh completo
+            onPackageUpdate?.(updatedPkg);
+          }} 
         />
       </div>
     );
