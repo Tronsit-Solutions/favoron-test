@@ -20,11 +20,14 @@ import {
   Phone,
   ExternalLink,
   Save,
-  X
+  X,
+  CheckCircle,
+  Package
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 
 interface AdminActionsModalProps {
   package: any;
@@ -40,8 +43,10 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   const [newStatus, setNewStatus] = useState("");
   const [internalNote, setInternalNote] = useState(pkg?.internal_notes || "");
   const [selectedTripId, setSelectedTripId] = useState(pkg?.matched_trip_id || "");
+  const [adminNotes, setAdminNotes] = useState("");
   const { user } = useAuth();
   const { toast } = useToast();
+  const { createPaymentOrder } = usePaymentOrders();
 
   if (!pkg) return null;
 
@@ -54,12 +59,11 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
     { value: 'quote_sent', label: 'Cotización Enviada' },
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
     { value: 'address_confirmed', label: 'Dirección Confirmada' },
-    { value: 'payment_pending', label: 'Pago Pendiente' },
-    { value: 'payment_confirmed', label: 'Pago Confirmado' },
+    { value: 'paid', label: 'Pago Pendiente' },
     { value: 'purchased', label: 'Comprado' },
     { value: 'in_transit', label: 'En Tránsito' },
-    { value: 'delivered_to_office', label: 'Entregado en Oficina' },
-    { value: 'received_by_traveler', label: 'Recibido por Viajero' },
+    { value: 'pending_office_confirmation', label: 'Esperando Confirmación Oficina' },
+    { value: 'delivered_to_office', label: 'Entregado en Oficina (Confirmado)' },
     { value: 'rejected', label: 'Rechazado' },
   ];
 
@@ -230,6 +234,110 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
     }
   };
 
+  const handleConfirmDelivery = async (action: 'confirm' | 'reject') => {
+    setIsLoading(true);
+    try {
+      if (action === 'confirm') {
+        // Confirmar entrega y crear payment order
+        const travelerBankInfo = pkg.office_delivery?.traveler_declaration?.bank_info;
+        const travelerDeclaration = pkg.office_delivery?.traveler_declaration;
+        
+        if (!travelerBankInfo || !travelerDeclaration) {
+          throw new Error('Información bancaria o declaración del viajero no encontrada');
+        }
+
+        // Crear la confirmación del admin
+        const adminConfirmation = {
+          timestamp: new Date().toISOString(),
+          admin_id: user?.id,
+          notes: adminNotes,
+          confirmed: true
+        };
+
+        // Actualizar el paquete con la confirmación del admin
+        const updatedOfficeDelivery = {
+          ...pkg.office_delivery,
+          admin_confirmation: adminConfirmation,
+          status: 'confirmed'
+        };
+
+        await supabase
+          .from('packages')
+          .update({
+            status: 'delivered_to_office',
+            office_delivery: updatedOfficeDelivery
+          })
+          .eq('id', pkg.id);
+
+        // Crear orden de pago si hay quote
+        if (pkg.quote?.price) {
+          await createPaymentOrder({
+            trip_id: pkg.matched_trip_id,
+            traveler_id: travelerDeclaration.traveler_id,
+            amount: parseFloat(pkg.quote.price),
+            bank_account_holder: travelerBankInfo.bank_account_holder,
+            bank_name: travelerBankInfo.bank_name,
+            bank_account_type: travelerBankInfo.bank_account_type,
+            bank_account_number: travelerBankInfo.bank_account_number,
+            notes: `Entrega confirmada por admin. ${adminNotes}`.trim(),
+            status: 'pending'
+          });
+        }
+
+        await logAction('delivery_confirmed', 'Entrega confirmada por admin y orden de pago creada');
+
+        toast({
+          title: "Entrega confirmada",
+          description: "La entrega se confirmó y se creó la orden de pago para el viajero",
+        });
+
+      } else {
+        // Rechazar entrega - volver a in_transit
+        const adminConfirmation = {
+          timestamp: new Date().toISOString(),
+          admin_id: user?.id,
+          notes: adminNotes,
+          confirmed: false
+        };
+
+        const updatedOfficeDelivery = {
+          ...pkg.office_delivery,
+          admin_confirmation: adminConfirmation,
+          status: 'rejected'
+        };
+
+        await supabase
+          .from('packages')
+          .update({
+            status: 'in_transit',
+            office_delivery: updatedOfficeDelivery
+          })
+          .eq('id', pkg.id);
+
+        await logAction('delivery_rejected', 'Entrega rechazada por admin');
+
+        toast({
+          title: "Entrega rechazada",
+          description: "La entrega fue rechazada. El viajero puede volver a declarar entrega.",
+          variant: "destructive"
+        });
+      }
+
+      onRefresh?.();
+      onClose();
+
+    } catch (error) {
+      console.error('Error processing delivery confirmation:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo procesar la confirmación de entrega",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -267,11 +375,14 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${pkg.status === 'pending_office_confirmation' ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="status">Estado</TabsTrigger>
             <TabsTrigger value="reassign">Reasignar</TabsTrigger>
             <TabsTrigger value="notes">Notas</TabsTrigger>
             <TabsTrigger value="contact">Contacto</TabsTrigger>
+            {pkg.status === 'pending_office_confirmation' && (
+              <TabsTrigger value="delivery">Confirmar Entrega</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="status" className="space-y-4">
@@ -498,6 +609,82 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
               </CardContent>
             </Card>
           </TabsContent>
+
+          {pkg.status === 'pending_office_confirmation' && (
+            <TabsContent value="delivery" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Confirmar Recepción de Entrega</span>
+                  </CardTitle>
+                  <CardDescription>
+                    El viajero declaró que entregó este paquete. Confirma o rechaza la recepción.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Información de la declaración del viajero */}
+                  {pkg.office_delivery?.traveler_declaration && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                        <Package className="h-4 w-4" />
+                        Declaración del Viajero
+                      </h4>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p><strong>Método:</strong> {pkg.office_delivery.traveler_declaration.delivery_method === 'oficina' ? 'Oficina Favorón' : 'Mensajero'}</p>
+                        <p><strong>Fecha:</strong> {new Date(pkg.office_delivery.traveler_declaration.timestamp).toLocaleString('es-GT')}</p>
+                        {pkg.office_delivery.traveler_declaration.notes && (
+                          <p><strong>Notas:</strong> {pkg.office_delivery.traveler_declaration.notes}</p>
+                        )}
+                        <p><strong>Pago a procesar:</strong> Q{pkg.quote?.price || '0.00'}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notas del admin */}
+                  <div>
+                    <Label htmlFor="admin-notes">Notas administrativas</Label>
+                    <Textarea
+                      id="admin-notes"
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="Agregar notas sobre la confirmación/rechazo de la entrega..."
+                      className="mt-2"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Botones de acción */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      onClick={() => handleConfirmDelivery('reject')}
+                      disabled={isLoading}
+                      variant="outline"
+                      className="border-red-200 text-red-700 hover:bg-red-50"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Rechazar Entrega
+                    </Button>
+                    <Button 
+                      onClick={() => handleConfirmDelivery('confirm')}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {isLoading ? "Procesando..." : "Confirmar y Pagar"}
+                    </Button>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-800">
+                      <strong>Importante:</strong> Al confirmar, se creará automáticamente la orden de pago para el viajero 
+                      y se acumulará en su cuenta para la próxima transferencia.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">

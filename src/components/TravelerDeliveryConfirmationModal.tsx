@@ -86,7 +86,7 @@ const TravelerDeliveryConfirmationModal = ({
     setLoading(true);
 
     try {
-      // Actualizar información bancaria del perfil si cambió
+      // Actualizar información bancaria del perfil para cuando se apruebe
       await supabase
         .from('profiles')
         .update({
@@ -97,43 +97,37 @@ const TravelerDeliveryConfirmationModal = ({
         })
         .eq('id', travelerProfile.id);
 
-      // Crear orden de pago para cada paquete
+      // Solo actualizar estado de todos los paquetes con declaración del viajero
+      // NO crear payment orders todavía - eso lo hará el admin al confirmar
       for (const pkg of packages) {
-        if (pkg.quote?.price) {
-          await createPaymentOrder({
-            trip_id: pkg.matched_trip_id,
-            traveler_id: travelerProfile.id,
-            amount: parseFloat(pkg.quote.price),
+        const travelerDeclaration = {
+          timestamp: new Date().toISOString(),
+          delivery_method: deliveryMethod,
+          notes: notes,
+          traveler_id: travelerProfile.id,
+          bank_info: {
             bank_account_holder: bankInfo.bank_account_holder,
             bank_name: bankInfo.bank_name,
             bank_account_type: bankInfo.bank_account_type,
             bank_account_number: bankInfo.bank_account_number,
-            notes: `Entrega: ${deliveryMethod}. ${notes}`.trim(),
-            status: 'pending'
-          });
-        }
-      }
+          }
+        };
 
-      // Actualizar estado del viaje
-      await supabase
-        .from('trips')
-        .update({ 
-          status: 'completed',
-          delivery_method: deliveryMethod 
-        })
-        .eq('id', trip.id);
-
-      // Actualizar estado de todos los paquetes
-      for (const pkg of packages) {
         await supabase
           .from('packages')
-          .update({ status: 'completed' })
+          .update({ 
+            status: 'pending_office_confirmation',
+            office_delivery: {
+              traveler_declaration: travelerDeclaration,
+              status: 'pending_admin_confirmation'
+            }
+          })
           .eq('id', pkg.id);
       }
 
       toast({
-        title: "¡Gracias por completar este Favorón!",
-        description: "El equipo de Favorón revisará tu entrega y realizará la transferencia próximamente.",
+        title: "Declaración de entrega registrada",
+        description: "El equipo de Favorón debe confirmar la recepción antes de procesar tu pago.",
       });
 
       onConfirmDelivery();
@@ -142,7 +136,7 @@ const TravelerDeliveryConfirmationModal = ({
       console.error('Error confirming delivery:', error);
       toast({
         title: "Error",
-        description: "No se pudo procesar la confirmación de entrega",
+        description: "No se pudo procesar la declaración de entrega",
         variant: "destructive",
       });
     } finally {
@@ -156,7 +150,7 @@ const TravelerDeliveryConfirmationModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
-            Confirmar entrega de paquetes
+            Declarar entrega de paquetes
           </DialogTitle>
         </DialogHeader>
 
@@ -330,7 +324,7 @@ const TravelerDeliveryConfirmationModal = ({
               disabled={loading || !deliveryMethod}
               className="bg-green-600 hover:bg-green-700"
             >
-              {loading ? "Procesando..." : "Confirmar entrega y generar orden de pago"}
+              {loading ? "Procesando..." : "Declarar entrega (requiere confirmación admin)"}
             </Button>
           </div>
         </div>

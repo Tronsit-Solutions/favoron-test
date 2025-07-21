@@ -13,6 +13,10 @@ export const getStatusColor = (status: string): string => {
       return 'bg-warning text-warning-foreground';
     case 'in_transit':
       return 'bg-info text-info-foreground';
+    case 'pending_office_confirmation':
+      return 'bg-warning text-warning-foreground';
+    case 'delivered_to_office':
+      return 'bg-success text-success-foreground';
     case 'delivered':
       return 'bg-success text-success-foreground';
     case 'received_by_traveler':
@@ -37,6 +41,10 @@ export const getStatusLabel = (status: string): string => {
       return 'Pago pendiente de verificación';
     case 'in_transit':
       return 'En tránsito';
+    case 'pending_office_confirmation':
+      return 'Esperando confirmación de oficina';
+    case 'delivered_to_office':
+      return 'Entregado en oficina';
     case 'delivered':
       return 'Entregado';
     case 'received_by_traveler':

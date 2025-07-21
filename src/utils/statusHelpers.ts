@@ -8,10 +8,11 @@ export const getStatusBadge = (status: string) => {
     matched: { label: 'Emparejado', variant: 'default' },
     quote_sent: { label: 'Cotización enviada', variant: 'default' },
     quote_accepted: { label: 'Esperando pago', variant: 'destructive' },
-    payment_confirmed: { label: 'Pago confirmado', variant: 'default' },
+    paid: { label: 'Pago pendiente', variant: 'default' },
     purchased: { label: 'Comprado', variant: 'default' },
     in_transit: { label: 'En tránsito', variant: 'default' },
-    delivered: { label: 'Entregado', variant: 'default' },
+    pending_office_confirmation: { label: 'Esperando confirmación', variant: 'secondary' },
+    delivered_to_office: { label: 'Entregado en oficina', variant: 'default' },
     cancelled: { label: 'Cancelado', variant: 'destructive' },
     
     // Trip statuses
