@@ -82,7 +82,7 @@ const BankingConfirmationModal = ({
       const { error: paymentError } = await supabase
         .from('payment_orders')
         .insert({
-          package_id: pkg.id,
+          trip_id: pkg.matched_trip_id,
           traveler_id: travelerProfile.id,
           amount: amount,
           bank_account_holder: bankingInfo.bankAccountHolder,

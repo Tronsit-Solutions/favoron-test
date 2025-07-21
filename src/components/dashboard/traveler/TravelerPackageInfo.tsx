@@ -19,7 +19,7 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
           const { data, error } = await supabase
             .from('payment_orders')
             .select('receipt_url, receipt_filename, status, amount')
-            .eq('package_id', pkg.id)
+            .eq('trip_id', pkg.matched_trip_id)
             .eq('status', 'completed')
             .single();
 

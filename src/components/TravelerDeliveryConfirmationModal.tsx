@@ -101,7 +101,7 @@ const TravelerDeliveryConfirmationModal = ({
       for (const pkg of packages) {
         if (pkg.quote?.price) {
           await createPaymentOrder({
-            package_id: pkg.id,
+            trip_id: pkg.matched_trip_id,
             traveler_id: travelerProfile.id,
             amount: parseFloat(pkg.quote.price),
             bank_account_holder: bankInfo.bank_account_holder,
