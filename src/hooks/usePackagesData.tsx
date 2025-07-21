@@ -60,7 +60,14 @@ export const usePackagesData = () => {
             last_day_packages,
             delivery_date,
             from_city,
-            to_city
+            to_city,
+            profiles:user_id (
+              id,
+              first_name,
+              last_name,
+              username,
+              email
+            )
           )
         `)
         .order('created_at', { ascending: false });

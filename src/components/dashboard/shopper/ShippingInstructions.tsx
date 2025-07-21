@@ -12,6 +12,12 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
 
   const address = pkg.traveler_address as any;
   const tripDates = pkg.matched_trip_dates as any;
+  
+  // Obtener el nombre del viajero desde el perfil
+  const travelerProfile = (pkg as any).trips?.profiles;
+  const travelerName = travelerProfile 
+    ? `${travelerProfile.first_name || ''} ${travelerProfile.last_name || ''}`.trim() || travelerProfile.username
+    : 'No especificado';
 
   return (
     <div className="bg-green-50/50 border border-green-200 rounded-md p-2 mb-3">
@@ -24,7 +30,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
       </div>
       
       <div className="bg-background/80 rounded p-1.5 border border-border text-xs">
-        <p className="font-medium">{address.recipientName || 'No especificado'}</p>
+        <p className="font-medium">{travelerName}</p>
         <p>{address.streetAddress}</p>
         {address.streetAddress2 && <p>{address.streetAddress2}</p>}
         <p>{address.cityArea} {address.postalCode && `• ${address.postalCode}`}</p>
