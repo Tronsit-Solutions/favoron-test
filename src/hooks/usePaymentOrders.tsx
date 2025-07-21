@@ -75,18 +75,27 @@ export const usePaymentOrders = () => {
       setPaymentOrders(prev => [data, ...prev]);
       
       // Crear notificación para el admin
-      await supabase.rpc('create_notification', {
-        _user_id: 'admin-user-id', // Esto debería ser el ID del admin
-        _title: 'Nueva orden de pago',
-        _message: `El viajero ${orderData.bank_account_holder} ha confirmado la entrega de paquetes`,
-        _type: 'payment_order',
-        _priority: 'high',
-        _metadata: {
-          payment_order_id: data.id,
-          traveler_id: orderData.traveler_id,
-          amount: orderData.amount
-        }
-      });
+      const { data: adminData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .limit(1)
+        .single();
+
+      if (adminData?.user_id) {
+        await supabase.rpc('create_notification', {
+          _user_id: adminData.user_id,
+          _title: 'Nueva orden de pago',
+          _message: `El viajero ${orderData.bank_account_holder} ha confirmado la entrega de paquetes`,
+          _type: 'payment_order',
+          _priority: 'high',
+          _metadata: {
+            payment_order_id: data.id,
+            traveler_id: orderData.traveler_id,
+            amount: orderData.amount
+          }
+        });
+      }
       
       toast({
         title: "¡Éxito!",
