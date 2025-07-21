@@ -139,7 +139,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
           </div>
           <p className="text-foreground font-medium text-xs">{pkg.item_description}</p>
           <p className="text-foreground text-xs">
-            <span className="font-medium">Total:</span> Q{(pkg.quote as any)?.totalPrice || 'N/A'}
+            <span className="font-medium">Cotización:</span> Q{(pkg.quote as any)?.price || 'N/A'}
           </p>
           {pkg.item_link && (
             <p className="text-xs">
