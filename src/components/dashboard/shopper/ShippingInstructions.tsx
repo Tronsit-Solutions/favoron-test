@@ -1,6 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, User, Clock, Package, Truck } from "lucide-react";
 import { Package as PackageType } from "@/types";
 
 interface ShippingInstructionsProps {
@@ -17,154 +14,152 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   const tripDates = pkg.matched_trip_dates as any;
 
   return (
-    <Card className="border-green-200 bg-green-50">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-            <Truck className="h-4 w-4 text-green-600" />
-          </div>
-          <div>
-            <CardTitle className="text-green-800 text-lg">
-              ✅ ¡Pago Aprobado! - Información de Envío
-            </CardTitle>
-            <p className="text-green-600 text-sm">
-              Tu pago ha sido aprobado. Envía el paquete a la siguiente dirección:
-            </p>
-          </div>
+    <div className="bg-green-50/50 border border-green-200 rounded-md p-2 mb-3">
+      <div className="flex items-center space-x-2 mb-3">
+        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+          <span className="text-sm">✅</span>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Información del destinatario */}
-        <div className="bg-white rounded-lg p-4 border">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Destinatario (Viajero)
-          </h4>
-           <div className="space-y-2">
-             <p className="text-sm">
-               <strong>Nombre:</strong> {address.recipientName || 'No especificado'}
-             </p>
-             <p className="text-sm flex items-center gap-2">
-               <Phone className="h-3 w-3" />
-               <strong>Teléfono:</strong> {address.contactNumber}
-             </p>
-           </div>
+        <div>
+          <h3 className="text-base font-bold text-green-800">¡Pago Aprobado!</h3>
+          <p className="text-xs text-green-700">
+            Tu pago ha sido confirmado. Envía el producto a esta dirección:
+          </p>
         </div>
-
-        {/* Dirección de envío */}
-        <div className="bg-white rounded-lg p-4 border">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Dirección de Envío
-          </h4>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{address.streetAddress}</p>
-            {address.streetAddress2 && (
-              <p className="text-sm text-gray-600">{address.streetAddress2}</p>
-            )}
-            <p className="text-sm text-gray-600">
-              {address.cityArea} {address.postalCode && `• CP: ${address.postalCode}`}
-            </p>
-            {address.hotelAirbnbName && address.hotelAirbnbName !== '-' && (
-              <p className="text-sm text-gray-600">
-                <strong>Hotel/Airbnb:</strong> {address.hotelAirbnbName}
-              </p>
-            )}
-            <p className="text-sm text-gray-600">
-              <strong>Tipo:</strong> {address.accommodationType || 'No especificado'}
-            </p>
+      </div>
+      
+      {/* Fechas importantes */}
+      {tripDates && (
+        <div className="bg-blue-50/50 border border-blue-200 rounded-md p-1.5 mb-2">
+          <div className="flex items-center space-x-1 mb-1">
+            <span className="text-blue-600 text-xs">📅</span>
+            <span className="text-xs font-medium text-blue-800">Fechas importantes</span>
           </div>
-        </div>
-
-        {/* Fechas importantes */}
-        {tripDates && (
-          <div className="bg-white rounded-lg p-4 border">
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Fechas del Viaje
-            </h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-600">
-                  <strong>Envío desde:</strong>
-                </p>
-                <p>{new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')}</p>
+          
+          <div className="space-y-0.5 text-xs">
+            <div className="flex items-center justify-between p-1 bg-white/60 rounded text-xs">
+              <div className="flex items-center space-x-1">
+                <span className="text-green-600">📥</span>
+                <span className="text-gray-700">Envío desde:</span>
               </div>
-              <div>
-                <p className="text-gray-600">
-                  <strong>Envío hasta:</strong>
-                </p>
-                <p>{new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</p>
+              <span className="font-semibold text-gray-800">
+                {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between p-1 bg-white/60 rounded text-xs">
+              <div className="flex items-center space-x-1">
+                <span className="text-orange-600">📤</span>
+                <span className="text-gray-700">Envío hasta:</span>
               </div>
-              <div>
-                <p className="text-gray-600">
-                  <strong>Viajero llega:</strong>
-                </p>
-                <p>{new Date(tripDates.arrival_date).toLocaleDateString('es-GT')}</p>
+              <span className="font-semibold text-gray-800">
+                {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between p-1 bg-white/60 rounded text-xs">
+              <div className="flex items-center space-x-1">
+                <span className="text-purple-600">🏢</span>
+                <span className="text-gray-700">Entrega en Guatemala:</span>
               </div>
-              <div>
-                <p className="text-gray-600">
-                  <strong>Entrega en Guatemala:</strong>
-                </p>
-                <p>{new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</p>
-              </div>
+              <span className="font-semibold text-gray-800">
+                {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}
+              </span>
             </div>
           </div>
-        )}
-
-        {/* Información del paquete */}
-        <div className="bg-white rounded-lg p-4 border">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Detalles del Paquete
-          </h4>
-          <div className="space-y-2">
-            <p className="text-sm">
-              <strong>Producto:</strong> {pkg.item_description}
-            </p>
-            <p className="text-sm">
-              <strong>Precio Total:</strong> Q{(pkg.quote as any)?.totalPrice || 'N/A'}
-            </p>
-            {pkg.item_link && (
-              <p className="text-sm">
-                <strong>Link:</strong>{' '}
-                <a 
-                  href={pkg.item_link} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  Ver producto
-                </a>
+        </div>
+      )}
+      
+      {/* Dirección de envío */}
+      <div className="bg-background/80 rounded-md p-2 border border-border mb-2">
+        <div className="text-xs space-y-2">
+          <div>
+            <span className="font-medium text-primary text-sm">📍 Dirección de envío:</span>
+          </div>
+          
+          <div className="space-y-1">
+            {/* Destinatario */}
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">👤 Destinatario:</span>
+              <p className="text-foreground font-semibold text-xs">
+                {address.recipientName || 'No especificado'}
               </p>
+            </div>
+            
+            {/* Dirección */}
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">🏠 Dirección:</span>
+              <p className="text-foreground font-medium text-xs">{address.streetAddress}</p>
+              {address.streetAddress2 && (
+                <p className="text-foreground font-medium text-xs">{address.streetAddress2}</p>
+              )}
+            </div>
+            
+            {/* Ciudad y Código Postal */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <span className="font-medium text-muted-foreground text-xs">🌆 Ciudad:</span>
+                <p className="text-foreground text-xs">{address.cityArea}</p>
+              </div>
+              {address.postalCode && (
+                <div>
+                  <span className="font-medium text-muted-foreground text-xs">CP:</span>
+                  <p className="text-foreground font-mono text-xs">{address.postalCode}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Hotel/Airbnb */}
+            {address.hotelAirbnbName && address.hotelAirbnbName !== '-' && (
+              <div>
+                <span className="font-medium text-muted-foreground text-xs">🏨 Hotel:</span>
+                <p className="text-foreground font-medium text-xs">{address.hotelAirbnbName}</p>
+              </div>
             )}
+            
+            {/* Tipo de alojamiento */}
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">🏠 Tipo:</span>
+              <p className="text-foreground text-xs">{address.accommodationType || 'No especificado'}</p>
+            </div>
+            
+            {/* Contacto */}
+            <div>
+              <span className="font-medium text-muted-foreground text-xs">📞 Contacto:</span>
+              <p className="text-foreground font-semibold text-xs">{address.contactNumber}</p>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Instrucciones importantes */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h4 className="font-semibold text-yellow-800 mb-2">
-            📋 Instrucciones Importantes
-          </h4>
-          <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• Envía el paquete a la dirección exacta mostrada arriba</li>
-            <li>• Asegúrate de que el paquete llegue entre las fechas indicadas</li>
-            <li>• Incluye el número de pedido #{pkg.id} en el envío</li>
-            <li>• Contacta al viajero si necesitas coordinar la entrega</li>
-          </ul>
+      {/* Información del producto */}
+      <div className="bg-background/80 rounded-md p-2 border border-border mb-2">
+        <div className="text-xs space-y-1">
+          <div>
+            <span className="font-medium text-primary text-sm">📦 Producto:</span>
+          </div>
+          <p className="text-foreground font-medium text-xs">{pkg.item_description}</p>
+          <p className="text-foreground text-xs">
+            <span className="font-medium">Total:</span> Q{(pkg.quote as any)?.totalPrice || 'N/A'}
+          </p>
+          {pkg.item_link && (
+            <p className="text-xs">
+              <a 
+                href={pkg.item_link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                🔗 Ver producto
+              </a>
+            </p>
+          )}
         </div>
-
-        {/* Estado del paquete */}
-        <div className="flex items-center justify-between">
-          <Badge className="bg-green-100 text-green-800">
-            Pago Aprobado - Listo para Enviar
-          </Badge>
-          <span className="text-xs text-gray-500">
-            Aprobado el {new Date().toLocaleDateString('es-GT')}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      
+      <p className="text-xs text-muted-foreground">
+        💡 Incluye el número de pedido #{pkg.id} en el envío. Una vez enviado, sube los documentos de compra y tracking.
+      </p>
+    </div>
   );
 };
 
