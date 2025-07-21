@@ -84,7 +84,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleConfirmOfficeReception,
     handleConfirmDeliveryComplete,
     handleEditTrip,
-    handleEditPackage
+    handleEditPackage,
+    handleAdminConfirmOfficeDelivery
   } = useDashboardActions(
     packages,
     () => {},
@@ -404,6 +405,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                }}
               onConfirmDeliveryComplete={handleConfirmDeliveryComplete}
               onDiscardPackage={handleDiscardPackage}
+              onAdminConfirmOfficeDelivery={handleAdminConfirmOfficeDelivery}
               />
             </TabsContent>
           )}
