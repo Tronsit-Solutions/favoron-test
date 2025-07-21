@@ -9,7 +9,7 @@ interface ShippingInstructionsProps {
 
 const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   // Solo mostrar si el pago ha sido aprobado
-  if (pkg.status !== 'paid' || !pkg.traveler_address) {
+  if (pkg.status !== 'payment_confirmed' || !pkg.traveler_address) {
     return null;
   }
 
@@ -40,15 +40,15 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
             <User className="h-4 w-4" />
             Destinatario (Viajero)
           </h4>
-          <div className="space-y-2">
-            <p className="text-sm">
-              <strong>Nombre:</strong> {address.recipientName}
-            </p>
-            <p className="text-sm flex items-center gap-2">
-              <Phone className="h-3 w-3" />
-              <strong>Teléfono:</strong> {address.contactNumber}
-            </p>
-          </div>
+           <div className="space-y-2">
+             <p className="text-sm">
+               <strong>Nombre:</strong> {address.recipientName || 'No especificado'}
+             </p>
+             <p className="text-sm flex items-center gap-2">
+               <Phone className="h-3 w-3" />
+               <strong>Teléfono:</strong> {address.contactNumber}
+             </p>
+           </div>
         </div>
 
         {/* Dirección de envío */}
