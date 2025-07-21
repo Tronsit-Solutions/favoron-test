@@ -11,8 +11,6 @@ export const getStatusColor = (status: string): string => {
       return 'bg-info text-info-foreground';
     case 'paid':
       return 'bg-warning text-warning-foreground';
-    case 'payment_confirmed':
-      return 'bg-success text-success-foreground';
     case 'in_transit':
       return 'bg-info text-info-foreground';
     case 'delivered':
@@ -37,8 +35,6 @@ export const getStatusLabel = (status: string): string => {
       return 'Aprobado';
     case 'paid':
       return 'Pago pendiente de verificación';
-    case 'payment_confirmed':
-      return 'Pago confirmado';
     case 'in_transit':
       return 'En tránsito';
     case 'delivered':
