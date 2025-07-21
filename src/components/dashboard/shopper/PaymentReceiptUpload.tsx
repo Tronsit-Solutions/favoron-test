@@ -204,7 +204,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         />
 
         <div className="mt-4 p-3 bg-info/5 border border-info/20 rounded-lg">
-          <p className="text-xs text-info">
+          <p className="text-xs text-foreground">
             <strong>Información de pago:</strong> Transfiere Q{(pkg.quote as any)?.totalPrice || '0.00'} a la cuenta de Favorón S.A. 
             y sube tu comprobante para confirmar el pago.
           </p>
