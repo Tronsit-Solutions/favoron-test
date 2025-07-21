@@ -96,14 +96,23 @@ export const useTripPayments = (tripId?: string) => {
 
       if (updateError) throw updateError;
 
-      // Crear notificación para admin
-      await supabase.from('notifications').insert({
-        user_id: 'admin', // This should be replaced with actual admin user ID
-        title: 'Nueva orden de pago pendiente',
-        message: `Viajero solicita pago por viaje - Monto: Q${tripPayment.accumulated_amount}`,
-        type: 'payment_request',
-        priority: 'high'
-      });
+      // Crear notificación para el admin - buscar admin real
+      const { data: adminData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .limit(1)
+        .single();
+
+      if (adminData?.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: adminData.user_id,
+          title: 'Nueva orden de pago pendiente',
+          message: `Viajero solicita pago por viaje - Monto: Q${tripPayment.accumulated_amount}`,
+          type: 'payment_request',
+          priority: 'high'
+        });
+      }
 
       setTripPayment(prev => prev ? { ...prev, payment_order_created: true } : null);
 
