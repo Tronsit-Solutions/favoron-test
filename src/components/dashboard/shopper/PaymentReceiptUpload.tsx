@@ -53,7 +53,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${pkg.id}_payment_receipt.${fileExt}`;
-      const filePath = `payment-receipts/${fileName}`;
+      const filePath = `${pkg.user_id}/${fileName}`;
 
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
