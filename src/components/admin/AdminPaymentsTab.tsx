@@ -27,7 +27,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
 
   // Filtrar pagos pendientes de aprobación
   const pendingPayments = packages.filter(pkg => 
-    pkg.status === 'paid' && pkg.payment_receipt
+    pkg.status === 'payment_pending' && pkg.payment_receipt
   );
 
   // Filtrar pagos ya aprobados/procesados
@@ -39,7 +39,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
   const handlePaymentAction = () => {
     if (!confirmDialog.payment) return;
 
-    const newStatus = confirmDialog.action === 'approve' ? 'approved' : 'pending_approval';
+    const newStatus = confirmDialog.action === 'approve' ? 'paid' : 'payment_rejected';
     
     // Actualizar el estado del paquete
     onUpdateStatus('package', confirmDialog.payment.id, newStatus);
@@ -59,13 +59,13 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
   };
 
   const getPaymentStatusBadge = (pkg: any) => {
-    if (pkg.status === 'approved' && pkg.payment_receipt) {
+    if (pkg.status === 'paid' && pkg.payment_receipt) {
       return <Badge variant="default" className="bg-green-500">Aprobado</Badge>;
     }
-    if (pkg.status === 'paid') {
+    if (pkg.status === 'payment_pending') {
       return <Badge variant="secondary">Pendiente</Badge>;
     }
-    if (pkg.status === 'pending_approval' && pkg.payment_receipt) {
+    if (pkg.status === 'payment_rejected' && pkg.payment_receipt) {
       return <Badge variant="destructive">Rechazado</Badge>;
     }
     return <Badge variant="outline">Sin procesar</Badge>;

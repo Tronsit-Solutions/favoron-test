@@ -81,7 +81,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'paid'
+          status: 'payment_pending'
         })
         .eq('id', pkg.id);
 
