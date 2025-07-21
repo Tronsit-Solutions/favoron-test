@@ -27,19 +27,18 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
 
   // Filtrar pagos pendientes de aprobación
   const pendingPayments = packages.filter(pkg => 
-    pkg.status === 'paid' && pkg.paymentProof && !pkg.paymentApproved
+    pkg.status === 'paid' && pkg.payment_receipt
   );
 
   // Filtrar pagos ya aprobados/procesados
   const processedPayments = packages.filter(pkg => 
-    pkg.status === 'purchased' || pkg.paymentApproved === true || pkg.paymentApproved === false
+    pkg.status === 'payment_confirmed' || pkg.status === 'approved' && pkg.payment_receipt
   );
 
   const handlePaymentAction = () => {
     if (!confirmDialog.payment) return;
 
-    const newStatus = confirmDialog.action === 'approve' ? 'purchased' : 'paid';
-    const paymentStatus = confirmDialog.action === 'approve';
+    const newStatus = confirmDialog.action === 'approve' ? 'payment_confirmed' : 'approved';
     
     // Actualizar el estado del paquete
     onUpdateStatus('package', confirmDialog.payment.id, newStatus);
@@ -59,14 +58,14 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
   };
 
   const getPaymentStatusBadge = (pkg: any) => {
-    if (pkg.status === 'purchased') {
+    if (pkg.status === 'payment_confirmed') {
       return <Badge variant="default" className="bg-green-500">Aprobado</Badge>;
     }
-    if (pkg.paymentApproved === false) {
-      return <Badge variant="destructive">Rechazado</Badge>;
-    }
-    if (pkg.status === 'paid' && !pkg.paymentApproved) {
+    if (pkg.status === 'paid') {
       return <Badge variant="secondary">Pendiente</Badge>;
+    }
+    if (pkg.status === 'approved' && pkg.payment_receipt) {
+      return <Badge variant="destructive">Rechazado</Badge>;
     }
     return <Badge variant="outline">Sin procesar</Badge>;
   };
@@ -84,9 +83,9 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
           <DialogTitle>Comprobante de pago - Pedido #{payment.id}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {payment.paymentProof?.includes('data:image') ? (
+          {payment.payment_receipt?.publicUrl && payment.payment_receipt?.fileType?.includes('image') ? (
             <img 
-              src={payment.paymentProof} 
+              src={payment.payment_receipt.publicUrl} 
               alt="Comprobante de pago" 
               className="w-full rounded-lg border"
             />
@@ -94,8 +93,18 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
             <div className="bg-muted p-8 rounded-lg text-center">
               <FileText className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                Comprobante cargado pero no es una imagen visible
+                {payment.payment_receipt?.filename || 'Comprobante cargado'}
               </p>
+              {payment.payment_receipt?.publicUrl && (
+                <a 
+                  href={payment.payment_receipt.publicUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline mt-2 block"
+                >
+                  Descargar archivo
+                </a>
+              )}
             </div>
           )}
         </div>

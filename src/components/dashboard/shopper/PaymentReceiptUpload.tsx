@@ -81,7 +81,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'payment_confirmed'
+          status: 'paid'
         })
         .eq('id', pkg.id);
 
@@ -92,7 +92,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
       toast({
         title: "Comprobante subido exitosamente",
-        description: "Tu pago ha sido registrado y será verificado pronto.",
+        description: "Tu pago ha sido registrado y está pendiente de verificación por el administrador.",
       });
 
     } catch (error: any) {
