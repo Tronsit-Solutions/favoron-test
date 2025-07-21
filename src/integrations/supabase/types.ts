@@ -486,6 +486,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_confirm_office_delivery: {
+        Args: { _package_id: string; _admin_id: string }
+        Returns: undefined
+      }
       archive_old_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined

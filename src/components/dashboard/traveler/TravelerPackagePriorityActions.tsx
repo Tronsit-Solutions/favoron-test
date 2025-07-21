@@ -14,7 +14,10 @@ const TravelerPackagePriorityActions = ({
   onConfirmReceived,
   onConfirmOfficeDelivery
 }: TravelerPackagePriorityActionsProps) => {
-  if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler') return null;
+  if (pkg.status !== 'matched' && 
+      pkg.status !== 'in_transit' && 
+      pkg.status !== 'received_by_traveler' &&
+      pkg.status !== 'pending_office_confirmation') return null;
 
   // Calculate tip/compensation for traveler
   const getTravelerTip = () => {
@@ -76,6 +79,14 @@ const TravelerPackagePriorityActions = ({
                 <div>
                   <p className="text-sm font-semibold mb-1">¡Paquete listo para entregar!</p>
                   <p className="text-xs text-muted-foreground">¿Ya entregaste el paquete en la oficina de Favorón?</p>
+                </div>
+              )}
+              {pkg.status === 'pending_office_confirmation' && (
+                <div>
+                  <p className="text-sm font-semibold mb-1">🔒 Entrega pendiente de confirmación</p>
+                  <p className="text-xs text-muted-foreground">
+                    Has declarado la entrega. Esperando que Favorón confirme la recepción para desbloquear tu compensación.
+                  </p>
                 </div>
               )}
             </div>

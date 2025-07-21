@@ -543,48 +543,75 @@ export const useDashboardActions = (
     }
   };
 
-  const handleConfirmOfficeReception = async (packageId: string, onShowBankingModal?: () => void) => {
+  const handleConfirmOfficeReception = async (packageId: string) => {
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
         return;
       }
 
+      // NUEVO FLUJO ESCROW: Solo marcar la declaración del viajero
+      // El admin debe confirmar por separado para desbloquear el pago
       await updatePackage(packageId, {
-        status: 'delivered_to_office',
+        status: 'pending_office_confirmation',
         office_delivery: {
-          confirmedAt: new Date().toISOString()
+          traveler_declaration: {
+            declared_by: currentUser?.id,
+            declared_at: new Date().toISOString()
+          }
         }
       });
       
-      // Find the package to get user info
-      const updatedPackage = packages?.find(pkg => pkg.id === packageId);
-      
       toast({
-        title: "¡Entregado en oficina!",
-        description: "Paquete confirmado como entregado en oficina Favorón.",
+        title: "¡Entrega declarada!",
+        description: "Has declarado la entrega en oficina. Esperando confirmación del administrador para desbloquear tu compensación.",
+        duration: 6000,
       });
 
-      // Send notification to shopper
-      if (updatedPackage) {
-        toast({
-          title: "🏢 Notificación para el shopper",
-          description: `Se ha notificado al shopper que su paquete "${updatedPackage.item_description}" está listo para recoger en la oficina de Favorón.`,
-          duration: 5000,
-        });
-      }
-
-      // Show banking confirmation modal after successful office delivery
-      if (onShowBankingModal) {
-        setTimeout(() => {
-          onShowBankingModal();
-        }, 1000);
-      }
+      // Send notification to admin about pending confirmation
+      toast({
+        title: "📋 Pendiente de confirmación",
+        description: "El administrador debe confirmar la recepción del paquete antes de que puedas solicitar tu compensación.",
+        duration: 8000,
+      });
+      
     } catch (error) {
       console.error('Error confirming office reception:', error);
       toast({
         title: "Error",
-        description: "No se pudo confirmar la entrega en oficina. Inténtalo de nuevo.",
+        description: "No se pudo declarar la entrega en oficina. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAdminConfirmOfficeDelivery = async (packageId: string) => {
+    try {
+      if (!currentUser?.id) {
+        console.error('Current user ID not available');
+        return;
+      }
+
+      // Llamar a la función de base de datos para confirmar la entrega
+      const { error } = await supabase.rpc('admin_confirm_office_delivery', {
+        _package_id: packageId,
+        _admin_id: currentUser.id
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "¡Entrega confirmada!",
+        description: "Has confirmado la recepción del paquete. El viajero ya puede solicitar su compensación.",
+      });
+
+    } catch (error) {
+      console.error('Error confirming office delivery:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar la entrega. Inténtalo de nuevo.",
         variant: "destructive",
       });
     }
@@ -736,6 +763,7 @@ export const useDashboardActions = (
     handleApproveReject,
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
+    handleAdminConfirmOfficeDelivery,
     handleConfirmDeliveryComplete,
     handleEditTrip,
     handleEditPackage

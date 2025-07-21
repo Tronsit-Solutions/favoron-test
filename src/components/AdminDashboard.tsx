@@ -18,6 +18,7 @@ import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
+import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -30,6 +31,7 @@ interface AdminDashboardProps {
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   onConfirmOfficeReception: (packageId: string) => void;
+  onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
   onDiscardPackage: (pkg: any) => void;
 }
@@ -42,6 +44,7 @@ const AdminDashboard = ({
   onUpdateStatus, 
   onApproveReject,
   onConfirmOfficeReception,
+  onAdminConfirmOfficeDelivery,
   onConfirmDeliveryComplete,
   onDiscardPackage
 }: AdminDashboardProps) => {
@@ -177,7 +180,25 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="overview" className="relative flex items-center gap-2">
+            Resumen
+            {(approvalsNeeded + paymentsToConfirm) > 0 && (
+              <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="approvals" className="relative flex items-center gap-2">
+            Aprobaciones
+            {approvalsNeeded > 0 && (
+              <NotificationBadge count={approvalsNeeded} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="confirmations" className="relative flex items-center gap-2">
+            🔒 Confirmaciones
+            {packages.filter(p => p.status === 'pending_office_confirmation').length > 0 && (
+              <NotificationBadge count={packages.filter(p => p.status === 'pending_office_confirmation').length} />
+            )}
+          </TabsTrigger>
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -255,6 +276,13 @@ const AdminDashboard = ({
 
         <TabsContent value="traveler-payments" className="space-y-4">
           <AdminTravelerPaymentsTab />
+        </TabsContent>
+
+        <TabsContent value="confirmations" className="space-y-4">
+          <PendingOfficeConfirmationsTab 
+            packages={packages}
+            onConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
+          />
         </TabsContent>
 
         <TabsContent value="support" className="space-y-4">

@@ -14,6 +14,7 @@ export const useStatusHelpers = () => {
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
       in_transit: { label: "En Tránsito", variant: "warning" as const },
       received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
+      pending_office_confirmation: { label: "🔒 Esperando confirmación", variant: "warning" as const },
       delivered_to_office: { label: "Entregado en oficina", variant: "success" as const },
       out_for_delivery: { 
         label: packageDestination ? `En reparto en ${packageDestination}` : "En reparto", 
@@ -50,6 +51,7 @@ export const useStatusHelpers = () => {
       payment_pending: "hsl(var(--warning))",
       in_transit: "hsl(var(--info))",
       received_by_traveler: "hsl(var(--success))",
+      pending_office_confirmation: "hsl(var(--warning))",
       delivered_to_office: "hsl(var(--success))",
       out_for_delivery: "hsl(var(--warning))",
       active: "hsl(var(--success))",
