@@ -148,7 +148,7 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Show upload documents after approval - Show individual sections based on completion */}
-                {(pkg.status === 'approved' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
+                {(pkg.status === 'payment_confirmed' || pkg.status === 'approved' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
                   <div className="bg-warning-muted border border-warning-border rounded-md p-2 mb-2">
                     <div className="mb-3">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
