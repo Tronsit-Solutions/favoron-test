@@ -60,6 +60,7 @@ const PaymentsTab = ({
             {showConfirmButton && (
               <Button 
                 size="sm" 
+                className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
