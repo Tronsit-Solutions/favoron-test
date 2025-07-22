@@ -84,10 +84,6 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
               <p className="text-sm font-medium text-gray-800 mb-2">Desglose del Pago</p>
               <div className="text-xs text-gray-600 space-y-1">
                 <div className="flex justify-between">
-                  <span>Precio del producto (GMV):</span>
-                  <span className="font-medium">${estimatedPrice ? estimatedPrice.toFixed(2) : 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Tip del viajero:</span>
                   <span className="font-medium">Q{quote.price.toFixed(2)}</span>
                 </div>
@@ -188,10 +184,6 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
             <div className="border-t border-green-200 pt-3 mb-3">
               <p className="text-sm font-medium text-green-800 mb-2">Desglose del Pago</p>
               <div className="text-xs text-green-600 space-y-1">
-                <div className="flex justify-between">
-                  <span>Precio del producto (GMV):</span>
-                  <span className="font-medium">${estimatedPrice ? estimatedPrice.toFixed(2) : 'N/A'}</span>
-                </div>
                 <div className="flex justify-between">
                   <span>Tip del viajero:</span>
                   <span className="font-medium">Q{quote.price.toFixed(2)}</span>
