@@ -374,10 +374,15 @@ export const useDashboardActions = (
     if (!addressData) return null;
     
     return {
+      recipientName: addressData.recipientName || "Destinatario no especificado",
       streetAddress: addressData.streetAddress || "Dirección no disponible",
-      cityArea: matchedTrip.to_city || "Ciudad no disponible", 
-      hotelAirbnbName: addressData.accommodationType === 'hotel' ? addressData.hotelAirbnbName : null,
-      contactNumber: addressData.contactNumber || "Teléfono no disponible"
+      streetAddress2: addressData.streetAddress2 || null,
+      cityArea: addressData.cityArea || matchedTrip.to_city || "Ciudad no disponible",
+      postalCode: addressData.postalCode || null,
+      hotelAirbnbName: addressData.hotelAirbnbName || null,
+      accommodationType: addressData.accommodationType || null,
+      contactNumber: addressData.contactNumber || "Teléfono no disponible",
+      additionalInstructions: addressData.additionalInstructions || null
     };
   };
 
