@@ -28,7 +28,16 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
         <p>{address.streetAddress}</p>
         {address.streetAddress2 && <p>{address.streetAddress2}</p>}
         <p>{address.cityArea} {address.postalCode && `• ${address.postalCode}`}</p>
+        {address.hotelAirbnbName && address.hotelAirbnbName !== '-' && (
+          <p className="font-medium">🏨 {address.hotelAirbnbName}</p>
+        )}
+        {address.accommodationType && (
+          <p>🏠 Tipo: {address.accommodationType}</p>
+        )}
         <p>📞 {address.contactNumber}</p>
+        {address.additionalInstructions && (
+          <p className="text-muted-foreground mt-1">ℹ️ {address.additionalInstructions}</p>
+        )}
       </div>
       
       <p className="text-xs text-muted-foreground mt-1">
