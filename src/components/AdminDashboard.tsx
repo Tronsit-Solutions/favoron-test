@@ -180,7 +180,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -201,6 +201,12 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
             Pagos Viajeros
+          </TabsTrigger>
+          <TabsTrigger value="shopper-payments" className="relative flex items-center gap-2">
+            💳 Pagos Shoppers
+            {packages.filter(p => p.status === 'payment_pending' && p.payment_receipt).length > 0 && (
+              <NotificationBadge count={packages.filter(p => p.status === 'payment_pending' && p.payment_receipt).length} />
+            )}
           </TabsTrigger>
           <TabsTrigger value="support" className="relative flex items-center gap-2">
             🔍 Soporte
@@ -261,6 +267,13 @@ const AdminDashboard = ({
           <AdminTravelerPaymentsTab />
         </TabsContent>
 
+        <TabsContent value="shopper-payments" className="space-y-4">
+          <AdminPaymentsTab 
+            packages={packages}
+            onUpdateStatus={onUpdateStatus}
+            onViewPackageDetail={handleViewPackageDetail}
+          />
+        </TabsContent>
 
         <TabsContent value="support" className="space-y-4">
           <AdminSupportTab 

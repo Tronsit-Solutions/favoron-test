@@ -13,7 +13,7 @@ import { Check, X, Eye, FileText, DollarSign } from "lucide-react";
 
 interface AdminPaymentsTabProps {
   packages: any[];
-  onUpdateStatus: (type: 'package' | 'trip', id: number, status: string) => void;
+  onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onViewPackageDetail: (pkg: any) => void;
 }
 
@@ -195,9 +195,9 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                     <TableRow>
                       <TableHead>Pedido</TableHead>
                       <TableHead>Shopper</TableHead>
+                      <TableHead>Información Bancaria</TableHead>
                       <TableHead>Monto</TableHead>
                       <TableHead>Comprobante</TableHead>
-                      <TableHead>Fecha Pago</TableHead>
                       <TableHead>Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -215,10 +215,28 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">Usuario {payment.userId}</p>
-                            <p className="text-sm text-muted-foreground">
-                              usuario{payment.userId}@email.com
+                            <p className="font-medium">
+                              {payment.profiles?.first_name} {payment.profiles?.last_name}
                             </p>
+                            <p className="text-sm text-muted-foreground">
+                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {payment.profiles?.bank_name ? (
+                              <>
+                                <div><strong>Banco:</strong> {payment.profiles.bank_name}</div>
+                                <div><strong>Cuenta:</strong> {payment.profiles.bank_account_number}</div>
+                                <div><strong>Titular:</strong> {payment.profiles.bank_account_holder}</div>
+                                <div><strong>Tipo:</strong> {payment.profiles.bank_account_type}</div>
+                              </>
+                            ) : (
+                              <div className="text-red-500 font-medium">
+                                ⚠️ Sin información bancaria
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -231,11 +249,6 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                         </TableCell>
                         <TableCell>
                           <PaymentProofDialog payment={payment} />
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date().toLocaleDateString()}
-                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -291,9 +304,9 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                     <TableRow>
                       <TableHead>Pedido</TableHead>
                       <TableHead>Shopper</TableHead>
+                      <TableHead>Información Bancaria</TableHead>
                       <TableHead>Monto</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Fecha Procesado</TableHead>
                       <TableHead>Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -311,10 +324,28 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">Usuario {payment.userId}</p>
-                            <p className="text-sm text-muted-foreground">
-                              usuario{payment.userId}@email.com
+                            <p className="font-medium">
+                              {payment.profiles?.first_name} {payment.profiles?.last_name}
                             </p>
+                            <p className="text-sm text-muted-foreground">
+                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            {payment.profiles?.bank_name ? (
+                              <>
+                                <div><strong>Banco:</strong> {payment.profiles.bank_name}</div>
+                                <div><strong>Cuenta:</strong> {payment.profiles.bank_account_number}</div>
+                                <div><strong>Titular:</strong> {payment.profiles.bank_account_holder}</div>
+                                <div><strong>Tipo:</strong> {payment.profiles.bank_account_type}</div>
+                              </>
+                            ) : (
+                              <div className="text-red-500 font-medium">
+                                ⚠️ Sin información bancaria
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -327,11 +358,6 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                         </TableCell>
                         <TableCell>
                           {getPaymentStatusBadge(payment)}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date().toLocaleDateString()}
-                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">

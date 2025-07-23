@@ -49,7 +49,11 @@ export const usePackagesData = () => {
             first_name,
             last_name,
             username,
-            email
+            email,
+            bank_name,
+            bank_account_number,
+            bank_account_holder,
+            bank_account_type
           ),
           trips:matched_trip_id (
             id,
