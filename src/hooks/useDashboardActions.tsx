@@ -591,15 +591,11 @@ export const useDashboardActions = (
   };
 
   const handleAdminConfirmOfficeDelivery = async (packageId: string) => {
-    console.log('🔵 Admin confirm office delivery clicked for package:', packageId);
     try {
       if (!currentUser?.id) {
         console.error('❌ Current user ID not available');
         return;
       }
-
-      console.log('👤 Current user ID:', currentUser.id);
-      console.log('📦 Calling admin_confirm_office_delivery RPC...');
 
       // Llamar a la función de base de datos para confirmar la entrega
       const { error } = await supabase.rpc('admin_confirm_office_delivery', {
@@ -612,7 +608,6 @@ export const useDashboardActions = (
         throw error;
       }
 
-      console.log('✅ RPC call successful');
       toast({
         title: "¡Entrega confirmada!",
         description: "Has confirmado la recepción del paquete. El viajero ya puede solicitar su compensación.",
