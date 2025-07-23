@@ -42,6 +42,10 @@ export const MatchCard = ({
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation';
+  
+  console.log('🔍 MatchCard Debug - Package:', pkg.id);
+  console.log('🔍 MatchCard Debug - Status:', pkg.status);
+  console.log('🔍 MatchCard Debug - showAdminOfficeConfirmButton:', showAdminOfficeConfirmButton);
 
   const getStatusDescription = () => {
     switch (pkg.status) {
@@ -268,7 +272,16 @@ export const MatchCard = ({
               )}
 
               {showAdminOfficeConfirmButton && (
-                <Button size="sm" onClick={onAdminConfirmOfficeDelivery} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    console.log('🔵 BUTTON CLICKED - Admin Office Confirm');
+                    console.log('📦 Package ID:', pkg.id);
+                    console.log('📊 Package status:', pkg.status);
+                    onAdminConfirmOfficeDelivery();
+                  }} 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Confirmar entrega oficina
                 </Button>
