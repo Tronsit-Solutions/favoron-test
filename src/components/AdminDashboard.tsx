@@ -180,7 +180,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -193,16 +193,10 @@ const AdminDashboard = ({
               <NotificationBadge count={approvalsNeeded} />
             )}
           </TabsTrigger>
-          <TabsTrigger value="confirmations" className="relative flex items-center gap-2">
-            🔒 Confirmaciones
-            {packages.filter(p => p.status === 'pending_office_confirmation').length > 0 && (
-              <NotificationBadge count={packages.filter(p => p.status === 'pending_office_confirmation').length} />
-            )}
-          </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
             Gestión
-            {matchingTotal > 0 && (
-              <NotificationBadge count={matchingTotal} />
+            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length) > 0 && (
+              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length} />
             )}
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
@@ -258,6 +252,7 @@ const AdminDashboard = ({
             onUpdateStatus={onUpdateStatus}
             onConfirmOfficeReception={onConfirmOfficeReception}
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}
+            onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
             getStatusBadge={getStatusBadge}
           />
         </TabsContent>
@@ -266,12 +261,6 @@ const AdminDashboard = ({
           <AdminTravelerPaymentsTab />
         </TabsContent>
 
-        <TabsContent value="confirmations" className="space-y-4">
-          <PendingOfficeConfirmationsTab 
-            packages={packages}
-            onConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
-          />
-        </TabsContent>
 
         <TabsContent value="support" className="space-y-4">
           <AdminSupportTab 
