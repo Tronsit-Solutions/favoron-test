@@ -377,7 +377,7 @@ export const useDashboardActions = (
       recipientName: addressData.recipientName || "Destinatario no especificado",
       streetAddress: addressData.streetAddress || "Dirección no disponible",
       streetAddress2: addressData.streetAddress2 || null,
-      cityArea: addressData.cityArea || matchedTrip.to_city || "Ciudad no disponible",
+      cityArea: addressData.cityArea || "Ciudad no disponible",
       postalCode: addressData.postalCode || null,
       hotelAirbnbName: addressData.hotelAirbnbName || null,
       accommodationType: addressData.accommodationType || null,
