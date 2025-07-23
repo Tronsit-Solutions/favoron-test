@@ -6,11 +6,12 @@ interface ShippingInstructionsProps {
 
 const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   // Solo mostrar si el pago ha sido aprobado
-  if (pkg.status !== 'payment_confirmed' || !pkg.traveler_address) {
+  const pkgWithTrips = pkg as any;
+  if (pkg.status !== 'payment_confirmed' || !pkgWithTrips.trips?.package_receiving_address) {
     return null;
   }
 
-  const address = pkg.traveler_address as any;
+  const address = pkgWithTrips.trips.package_receiving_address as any;
   const tripDates = pkg.matched_trip_dates as any;
 
   return (
