@@ -199,18 +199,6 @@ const AdminDashboard = ({
               <NotificationBadge count={packages.filter(p => p.status === 'pending_office_confirmation').length} />
             )}
           </TabsTrigger>
-          <TabsTrigger value="overview" className="relative flex items-center gap-2">
-            Resumen
-            {(approvalsNeeded + paymentsToConfirm) > 0 && (
-              <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="approvals" className="relative flex items-center gap-2">
-            Aprobaciones
-            {approvalsNeeded > 0 && (
-              <NotificationBadge count={approvalsNeeded} />
-            )}
-          </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
             Gestión
             {matchingTotal > 0 && (
