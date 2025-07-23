@@ -24,6 +24,7 @@ interface MatchCardProps {
   onOpenChat: () => void;
   onConfirmOfficeReception: () => void;
   onConfirmDeliveryComplete: () => void;
+  onAdminConfirmOfficeDelivery: () => void;
 }
 
 export const MatchCard = ({
@@ -34,11 +35,13 @@ export const MatchCard = ({
   onViewDetail,
   onOpenChat,
   onConfirmOfficeReception,
-  onConfirmDeliveryComplete
+  onConfirmDeliveryComplete,
+  onAdminConfirmOfficeDelivery
 }: MatchCardProps) => {
   const statusInfo = getStatusInfo(pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
+  const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation';
 
   const getStatusDescription = () => {
     switch (pkg.status) {
@@ -261,6 +264,13 @@ export const MatchCard = ({
                 <Button size="sm" onClick={onConfirmOfficeReception} className="flex-1">
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Confirmar recepción
+                </Button>
+              )}
+
+              {showAdminOfficeConfirmButton && (
+                <Button size="sm" onClick={onAdminConfirmOfficeDelivery} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Confirmar entrega oficina
                 </Button>
               )}
 
