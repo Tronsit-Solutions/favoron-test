@@ -36,15 +36,16 @@ const EditTripModal = ({
     deliveryMethod: tripData?.delivery_method || '',
     deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null as Date | null,
     additionalInfo: tripData?.additionalInfo || '',
-    packageReceivingAddress: {
-      accommodationType: tripData?.package_receiving_address?.accommodationType || '',
-      streetAddress: tripData?.package_receiving_address?.streetAddress || '',
-      cityArea: tripData?.package_receiving_address?.cityArea || '',
-      postalCode: tripData?.package_receiving_address?.postalCode || '',
-      hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
-      contactNumber: tripData?.package_receiving_address?.contactNumber || '',
-      recipientName: tripData?.package_receiving_address?.recipientName || ''
-    },
+      packageReceivingAddress: {
+        accommodationType: tripData?.package_receiving_address?.accommodationType || '',
+        streetAddress: tripData?.package_receiving_address?.streetAddress || '',
+        streetAddress2: tripData?.package_receiving_address?.streetAddress2 || '',
+        cityArea: tripData?.package_receiving_address?.cityArea || '',
+        postalCode: tripData?.package_receiving_address?.postalCode || '',
+        hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
+        contactNumber: tripData?.package_receiving_address?.contactNumber || '',
+        recipientName: tripData?.package_receiving_address?.recipientName || ''
+      },
     firstDayPackages: tripData?.first_day_packages ? new Date(tripData.first_day_packages) : null as Date | null,
     lastDayPackages: tripData?.last_day_packages ? new Date(tripData.last_day_packages) : null as Date | null,
     messengerPickupLocation: tripData?.messenger_pickup_info?.location || ''
@@ -66,7 +67,7 @@ const EditTripModal = ({
     e.preventDefault();
     const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.departureDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.packageReceivingAddress.recipientName || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
+    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.packageReceivingAddress.recipientName || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -107,107 +108,110 @@ const EditTripModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="fromCountry">País de origen *</Label>
-            <Select value={formData.fromCountry} onValueChange={value => handleInputChange('fromCountry', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona el país de origen" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map(country => <SelectItem key={country} value={country}>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{country}</span>
-                    </div>
-                  </SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* 🟦 1. Información básica del viaje */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+              <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
+                <span className="text-xs text-primary-foreground font-bold">1</span>
+              </div>
+              <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fromCity">Ciudad de origen *</Label>
-            <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona la ciudad de origen" />
-              </SelectTrigger>
-              <SelectContent>
-                {popularCities.map(city => <SelectItem key={city} value={city}>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{city}</span>
-                    </div>
-                  </SelectItem>)}
-              </SelectContent>
-            </Select>
-            {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="fromCountry">País de origen *</Label>
+              <Select value={formData.fromCountry} onValueChange={value => handleInputChange('fromCountry', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el país de origen" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map(country => <SelectItem key={country} value={country}>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{country}</span>
+                      </div>
+                    </SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="toCity">Ciudad de destino *</Label>
-            <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona la ciudad de destino" />
-              </SelectTrigger>
-              <SelectContent>
-                {guatemalanCities.map(city => <SelectItem key={city} value={city}>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{city}</span>
-                    </div>
-                  </SelectItem>)}
-              </SelectContent>
-            </Select>
-            {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="fromCity">Ciudad de origen *</Label>
+              <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona la ciudad de origen" />
+                </SelectTrigger>
+                <SelectContent>
+                  {popularCities.map(city => <SelectItem key={city} value={city}>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{city}</span>
+                      </div>
+                    </SelectItem>)}
+                </SelectContent>
+              </Select>
+              {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
+            </div>
 
-          <div className="space-y-2">
-            <Label>Fecha de llegada a {displayToCity || 'destino'} *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.arrivalDate ? format(formData.arrivalDate, "PPP", {
-                  locale: es
-                }) : <span>Selecciona fecha de llegada</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={formData.arrivalDate || undefined} onSelect={date => handleInputChange('arrivalDate', date)} disabled={date => date < new Date()} initialFocus />
-              </PopoverContent>
-            </Popover>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="toCity">Ciudad de destino *</Label>
+              <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona la ciudad de destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  {guatemalanCities.map(city => <SelectItem key={city} value={city}>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{city}</span>
+                      </div>
+                    </SelectItem>)}
+                </SelectContent>
+              </Select>
+              {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+            </div>
 
-          <div className="space-y-2">
-            <Label>Fecha de partida de {displayToCity || 'destino'} *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.departureDate ? format(formData.departureDate, "PPP", {
-                  locale: es
-                }) : <span>Selecciona fecha de partida</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={formData.departureDate || undefined} onSelect={date => handleInputChange('departureDate', date)} disabled={date => date < new Date() || (formData.arrivalDate ? date < formData.arrivalDate : false)} initialFocus />
-              </PopoverContent>
-            </Popover>
-          </div>
+            <div className="space-y-2">
+              <Label>Fecha de llegada a destino *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.arrivalDate ? format(formData.arrivalDate, "PPP", {
+                    locale: es
+                  }) : <span>Selecciona fecha de llegada</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={formData.arrivalDate || undefined} onSelect={date => handleInputChange('arrivalDate', date)} disabled={date => date < new Date()} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="availableSpace">Espacio disponible (kg) *</Label>
-            <div className="relative">
-              <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
+            <div className="space-y-2">
+              <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
+              <div className="relative">
+                <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
+              </div>
             </div>
           </div>
 
-          {/* Package Receiving Address Section */}
-          <div className="border rounded-lg p-4 space-y-4 bg-muted/10">
-            <div className="flex items-center space-x-2 mb-3">
-              <Package className="h-5 w-5 text-primary" />
-              <Label className="text-lg font-medium">Dirección para recibir paquetes *</Label>
+          {/* 🟦 2. Dirección para recibir paquetes en destino */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+              <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
+                <span className="text-xs text-primary-foreground font-bold">2</span>
+              </div>
+              <h3 className="text-lg font-semibold text-primary">Dirección para recibir paquetes en destino</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Esta información se comparte únicamente con el shopper si el pedido es aprobado.
+            </p>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
+              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
@@ -228,13 +232,18 @@ const EditTripModal = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="streetAddress">Dirección completa *</Label>
-              <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street, Apt 4B" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+              <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
+              <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
+              <Input id="streetAddress2" type="text" placeholder="Ej: Apt 4B, Suite 100" value={formData.packageReceivingAddress.streetAddress2} onChange={e => handleAddressChange('streetAddress2', e.target.value)} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cityArea">Ciudad/Estado *</Label>
+                <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
                 <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
               </div>
 
@@ -245,13 +254,8 @@ const EditTripModal = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hotelAirbnbName">Nombre del {formData.packageReceivingAddress.accommodationType === 'hotel' ? 'hotel/hostal' : formData.packageReceivingAddress.accommodationType === 'airbnb' ? 'Airbnb' : 'lugar'} *</Label>
+              <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.) *</Label>
               <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="recipientName">Nombre del destinatario *</Label>
-              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
@@ -260,6 +264,9 @@ const EditTripModal = ({
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input id="contactNumber" type="tel" placeholder="+1 (305) 123-4567" value={formData.packageReceivingAddress.contactNumber} onChange={e => handleAddressChange('contactNumber', e.target.value)} className="pl-10" required />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Si te hospedas en hotel, coloca el número del hotel
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -299,60 +306,77 @@ const EditTripModal = ({
             </div>
           </div>
 
-          {/* Delivery Method Options */}
+          {/* 🟦 3. Entrega de paquetes en Guatemala */}
           <div className="space-y-4">
-            <Label className="text-base font-medium">Método de entrega en Guatemala *</Label>
-            <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pickup" id="pickup" />
-                <Label htmlFor="pickup" className="cursor-pointer">Entrego en Oficina Favorón (Zona 14, Gt)</Label>
+            <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+              <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
+                <span className="text-xs text-primary-foreground font-bold">3</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="delivery" id="delivery" />
-                <Label htmlFor="delivery" className="cursor-pointer">
-                  Enviar mensajero a mi domicilio
-                </Label>
-              </div>
-            </RadioGroup>
+              <h3 className="text-lg font-semibold text-primary">Entrega de paquetes en Guatemala</h3>
+            </div>
             
-            {formData.deliveryMethod === 'delivery' && (
-              <div className="space-y-2 mt-4 p-4 border rounded-lg bg-muted/10">
-                <Label htmlFor="messengerPickupLocation">Dirección de entrega *</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Textarea 
-                    id="messengerPickupLocation"
-                    placeholder="Ingresa la dirección completa donde deseas entregar los paquetes al mensajero..."
-                    value={formData.messengerPickupLocation}
-                    onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
-                    className="pl-10 min-h-[80px]"
-                    required={formData.deliveryMethod === 'delivery'}
-                  />
+            <div className="space-y-3">
+              <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
+              <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="oficina" id="oficina" />
+                  <Label htmlFor="oficina" className="cursor-pointer">Entrego en oficina de Favorón (zona 14)</Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="mensajero" id="mensajero" />
+                  <Label htmlFor="mensajero" className="cursor-pointer">Entrega a mensajero Favorón (Q25–Q40 según dirección)</Label>
+                </div>
+              </RadioGroup>
+              
+              {formData.deliveryMethod === 'mensajero' && (
+                <div className="space-y-2 mt-4 p-4 border rounded-lg bg-muted/10">
+                  <Label htmlFor="messengerPickupLocation">Dirección de entrega *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Textarea 
+                      id="messengerPickupLocation"
+                      placeholder="Ingresa la dirección completa donde deseas entregar los paquetes al mensajero..."
+                      value={formData.messengerPickupLocation}
+                      onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
+                      className="pl-10 min-h-[80px]"
+                      required={formData.deliveryMethod === 'mensajero'}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fecha estimada en que entregarás los paquetes *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.deliveryDate ? format(formData.deliveryDate, "PPP", {
+                    locale: es
+                  }) : <span>Selecciona fecha de entrega</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={formData.deliveryDate || undefined} onSelect={date => handleInputChange('deliveryDate', date)} disabled={date => date < new Date() || (formData.arrivalDate ? date < formData.arrivalDate : false)} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* 🟦 4. Información adicional */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+              <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
+                <span className="text-xs text-primary-foreground font-bold">4</span>
               </div>
-            )}
-          </div>
+              <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
+            </div>
 
-          <div className="space-y-2">
-            <Label>Fecha estimada de entrega en oficina Favorón *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.deliveryDate ? format(formData.deliveryDate, "PPP", {
-                  locale: es
-                }) : <span>Selecciona fecha de entrega</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={formData.deliveryDate || undefined} onSelect={date => handleInputChange('deliveryDate', date)} disabled={date => date < new Date() || (formData.arrivalDate ? date < formData.arrivalDate : false)} initialFocus />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="additionalInfo">Información adicional</Label>
-            <Textarea id="additionalInfo" placeholder="Horarios de disponibilidad, restricciones, comentarios especiales..." value={formData.additionalInfo} onChange={e => handleInputChange('additionalInfo', e.target.value)} className="min-h-[80px]" />
+            <div className="space-y-2">
+              <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
+              <Textarea id="additionalInfo" placeholder="Horarios de disponibilidad, restricciones, comentarios especiales..." value={formData.additionalInfo} onChange={e => handleInputChange('additionalInfo', e.target.value)} className="min-h-[80px]" />
+            </div>
           </div>
 
           <div className="flex space-x-3">
