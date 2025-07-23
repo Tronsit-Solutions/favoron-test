@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, FileText, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 
@@ -11,6 +12,7 @@ interface TravelerPackageDetailsProps {
 const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
   const [showPackageDetails, setShowPackageDetails] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
+  const [hasNewDocuments, setHasNewDocuments] = useState(false);
 
   const getTotalProducts = () => {
     if (pkg.products) return pkg.products.length;
@@ -27,6 +29,48 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
   };
 
   const hasDocuments = pkg.purchase_confirmation || pkg.tracking_info;
+
+  // Detectar si hay documentos nuevos (actualizados en las últimas 24 horas)
+  const checkForNewDocuments = () => {
+    if (!hasDocuments) return false;
+    
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Verificar si el comprobante de compra es reciente
+    if (pkg.purchase_confirmation?.uploadedAt) {
+      const uploadDate = new Date(pkg.purchase_confirmation.uploadedAt);
+      if (uploadDate > twentyFourHoursAgo) return true;
+    }
+    
+    // Verificar si la información de seguimiento es reciente
+    if (pkg.tracking_info?.createdAt) {
+      const trackingDate = new Date(pkg.tracking_info.createdAt);
+      if (trackingDate > twentyFourHoursAgo) return true;
+    }
+    
+    // También verificar el updated_at del paquete por si hay actualizaciones recientes
+    if (pkg.updated_at) {
+      const updatedDate = new Date(pkg.updated_at);
+      if (updatedDate > twentyFourHoursAgo && hasDocuments) return true;
+    }
+    
+    return false;
+  };
+
+  // Efecto para verificar documentos nuevos al cargar el componente
+  useEffect(() => {
+    setHasNewDocuments(checkForNewDocuments());
+  }, [pkg]);
+
+  // Función para manejar cuando se abren los documentos
+  const handleShowDocuments = (open: boolean) => {
+    setShowDocuments(open);
+    if (open) {
+      // Marcar como visto cuando se abren los documentos
+      setHasNewDocuments(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -127,13 +171,19 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
 
       {/* Expandable Documents Section */}
       {hasDocuments && (
-        <Collapsible open={showDocuments} onOpenChange={setShowDocuments}>
+        <Collapsible open={showDocuments} onOpenChange={handleShowDocuments}>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full justify-between text-xs h-8">
+            <Button variant="outline" size="sm" className="w-full justify-between text-xs h-8 relative">
               <div className="flex items-center gap-2">
                 <FileText className="h-3 w-3" />
                 Ver comprobantes y seguimiento
               </div>
+              {/* Burbuja roja de notificación */}
+              {hasNewDocuments && (
+                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 rounded-full bg-destructive hover:bg-destructive text-destructive-foreground text-[10px] border-0 flex items-center justify-center">
+                  •
+                </Badge>
+              )}
               {showDocuments ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
           </CollapsibleTrigger>
