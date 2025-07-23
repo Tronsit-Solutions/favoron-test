@@ -7,6 +7,12 @@ interface ShippingInstructionsProps {
 const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   // Solo mostrar si el pago ha sido aprobado
   const pkgWithTrips = pkg as any;
+  
+  console.log('🔍 ShippingInstructions Debug - pkg.status:', pkg.status);
+  console.log('🔍 ShippingInstructions Debug - trips:', pkgWithTrips.trips);
+  console.log('🔍 ShippingInstructions Debug - package_receiving_address:', pkgWithTrips.trips?.package_receiving_address);
+  console.log('🔍 ShippingInstructions Debug - recipientName:', pkgWithTrips.trips?.package_receiving_address?.recipientName);
+  
   if (pkg.status !== 'payment_confirmed' || !pkgWithTrips.trips?.package_receiving_address) {
     return null;
   }
