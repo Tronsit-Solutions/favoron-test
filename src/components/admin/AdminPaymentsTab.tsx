@@ -187,101 +187,91 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Pagos Pendientes de Aprobación</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Pagos Pendientes de Aprobación</span>
+                  <Badge variant="outline" className="text-sm">
+                    {pendingPayments.length} pendientes
+                  </Badge>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Pedido</TableHead>
-                      <TableHead>Shopper</TableHead>
-                      <TableHead>Información Bancaria</TableHead>
-                      <TableHead>Monto</TableHead>
-                      <TableHead>Comprobante</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingPayments.map((payment) => (
-                      <TableRow key={payment.id}>
-                        <TableCell>
+                <div className="space-y-3">
+                  {pendingPayments.map((payment) => (
+                    <div key={payment.id} className="border rounded-lg p-4 space-y-3">
+                      {/* Header row with package info */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
                           <Button
                             variant="link"
                             onClick={() => onViewPackageDetail(payment)}
-                            className="p-0 h-auto font-medium"
+                            className="p-0 h-auto font-semibold text-base"
                           >
-                            #{payment.id}
+                            #{payment.id.slice(0, 8)}
                           </Button>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">
-                              {payment.profiles?.first_name} {payment.profiles?.last_name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
-                            </p>
+                          <div className="text-sm text-muted-foreground">
+                            {payment.item_description}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm space-y-1">
-                            {payment.profiles?.bank_name ? (
-                              <>
-                                <div><strong>Banco:</strong> {payment.profiles.bank_name}</div>
-                                <div><strong>Cuenta:</strong> {payment.profiles.bank_account_number}</div>
-                                <div><strong>Titular:</strong> {payment.profiles.bank_account_holder}</div>
-                                <div><strong>Tipo:</strong> {payment.profiles.bank_account_type}</div>
-                              </>
-                            ) : (
-                              <div className="text-red-500 font-medium">
-                                ⚠️ Sin información bancaria
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-lg">
                             {payment.quote?.totalPrice ? 
                               formatCurrency(parseFloat(payment.quote.totalPrice)) : 
                               'N/A'
                             }
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <PaymentProofDialog payment={payment} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => setConfirmDialog({
-                                isOpen: true,
-                                action: 'approve',
-                                payment
-                              })}
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Aprobar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setConfirmDialog({
-                                isOpen: true,
-                                action: 'reject',
-                                payment
-                              })}
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              Rechazar
-                            </Button>
+                        </div>
+                      </div>
+
+                      {/* Shopper info */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
+                            {payment.profiles?.first_name?.charAt(0)}{payment.profiles?.last_name?.charAt(0)}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <div>
+                            <div className="font-medium text-sm">
+                              {payment.profiles?.first_name} {payment.profiles?.last_name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          <PaymentProofDialog payment={payment} />
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => setConfirmDialog({
+                              isOpen: true,
+                              action: 'approve',
+                              payment
+                            })}
+                            className="h-8 px-3"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setConfirmDialog({
+                              isOpen: true,
+                              action: 'reject',
+                              payment
+                            })}
+                            className="h-8 px-3"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Rechazar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -299,83 +289,67 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
                   <p>No hay pagos procesados aún</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Pedido</TableHead>
-                      <TableHead>Shopper</TableHead>
-                      <TableHead>Información Bancaria</TableHead>
-                      <TableHead>Monto</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {processedPayments.map((payment) => (
-                      <TableRow key={payment.id}>
-                        <TableCell>
+                <div className="space-y-3">
+                  {processedPayments.map((payment) => (
+                    <div key={payment.id} className="border rounded-lg p-4 space-y-3 opacity-75">
+                      {/* Header row with package info */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
                           <Button
                             variant="link"
                             onClick={() => onViewPackageDetail(payment)}
-                            className="p-0 h-auto font-medium"
+                            className="p-0 h-auto font-semibold text-base"
                           >
-                            #{payment.id}
+                            #{payment.id.slice(0, 8)}
                           </Button>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">
-                              {payment.profiles?.first_name} {payment.profiles?.last_name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
-                            </p>
+                          <div className="text-sm text-muted-foreground">
+                            {payment.item_description}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm space-y-1">
-                            {payment.profiles?.bank_name ? (
-                              <>
-                                <div><strong>Banco:</strong> {payment.profiles.bank_name}</div>
-                                <div><strong>Cuenta:</strong> {payment.profiles.bank_account_number}</div>
-                                <div><strong>Titular:</strong> {payment.profiles.bank_account_holder}</div>
-                                <div><strong>Tipo:</strong> {payment.profiles.bank_account_type}</div>
-                              </>
-                            ) : (
-                              <div className="text-red-500 font-medium">
-                                ⚠️ Sin información bancaria
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">
+                        </div>
+                        <div className="text-right flex items-center gap-3">
+                          <div className="font-semibold">
                             {payment.quote?.totalPrice ? 
                               formatCurrency(parseFloat(payment.quote.totalPrice)) : 
                               'N/A'
                             }
                           </div>
-                        </TableCell>
-                        <TableCell>
                           {getPaymentStatusBadge(payment)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <PaymentProofDialog payment={payment} />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onViewPackageDetail(payment)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Ver detalle
-                            </Button>
+                        </div>
+                      </div>
+
+                      {/* Shopper info and actions */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium">
+                            {payment.profiles?.first_name?.charAt(0)}{payment.profiles?.last_name?.charAt(0)}
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <div>
+                            <div className="font-medium text-sm">
+                              {payment.profiles?.first_name} {payment.profiles?.last_name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {payment.profiles?.email || `user_${payment.user_id.slice(0, 8)}`}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          <PaymentProofDialog payment={payment} />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onViewPackageDetail(payment)}
+                            className="h-8 px-3"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Ver detalle
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
