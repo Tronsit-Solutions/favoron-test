@@ -32,7 +32,7 @@ const ShopperPackageInfo = ({
       </div>;
   };
   const renderTravelerAddress = () => {
-    if (!pkg.traveler_address || pkg.status !== 'payment_confirmed') return null;
+    if (!pkg.traveler_address || !['payment_confirmed', 'paid'].includes(pkg.status)) return null;
     return <ShippingInstructions pkg={pkg} />;
   };
   const renderPaymentUpload = () => {
@@ -46,7 +46,7 @@ const ShopperPackageInfo = ({
   };
 
   const renderDocumentUpload = () => {
-    if (pkg.status !== 'payment_confirmed') return null;
+    if (!['payment_confirmed', 'paid'].includes(pkg.status)) return null;
     return <div className="mt-4">
         <UploadDocuments 
           packageId={pkg.id}
@@ -67,8 +67,8 @@ const ShopperPackageInfo = ({
   return <>
       {renderQuoteInfo()}
       {renderPaymentUpload()}
-      {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
-      {pkg.status === 'payment_confirmed' && renderDocumentUpload()}
+      {['payment_confirmed', 'paid'].includes(pkg.status) && renderTravelerAddress()}
+      {['payment_confirmed', 'paid'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;
