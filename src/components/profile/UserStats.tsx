@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, Plane, DollarSign, Trophy } from "lucide-react";
+import { Package, Plane, Coins, Trophy } from "lucide-react";
 
 interface UserStatsProps {
   stats: {
@@ -26,7 +26,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
       color: "text-traveler"
     },
     {
-      icon: DollarSign,
+      icon: Coins,
       value: `Q${stats.totalTips.toFixed(2)}`,
       label: "Propinas ganadas",
       color: "text-green-600"
