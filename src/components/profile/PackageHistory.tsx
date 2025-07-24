@@ -82,33 +82,33 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
             return (
               <Collapsible key={pkg.id}>
                 <Card className="transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-2 flex-1">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+                      <div className="space-y-2 flex-1 min-w-0">
                         <div className="flex items-center space-x-2">
-                          <Package className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{pkg.item_description}</span>
+                          <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium truncate">{pkg.item_description}</span>
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
-                            <MapPin className="h-3 w-3" />
-                            <span>{pkg.package_destination}</span>
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{pkg.package_destination}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Calendar className="h-3 w-3" />
+                            <Calendar className="h-3 w-3 flex-shrink-0" />
                             <span>{new Date(deliveryDate).toLocaleDateString('es-GT')}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="default" className="bg-green-600">
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+                        <Badge variant="default" className="bg-green-600 text-center">
                           {getStatusDisplay(pkg)}
                         </Badge>
                         <CollapsibleTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex items-center space-x-1"
+                            className="flex items-center justify-center space-x-1 w-full sm:w-auto"
                           >
                             <span>Detalles</span>
                             <ChevronDown className="h-4 w-4" />
@@ -117,29 +117,29 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                       </div>
                     </div>
 
-                    <CollapsibleContent className="mt-4">
-                      <div className="space-y-6 pt-4 border-t">
+                    <CollapsibleContent className="mt-3 md:mt-4">
+                      <div className="space-y-4 md:space-y-6 pt-3 md:pt-4 border-t">
                         {/* Resumen del pedido */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                           <Card>
-                            <CardContent className="p-3 text-center">
-                              <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                            <CardContent className="p-2 md:p-3 text-center">
+                              <DollarSign className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-muted-foreground" />
                               <div className="text-sm font-semibold">Q{pkg.estimated_price || '0'}</div>
                               <div className="text-xs text-muted-foreground">Precio estimado</div>
                             </CardContent>
                           </Card>
                           
                           <Card>
-                            <CardContent className="p-3 text-center">
-                              <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                            <CardContent className="p-2 md:p-3 text-center">
+                              <DollarSign className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-muted-foreground" />
                               <div className="text-sm font-semibold">Q{pkg.quote?.totalPrice || '0'}</div>
                               <div className="text-xs text-muted-foreground">Precio final</div>
                             </CardContent>
                           </Card>
 
                           <Card>
-                            <CardContent className="p-3 text-center">
-                              <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                            <CardContent className="p-2 md:p-3 text-center">
+                              <Calendar className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-muted-foreground" />
                               <div className="text-sm font-semibold">
                                 {new Date(getDeliveryDate(pkg)).toLocaleDateString('es-GT')}
                               </div>
@@ -148,37 +148,23 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                           </Card>
 
                           <Card>
-                            <CardContent className="p-3 text-center">
-                              <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-600" />
+                            <CardContent className="p-2 md:p-3 text-center">
+                              <CheckCircle className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-green-600" />
                               <div className="text-sm font-semibold">{getStatusDisplay(pkg)}</div>
                               <div className="text-xs text-muted-foreground">Estado</div>
                             </CardContent>
                           </Card>
                         </div>
 
-                        {/* Información del viajero en la sección principal si existe */}
-                        {matchedTrip && (
-                          <div>
-                            <h3 className="text-lg font-semibold mb-2">Información del Viaje</h3>
-                            <Card>
-                              <CardContent className="p-3">
-                                <div className="text-sm text-muted-foreground">
-                                  <span className="font-medium">Viajero:</span> {matchedTrip.from_city} → {matchedTrip.to_city}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        )}
-
                         {/* Detalles del producto */}
                         <div>
-                          <h3 className="text-lg font-semibold mb-4">Detalles del Producto</h3>
+                          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Detalles del Producto</h3>
                           <Card>
-                            <CardContent className="p-4">
+                            <CardContent className="p-3 md:p-4">
                               <div className="space-y-3">
                                 <div>
                                   <p className="text-sm font-medium">Descripción:</p>
-                                  <p className="text-sm text-muted-foreground">{pkg.item_description}</p>
+                                  <p className="text-sm text-muted-foreground break-words">{pkg.item_description}</p>
                                 </div>
                                 
                                 {pkg.purchase_origin && (
@@ -195,7 +181,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                                       href={pkg.item_link} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
-                                      className="text-sm text-blue-600 hover:underline"
+                                      className="text-sm text-blue-600 hover:underline break-all"
                                     >
                                       Ver producto original
                                     </a>
@@ -205,7 +191,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                                 {pkg.additional_notes && (
                                   <div>
                                     <p className="text-sm font-medium">Notas adicionales:</p>
-                                    <p className="text-sm text-muted-foreground">{pkg.additional_notes}</p>
+                                    <p className="text-sm text-muted-foreground break-words">{pkg.additional_notes}</p>
                                   </div>
                                 )}
                               </div>
@@ -216,25 +202,25 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                         {/* Información del viajero */}
                         {matchedTrip && (
                           <div>
-                            <h3 className="text-lg font-semibold mb-4">Información del Viaje</h3>
+                            <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Información del Viaje</h3>
                             <Card>
-                              <CardContent className="p-4">
-                                <div className="space-y-2">
-                                  <div className="flex items-center space-x-2">
-                                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">
+                              <CardContent className="p-3 md:p-4">
+                                <div className="space-y-3">
+                                  <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <span className="text-sm break-words">
                                       <strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}
                                     </span>
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                  <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                     <span className="text-sm">
                                       <strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}
                                     </span>
                                   </div>
                                   {pkg.quote?.price && (
-                                    <div className="flex items-center space-x-2">
-                                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                    <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                                      <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                       <span className="text-sm">
                                         <strong>Tip al viajero:</strong> Q{pkg.quote.price}
                                       </span>
