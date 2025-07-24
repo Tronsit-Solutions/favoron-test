@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users } from "lucide-react";
+import { LogOut, User, Plane, Users, Home } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,12 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }: DashboardHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleHomeClick = () => {
+    navigate('/');
+  };
+
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
@@ -31,6 +38,15 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleHomeClick}
+            className="flex items-center"
+          >
+            <Home className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Inicio</span>
+          </Button>
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (
