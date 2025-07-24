@@ -608,9 +608,23 @@ export const useDashboardActions = (
         throw error;
       }
 
+      // Buscar el paquete para obtener información del shopper
+      const packageData = packages?.find(pkg => pkg.id === packageId);
+      
+      if (packageData?.user_id) {
+        // Notificar al shopper que el paquete está en oficina
+        await supabase.from('notifications').insert({
+          user_id: packageData.user_id,
+          title: "Paquete en oficina",
+          message: `Tu paquete "${packageData.item_description}" ya está disponible en nuestra oficina para recoger.`,
+          type: 'delivery',
+          priority: 'high'
+        });
+      }
+
       toast({
         title: "¡Entrega confirmada!",
-        description: "Has confirmado la recepción del paquete. El viajero ya puede solicitar su compensación.",
+        description: "Has confirmado la recepción del paquete. El viajero ya puede solicitar su compensación y el shopper ha sido notificado.",
       });
 
     } catch (error) {
