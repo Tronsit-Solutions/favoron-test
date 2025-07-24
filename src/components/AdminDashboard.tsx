@@ -33,6 +33,7 @@ interface AdminDashboardProps {
   onConfirmOfficeReception: (packageId: string) => void;
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
+  onConfirmShopperReceived: (packageId: string) => void;
   onDiscardPackage: (pkg: any) => void;
 }
 
@@ -46,6 +47,7 @@ const AdminDashboard = ({
   onConfirmOfficeReception,
   onAdminConfirmOfficeDelivery,
   onConfirmDeliveryComplete,
+  onConfirmShopperReceived,
   onDiscardPackage
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -254,6 +256,7 @@ const AdminDashboard = ({
             onConfirmOfficeReception={onConfirmOfficeReception}
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
+            onConfirmShopperReceived={onConfirmShopperReceived}
             getStatusBadge={getStatusBadge}
           />
         </TabsContent>

@@ -20,6 +20,7 @@ interface AdminMatchingTabProps {
   onConfirmOfficeReception: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
+  onConfirmShopperReceived: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -34,6 +35,7 @@ const AdminMatchingTab = ({
   onConfirmOfficeReception,
   onConfirmDeliveryComplete,
   onAdminConfirmOfficeDelivery,
+  onConfirmShopperReceived,
   getStatusBadge 
 }: AdminMatchingTabProps) => {
   const [activeTab, setActiveTab] = useState("pending");
@@ -144,6 +146,7 @@ const AdminMatchingTab = ({
             onConfirmOfficeReception={onConfirmOfficeReception}
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
+            onConfirmShopperReceived={onConfirmShopperReceived}
             getStatusBadge={getStatusBadge}
           />
         </TabsContent>

@@ -623,6 +623,29 @@ export const useDashboardActions = (
     }
   };
 
+  const handleConfirmShopperReceived = async (packageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .update({ status: 'completed' })
+        .eq('id', packageId);
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Confirmado",
+        description: "Se confirmó que el shopper recibió su paquete.",
+      });
+    } catch (error) {
+      console.error('Error confirming shopper received:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar la recepción del shopper.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleConfirmDeliveryComplete = async (packageId: string) => {
     try {
       console.log('🚀 === INICIANDO CONFIRMACIÓN DE ENTREGA ===');
@@ -770,6 +793,7 @@ export const useDashboardActions = (
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
     handleAdminConfirmOfficeDelivery,
+    handleConfirmShopperReceived,
     handleConfirmDeliveryComplete,
     handleEditTrip,
     handleEditPackage
