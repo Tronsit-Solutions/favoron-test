@@ -12,8 +12,13 @@ interface ShippingInfoRegistryProps {
 const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Solo mostrar si hay información de envío guardada
+  // Solo mostrar si hay información de envío guardada Y el pago ha sido aprobado por el admin
   if (!pkg.traveler_address && !pkg.matched_trip_dates) {
+    return null;
+  }
+  
+  // CRÍTICO: Esta información solo debe ser visible después de que el admin apruebe el pago
+  if (pkg.status !== 'paid') {
     return null;
   }
 
