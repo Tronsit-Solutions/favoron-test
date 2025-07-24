@@ -28,7 +28,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
 
   // Filtrar pagos pendientes de aprobación
   const pendingPayments = packages.filter(pkg => 
-    pkg.status === 'payment_pending' && pkg.payment_receipt
+    pkg.status === 'payment_confirmed' && pkg.payment_receipt
   );
 
   // Filtrar pagos ya aprobados/procesados
@@ -93,7 +93,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
     if (pkg.status === 'paid' && pkg.payment_receipt) {
       return <Badge variant="default" className="bg-green-500">Aprobado</Badge>;
     }
-    if (pkg.status === 'payment_pending') {
+    if (pkg.status === 'payment_confirmed') {
       return <Badge variant="secondary">Pendiente</Badge>;
     }
     if (pkg.status === 'payment_rejected' && pkg.payment_receipt) {

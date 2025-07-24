@@ -81,7 +81,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'payment_pending'
+          status: 'payment_confirmed'
         })
         .eq('id', pkg.id);
 
@@ -94,7 +94,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
       const updatedPkg = {
         ...pkg,
         payment_receipt: paymentReceiptData,
-        status: 'payment_pending' as const
+        status: 'payment_confirmed' as const
       };
       
       // Llamar onUploadComplete con el paquete actualizado
