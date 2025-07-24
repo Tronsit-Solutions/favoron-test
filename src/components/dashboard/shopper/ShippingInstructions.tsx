@@ -5,20 +5,20 @@ interface ShippingInstructionsProps {
 }
 
 const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
-  // Solo mostrar si el pago ha sido aprobado
+  // Solo mostrar si el pago ha sido confirmado
   const pkgWithTrips = pkg as any;
   
   console.log('🔍 ShippingInstructions Debug - pkg.status:', pkg.status);
-  console.log('🔍 ShippingInstructions Debug - trips:', pkgWithTrips.trips);
-  console.log('🔍 ShippingInstructions Debug - package_receiving_address:', pkgWithTrips.trips?.package_receiving_address);
-  console.log('🔍 ShippingInstructions Debug - recipientName:', pkgWithTrips.trips?.package_receiving_address?.recipientName);
+  console.log('🔍 ShippingInstructions Debug - saved traveler_address:', pkg.traveler_address);
+  console.log('🔍 ShippingInstructions Debug - saved matched_trip_dates:', pkg.matched_trip_dates);
   
-  if (pkg.status !== 'payment_confirmed' || !pkgWithTrips.trips?.package_receiving_address) {
+  // Use saved traveler address first, fallback to trip data if not saved yet
+  const address = pkg.traveler_address || pkgWithTrips.trips?.package_receiving_address;
+  const tripDates = pkg.matched_trip_dates as any;
+  
+  if (pkg.status !== 'payment_confirmed' || !address) {
     return null;
   }
-
-  const address = pkgWithTrips.trips.package_receiving_address as any;
-  const tripDates = pkg.matched_trip_dates as any;
 
   return (
     <div className="bg-success-muted border border-success-border rounded-md p-2 space-y-1">

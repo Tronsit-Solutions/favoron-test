@@ -77,11 +77,23 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         fileType: file.type
       };
 
+      // Get traveler address and trip dates from package data to save permanently
+      const pkgWithTrips = pkg as any;
+      const travelerShippingInfo = pkgWithTrips.trips?.package_receiving_address ? {
+        travelerAddress: pkgWithTrips.trips.package_receiving_address,
+        tripDates: pkg.matched_trip_dates
+      } : null;
+
       const { error: updateError } = await supabase
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'payment_confirmed'
+          status: 'payment_confirmed',
+          // Save traveler shipping information permanently
+          ...(travelerShippingInfo && {
+            traveler_address: travelerShippingInfo.travelerAddress,
+            matched_trip_dates: travelerShippingInfo.tripDates
+          })
         })
         .eq('id', pkg.id);
 
