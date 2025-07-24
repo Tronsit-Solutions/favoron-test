@@ -33,6 +33,9 @@ interface DashboardProps {
 
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
+  
+  // Debug log to check if userRole is being loaded correctly
+  console.log('Dashboard userRole:', userRole);
   const {
     currentUser,
     setCurrentUser,
