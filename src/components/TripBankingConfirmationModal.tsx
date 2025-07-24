@@ -80,92 +80,94 @@ const TripBankingConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full mx-auto max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[95vh] overflow-hidden">
+        <DialogHeader className="space-y-2 pb-3">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <CheckCircle className="h-4 w-4 text-green-600" />
             {title}
           </DialogTitle>
           {description && (
-            <DialogDescription>{description}</DialogDescription>
+            <DialogDescription className="text-sm">{description}</DialogDescription>
           )}
         </DialogHeader>
 
-        <div className="space-y-6">
-          <Alert>
+        <div className="space-y-4 overflow-y-auto max-h-[calc(95vh-120px)]">
+          <Alert className="py-2">
             <Shield className="h-4 w-4" />
-            <AlertDescription>
+            <AlertDescription className="text-xs">
               {hasCompleteBankingInfo && !isEditing 
-                ? "Revisa tu información bancaria registrada para recibir tu pago." 
-                : "Ingresa tu información bancaria para recibir tu pago por el viaje completo."
+                ? "Revisa tu información bancaria registrada." 
+                : "Ingresa tu información bancaria para recibir el pago."
               }
             </AlertDescription>
           </Alert>
 
-          <div className="bg-muted/30 border rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="bg-muted/30 border rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
               <CreditCard className="h-4 w-4 text-primary" />
-              <span className="font-medium">Pago a recibir:</span>
+              <span className="font-medium text-sm">Pago a recibir:</span>
             </div>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-xl font-bold text-green-600">
               {formatCurrency(amount)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tips acumulados por entrega de todos los paquetes del viaje
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tips acumulados del viaje
             </p>
           </div>
 
           {/* Vista de confirmación - mostrar información guardada */}
           {hasCompleteBankingInfo && !isEditing && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Eye className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm">Información bancaria registrada:</span>
+                <span className="font-medium text-sm">Información bancaria:</span>
               </div>
               
-              <div className="bg-muted/20 border rounded-lg p-4 space-y-3">
-                <div className="grid grid-cols-1 gap-3">
+              <div className="bg-muted/20 border rounded-lg p-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Nombre de cuenta</Label>
-                    <p className="font-medium">{currentBankingInfo.bank_account_holder}</p>
+                    <Label className="text-xs text-muted-foreground">Titular</Label>
+                    <p className="font-medium truncate">{currentBankingInfo.bank_account_holder}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Banco</Label>
-                    <p className="font-medium">{currentBankingInfo.bank_name}</p>
+                    <p className="font-medium truncate">{currentBankingInfo.bank_name}</p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Número de cuenta</Label>
-                    <p className="font-medium">{currentBankingInfo.bank_account_number}</p>
+                    <Label className="text-xs text-muted-foreground">Cuenta</Label>
+                    <p className="font-medium truncate">{currentBankingInfo.bank_account_number}</p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Tipo de cuenta</Label>
-                    <p className="font-medium capitalize">{currentBankingInfo.bank_account_type}</p>
+                    <Label className="text-xs text-muted-foreground">Tipo</Label>
+                    <p className="font-medium capitalize truncate">{currentBankingInfo.bank_account_type}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={onClose}
-                  disabled={loading}
-                  className="flex-1 h-11"
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  disabled={loading}
-                  className="flex-1 h-11"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar información
-                </Button>
+              <div className="flex flex-col gap-2 pt-3 border-t">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={onClose}
+                    disabled={loading}
+                    className="flex-1 h-9 text-sm"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    disabled={loading}
+                    className="flex-1 h-9 text-sm"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
+                  </Button>
+                </div>
                 <Button 
                   onClick={handleConfirmPayment}
                   disabled={loading}
-                  className="flex-1 h-11"
+                  className="w-full h-9 text-sm"
                 >
                   {loading ? "Procesando..." : "Confirmar y solicitar pago"}
                 </Button>
@@ -175,102 +177,106 @@ const TripBankingConfirmationModal = ({
 
           {/* Vista de edición - formulario de información bancaria */}
           {(!hasCompleteBankingInfo || isEditing) && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Edit className="h-4 w-4 text-primary" />
                 <span className="font-medium text-sm">
-                  {hasCompleteBankingInfo ? "Editar información bancaria:" : "Ingresa tu información bancaria:"}
+                  {hasCompleteBankingInfo ? "Editar información:" : "Ingresa tu información:"}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountHolder" className="text-sm font-medium">
-                    Nombre de cuenta
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="bankAccountHolder" className="text-xs font-medium">
+                    Titular de la cuenta
                   </Label>
                   <div className="relative">
-                    <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="bankAccountHolder"
                       value={bankingInfo.bank_account_holder}
                       onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_account_holder: e.target.value }))}
-                      placeholder="Nombre completo del titular"
-                      className="pl-10 h-11"
+                      placeholder="Nombre completo"
+                      className="pl-10 h-9 text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bankName" className="text-sm font-medium">
-                    Nombre del banco
-                  </Label>
-                  <div className="relative">
-                    <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="bankName"
-                      value={bankingInfo.bank_name}
-                      onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_name: e.target.value }))}
-                      placeholder="Ej: Banco Industrial"
-                      className="pl-10 h-11"
-                    />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="bankName" className="text-xs font-medium">
+                      Banco
+                    </Label>
+                    <div className="relative">
+                      <Building className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="bankName"
+                        value={bankingInfo.bank_name}
+                        onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_name: e.target.value }))}
+                        placeholder="ej: BI"
+                        className="pl-10 h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="bankAccountType" className="text-xs font-medium">
+                      Tipo
+                    </Label>
+                    <Select
+                      value={bankingInfo.bank_account_type}
+                      onValueChange={(value) => setBankingInfo(prev => ({ ...prev, bank_account_type: value }))}
+                    >
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="monetaria">Monetaria</SelectItem>
+                        <SelectItem value="ahorros">Ahorros</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountNumber" className="text-sm font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="bankAccountNumber" className="text-xs font-medium">
                     Número de cuenta
                   </Label>
                   <Input
                     id="bankAccountNumber"
                     value={bankingInfo.bank_account_number}
                     onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_account_number: e.target.value }))}
-                    placeholder="Número de cuenta bancaria"
-                    className="h-11"
+                    placeholder="Número de cuenta"
+                    className="h-9 text-sm"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountType" className="text-sm font-medium">
-                    Tipo de cuenta
-                  </Label>
-                  <Select
-                    value={bankingInfo.bank_account_type}
-                    onValueChange={(value) => setBankingInfo(prev => ({ ...prev, bank_account_type: value }))}
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Selecciona tipo de cuenta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monetaria">Monetaria</SelectItem>
-                      <SelectItem value="ahorros">Ahorros</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  onClick={onClose}
-                  disabled={loading}
-                  className="flex-1 h-11"
-                >
-                  Cancelar
-                </Button>
-                {hasCompleteBankingInfo && (
+              <div className="flex flex-col gap-2 pt-3 border-t">
+                <div className="flex gap-2">
                   <Button 
-                    variant="outline"
-                    onClick={() => setIsEditing(false)}
+                    variant="outline" 
+                    onClick={onClose}
                     disabled={loading}
-                    className="flex-1 h-11"
+                    className="flex-1 h-9 text-sm"
                   >
-                    Ver información guardada
+                    Cancelar
                   </Button>
-                )}
+                  {hasCompleteBankingInfo && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => setIsEditing(false)}
+                      disabled={loading}
+                      className="flex-1 h-9 text-sm"
+                    >
+                      Ver guardada
+                    </Button>
+                  )}
+                </div>
                 <Button 
                   onClick={handleConfirmPayment}
                   disabled={loading || !isFormValid}
-                  className="flex-1 h-11"
+                  className="w-full h-9 text-sm"
                 >
                   {loading ? "Procesando..." : "Confirmar y solicitar pago"}
                 </Button>
