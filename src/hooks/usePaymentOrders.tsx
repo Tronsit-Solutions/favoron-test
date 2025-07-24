@@ -107,7 +107,10 @@ export const usePaymentOrders = () => {
         .from('payment_orders')
         .update(updates)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          trips (id)
+        `)
         .single();
 
       if (error) throw error;
@@ -115,6 +118,18 @@ export const usePaymentOrders = () => {
       setPaymentOrders(prev => prev.map(order => 
         order.id === id ? { ...order, ...data } : order
       ));
+
+      // Si el pago se marca como completado, actualizar el viaje a completed_paid
+      if (updates.status === 'completed' && data.trips?.id) {
+        const { error: tripError } = await supabase
+          .from('trips')
+          .update({ status: 'completed_paid' })
+          .eq('id', data.trips.id);
+
+        if (tripError) {
+          console.error('Error updating trip status:', tripError);
+        }
+      }
       
       return data;
     } catch (error: any) {
