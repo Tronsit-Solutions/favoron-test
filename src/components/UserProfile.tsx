@@ -114,23 +114,45 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     setIsBankingEditing(false);
   };
 
-  // Calculate user stats
-  const userPackages = packages.filter(pkg => pkg.userId === user.id);
-  const userTrips = trips.filter(trip => trip.userId === user.id);
+  // Calculate user stats with correct data structure
+  const userPackages = packages.filter(pkg => pkg.user_id === user.id);
+  const userTrips = trips.filter(trip => trip.user_id === user.id);
+  
+  // Calcular paquetes completados (entregados en oficina o de viajes completados)
+  const completedPackages = userPackages.filter(pkg => {
+    if (pkg.status === 'delivered_to_office') return true;
+    if (pkg.matched_trip_id) {
+      const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+      return matchedTrip && matchedTrip.status === 'completed_paid';
+    }
+    return false;
+  });
+
+  // Calcular paquetes entregados como viajero (de todos los viajes del usuario)
+  const deliveredAsTraverler = packages.filter(pkg => {
+    const matchedTrip = userTrips.find(trip => trip.id === pkg.matched_trip_id);
+    if (!matchedTrip) return false;
+    
+    // Incluir paquetes entregados en oficina O de viajes completados y pagados
+    return pkg.status === 'delivered_to_office' || matchedTrip.status === 'completed_paid';
+  });
+
+  // Calcular propinas totales ganadas
+  const totalTips = deliveredAsTraverler.reduce((sum, pkg) => {
+    const tip = pkg.quote?.price ? parseFloat(pkg.quote.price) : 0;
+    return sum + tip;
+  }, 0);
   
   const stats = {
-    packagesRequested: userPackages.length,
-    packagesCompleted: userPackages.filter(pkg => pkg.status === 'delivered').length,
-    totalTips: user.stats?.totalTips || 0,
-    packagesDelivered: userTrips.reduce((acc, trip) => {
-      const matchedPackages = packages.filter(pkg => pkg.matchedTripId === trip.id && pkg.status === 'delivered');
-      return acc + matchedPackages.length;
-    }, 0)
+    packagesRequested: userPackages.length, // Todos los paquetes pedidos
+    packagesCompleted: completedPackages.length, // Paquetes completados como shopper
+    totalTips: totalTips, // Propinas ganadas como viajero
+    packagesDelivered: deliveredAsTraverler.length // Paquetes entregados como viajero
   };
 
   const activeRequests = userPackages.filter(pkg => {
-    // Excluir paquetes rechazados o entregados
-    if (['delivered', 'rejected'].includes(pkg.status)) return false;
+    // Excluir paquetes rechazados o entregados en oficina
+    if (['delivered_to_office', 'rejected'].includes(pkg.status)) return false;
     
     // Excluir paquetes que pertenecen a viajes completados y pagados
     if (pkg.matched_trip_id) {
@@ -160,15 +182,15 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       ...userPackages.map(pkg => ({
         type: 'package',
         item: pkg,
-        date: pkg.createdAt,
-        description: `Solicitud: ${pkg.itemDescription}`,
+        date: pkg.created_at,
+        description: `Solicitud: ${pkg.item_description}`,
         status: pkg.status
       })),
       ...userTrips.map(trip => ({
         type: 'trip',
         item: trip,
-        date: trip.createdAt,
-        description: `Viaje: ${trip.fromCity} → ${trip.toCity}`,
+        date: trip.created_at,
+        description: `Viaje: ${trip.from_city} → ${trip.to_city}`,
         status: trip.status
       }))
     ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -189,7 +211,9 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       'paid': { label: 'Pagado', variant: 'default' as const },
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
+      'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
+      'completed_paid': { label: 'Finalizado y Pagado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'default' as const },
     };

@@ -27,7 +27,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
     },
     {
       icon: DollarSign,
-      value: `$${stats.totalTips}`,
+      value: `Q${stats.totalTips.toFixed(2)}`,
       label: "Propinas ganadas",
       color: "text-green-600"
     },
