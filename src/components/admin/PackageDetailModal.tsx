@@ -82,7 +82,9 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Nombre</p>
-                      <p className="text-sm text-muted-foreground">{pkg.user.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.profiles ? `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || 'Sin nombre' : 'Sin información'}
+                      </p>
                     </div>
                   </div>
                   
@@ -90,7 +92,9 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{pkg.user.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.profiles?.email || 'Sin email'}
+                      </p>
                     </div>
                   </div>
                   
@@ -98,16 +102,18 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Teléfono</p>
-                      <p className="text-sm text-muted-foreground">{pkg.user.phone}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.profiles?.phone_number || 'Sin teléfono'}
+                      </p>
                     </div>
                   </div>
                   
                   <div className="flex items-center space-x-2">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Historial</p>
+                      <p className="text-sm font-medium">Usuario ID</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.user.totalRequests} solicitudes | {pkg.user.completedRequests} completadas
+                        {pkg.user_id}
                       </p>
                     </div>
                   </div>

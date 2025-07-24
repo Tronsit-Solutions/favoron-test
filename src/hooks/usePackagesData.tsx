@@ -44,18 +44,19 @@ export const usePackagesData = () => {
         .from('packages')
         .select(`
           *,
-          profiles!packages_user_id_fkey (
+          profiles (
             id,
             first_name,
             last_name,
             username,
             email,
+            phone_number,
             bank_name,
             bank_account_number,
             bank_account_holder,
             bank_account_type
           ),
-          trips!packages_matched_trip_id_fkey (
+          trips (
             id,
             package_receiving_address,
             departure_date,
@@ -65,12 +66,13 @@ export const usePackagesData = () => {
             delivery_date,
             from_city,
             to_city,
-            profiles!trips_user_id_fkey (
+            profiles (
               id,
               first_name,
               last_name,
               username,
-              email
+              email,
+              phone_number
             )
           )
         `)
