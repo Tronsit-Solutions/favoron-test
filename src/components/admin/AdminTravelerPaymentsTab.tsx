@@ -266,7 +266,7 @@ const AdminTravelerPaymentsTab = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-green-600">
-                            {formatCurrency(order.amount)} GTQ
+                            {order.amount} GTQ
                           </div>
                         </div>
                       </div>
