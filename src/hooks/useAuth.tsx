@@ -11,6 +11,12 @@ interface Profile {
   trust_level: 'basic' | 'earned' | 'verified';
   created_at: string;
   updated_at: string;
+  // Banking information
+  bank_account_holder: string | null;
+  bank_name: string | null;
+  bank_account_type: string | null;
+  bank_account_number: string | null;
+  bank_swift_code: string | null;
 }
 
 interface UserRole {

@@ -40,6 +40,12 @@ const Index = () => {
       trustLevel: profile.trust_level,
       avatar_url: profile.avatar_url,
       joinedAt: profile.created_at,
+      // Banking information - map from database fields to component expected fields
+      bankAccountHolder: profile.bank_account_holder,
+      bankName: profile.bank_name,
+      bankAccountType: profile.bank_account_type,
+      bankAccountNumber: profile.bank_account_number,
+      bankSwiftCode: profile.bank_swift_code,
       stats: {
         packagesRequested: 0,
         packagesCompleted: 0,
