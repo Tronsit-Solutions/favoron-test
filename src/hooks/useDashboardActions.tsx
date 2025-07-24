@@ -179,14 +179,22 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
+          console.log('🔍 Debugging quote acceptance:');
+          console.log('Selected package ID:', selectedPackage.id);
+          console.log('Package matched_trip_id:', selectedPackage.matched_trip_id);
+          console.log('Available trips:', trips.map(t => ({ id: t.id, from: t.from_city, to: t.to_city })));
+          
           const matchedTrip = selectedPackage.matched_trip_id ? 
             trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
           
           if (!matchedTrip) {
-            console.error('No matched trip found for package:', selectedPackage.id);
+            console.error('❌ No matched trip found for package:', selectedPackage.id);
+            console.error('Package matched_trip_id:', selectedPackage.matched_trip_id);
+            console.error('Available trip IDs:', trips.map(t => t.id));
+            
             toast({
-              title: "Error",
-              description: "No se encontró el viaje asociado a este paquete.",
+              title: "Error de sincronización",
+              description: `El viaje asociado (${selectedPackage.matched_trip_id?.slice(0, 8)}) no está disponible. Intenta refrescar la página o contacta al administrador.`,
               variant: "destructive",
             });
             return;
