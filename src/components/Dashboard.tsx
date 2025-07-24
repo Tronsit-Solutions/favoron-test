@@ -459,7 +459,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             setSelectedPackageForAddress(null);
           }}
           onConfirm={handleAddressConfirmation}
-          currentAddress={selectedPackageForAddress.deliveryAddress}
+          currentAddress={selectedPackageForAddress?.deliveryAddress || selectedPackageForAddress?.delivery_address || {}}
           packageDetails={{
             itemDescription: selectedPackageForAddress.item_description,
             estimatedPrice: selectedPackageForAddress.estimated_price
