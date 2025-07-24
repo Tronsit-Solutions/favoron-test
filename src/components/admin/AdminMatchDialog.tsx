@@ -76,6 +76,9 @@ const AdminMatchDialog = ({
                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                      ${selectedPackage.estimated_price}
                    </Badge>
+                   <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                     📍 {selectedPackage.purchase_origin || 'No especificado'}
+                   </Badge>
                    <Badge variant="outline" className="border-gray-300 text-xs">
                      🎯 {selectedPackage.package_destination || 'Guatemala'}
                    </Badge>
