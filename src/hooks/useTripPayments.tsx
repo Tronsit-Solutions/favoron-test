@@ -39,8 +39,6 @@ export const useTripPayments = (tripId?: string) => {
 
       if (error) throw error;
 
-      console.log('📊 Trip payment data loaded:', { tripId, data });
-
       // Si existe un accumulator, verificar si hay una payment order completada
       if (data) {
         const { data: paymentOrder, error: paymentError } = await supabase

@@ -362,6 +362,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                         getStatusBadge={getStatusBadge}
                         onEditTrip={handleEditTrip}
                         currentUser={currentUser}
+                        travelerProfile={currentUser} // Pasar el perfil actual como travelerProfile
                       />
                     ))}
                   </div>
