@@ -43,7 +43,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
           </div>
           
           <div className="space-y-1 text-xs">
-            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-green-600">📥</span>
                 <span className="text-muted-foreground">Primer día para recibir paquetes:</span>
@@ -58,7 +58,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-orange-600">📤</span>
                 <span className="text-muted-foreground">Último día para recibir paquetes:</span>
@@ -73,7 +73,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
+            <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-purple-600">🏢</span>
                 <span className="text-muted-foreground">Entrega en Guatemala:</span>
