@@ -167,10 +167,44 @@ export const useDashboardActions = (
             description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
           });
         } else {
-          // Sending quote implies approval
+          // Sending quote implies approval - need to set traveler address from matched trip
+          const matchedTrip = selectedPackage.matched_trip_id ? 
+            trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
+          
+          if (!matchedTrip) {
+            console.error('❌ No matched trip found when sending quote for package:', selectedPackage.id);
+            toast({
+              title: "Error de sincronización",
+              description: "No se encontró el viaje asociado. Intenta refrescar la página.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Build traveler address from trip data
+          const travelerAddress = matchedTrip.package_receiving_address ? {
+            recipientName: matchedTrip.package_receiving_address.recipientName,
+            streetAddress: matchedTrip.package_receiving_address.streetAddress,
+            cityArea: matchedTrip.package_receiving_address.cityArea,
+            postalCode: matchedTrip.package_receiving_address.postalCode,
+            contactNumber: matchedTrip.package_receiving_address.contactNumber,
+            hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
+            accommodationType: matchedTrip.package_receiving_address.accommodationType
+          } : null;
+
+          // Build trip dates information
+          const matchedTripDates = {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          };
+
           await updatePackage(selectedPackage.id, {
             status: 'quote_sent',
-            quote: quoteData
+            quote: quoteData,
+            traveler_address: travelerAddress,
+            matched_trip_dates: matchedTripDates
           });
           toast({
             title: "¡Cotización enviada!",
