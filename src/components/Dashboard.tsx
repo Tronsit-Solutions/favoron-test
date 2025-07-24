@@ -32,7 +32,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ user }: DashboardProps) => {
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, userRole } = useAuth();
   const {
     currentUser,
     setCurrentUser,
@@ -65,7 +65,10 @@ const Dashboard = ({ user }: DashboardProps) => {
     createTrip,
     updateTrip,
     refreshTrips
-  } = useDashboardState(profile || user);
+  } = useDashboardState({
+    ...(profile || user),
+    role: userRole?.role || 'user'
+  });
 
 
   const {
@@ -234,7 +237,9 @@ const Dashboard = ({ user }: DashboardProps) => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">¡Hola, {currentUser.name}! 👋</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+            ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋
+          </h2>
           <p className="text-muted-foreground text-sm sm:text-base">
             Gestiona tus solicitudes de paquetes y viajes desde aquí
           </p>
