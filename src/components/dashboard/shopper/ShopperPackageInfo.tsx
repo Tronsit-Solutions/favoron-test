@@ -1,6 +1,8 @@
 import { Package as PackageIcon, MapPin } from "lucide-react";
 import { Package } from "@/types";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
+import ShippingInstructions from "./ShippingInstructions";
+import UploadDocuments from "../../UploadDocuments";
 interface ShopperPackageInfoProps {
   pkg: Package;
   onPackageUpdate?: (updatedPkg?: Package) => void;
@@ -31,9 +33,7 @@ const ShopperPackageInfo = ({
   };
   const renderTravelerAddress = () => {
     if (!pkg.traveler_address || pkg.status !== 'payment_confirmed') return null;
-    const address = pkg.traveler_address as any;
-    const tripDates = pkg.matched_trip_dates as any;
-    return;
+    return <ShippingInstructions pkg={pkg} />;
   };
   const renderPaymentUpload = () => {
     if (!['quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
@@ -44,10 +44,31 @@ const ShopperPackageInfo = ({
       }} />
       </div>;
   };
+
+  const renderDocumentUpload = () => {
+    if (pkg.status !== 'payment_confirmed') return null;
+    return <div className="mt-4">
+        <UploadDocuments 
+          packageId={pkg.id}
+          currentStatus={pkg.status}
+          currentConfirmation={pkg.purchase_confirmation}
+          currentTracking={pkg.tracking_info}
+          onUpload={(type, data) => {
+            // Actualizar el paquete con los nuevos documentos
+            const updatedPkg = {
+              ...pkg,
+              ...(type === 'confirmation' ? { purchase_confirmation: data } : { tracking_info: data })
+            };
+            onPackageUpdate?.(updatedPkg);
+          }}
+        />
+      </div>;
+  };
   return <>
       {renderQuoteInfo()}
       {renderPaymentUpload()}
       {pkg.status === 'payment_confirmed' && renderTravelerAddress()}
+      {pkg.status === 'payment_confirmed' && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;
