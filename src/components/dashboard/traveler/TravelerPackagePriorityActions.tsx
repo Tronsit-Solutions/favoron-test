@@ -72,7 +72,7 @@ const TravelerPackagePriorityActions = ({
               {pkg.status === 'in_transit' && (
                 <div>
                   <p className="text-sm font-semibold mb-1">¡Paquete listo para confirmar!</p>
-                  <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete del shopper?</p>
+                  <p className="text-xs text-muted-foreground">¿Ya recibiste el paquete?</p>
                 </div>
               )}
               {pkg.status === 'received_by_traveler' && (
