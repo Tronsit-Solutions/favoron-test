@@ -80,8 +80,8 @@ const TripBankingConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[95vh] overflow-hidden">
-        <DialogHeader className="space-y-3 pt-4 pb-4">
+      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[90vh] overflow-hidden">
+        <DialogHeader className="space-y-3 pt-3 pb-3 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <CheckCircle className="h-4 w-4 text-green-600" />
             {title}
@@ -91,7 +91,8 @@ const TripBankingConfirmationModal = ({
           )}
         </DialogHeader>
 
-        <div className="space-y-4 overflow-y-auto max-h-[calc(95vh-140px)] px-1">
+        <div className="flex-1 overflow-y-auto px-1 pb-3">
+          <div className="space-y-4">
           <Alert className="py-2">
             <Shield className="h-4 w-4" />
             <AlertDescription className="text-xs">
@@ -283,6 +284,7 @@ const TripBankingConfirmationModal = ({
               </div>
             </div>
           )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
