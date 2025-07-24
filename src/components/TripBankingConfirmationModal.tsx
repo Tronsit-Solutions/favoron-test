@@ -91,67 +91,67 @@ const TripBankingConfirmationModal = ({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-1 pb-3">
-          <div className="space-y-4">
-          <Alert className="py-2">
-            <Shield className="h-4 w-4" />
+        <div className="flex-1 overflow-y-auto px-1 pb-2">
+          <div className="space-y-2">
+          <Alert className="py-1">
+            <Shield className="h-3 w-3" />
             <AlertDescription className="text-xs">
               {hasCompleteBankingInfo && !isEditing 
-                ? "Revisa tu información bancaria registrada." 
-                : "Ingresa tu información bancaria para recibir el pago."
+                ? "Revisa tu información bancaria." 
+                : "Ingresa tu información bancaria."
               }
             </AlertDescription>
           </Alert>
 
-          <div className="bg-muted/30 border rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <CreditCard className="h-4 w-4 text-primary" />
-              <span className="font-medium text-sm">Pago a recibir:</span>
+          <div className="bg-muted/30 border rounded-lg p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <CreditCard className="h-3 w-3 text-primary" />
+              <span className="font-medium text-xs">Pago:</span>
             </div>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-lg font-bold text-green-600">
               {formatCurrency(amount)}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Tips acumulados del viaje
+            <p className="text-xs text-muted-foreground">
+              Tips del viaje
             </p>
           </div>
 
           {/* Vista de confirmación - mostrar información guardada */}
           {hasCompleteBankingInfo && !isEditing && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm">Información bancaria:</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Eye className="h-3 w-3 text-primary" />
+                <span className="font-medium text-xs">Información bancaria:</span>
               </div>
               
-              <div className="bg-muted/20 border rounded-lg p-3">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-muted/20 border rounded-lg p-2">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <Label className="text-xs text-muted-foreground">Titular</Label>
-                    <p className="font-medium truncate">{currentBankingInfo.bank_account_holder}</p>
+                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_account_holder}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Banco</Label>
-                    <p className="font-medium truncate">{currentBankingInfo.bank_name}</p>
+                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_name}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Cuenta</Label>
-                    <p className="font-medium truncate">{currentBankingInfo.bank_account_number}</p>
+                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_account_number}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Tipo</Label>
-                    <p className="font-medium capitalize truncate">{currentBankingInfo.bank_account_type}</p>
+                    <p className="font-medium capitalize truncate text-xs">{currentBankingInfo.bank_account_type}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pt-3 border-t">
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-1 pt-2 border-t">
+                <div className="flex gap-1">
                   <Button 
                     variant="outline" 
                     onClick={onClose}
                     disabled={loading}
-                    className="flex-1 h-9 text-sm"
+                    className="flex-1 h-8 text-xs"
                   >
                     Cancelar
                   </Button>
@@ -159,7 +159,7 @@ const TripBankingConfirmationModal = ({
                     variant="outline"
                     onClick={() => setIsEditing(true)}
                     disabled={loading}
-                    className="flex-1 h-9 text-sm"
+                    className="flex-1 h-8 text-xs"
                   >
                     <Edit className="h-3 w-3 mr-1" />
                     Editar
@@ -168,7 +168,7 @@ const TripBankingConfirmationModal = ({
                 <Button 
                   onClick={handleConfirmPayment}
                   disabled={loading}
-                  className="w-full h-9 text-sm"
+                  className="w-full h-8 text-xs"
                 >
                   {loading ? "Procesando..." : "Confirmar y solicitar pago"}
                 </Button>
@@ -178,44 +178,44 @@ const TripBankingConfirmationModal = ({
 
           {/* Vista de edición - formulario de información bancaria */}
           {(!hasCompleteBankingInfo || isEditing) && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Edit className="h-4 w-4 text-primary" />
-                <span className="font-medium text-sm">
-                  {hasCompleteBankingInfo ? "Editar información:" : "Ingresa tu información:"}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1 mb-1">
+                <Edit className="h-3 w-3 text-primary" />
+                <span className="font-medium text-xs">
+                  {hasCompleteBankingInfo ? "Editar:" : "Ingresa información:"}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="bankAccountHolder" className="text-xs font-medium">
-                    Titular de la cuenta
+                    Titular
                   </Label>
                   <div className="relative">
-                    <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <CreditCard className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id="bankAccountHolder"
                       value={bankingInfo.bank_account_holder}
                       onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_account_holder: e.target.value }))}
                       placeholder="Nombre completo"
-                      className="pl-10 h-9 text-sm"
+                      className="pl-8 h-8 text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label htmlFor="bankName" className="text-xs font-medium">
                       Banco
                     </Label>
                     <div className="relative">
-                      <Building className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Building className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
                       <Input
                         id="bankName"
                         value={bankingInfo.bank_name}
                         onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_name: e.target.value }))}
                         placeholder="ej: BI"
-                        className="pl-10 h-9 text-sm"
+                        className="pl-8 h-8 text-xs"
                       />
                     </div>
                   </div>
@@ -228,7 +228,7 @@ const TripBankingConfirmationModal = ({
                       value={bankingInfo.bank_account_type}
                       onValueChange={(value) => setBankingInfo(prev => ({ ...prev, bank_account_type: value }))}
                     >
-                      <SelectTrigger className="h-9 text-sm">
+                      <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Tipo" />
                       </SelectTrigger>
                       <SelectContent>
@@ -248,18 +248,18 @@ const TripBankingConfirmationModal = ({
                     value={bankingInfo.bank_account_number}
                     onChange={(e) => setBankingInfo(prev => ({ ...prev, bank_account_number: e.target.value }))}
                     placeholder="Número de cuenta"
-                    className="h-9 text-sm"
+                    className="h-8 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pt-3 border-t">
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-1 pt-2 border-t">
+                <div className="flex gap-1">
                   <Button 
                     variant="outline" 
                     onClick={onClose}
                     disabled={loading}
-                    className="flex-1 h-9 text-sm"
+                    className="flex-1 h-8 text-xs"
                   >
                     Cancelar
                   </Button>
@@ -268,7 +268,7 @@ const TripBankingConfirmationModal = ({
                       variant="outline"
                       onClick={() => setIsEditing(false)}
                       disabled={loading}
-                      className="flex-1 h-9 text-sm"
+                      className="flex-1 h-8 text-xs"
                     >
                       Ver guardada
                     </Button>
@@ -277,7 +277,7 @@ const TripBankingConfirmationModal = ({
                 <Button 
                   onClick={handleConfirmPayment}
                   disabled={loading || !isFormValid}
-                  className="w-full h-9 text-sm"
+                  className="w-full h-8 text-xs"
                 >
                   {loading ? "Procesando..." : "Confirmar y solicitar pago"}
                 </Button>
