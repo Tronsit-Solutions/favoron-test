@@ -175,20 +175,26 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
             </div>
             <div>
               <span className="text-muted-foreground">Banco:</span>
-              <p>{order.bank_name}</p>
+              <p className="font-medium">{order.profiles?.bank_name || order.bank_name}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Cuenta:</span>
-              <p>{order.bank_account_number}</p>
+              <p className="font-medium">{order.profiles?.bank_account_number || order.bank_account_number}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Titular:</span>
-              <p>{order.bank_account_holder}</p>
+              <p className="font-medium">{order.profiles?.bank_account_holder || order.bank_account_holder}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Tipo de cuenta:</span>
-              <p>{order.bank_account_type}</p>
+              <p className="font-medium capitalize">{order.profiles?.bank_account_type || order.bank_account_type}</p>
             </div>
+            {(order.profiles?.bank_swift_code || order.bank_swift_code) && (
+              <div>
+                <span className="text-muted-foreground">Código SWIFT:</span>
+                <p className="font-medium">{order.profiles?.bank_swift_code || order.bank_swift_code}</p>
+              </div>
+            )}
           </div>
 
           {showActions && (
