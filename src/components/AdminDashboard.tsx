@@ -183,7 +183,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -200,6 +200,12 @@ const AdminDashboard = ({
             Gestión
             {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length) > 0 && (
               <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="shopper-payments" className="relative flex items-center gap-2">
+            Pagos Shoppers
+            {packages.filter(p => p.status === 'payment_confirmed' && p.payment_receipt).length > 0 && (
+              <NotificationBadge count={packages.filter(p => p.status === 'payment_confirmed' && p.payment_receipt).length} />
             )}
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
@@ -258,6 +264,14 @@ const AdminDashboard = ({
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
             onConfirmShopperReceived={onConfirmShopperReceived}
             getStatusBadge={getStatusBadge}
+          />
+        </TabsContent>
+
+        <TabsContent value="shopper-payments" className="space-y-4">
+          <AdminPaymentsTab 
+            packages={packages}
+            onUpdateStatus={onUpdateStatus}
+            onViewPackageDetail={handleViewPackageDetail}
           />
         </TabsContent>
 
