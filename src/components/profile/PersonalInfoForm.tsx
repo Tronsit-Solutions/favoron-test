@@ -9,9 +9,10 @@ interface PersonalInfoFormProps {
   formData: any;
   setFormData: (data: any) => void;
   onSave: () => void;
+  showSaveButton?: boolean;
 }
 
-const PersonalInfoForm = ({ formData, setFormData, onSave }: PersonalInfoFormProps) => {
+const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true }: PersonalInfoFormProps) => {
   const handleAvatarChange = (url: string | null) => {
     setFormData((prev: any) => ({ ...prev, avatarUrl: url }));
   };
@@ -26,7 +27,7 @@ const PersonalInfoForm = ({ formData, setFormData, onSave }: PersonalInfoFormPro
         />
       </div>
       
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">Nombre</Label>
           <Input
@@ -89,10 +90,12 @@ const PersonalInfoForm = ({ formData, setFormData, onSave }: PersonalInfoFormPro
         </div>
       </div>
 
-      <Button onClick={onSave} className="w-full">
-        <Save className="h-4 w-4 mr-2" />
-        Guardar Cambios
-      </Button>
+      {showSaveButton && (
+        <Button onClick={onSave} className="w-full">
+          <Save className="h-4 w-4 mr-2" />
+          Guardar Cambios
+        </Button>
+      )}
     </>
   );
 };

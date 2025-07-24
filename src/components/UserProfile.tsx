@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileHeader from "./profile/ProfileHeader";
 import UserLevelCard from "./profile/UserLevelCard";
 import UserStats from "./profile/UserStats";
-import PersonalInfoForm from "./profile/PersonalInfoForm";
 import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
 import BankingInfoForm from "./profile/BankingInfoForm";
 import BankingInfoDisplay from "./profile/BankingInfoDisplay";
@@ -24,15 +23,8 @@ interface UserProfileProps {
 }
 
 const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [isBankingEditing, setIsBankingEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user.first_name || user.firstName || '',
-    lastName: user.last_name || user.lastName || '',
-    username: user.username || '',
-    phone: user.phone_number || user.phone || '',
-    idNumber: user.idNumber || '',
-    avatarUrl: user.avatar_url || user.avatarUrl || '',
     bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
     bankName: user.bank_name || user.bankName || '',
     bankAccountType: user.bank_account_type || user.bankAccountType || '',
@@ -44,66 +36,6 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
   });
   const { toast } = useToast();
-
-  const handleSave = () => {
-    if (!formData.firstName || !formData.lastName) {
-      toast({
-        title: "Error",
-        description: "El nombre y apellido son obligatorios",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const updatedUser = {
-      ...user,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      name: `${formData.firstName} ${formData.lastName}`,
-      username: formData.username,
-      phone: formData.phone,
-      idNumber: formData.idNumber,
-      avatarUrl: formData.avatarUrl,
-      // Include banking info for consistency
-      bankAccountHolder: formData.bank_account_holder || formData.bankAccountHolder,
-      bankName: formData.bank_name || formData.bankName,
-      bankAccountType: formData.bank_account_type || formData.bankAccountType,
-      bankAccountNumber: formData.bank_account_number || formData.bankAccountNumber,
-      // Database fields
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      phone_number: formData.phone,
-      avatar_url: formData.avatarUrl
-    };
-
-    onUpdateUser(updatedUser);
-    setIsEditing(false);
-    toast({
-      title: "¡Perfil actualizado!",
-      description: "Tus datos han sido guardados correctamente"
-    });
-  };
-
-  const handleCancel = () => {
-    setFormData({
-      firstName: user.first_name || user.firstName || '',
-      lastName: user.last_name || user.lastName || '',
-      username: user.username || '',
-      phone: user.phone_number || user.phone || '',
-      idNumber: user.idNumber || '',
-      avatarUrl: user.avatar_url || user.avatarUrl || '',
-      bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
-      bankName: user.bank_name || user.bankName || '',
-      bankAccountType: user.bank_account_type || user.bankAccountType || '',
-      bankAccountNumber: user.bank_account_number || user.bankAccountNumber || '',
-      // Database fields
-      bank_account_holder: user.bank_account_holder || user.bankAccountHolder || '',
-      bank_name: user.bank_name || user.bankName || '',
-      bank_account_type: user.bank_account_type || user.bankAccountType || '',
-      bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
-    });
-    setIsEditing(false);
-  };
 
   const handleBankingSave = () => {
     const updatedUser = {
@@ -256,9 +188,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       <ProfileHeader 
         user={user}
         userLevel={userLevel}
-        isEditing={isEditing}
-        onEdit={() => setIsEditing(true)}
-        onCancel={handleCancel}
+        onUpdateUser={onUpdateUser}
       />
 
       <TabsList className="grid w-full grid-cols-1 h-auto gap-1 sm:grid-cols-3 sm:h-10 sm:gap-0">
@@ -343,19 +273,11 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         <CardHeader className="pb-3 md:pb-6">
           <CardTitle className="text-lg">Información Personal</CardTitle>
           <CardDescription className="text-sm">
-            {isEditing ? "Edita tu información personal" : "Tu información personal registrada"}
+            Tu información personal registrada
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
-          {isEditing ? (
-            <PersonalInfoForm 
-              formData={formData}
-              setFormData={setFormData}
-              onSave={handleSave}
-            />
-          ) : (
-            <PersonalInfoDisplay user={user} />
-          )}
+          <PersonalInfoDisplay user={user} />
         </CardContent>
       </Card>
 
