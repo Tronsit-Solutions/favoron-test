@@ -14,7 +14,20 @@ export const useTripsData = () => {
 
   const fetchTrips = async () => {
     try {
-      const { data, error } = await supabase
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setTrips([]);
+        return;
+      }
+
+      // Check if user is admin
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+
+      let query = supabase
         .from('trips')
         .select(`
           *,
@@ -27,6 +40,13 @@ export const useTripsData = () => {
           )
         `)
         .order('created_at', { ascending: false });
+
+      // If not admin, only show user's own trips
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setTrips(data || []);
