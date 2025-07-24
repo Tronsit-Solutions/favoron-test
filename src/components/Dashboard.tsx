@@ -32,7 +32,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ user }: DashboardProps) => {
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const {
     currentUser,
     setCurrentUser,
@@ -65,7 +65,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     createTrip,
     updateTrip,
     refreshTrips
-  } = useDashboardState(user);
+  } = useDashboardState(profile || user);
 
 
   const {

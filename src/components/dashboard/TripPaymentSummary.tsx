@@ -17,6 +17,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   trip, 
   userProfile 
 }) => {
+  console.log('🏦 TripPaymentSummary - userProfile:', userProfile);
   const { tripPayment, loading, createPaymentOrder } = useTripPayments(trip.id);
   const [showBankingModal, setShowBankingModal] = useState(false);
 
