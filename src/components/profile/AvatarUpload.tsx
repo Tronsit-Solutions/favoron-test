@@ -34,14 +34,17 @@ const AvatarUpload = ({ currentAvatarUrl, userName, onAvatarChange }: AvatarUplo
     }
 
     setUploading(true);
+    console.log('Starting avatar upload process...');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('User data:', user);
       if (!user) throw new Error('Usuario no autenticado');
 
-      // Create unique filename
+      // Create unique filename with user id in folder structure
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`;
+      console.log('Upload filename:', fileName);
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -51,6 +54,7 @@ const AvatarUpload = ({ currentAvatarUrl, userName, onAvatarChange }: AvatarUplo
           upsert: false
         });
 
+      console.log('Upload result:', { uploadData, uploadError });
       if (uploadError) throw uploadError;
 
       // Get public URL
@@ -58,12 +62,15 @@ const AvatarUpload = ({ currentAvatarUrl, userName, onAvatarChange }: AvatarUplo
         .from('avatars')
         .getPublicUrl(fileName);
 
+      console.log('Public URL:', publicUrl);
+
       // Update user profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
+      console.log('Profile update error:', updateError);
       if (updateError) throw updateError;
 
       setPreviewUrl(publicUrl);
