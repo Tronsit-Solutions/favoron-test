@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Package, DollarSign, CheckCircle, ShoppingBag } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Calendar, MapPin, Package, DollarSign, CheckCircle, ShoppingBag, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 interface PackageHistoryProps {
@@ -10,8 +11,6 @@ interface PackageHistoryProps {
 }
 
 const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
-  const [selectedPackage, setSelectedPackage] = useState<any>(null);
-
   // Filtrar solo paquetes completados (entregados en oficina o que pertenezcan a viajes completados)
   const completedPackages = packages.filter(pkg => {
     // Paquetes entregados en oficina
@@ -66,234 +65,215 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      {!selectedPackage ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <ShoppingBag className="h-5 w-5" />
-              <span>Historial de Pedidos</span>
-            </CardTitle>
-            <CardDescription>Tus pedidos completados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {completedPackages.map((pkg) => {
-                const matchedTrip = getMatchedTrip(pkg.id);
-                const deliveryDate = getDeliveryDate(pkg);
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <ShoppingBag className="h-5 w-5" />
+          <span>Historial de Pedidos</span>
+        </CardTitle>
+        <CardDescription>Tus pedidos completados</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {completedPackages.map((pkg) => {
+            const matchedTrip = getMatchedTrip(pkg.id);
+            const deliveryDate = getDeliveryDate(pkg);
 
-                return (
-                  <Card key={pkg.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{pkg.item_description}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span>Para: {pkg.package_destination}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span>Completado: {new Date(deliveryDate).toLocaleDateString('es-GT')}</span>
-                          </div>
+            return (
+              <Collapsible key={pkg.id}>
+                <Card className="transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{pkg.item_description}</span>
                         </div>
-                        <Badge variant="default" className="bg-green-600">
-                          {getStatusDisplay(pkg)}
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-lg font-semibold">
-                              Q{pkg.estimated_price || '0'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Precio estimado</p>
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          <span>Para: {pkg.package_destination}</span>
                         </div>
-                        
-                        <div className="text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-lg font-semibold">
-                              Q{pkg.quote?.totalPrice || '0'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Precio final</p>
-                        </div>
-
-                        <div className="text-center">
-                          <div className="flex items-center justify-center space-x-1">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-lg font-semibold">✓</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Completado</p>
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>Completado: {new Date(deliveryDate).toLocaleDateString('es-GT')}</span>
                         </div>
                       </div>
+                      <Badge variant="default" className="bg-green-600">
+                        {getStatusDisplay(pkg)}
+                      </Badge>
+                    </div>
 
-                      {matchedTrip && (
-                        <div className="text-sm text-muted-foreground mb-3">
-                          <span className="font-medium">Viajero:</span> {matchedTrip.from_city} → {matchedTrip.to_city}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-lg font-semibold">
+                            Q{pkg.estimated_price || '0'}
+                          </span>
                         </div>
-                      )}
+                        <p className="text-xs text-muted-foreground">Precio estimado</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-lg font-semibold">
+                            Q{pkg.quote?.totalPrice || '0'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Precio final</p>
+                      </div>
 
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span className="text-lg font-semibold">✓</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Completado</p>
+                      </div>
+                    </div>
+
+                    {matchedTrip && (
+                      <div className="text-sm text-muted-foreground mb-3">
+                        <span className="font-medium">Viajero:</span> {matchedTrip.from_city} → {matchedTrip.to_city}
+                      </div>
+                    )}
+
+                    <CollapsibleTrigger asChild>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full"
-                        onClick={() => setSelectedPackage(pkg)}
+                        className="w-full flex items-center justify-center space-x-2"
                       >
-                        Ver Detalles
+                        <span>Ver Detalles</span>
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Package className="h-5 w-5" />
-                  <span>{selectedPackage.item_description}</span>
-                </CardTitle>
-                <CardDescription>
-                  Pedido completado el {new Date(getDeliveryDate(selectedPackage)).toLocaleDateString('es-GT')}
-                </CardDescription>
-              </div>
-              <Button variant="outline" onClick={() => setSelectedPackage(null)}>
-                Volver al Historial
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Resumen del pedido */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-3 text-center">
-                  <MapPin className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <div className="text-sm font-semibold">{selectedPackage.package_destination}</div>
-                  <div className="text-xs text-muted-foreground">Destino</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-3 text-center">
-                  <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <div className="text-sm font-semibold">Q{selectedPackage.quote?.totalPrice || '0'}</div>
-                  <div className="text-xs text-muted-foreground">Precio final</div>
-                </CardContent>
-              </Card>
+                    </CollapsibleTrigger>
 
-              <Card>
-                <CardContent className="p-3 text-center">
-                  <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-                  <div className="text-sm font-semibold">
-                    {new Date(getDeliveryDate(selectedPackage)).toLocaleDateString('es-GT')}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Fecha entrega</div>
-                </CardContent>
-              </Card>
+                    <CollapsibleContent className="mt-4">
+                      <div className="space-y-6 pt-4 border-t">
+                        {/* Resumen del pedido */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <Card>
+                            <CardContent className="p-3 text-center">
+                              <MapPin className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                              <div className="text-sm font-semibold">{pkg.package_destination}</div>
+                              <div className="text-xs text-muted-foreground">Destino</div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card>
+                            <CardContent className="p-3 text-center">
+                              <DollarSign className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                              <div className="text-sm font-semibold">Q{pkg.quote?.totalPrice || '0'}</div>
+                              <div className="text-xs text-muted-foreground">Precio final</div>
+                            </CardContent>
+                          </Card>
 
-              <Card>
-                <CardContent className="p-3 text-center">
-                  <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-600" />
-                  <div className="text-sm font-semibold">{getStatusDisplay(selectedPackage)}</div>
-                  <div className="text-xs text-muted-foreground">Estado</div>
-                </CardContent>
-              </Card>
-            </div>
+                          <Card>
+                            <CardContent className="p-3 text-center">
+                              <Calendar className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+                              <div className="text-sm font-semibold">
+                                {new Date(getDeliveryDate(pkg)).toLocaleDateString('es-GT')}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Fecha entrega</div>
+                            </CardContent>
+                          </Card>
 
-            {/* Detalles del producto */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Detalles del Producto</h3>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium">Descripción:</p>
-                      <p className="text-sm text-muted-foreground">{selectedPackage.item_description}</p>
-                    </div>
-                    
-                    {selectedPackage.purchase_origin && (
-                      <div>
-                        <p className="text-sm font-medium">Origen de compra:</p>
-                        <p className="text-sm text-muted-foreground">{selectedPackage.purchase_origin}</p>
-                      </div>
-                    )}
-
-                    {selectedPackage.item_link && (
-                      <div>
-                        <p className="text-sm font-medium">Link del producto:</p>
-                        <a 
-                          href={selectedPackage.item_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Ver producto original
-                        </a>
-                      </div>
-                    )}
-
-                    {selectedPackage.additional_notes && (
-                      <div>
-                        <p className="text-sm font-medium">Notas adicionales:</p>
-                        <p className="text-sm text-muted-foreground">{selectedPackage.additional_notes}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Información del viajero */}
-            {(() => {
-              const matchedTrip = getMatchedTrip(selectedPackage.id);
-              return matchedTrip ? (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Información del Viaje</h3>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            <strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}
-                          </span>
+                          <Card>
+                            <CardContent className="p-3 text-center">
+                              <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-600" />
+                              <div className="text-sm font-semibold">{getStatusDisplay(pkg)}</div>
+                              <div className="text-xs text-muted-foreground">Estado</div>
+                            </CardContent>
+                          </Card>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            <strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}
-                          </span>
+
+                        {/* Detalles del producto */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Detalles del Producto</h3>
+                          <Card>
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-sm font-medium">Descripción:</p>
+                                  <p className="text-sm text-muted-foreground">{pkg.item_description}</p>
+                                </div>
+                                
+                                {pkg.purchase_origin && (
+                                  <div>
+                                    <p className="text-sm font-medium">Origen de compra:</p>
+                                    <p className="text-sm text-muted-foreground">{pkg.purchase_origin}</p>
+                                  </div>
+                                )}
+
+                                {pkg.item_link && (
+                                  <div>
+                                    <p className="text-sm font-medium">Link del producto:</p>
+                                    <a 
+                                      href={pkg.item_link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-blue-600 hover:underline"
+                                    >
+                                      Ver producto original
+                                    </a>
+                                  </div>
+                                )}
+
+                                {pkg.additional_notes && (
+                                  <div>
+                                    <p className="text-sm font-medium">Notas adicionales:</p>
+                                    <p className="text-sm text-muted-foreground">{pkg.additional_notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
-                        {selectedPackage.quote?.price && (
-                          <div className="flex items-center space-x-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              <strong>Tip al viajero:</strong> Q{selectedPackage.quote.price}
-                            </span>
+
+                        {/* Información del viajero */}
+                        {matchedTrip && (
+                          <div>
+                            <h3 className="text-lg font-semibold mb-4">Información del Viaje</h3>
+                            <Card>
+                              <CardContent className="p-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-center space-x-2">
+                                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                      <strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                      <strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}
+                                    </span>
+                                  </div>
+                                  {pkg.quote?.price && (
+                                    <div className="flex items-center space-x-2">
+                                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                      <span className="text-sm">
+                                        <strong>Tip al viajero:</strong> Q{pkg.quote.price}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null;
-            })()}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                    </CollapsibleContent>
+                  </CardContent>
+                </Card>
+              </Collapsible>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
