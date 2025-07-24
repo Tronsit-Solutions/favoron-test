@@ -12,7 +12,7 @@ import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
-import AdminPaymentsTab from "./admin/AdminPaymentsTab";
+
 import AdminTravelerPaymentsTab from "./admin/AdminTravelerPaymentsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
@@ -206,8 +206,8 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
             Gestión
-            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + packages.filter(p => p.status === 'payment_confirmed' && p.payment_receipt).length) > 0 && (
-              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + packages.filter(p => p.status === 'payment_confirmed' && p.payment_receipt).length} />
+            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length) > 0 && (
+              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length} />
             )}
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
@@ -266,11 +266,6 @@ const AdminDashboard = ({
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
             onConfirmShopperReceived={onConfirmShopperReceived}
             getStatusBadge={getStatusBadge}
-          />
-          <AdminPaymentsTab 
-            packages={packages}
-            onUpdateStatus={onUpdateStatus}
-            onViewPackageDetail={handleViewPackageDetail}
           />
         </TabsContent>
 
