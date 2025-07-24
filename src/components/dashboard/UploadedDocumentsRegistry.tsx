@@ -217,7 +217,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
             <div className="flex items-center space-x-2">
               <Truck className="h-4 w-4 text-orange-600" />
               <div>
-                <p className="text-xs font-medium">Información de envío</p>
+                <p className="text-xs font-medium">Información de seguimiento</p>
                 <p className="text-xs text-muted-foreground">
                   {trackingInfo.trackingNumber && `#${trackingInfo.trackingNumber}`}
                 </p>
