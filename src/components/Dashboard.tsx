@@ -26,6 +26,7 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardProps {
   user: any;
@@ -146,8 +147,34 @@ const Dashboard = ({ user }: DashboardProps) => {
     userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')
   });
 
-  const handleUpdateUser = (userData: any) => {
-    setCurrentUser(userData);
+  const handleUpdateUser = async (userData: any) => {
+    try {
+      // Update in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          username: userData.username,
+          phone_number: userData.phone,
+          avatar_url: userData.avatarUrl,
+          bank_account_holder: userData.bankAccountHolder,
+          bank_name: userData.bankName,
+          bank_account_type: userData.bankAccountType,
+          bank_account_number: userData.bankAccountNumber
+        })
+        .eq('id', currentUser.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        return;
+      }
+
+      // Update local state
+      setCurrentUser(userData);
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
   const getStatusBadge = (status: string) => {
