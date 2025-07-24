@@ -21,10 +21,10 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   const tripDates = pkg.matched_trip_dates as any;
 
   return (
-    <div className="bg-success-muted border border-success-border rounded-md p-2">
-      <div className="flex items-center space-x-2 mb-2">
-        <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
-          <span className="text-sm">📦</span>
+    <div className="bg-success-muted border border-success-border rounded-md p-2 space-y-1">
+      <div className="flex items-center space-x-2 mb-1">
+        <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center">
+          <span className="text-xs">📦</span>
         </div>
         <div>
           <h3 className="text-sm font-bold text-success">¡Pago Aprobado! - Información de Envío</h3>
@@ -36,14 +36,14 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
       
       {/* Fechas importantes */}
       {tripDates && (
-        <div className="bg-background border border-border rounded-md p-2 mb-2">
-          <div className="flex items-center space-x-2 mb-2">
+        <div className="bg-background border border-border rounded-md p-1.5 mb-1">
+          <div className="flex items-center space-x-2 mb-1">
             <span className="text-primary text-sm">📅</span>
             <span className="text-sm font-semibold text-foreground">Fechas Importantes</span>
           </div>
           
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
               <div className="flex items-center space-x-2">
                 <span className="text-green-600">📥</span>
                 <span className="text-muted-foreground">Primer día para recibir paquetes:</span>
@@ -58,7 +58,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
               <div className="flex items-center space-x-2">
                 <span className="text-orange-600">📤</span>
                 <span className="text-muted-foreground">Último día para recibir paquetes:</span>
@@ -73,7 +73,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
               </span>
             </div>
             
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+            <div className="flex items-center justify-between p-1.5 bg-muted/50 rounded">
               <div className="flex items-center space-x-2">
                 <span className="text-purple-600">🏢</span>
                 <span className="text-muted-foreground">Entrega en Guatemala:</span>
@@ -92,12 +92,12 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
       )}
       
       {/* Dirección de envío */}
-      <div className="bg-background border border-border rounded-md p-2 mb-2">
-        <div className="flex items-center space-x-2 mb-2">
+      <div className="bg-background border border-border rounded-md p-1.5 mb-1">
+        <div className="flex items-center space-x-2 mb-1">
           <span className="font-semibold text-primary text-sm">📍 Dirección de Envío</span>
         </div>
         
-        <div className="grid gap-2 text-xs">
+        <div className="grid gap-1 text-xs">
           {/* Destinatario */}
           <div className="flex items-start space-x-2">
             <span className="text-muted-foreground font-medium min-w-[60px]">👤 Destinatario:</span>
@@ -162,8 +162,8 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
       
       {/* Información de entrega en Guatemala */}
       {tripDates?.messenger_pickup_info && (
-        <div className="bg-info-muted border border-info-border rounded-md p-2 mb-2">
-          <div className="flex items-center space-x-2 mb-2">
+        <div className="bg-info-muted border border-info-border rounded-md p-1.5 mb-1">
+          <div className="flex items-center space-x-2 mb-1">
             <span className="text-info text-xs">🚚</span>
             <span className="text-xs font-semibold text-info">Entrega en Guatemala</span>
           </div>
@@ -187,7 +187,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
         </div>
       )}
       
-      <div className="p-2 bg-muted/30 rounded text-xs text-muted-foreground">
+      <div className="p-1.5 bg-muted/30 rounded text-xs text-muted-foreground">
         💡 <strong>Próximos pasos:</strong> Una vez enviado el producto, sube los documentos de compra y tracking en la sección correspondiente.
       </div>
     </div>
