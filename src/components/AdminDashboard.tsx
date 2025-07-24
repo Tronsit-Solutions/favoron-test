@@ -35,6 +35,7 @@ interface AdminDashboardProps {
   onConfirmDeliveryComplete: (packageId: string) => void;
   onConfirmShopperReceived: (packageId: string) => void;
   onDiscardPackage: (pkg: any) => void;
+  onRefreshPackages?: () => void;
 }
 
 const AdminDashboard = ({ 
@@ -48,7 +49,8 @@ const AdminDashboard = ({
   onAdminConfirmOfficeDelivery,
   onConfirmDeliveryComplete,
   onConfirmShopperReceived,
-  onDiscardPackage
+  onDiscardPackage,
+  onRefreshPackages
 }: AdminDashboardProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -167,7 +169,13 @@ const AdminDashboard = ({
   
   // Set up real-time notifications for document uploads
   useRealtimePackages({
-    userRole: 'admin'
+    userRole: 'admin',
+    onPackageUpdate: (payload) => {
+      // Refresh packages when there's an update
+      if (onRefreshPackages) {
+        onRefreshPackages();
+      }
+    }
   });
   
 

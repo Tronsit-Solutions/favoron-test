@@ -55,15 +55,21 @@ export const useRealtimePackages = ({ onPackageUpdate, userRole }: UseRealtimePa
           // Check if documents were uploaded
           const documentUploaded = (
             (updatedPackage.purchase_confirmation && !oldPackage.purchase_confirmation) ||
-            (updatedPackage.tracking_info && !oldPackage.tracking_info)
+            (updatedPackage.tracking_info && !oldPackage.tracking_info) ||
+            (updatedPackage.payment_receipt && !oldPackage.payment_receipt)
           );
 
           if (documentUploaded) {
             // Show notification based on user role
             if (userRole === 'admin') {
+              const documentType = updatedPackage.payment_receipt && !oldPackage.payment_receipt 
+                ? "comprobante de pago" 
+                : "documentos";
               toast({
-                title: "Nuevo documento subido",
-                description: `El shopper ha subido documentos para el paquete ${updatedPackage.item_description}`,
+                title: updatedPackage.payment_receipt && !oldPackage.payment_receipt 
+                  ? "🔔 Nuevo comprobante de pago" 
+                  : "Nuevo documento subido",
+                description: `El shopper ha subido ${documentType} para el paquete ${updatedPackage.item_description}`,
               });
             } else if (userRole === 'traveler') {
               // Check if this package is matched to the traveler's trip

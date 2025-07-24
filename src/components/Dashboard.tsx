@@ -461,6 +461,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onDiscardPackage={handleDiscardPackage}
               onAdminConfirmOfficeDelivery={handleAdminConfirmOfficeDelivery}
               onConfirmShopperReceived={handleConfirmShopperReceived}
+              onRefreshPackages={refreshPackages}
               />
             </TabsContent>
           )}
