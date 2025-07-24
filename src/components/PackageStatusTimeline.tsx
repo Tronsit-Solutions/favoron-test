@@ -27,6 +27,12 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
       description: 'Emparejado con un viajero'
     },
     { 
+      key: 'quote_sent', 
+      label: 'Cotización enviada', 
+      icon: Clock,
+      description: 'El viajero envió una cotización'
+    },
+    { 
       key: 'quote_accepted', 
       label: 'Cotización aceptada', 
       icon: Check,
@@ -57,10 +63,28 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
       description: 'El viajero recibió tu paquete'
     },
     { 
-      key: 'delivered', 
+      key: 'pending_office_confirmation', 
+      label: 'Pendiente confirmación oficina', 
+      icon: Clock,
+      description: 'Esperando confirmación de oficina'
+    },
+    { 
+      key: 'delivered_to_office', 
       label: 'Entregado en oficina', 
       icon: Building,
       description: 'Disponible en oficina de Favorón'
+    },
+    { 
+      key: 'out_for_delivery', 
+      label: 'En reparto', 
+      icon: Truck,
+      description: 'En camino para entrega'
+    },
+    { 
+      key: 'completed', 
+      label: 'Completado', 
+      icon: Check,
+      description: 'Paquete entregado exitosamente'
     }
   ];
 
