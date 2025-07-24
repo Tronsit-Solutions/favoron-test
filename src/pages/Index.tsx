@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
@@ -11,6 +12,7 @@ import CTASection from "@/components/CTASection";
 const Index = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
+  const [showLandingPage, setShowLandingPage] = useState(false);
 
   const openAuth = () => {
     navigate('/auth');
@@ -27,7 +29,7 @@ const Index = () => {
     );
   }
 
-  if (user && profile && userRole) {
+  if (user && profile && userRole && !showLandingPage) {
     // Create user object compatible with existing Dashboard component
     const userData = {
       id: user.id,
@@ -54,12 +56,15 @@ const Index = () => {
       }
     };
     
-    return <Dashboard user={userData} />;
+    return <Dashboard 
+      user={userData} 
+      onShowLandingPage={() => setShowLandingPage(true)} 
+    />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <NavBar onOpenAuth={openAuth} />
+      <NavBar onOpenAuth={openAuth} showBackToDashboard={!!(user && profile && userRole)} onBackToDashboard={() => setShowLandingPage(false)} />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
         <HowItWorksSection />

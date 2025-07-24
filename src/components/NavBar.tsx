@@ -1,12 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { Plane, LogIn } from "lucide-react";
+import { Plane, LogIn, ArrowLeft } from "lucide-react";
 
 interface NavBarProps {
   onOpenAuth: (mode: "login" | "register") => void;
+  showBackToDashboard?: boolean;
+  onBackToDashboard?: () => void;
 }
 
-const NavBar = ({ onOpenAuth }: NavBarProps) => {
+const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard }: NavBarProps) => {
   return (
     <nav className="bg-white border-b shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -19,30 +21,44 @@ const NavBar = ({ onOpenAuth }: NavBarProps) => {
         </div>
         
         <div className="flex items-center space-x-2 sm:space-x-4">
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenAuth("login")}
-            size="sm"
-            className="hidden sm:flex"
-          >
-            <LogIn className="h-4 w-4 mr-2" />
-            Iniciar Sesión
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenAuth("login")}
-            size="sm"
-            className="sm:hidden"
-          >
-            <LogIn className="h-4 w-4" />
-          </Button>
-          <Button 
-            onClick={() => onOpenAuth("register")}
-            size="sm"
-          >
-            <span className="hidden sm:inline">Registrarse</span>
-            <span className="sm:hidden">Registro</span>
-          </Button>
+          {showBackToDashboard && onBackToDashboard ? (
+            <Button 
+              variant="outline" 
+              onClick={onBackToDashboard}
+              size="sm"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Volver al Dashboard</span>
+              <span className="sm:hidden">Dashboard</span>
+            </Button>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenAuth("login")}
+                size="sm"
+                className="hidden sm:flex"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Iniciar Sesión
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenAuth("login")}
+                size="sm"
+                className="sm:hidden"
+              >
+                <LogIn className="h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={() => onOpenAuth("register")}
+                size="sm"
+              >
+                <span className="hidden sm:inline">Registrarse</span>
+                <span className="sm:hidden">Registro</span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </nav>
