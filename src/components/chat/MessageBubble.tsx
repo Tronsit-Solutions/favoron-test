@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PackageMessage } from '@/types';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { UserRole, getUserDisplayName, getRoleStyles, getRoleLabel } from '@/utils/chatHelpers';
 import { MessageIcon } from './MessageIcon';
@@ -20,9 +20,13 @@ export const MessageBubble = ({ message, role, onDownload }: MessageBubbleProps)
   return (
     <div className="flex gap-3 group">
       <Avatar className="h-8 w-8 shrink-0">
-        <div className={`h-full w-full rounded-full flex items-center justify-center text-xs font-medium ${styles.avatar}`}>
-          {userName.charAt(0).toUpperCase()}
-        </div>
+        {message.user_profile?.avatar_url ? (
+          <AvatarImage src={message.user_profile.avatar_url} alt={`Avatar de ${userName}`} />
+        ) : (
+          <AvatarFallback className={`text-xs font-medium ${styles.avatar}`}>
+            {userName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        )}
       </Avatar>
       
       <div className="flex-1 min-w-0">

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AtSign, Phone, CreditCard, Save } from "lucide-react";
+import AvatarUpload from "./AvatarUpload";
 
 interface PersonalInfoFormProps {
   formData: any;
@@ -11,8 +12,20 @@ interface PersonalInfoFormProps {
 }
 
 const PersonalInfoForm = ({ formData, setFormData, onSave }: PersonalInfoFormProps) => {
+  const handleAvatarChange = (url: string | null) => {
+    setFormData((prev: any) => ({ ...prev, avatarUrl: url }));
+  };
+
   return (
     <>
+      <div className="flex justify-center mb-6">
+        <AvatarUpload
+          currentAvatarUrl={formData.avatarUrl}
+          userName={formData.firstName || formData.lastName || 'Usuario'}
+          onAvatarChange={handleAvatarChange}
+        />
+      </div>
+      
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName">Nombre</Label>

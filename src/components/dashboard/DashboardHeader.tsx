@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, Plane, Users } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,9 +49,13 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center space-x-1 sm:space-x-2">
                 <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
-                  <AvatarFallback className="text-xs">
-                    {user?.name?.[0] || user?.firstName?.[0] || user?.first_name?.[0] || 'U'}
-                  </AvatarFallback>
+                  {user?.avatarUrl || user?.avatar_url ? (
+                    <AvatarImage src={user?.avatarUrl || user?.avatar_url} alt="Foto de perfil" />
+                  ) : (
+                    <AvatarFallback className="text-xs">
+                      {user?.name?.[0] || user?.firstName?.[0] || user?.first_name?.[0] || 'U'}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <span className="hidden sm:inline text-sm">Mi Perfil</span>
               </Button>

@@ -31,7 +31,8 @@ export const useUserManagement = () => {
           trust_level,
           created_at,
           email,
-          username
+          username,
+          avatar_url
         `);
 
       console.log('Profiles fetched:', profiles);
@@ -73,6 +74,7 @@ export const useUserManagement = () => {
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: profile.email || 'Email no disponible',
           username: profile.username || undefined,
+          avatarUrl: profile.avatar_url || undefined,
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,

@@ -1,9 +1,9 @@
 
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, X } from "lucide-react";
+import { Edit2, X, User } from "lucide-react";
 
 interface ProfileHeaderProps {
   user: any;
@@ -20,9 +20,17 @@ const ProfileHeader = ({ user, userLevel, isEditing, onEdit, onCancel }: Profile
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarFallback className="text-2xl">
-                {user.firstName?.[0]}{user.lastName?.[0]}
-              </AvatarFallback>
+              {user.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt="Foto de perfil" />
+              ) : (
+                <AvatarFallback className="text-2xl">
+                  {user.firstName?.[0] || user.lastName?.[0] ? (
+                    `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`
+                  ) : (
+                    <User className="h-8 w-8" />
+                  )}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div>
               <CardTitle className="text-2xl">{user.name}</CardTitle>

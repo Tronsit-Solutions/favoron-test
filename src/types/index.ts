@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   username?: string;
+  avatarUrl?: string;
   role: 'user' | 'admin';
   phoneNumber?: string;
   whatsappNumber?: string;
@@ -74,5 +75,6 @@ export interface PackageMessage {
     first_name?: string;
     last_name?: string;
     username?: string;
+    avatar_url?: string;
   };
 }
