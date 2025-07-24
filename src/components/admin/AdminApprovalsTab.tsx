@@ -116,6 +116,11 @@ const AdminApprovalsTab = ({
                                 (pkg as any).profiles.username || `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.email || pkg.user_id
                                 : pkg.user_id}
                             </p>
+                            {(pkg as any).profiles && (
+                              <p className="text-sm text-muted-foreground">
+                                Email: {(pkg as any).profiles.email || 'Sin email'} • Tel: {(pkg as any).profiles.phone_number || 'Sin teléfono'}
+                              </p>
+                            )}
                            <p className="text-sm text-muted-foreground">
                              Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
                            </p>
