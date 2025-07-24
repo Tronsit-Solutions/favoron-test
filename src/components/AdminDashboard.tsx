@@ -76,7 +76,7 @@ const AdminDashboard = ({
       'delivered_to_office': { label: 'Entregado en oficina Favorón', variant: 'success' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'success' as const },
-      'completed': { label: 'Completado', variant: 'success' as const },
+      'completed_paid': { label: 'Completado y Pagado', variant: 'success' as const },
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
