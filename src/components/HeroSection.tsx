@@ -22,7 +22,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           size="lg" 
           variant="shopper" 
           onClick={() => onOpenAuth("register")} 
-          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-auto"
+          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-48"
         >
           <Package className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Solicitar Paquete
@@ -31,7 +31,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           size="lg" 
           variant="traveler" 
           onClick={() => onOpenAuth("register")} 
-          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-auto flex items-center justify-center"
+          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-48 flex items-center justify-center"
         >
           <Plane className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Registrar Viaje
