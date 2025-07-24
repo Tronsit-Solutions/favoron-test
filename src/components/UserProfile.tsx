@@ -127,9 +127,18 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     }, 0)
   };
 
-  const activeRequests = userPackages.filter(pkg => 
-    !['delivered', 'rejected'].includes(pkg.status)
-  ).length;
+  const activeRequests = userPackages.filter(pkg => {
+    // Excluir paquetes rechazados o entregados
+    if (['delivered', 'rejected'].includes(pkg.status)) return false;
+    
+    // Excluir paquetes que pertenecen a viajes completados y pagados
+    if (pkg.matched_trip_id) {
+      const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+      if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
+    }
+    
+    return true;
+  }).length;
 
   const activeTrips = userTrips.filter(trip => 
     !['completed', 'completed_paid', 'rejected'].includes(trip.status)

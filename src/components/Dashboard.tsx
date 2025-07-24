@@ -293,11 +293,25 @@ const Dashboard = ({ user }: DashboardProps) => {
               </div>
             </div>
 
-            {userPackages.length === 0 ? (
+            {userPackages.filter(pkg => {
+              // Excluir paquetes que pertenecen a viajes completados y pagados
+              if (pkg.matched_trip_id) {
+                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
+              }
+              return true;
+            }).length === 0 ? (
               <EmptyState type="packages" onAction={() => setShowPackageForm(true)} />
             ) : (
               <div className="grid gap-6">
-                 {userPackages.map((pkg) => (
+                 {userPackages.filter(pkg => {
+                   // Excluir paquetes que pertenecen a viajes completados y pagados
+                   if (pkg.matched_trip_id) {
+                     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                     if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
+                   }
+                   return true;
+                 }).map((pkg) => (
                     <CollapsiblePackageCard
                       key={pkg.id}
                       pkg={pkg}
