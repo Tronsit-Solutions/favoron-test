@@ -49,15 +49,19 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center space-x-1 sm:space-x-2">
                 <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
-                  <AvatarFallback className="text-xs">{user.name[0]}</AvatarFallback>
+                  <AvatarFallback className="text-xs">
+                    {user?.name?.[0] || user?.firstName?.[0] || user?.first_name?.[0] || 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="hidden sm:inline text-sm">Mi Perfil</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5 text-sm">
-                <p className="font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <p className="font-medium">
+                  {user?.name || `${user?.firstName || user?.first_name || ''} ${user?.lastName || user?.last_name || ''}`.trim() || 'Usuario'}
+                </p>
+                <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onShowProfile}>
