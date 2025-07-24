@@ -126,6 +126,16 @@ export const usePaymentOrders = () => {
         if (tripError) {
           console.error('Error updating trip status:', tripError);
         }
+
+        // También actualizar el trip_payment_accumulator para marcar como pagado
+        const { error: accumError } = await supabase
+          .from('trip_payment_accumulator')
+          .update({ payment_order_created: false }) // Resetear para indicar que ya fue pagado
+          .eq('trip_id', data.trip_id);
+
+        if (accumError) {
+          console.error('Error updating payment accumulator:', accumError);
+        }
       }
       
       return data;
