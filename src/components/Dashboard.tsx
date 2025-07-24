@@ -207,6 +207,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowProfile={() => setShowProfile(false)}
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
+          onGoHome={() => setShowProfile(false)}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -228,6 +229,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowProfile={() => setShowProfile(true)}
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
+          onGoHome={() => setShowUserManagement(false)}
         />
         <div className="container mx-auto px-4 py-8">
           <UserManagement 

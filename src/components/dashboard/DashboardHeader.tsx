@@ -17,15 +17,18 @@ interface DashboardHeaderProps {
   onShowProfile: () => void;
   onLogout: () => void;
   onShowUserManagement?: () => void;
+  onGoHome?: () => void;
 }
 
-const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome }: DashboardHeaderProps) => {
   const navigate = useNavigate();
 
   const handleHomeClick = () => {
-    // Ya estamos en el dashboard, no necesitamos navegar
-    // Si estuviéramos en otra ruta, esto nos traería de vuelta al dashboard
-    navigate('/');
+    if (onGoHome) {
+      onGoHome();
+    } else {
+      navigate('/');
+    }
   };
 
   return (
