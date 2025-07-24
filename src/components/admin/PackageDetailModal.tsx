@@ -342,6 +342,41 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <p className="text-sm text-amber-700">El cliente seleccionó envío a domicilio pero no completó la información de dirección.</p>
                   </div>
                 )}
+
+                {/* Información de envío del viajero (guardada permanentemente) */}
+                {pkg.traveler_address && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
+                    <p className="text-sm font-medium text-green-800 mb-2">📦 Información de envío del viajero:</p>
+                    <div className="text-sm text-green-700 space-y-1">
+                      <p><strong>Destinatario:</strong> {pkg.traveler_address.recipientName || 'No especificado'}</p>
+                      <p><strong>Dirección:</strong> {pkg.traveler_address.streetAddress}</p>
+                      {pkg.traveler_address.streetAddress2 && (
+                        <p><strong>Dirección 2:</strong> {pkg.traveler_address.streetAddress2}</p>
+                      )}
+                      <p><strong>Ciudad/Área:</strong> {pkg.traveler_address.cityArea}</p>
+                      {pkg.traveler_address.postalCode && (
+                        <p><strong>Código Postal:</strong> {pkg.traveler_address.postalCode}</p>
+                      )}
+                      <p><strong>Teléfono:</strong> {pkg.traveler_address.contactNumber}</p>
+                      {pkg.traveler_address.hotelAirbnbName && pkg.traveler_address.hotelAirbnbName !== '-' && (
+                        <p><strong>Hotel/Airbnb:</strong> {pkg.traveler_address.hotelAirbnbName}</p>
+                      )}
+                      <p><strong>Tipo de alojamiento:</strong> {pkg.traveler_address.accommodationType || 'No especificado'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fechas importantes del viaje (guardadas permanentemente) */}
+                {pkg.matched_trip_dates && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                    <p className="text-sm font-medium text-blue-800 mb-2">📅 Fechas importantes del viaje:</p>
+                    <div className="text-sm text-blue-700 space-y-1">
+                      <p><strong>Primer día para recibir paquetes:</strong> {new Date(pkg.matched_trip_dates.first_day_packages).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                      <p><strong>Último día para recibir paquetes:</strong> {new Date(pkg.matched_trip_dates.last_day_packages).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                      <p><strong>Fecha de entrega en Guatemala:</strong> {new Date(pkg.matched_trip_dates.delivery_date).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {pkg.additional_notes && (
