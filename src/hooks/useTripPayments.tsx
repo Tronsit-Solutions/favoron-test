@@ -10,6 +10,7 @@ export interface TripPaymentAccumulator {
   delivered_packages_count: number;
   total_packages_count: number;
   payment_order_created: boolean;
+  payment_status?: string; // Agregar campo opcional para el status del pago
   created_at: string;
   updated_at: string;
 }
@@ -37,7 +38,26 @@ export const useTripPayments = (tripId?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      setTripPayment(data);
+
+      // Si existe un accumulator, verificar si hay una payment order completada
+      if (data) {
+        const { data: paymentOrder, error: paymentError } = await supabase
+          .from('payment_orders')
+          .select('status')
+          .eq('trip_id', tripId)
+          .eq('traveler_id', user.id)
+          .maybeSingle();
+
+        if (!paymentError && paymentOrder) {
+          // Crear un nuevo objeto con la información del estado del pago
+          const extendedData = { ...data, payment_status: paymentOrder.status };
+          setTripPayment(extendedData);
+        } else {
+          setTripPayment(data);
+        }
+      } else {
+        setTripPayment(data);
+      }
     } catch (error: any) {
       console.error('Error fetching trip payment:', error);
       toast({

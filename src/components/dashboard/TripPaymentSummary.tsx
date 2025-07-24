@@ -103,6 +103,15 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                     </div>
                   )}
                 </>
+              ) : tripPayment.payment_status === 'completed' ? (
+                <div className="text-center py-0.5">
+                  <Badge variant="default" className="mb-0.5 text-xs py-0 px-1 h-5 bg-green-600">
+                    Pagado
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">
+                    Completado
+                  </p>
+                </div>
               ) : (
                 <div className="text-center py-0.5">
                   <Badge variant="default" className="mb-0.5 text-xs py-0 px-1 h-5">
