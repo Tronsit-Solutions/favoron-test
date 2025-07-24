@@ -14,6 +14,7 @@ import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
 import BankingInfoForm from "./profile/BankingInfoForm";
 import BankingInfoDisplay from "./profile/BankingInfoDisplay";
 import TripHistory from "./profile/TripHistory";
+import PackageHistory from "./profile/PackageHistory";
 
 interface UserProfileProps {
   user: any;
@@ -207,9 +208,10 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         onCancel={handleCancel}
       />
 
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="overview">Mi Perfil</TabsTrigger>
-        <TabsTrigger value="history">Historial de Viajes</TabsTrigger>
+        <TabsTrigger value="package-history">Historial de Pedidos</TabsTrigger>
+        <TabsTrigger value="trip-history">Historial de Viajes</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-6">
@@ -342,7 +344,11 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       </Card>
       </TabsContent>
 
-      <TabsContent value="history">
+      <TabsContent value="package-history">
+        <PackageHistory packages={packages} trips={trips} />
+      </TabsContent>
+
+      <TabsContent value="trip-history">
         <TripHistory trips={trips} packages={packages} />
       </TabsContent>
     </Tabs>
