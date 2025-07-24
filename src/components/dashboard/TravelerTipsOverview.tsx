@@ -13,13 +13,23 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
 
-  // Filter packages based on selected trip, excluding rejected ones for active counts
+  // Filter packages based on selected trip, excluding rejected ones and those from completed trips
   const allFilteredPackages = selectedTripFilter === "all" 
     ? packages 
-    : packages.filter(pkg => pkg.matchedTripId === parseInt(selectedTripFilter));
+    : packages.filter(pkg => pkg.matched_trip_id === selectedTripFilter);
 
-  // Active packages (excluding rejected)
-  const filteredPackages = allFilteredPackages.filter(pkg => pkg.status !== 'rejected');
+  // Active packages (excluding rejected and those from completed trips)
+  const filteredPackages = allFilteredPackages.filter(pkg => {
+    if (pkg.status === 'rejected') return false;
+    
+    // Excluir paquetes que pertenecen a viajes completados y pagados
+    if (pkg.matched_trip_id) {
+      const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+      if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
+    }
+    
+    return true;
+  });
   
   // Rejected packages (to show separately)
   const rejectedPackages = allFilteredPackages.filter(pkg => pkg.status === 'rejected');
@@ -38,9 +48,12 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
   // Count pending quotes (packages that could generate tips)
   const pendingQuotes = filteredPackages.filter(pkg => pkg.status === 'matched').length;
 
-  // Group packages by trip for breakdown (excluding rejected)
+  // Group packages by trip for breakdown (excluding rejected and completed trips)
   const packagesByTrip = trips.reduce((acc, trip) => {
-    const tripPackages = packages.filter(pkg => pkg.matchedTripId === trip.id && pkg.status !== 'rejected');
+    // No incluir viajes completados y pagados
+    if (trip.status === 'completed_paid') return acc;
+    
+    const tripPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id && pkg.status !== 'rejected');
     if (tripPackages.length > 0) {
       acc[trip.id] = {
         trip,
@@ -58,7 +71,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
 
   const selectedTripName = selectedTripFilter === "all" 
     ? "Todos los viajes" 
-    : trips.find(t => t.id === parseInt(selectedTripFilter))?.fromCity + " → " + trips.find(t => t.id === parseInt(selectedTripFilter))?.toCity;
+    : trips.find(t => t.id === selectedTripFilter)?.from_city + " → " + trips.find(t => t.id === selectedTripFilter)?.to_city;
 
   return (
     <Card className="mb-4">
@@ -81,7 +94,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
                   <SelectItem value="all">Todos los viajes</SelectItem>
                   {Object.values(packagesByTrip).map((tripData: any) => (
                     <SelectItem key={tripData.trip.id} value={tripData.trip.id.toString()}>
-                      {tripData.trip.fromCity} → {tripData.trip.toCity}
+                      {tripData.trip.from_city} → {tripData.trip.to_city}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -197,7 +210,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
                   {Object.values(packagesByTrip).map((tripData: any) => (
                     <div key={tripData.trip.id} className="flex justify-between items-center py-2 border-b border-muted/50">
                       <div className="flex-1">
-                        <p className="font-medium">{tripData.trip.fromCity} → {tripData.trip.toCity}</p>
+                        <p className="font-medium">{tripData.trip.from_city} → {tripData.trip.to_city}</p>
                         <p className="text-xs text-muted-foreground">
                           {tripData.packages.length} paquete{tripData.packages.length !== 1 ? 's' : ''} • 
                           {tripData.packages.filter((pkg: any) => pkg.quote?.price).length} con cotización
