@@ -14,6 +14,7 @@ import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
+import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import { PackageShippingInstructions } from "@/components/dashboard/PackageShippingInstructions";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
@@ -166,6 +167,9 @@ const CollapsiblePackageCard = ({
 
                 {/* Show traveler confirmation when package is received */}
                 <TravelerConfirmationDisplay pkg={pkg} className="mb-4" />
+
+                {/* Show shipping information registry when saved */}
+                <ShippingInfoRegistry pkg={pkg} className="mb-4" />
 
                 <UploadedDocumentsRegistry
                   pkg={pkg} 
