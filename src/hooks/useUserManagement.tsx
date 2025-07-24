@@ -30,7 +30,8 @@ export const useUserManagement = () => {
           phone_number,
           trust_level,
           created_at,
-          email
+          email,
+          username
         `);
 
       console.log('Profiles fetched:', profiles);
@@ -71,6 +72,7 @@ export const useUserManagement = () => {
           profileId: profile.id, // Store the real UUID for database operations
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: profile.email || 'Email no disponible',
+          username: profile.username || undefined,
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
