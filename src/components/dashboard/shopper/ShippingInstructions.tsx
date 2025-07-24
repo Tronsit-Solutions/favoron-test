@@ -21,174 +21,143 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   }
 
   return (
-    <div className="bg-success-muted border border-success-border rounded-md p-2 space-y-1">
-      <div className="flex items-center space-x-2 mb-1">
-        <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center">
-          <span className="text-xs">📦</span>
-        </div>
-        <div>
-          <h3 className="text-sm font-bold text-success">¡Pago Aprobado! - Información de Envío</h3>
-          <p className="text-xs text-success-foreground">
-            Tu pago ha sido confirmado. Aquí tienes toda la información para el envío:
-          </p>
+    <div className="mt-4">
+      <div className="flex items-center justify-between cursor-pointer p-3 bg-success/5 border border-success/30 rounded-lg">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center">
+            <span className="text-xs">📦</span>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium text-foreground">¡Pago Aprobado! - Información de Envío</h4>
+            <p className="text-xs text-success-foreground">Tu pago ha sido confirmado</p>
+          </div>
         </div>
       </div>
       
-      {/* Fechas importantes */}
-      {tripDates && (
-        <div className="bg-background border border-border rounded-md p-1.5 mb-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-primary text-sm">📅</span>
-            <span className="text-sm font-semibold text-foreground">Fechas Importantes</span>
-          </div>
-          
-          <div className="space-y-1 text-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-600">📥</span>
-                <span className="text-muted-foreground">Primer día para recibir paquetes:</span>
+      <div className="border-success/30 bg-success/5 border rounded-lg p-3 mt-2">
+        <div className="space-y-3 text-xs">
+          {/* Fechas importantes */}
+          {tripDates && (
+            <div className="space-y-2">
+              <h5 className="font-semibold text-success text-sm">📅 Fechas importantes</h5>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">📥 Primer día para recibir:</span>
+                  <span className="font-semibold text-foreground">
+                    {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">📤 Último día para recibir:</span>
+                  <span className="font-semibold text-foreground">
+                    {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">🏢 Entrega en Guatemala:</span>
+                  <span className="font-semibold text-foreground">
+                    {new Date(tripDates.delivery_date).toLocaleDateString("es-GT", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                  </span>
+                </div>
               </div>
-              <span className="font-semibold text-foreground">
-                {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-orange-600">📤</span>
-                <span className="text-muted-foreground">Último día para recibir paquetes:</span>
-              </div>
-              <span className="font-semibold text-foreground">
-                {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-purple-600">🏢</span>
-                <span className="text-muted-foreground">Entrega en Guatemala:</span>
-              </div>
-              <span className="font-semibold text-foreground">
-                {new Date(tripDates.delivery_date).toLocaleDateString('es-GT', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Dirección de envío */}
-      <div className="bg-background border border-border rounded-md p-1.5 mb-1">
-        <div className="flex items-center space-x-2 mb-1">
-          <span className="font-semibold text-primary text-sm">📍 Dirección de Envío</span>
-        </div>
-        
-        <div className="grid gap-1 text-xs">
-          {/* Destinatario */}
-          <div className="flex items-start space-x-2">
-            <span className="text-muted-foreground font-medium min-w-[60px]">👤 Destinatario:</span>
-            <div>
-              <p className="text-foreground font-semibold">
-                {address?.recipientName || 'Nombre no especificado'}
-              </p>
-              {!address?.recipientName && (
-                <p className="text-destructive text-xs">
-                  ⚠️ Contactar administración para obtener el nombre del destinatario
-                </p>
-              )}
-            </div>
-          </div>
-          
-          {/* Tipo de alojamiento */}
-          {address?.accommodationType && (
-            <div className="flex items-start space-x-2">
-              <span className="text-muted-foreground font-medium min-w-[60px]">🏠 Tipo:</span>
-              <p className="text-foreground capitalize">{address.accommodationType}</p>
             </div>
           )}
           
-          {/* Dirección completa */}
-          <div className="flex items-start space-x-2">
-            <span className="text-muted-foreground font-medium min-w-[60px]">📍 Dirección:</span>
-            <div>
-              <p className="text-foreground font-medium">{address?.streetAddress}</p>
-              {address?.streetAddress2 && (
-                <p className="text-foreground">{address.streetAddress2}</p>
-              )}
-              <p className="text-foreground">{address?.cityArea}</p>
-              {address?.postalCode && (
-                <p className="text-foreground font-mono">Código Postal: {address.postalCode}</p>
-              )}
-            </div>
-          </div>
-          
-          {/* Hotel/Airbnb */}
-          {address?.hotelAirbnbName && address.hotelAirbnbName !== '-' && (
-            <div className="flex items-start space-x-2">
-              <span className="text-muted-foreground font-medium min-w-[60px]">🏨 Hotel/Airbnb:</span>
-              <p className="text-foreground font-medium">{address.hotelAirbnbName}</p>
-            </div>
-          )}
-          
-          {/* Contacto */}
-          <div className="flex items-start space-x-2">
-            <span className="text-muted-foreground font-medium min-w-[60px]">📞 Contacto:</span>
-            <p className="text-foreground font-semibold">{address?.contactNumber}</p>
-          </div>
-          
-          {/* Instrucciones adicionales */}
-          {address?.additionalInstructions && (
-            <div className="flex items-start space-x-2">
-              <span className="text-muted-foreground font-medium min-w-[60px]">ℹ️ Instrucciones:</span>
-              <p className="text-foreground">{address.additionalInstructions}</p>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Información de entrega en Guatemala */}
-      {tripDates?.messenger_pickup_info && (
-        <div className="bg-info-muted border border-info-border rounded-md p-1.5 mb-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-info text-xs">🚚</span>
-            <span className="text-xs font-semibold text-info">Entrega en Guatemala</span>
-          </div>
-          
-          <div className="text-xs space-y-1">
-            {tripDates.delivery_method === 'mensajero' ? (
-              <div>
-                <p className="text-info-foreground"><strong>Método:</strong> Entrega por mensajero</p>
-                <p className="text-info-foreground"><strong>Dirección:</strong> {tripDates.messenger_pickup_info.address}</p>
-                <p className="text-info-foreground"><strong>Contacto:</strong> {tripDates.messenger_pickup_info.contactNumber}</p>
-                {tripDates.messenger_pickup_info.instructions && (
-                  <p className="text-info-foreground"><strong>Instrucciones:</strong> {tripDates.messenger_pickup_info.instructions}</p>
+          {/* Dirección de envío */}
+          {address && (
+            <div className="space-y-2">
+              <h5 className="font-semibold text-success text-sm">📦 Dirección de envío</h5>
+              <div className="space-y-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-muted-foreground font-medium">Destinatario:</span>
+                    <p className="text-foreground font-semibold">
+                      {address.recipientName || "Nombre no especificado"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground font-medium">Teléfono:</span>
+                    <p className="text-foreground font-semibold">{address.contactNumber}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-muted-foreground font-medium">Dirección completa:</span>
+                  <div className="text-foreground">
+                    <p className="font-medium">{address.streetAddress}</p>
+                    {address.streetAddress2 && <p>{address.streetAddress2}</p>}
+                    <p>{address.cityArea}</p>
+                    {address.postalCode && (
+                      <p className="font-mono">Código Postal: {address.postalCode}</p>
+                    )}
+                  </div>
+                </div>
+
+                {address.accommodationType && (
+                  <div>
+                    <span className="text-muted-foreground font-medium">Tipo de alojamiento:</span>
+                    <p className="text-foreground capitalize">{address.accommodationType}</p>
+                  </div>
+                )}
+
+                {address.hotelAirbnbName && address.hotelAirbnbName !== "-" && (
+                  <div>
+                    <span className="text-muted-foreground font-medium">Hotel/Airbnb:</span>
+                    <p className="text-foreground font-medium">{address.hotelAirbnbName}</p>
+                  </div>
+                )}
+
+                {address.additionalInstructions && (
+                  <div>
+                    <span className="text-muted-foreground font-medium">Instrucciones adicionales:</span>
+                    <p className="text-foreground">{address.additionalInstructions}</p>
+                  </div>
                 )}
               </div>
-            ) : (
-              <p className="text-info-foreground">
-                El viajero entregará los paquetes directamente en la oficina de Favorón.
-              </p>
-            )}
+            </div>
+          )}
+          
+          {/* Información de entrega en Guatemala */}
+          {tripDates?.messenger_pickup_info && (
+            <div className="space-y-2">
+              <h5 className="font-semibold text-success text-sm">🚚 Entrega en Guatemala</h5>
+              <div className="text-xs space-y-1">
+                {tripDates.delivery_method === 'mensajero' ? (
+                  <div>
+                    <p className="text-foreground"><strong>Método:</strong> Entrega por mensajero</p>
+                    <p className="text-foreground"><strong>Dirección:</strong> {tripDates.messenger_pickup_info.address}</p>
+                    <p className="text-foreground"><strong>Contacto:</strong> {tripDates.messenger_pickup_info.contactNumber}</p>
+                    {tripDates.messenger_pickup_info.instructions && (
+                      <p className="text-foreground"><strong>Instrucciones:</strong> {tripDates.messenger_pickup_info.instructions}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-foreground">
+                    El viajero entregará los paquetes directamente en la oficina de Favorón.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-2 p-2 bg-muted/30 rounded text-xs text-muted-foreground">
+            💡 <strong>Próximos pasos:</strong> Una vez enviado el producto, sube los documentos de compra y tracking en la sección correspondiente.
           </div>
         </div>
-      )}
-      
-      <div className="p-1.5 bg-muted/30 rounded text-xs text-muted-foreground">
-        💡 <strong>Próximos pasos:</strong> Una vez enviado el producto, sube los documentos de compra y tracking en la sección correspondiente.
       </div>
     </div>
   );
