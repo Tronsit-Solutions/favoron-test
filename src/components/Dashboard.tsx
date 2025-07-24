@@ -30,10 +30,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardProps {
   user: any;
-  onShowLandingPage?: () => void;
 }
 
-const Dashboard = ({ user, onShowLandingPage }: DashboardProps) => {
+const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   
   // Debug log to check if userRole is being loaded correctly
@@ -208,7 +207,6 @@ const Dashboard = ({ user, onShowLandingPage }: DashboardProps) => {
           onShowProfile={() => setShowProfile(false)}
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
-          onShowLandingPage={onShowLandingPage}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -230,7 +228,6 @@ const Dashboard = ({ user, onShowLandingPage }: DashboardProps) => {
           onShowProfile={() => setShowProfile(true)}
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
-          onShowLandingPage={onShowLandingPage}
         />
         <div className="container mx-auto px-4 py-8">
           <UserManagement 
@@ -266,7 +263,6 @@ const Dashboard = ({ user, onShowLandingPage }: DashboardProps) => {
         onShowProfile={() => setShowProfile(true)}
         onLogout={signOut}
         onShowUserManagement={() => setShowUserManagement(true)}
-        onShowLandingPage={onShowLandingPage}
       />
 
       <div className="container mx-auto px-4 py-8">
