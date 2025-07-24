@@ -277,7 +277,7 @@ export const MatchCard = ({
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
-                  Confirmar entrega oficina
+                  Confirmar recepción en oficina
                 </Button>
               )}
 
