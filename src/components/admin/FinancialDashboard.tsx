@@ -30,7 +30,12 @@ const FinancialDashboard = ({
     return packages.filter(pkg => new Date(pkg.created_at) >= startDate);
   }, [packages, dateFilter]);
   const financialMetrics = useMemo(() => {
-    const completedPackages = filteredPackages.filter(pkg => ['delivered_to_office', 'received_by_traveler'].includes(pkg.status) && pkg.quote && typeof pkg.quote === 'object' && (pkg.quote as any).totalPrice);
+    const completedPackages = filteredPackages.filter(pkg => 
+      ['delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status) && 
+      pkg.quote && 
+      typeof pkg.quote === 'object' && 
+      (pkg.quote as any).totalPrice
+    );
 
     // Total pagado por shoppers (órdenes completadas)
     const totalOrderValue = completedPackages.reduce((sum, pkg) => {
