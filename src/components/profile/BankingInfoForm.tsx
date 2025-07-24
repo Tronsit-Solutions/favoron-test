@@ -28,8 +28,8 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
             <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="bankAccountHolder"
-              value={formData.bankAccountHolder || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, bankAccountHolder: e.target.value }))}
+              value={formData.bank_account_holder || formData.bankAccountHolder || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_account_holder: e.target.value, bankAccountHolder: e.target.value }))}
               placeholder="Nombre completo del titular"
               className="pl-10"
             />
@@ -42,8 +42,8 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
             <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="bankName"
-              value={formData.bankName || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, bankName: e.target.value }))}
+              value={formData.bank_name || formData.bankName || ''}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_name: e.target.value, bankName: e.target.value }))}
               placeholder="Ej: Banco Industrial"
               className="pl-10"
             />
@@ -54,8 +54,8 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
           <Label htmlFor="bankAccountNumber">Número de cuenta</Label>
           <Input
             id="bankAccountNumber"
-            value={formData.bankAccountNumber || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, bankAccountNumber: e.target.value }))}
+            value={formData.bank_account_number || formData.bankAccountNumber || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_account_number: e.target.value, bankAccountNumber: e.target.value }))}
             placeholder="Número de cuenta bancaria"
           />
         </div>
@@ -63,8 +63,8 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
         <div className="space-y-2">
           <Label htmlFor="bankAccountType">Tipo de cuenta</Label>
           <Select
-            value={formData.bankAccountType || ''}
-            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, bankAccountType: value }))}
+            value={formData.bank_account_type || formData.bankAccountType || ''}
+            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, bank_account_type: value, bankAccountType: value }))}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona tipo de cuenta" />

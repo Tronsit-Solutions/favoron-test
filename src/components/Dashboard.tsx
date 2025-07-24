@@ -153,15 +153,15 @@ const Dashboard = ({ user }: DashboardProps) => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: userData.firstName,
-          last_name: userData.lastName,
+          first_name: userData.firstName || userData.first_name,
+          last_name: userData.lastName || userData.last_name,
           username: userData.username,
-          phone_number: userData.phone,
-          avatar_url: userData.avatarUrl,
-          bank_account_holder: userData.bankAccountHolder,
-          bank_name: userData.bankName,
-          bank_account_type: userData.bankAccountType,
-          bank_account_number: userData.bankAccountNumber
+          phone_number: userData.phone || userData.phone_number,
+          avatar_url: userData.avatarUrl || userData.avatar_url,
+          bank_account_holder: userData.bank_account_holder || userData.bankAccountHolder,
+          bank_name: userData.bank_name || userData.bankName,
+          bank_account_type: userData.bank_account_type || userData.bankAccountType,
+          bank_account_number: userData.bank_account_number || userData.bankAccountNumber
         })
         .eq('id', currentUser.id);
 

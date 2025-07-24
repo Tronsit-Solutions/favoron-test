@@ -27,16 +27,21 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   const [isEditing, setIsEditing] = useState(false);
   const [isBankingEditing, setIsBankingEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user.firstName || '',
-    lastName: user.lastName || '',
+    firstName: user.first_name || user.firstName || '',
+    lastName: user.last_name || user.lastName || '',
     username: user.username || '',
-    phone: user.phone || '',
+    phone: user.phone_number || user.phone || '',
     idNumber: user.idNumber || '',
-    avatarUrl: user.avatarUrl || '',
-    bankAccountHolder: user.bankAccountHolder || '',
-    bankName: user.bankName || '',
-    bankAccountType: user.bankAccountType || '',
-    bankAccountNumber: user.bankAccountNumber || ''
+    avatarUrl: user.avatar_url || user.avatarUrl || '',
+    bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
+    bankName: user.bank_name || user.bankName || '',
+    bankAccountType: user.bank_account_type || user.bankAccountType || '',
+    bankAccountNumber: user.bank_account_number || user.bankAccountNumber || '',
+    // Database fields
+    bank_account_holder: user.bank_account_holder || user.bankAccountHolder || '',
+    bank_name: user.bank_name || user.bankName || '',
+    bank_account_type: user.bank_account_type || user.bankAccountType || '',
+    bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
   });
   const { toast } = useToast();
 
@@ -59,10 +64,16 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       phone: formData.phone,
       idNumber: formData.idNumber,
       avatarUrl: formData.avatarUrl,
-      bankAccountHolder: formData.bankAccountHolder,
-      bankName: formData.bankName,
-      bankAccountType: formData.bankAccountType,
-      bankAccountNumber: formData.bankAccountNumber
+      // Include banking info for consistency
+      bankAccountHolder: formData.bank_account_holder || formData.bankAccountHolder,
+      bankName: formData.bank_name || formData.bankName,
+      bankAccountType: formData.bank_account_type || formData.bankAccountType,
+      bankAccountNumber: formData.bank_account_number || formData.bankAccountNumber,
+      // Database fields
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      phone_number: formData.phone,
+      avatar_url: formData.avatarUrl
     };
 
     onUpdateUser(updatedUser);
@@ -75,16 +86,21 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
 
   const handleCancel = () => {
     setFormData({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
+      firstName: user.first_name || user.firstName || '',
+      lastName: user.last_name || user.lastName || '',
       username: user.username || '',
-      phone: user.phone || '',
+      phone: user.phone_number || user.phone || '',
       idNumber: user.idNumber || '',
-      avatarUrl: user.avatarUrl || '',
-      bankAccountHolder: user.bankAccountHolder || '',
-      bankName: user.bankName || '',
-      bankAccountType: user.bankAccountType || '',
-      bankAccountNumber: user.bankAccountNumber || ''
+      avatarUrl: user.avatar_url || user.avatarUrl || '',
+      bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
+      bankName: user.bank_name || user.bankName || '',
+      bankAccountType: user.bank_account_type || user.bankAccountType || '',
+      bankAccountNumber: user.bank_account_number || user.bankAccountNumber || '',
+      // Database fields
+      bank_account_holder: user.bank_account_holder || user.bankAccountHolder || '',
+      bank_name: user.bank_name || user.bankName || '',
+      bank_account_type: user.bank_account_type || user.bankAccountType || '',
+      bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
     });
     setIsEditing(false);
   };
@@ -92,10 +108,15 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   const handleBankingSave = () => {
     const updatedUser = {
       ...user,
-      bankAccountHolder: formData.bankAccountHolder,
-      bankName: formData.bankName,
-      bankAccountType: formData.bankAccountType,
-      bankAccountNumber: formData.bankAccountNumber
+      bankAccountHolder: formData.bank_account_holder || formData.bankAccountHolder,
+      bankName: formData.bank_name || formData.bankName,
+      bankAccountType: formData.bank_account_type || formData.bankAccountType,
+      bankAccountNumber: formData.bank_account_number || formData.bankAccountNumber,
+      // Database fields for proper saving
+      bank_account_holder: formData.bank_account_holder || formData.bankAccountHolder,
+      bank_name: formData.bank_name || formData.bankName,
+      bank_account_type: formData.bank_account_type || formData.bankAccountType,
+      bank_account_number: formData.bank_account_number || formData.bankAccountNumber
     };
 
     onUpdateUser(updatedUser);
@@ -109,10 +130,15 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   const handleBankingCancel = () => {
     setFormData({
       ...formData,
-      bankAccountHolder: user.bankAccountHolder || '',
-      bankName: user.bankName || '',
-      bankAccountType: user.bankAccountType || '',
-      bankAccountNumber: user.bankAccountNumber || ''
+      bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
+      bankName: user.bank_name || user.bankName || '',
+      bankAccountType: user.bank_account_type || user.bankAccountType || '',
+      bankAccountNumber: user.bank_account_number || user.bankAccountNumber || '',
+      // Database fields
+      bank_account_holder: user.bank_account_holder || user.bankAccountHolder || '',
+      bank_name: user.bank_name || user.bankName || '',
+      bank_account_type: user.bank_account_type || user.bankAccountType || '',
+      bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
     });
     setIsBankingEditing(false);
   };
