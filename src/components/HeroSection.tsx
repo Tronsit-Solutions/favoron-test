@@ -17,12 +17,12 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         Te conectamos para hacer que ambos ganen.
       </p>
       
-      <div className="flex flex-col gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">
+      <div className="flex flex-col gap-3 sm:gap-4 justify-center items-center">
         <Button 
           size="lg" 
           variant="shopper" 
           onClick={() => onOpenAuth("register")} 
-          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
+          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-auto"
         >
           <Package className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Solicitar Paquete
@@ -31,7 +31,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           size="lg" 
           variant="traveler" 
           onClick={() => onOpenAuth("register")} 
-          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto flex items-center justify-center"
+          className="text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-auto flex items-center justify-center"
         >
           <Plane className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Registrar Viaje
