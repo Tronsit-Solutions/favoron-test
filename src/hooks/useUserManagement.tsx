@@ -29,7 +29,8 @@ export const useUserManagement = () => {
           last_name,
           phone_number,
           trust_level,
-          created_at
+          created_at,
+          email
         `);
 
       console.log('Profiles fetched:', profiles);
@@ -65,14 +66,11 @@ export const useUserManagement = () => {
           role = 'user'; // Default for regular users
         }
 
-        // If this profile matches current user, use their email, otherwise use placeholder
-        const email = profile.id === currentUser?.id ? currentUser.email : `usuario-${profile.id.slice(0, 8)}@email.com`;
-
         return {
           id: index + 1, // Using index as ID since our types expect number
           profileId: profile.id, // Store the real UUID for database operations
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
-          email: email || 'Email no disponible',
+          email: profile.email || 'Email no disponible',
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
