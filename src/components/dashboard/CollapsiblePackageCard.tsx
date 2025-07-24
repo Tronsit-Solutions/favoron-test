@@ -174,10 +174,10 @@ const CollapsiblePackageCard = ({
                 />
                 <ShopperPackageDetails pkg={pkg} />
                 <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                  // Actualizar el paquete específico en lugar de recargar la página
-                  if (updatedPkg) {
-                    onEditPackage?.(updatedPkg);
-                  }
+                  // PaymentReceiptUpload ya actualizó la base de datos correctamente
+                  // El sistema de tiempo real debería actualizar el estado automáticamente
+                  // No necesitamos hacer nada adicional aquí
+                  console.log('Payment receipt uploaded successfully:', updatedPkg);
                 }} />
                 {renderActionButtons()}
               </div>
