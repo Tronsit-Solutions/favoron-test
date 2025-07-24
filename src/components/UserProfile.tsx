@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileHeader from "./profile/ProfileHeader";
 import UserLevelCard from "./profile/UserLevelCard";
 import UserStats from "./profile/UserStats";
@@ -12,6 +13,7 @@ import PersonalInfoForm from "./profile/PersonalInfoForm";
 import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
 import BankingInfoForm from "./profile/BankingInfoForm";
 import BankingInfoDisplay from "./profile/BankingInfoDisplay";
+import TripHistory from "./profile/TripHistory";
 
 interface UserProfileProps {
   user: any;
@@ -130,7 +132,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   ).length;
 
   const activeTrips = userTrips.filter(trip => 
-    !['completed', 'rejected'].includes(trip.status)
+    !['completed', 'completed_paid', 'rejected'].includes(trip.status)
   ).length;
 
   const getUserLevel = () => {
@@ -187,7 +189,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   };
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="overview" className="space-y-6">
       <ProfileHeader 
         user={user}
         userLevel={userLevel}
@@ -196,9 +198,15 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         onCancel={handleCancel}
       />
 
-      <UserLevelCard userLevel={userLevel} />
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="overview">Mi Perfil</TabsTrigger>
+        <TabsTrigger value="history">Historial de Viajes</TabsTrigger>
+      </TabsList>
 
-      <UserStats stats={stats} />
+      <TabsContent value="overview" className="space-y-6">
+        <UserLevelCard userLevel={userLevel} />
+
+        <UserStats stats={stats} />
 
       {/* Current Status and Recent Activity */}
       <div className="grid md:grid-cols-2 gap-6">
@@ -323,7 +331,12 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           )}
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="history">
+        <TripHistory trips={trips} packages={packages} />
+      </TabsContent>
+    </Tabs>
   );
 };
 

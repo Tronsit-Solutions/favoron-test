@@ -336,11 +336,11 @@ const Dashboard = ({ user }: DashboardProps) => {
             <div className="space-y-4">
               <div>
                 <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
-                {userTrips.length === 0 ? (
+                {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
                   <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
                 ) : (
                   <div className="grid gap-4">
-                    {userTrips.map((trip) => (
+                    {userTrips.filter(trip => trip.status !== 'completed_paid').map((trip) => (
                       <TripCard
                         key={trip.id}
                         trip={trip}
@@ -362,10 +362,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                   <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
                   
                   {/* Group packages by trip */}
-                  <div className="space-y-6">
-                    {userTrips
-                       .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
-                       .map((trip) => {
+                   <div className="space-y-6">
+                     {userTrips
+                        .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
+                        .map((trip) => {
                          const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
                         const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
                         
