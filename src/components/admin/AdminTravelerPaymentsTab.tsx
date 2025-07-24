@@ -405,6 +405,47 @@ const AdminTravelerPaymentsTab = () => {
               esta orden de pago por {formatCurrency(confirmDialog.order?.amount || 0)}?
             </p>
             
+            {/* Banking Information */}
+            {confirmDialog.order && (
+              <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                <h4 className="font-medium text-sm">Información Bancaria del Viajero</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="font-medium">Titular:</span>
+                    <p className="text-muted-foreground">
+                      {confirmDialog.order.bank_account_holder || 'No especificado'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Banco:</span>
+                    <p className="text-muted-foreground">
+                      {confirmDialog.order.bank_name || 'No especificado'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Tipo de Cuenta:</span>
+                    <p className="text-muted-foreground">
+                      {confirmDialog.order.bank_account_type || 'No especificado'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Número de Cuenta:</span>
+                    <p className="text-muted-foreground font-mono">
+                      {confirmDialog.order.bank_account_number || 'No especificado'}
+                    </p>
+                  </div>
+                  {(confirmDialog.order as any).bank_swift_code && (
+                    <div className="md:col-span-2">
+                      <span className="font-medium">Código SWIFT:</span>
+                      <p className="text-muted-foreground font-mono">
+                        {(confirmDialog.order as any).bank_swift_code}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="notes">Notas (opcional)</Label>
               <Textarea id="notes" placeholder={`Agregar notas sobre la ${confirmDialog.action === 'complete' ? 'transferencia' : 'rechazo'}...`} value={notes} onChange={e => setNotes(e.target.value)} />
