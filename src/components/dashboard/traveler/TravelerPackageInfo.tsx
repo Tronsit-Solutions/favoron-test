@@ -2,27 +2,23 @@ import { MapPin, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
 interface TravelerPackageInfoProps {
   pkg: any;
 }
-
-const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
+const TravelerPackageInfo = ({
+  pkg
+}: TravelerPackageInfoProps) => {
   const [paymentReceipt, setPaymentReceipt] = useState<any>(null);
-
   useEffect(() => {
     const fetchPaymentReceipt = async () => {
       console.log('🔍 TravelerPackageInfo - Package ID:', pkg.id, 'Status:', pkg.status);
       if (pkg.status === 'completed' || pkg.status === 'delivered_to_office') {
         try {
           console.log('🔍 TravelerPackageInfo - Fetching payment receipt for package:', pkg.id);
-          const { data, error } = await supabase
-            .from('payment_orders')
-            .select('receipt_url, receipt_filename, status, amount')
-            .eq('trip_id', pkg.matched_trip_id)
-            .eq('status', 'completed')
-            .single();
-
+          const {
+            data,
+            error
+          } = await supabase.from('payment_orders').select('receipt_url, receipt_filename, status, amount').eq('trip_id', pkg.matched_trip_id).eq('status', 'completed').single();
           if (!error && data) {
             console.log('🔍 TravelerPackageInfo - Payment receipt found:', data);
             setPaymentReceipt(data);
@@ -34,32 +30,14 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
         }
       }
     };
-
     fetchPaymentReceipt();
   }, [pkg.id, pkg.status]);
-  return (
-    <div className="space-y-2">
+  return <div className="space-y-2">
       {/* Delivery address if confirmed */}
-      {pkg.confirmed_delivery_address && (
-        <div className="bg-muted/30 border rounded-lg p-2">
-          <div className="flex items-start space-x-1.5 mb-1">
-            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-            <p className="text-xs font-medium">Dirección de entrega confirmada:</p>
-          </div>
-          <div className="text-xs text-muted-foreground ml-4.5">
-            <p>{pkg.confirmed_delivery_address.streetAddress}</p>
-            <p>{pkg.confirmed_delivery_address.cityArea}</p>
-            {pkg.confirmed_delivery_address.hotelAirbnbName && (
-              <p>{pkg.confirmed_delivery_address.hotelAirbnbName}</p>
-            )}
-            <p>📞 {pkg.confirmed_delivery_address.contactNumber}</p>
-          </div>
-        </div>
-      )}
+      {pkg.confirmed_delivery_address}
 
       {/* Payment receipt */}
-      {paymentReceipt && paymentReceipt.receipt_url && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+      {paymentReceipt && paymentReceipt.receipt_url && <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <FileText className="h-4 w-4 text-green-600" />
@@ -72,21 +50,13 @@ const TravelerPackageInfo = ({ pkg }: TravelerPackageInfoProps) => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(paymentReceipt.receipt_url, '_blank')}
-              className="border-green-300 text-green-700 hover:bg-green-100"
-            >
+            <Button variant="outline" size="sm" onClick={() => window.open(paymentReceipt.receipt_url, '_blank')} className="border-green-300 text-green-700 hover:bg-green-100">
               <ExternalLink className="h-3 w-3 mr-1" />
               Ver comprobante
             </Button>
           </div>
-        </div>
-      )}
+        </div>}
 
-    </div>
-  );
+    </div>;
 };
-
 export default TravelerPackageInfo;
