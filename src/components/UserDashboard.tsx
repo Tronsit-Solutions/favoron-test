@@ -30,7 +30,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
   ).length;
 
   const activeTrips = userTrips.filter(trip => 
-    !['completed', 'rejected'].includes(trip.status)
+    !['completed', 'completed_paid', 'rejected'].includes(trip.status)
   ).length;
 
   const getUserLevel = () => {
@@ -78,6 +78,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
+      'completed_paid': { label: 'Finalizado y Pagado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'default' as const },
     };

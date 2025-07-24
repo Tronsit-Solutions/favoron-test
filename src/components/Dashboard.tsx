@@ -155,6 +155,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'success' as const },
+      'completed_paid': { label: 'Finalizado y Pagado', variant: 'success' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'success' as const },
     };
