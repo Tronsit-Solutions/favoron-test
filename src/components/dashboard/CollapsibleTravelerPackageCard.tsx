@@ -10,6 +10,7 @@ import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -34,6 +35,7 @@ const CollapsibleTravelerPackageCard = ({
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const isMobile = useIsMobile();
   
   const { user } = useAuth();
 
@@ -144,7 +146,7 @@ const CollapsibleTravelerPackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="pt-0 pb-2">
+          <CardContent className={`pt-0 pb-2 ${isMobile ? 'px-2' : ''}`}>
             <TravelerPackagePriorityActions
               pkg={pkg}
               onQuote={onQuote}
@@ -152,7 +154,7 @@ const CollapsibleTravelerPackageCard = ({
               onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
             />
 
-            <div className="grid gap-3 lg:grid-cols-2">
+            <div className={isMobile ? "space-y-3" : "grid gap-3 lg:grid-cols-2"}>
               <div className="space-y-2">
                 {/* Traveler Package Timeline - Show for relevant statuses */}
                 {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
