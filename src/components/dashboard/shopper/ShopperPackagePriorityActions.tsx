@@ -11,7 +11,7 @@ const ShopperPackagePriorityActions = ({
   pkg,
   onQuote
 }: ShopperPackagePriorityActionsProps) => {
-  if (!['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_confirmed'].includes(pkg.status)) {
+  if (!['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval', 'payment_confirmed'].includes(pkg.status)) {
     return null;
   }
 
@@ -39,6 +39,13 @@ const ShopperPackagePriorityActions = ({
           icon: CreditCard,
           title: "💰 Realizar Pago",
           description: "Tu cotización fue aceptada. Ahora necesitas realizar el pago para que el viajero pueda comprar tu producto.",
+          button: null
+        };
+      case 'payment_pending_approval':
+        return {
+          icon: Clock,
+          title: "⏳ Comprobante de pago subido",
+          description: "El administrador está verificando tu pago. Te notificaremos cuando sea aprobado.",
           button: null
         };
       case 'payment_confirmed':

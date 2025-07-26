@@ -561,6 +561,38 @@ export const useDashboardActions = (
     }
   };
 
+  const handlePaymentApproval = async (packageId: string, action: 'approve' | 'reject') => {
+    try {
+      if (!updatePackage) return;
+      
+      if (action === 'approve') {
+        // Aprobar el pago y cambiar status a payment_confirmed
+        await updatePackage(packageId, { status: 'payment_confirmed' });
+        toast({
+          title: "¡Pago aprobado!",
+          description: "El pago ha sido aprobado y la dirección de envío se ha compartido con el shopper.",
+        });
+      } else {
+        // Rechazar el pago y revertir a quote_accepted
+        await updatePackage(packageId, { 
+          status: 'quote_accepted',
+          payment_receipt: null 
+        });
+        toast({
+          title: "Pago rechazado",
+          description: "El pago ha sido rechazado. El shopper deberá subir un nuevo comprobante.",
+        });
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing payment:`, error);
+      toast({
+        title: "Error",
+        description: `No se pudo ${action === 'approve' ? 'aprobar' : 'rechazar'} el pago. Inténtalo de nuevo.`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleConfirmPackageReceived = async (packageId: string, photo?: string) => {
     try {
       if (!updatePackage) {
@@ -846,6 +878,7 @@ export const useDashboardActions = (
     handleMatchPackage,
     handleStatusUpdate,
     handleApproveReject,
+    handlePaymentApproval,
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
     handleAdminConfirmOfficeDelivery,

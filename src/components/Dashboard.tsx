@@ -87,6 +87,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleMatchPackage,
     handleStatusUpdate,
     handleApproveReject,
+    handlePaymentApproval,
     handleConfirmPackageReceived,
     handleConfirmOfficeReception,
     handleConfirmDeliveryComplete,
@@ -453,6 +454,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onMatchPackage={handleMatchPackage}
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
+              onPaymentApproval={handlePaymentApproval}
                onConfirmOfficeReception={(packageId) => {
                  // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
                  handleConfirmOfficeReception(packageId);

@@ -30,6 +30,7 @@ interface AdminDashboardProps {
   onMatchPackage: (packageId: string, tripId: string) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
+  onPaymentApproval: (packageId: string, action: 'approve' | 'reject') => void;
   onConfirmOfficeReception: (packageId: string) => void;
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
@@ -45,6 +46,7 @@ const AdminDashboard = ({
   onMatchPackage, 
   onUpdateStatus, 
   onApproveReject,
+  onPaymentApproval,
   onConfirmOfficeReception,
   onAdminConfirmOfficeDelivery,
   onConfirmDeliveryComplete,
@@ -318,11 +320,19 @@ const AdminDashboard = ({
         isOpen={showPackageDetail}
         onClose={() => setShowPackageDetail(false)}
         onApprove={(id) => {
-          onApproveReject('package', id, 'approve');
+          if (selectedDetailPackage?.status === 'payment_pending_approval') {
+            onPaymentApproval(id, 'approve');
+          } else {
+            onApproveReject('package', id, 'approve');
+          }
           setShowPackageDetail(false);
         }}
         onReject={(id) => {
-          onApproveReject('package', id, 'reject');
+          if (selectedDetailPackage?.status === 'payment_pending_approval') {
+            onPaymentApproval(id, 'reject');
+          } else {
+            onApproveReject('package', id, 'reject');
+          }
           setShowPackageDetail(false);
         }}
       />

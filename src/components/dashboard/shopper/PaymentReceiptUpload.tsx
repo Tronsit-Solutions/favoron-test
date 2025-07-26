@@ -88,7 +88,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'payment_confirmed',
+          status: 'payment_pending_approval',
           // Save traveler shipping information permanently
           ...(travelerShippingInfo && {
             traveler_address: travelerShippingInfo.travelerAddress,
@@ -106,7 +106,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
       const updatedPkg = {
         ...pkg,
         payment_receipt: paymentReceiptData,
-        status: 'payment_confirmed' as const
+        status: 'payment_pending_approval' as const
       };
       
       // Llamar onUploadComplete con el paquete actualizado

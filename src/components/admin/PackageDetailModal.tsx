@@ -34,6 +34,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_rejected': { label: 'Cotización rechazada', variant: 'destructive' as const },
       'payment_pending': { label: 'Pago pendiente', variant: 'secondary' as const },
+      'payment_pending_approval': { label: 'Pago pendiente de aprobación', variant: 'warning' as const },
       'payment_confirmed': { label: 'Pago confirmado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
@@ -764,6 +765,27 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
               >
                 <XCircle className="h-4 w-4 mr-2" />
                 Rechazar Solicitud
+              </Button>
+            </div>
+          )}
+
+          {/* Approve Payment Button */}
+          {pkg.status === 'payment_pending_approval' && pkg.payment_receipt && (
+            <div className="flex space-x-2 pt-4 border-t">
+              <Button 
+                onClick={() => onApprove(pkg.id)}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Aprobar Pago y Compartir Dirección
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={() => onReject(pkg.id)}
+                className="flex-1"
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Rechazar Pago
               </Button>
             </div>
           )}
