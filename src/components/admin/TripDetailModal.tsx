@@ -66,7 +66,11 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Nombre</p>
-                    <p className="text-sm text-muted-foreground">{trip.user.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {trip.profiles?.first_name && trip.profiles?.last_name 
+                        ? `${trip.profiles.first_name} ${trip.profiles.last_name}` 
+                        : trip.profiles?.username || 'No disponible'}
+                    </p>
                   </div>
                 </div>
                 
@@ -74,7 +78,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{trip.user.email}</p>
+                    <p className="text-sm text-muted-foreground">{trip.profiles?.email || 'No disponible'}</p>
                   </div>
                 </div>
                 
@@ -82,17 +86,15 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Teléfono</p>
-                    <p className="text-sm text-muted-foreground">{trip.user.phone}</p>
+                    <p className="text-sm text-muted-foreground">{trip.profiles?.phone_number || 'No disponible'}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Plane className="h-4 w-4 text-muted-foreground" />
+                  <User className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Experiencia</p>
-                    <p className="text-sm text-muted-foreground">
-                      {trip.user.totalTrips} viajes | {trip.user.completedDeliveries} entregas
-                    </p>
+                    <p className="text-sm font-medium">Usuario ID</p>
+                    <p className="text-sm text-muted-foreground font-mono text-xs">{trip.user_id}</p>
                   </div>
                 </div>
               </div>
