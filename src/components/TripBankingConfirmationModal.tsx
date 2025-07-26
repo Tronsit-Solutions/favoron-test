@@ -80,10 +80,10 @@ const TripBankingConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[90vh] overflow-hidden">
-        <DialogHeader className="space-y-3 pt-3 pb-3 flex-shrink-0">
+      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-4">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-green-600" />
             {title}
           </DialogTitle>
           {description && (
@@ -91,7 +91,7 @@ const TripBankingConfirmationModal = ({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-1 pb-2">
+        <div className="flex-1 overflow-y-auto space-y-4 px-1">
           <div className="space-y-2">
           <Alert className="py-1">
             <Shield className="h-3 w-3" />
@@ -143,35 +143,6 @@ const TripBankingConfirmationModal = ({
                     <p className="font-medium capitalize truncate text-xs">{currentBankingInfo.bank_account_type}</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-1 pt-2 border-t">
-                <div className="flex gap-1">
-                  <Button 
-                    variant="outline" 
-                    onClick={onClose}
-                    disabled={loading}
-                    className="flex-1 h-8 text-xs"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setIsEditing(true)}
-                    disabled={loading}
-                    className="flex-1 h-8 text-xs"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Editar
-                  </Button>
-                </div>
-                <Button 
-                  onClick={handleConfirmPayment}
-                  disabled={loading}
-                  className="w-full h-8 text-xs"
-                >
-                  {loading ? "Procesando..." : "Confirmar y solicitar pago"}
-                </Button>
               </div>
             </div>
           )}
@@ -252,39 +223,73 @@ const TripBankingConfirmationModal = ({
                   />
                 </div>
               </div>
-
-              <div className="flex flex-col gap-1 pt-2 border-t">
-                <div className="flex gap-1">
-                  <Button 
-                    variant="outline" 
-                    onClick={onClose}
-                    disabled={loading}
-                    className="flex-1 h-8 text-xs"
-                  >
-                    Cancelar
-                  </Button>
-                  {hasCompleteBankingInfo && (
-                    <Button 
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                      disabled={loading}
-                      className="flex-1 h-8 text-xs"
-                    >
-                      Ver guardada
-                    </Button>
-                  )}
-                </div>
+            </div>
+           )}
+          </div>
+        </div>
+        
+        {/* Fixed Footer with Actions */}
+        <div className="flex-shrink-0 border-t pt-4 mt-4">
+          {hasCompleteBankingInfo && !isEditing ? (
+            <div className="space-y-3">
+              <div className="flex gap-2">
                 <Button 
-                  onClick={handleConfirmPayment}
-                  disabled={loading || !isFormValid}
-                  className="w-full h-8 text-xs"
+                  variant="outline" 
+                  onClick={onClose}
+                  disabled={loading}
+                  className="flex-1 h-10"
                 >
-                  {loading ? "Procesando..." : "Confirmar y solicitar pago"}
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  disabled={loading}
+                  className="flex-1 h-10"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
                 </Button>
               </div>
+              <Button 
+                onClick={handleConfirmPayment}
+                disabled={loading}
+                className="w-full h-10 bg-green-600 hover:bg-green-700"
+              >
+                {loading ? "Procesando..." : "Crear orden de pago"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={onClose}
+                  disabled={loading}
+                  className="flex-1 h-10"
+                >
+                  Cancelar
+                </Button>
+                {hasCompleteBankingInfo && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    disabled={loading}
+                    className="flex-1 h-10"
+                  >
+                    Ver guardada
+                  </Button>
+                )}
+              </div>
+              <Button 
+                onClick={handleConfirmPayment}
+                disabled={loading || !isFormValid}
+                className="w-full h-10 bg-green-600 hover:bg-green-700"
+              >
+                {loading ? "Procesando..." : "Crear orden de pago"}
+              </Button>
             </div>
           )}
-          </div>
         </div>
       </DialogContent>
     </Dialog>
