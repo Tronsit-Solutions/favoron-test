@@ -65,7 +65,7 @@ const TravelerPackagePriorityActions = ({
             <div className="flex-1">
               {pkg.status === 'matched' && (
                 <div>
-                  <p className="text-sm font-semibold mb-1">¿Te interesa este pedido?</p>
+                  <p className="text-sm font-semibold mb-1">¿Te llevas este pedido?</p>
                   <p className="text-xs text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
                 </div>
               )}
