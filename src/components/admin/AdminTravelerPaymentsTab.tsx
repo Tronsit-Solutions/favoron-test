@@ -272,15 +272,30 @@ const AdminTravelerPaymentsTab = () => {
                       </div>
 
                       {/* Trip and Package Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-3 bg-muted/30 rounded-lg">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 p-3 bg-muted/30 rounded-lg">
                         <div>
-                          <h5 className="text-sm font-medium mb-1">Información del Viaje</h5>
+                          <h5 className="text-sm font-medium mb-2">Información del Viaje</h5>
                           <p className="text-sm text-muted-foreground">
                             <strong>Ruta:</strong> {(order as any).trips?.from_city} → {(order as any).trips?.to_city}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             <strong>Fechas:</strong> {(order as any).trips?.departure_date ? new Date((order as any).trips.departure_date).toLocaleDateString('es-GT') : 'No especificado'} - {(order as any).trips?.arrival_date ? new Date((order as any).trips.arrival_date).toLocaleDateString('es-GT') : 'No especificado'}
                           </p>
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-medium mb-2">Paquetes Entregados</h5>
+                          {(order as any).trips?.packages && (order as any).trips.packages.length > 0 ? (
+                            <div className="space-y-1 max-h-20 overflow-y-auto">
+                              {(order as any).trips.packages.filter((pkg: any) => pkg.status === 'delivered_to_office' || pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery').map((pkg: any, index: number) => (
+                                <div key={pkg.id} className="text-xs p-1 bg-green-50 rounded border">
+                                  <p className="font-medium text-green-800">📦 {pkg.item_description}</p>
+                                  <p className="text-green-600">${pkg.estimated_price}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Sin paquetes entregados</p>
+                          )}
                         </div>
                         <div>
                           <h5 className="text-sm font-medium mb-1">Información Bancaria</h5>

@@ -23,7 +23,13 @@ export const usePaymentOrders = () => {
             to_city,
             departure_date,
             arrival_date,
-            user_id
+            user_id,
+            packages:packages!matched_trip_id (
+              id,
+              item_description,
+              estimated_price,
+              status
+            )
           ),
           profiles!traveler_id (
             id,
