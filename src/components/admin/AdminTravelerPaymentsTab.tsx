@@ -169,20 +169,6 @@ const AdminTravelerPaymentsTab = () => {
             </div>
           </TableCell>
           <TableCell className="py-3">
-            <div className="text-xs">
-              <div className="font-medium">{(order as any).trips?.from_city} → {(order as any).trips?.to_city}</div>
-              <div className="text-muted-foreground">{packages.length} paquetes</div>
-            </div>
-          </TableCell>
-          <TableCell className="py-3">
-            <div className="text-xs text-center">
-              {formatDate(order.created_at)}
-            </div>
-          </TableCell>
-          <TableCell className="py-3">
-            {getStatusBadge(order.status)}
-          </TableCell>
-          <TableCell className="py-3">
             <div className="flex gap-1">
               {order.status === 'pending' && (
                 <>
@@ -227,7 +213,7 @@ const AdminTravelerPaymentsTab = () => {
         </TableRow>
         {isExpanded && (
           <TableRow className="bg-muted/20">
-            <TableCell colSpan={8} className="py-3">
+            <TableCell colSpan={5} className="py-3">
               <div className="space-y-3">
                 {/* Invoice Details */}
                 <div className="bg-white border rounded-lg p-3">
@@ -396,9 +382,6 @@ const AdminTravelerPaymentsTab = () => {
                       <TableHead>Viajero</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                       <TableHead>Información Bancaria</TableHead>
-                      <TableHead>Viaje</TableHead>
-                      <TableHead className="text-center">Fecha</TableHead>
-                      <TableHead className="text-center">Estado</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -433,9 +416,6 @@ const AdminTravelerPaymentsTab = () => {
                       <TableHead>Viajero</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                       <TableHead>Información Bancaria</TableHead>
-                      <TableHead>Viaje</TableHead>
-                      <TableHead className="text-center">Fecha</TableHead>
-                      <TableHead className="text-center">Estado</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
