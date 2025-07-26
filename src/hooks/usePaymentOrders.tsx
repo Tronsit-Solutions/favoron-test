@@ -28,7 +28,8 @@ export const usePaymentOrders = () => {
               id,
               item_description,
               estimated_price,
-              status
+              status,
+              quote
             )
           ),
           profiles!traveler_id (
