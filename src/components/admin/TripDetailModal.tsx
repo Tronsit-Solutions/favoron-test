@@ -1,9 +1,11 @@
 
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripDetailModalProps {
   trip: any;
@@ -14,6 +16,37 @@ interface TripDetailModalProps {
 }
 
 const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // Fetch user profile data directly from database using user_id
+  useEffect(() => {
+    if (trip?.user_id && isOpen) {
+      setLoadingProfile(true);
+      const fetchUserProfile = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', trip.user_id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user profile:', error);
+          } else {
+            setUserProfile(data);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setLoadingProfile(false);
+        }
+      };
+      
+      fetchUserProfile();
+    }
+  }, [trip?.user_id, isOpen]);
+
   if (!trip) return null;
 
   const getStatusBadge = (status: string) => {
@@ -61,49 +94,55 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Nombre</p>
-                    <p className="text-sm text-muted-foreground">
-                      {trip.profiles?.first_name && trip.profiles?.last_name 
-                        ? `${trip.profiles.first_name} ${trip.profiles.last_name}` 
-                        : trip.profiles?.username || `Usuario ID: ${trip.user_id}`}
-                    </p>
+              {loadingProfile ? (
+                <div className="text-center text-muted-foreground py-4">
+                  Cargando información del viajero...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Nombre</p>
+                      <p className="text-sm text-muted-foreground">
+                        {userProfile?.first_name && userProfile?.last_name 
+                          ? `${userProfile.first_name} ${userProfile.last_name}` 
+                          : userProfile?.username || `Usuario ID: ${trip.user_id}`}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <p className="text-sm text-muted-foreground">{userProfile?.email || 'No disponible'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Teléfono</p>
+                      <p className="text-sm text-muted-foreground">{userProfile?.phone_number || 'No disponible'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Nivel de Confianza</p>
+                      <p className="text-sm text-muted-foreground">
+                        {userProfile?.trust_level ? 
+                          (userProfile.trust_level === 'basic' ? 'Básico' : 
+                           userProfile.trust_level === 'trusted' ? 'Confiable' : 
+                           userProfile.trust_level === 'premium' ? 'Premium' : userProfile.trust_level)
+                          : 'No definido'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{trip.profiles?.email || 'No disponible'}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Teléfono</p>
-                    <p className="text-sm text-muted-foreground">{trip.profiles?.phone_number || 'No disponible'}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Nivel de Confianza</p>
-                    <p className="text-sm text-muted-foreground">
-                      {trip.profiles?.trust_level ? 
-                        (trip.profiles.trust_level === 'basic' ? 'Básico' : 
-                         trip.profiles.trust_level === 'trusted' ? 'Confiable' : 
-                         trip.profiles.trust_level === 'premium' ? 'Premium' : trip.profiles.trust_level)
-                        : 'No definido'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
