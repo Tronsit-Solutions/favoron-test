@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, CheckCircle, MailOpen, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ const Auth = () => {
   const [lastName, setLastName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
@@ -39,7 +41,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -54,6 +56,33 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Si hay un avatar seleccionado, subirlo después del registro
+      if (avatarFile && data?.user) {
+        try {
+          const fileExt = avatarFile.name.split('.').pop();
+          const fileName = `${data.user.id}/${data.user.id}-${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, avatarFile);
+            
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('avatars')
+              .getPublicUrl(fileName);
+              
+            // Actualizar el perfil con la URL del avatar
+            await supabase
+              .from('profiles')
+              .update({ avatar_url: publicUrl })
+              .eq('id', data.user.id);
+          }
+        } catch (avatarError) {
+          console.error('Error uploading avatar:', avatarError);
+          // No mostrar error al usuario, el avatar es opcional
+        }
+      }
 
       // Mostrar confirmación prominente
       setShowEmailConfirmation(true);
@@ -75,6 +104,7 @@ const Auth = () => {
       setPhoneNumber('');
       setUsername('');
       setPassword('');
+      setAvatarFile(null);
       
     } catch (error: any) {
       toast({
@@ -228,6 +258,14 @@ const Auth = () => {
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                {/* Avatar Upload */}
+                <div className="flex justify-center">
+                  <AvatarUploadPreview 
+                    onFileSelect={setAvatarFile}
+                    selectedFile={avatarFile}
+                  />
+                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">Nombre</Label>
