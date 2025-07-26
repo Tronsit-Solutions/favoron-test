@@ -142,7 +142,7 @@ const CollapsibleTravelerPackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="pt-0 pb-4">
+          <CardContent className="pt-0 pb-2">
             <TravelerPackagePriorityActions
               pkg={pkg}
               onQuote={onQuote}
@@ -150,11 +150,11 @@ const CollapsibleTravelerPackageCard = ({
               onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
             />
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-4">
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="space-y-2">
                 {/* Traveler Package Timeline - Show for relevant statuses */}
                 {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
-                  <div className="bg-muted/30 rounded-lg p-3">
+                  <div className="bg-muted/30 rounded-lg p-2">
                     <TravelerPackageTimeline currentStatus={pkg.status} />
                   </div>
                 )}
@@ -170,10 +170,10 @@ const CollapsibleTravelerPackageCard = ({
                 />
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {/* Package Chat Timeline - Show only after payment confirmation */}
                 {['payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler'].includes(pkg.status) && (
-                  <div className="mt-6">
+                  <div className="mt-3">
                     <PackageTimeline pkg={pkg} />
                   </div>
                 )}
