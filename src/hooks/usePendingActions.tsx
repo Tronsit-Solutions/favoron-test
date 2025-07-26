@@ -21,7 +21,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const packagesToReceive = matchedPackages.filter(pkg => pkg.status === 'in_transit').length;
 
     // For admin
-    const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending').length;
+    const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending_approval').length;
     const packageApprovalsNeeded = packages.filter(pkg => pkg.status === 'pending_approval').length;
     const tripApprovalsNeeded = trips.filter(trip => trip.status === 'pending_approval').length;
     const approvalsNeeded = packageApprovalsNeeded + tripApprovalsNeeded;
