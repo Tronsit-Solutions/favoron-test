@@ -67,14 +67,12 @@ const UploadDocuments = ({
           
           <div className="flex items-center space-x-2">
             <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
-              currentTracking ? 'bg-success text-success-foreground' : 
-              currentConfirmation ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              currentTracking ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
             }`}>
               {currentTracking ? '✓' : '2'}
             </div>
             <span className={`text-sm font-medium ${
-              currentTracking ? 'text-success' : 
-              currentConfirmation ? 'text-foreground' : 'text-muted-foreground'
+              currentTracking ? 'text-success' : 'text-foreground'
             }`}>
               Tracking
             </span>
@@ -110,46 +108,23 @@ const UploadDocuments = ({
 
         {/* Step 2: Tracking Information */}
         {showTrackingSection && (
-          <div className={`border-2 border-dashed rounded-lg p-1 ${
-            currentConfirmation ? 'border-primary/30' : 'border-muted/50'
-          }`}>
-            <div className={`rounded-md ${currentConfirmation ? 'bg-primary/5' : 'bg-muted/20'}`}>
-              <div className={`flex items-center justify-between p-3 rounded-t-md ${
-                currentConfirmation ? 'bg-primary/10' : 'bg-muted/30'
-              }`}>
+          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
+            <div className="bg-primary/5 rounded-md">
+              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
-                  <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    currentConfirmation ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                     2
                   </div>
-                  <h4 className={`font-semibold ${
-                    currentConfirmation ? 'text-foreground' : 'text-muted-foreground'
-                  }`}>
-                    Información de Tracking
-                  </h4>
+                  <h4 className="font-semibold text-foreground">Información de Tracking</h4>
                 </div>
-                <span className={`text-xs font-medium ${
-                  currentConfirmation ? 'text-primary' : 'text-muted-foreground'
-                }`}>
-                  {currentConfirmation ? 'SIGUIENTE' : 'PENDIENTE'}
-                </span>
+                <span className="text-xs text-primary font-medium">REQUERIDO</span>
               </div>
               <div className="p-3">
-                {!currentConfirmation && (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-sm">
-                      ⏳ Completa el paso 1 primero
-                    </p>
-                  </div>
-                )}
-                {currentConfirmation && (
-                  <TrackingInfoForm
-                    packageId={packageId}
-                    currentTracking={currentTracking}
-                    onSubmit={handleTrackingSubmit}
-                  />
-                )}
+                <TrackingInfoForm
+                  packageId={packageId}
+                  currentTracking={currentTracking}
+                  onSubmit={handleTrackingSubmit}
+                />
               </div>
             </div>
           </div>
