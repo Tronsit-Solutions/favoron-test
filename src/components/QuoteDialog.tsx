@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Package, MapPin, ExternalLink } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X } from "lucide-react";
 import { useState } from "react";
 
 interface QuoteDialogProps {
@@ -73,12 +73,21 @@ const QuoteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[95vh] overflow-y-auto">
+        {/* Close button in top right */}
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Cerrar</span>
+        </button>
+
+        <DialogHeader className="pr-8">
+          <DialogTitle className="text-lg sm:text-xl">
             {!existingQuote ? 'Enviar Cotización' : 'Responder Cotización'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {!existingQuote 
               ? 'Proporciona tu cotización para este Favorón'
               : 'Revisa la cotización del viajero'
@@ -231,40 +240,57 @@ const QuoteDialog = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-4 border-t">            
             {!existingQuote ? (
-              <div className="space-x-2">
-                <Button variant="destructive" onClick={handleReject}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-2 sm:space-y-0">
+                <Button 
+                  variant="destructive" 
+                  onClick={handleReject}
+                  className="w-full sm:w-auto"
+                >
                   Rechazar Pedido
                 </Button>
-                <Button onClick={handleSubmit} disabled={!price}>
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={!price}
+                  className="w-full sm:w-auto"
+                >
                   Enviar Cotización
                 </Button>
               </div>
             ) : (
-              <div className="space-x-2">
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-2 sm:space-y-0">
                 {!showRejectionForm ? (
                   <>
-                    <Button variant="destructive" onClick={handleReject}>
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleReject}
+                      className="w-full sm:w-auto"
+                    >
                       Rechazar
                     </Button>
-                    <Button variant="success" onClick={handleSubmit}>
+                    <Button 
+                      variant="default"
+                      onClick={handleSubmit}
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                    >
                       Aceptar Cotización
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" onClick={() => setShowRejectionForm(false)}>
-                      Cancelar
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowRejectionForm(false)}
+                      className="w-full sm:w-auto"
+                    >
+                      Volver
                     </Button>
                     <Button 
                       variant="destructive" 
                       onClick={handleReject}
                       disabled={!rejectionReason.trim()}
+                      className="w-full sm:w-auto"
                     >
                       Confirmar Rechazo
                     </Button>
