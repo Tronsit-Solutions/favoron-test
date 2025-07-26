@@ -10,26 +10,38 @@ interface HeroSectionProps {
 
 const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
   const [completedPackages, setCompletedPackages] = useState(500);
+  const [totalUsers, setTotalUsers] = useState(1000);
 
   useEffect(() => {
-    const fetchCompletedPackages = async () => {
+    const fetchStats = async () => {
       try {
-        console.log('Fetching completed packages...');
+        console.log('Fetching app stats...');
         
-        // Primera consulta: obtener todos los paquetes (si es admin) o solo los públicos
+        // Obtener usuarios totales
+        const { count: usersCount, error: usersError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log('Users query result:', { count: usersCount, error: usersError });
+        
+        if (usersError) {
+          console.error('Users query error:', usersError);
+        } else if (usersCount !== null) {
+          console.log('Setting total users to:', usersCount);
+          setTotalUsers(usersCount);
+        }
+        
+        // Obtener paquetes completados
         const { data: allPackages, error, count } = await supabase
           .from('packages')
           .select('status', { count: 'exact' })
           .in('status', ['delivered_to_office', 'received_by_traveler', 'completed']);
         
-        console.log('Query result:', { data: allPackages, error, count });
+        console.log('Packages query result:', { data: allPackages, error, count });
         
         if (error) {
-          console.error('Supabase error:', error);
-          return;
-        }
-        
-        if (count !== null) {
+          console.error('Packages query error:', error);
+        } else if (count !== null) {
           console.log('Setting completed packages to:', count);
           setCompletedPackages(count);
         } else {
@@ -37,11 +49,11 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           setCompletedPackages(allPackages?.length || 0);
         }
       } catch (error) {
-        console.error('Error fetching completed packages:', error);
+        console.error('Error fetching stats:', error);
       }
     };
 
-    fetchCompletedPackages();
+    fetchStats();
   }, []);
 
   return (
@@ -56,7 +68,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         <div className="flex items-center justify-center gap-6 mb-8 text-sm text-gray-600">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-shopper" />
-            <span>+1000 usuarios activos</span>
+            <span>+{totalUsers} usuarios activos</span>
           </div>
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-warning" />
