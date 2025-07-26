@@ -1,12 +1,35 @@
 
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
 }
 
 const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
+  const [completedPackages, setCompletedPackages] = useState(500);
+
+  useEffect(() => {
+    const fetchCompletedPackages = async () => {
+      try {
+        const { count } = await supabase
+          .from('packages')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['delivered_to_office', 'received_by_traveler']);
+        
+        if (count !== null) {
+          setCompletedPackages(count);
+        }
+      } catch (error) {
+        console.error('Error fetching completed packages:', error);
+      }
+    };
+
+    fetchCompletedPackages();
+  }, []);
+
   return (
     <header className="relative overflow-hidden">
       {/* Background Elements */}
@@ -78,7 +101,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         {/* Social Proof */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-shopper mb-2">500+</div>
+            <div className="text-2xl font-bold text-shopper mb-2">{completedPackages}+</div>
             <div className="text-gray-600">Paquetes entregados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
