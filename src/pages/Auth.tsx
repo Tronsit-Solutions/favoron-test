@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, Phone, CheckCircle, MailOpen } from 'lucide-react';
+import { Plane, Mail, Lock, User, Phone, CheckCircle, MailOpen, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Auth = () => {
@@ -140,12 +140,22 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
             <img 
               src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
               alt="Favorón Logo" 
               className="h-10 w-auto"
             />
+            <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           <CardTitle>Bienvenido</CardTitle>
           <CardDescription>
