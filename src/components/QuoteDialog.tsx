@@ -73,47 +73,56 @@ const QuoteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-w-[95vw] max-h-[95vh] overflow-y-auto">
-        {/* Close button in top right */}
+      <DialogContent className="sm:max-w-2xl max-w-[98vw] max-h-[92vh] overflow-y-auto p-4 sm:p-6 m-1 sm:m-4">
+        {/* Close button in top right - larger for mobile */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
+          className="absolute right-3 top-3 rounded-full p-2 opacity-70 bg-background border shadow-sm transition-all hover:opacity-100 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
           <span className="sr-only">Cerrar</span>
         </button>
 
-        <DialogHeader className="pr-8">
-          <DialogTitle className="text-lg sm:text-xl">
-            {!existingQuote ? 'Enviar Cotización' : 'Responder Cotización'}
+        <DialogHeader className="pr-12 pb-4">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
+            {!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
           </DialogTitle>
-          <DialogDescription className="text-sm">
+          <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed">
             {!existingQuote 
-              ? 'Proporciona tu cotización para este Favorón'
-              : 'Revisa la cotización del viajero'
+              ? 'Proporciona tu mejor cotización para este Favorón'
+              : 'Revisa los detalles y responde a la cotización del viajero'
             }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Package Details */}
-          <div className="bg-muted/50 border rounded-lg p-4">
-            <div className="flex items-start space-x-2 mb-2">
-              <Package className="h-4 w-4 text-primary mt-0.5" />
-              <p className="text-sm font-medium text-primary">Detalles del Favorón:</p>
+          <div className="bg-muted/50 border rounded-xl p-3 sm:p-4">
+            <div className="flex items-start space-x-2 mb-3">
+              <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
             </div>
-            <div className="text-sm ml-6 space-y-2">
-              <p><strong>Producto:</strong> {packageDetails.item_description}</p>
-              <p><strong>Precio estimado:</strong> ${packageDetails.estimated_price}</p>
+            <div className="text-sm sm:text-sm ml-7 space-y-3">
+              <div className="bg-background/80 rounded-lg p-3">
+                <p className="font-medium text-foreground"><strong>Producto:</strong></p>
+                <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
+              </div>
+              <div className="bg-background/80 rounded-lg p-3">
+                <p className="font-medium text-foreground"><strong>Precio estimado:</strong> <span className="text-lg font-bold text-primary">${packageDetails.estimated_price}</span></p>
+              </div>
               {packageDetails.item_link && (
-                <p><strong>Enlace del producto:</strong> <a 
-                  href={packageDetails.item_link} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-primary hover:underline"
-                >
-                  Ver producto
-                </a></p>
+                <div className="bg-background/80 rounded-lg p-3">
+                  <p className="font-medium text-foreground mb-2"><strong>Enlace del producto:</strong></p>
+                  <a 
+                    href={packageDetails.item_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Ver producto
+                  </a>
+                </div>
               )}
             </div>
           </div>
