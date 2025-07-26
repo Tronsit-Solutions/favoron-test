@@ -16,6 +16,10 @@ interface TripDetailModalProps {
 const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
   if (!trip) return null;
 
+  // Debug: Log trip data to see what we're receiving
+  console.log('TripDetailModal - Trip data:', trip);
+  console.log('TripDetailModal - Profiles data:', trip.profiles);
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
