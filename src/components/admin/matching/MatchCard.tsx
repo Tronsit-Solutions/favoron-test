@@ -44,7 +44,7 @@ export const MatchCard = ({
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation';
-  const showShopperReceivedButton = pkg.status === 'delivered_to_office';
+  const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
 
   const getStatusDescription = () => {
     switch (pkg.status) {
@@ -66,6 +66,14 @@ export const MatchCard = ({
         : '✅ Confirmar pick-up';
     }
     return '✅ Confirmar entrega';
+  };
+
+  const getShopperReceivedButtonText = () => {
+    if (pkg.delivery_method === 'pickup') {
+      return 'Confirmar pick-up';
+    } else {
+      return 'Confirmar entrega';
+    }
   };
 
   return (
@@ -288,7 +296,7 @@ export const MatchCard = ({
                   className="flex-1 bg-orange-600 hover:bg-orange-700"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
-                  Confirmar shopper recibió
+                  {getShopperReceivedButtonText()}
                 </Button>
               )}
 
