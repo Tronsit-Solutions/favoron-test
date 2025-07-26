@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Package, MapPin, ExternalLink, X } from "lucide-react";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface QuoteDialogProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ const QuoteDialog = ({
   const [message, setMessage] = useState(existingQuote?.message || '');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSubmit = () => {
     if (existingQuote) {
@@ -73,7 +75,7 @@ const QuoteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-w-[98vw] max-h-[92vh] overflow-y-auto p-4 sm:p-6 m-1 sm:m-4">
+      <DialogContent className={`${isMobile ? 'w-screen h-screen max-w-none max-h-none m-0 p-3 rounded-none' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} overflow-y-auto p-4 sm:p-6`}>
         {/* Close button in top right - larger for mobile */}
         <button
           onClick={onClose}
