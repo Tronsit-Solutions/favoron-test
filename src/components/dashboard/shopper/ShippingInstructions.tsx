@@ -47,7 +47,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
           <div className="space-y-4 text-xs">
             {/* Fechas importantes */}
             {tripDates && (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h5 className="font-semibold text-success text-sm flex items-center space-x-1">
                   <Calendar className="h-4 w-4" />
                   <span>📅 Fechas importantes</span>
