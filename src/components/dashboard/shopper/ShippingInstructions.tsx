@@ -20,7 +20,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
   const address = pkg.traveler_address || pkgWithTrips.trips?.package_receiving_address;
   const tripDates = pkg.matched_trip_dates as any;
   
-  if (pkg.status !== 'payment_confirmed' || !address) {
+  if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status) || !address) {
     return null;
   }
 
@@ -31,7 +31,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
           <CheckCircle className="h-4 w-4 text-success" />
           <div>
             <h4 className="text-sm font-medium text-foreground">¡Pago Aprobado! - Información de Envío</h4>
-            <p className="text-xs text-success-foreground">Tu pago ha sido confirmado</p>
+            <p className="text-xs text-success-foreground">Compra el producto y envíalo a esta dirección</p>
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
             )}
             
             <div className="mt-2 p-2 bg-muted/30 rounded text-xs text-muted-foreground">
-              💡 <strong>Próximos pasos:</strong> Una vez enviado el producto, sube los documentos de compra y tracking en la sección correspondiente.
+              💡 <strong>Próximos pasos:</strong> Compra el producto y envíalo a la dirección mostrada. Luego sube los documentos de compra y tracking.
             </div>
           </div>
         </CardContent>
