@@ -16,13 +16,42 @@ const CustomsRegulation = () => {
       
       <main className="container mx-auto px-4 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Regulación Aduanera
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-              Información importante sobre normas aduaneras para viajeros y compradores
-            </p>
+          <div className="text-center mb-8 sm:mb-12 relative">
+            {/* Background decoration */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-5">
+              <Package className="h-32 w-32 text-gray-400" />
+            </div>
+            
+            <div className="relative">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg">
+                  <Shield className="h-8 w-8" />
+                </div>
+                <div className="h-px bg-gradient-to-r from-blue-500 to-transparent w-16"></div>
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Regulación Aduanera
+                </span>
+              </h1>
+              
+              <div className="max-w-3xl mx-auto">
+                <p className="text-xl sm:text-2xl text-gray-600 font-medium mb-3">
+                  Tu guía completa para un comercio internacional seguro
+                </p>
+                <p className="text-lg text-gray-500">
+                  Información esencial sobre normas aduaneras para viajeros y compradores
+                </p>
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="flex justify-center mt-6 gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-6 sm:gap-8">
