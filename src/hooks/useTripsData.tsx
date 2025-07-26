@@ -31,7 +31,7 @@ export const useTripsData = () => {
         .from('trips')
         .select(`
           *,
-          profiles!trips_user_id_fkey (
+          profiles (
             id,
             first_name,
             last_name,
