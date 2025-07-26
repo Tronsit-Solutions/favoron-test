@@ -17,7 +17,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         const { count } = await supabase
           .from('packages')
           .select('*', { count: 'exact', head: true })
-          .in('status', ['delivered_to_office', 'received_by_traveler']);
+          .in('status', ['delivered_to_office', 'received_by_traveler', 'completed']);
         
         if (count !== null) {
           setCompletedPackages(count);
