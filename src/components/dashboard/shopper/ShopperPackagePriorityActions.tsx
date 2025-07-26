@@ -59,7 +59,7 @@ const ShopperPackagePriorityActions = ({
   const IconComponent = config.icon;
 
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+    <div className="mb-3 p-2 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
           <IconComponent className="h-4 w-4 text-primary" />
