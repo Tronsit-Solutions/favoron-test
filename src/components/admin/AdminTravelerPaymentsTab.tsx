@@ -283,31 +283,54 @@ const AdminTravelerPaymentsTab = () => {
                           </p>
                         </div>
                         <div>
-                          <h5 className="text-sm font-medium mb-2">Paquetes Entregados</h5>
+                          <h5 className="text-sm font-medium mb-3 flex items-center">
+                            📋 Detalle de Facturación - Paquetes Entregados
+                          </h5>
                           {(order as any).trips?.packages && (order as any).trips.packages.length > 0 ? (
-                            <div className="space-y-2 max-h-24 overflow-y-auto">
-                              {(order as any).trips.packages
-                                .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status))
-                                .map((pkg: any, index: number) => (
-                                <div key={pkg.id} className="text-xs p-2 bg-green-50 rounded border border-green-200">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <p className="font-medium text-green-800 truncate">📦 {pkg.item_description}</p>
-                                    <span className="text-green-600 font-semibold">${pkg.estimated_price}</span>
+                            <div className="bg-white border rounded-lg p-3">
+                              <div className="space-y-3 max-h-40 overflow-y-auto">
+                                {(order as any).trips.packages
+                                  .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status))
+                                  .map((pkg: any, index: number) => (
+                                  <div key={pkg.id} className="border-b border-gray-100 pb-2 last:border-b-0">
+                                    <div className="flex justify-between items-start mb-1">
+                                      <div className="flex-1 pr-2">
+                                        <p className="text-sm font-medium text-gray-800">{pkg.item_description}</p>
+                                        <p className="text-xs text-gray-500">ID: {pkg.id.slice(0, 8)}...</p>
+                                        <p className="text-xs text-green-600 capitalize">{pkg.status.replace(/_/g, ' ')}</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-sm font-semibold text-gray-800">${pkg.estimated_price}</p>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center justify-between text-green-600">
-                                    <span className="text-xs">ID: {pkg.id.slice(0, 8)}...</span>
-                                    <span className="text-xs capitalize">{pkg.status.replace(/_/g, ' ')}</span>
-                                  </div>
+                                ))}
+                              </div>
+                              
+                              {/* Invoice Summary */}
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-sm text-gray-600">Subtotal ({(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status)).length} paquetes):</span>
+                                  <span className="text-sm font-medium">
+                                    ${(order as any).trips.packages
+                                      .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status))
+                                      .reduce((sum: number, pkg: any) => sum + (pkg.estimated_price || 0), 0).toFixed(2)}
+                                  </span>
                                 </div>
-                              ))}
-                              <div className="mt-2 pt-2 border-t border-green-200">
-                                <p className="text-xs text-green-700 font-medium">
-                                  Total: {(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status)).length} paquetes entregados
-                                </p>
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-sm text-gray-600">Comisión de servicio:</span>
+                                  <span className="text-sm">Incluida</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2 border-t">
+                                  <span className="text-base font-semibold text-gray-800">Total a Pagar:</span>
+                                  <span className="text-base font-bold text-green-600">${order.amount}</span>
+                                </div>
                               </div>
                             </div>
                           ) : (
-                            <p className="text-sm text-muted-foreground">Sin paquetes entregados</p>
+                            <div className="bg-gray-50 border rounded-lg p-4 text-center">
+                              <p className="text-sm text-gray-500">Sin paquetes para facturar</p>
+                            </div>
                           )}
                         </div>
                         <div>
