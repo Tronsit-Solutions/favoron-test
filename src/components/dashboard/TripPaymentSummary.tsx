@@ -139,10 +139,10 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
         onConfirm={handlePaymentRequest}
         amount={tripPayment.accumulated_amount}
         currentBankingInfo={{
-          bank_account_holder: userProfile?.bankAccountHolder,
-          bank_name: userProfile?.bankName,
-          bank_account_type: userProfile?.bankAccountType,
-          bank_account_number: userProfile?.bankAccountNumber
+          bank_account_holder: userProfile?.bank_account_holder,
+          bank_name: userProfile?.bank_name,
+          bank_account_type: userProfile?.bank_account_type,
+          bank_account_number: userProfile?.bank_account_number
         }}
         title="Confirmar Datos Bancarios para Pago del Viaje"
         description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment.accumulated_amount)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
