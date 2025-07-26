@@ -11,7 +11,7 @@ const HowItWorksSection = () => {
       <div className="container mx-auto px-4 relative">
         <div className="text-center mb-16">
           <h3 className="text-4xl sm:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-shopper to-traveler bg-clip-text text-transparent">
               ¿Cómo funciona?
             </span>
           </h3>
@@ -22,14 +22,14 @@ const HowItWorksSection = () => {
         
         <div className="grid lg:grid-cols-2 gap-8 xl:gap-12">
           {/* Shopper Card */}
-          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-blue-50 to-indigo-50">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
+          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-shopper/5 to-shopper/10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-shopper/20 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
             <CardHeader className="relative">
               <CardTitle className="flex items-center space-x-3 text-2xl">
-                <div className="p-3 bg-blue-500 rounded-xl text-white shadow-lg">
+                <div className="p-3 bg-shopper rounded-xl text-white shadow-lg">
                   <Package className="h-8 w-8" />
                 </div>
-                <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent font-bold">
+                <span className="bg-gradient-to-r from-shopper to-shopper/80 bg-clip-text text-transparent font-bold">
                   Para Compradores
                 </span>
               </CardTitle>
@@ -45,31 +45,31 @@ const HowItWorksSection = () => {
               ].map((step, index) => (
                 <div key={index} className="flex items-start space-x-4 group">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                      <step.icon className="h-6 w-6 text-blue-600" />
-                    </div>
+                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                       <step.icon className="h-6 w-6 text-shopper" />
+                     </div>
                   </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900 mb-1 text-lg">{step.title}</h4>
                     <p className="text-gray-600 leading-relaxed">{step.desc}</p>
                   </div>
-                  {index < 4 && (
-                    <ArrowRight className="h-4 w-4 text-blue-400 mt-4 opacity-50" />
-                  )}
+                   {index < 4 && (
+                     <ArrowRight className="h-4 w-4 text-shopper/60 mt-4 opacity-50" />
+                   )}
                 </div>
               ))}
             </CardContent>
           </Card>
 
           {/* Traveler Card */}
-          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-green-50 to-emerald-50">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
+          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-traveler/5 to-traveler/10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-traveler/20 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
             <CardHeader className="relative">
               <CardTitle className="flex items-center space-x-3 text-2xl">
-                <div className="p-3 bg-green-500 rounded-xl text-white shadow-lg">
+                <div className="p-3 bg-traveler rounded-xl text-white shadow-lg">
                   <Plane className="h-8 w-8" />
                 </div>
-                <span className="bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent font-bold">
+                <span className="bg-gradient-to-r from-traveler to-traveler/80 bg-clip-text text-transparent font-bold">
                   Para Viajeros
                 </span>
               </CardTitle>
@@ -85,17 +85,17 @@ const HowItWorksSection = () => {
               ].map((step, index) => (
                 <div key={index} className="flex items-start space-x-4 group">
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                      <step.icon className="h-6 w-6 text-green-600" />
-                    </div>
+                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                       <step.icon className="h-6 w-6 text-traveler" />
+                     </div>
                   </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900 mb-1 text-lg">{step.title}</h4>
                     <p className="text-gray-600 leading-relaxed">{step.desc}</p>
                   </div>
-                  {index < 4 && (
-                    <ArrowRight className="h-4 w-4 text-green-400 mt-4 opacity-50" />
-                  )}
+                   {index < 4 && (
+                     <ArrowRight className="h-4 w-4 text-traveler/60 mt-4 opacity-50" />
+                   )}
                 </div>
               ))}
             </CardContent>

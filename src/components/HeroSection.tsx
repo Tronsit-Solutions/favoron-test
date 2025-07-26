@@ -18,15 +18,15 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         {/* Trust Indicators */}
         <div className="flex items-center justify-center gap-6 mb-8 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-blue-500" />
+            <Users className="h-4 w-4 text-shopper" />
             <span>+1000 usuarios activos</span>
           </div>
           <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-yellow-500" />
+            <Star className="h-4 w-4 text-warning" />
             <span>4.8/5 estrellas</span>
           </div>
           <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-red-500" />
+            <Heart className="h-4 w-4 text-success" />
             <span>100% seguro</span>
           </div>
         </div>
@@ -34,7 +34,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         {/* Main Headline */}
         <div className="relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
               Conectamos viajeros
             </span>
             <br />
@@ -78,15 +78,15 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         {/* Social Proof */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-blue-600 mb-2">500+</div>
+            <div className="text-2xl font-bold text-shopper mb-2">500+</div>
             <div className="text-gray-600">Paquetes entregados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-green-600 mb-2">50+</div>
+            <div className="text-2xl font-bold text-traveler mb-2">50+</div>
             <div className="text-gray-600">Destinos disponibles</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-purple-600 mb-2">99%</div>
+            <div className="text-2xl font-bold text-success mb-2">99%</div>
             <div className="text-gray-600">Entregas exitosas</div>
           </div>
         </div>

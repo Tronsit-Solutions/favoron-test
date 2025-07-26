@@ -7,9 +7,9 @@ const CTASection = ({
   onOpenAuth
 }: CTASectionProps) => {
   return (
-    <section className="relative py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
+    <section className="relative py-20 bg-gradient-to-br from-shopper via-traveler to-primary overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-shopper/90 to-traveler/90"></div>
       <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-20 w-80 h-80 bg-yellow-300/20 rounded-full blur-3xl"></div>
       
@@ -24,7 +24,7 @@ const CTASection = ({
         <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
           ¿Listo para comenzar
           <br />
-          <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-warning to-accent bg-clip-text text-transparent">
             tu aventura?
           </span>
         </h3>
@@ -39,7 +39,7 @@ const CTASection = ({
         <Button 
           size="lg" 
           onClick={() => onOpenAuth("register")} 
-          className="text-lg px-12 py-6 bg-white text-blue-600 hover:bg-gray-50 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold"
+          className="text-lg px-12 py-6 bg-white text-shopper hover:bg-gray-50 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold"
         >
           <span>Crear Cuenta Gratis</span>
           <ArrowRight className="ml-3 h-5 w-5" />
@@ -48,15 +48,15 @@ const CTASection = ({
         {/* Benefits */}
         <div className="grid sm:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-3 text-white/90">
-            <Check className="h-5 w-5 text-green-300" />
+            <Check className="h-5 w-5 text-success" />
             <span className="font-medium">100% gratis para empezar</span>
           </div>
           <div className="flex items-center justify-center gap-3 text-white/90">
-            <Check className="h-5 w-5 text-green-300" />
+            <Check className="h-5 w-5 text-success" />
             <span className="font-medium">Registro en 2 minutos</span>
           </div>
           <div className="flex items-center justify-center gap-3 text-white/90">
-            <Check className="h-5 w-5 text-green-300" />
+            <Check className="h-5 w-5 text-success" />
             <span className="font-medium">Soporte 24/7</span>
           </div>
         </div>
