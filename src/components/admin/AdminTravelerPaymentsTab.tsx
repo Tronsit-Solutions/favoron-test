@@ -134,7 +134,7 @@ const AdminTravelerPaymentsTab = () => {
     return (
       <>
         <TableRow className="hover:bg-muted/50">
-          <TableCell className="py-2">
+          <TableCell className="py-3">
             <Button
               variant="ghost"
               size="sm"
@@ -144,7 +144,7 @@ const AdminTravelerPaymentsTab = () => {
               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           </TableCell>
-          <TableCell className="py-2">
+          <TableCell className="py-3">
             <div className="space-y-1">
               <div className="font-medium text-sm">
                 {order.profiles?.first_name} {order.profiles?.last_name}
@@ -154,68 +154,73 @@ const AdminTravelerPaymentsTab = () => {
               </div>
             </div>
           </TableCell>
-          <TableCell className="py-2">
+          <TableCell className="py-3">
+            <div className="text-right">
+              <div className="font-bold text-lg text-green-600">Q{order.amount}</div>
+              <div className="text-xs text-muted-foreground">GTQ</div>
+            </div>
+          </TableCell>
+          <TableCell className="py-3">
+            <div className="space-y-1">
+              <div className="font-medium text-sm">{order.bank_account_holder}</div>
+              <div className="text-xs text-muted-foreground">{order.bank_name}</div>
+              <div className="text-xs font-mono text-gray-700">{order.bank_account_number}</div>
+              <div className="text-xs text-muted-foreground capitalize">{order.bank_account_type}</div>
+            </div>
+          </TableCell>
+          <TableCell className="py-3">
             <div className="text-xs">
               <div className="font-medium">{(order as any).trips?.from_city} → {(order as any).trips?.to_city}</div>
               <div className="text-muted-foreground">{packages.length} paquetes</div>
             </div>
           </TableCell>
-          <TableCell className="py-2">
-            <div className="text-right">
-              <div className="font-semibold text-green-600">Q{order.amount}</div>
-              <div className="text-xs text-muted-foreground">GTQ</div>
-            </div>
-          </TableCell>
-          <TableCell className="py-2">
-            <div className="text-xs">
-              <div>{order.bank_name}</div>
-              <div className="text-muted-foreground font-mono">{order.bank_account_number}</div>
-            </div>
-          </TableCell>
-          <TableCell className="py-2">
+          <TableCell className="py-3">
             <div className="text-xs text-center">
               {formatDate(order.created_at)}
             </div>
           </TableCell>
-          <TableCell className="py-2">
+          <TableCell className="py-3">
             {getStatusBadge(order.status)}
           </TableCell>
-          <TableCell className="py-2">
+          <TableCell className="py-3">
             <div className="flex gap-1">
               {order.status === 'pending' && (
                 <>
                   <Button 
                     size="sm" 
-                    className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700"
                     onClick={() => setConfirmDialog({
                       isOpen: true,
                       action: 'complete',
                       order
                     })}
                   >
-                    <Check className="h-3 w-3" />
+                    <Check className="h-3 w-3 mr-1" />
+                    Pagar
                   </Button>
                   <Button 
                     size="sm" 
                     variant="destructive"
-                    className="h-7 px-2 text-xs"
+                    className="h-8 px-3 text-xs"
                     onClick={() => setConfirmDialog({
                       isOpen: true,
                       action: 'reject',
                       order
                     })}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3 w-3 mr-1" />
+                    Rechazar
                   </Button>
                 </>
               )}
               <Button 
                 size="sm" 
                 variant="outline"
-                className="h-7 px-2 text-xs"
+                className="h-8 px-3 text-xs"
                 onClick={() => setSelectedOrder(order)}
               >
-                <Eye className="h-3 w-3" />
+                <Eye className="h-3 w-3 mr-1" />
+                Ver
               </Button>
             </div>
           </TableCell>
@@ -389,9 +394,9 @@ const AdminTravelerPaymentsTab = () => {
                     <TableRow className="text-xs">
                       <TableHead className="w-8"></TableHead>
                       <TableHead>Viajero</TableHead>
-                      <TableHead>Viaje</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
-                      <TableHead>Banco</TableHead>
+                      <TableHead>Información Bancaria</TableHead>
+                      <TableHead>Viaje</TableHead>
                       <TableHead className="text-center">Fecha</TableHead>
                       <TableHead className="text-center">Estado</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
@@ -426,9 +431,9 @@ const AdminTravelerPaymentsTab = () => {
                     <TableRow className="text-xs">
                       <TableHead className="w-8"></TableHead>
                       <TableHead>Viajero</TableHead>
-                      <TableHead>Viaje</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
-                      <TableHead>Banco</TableHead>
+                      <TableHead>Información Bancaria</TableHead>
+                      <TableHead>Viaje</TableHead>
                       <TableHead className="text-center">Fecha</TableHead>
                       <TableHead className="text-center">Estado</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
