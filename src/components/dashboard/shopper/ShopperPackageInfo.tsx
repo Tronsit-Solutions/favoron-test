@@ -33,7 +33,7 @@ const ShopperPackageInfo = ({
       </div>;
   };
   const renderTravelerAddress = () => {
-    if (!pkg.traveler_address || !['payment_confirmed'].includes(pkg.status)) return null;
+    if (!pkg.traveler_address || !['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
     return <ShippingInstructions pkg={pkg} />;
   };
   const renderPaymentUpload = () => {
@@ -47,7 +47,7 @@ const ShopperPackageInfo = ({
   };
 
   const renderDocumentUpload = () => {
-    if (!['payment_confirmed'].includes(pkg.status)) return null;
+    if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
     return <div className="mt-4">
         <UploadDocuments 
           packageId={pkg.id}
@@ -59,9 +59,15 @@ const ShopperPackageInfo = ({
             
             // Guardar en la base de datos según el tipo
             if (type === 'confirmation') {
+              const updateData = { 
+                purchase_confirmation: data,
+                // Transition to in_transit when purchase confirmation is uploaded
+                ...(pkg.status === 'pending_purchase' && { status: 'in_transit' })
+              };
+              
               const { error } = await supabase
                 .from('packages')
-                .update({ purchase_confirmation: data })
+                .update(updateData)
                 .eq('id', pkg.id);
               
               if (error) {
@@ -80,10 +86,13 @@ const ShopperPackageInfo = ({
               }
             }
             
-            // Actualizar el paquete con los nuevos documentos
+            // Actualizar el paquete con los nuevos documentos y posible cambio de status
             const updatedPkg = {
               ...pkg,
-              ...(type === 'confirmation' ? { purchase_confirmation: data } : { tracking_info: data })
+              ...(type === 'confirmation' ? { 
+                purchase_confirmation: data,
+                ...(pkg.status === 'pending_purchase' && { status: 'in_transit' })
+              } : { tracking_info: data })
             };
             onPackageUpdate?.(updatedPkg);
           }}
@@ -93,8 +102,8 @@ const ShopperPackageInfo = ({
   return <>
       {renderQuoteInfo()}
       {renderPaymentUpload()}
-      {['payment_confirmed'].includes(pkg.status) && renderTravelerAddress()}
-      {['payment_confirmed'].includes(pkg.status) && renderDocumentUpload()}
+      {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && renderTravelerAddress()}
+      {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;

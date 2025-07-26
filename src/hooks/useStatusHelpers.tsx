@@ -37,7 +37,7 @@ export const useStatusHelpers = () => {
     if (userType === 'traveler') {
       return pkg.status === 'matched' || pkg.status === 'in_transit';
     } else {
-      return pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_confirmed';
+      return pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'pending_purchase';
     }
   };
 

@@ -457,14 +457,14 @@ export const useDashboardActions = (
 
       // Update package in Supabase
       await updatePackage(packageId, {
-        status: 'payment_confirmed',
+        status: 'pending_purchase',
         traveler_address: travelerAddress,
         matched_trip_dates: matchedTripDates
       });
       
       toast({
         title: "¡Pago confirmado!",
-        description: "El shopper ahora puede ver la dirección del viajero para enviar el paquete.",
+        description: "El shopper ahora puede proceder a comprar el paquete.",
       });
     } catch (error) {
       console.error('Error confirming payment:', error);
