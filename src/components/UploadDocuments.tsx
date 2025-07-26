@@ -36,47 +36,134 @@ const UploadDocuments = ({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Purchase Confirmation Upload - Show only if not completed */}
-      {showConfirmationSection && (
-        <PurchaseConfirmationUpload
-          packageId={packageId}
-          currentConfirmation={currentConfirmation}
-          onUpload={handleConfirmationUpload}
-        />
-      )}
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="text-center p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          📋 Documentos Requeridos
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Para completar tu pedido, necesitamos que subas los siguientes documentos:
+        </p>
+      </div>
 
-      {/* Tracking Information - Show only if not completed */}
-      {showTrackingSection && (
-        <TrackingInfoForm
-          packageId={packageId}
-          currentTracking={currentTracking}
-          onSubmit={handleTrackingSubmit}
-        />
-      )}
-
-      {/* Progress Summary - Show if at least one section is visible */}
-      {(showConfirmationSection || showTrackingSection) && (currentConfirmation || currentTracking) && (
-        <div className="p-4 bg-info-muted border border-info-border rounded-lg">
-          <div className="flex items-center justify-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <div className={`h-3 w-3 rounded-full ${currentConfirmation ? 'bg-success' : 'bg-muted'}`} />
-              <span className={`text-sm ${currentConfirmation ? 'text-gray-700 dark:text-gray-300 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
-                Confirmación de compra
-              </span>
+      {/* Progress Steps */}
+      <div className="flex justify-center">
+        <div className="flex items-center space-x-4 p-3 bg-card rounded-lg border">
+          <div className="flex items-center space-x-2">
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentConfirmation ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
+            }`}>
+              {currentConfirmation ? '✓' : '1'}
             </div>
-            <div className="flex items-center space-x-2">
-              <div className={`h-3 w-3 rounded-full ${currentTracking ? 'bg-success' : 'bg-muted'}`} />
-              <span className={`text-sm ${currentTracking ? 'text-success-foreground font-medium' : 'text-muted-foreground'}`}>
-                Información de tracking
-              </span>
+            <span className={`text-sm font-medium ${
+              currentConfirmation ? 'text-success' : 'text-foreground'
+            }`}>
+              Comprobante
+            </span>
+          </div>
+          
+          <div className={`h-0.5 w-8 ${currentConfirmation ? 'bg-success' : 'bg-border'}`} />
+          
+          <div className="flex items-center space-x-2">
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentTracking ? 'bg-success text-success-foreground' : 
+              currentConfirmation ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
+              {currentTracking ? '✓' : '2'}
+            </div>
+            <span className={`text-sm font-medium ${
+              currentTracking ? 'text-success' : 
+              currentConfirmation ? 'text-foreground' : 'text-muted-foreground'
+            }`}>
+              Tracking
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Sections */}
+      <div className="space-y-4">
+        {/* Step 1: Purchase Confirmation Upload */}
+        {showConfirmationSection && (
+          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
+            <div className="bg-primary/5 rounded-md">
+              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
+                <div className="flex items-center space-x-2">
+                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                    1
+                  </div>
+                  <h4 className="font-semibold text-foreground">Comprobante de Compra</h4>
+                </div>
+                <span className="text-xs text-primary font-medium">REQUERIDO</span>
+              </div>
+              <div className="p-3">
+                <PurchaseConfirmationUpload
+                  packageId={packageId}
+                  currentConfirmation={currentConfirmation}
+                  onUpload={handleConfirmationUpload}
+                />
+              </div>
             </div>
           </div>
-          {currentConfirmation && currentTracking && (
-            <p className="text-sm text-gray-800 dark:text-gray-200 mt-3 font-medium text-center">
-              🚚 ¡Perfecto! Ambas secciones están completas
-            </p>
-          )}
+        )}
+
+        {/* Step 2: Tracking Information */}
+        {showTrackingSection && (
+          <div className={`border-2 border-dashed rounded-lg p-1 ${
+            currentConfirmation ? 'border-primary/30' : 'border-muted/50'
+          }`}>
+            <div className={`rounded-md ${currentConfirmation ? 'bg-primary/5' : 'bg-muted/20'}`}>
+              <div className={`flex items-center justify-between p-3 rounded-t-md ${
+                currentConfirmation ? 'bg-primary/10' : 'bg-muted/30'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    currentConfirmation ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    2
+                  </div>
+                  <h4 className={`font-semibold ${
+                    currentConfirmation ? 'text-foreground' : 'text-muted-foreground'
+                  }`}>
+                    Información de Tracking
+                  </h4>
+                </div>
+                <span className={`text-xs font-medium ${
+                  currentConfirmation ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {currentConfirmation ? 'SIGUIENTE' : 'PENDIENTE'}
+                </span>
+              </div>
+              <div className="p-3">
+                {!currentConfirmation && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p className="text-sm">
+                      ⏳ Completa el paso 1 primero
+                    </p>
+                  </div>
+                )}
+                {currentConfirmation && (
+                  <TrackingInfoForm
+                    packageId={packageId}
+                    currentTracking={currentTracking}
+                    onSubmit={handleTrackingSubmit}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Success Message */}
+      {currentConfirmation && currentTracking && (
+        <div className="text-center p-4 bg-success/10 border border-success/20 rounded-lg">
+          <div className="text-success text-2xl mb-2">🎉</div>
+          <h4 className="font-semibold text-success mb-1">¡Documentos Completos!</h4>
+          <p className="text-sm text-success/80">
+            Ambos documentos han sido subidos correctamente. Tu pedido está en proceso.
+          </p>
         </div>
       )}
     </div>
