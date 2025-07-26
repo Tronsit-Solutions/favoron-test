@@ -752,7 +752,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
             <div className="flex space-x-2 pt-4 border-t">
               <Button 
                 onClick={() => onApprove(pkg.id)}
-                className="flex-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Aprobar Solicitud
