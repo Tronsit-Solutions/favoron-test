@@ -9,7 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 type PaymentOrderWithDetails = {
   id: string;
   amount: number;
@@ -35,20 +37,17 @@ type PaymentOrderWithDetails = {
     };
   };
 };
-const AdminTravelerPaymentsTab = () => {
-  const {
-    paymentOrders,
-    loading,
-    updatePaymentOrder
-  } = usePaymentOrders();
 
-  // Filter out null/undefined orders and ensure they have proper structure
-  const orders = (paymentOrders || []).filter(order => order && order.id) // Remove null/undefined orders
-  .map(order => ({
-    ...order,
-    profiles: (order as any)?.profiles || null,
-    packages: (order as any)?.packages || null
-  })) as PaymentOrderWithDetails[];
+const AdminTravelerPaymentsTab = () => {
+  const { paymentOrders, loading, updatePaymentOrder } = usePaymentOrders();
+  
+  const orders = (paymentOrders || []).filter(order => order && order.id)
+    .map(order => ({
+      ...order,
+      profiles: (order as any)?.profiles || null,
+      packages: (order as any)?.packages || null
+    })) as PaymentOrderWithDetails[];
+    
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -60,11 +59,22 @@ const AdminTravelerPaymentsTab = () => {
     order: null
   });
   const [notes, setNotes] = useState("");
-  const {
-    toast
-  } = useToast();
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+  
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
   const processedOrders = orders.filter(order => order && order.status !== 'pending');
+
+  const toggleRowExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   const handlePaymentAction = async () => {
     if (!confirmDialog.order) return;
     try {
@@ -92,31 +102,179 @@ const AdminTravelerPaymentsTab = () => {
       console.error('Error updating payment order:', error);
     }
   };
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
-  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Pendiente</Badge>;
+        return <Badge variant="secondary" className="text-xs">Pendiente</Badge>;
       case 'completed':
-        return <Badge variant="default" className="bg-green-500">Completado</Badge>;
+        return <Badge variant="default" className="bg-green-500 text-xs">Completado</Badge>;
       case 'rejected':
-        return <Badge variant="destructive">Rechazado</Badge>;
+        return <Badge variant="destructive" className="text-xs">Rechazado</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="text-xs">{status}</Badge>;
     }
   };
-  const OrderDetailModal = ({
-    order,
-    isOpen,
-    onClose
-  }: any) => {
-    // Early return if order is null or undefined
-    if (!order) {
-      return null;
-    }
-    return <Dialog open={isOpen} onOpenChange={onClose}>
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-GT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+  };
+
+  const CompactOrderRow = ({ order }: { order: any }) => {
+    const isExpanded = expandedRows.has(order.id);
+    const packages = (order as any).trips?.packages?.filter((pkg: any) => 
+      ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)
+    ) || [];
+    const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0);
+
+    return (
+      <>
+        <TableRow className="hover:bg-muted/50">
+          <TableCell className="py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => toggleRowExpansion(order.id)}
+            >
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="space-y-1">
+              <div className="font-medium text-sm">
+                {order.profiles?.first_name} {order.profiles?.last_name}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {order.profiles?.email}
+              </div>
+            </div>
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="text-xs">
+              <div className="font-medium">{(order as any).trips?.from_city} → {(order as any).trips?.to_city}</div>
+              <div className="text-muted-foreground">{packages.length} paquetes</div>
+            </div>
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="text-right">
+              <div className="font-semibold text-green-600">Q{order.amount}</div>
+              <div className="text-xs text-muted-foreground">GTQ</div>
+            </div>
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="text-xs">
+              <div>{order.bank_name}</div>
+              <div className="text-muted-foreground font-mono">{order.bank_account_number}</div>
+            </div>
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="text-xs text-center">
+              {formatDate(order.created_at)}
+            </div>
+          </TableCell>
+          <TableCell className="py-2">
+            {getStatusBadge(order.status)}
+          </TableCell>
+          <TableCell className="py-2">
+            <div className="flex gap-1">
+              {order.status === 'pending' && (
+                <>
+                  <Button 
+                    size="sm" 
+                    className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
+                    onClick={() => setConfirmDialog({
+                      isOpen: true,
+                      action: 'complete',
+                      order
+                    })}
+                  >
+                    <Check className="h-3 w-3" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="destructive"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setConfirmDialog({
+                      isOpen: true,
+                      action: 'reject',
+                      order
+                    })}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </>
+              )}
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="h-7 px-2 text-xs"
+                onClick={() => setSelectedOrder(order)}
+              >
+                <Eye className="h-3 w-3" />
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+        {isExpanded && (
+          <TableRow className="bg-muted/20">
+            <TableCell colSpan={8} className="py-3">
+              <div className="space-y-3">
+                {/* Invoice Details */}
+                <div className="bg-white border rounded-lg p-3">
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Detalle de Compensaciones
+                  </h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {packages.map((pkg: any) => (
+                      <div key={pkg.id} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{pkg.item_description}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {pkg.id.slice(0, 8)}... • {pkg.status.replace(/_/g, ' ')}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-green-600">
+                          Q{pkg.quote?.price || 0}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between items-center">
+                    <span className="text-sm font-medium">Total de Compensaciones:</span>
+                    <span className="text-base font-bold text-green-600">Q{totalCompensation}</span>
+                  </div>
+                </div>
+
+                {/* Bank Details */}
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1">
+                    <div><strong>Titular:</strong> {order.bank_account_holder}</div>
+                    <div><strong>Tipo de Cuenta:</strong> {order.bank_account_type}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div><strong>Banco:</strong> {order.bank_name}</div>
+                    <div><strong>Número:</strong> {order.bank_account_number}</div>
+                  </div>
+                </div>
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+      </>
+    );
+  };
+
+  const OrderDetailModal = ({ order, isOpen, onClose }: any) => {
+    if (!order) return null;
+    
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalles de la orden de pago</DialogTitle>
@@ -135,84 +293,70 @@ const AdminTravelerPaymentsTab = () => {
                 <Label className="text-sm font-medium">Monto</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <CreditCard className="h-4 w-4" />
-                  <span className="text-lg font-bold">{formatCurrency(order.amount || 0)}</span>
-                </div>
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium">Información bancaria</Label>
-            <div className="bg-muted/30 rounded p-3 mt-1">
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium">Titular:</span> {order.bank_account_holder || 'N/A'}
-                </div>
-                <div>
-                  <span className="font-medium">Banco:</span> {order.bank_name || 'N/A'}
-                </div>
-                <div>
-                  <span className="font-medium">Tipo:</span> {order.bank_account_type || 'N/A'}
-                </div>
-                <div>
-                  <span className="font-medium">Número:</span> {order.bank_account_number || 'N/A'}
+                  <span className="text-lg font-bold">Q{order.amount}</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {order.packages && <div>
-              <Label className="text-sm font-medium">Información del viaje</Label>
-              <div className="bg-muted/30 rounded p-3 mt-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="font-medium">
-                    {order.packages.trips?.from_city || 'N/A'} → {order.packages.trips?.to_city || 'N/A'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  <span>Paquete: {order.packages.item_description || 'N/A'}</span>
-                </div>
-              </div>
-            </div>}
-
-          {order.notes && <div>
-              <Label className="text-sm font-medium">Notas</Label>
-              <div className="bg-muted/30 rounded p-3 mt-1">
-                <p className="text-sm">{order.notes}</p>
-              </div>
-            </div>}
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <Label className="text-sm font-medium">Fecha de creación</Label>
-              <p className="mt-1">{new Date(order.created_at).toLocaleString('es-GT')}</p>
+              <Label className="text-sm font-medium">Información bancaria</Label>
+              <div className="bg-muted/30 rounded p-3 mt-1">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="font-medium">Titular:</span> {order.bank_account_holder || 'N/A'}</div>
+                  <div><span className="font-medium">Banco:</span> {order.bank_name || 'N/A'}</div>
+                  <div><span className="font-medium">Tipo:</span> {order.bank_account_type || 'N/A'}</div>
+                  <div><span className="font-medium">Número:</span> {order.bank_account_number || 'N/A'}</div>
+                </div>
+              </div>
             </div>
-            {order.completed_at && <div>
-                <Label className="text-sm font-medium">Fecha de completado</Label>
-                <p className="mt-1">{new Date(order.completed_at).toLocaleString('es-GT')}</p>
-              </div>}
+
+            {order.notes && (
+              <div>
+                <Label className="text-sm font-medium">Notas</Label>
+                <div className="bg-muted/30 rounded p-3 mt-1">
+                  <p className="text-sm">{order.notes}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <Label className="text-sm font-medium">Fecha de creación</Label>
+                <p className="mt-1">{new Date(order.created_at).toLocaleString('es-GT')}</p>
+              </div>
+              {order.completed_at && (
+                <div>
+                  <Label className="text-sm font-medium">Fecha de completado</Label>
+                  <p className="mt-1">{new Date(order.completed_at).toLocaleString('es-GT')}</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>;
+        </DialogContent>
+      </Dialog>
+    );
   };
+
   if (loading) {
     return <div className="flex justify-center py-8">Cargando órdenes de pago...</div>;
   }
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-4">
       <div className="flex items-center gap-2">
         <CreditCard className="h-6 w-6 text-primary" />
-        <h3 className="text-2xl font-bold">Órdenes de Pago a Viajeros</h3>
-        {pendingOrders.length > 0 && <Badge variant="destructive" className="ml-2">
+        <h3 className="text-2xl font-bold">Órdenes de Pago</h3>
+        {pendingOrders.length > 0 && (
+          <Badge variant="destructive" className="ml-2">
             {pendingOrders.length} pendientes
-          </Badge>}
+          </Badge>
+        )}
       </div>
 
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pending" className="relative flex items-center gap-2">
-            Órdenes Pendientes
+            Pendientes
             {pendingOrders.length > 0 && (
               <Badge variant="destructive" className="ml-1 text-xs">
                 {pendingOrders.length}
@@ -220,325 +364,139 @@ const AdminTravelerPaymentsTab = () => {
             )}
           </TabsTrigger>
           <TabsTrigger value="processed" className="flex items-center gap-2">
-            Órdenes Procesadas
+            Procesadas
             <Badge variant="outline" className="ml-1 text-xs">
               {processedOrders.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="space-y-4">
+        <TabsContent value="pending">
           {pendingOrders.length === 0 ? (
             <Card>
               <CardContent className="py-8">
                 <div className="text-center text-muted-foreground">
                   <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay órdenes de pago pendientes</p>
+                  <p>No hay órdenes pendientes</p>
                 </div>
               </CardContent>
             </Card>
           ) : (
             <Card>
-              <CardHeader>
-                <CardTitle>Órdenes Pendientes de Pago</CardTitle>
-                <CardDescription>
-                  Gestiona los pagos pendientes a viajeros por entregas completadas
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingOrders.map(order => (
-                    <div key={order.id} className="border rounded-lg p-4 hover:bg-muted/20 transition-colors">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">
-                              {order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}
-                            </h4>
-                            <Badge variant="secondary" className="text-xs">
-                              Pendiente
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {order.profiles?.email || 'Sin email'} • 
-                            Creada el {new Date(order.created_at).toLocaleDateString('es-GT')}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">
-                            {order.amount} GTQ
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Trip and Package Info */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 p-3 bg-muted/30 rounded-lg">
-                        <div>
-                          <h5 className="text-sm font-medium mb-2">Información del Viaje</h5>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Ruta:</strong> {(order as any).trips?.from_city} → {(order as any).trips?.to_city}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Fechas:</strong> {(order as any).trips?.departure_date ? new Date((order as any).trips.departure_date).toLocaleDateString('es-GT') : 'No especificado'} - {(order as any).trips?.arrival_date ? new Date((order as any).trips.arrival_date).toLocaleDateString('es-GT') : 'No especificado'}
-                          </p>
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-medium mb-3 flex items-center">
-                            📋 Detalle de Facturación - Paquetes Entregados
-                          </h5>
-                          {(order as any).trips?.packages && (order as any).trips.packages.length > 0 ? (
-                            <div className="bg-white border rounded-lg p-3">
-                              <div className="space-y-3 max-h-40 overflow-y-auto">
-                                {(order as any).trips.packages
-                                  .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status))
-                                  .map((pkg: any, index: number) => (
-                                  <div key={pkg.id} className="border-b border-gray-100 pb-2 last:border-b-0">
-                                    <div className="flex justify-between items-start mb-1">
-                                      <div className="flex-1 pr-2">
-                                        <p className="text-sm font-medium text-gray-800">{pkg.item_description}</p>
-                                        <p className="text-xs text-gray-500">ID: {pkg.id.slice(0, 8)}...</p>
-                                        <p className="text-xs text-green-600 capitalize">{pkg.status.replace(/_/g, ' ')}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-sm font-semibold text-gray-800">
-                                          Q{pkg.quote?.price || 0}
-                                        </p>
-                                        <p className="text-xs text-gray-500">Compensación</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              
-                              {/* Invoice Summary */}
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-sm text-gray-600">Total de compensaciones ({(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)).length} paquetes):</span>
-                                  <span className="text-sm font-medium">
-                                    Q{(order as any).trips.packages
-                                      .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status))
-                                      .reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between items-center pt-2 border-t">
-                                  <span className="text-base font-semibold text-gray-800">Total a Pagar:</span>
-                                  <span className="text-base font-bold text-green-600">Q{order.amount}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="bg-gray-50 border rounded-lg p-4 text-center">
-                              <p className="text-sm text-gray-500">Sin paquetes para facturar</p>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-medium mb-1">Información Bancaria</h5>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Banco:</strong> {order.bank_name || 'No especificado'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Titular:</strong> {order.bank_account_holder || 'No especificado'}
-                          </p>
-                          <p className="text-sm text-muted-foreground font-mono">
-                            <strong>Cuenta:</strong> {order.bank_account_number || 'No especificado'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Tipo:</strong> {order.bank_account_type || 'No especificado'}
-                          </p>
-                          {(order as any).bank_swift_code && (
-                            <p className="text-sm text-muted-foreground font-mono">
-                              <strong>SWIFT:</strong> {(order as any).bank_swift_code}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => setConfirmDialog({
-                            isOpen: true,
-                            action: 'complete',
-                            order
-                          })}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Completar Pago
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => setConfirmDialog({
-                            isOpen: true,
-                            action: 'reject',
-                            order
-                          })}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Rechazar
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="text-xs">
+                      <TableHead className="w-8"></TableHead>
+                      <TableHead>Viajero</TableHead>
+                      <TableHead>Viaje</TableHead>
+                      <TableHead className="text-right">Monto</TableHead>
+                      <TableHead>Banco</TableHead>
+                      <TableHead className="text-center">Fecha</TableHead>
+                      <TableHead className="text-center">Estado</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingOrders.map(order => (
+                      <CompactOrderRow key={order.id} order={order} />
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="processed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Historial de Órdenes Procesadas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {processedOrders.length === 0 ? <div className="text-center text-muted-foreground py-8">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay órdenes procesadas aún</p>
-                </div> : <Table>
+        <TabsContent value="processed">
+          {processedOrders.length === 0 ? (
+            <Card>
+              <CardContent className="py-8">
+                <div className="text-center text-muted-foreground">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No hay órdenes procesadas</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="text-xs">
+                      <TableHead className="w-8"></TableHead>
                       <TableHead>Viajero</TableHead>
                       <TableHead>Viaje</TableHead>
-                      <TableHead>Monto</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="text-right">Monto</TableHead>
+                      <TableHead>Banco</TableHead>
+                      <TableHead className="text-center">Fecha</TableHead>
+                      <TableHead className="text-center">Estado</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {processedOrders.map(order => <TableRow key={order.id}>
-                         <TableCell>
-                           <div>
-                             <p className="font-medium">
-                               {order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}
-                             </p>
-                             <p className="text-sm text-muted-foreground">
-                               {order.profiles?.email || 'Sin email'}
-                             </p>
-                           </div>
-                         </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <p className="font-medium">
-                              {order.packages?.trips?.from_city} → {order.packages?.trips?.to_city}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {order.packages?.item_description}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">
-                            {formatCurrency(order.amount)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(order.status)}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(order.updated_at).toLocaleDateString('es-GT')}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver detalle
-                          </Button>
-                        </TableCell>
-                      </TableRow>)}
+                    {processedOrders.map(order => (
+                      <CompactOrderRow key={order.id} order={order} />
+                    ))}
                   </TableBody>
-                </Table>}
-            </CardContent>
-          </Card>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
-      {/* Order Detail Modal */}
-      <OrderDetailModal order={selectedOrder} isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} />
-
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onOpenChange={open => !open && setConfirmDialog({
-      isOpen: false,
-      action: 'complete',
-      order: null
-    })}>
+      <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => 
+        setConfirmDialog(prev => ({ ...prev, isOpen: open }))
+      }>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {confirmDialog.action === 'complete' ? 'Completar' : 'Rechazar'} Orden de Pago
+              {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p>
-              ¿Estás seguro de que deseas {confirmDialog.action === 'complete' ? 'completar' : 'rechazar'} 
-              esta orden de pago por {formatCurrency(confirmDialog.order?.amount || 0)}?
+              ¿Estás seguro de que quieres {confirmDialog.action === 'complete' ? 'completar' : 'rechazar'} 
+              el pago de Q{confirmDialog.order?.amount} para {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}?
             </p>
-            
-            {/* Banking Information */}
-            {confirmDialog.order && (
-              <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-                <h4 className="font-medium text-sm">Información Bancaria del Viajero</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="font-medium">Titular:</span>
-                    <p className="text-muted-foreground">
-                      {confirmDialog.order.bank_account_holder || 'No especificado'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium">Banco:</span>
-                    <p className="text-muted-foreground">
-                      {confirmDialog.order.bank_name || 'No especificado'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium">Tipo de Cuenta:</span>
-                    <p className="text-muted-foreground">
-                      {confirmDialog.order.bank_account_type || 'No especificado'}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium">Número de Cuenta:</span>
-                    <p className="text-muted-foreground font-mono">
-                      {confirmDialog.order.bank_account_number || 'No especificado'}
-                    </p>
-                  </div>
-                  {(confirmDialog.order as any).bank_swift_code && (
-                    <div className="md:col-span-2">
-                      <span className="font-medium">Código SWIFT:</span>
-                      <p className="text-muted-foreground font-mono">
-                        {(confirmDialog.order as any).bank_swift_code}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="notes">Notas (opcional)</Label>
-              <Textarea id="notes" placeholder={`Agregar notas sobre la ${confirmDialog.action === 'complete' ? 'transferencia' : 'rechazo'}...`} value={notes} onChange={e => setNotes(e.target.value)} />
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Agrega cualquier nota relevante..."
+                className="mt-1"
+              />
             </div>
-            
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setConfirmDialog({
-              isOpen: false,
-              action: 'complete',
-              order: null
-            })}>
+              <Button 
+                variant="outline" 
+                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+              >
                 Cancelar
               </Button>
-              <Button variant={confirmDialog.action === 'complete' ? 'default' : 'destructive'} onClick={handlePaymentAction}>
-                {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar'}
+              <Button 
+                onClick={handlePaymentAction}
+                variant={confirmDialog.action === 'complete' ? 'default' : 'destructive'}
+              >
+                {confirmDialog.action === 'complete' ? 'Completar' : 'Rechazar'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal 
+        order={selectedOrder} 
+        isOpen={!!selectedOrder} 
+        onClose={() => setSelectedOrder(null)} 
+      />
+    </div>
+  );
 };
+
 export default AdminTravelerPaymentsTab;
