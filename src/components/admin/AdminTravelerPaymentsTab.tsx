@@ -300,7 +300,10 @@ const AdminTravelerPaymentsTab = () => {
                                         <p className="text-xs text-green-600 capitalize">{pkg.status.replace(/_/g, ' ')}</p>
                                       </div>
                                       <div className="text-right">
-                                        <p className="text-sm font-semibold text-gray-800">${pkg.estimated_price}</p>
+                                        <p className="text-sm font-semibold text-gray-800">
+                                          Q{pkg.quote?.price || 0}
+                                        </p>
+                                        <p className="text-xs text-gray-500">Compensación</p>
                                       </div>
                                     </div>
                                   </div>
@@ -310,20 +313,16 @@ const AdminTravelerPaymentsTab = () => {
                               {/* Invoice Summary */}
                               <div className="mt-3 pt-3 border-t border-gray-200">
                                 <div className="flex justify-between items-center mb-1">
-                                  <span className="text-sm text-gray-600">Subtotal ({(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)).length} paquetes):</span>
+                                  <span className="text-sm text-gray-600">Total de compensaciones ({(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)).length} paquetes):</span>
                                   <span className="text-sm font-medium">
-                                    ${(order as any).trips.packages
+                                    Q{(order as any).trips.packages
                                       .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status))
-                                      .reduce((sum: number, pkg: any) => sum + (pkg.estimated_price || 0), 0).toFixed(2)}
+                                      .reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0)}
                                   </span>
-                                </div>
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-sm text-gray-600">Comisión de servicio:</span>
-                                  <span className="text-sm">Incluida</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-2 border-t">
                                   <span className="text-base font-semibold text-gray-800">Total a Pagar:</span>
-                                  <span className="text-base font-bold text-green-600">${order.amount}</span>
+                                  <span className="text-base font-bold text-green-600">Q{order.amount}</span>
                                 </div>
                               </div>
                             </div>
