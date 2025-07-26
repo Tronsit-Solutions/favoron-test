@@ -43,7 +43,7 @@ const ShippingInstructions = ({ pkg }: ShippingInstructionsProps) => {
             <span>Información de envío y fechas del viaje</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 px-3 pb-3">
           <div className="space-y-4 text-xs">
             {/* Fechas importantes */}
             {tripDates && (
