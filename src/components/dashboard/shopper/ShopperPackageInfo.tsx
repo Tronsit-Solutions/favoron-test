@@ -2,7 +2,6 @@ import { Package as PackageIcon, MapPin } from "lucide-react";
 import { Package } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
-import ShippingInstructions from "./ShippingInstructions";
 import UploadDocuments from "../../UploadDocuments";
 interface ShopperPackageInfoProps {
   pkg: Package;
@@ -32,10 +31,11 @@ const ShopperPackageInfo = ({
         {quote?.message && <p className="text-sm text-info mt-2 italic">"{quote.message}"</p>}
       </div>;
   };
-  const renderTravelerAddress = () => {
-    if (!pkg.traveler_address || !['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
-    return <ShippingInstructions pkg={pkg} />;
-  };
+  // Comentado - usando ShippingInfoRegistry en su lugar
+  // const renderTravelerAddress = () => {
+  //   if (!pkg.traveler_address || !['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
+  //   return <ShippingInstructions pkg={pkg} />;
+  // };
   const renderPaymentUpload = () => {
     if (!['quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
     return <div className="mt-4">
@@ -102,7 +102,7 @@ const ShopperPackageInfo = ({
   return <>
       {renderQuoteInfo()}
       {renderPaymentUpload()}
-      {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && renderTravelerAddress()}
+      {/* Removido renderTravelerAddress() - ahora se usa ShippingInfoRegistry */}
       {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };

@@ -18,7 +18,7 @@ const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps
   }
   
   // CRÍTICO: Esta información solo debe ser visible después de que el admin apruebe el pago
-  if (pkg.status !== 'paid') {
+  if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) {
     return null;
   }
 
@@ -32,7 +32,7 @@ const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps
           <div className="flex items-center justify-between cursor-pointer p-3 bg-success/5 border border-success/30 rounded-lg hover:bg-success/10 transition-colors">
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4 text-success" />
-              <h4 className="text-sm font-medium text-foreground">Información de envío guardada</h4>
+              <h4 className="text-sm font-medium text-foreground">¡Pago aprobado! - Información de envío</h4>
             </div>
             {isOpen ? <ChevronUp className="h-4 w-4 text-success" /> : <ChevronDown className="h-4 w-4 text-success" />}
           </div>
