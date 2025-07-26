@@ -253,7 +253,7 @@ const QuoteDialog = ({
                 <Button 
                   onClick={handleSubmit} 
                   disabled={!price}
-                  className="flex-1 sm:flex-none"
+                  className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white"
                 >
                   Enviar Cotización
                 </Button>
