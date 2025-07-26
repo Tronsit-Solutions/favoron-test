@@ -138,7 +138,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                       <div>
                         <p className="text-sm font-medium">Nombre</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.user?.name || `Viajero ${matchedTrip.user_id}`}
+                          {matchedTrip.profiles ? `${matchedTrip.profiles.first_name || ''} ${matchedTrip.profiles.last_name || ''}`.trim() || matchedTrip.profiles.username || 'Sin nombre' : 'Sin información'}
                         </p>
                       </div>
                     </div>
@@ -148,7 +148,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.user?.email || `viajero${matchedTrip.user_id}@email.com`}
+                          {matchedTrip.profiles?.email || 'Sin email'}
                         </p>
                       </div>
                     </div>
@@ -158,7 +158,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                       <div>
                         <p className="text-sm font-medium">Teléfono</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.user?.phone || `+502 ${2000 + matchedTrip.user_id}-1234`}
+                          {matchedTrip.profiles?.phone_number || 'Sin teléfono'}
                         </p>
                       </div>
                     </div>
@@ -166,10 +166,9 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <div className="flex items-center space-x-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">Historial</p>
+                        <p className="text-sm font-medium">Usuario</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.user?.totalTrips || Math.floor(Math.random() * 8) + 1} viajes | 
-                          {matchedTrip.user?.completedDeliveries || Math.floor(Math.random() * 15)} entregas
+                          @{matchedTrip.profiles?.username || 'Sin usuario'}
                         </p>
                       </div>
                     </div>
