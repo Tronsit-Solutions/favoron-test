@@ -16,10 +16,6 @@ interface TripDetailModalProps {
 const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
   if (!trip) return null;
 
-  // Debug: Log trip data to see what we're receiving
-  console.log('TripDetailModal - Trip data:', trip);
-  console.log('TripDetailModal - Profiles data:', trip.profiles);
-
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
@@ -73,7 +69,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                     <p className="text-sm text-muted-foreground">
                       {trip.profiles?.first_name && trip.profiles?.last_name 
                         ? `${trip.profiles.first_name} ${trip.profiles.last_name}` 
-                        : trip.profiles?.username || 'No disponible'}
+                        : trip.profiles?.username || `Usuario ID: ${trip.user_id}`}
                     </p>
                   </div>
                 </div>
@@ -97,8 +93,14 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Usuario ID</p>
-                    <p className="text-sm text-muted-foreground font-mono text-xs">{trip.user_id}</p>
+                    <p className="text-sm font-medium">Nivel de Confianza</p>
+                    <p className="text-sm text-muted-foreground">
+                      {trip.profiles?.trust_level ? 
+                        (trip.profiles.trust_level === 'basic' ? 'Básico' : 
+                         trip.profiles.trust_level === 'trusted' ? 'Confiable' : 
+                         trip.profiles.trust_level === 'premium' ? 'Premium' : trip.profiles.trust_level)
+                        : 'No definido'}
+                    </p>
                   </div>
                 </div>
               </div>
