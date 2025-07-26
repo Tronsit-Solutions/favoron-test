@@ -36,7 +36,11 @@ export const useTripsData = () => {
             first_name,
             last_name,
             username,
-            email
+            email,
+            phone_number,
+            avatar_url,
+            trust_level,
+            created_at
           )
         `)
         .order('created_at', { ascending: false });
