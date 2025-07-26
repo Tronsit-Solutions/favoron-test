@@ -1,5 +1,6 @@
 import { Package as PackageIcon, MapPin } from "lucide-react";
 import { Package } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import ShippingInstructions from "./ShippingInstructions";
 import UploadDocuments from "../../UploadDocuments";
@@ -53,7 +54,32 @@ const ShopperPackageInfo = ({
           currentStatus={pkg.status}
           currentConfirmation={pkg.purchase_confirmation}
           currentTracking={pkg.tracking_info}
-          onUpload={(type, data) => {
+          onUpload={async (type, data) => {
+            console.log('Uploading document:', type, data);
+            
+            // Guardar en la base de datos según el tipo
+            if (type === 'confirmation') {
+              const { error } = await supabase
+                .from('packages')
+                .update({ purchase_confirmation: data })
+                .eq('id', pkg.id);
+              
+              if (error) {
+                console.error('Error saving purchase confirmation:', error);
+                return;
+              }
+            } else if (type === 'tracking') {
+              const { error } = await supabase
+                .from('packages')
+                .update({ tracking_info: data })
+                .eq('id', pkg.id);
+              
+              if (error) {
+                console.error('Error saving tracking info:', error);
+                return;
+              }
+            }
+            
             // Actualizar el paquete con los nuevos documentos
             const updatedPkg = {
               ...pkg,

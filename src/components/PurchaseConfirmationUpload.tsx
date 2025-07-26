@@ -73,16 +73,8 @@ const PurchaseConfirmationUpload = ({
       }
 
       // Update package status to in_transit when confirmation is uploaded
-      // This is the only place where status changes automatically
-      const { error: updateError } = await supabase
-        .from('packages')
-        .update({ status: 'in_transit' })
-        .eq('id', packageId);
-
-      if (updateError) {
-        console.error('Error updating package status:', updateError);
-        // Don't fail the upload if status update fails
-      }
+      // REMOVED: Let the main flow handle status updates in useDashboardActions
+      // This prevents conflicts with the coordinated document upload flow
 
       // Call onUpload with file information
       onUpload({
