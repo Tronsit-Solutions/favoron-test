@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -31,6 +31,9 @@ const AdminMatchDialog = ({
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
   const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
+  const [showTravelerInfo, setShowTravelerInfo] = useState(false);
+  const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
+  const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
 
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
@@ -73,6 +76,31 @@ const AdminMatchDialog = ({
       return profile.username;
     }
     return `Viajero #${userId}`;
+  };
+
+  const handleTravelerClick = async (trip: any) => {
+    const profile = travelerProfiles[trip.user_id];
+    setSelectedTraveler({ ...profile, trip });
+    
+    // Fetch packages for this trip
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('*')
+        .eq('matched_trip_id', trip.id);
+      
+      if (error) {
+        console.error('Error fetching traveler packages:', error);
+        setTravelerPackages([]);
+      } else {
+        setTravelerPackages(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching traveler packages:', error);
+      setTravelerPackages([]);
+    }
+    
+    setShowTravelerInfo(true);
   };
 
   const toggleTripExpansion = (tripId: number) => {
@@ -236,9 +264,17 @@ const AdminMatchDialog = ({
                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
                                   {trip.user_id?.toString().slice(-2) || '00'}
                                 </div>
-                                <div>
-                                  <p className="font-medium text-sm">{getTravelerName(trip.user_id)}</p>
-                                </div>
+                                 <div>
+                                   <p 
+                                     className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       handleTravelerClick(trip);
+                                     }}
+                                   >
+                                     {getTravelerName(trip.user_id)}
+                                   </p>
+                                 </div>
                               </div>
 
                             {/* Route */}
@@ -386,6 +422,124 @@ const AdminMatchDialog = ({
           </Button>
         </div>
       </DialogContent>
+
+      {/* Traveler Info Modal */}
+      <Dialog open={showTravelerInfo} onOpenChange={setShowTravelerInfo}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>Información del Viajero</span>
+            </DialogTitle>
+            <DialogDescription>
+              Perfil y paquetes del viajero seleccionado
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedTraveler && (
+            <div className="space-y-6">
+              {/* Traveler Profile */}
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold">Perfil del Viajero</h3>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Nombre</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.first_name && selectedTraveler.last_name 
+                            ? `${selectedTraveler.first_name} ${selectedTraveler.last_name}` 
+                            : selectedTraveler.username || `Usuario ID: ${selectedTraveler.trip?.user_id}`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Ruta de Viaje</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip?.from_city} → {selectedTraveler.trip?.to_city}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Fecha de Llegada</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip?.arrival_date 
+                            ? new Date(selectedTraveler.trip.arrival_date).toLocaleDateString('es-GT')
+                            : 'No especificado'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Método de Entrega</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip?.delivery_method === 'oficina' ? 'Oficina Favorón' : 'Mensajero'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Traveler's Packages */}
+              <Card>
+                <CardHeader>
+                  <h3 className="text-lg font-semibold">
+                    Paquetes en este Viaje ({travelerPackages.length})
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  {travelerPackages.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Este viaje no tiene paquetes asignados aún</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {travelerPackages.map((pkg) => (
+                        <div key={pkg.id} className="border rounded-lg p-3 bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{pkg.item_description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                De: {pkg.purchase_origin} → Para: {pkg.package_destination}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="secondary" className="text-xs">
+                                ${pkg.estimated_price}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Estado: {pkg.status}
+                              </p>
+                            </div>
+                          </div>
+                          {pkg.additional_notes && (
+                            <p className="text-xs text-muted-foreground bg-white p-2 rounded border">
+                              {pkg.additional_notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
