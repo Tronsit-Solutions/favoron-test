@@ -40,7 +40,7 @@ const HowItWorksSection = () => {
                 { icon: Search, title: "Crea tu solicitud", desc: "Describe el producto que necesitas y de dónde lo quieres" },
                 { icon: Star, title: "Te emparejamos", desc: "Conectamos tu solicitud con viajeros verificados" },
                 { icon: DollarSign, title: "Recibe cotización", desc: "El viajero te envía el precio y detalles transparentes" },
-                { icon: ShoppingCart, title: "Realizas la compra", desc: "Compras el producto y el viajero lo transporta" },
+                { icon: ShoppingCart, title: "Realizas la compra", desc: "Compras el producto y lo envías a la dirección del viajero" },
                 { icon: Truck, title: "Retira en oficina", desc: "Recoge tu producto en la oficina de Favoron" }
               ].map((step, index) => (
                 <div key={index} className="flex items-start space-x-4 group">
@@ -80,7 +80,7 @@ const HowItWorksSection = () => {
                 { icon: Plane, title: "Registra tu viaje", desc: "Indica tu destino, fechas y capacidad disponible" },
                 { icon: Star, title: "Te emparejamos", desc: "Conectamos tu viaje con solicitudes verificadas" },
                 { icon: DollarSign, title: "Envía cotización", desc: "Revisa solicitudes y propón tus precios justos" },
-                { icon: ShoppingCart, title: "Transportas el producto", desc: "El comprador compra y tú lo transportas de forma segura" },
+                { icon: ShoppingCart, title: "Recibes el producto", desc: "El comprador envía el producto a tu dirección para que lo transportes" },
                 { icon: Truck, title: "Entregas en oficina", desc: "Entregas en la oficina de Favoron y recibes tu pago" }
               ].map((step, index) => (
                 <div key={index} className="flex items-start space-x-4 group">
