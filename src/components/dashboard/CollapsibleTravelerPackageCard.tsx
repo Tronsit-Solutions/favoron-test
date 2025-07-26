@@ -80,7 +80,7 @@ const CollapsibleTravelerPackageCard = ({
               ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
           }`}>
-            <div className="flex justify-between items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
                   <Package className="h-5 w-5 text-primary" />
@@ -92,10 +92,12 @@ const CollapsibleTravelerPackageCard = ({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg font-semibold truncate flex items-center gap-2">
-                    <span className="truncate">{getPackageName()}</span>
+                  <CardTitle className="text-base sm:text-lg font-semibold leading-tight">
+                    <span className="block sm:truncate">{getPackageName()}</span>
                   </CardTitle>
-                  <CardDescription className="text-sm mt-1 truncate">{getPackageDescription()}</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1 leading-tight">
+                    <span className="block sm:truncate">{getPackageDescription()}</span>
+                  </CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
