@@ -302,18 +302,46 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   </div>
                   <div className="text-sm text-muted-foreground ml-7 space-y-2">
                     <div>
-                      <p><strong>Dirección de recepción de paquetes:</strong></p>
-                      <div className="ml-2">
-                        {typeof trip.package_receiving_address === 'object' ? (
-                          <>
-                            <p>{trip.package_receiving_address?.streetAddress || ''}</p>
-                            <p>{trip.package_receiving_address?.cityArea || ''}</p>
-                            <p>{trip.package_receiving_address?.contactNumber || ''}</p>
-                          </>
-                        ) : (
-                          <p>{trip.package_receiving_address}</p>
-                        )}
-                      </div>
+                      {typeof trip.package_receiving_address === 'object' ? (
+                        <div className="space-y-2">
+                          {trip.package_receiving_address?.recipientName && (
+                            <div>
+                              <p className="font-medium text-gray-700">Nombre del destinatario:</p>
+                              <p className="ml-2">{trip.package_receiving_address.recipientName}</p>
+                            </div>
+                          )}
+                          
+                          <div>
+                            <p className="font-medium text-gray-700">Dirección:</p>
+                            <div className="ml-2 space-y-1">
+                              <p>{trip.package_receiving_address?.streetAddress || ''}</p>
+                              {trip.package_receiving_address?.streetAddress2 && (
+                                <p>{trip.package_receiving_address.streetAddress2}</p>
+                              )}
+                              <p>{trip.package_receiving_address?.cityArea || ''}</p>
+                              {trip.package_receiving_address?.postalCode && (
+                                <p>Código Postal: {trip.package_receiving_address.postalCode}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {trip.package_receiving_address?.hotelAirbnbName && (
+                            <div>
+                              <p className="font-medium text-gray-700">
+                                {trip.package_receiving_address?.accommodationType === 'hotel' ? 'Hotel:' : 'Lugar:'}
+                              </p>
+                              <p className="ml-2">{trip.package_receiving_address.hotelAirbnbName}</p>
+                            </div>
+                          )}
+                          
+                          <div>
+                            <p className="font-medium text-gray-700">Número de contacto:</p>
+                            <p className="ml-2">{trip.package_receiving_address?.contactNumber || ''}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p>{trip.package_receiving_address}</p>
+                      )}
                     </div>
                   </div>
                 </div>
