@@ -5,7 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminMatchDialogProps {
   showMatchDialog: boolean;
@@ -29,6 +30,50 @@ const AdminMatchDialog = ({
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
+  const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
+
+  // Fetch traveler profiles when dialog opens and trips are available
+  useEffect(() => {
+    if (showMatchDialog && availableTrips.length > 0) {
+      const fetchTravelerProfiles = async () => {
+        const userIds = [...new Set(availableTrips.map(trip => trip.user_id))];
+        
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, username')
+            .in('id', userIds);
+          
+          if (error) {
+            console.error('Error fetching traveler profiles:', error);
+            return;
+          }
+          
+          const profilesMap = data.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {});
+          
+          setTravelerProfiles(profilesMap);
+        } catch (error) {
+          console.error('Error fetching traveler profiles:', error);
+        }
+      };
+      
+      fetchTravelerProfiles();
+    }
+  }, [showMatchDialog, availableTrips]);
+
+  const getTravelerName = (userId: string) => {
+    const profile = travelerProfiles[userId];
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.username) {
+      return profile.username;
+    }
+    return `Viajero #${userId}`;
+  };
 
   const toggleTripExpansion = (tripId: number) => {
     const newExpanded = new Set(expandedTrips);
@@ -192,7 +237,7 @@ const AdminMatchDialog = ({
                                   {trip.user_id?.toString().slice(-2) || '00'}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm">Viajero #{trip.user_id || 'N/A'}</p>
+                                  <p className="font-medium text-sm">{getTravelerName(trip.user_id)}</p>
                                 </div>
                               </div>
 
