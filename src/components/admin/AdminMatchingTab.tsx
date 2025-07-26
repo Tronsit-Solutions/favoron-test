@@ -44,7 +44,9 @@ const AdminMatchingTab = ({
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const activeMatches = packages.filter(pkg => pkg.matchedTripId);
-  const pendingPayments = packages.filter(pkg => pkg.status === 'payment_pending' || pkg.paymentReceipt);
+  const pendingPayments = packages.filter(pkg => 
+    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
+  );
 
   return (
     <div className="space-y-6">

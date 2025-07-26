@@ -12,7 +12,6 @@ import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 import AdminTripsTab from "./admin/AdminTripsTab";
-import AdminPaymentsTab from "./admin/AdminPaymentsTab";
 
 import AdminTravelerPaymentsTab from "./admin/AdminTravelerPaymentsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
@@ -194,7 +193,7 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
             {(approvalsNeeded + paymentsToConfirm) > 0 && (
@@ -209,14 +208,8 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
             Gestión
-            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length) > 0 && (
-              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="relative flex items-center gap-2">
-            💳 Pagos
-            {paymentsToConfirm > 0 && (
-              <NotificationBadge count={paymentsToConfirm} />
+            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm) > 0 && (
+              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm} />
             )}
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
@@ -275,14 +268,6 @@ const AdminDashboard = ({
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
             onConfirmShopperReceived={onConfirmShopperReceived}
             getStatusBadge={getStatusBadge}
-          />
-        </TabsContent>
-
-        <TabsContent value="payments" className="space-y-4">
-          <AdminPaymentsTab 
-            packages={packages}
-            onUpdateStatus={onUpdateStatus}
-            onViewPackageDetail={handleViewPackageDetail}
           />
         </TabsContent>
 

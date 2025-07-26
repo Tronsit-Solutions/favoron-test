@@ -20,9 +20,13 @@ const PaymentsTab = ({
 }: PaymentsTabProps) => {
   const [activeTab, setActiveTab] = useState("pending");
 
-  // Separate payments by status
-  const pendingPayments = packages.filter(pkg => pkg.status === 'payment_pending');
-  const approvedPayments = packages.filter(pkg => pkg.status === 'payment_confirmed' || (pkg.payment_receipt && pkg.status !== 'payment_pending'));
+  // Separate payments by status - updated to use payment_pending_approval
+  const pendingPayments = packages.filter(pkg => 
+    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
+  );
+  const approvedPayments = packages.filter(pkg => 
+    (pkg.status === 'pending_purchase' || pkg.status === 'paid') && pkg.payment_receipt
+  );
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
     <Card key={pkg.id} className="hover:shadow-md transition-shadow">
@@ -61,7 +65,7 @@ const PaymentsTab = ({
               <Button 
                 size="sm" 
                 className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Confirmar Pago
