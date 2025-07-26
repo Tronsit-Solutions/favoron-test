@@ -104,17 +104,17 @@ const QuoteDialog = ({
               <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
             </div>
-            <div className="text-sm sm:text-sm ml-7 space-y-1">
-              <div className="bg-background/80 rounded-lg p-3">
+            <div className="text-sm sm:text-sm ml-7 space-y-0.5">
+              <div className="bg-background/80 rounded-lg p-2">
                 <p className="font-medium text-foreground"><strong>Producto:</strong></p>
                 <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
               </div>
-              <div className="bg-background/80 rounded-lg p-3">
+              <div className="bg-background/80 rounded-lg p-2">
                 <p className="font-medium text-foreground"><strong>Precio estimado:</strong> <span className="text-lg font-bold text-primary">${packageDetails.estimated_price}</span></p>
               </div>
               {packageDetails.item_link && (
-                <div className="bg-background/80 rounded-lg p-3">
-                  <p className="font-medium text-foreground mb-2"><strong>Enlace del producto:</strong></p>
+                <div className="bg-background/80 rounded-lg p-2">
+                  <p className="font-medium text-foreground mb-1"><strong>Enlace del producto:</strong></p>
                   <a 
                     href={packageDetails.item_link} 
                     target="_blank" 
