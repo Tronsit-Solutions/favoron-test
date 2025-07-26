@@ -307,7 +307,7 @@ const AdminTravelerPaymentsTab = () => {
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
-                          variant="default"
+                          className="bg-green-600 hover:bg-green-700 text-white"
                           onClick={() => setConfirmDialog({
                             isOpen: true,
                             action: 'complete',
