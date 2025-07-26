@@ -240,39 +240,39 @@ const QuoteDialog = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-4 border-t">            
+          <div className="flex justify-end gap-3 pt-4 border-t">            
             {!existingQuote ? (
-              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-2 sm:space-y-0">
+              <>
                 <Button 
                   variant="destructive" 
                   onClick={handleReject}
-                  className="w-full sm:w-auto"
+                  className="flex-1 sm:flex-none"
                 >
                   Rechazar Pedido
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
                   disabled={!price}
-                  className="w-full sm:w-auto"
+                  className="flex-1 sm:flex-none"
                 >
                   Enviar Cotización
                 </Button>
-              </div>
+              </>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-2 sm:space-y-0">
+              <>
                 {!showRejectionForm ? (
                   <>
                     <Button 
                       variant="destructive" 
                       onClick={handleReject}
-                      className="w-full sm:w-auto"
+                      className="flex-1 sm:flex-none"
                     >
                       Rechazar
                     </Button>
                     <Button 
                       variant="default"
                       onClick={handleSubmit}
-                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
                     >
                       Aceptar Cotización
                     </Button>
@@ -282,7 +282,7 @@ const QuoteDialog = ({
                     <Button 
                       variant="outline" 
                       onClick={() => setShowRejectionForm(false)}
-                      className="w-full sm:w-auto"
+                      className="flex-1 sm:flex-none"
                     >
                       Volver
                     </Button>
@@ -290,13 +290,13 @@ const QuoteDialog = ({
                       variant="destructive" 
                       onClick={handleReject}
                       disabled={!rejectionReason.trim()}
-                      className="w-full sm:w-auto"
+                      className="flex-1 sm:flex-none"
                     >
                       Confirmar Rechazo
                     </Button>
                   </>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>
