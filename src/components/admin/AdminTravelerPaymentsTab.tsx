@@ -276,10 +276,10 @@ const AdminTravelerPaymentsTab = () => {
                         <div>
                           <h5 className="text-sm font-medium mb-1">Información del Viaje</h5>
                           <p className="text-sm text-muted-foreground">
-                            <strong>Ruta:</strong> {order.packages?.trips?.from_city} → {order.packages?.trips?.to_city}
+                            <strong>Ruta:</strong> {(order as any).trips?.from_city} → {(order as any).trips?.to_city}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            <strong>Paquete:</strong> {order.packages?.item_description || 'Sin descripción'}
+                            <strong>Fechas:</strong> {(order as any).trips?.departure_date ? new Date((order as any).trips.departure_date).toLocaleDateString('es-GT') : 'No especificado'} - {(order as any).trips?.arrival_date ? new Date((order as any).trips.arrival_date).toLocaleDateString('es-GT') : 'No especificado'}
                           </p>
                         </div>
                         <div>
