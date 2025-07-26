@@ -175,7 +175,8 @@ const PurchaseConfirmationUpload = ({
                 ) : (
                   <>
                     <FileText className="h-4 w-4 mr-2" />
-                    Subir Confirmación de Compra
+                    <span className="hidden sm:inline">Subir Confirmación de Compra</span>
+                    <span className="sm:hidden">Subir Confirmación</span>
                   </>
                 )}
               </Button>
