@@ -287,7 +287,7 @@ const AdminTravelerPaymentsTab = () => {
                           {(order as any).trips?.packages && (order as any).trips.packages.length > 0 ? (
                             <div className="space-y-2 max-h-24 overflow-y-auto">
                               {(order as any).trips.packages
-                                .filter((pkg: any) => pkg.status === 'delivered_to_office' || pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery')
+                                .filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status))
                                 .map((pkg: any, index: number) => (
                                 <div key={pkg.id} className="text-xs p-2 bg-green-50 rounded border border-green-200">
                                   <div className="flex items-center justify-between mb-1">
@@ -296,13 +296,13 @@ const AdminTravelerPaymentsTab = () => {
                                   </div>
                                   <div className="flex items-center justify-between text-green-600">
                                     <span className="text-xs">ID: {pkg.id.slice(0, 8)}...</span>
-                                    <span className="text-xs capitalize">{pkg.status.replace('_', ' ')}</span>
+                                    <span className="text-xs capitalize">{pkg.status.replace(/_/g, ' ')}</span>
                                   </div>
                                 </div>
                               ))}
                               <div className="mt-2 pt-2 border-t border-green-200">
                                 <p className="text-xs text-green-700 font-medium">
-                                  Total: {(order as any).trips.packages.filter((pkg: any) => pkg.status === 'delivered_to_office' || pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery').length} paquetes entregados
+                                  Total: {(order as any).trips.packages.filter((pkg: any) => ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(pkg.status)).length} paquetes entregados
                                 </p>
                               </div>
                             </div>
