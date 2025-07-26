@@ -28,11 +28,12 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
 
   // Filtrar pagos pendientes de aprobación
   const pendingPayments = packages.filter(pkg => 
-    pkg.status === 'payment_confirmed' && pkg.payment_receipt
+    (pkg.status === 'payment_confirmed' || pkg.status === 'payment_pending_approval') && pkg.payment_receipt
   );
 
   // Filtrar pagos ya aprobados/procesados
   const processedPayments = packages.filter(pkg => 
+    (pkg.status === 'pending_purchase' && pkg.payment_receipt) ||
     (pkg.status === 'paid' && pkg.payment_receipt) || 
     (pkg.status === 'payment_rejected' && pkg.payment_receipt)
   );
@@ -40,7 +41,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
   const handlePaymentAction = async () => {
     if (!confirmDialog.payment) return;
 
-    const newStatus = confirmDialog.action === 'approve' ? 'paid' : 'payment_rejected';
+    const newStatus = confirmDialog.action === 'approve' ? 'pending_purchase' : 'payment_rejected';
     
     try {
       // Actualizar el estado del paquete
@@ -54,7 +55,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
         await supabase.rpc('create_notification', {
           _user_id: pkg.user_id,
           _title: '✅ ¡Pago aprobado! Información de envío',
-          _message: `Tu pago ha sido aprobado. Ahora puedes enviar el paquete "${pkg.item_description}" a la dirección del viajero.`,
+          _message: `Tu pago ha sido aprobado. Ahora puedes comprar el paquete "${pkg.item_description}" y luego subirlo.`,
           _type: 'payment_approved',
           _priority: 'high',
           _metadata: {
@@ -68,7 +69,7 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
       toast({
         title: confirmDialog.action === 'approve' ? "Pago aprobado" : "Pago rechazado",
         description: confirmDialog.action === 'approve' 
-          ? `El pago ha sido aprobado y el shopper ha sido notificado con la información de envío.`
+          ? `El pago ha sido aprobado y el shopper puede proceder con la compra.`
           : `El pago del pedido #${confirmDialog.payment.id} ha sido rechazado.`,
         variant: confirmDialog.action === 'approve' ? "default" : "destructive"
       });
@@ -90,10 +91,13 @@ const AdminPaymentsTab = ({ packages, onUpdateStatus, onViewPackageDetail }: Adm
   };
 
   const getPaymentStatusBadge = (pkg: any) => {
+    if (pkg.status === 'pending_purchase' && pkg.payment_receipt) {
+      return <Badge variant="default" className="bg-green-500">Aprobado - Pendiente Compra</Badge>;
+    }
     if (pkg.status === 'paid' && pkg.payment_receipt) {
       return <Badge variant="default" className="bg-green-500">Aprobado</Badge>;
     }
-    if (pkg.status === 'payment_confirmed') {
+    if (pkg.status === 'payment_confirmed' || pkg.status === 'payment_pending_approval') {
       return <Badge variant="secondary">Pendiente</Badge>;
     }
     if (pkg.status === 'payment_rejected' && pkg.payment_receipt) {
