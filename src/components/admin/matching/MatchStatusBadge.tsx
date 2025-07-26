@@ -11,6 +11,7 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'payment_pending': { icon: '💳', label: 'Pago pendiente', color: 'bg-yellow-100 text-yellow-800' },
   'paid': { icon: '💳', label: 'Pago pendiente', color: 'bg-yellow-100 text-yellow-800' },
   'payment_confirmed': { icon: '✅', label: 'Pago confirmado', color: 'bg-green-100 text-green-800' },
+  'pending_purchase': { icon: '🛒', label: 'Pendiente de compra', color: 'bg-orange-100 text-orange-800' },
   'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
   'pending_office_confirmation': { icon: '⏳', label: 'Esperando confirmación', color: 'bg-amber-100 text-amber-800' },
   'delivered_to_office': { icon: '📦', label: 'Entregado en oficina', color: 'bg-emerald-100 text-emerald-800' },
