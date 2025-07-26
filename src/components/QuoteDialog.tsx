@@ -185,7 +185,7 @@ const QuoteDialog = ({
                     placeholder="0.00"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 w-32"
                     style={{ fontFamily: 'Arial, sans-serif' }}
                     required
                   />
