@@ -62,10 +62,10 @@ export const MatchCard = ({
   const getCompleteButtonText = () => {
     if (pkg.status === 'delivered_to_office') {
       return pkg.confirmed_delivery_address 
-        ? '✅ Confirmar entrega' 
-        : '✅ Confirmar pick-up';
+        ? 'Confirmar entrega' 
+        : 'Confirmar pick-up';
     }
-    return '✅ Confirmar entrega';
+    return 'Confirmar entrega';
   };
 
   const getShopperReceivedButtonText = () => {
@@ -119,7 +119,7 @@ export const MatchCard = ({
                   className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium"
                   title="Confirmar entrega completada"
                 >
-                  ✅ COMPLETAR
+                  COMPLETAR
                 </Button>
               )}
             </div>
