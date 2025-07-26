@@ -14,13 +14,27 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
   useEffect(() => {
     const fetchCompletedPackages = async () => {
       try {
-        const { count } = await supabase
+        console.log('Fetching completed packages...');
+        
+        // Primera consulta: obtener todos los paquetes (si es admin) o solo los públicos
+        const { data: allPackages, error, count } = await supabase
           .from('packages')
-          .select('*', { count: 'exact', head: true })
+          .select('status', { count: 'exact' })
           .in('status', ['delivered_to_office', 'received_by_traveler', 'completed']);
         
+        console.log('Query result:', { data: allPackages, error, count });
+        
+        if (error) {
+          console.error('Supabase error:', error);
+          return;
+        }
+        
         if (count !== null) {
+          console.log('Setting completed packages to:', count);
           setCompletedPackages(count);
+        } else {
+          console.log('Count is null, using array length:', allPackages?.length || 0);
+          setCompletedPackages(allPackages?.length || 0);
         }
       } catch (error) {
         console.error('Error fetching completed packages:', error);
