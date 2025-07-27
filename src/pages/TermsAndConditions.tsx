@@ -1,7 +1,7 @@
 import NavBar from "@/components/NavBar";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Scale, Shield, Users } from "lucide-react";
+import { FileText, Scale, Shield, Users, Package, Plane, AlertTriangle, CheckCircle } from "lucide-react";
 
 const TermsAndConditions = () => {
   const navigate = useNavigate();
@@ -55,140 +55,120 @@ const TermsAndConditions = () => {
           </div>
 
           <div className="grid gap-6 sm:gap-8">
+            {/* Términos Generales de Uso */}
             <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <FileText className="h-6 w-6 text-blue-500" />
-                  1. Aceptación de Términos
+                  📘 Términos Generales de Uso
                 </CardTitle>
               </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
+              <CardContent className="prose prose-gray max-w-none space-y-4">
                 <p className="text-gray-700 leading-relaxed">
-                  Al utilizar los servicios de Favorón, usted acepta estos términos y condiciones en su totalidad. 
-                  Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestros servicios.
+                  Al usar Favorón, aceptas estos términos. Si no estás de acuerdo, no uses el servicio.
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-green-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Users className="h-6 w-6 text-green-500" />
-                  2. Descripción del Servicio
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  Favorón es una plataforma que conecta viajeros con compradores para facilitar el envío 
-                  de paquetes desde el extranjero. Nuestro servicio incluye:
-                </p>
-                <ul className="space-y-2 text-gray-700">
-                  <li>• Conexión entre viajeros y compradores</li>
-                  <li>• Sistema de cotizaciones y pagos</li>
-                  <li>• Seguimiento de paquetes y entregas</li>
-                  <li>• Sistema de calificaciones y confianza</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-purple-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Shield className="h-6 w-6 text-purple-500" />
-                  3. Responsabilidades del Usuario
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <div className="grid sm:grid-cols-2 gap-6">
+                
+                <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Viajeros:</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>• Cumplir con las regulaciones aduaneras</li>
-                      <li>• Entregar los paquetes en tiempo y forma</li>
-                      <li>• Mantener la integridad de los productos</li>
-                      <li>• Comunicar cualquier inconveniente</li>
-                    </ul>
+                    <h4 className="font-semibold text-gray-900 mb-2">¿Qué es Favorón?</h4>
+                    <p className="text-gray-700">Es una plataforma que conecta a personas que quieren enviar cosas (shoppers) con personas que viajan (viajeros) y pueden llevar esos paquetes en su equipaje.</p>
                   </div>
+                  
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Compradores:</h4>
-                    <ul className="space-y-1 text-gray-700">
-                      <li>• Proporcionar información precisa</li>
-                      <li>• Realizar pagos en tiempo acordado</li>
-                      <li>• Cumplir con las especificaciones</li>
-                      <li>• Estar disponible para la entrega</li>
-                    </ul>
+                    <h4 className="font-semibold text-gray-900 mb-2">¿Quién puede usar Favorón?</h4>
+                    <p className="text-gray-700">Cualquier persona mayor de edad que proporcione información real y cumpla con las leyes del país de origen y destino.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Datos personales</h4>
+                    <p className="text-gray-700">Usamos tus datos solo para coordinar entregas. Nunca los compartimos con terceros sin tu permiso.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Buen trato</h4>
+                    <p className="text-gray-700">Esperamos respeto y buena comunicación entre usuarios. Si alguien rompe las reglas, Favorón puede suspender su cuenta.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Pagos</h4>
+                    <p className="text-gray-700">El shopper paga a Favorón. Una vez el viajero entrega el paquete, Favorón transfiere el pago al viajero.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Cambios</h4>
+                    <p className="text-gray-700">Podemos modificar estos términos en cualquier momento. Si lo hacemos, te avisaremos.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Riesgos</h4>
+                    <p className="text-gray-700">Aunque hacemos todo lo posible para que todo salga bien, Favorón es una plataforma colaborativa y pueden surgir imprevistos. Consulta nuestras garantías más abajo.</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Términos para Shoppers */}
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Package className="h-6 w-6 text-green-500" />
+                  📦 Términos para Shoppers (quienes hacen pedidos)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <ul className="space-y-3 text-gray-700">
+                  <li><strong>Tiempos de entrega estimados:</strong> Pueden variar. No garantizamos fechas exactas, pero facilitamos la entrega.</li>
+                  <li><strong>Garantía por robo:</strong> Si un viajero roba el paquete, Favorón reembolsa el 100% del valor, una vez validado el caso.</li>
+                  <li><strong>Pérdida de equipaje:</strong> Si la aerolínea pierde el equipaje del viajero, Favorón reembolsa el valor del paquete y el costo del envío.</li>
+                  <li><strong>Retrasos en la entrega al viajero:</strong> Si el paquete no llega a tiempo al viajero antes de su viaje, el shopper asume ese riesgo.</li>
+                  <li><strong>Impuestos y tributos:</strong> Si el viajero debe pagar impuestos o gastos de aduana, ese costo se traslada al shopper.</li>
+                  <li><strong>Autenticidad de la compra:</strong> Solo se aceptan compras en tiendas online reconocidas. No se aceptan artículos sin número de seguimiento ni productos prohibidos.</li>
+                  <li><strong>Entrega segura:</strong> Los paquetes deben ser enviados a la oficina de Favorón o al lugar autorizado.</li>
+                  <li><strong>Verificación del paquete:</strong> La garantía aplica solo si el viajero confirma que recibió el paquete.</li>
+                  <li><strong>Responsabilidad legal:</strong> El shopper debe respetar las regulaciones aduaneras, incluyendo el límite de USD 500 por paquete según CAUCA.</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Términos para Viajeros */}
+            <Card className="border-l-4 border-l-purple-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Plane className="h-6 w-6 text-purple-500" />
+                  ✈️ Términos para Viajeros
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <ul className="space-y-3 text-gray-700">
+                  <li><strong>Verificación de identidad:</strong> Todos los viajeros deben verificar su identidad.</li>
+                  <li><strong>Recepción del paquete:</strong> El viajero debe confirmar que recibió el paquete. Si no lo recibe, Favorón no lo cubre.</li>
+                  <li><strong>Responsabilidad durante el viaje:</strong> El viajero debe cuidar el paquete. Si se pierde por negligencia, deberá reembolsar su valor.</li>
+                  <li><strong>Entrega en destino:</strong> El viajero debe entregar el paquete personalmente en la oficina de Favorón o punto acordado.</li>
+                  <li><strong>Contenido del paquete:</strong> Está prohibido transportar artículos ilegales, peligrosos o no declarados correctamente.</li>
+                  <li><strong>Declaración en aduanas:</strong> El viajero es responsable de cualquier declaración necesaria. Favorón puede dar apoyo, pero no se hace responsable.</li>
+                  <li><strong>Gastos extra:</strong> Si el hotel cobra por recibir el paquete, ese costo debe incluirse en la cotización del viajero al shopper.</li>
+                  <li><strong>Pérdida de equipaje:</strong> Si la aerolínea pierde el equipaje, Favorón se hace cargo del reembolso al shopper. El viajero no será penalizado si esto se demuestra.</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Limitaciones de Responsabilidad */}
             <Card className="border-l-4 border-l-amber-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <Scale className="h-6 w-6 text-amber-500" />
-                  4. Limitación de Responsabilidad
+                  <AlertTriangle className="h-6 w-6 text-amber-500" />
+                  ⚖️ Limitaciones de Responsabilidad
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  Favorón actúa únicamente como intermediario entre viajeros y compradores. No nos hacemos responsables por:
-                </p>
-                <ul className="space-y-2 text-gray-700">
-                  <li>• Pérdida o daño de paquetes durante el transporte</li>
-                  <li>• Incumplimiento de regulaciones aduaneras</li>
-                  <li>• Disputas entre usuarios</li>
-                  <li>• Demoras en entregas debido a factores externos</li>
-                  <li>• Calidad o autenticidad de los productos</li>
+                <ul className="space-y-3 text-gray-700">
+                  <li>Favorón actúa solo como intermediario entre shoppers y viajeros.</li>
+                  <li>No somos responsables por paquetes no entregados a tiempo al viajero.</li>
+                  <li>No garantizamos el éxito de todos los envíos, pero ofrecemos garantías si se siguen nuestros procesos.</li>
+                  <li>No asumimos responsabilidad por problemas causados por terceros como aerolíneas, aduanas o servicios de mensajería.</li>
+                  <li>La garantía aplica solo si se respetan nuestras políticas, incluyendo el envío y entrega autorizados.</li>
+                  <li>El contenido del paquete es responsabilidad exclusiva del shopper y viajero.</li>
                 </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-red-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 text-red-500" />
-                  5. Política de Pagos y Reembolsos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <ul className="space-y-2 text-gray-700">
-                  <li>• Los pagos se procesan a través de métodos seguros</li>
-                  <li>• Los reembolsos están sujetos a términos específicos</li>
-                  <li>• Favorón se reserva el derecho de retener pagos en caso de disputas</li>
-                  <li>• Las comisiones de la plataforma no son reembolsables</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-indigo-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Shield className="h-6 w-6 text-indigo-500" />
-                  6. Privacidad y Datos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed">
-                  Protegemos la privacidad de nuestros usuarios de acuerdo con nuestra Política de Privacidad. 
-                  Al usar nuestros servicios, usted consiente el procesamiento de sus datos personales 
-                  según se describe en dicha política.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-gray-500">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 text-gray-500" />
-                  7. Modificaciones
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="prose prose-gray max-w-none">
-                <p className="text-gray-700 leading-relaxed">
-                  Nos reservamos el derecho de modificar estos términos en cualquier momento. 
-                  Las modificaciones entrarán en vigor inmediatamente después de su publicación. 
-                  Es responsabilidad del usuario revisar periódicamente estos términos.
-                </p>
               </CardContent>
             </Card>
 
