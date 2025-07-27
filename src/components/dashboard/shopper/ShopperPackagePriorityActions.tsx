@@ -1,7 +1,7 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
-import QuoteCountdown from "../QuoteCountdown";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
@@ -109,17 +109,45 @@ const ShopperPackagePriorityActions = ({
         </div>
       </div>
       
-      {/* Show countdown for quote_sent status */}
+      {/* Simple countdown text */}
       {pkg.status === 'quote_sent' && pkg.quote_expires_at && !isQuoteExpired && (
-        <QuoteCountdown 
-          expiresAt={pkg.quote_expires_at}
-          onExpire={() => {
-            // Optionally handle expiration - maybe show a toast or refresh data
-            console.log('Quote expired for package:', pkg.id);
-          }}
-        />
+        <SimpleCountdown expiresAt={pkg.quote_expires_at} />
       )}
     </div>
+  );
+};
+
+// Simple countdown component as text
+const SimpleCountdown = ({ expiresAt }: { expiresAt: string | Date }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const expireTime = new Date(expiresAt).getTime();
+      const now = new Date().getTime();
+      const difference = expireTime - now;
+
+      if (difference <= 0) {
+        setTimeLeft("Expirado");
+        return;
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s restantes`);
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return (
+    <p className="text-sm text-muted-foreground">
+      ⏰ Tiempo para responder: {timeLeft}
+    </p>
   );
 };
 
