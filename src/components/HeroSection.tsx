@@ -11,6 +11,7 @@ interface HeroSectionProps {
 const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
   const [completedPackages, setCompletedPackages] = useState(500);
   const [totalUsers, setTotalUsers] = useState(1000);
+  const [totalTrips, setTotalTrips] = useState(50);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -59,10 +60,29 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         } else {
           setCompletedPackages(1); // Fallback
         }
+        
+        // Obtener total de viajes registrados
+        console.log('Fetching all trips...');
+        const { count: tripsCount, error: tripsError } = await supabase
+          .from('trips')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log('Trips query result:', { count: tripsCount, error: tripsError });
+        
+        if (tripsError) {
+          console.error('Trips query error:', tripsError);
+          setTotalTrips(50); // Fallback
+        } else if (tripsCount !== null && tripsCount > 0) {
+          console.log('Setting total trips to:', tripsCount);
+          setTotalTrips(tripsCount);
+        } else {
+          setTotalTrips(50); // Fallback
+        }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
         setCompletedPackages(1);
+        setTotalTrips(50);
       }
     };
 
@@ -144,8 +164,8 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
             <div className="text-gray-600">Paquetes entregados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-traveler mb-2">50+</div>
-            <div className="text-gray-600">Destinos disponibles</div>
+            <div className="text-2xl font-bold text-traveler mb-2">{totalTrips}+</div>
+            <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
             <div className="text-2xl font-bold text-success mb-2">99%</div>
