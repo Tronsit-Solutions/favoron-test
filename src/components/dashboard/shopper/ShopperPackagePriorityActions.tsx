@@ -12,9 +12,7 @@ const ShopperPackagePriorityActions = ({
   pkg,
   onQuote
 }: ShopperPackagePriorityActionsProps) => {
-  if (!['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval', 'pending_purchase', 'payment_confirmed'].includes(pkg.status)) {
-    return null;
-  }
+  // Always show instructions for all statuses
 
   // Debug logging to see why countdown might not appear
   console.log('🕒 QuoteCountdown Debug:', {
@@ -76,8 +74,34 @@ const ShopperPackagePriorityActions = ({
           description: "Compra y envía el paquete al viajero usando la dirección proporcionada.",
           button: null
         };
+      case 'pending':
+        return {
+          icon: Package2,
+          title: "📦 Solicitud creada",
+          description: "Tu solicitud está esperando que un viajero envíe una cotización.",
+          button: null
+        };
+      case 'in_transit':
+        return {
+          icon: Package2,
+          title: "🚚 Paquete en camino",
+          description: "Tu paquete está siendo enviado por el viajero. Revisa el tracking abajo.",
+          button: null
+        };
+      case 'delivered':
+        return {
+          icon: Package2,
+          title: "✅ Paquete entregado",
+          description: "¡Tu paquete ha sido entregado exitosamente!",
+          button: null
+        };
       default:
-        return null;
+        return {
+          icon: Package2,
+          title: "📦 Estado del paquete",
+          description: "Revisa el estado actual de tu solicitud.",
+          button: null
+        };
     }
   };
 
