@@ -110,7 +110,7 @@ const ShopperPackagePriorityActions = ({
       </div>
       
       {/* Simple countdown text */}
-      {pkg.status === 'quote_sent' && pkg.quote_expires_at && !isQuoteExpired && (
+      {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && pkg.quote_expires_at && !isQuoteExpired && (
         <SimpleCountdown expiresAt={pkg.quote_expires_at} />
       )}
     </div>
