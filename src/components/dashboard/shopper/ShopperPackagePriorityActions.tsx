@@ -134,9 +134,8 @@ const SimpleCountdown = ({ expiresAt }: { expiresAt: string | Date }) => {
 
       const hours = Math.floor(difference / (1000 * 60 * 60));
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s restantes`);
+      setTimeLeft(`${hours}h ${minutes}m restantes`);
     };
 
     calculateTimeLeft();
