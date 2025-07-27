@@ -42,57 +42,85 @@ const ShopperPackagePriorityActions = ({
       case 'quote_accepted':
         return {
           icon: CreditCard,
-          title: "¡Cotización aceptada! Ahora debes realizar el pago",
-          description: "Transfiere a la cuenta de Favorón S.A. y sube tu comprobante de pago abajo.",
+          title: "¡Cotización aceptada!",
+          description: "Tu cotización fue aceptada. Ahora debes realizar el pago para que el viajero pueda comprar tu producto.",
           button: null
         };
-      case 'awaiting_payment':
+      case 'payment_pending':
         return {
           icon: CreditCard,
           title: "💰 Realizar Pago",
-          description: "Tu cotización fue aceptada. Ahora necesitas realizar el pago para que el viajero pueda comprar tu producto.",
+          description: "Transfiere el pago a la cuenta de Favorón S.A. y sube tu comprobante abajo.",
           button: null
         };
       case 'payment_pending_approval':
         return {
           icon: Clock,
-          title: "⏳ Comprobante de pago subido",
-          description: "El administrador está verificando tu pago. Te notificaremos cuando sea aprobado.",
-          button: null
-        };
-      case 'pending_purchase':
-        return {
-          icon: Package2,
-          title: "¡Pago aprobado! Hora de comprar",
-          description: "Tu pago fue confirmado. Compra el producto y sube la confirmación de compra abajo.",
+          title: "⏳ Verificando pago",
+          description: "Tu comprobante de pago está siendo verificado. Te notificaremos cuando sea aprobado.",
           button: null
         };
       case 'payment_confirmed':
         return {
           icon: Package2,
-          title: "¡Pago confirmado! Envía el paquete",
-          description: "Compra y envía el paquete al viajero usando la dirección proporcionada.",
+          title: "¡Pago confirmado!",
+          description: "Tu pago fue aprobado. El viajero procederá a comprar el producto.",
           button: null
         };
-      case 'pending':
+      case 'pending_purchase':
         return {
           icon: Package2,
-          title: "📦 Solicitud creada",
-          description: "Tu solicitud está esperando que un viajero envíe una cotización.",
+          title: "🛒 Viajero comprando",
+          description: "El viajero está comprando tu producto. Te notificaremos cuando confirme la compra.",
+          button: null
+        };
+      case 'purchase_confirmed':
+        return {
+          icon: Package2,
+          title: "✅ Compra confirmada",
+          description: "El viajero confirmó la compra. El producto está siendo enviado a su dirección.",
           button: null
         };
       case 'in_transit':
         return {
           icon: Package2,
-          title: "🚚 Paquete en camino",
-          description: "Tu paquete está en camino a la dirección del viajero. Recibirás una notificación cuando el viajero reciba el paquete.",
+          title: "🚚 En camino a oficina",
+          description: "El viajero tiene tu paquete y está en camino a la oficina de Favorón.",
+          button: null
+        };
+      case 'pending_office_confirmation':
+        return {
+          icon: Clock,
+          title: "📦 Esperando confirmación",
+          description: "El viajero entregó el paquete en oficina. Esperando confirmación de recepción.",
+          button: null
+        };
+      case 'ready_for_pickup':
+        return {
+          icon: Package2,
+          title: "✅ Listo para recoger",
+          description: "Tu paquete está en la oficina de Favorón, listo para ser recogido.",
+          button: null
+        };
+      case 'ready_for_delivery':
+        return {
+          icon: Package2,
+          title: "🚛 Listo para entrega",
+          description: "Tu paquete está en la oficina de Favorón, listo para ser entregado a domicilio.",
           button: null
         };
       case 'delivered':
         return {
           icon: Package2,
-          title: "✅ Paquete entregado",
+          title: "🎉 Entregado",
           description: "¡Tu paquete ha sido entregado exitosamente!",
+          button: null
+        };
+      case 'completed':
+        return {
+          icon: Package2,
+          title: "✅ Completado",
+          description: "¡Solicitud completada exitosamente!",
           button: null
         };
       default:
