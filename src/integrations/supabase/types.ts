@@ -133,6 +133,7 @@ export type Database = {
           purchase_confirmation: Json | null
           purchase_origin: string
           quote: Json | null
+          quote_expires_at: string | null
           status: string
           tracking_info: Json | null
           traveler_address: Json | null
@@ -162,6 +163,7 @@ export type Database = {
           purchase_confirmation?: Json | null
           purchase_origin: string
           quote?: Json | null
+          quote_expires_at?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
@@ -191,6 +193,7 @@ export type Database = {
           purchase_confirmation?: Json | null
           purchase_origin?: string
           quote?: Json | null
+          quote_expires_at?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
