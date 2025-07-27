@@ -55,6 +55,104 @@ const CustomsRegulation = () => {
           </div>
 
           <div className="grid gap-6 sm:gap-8">
+            {/* New Regulation Details Section */}
+            <Card className="border-l-4 border-l-indigo-500 bg-gradient-to-r from-indigo-50 to-purple-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <FileText className="h-6 w-6 text-indigo-600" />
+                  📜 Artículo 114 del CAUCA – Exención del pago de tributos para mercancías distintas del equipaje
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <div className="space-y-6">
+                  <p className="text-gray-700 leading-relaxed font-medium">
+                    El viajero podrá introducir con exención de tributos mercancías que traiga consigo, distintas del equipaje, cuyo valor total en aduana no sea superior a <span className="font-bold text-green-600">$500 USD</span>.
+                  </p>
+
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      ❓ ¿Qué significa "distintas del equipaje"?
+                    </h4>
+                    <p className="text-gray-700 mb-3">
+                      Según el CAUCA, el equipaje incluye efectos personales, nuevos o usados, que un viajero pueda necesitar razonablemente para su uso durante el viaje, así como artículos vinculados a su actividad profesional.
+                    </p>
+                    <p className="text-gray-700">
+                      🔸 Por tanto, <strong>"distintas del equipaje"</strong> se refiere a mercancías que no son para uso personal del viajero, sino que están destinadas a terceras personas o con fines comerciales —como los productos que transportan nuestros viajeros de Favorón para los shoppers.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Shield className="h-6 w-6 text-green-600" />
+                  📘 Artículo 582 del RECAUCA – Condiciones para gozar de la exención
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  Para beneficiarse de esta exención, el viajero debe cumplir con las siguientes condiciones:
+                </p>
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-1">✅</span>
+                    <span>Que las mercancías, por su cantidad y clase, no sean para fines comerciales.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500 mt-1">⛔</span>
+                    <span>Que no se trate de mercancías prohibidas.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 mt-1">🕒</span>
+                    <span>Que haya permanecido al menos <strong>72 horas</strong> fuera del territorio aduanero.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-500 mt-1">📌</span>
+                    <span>Cumplir cualquier otra condición establecida por la legislación nacional.</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-amber-500 bg-amber-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <AlertTriangle className="h-6 w-6 text-amber-600" />
+                  ⚠️ Condiciones adicionales importantes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <ul className="space-y-2 text-gray-700">
+                  <li>• Este beneficio puede utilizarse <strong>una vez cada seis meses</strong>.</li>
+                  <li>• Es de carácter <strong>personal e intransferible</strong>.</li>
+                  <li>• <strong>No es acumulativo</strong>.</li>
+                  <li>• Se considera totalmente utilizado en un solo viaje, sin importar el monto usado.</li>
+                  <li>• Tripulantes (conductores, pilotos, capitanes) solo pueden traer efectos personales libres de tributos.</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Package className="h-6 w-6 text-green-600" />
+                  ✅ ¿Qué significa esto para Favorón?
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <div className="space-y-4">
+                  <p className="text-gray-700 leading-relaxed">
+                    Esta regulación permite que nuestros viajeros traigan productos hasta por <strong className="text-green-600">$500 USD</strong> sin pagar impuestos, siempre que cumplan con las condiciones mencionadas.
+                  </p>
+                  <p className="text-green-700 font-medium bg-white rounded-lg p-3 border border-green-200">
+                    👉 Esto hace que el servicio de Favorón sea <strong>completamente legal, seguro y beneficioso</strong> para viajeros y shoppers.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
