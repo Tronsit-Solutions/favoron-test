@@ -136,12 +136,36 @@ const CollapsiblePackageCard = ({
             )}
             
             {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
-            <ShippingInstructions pkg={pkg} />
+            {['pending_approval', 'approved', 'payment_confirmed'].includes(pkg.status) && (
+              <ShippingInstructions pkg={pkg} />
+            )}
+
+            {/* Información de envío collapsible para in_transit y estados posteriores */}
+            {['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between mb-4">
+                    📦 Información de Envío
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 mb-4">
+                  <ShippingInstructions pkg={pkg} />
+                  {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
+                    <PackageShippingInstructions 
+                      travelerAddress={(pkg as any).trips.package_receiving_address}
+                      matchedTripDates={(pkg as any).trips}
+                    />
+                  )}
+                  <ShippingInfoRegistry pkg={pkg} />
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                {/* Shipping Instructions */}
-                {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
+                {/* Shipping Instructions for earlier states */}
+                {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
                   <PackageShippingInstructions 
                     travelerAddress={(pkg as any).trips.package_receiving_address}
                     matchedTripDates={(pkg as any).trips}
@@ -168,8 +192,10 @@ const CollapsiblePackageCard = ({
                 {/* Show traveler confirmation when package is received */}
                 <TravelerConfirmationDisplay pkg={pkg} className="mb-4" />
 
-                {/* Show shipping information registry when saved */}
-                <ShippingInfoRegistry pkg={pkg} className="mb-4" />
+                {/* Show shipping information registry when saved - only for non-collapsible states */}
+                {!['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+                  <ShippingInfoRegistry pkg={pkg} className="mb-4" />
+                )}
 
                 <UploadedDocumentsRegistry
                   pkg={pkg} 
