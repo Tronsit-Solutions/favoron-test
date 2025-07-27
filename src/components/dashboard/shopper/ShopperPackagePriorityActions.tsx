@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
+import QuoteCountdown from "../QuoteCountdown";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
@@ -15,14 +16,18 @@ const ShopperPackagePriorityActions = ({
     return null;
   }
 
+  const isQuoteExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date();
+
   const getActionConfig = () => {
     switch (pkg.status) {
       case 'quote_sent':
         return {
           icon: Clock,
-          title: "¡Tienes una cotización pendiente!",
-          description: "Revisa y responde la cotización del viajero.",
-          button: {
+          title: isQuoteExpired ? "Cotización expirada" : "¡Tienes una cotización pendiente!",
+          description: isQuoteExpired 
+            ? "Esta cotización expiró. El viajero debe enviar una nueva cotización." 
+            : "Revisa y responde la cotización del viajero.",
+          button: isQuoteExpired ? null : {
             text: "Ver y Responder Cotización",
             onClick: () => onQuote(pkg, 'user')
           }
@@ -73,25 +78,38 @@ const ShopperPackagePriorityActions = ({
   const IconComponent = config.icon;
 
   return (
-    <div className="mb-3 p-2 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-          <IconComponent className="h-4 w-4 text-primary" />
-        </div>
-        <div className="flex-1 space-y-3">
-          <p className="text-sm font-medium text-primary">{config.title}</p>
-          <p className="text-xs text-muted-foreground">{config.description}</p>
-          {config.button && (
-            <Button 
-              size="sm"
-              onClick={config.button.onClick}
-              className="mt-2"
-            >
-              {config.button.text}
-            </Button>
-          )}
+    <div className="space-y-3">
+      <div className="mb-3 p-2 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+            <IconComponent className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1 space-y-3">
+            <p className="text-sm font-medium text-primary">{config.title}</p>
+            <p className="text-xs text-muted-foreground">{config.description}</p>
+            {config.button && (
+              <Button 
+                size="sm"
+                onClick={config.button.onClick}
+                className="mt-2"
+              >
+                {config.button.text}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
+      
+      {/* Show countdown for quote_sent status */}
+      {pkg.status === 'quote_sent' && pkg.quote_expires_at && !isQuoteExpired && (
+        <QuoteCountdown 
+          expiresAt={pkg.quote_expires_at}
+          onExpire={() => {
+            // Optionally handle expiration - maybe show a toast or refresh data
+            console.log('Quote expired for package:', pkg.id);
+          }}
+        />
+      )}
     </div>
   );
 };
