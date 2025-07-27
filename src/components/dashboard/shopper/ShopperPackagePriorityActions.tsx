@@ -88,6 +88,11 @@ const ShopperPackagePriorityActions = ({
 
   return (
     <div className="space-y-3">
+      {/* Simple countdown text - outside the box */}
+      {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && pkg.quote_expires_at && !isQuoteExpired && (
+        <SimpleCountdown expiresAt={pkg.quote_expires_at} />
+      )}
+      
       <div className="mb-3 p-2 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
@@ -95,12 +100,6 @@ const ShopperPackagePriorityActions = ({
           </div>
           <div className="flex-1 space-y-3">
             <p className="text-sm font-medium text-primary">{config.title}</p>
-            
-            {/* Simple countdown text */}
-            {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && pkg.quote_expires_at && !isQuoteExpired && (
-              <SimpleCountdown expiresAt={pkg.quote_expires_at} />
-            )}
-            
             <p className="text-xs text-muted-foreground">{config.description}</p>
             {config.button && (
               <Button 
