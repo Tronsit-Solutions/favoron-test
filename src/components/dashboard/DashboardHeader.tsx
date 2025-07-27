@@ -49,8 +49,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             onClick={handleHomeClick}
             className="flex items-center"
           >
-            <Home className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Inicio</span>
+            <Home className="h-4 w-4" />
           </Button>
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
