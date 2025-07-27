@@ -145,7 +145,7 @@ const SimpleCountdown = ({ expiresAt }: { expiresAt: string | Date }) => {
   }, [expiresAt]);
 
   return (
-    <p className="text-sm text-muted-foreground">
+    <p className="text-sm text-foreground">
       ⏰ Tiempo para responder: {timeLeft}
     </p>
   );
