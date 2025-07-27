@@ -45,10 +45,11 @@ export const useTripsData = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // If not admin, only show user's own trips
-      if (!isAdmin) {
-        query = query.eq('user_id', user.id);
-      }
+      // RLS policies already handle access control:
+      // - Users can see their own trips (any status)
+      // - Users can see all approved trips from other users
+      // - Admins can see all trips
+      // No need for additional filtering here
 
       const { data, error } = await query;
 
