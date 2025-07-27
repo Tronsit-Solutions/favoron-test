@@ -97,10 +97,10 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         <div className="relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
             <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
-              Conectamos viajeros
+              Conectamos compradores
             </span>
             <br />
-            <span className="text-gray-900">con compradores</span>
+            <span className="text-gray-900">con viajeros</span>
           </h1>
           
           {/* Decorative element */}
