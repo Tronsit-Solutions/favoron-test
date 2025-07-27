@@ -3,50 +3,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { MapPin, Calendar, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-
 interface ShippingInfoRegistryProps {
   pkg: Package;
   className?: string;
 }
-
-const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps) => {
+const ShippingInfoRegistry = ({
+  pkg,
+  className = ""
+}: ShippingInfoRegistryProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Solo mostrar si hay información de envío guardada Y el pago ha sido aprobado por el admin
   if (!pkg.traveler_address && !pkg.matched_trip_dates) {
     return null;
   }
-  
+
   // CRÍTICO: Esta información solo debe ser visible después de que el admin apruebe el pago
   if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) {
     return null;
   }
-
   const address = pkg.traveler_address as any;
   const tripDates = pkg.matched_trip_dates as any;
-
-  return (
-    <div className={className}>
+  return <div className={className}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between cursor-pointer p-3 bg-success/5 border border-success/30 rounded-lg hover:bg-success/10 transition-colors">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-success" />
-              <h4 className="text-sm font-medium text-foreground">¡Pago aprobado! - Información de envío</h4>
-            </div>
-            {isOpen ? <ChevronUp className="h-4 w-4 text-success" /> : <ChevronDown className="h-4 w-4 text-success" />}
-          </div>
+          
         </CollapsibleTrigger>
         
         <CollapsibleContent>
           {/* Información de envío compacta */}
-          {(address || tripDates) && (
-            <Card className="border-success/30 bg-success/5 mt-2 max-w-md">
+          {(address || tripDates) && <Card className="border-success/30 bg-success/5 mt-2 max-w-md">
               <CardContent className="p-3">
                 <div className="space-y-3 text-xs">
                   {/* Dirección del viajero */}
-                  {address && (
-                    <div className="space-y-2">
+                  {address && <div className="space-y-2">
                       <h5 className="font-semibold text-success text-sm flex items-center space-x-1">
                         <MapPin className="h-3 w-3" />
                         <span>Dirección de envío</span>
@@ -67,24 +57,18 @@ const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps
                             <p className="font-medium">{address.streetAddress}</p>
                             {address.streetAddress2 && <p className="text-xs">{address.streetAddress2}</p>}
                             <p className="text-xs">{address.cityArea}</p>
-                            {address.postalCode && (
-                              <p className="text-xs font-mono">CP: {address.postalCode}</p>
-                            )}
+                            {address.postalCode && <p className="text-xs font-mono">CP: {address.postalCode}</p>}
                           </div>
                         </div>
-                        {address.hotelAirbnbName && address.hotelAirbnbName !== "-" && (
-                          <div className="border-t pt-1.5">
+                        {address.hotelAirbnbName && address.hotelAirbnbName !== "-" && <div className="border-t pt-1.5">
                             <span className="text-muted-foreground font-medium">Hotel/Airbnb:</span>
                             <p className="text-foreground font-medium">{address.hotelAirbnbName}</p>
-                          </div>
-                        )}
+                          </div>}
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Fechas importantes */}
-                  {tripDates && (
-                    <div className="space-y-2">
+                  {tripDates && <div className="space-y-2">
                       <h5 className="font-semibold text-success text-sm flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
                         <span>Fechas importantes</span>
@@ -94,32 +78,31 @@ const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps
                           <span className="text-muted-foreground text-xs">📥 Primer día:</span>
                           <span className="font-semibold text-foreground text-xs">
                             {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
-                              month: "short",
-                              day: "numeric"
-                            })}
+                        month: "short",
+                        day: "numeric"
+                      })}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground text-xs">📤 Último día:</span>
                           <span className="font-semibold text-foreground text-xs">
                             {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
-                              month: "short",
-                              day: "numeric"
-                            })}
+                        month: "short",
+                        day: "numeric"
+                      })}
                           </span>
                         </div>
                         <div className="flex justify-between items-center border-t pt-1">
                           <span className="text-muted-foreground text-xs">🏢 Entrega GT:</span>
                           <span className="font-semibold text-foreground text-xs">
                             {new Date(tripDates.delivery_date).toLocaleDateString("es-GT", {
-                              month: "short",
-                              day: "numeric"
-                            })}
+                        month: "short",
+                        day: "numeric"
+                      })}
                           </span>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                   
                   {/* Próximos pasos */}
                   <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700 border border-blue-200">
@@ -127,12 +110,9 @@ const ShippingInfoRegistry = ({ pkg, className = "" }: ShippingInfoRegistryProps
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
         </CollapsibleContent>
       </Collapsible>
-    </div>
-  );
+    </div>;
 };
-
 export default ShippingInfoRegistry;
