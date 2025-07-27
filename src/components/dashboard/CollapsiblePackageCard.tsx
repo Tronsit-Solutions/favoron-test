@@ -127,16 +127,16 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent>
-            {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
-            <ShippingInstructions pkg={pkg} />
-            
-            {/* Priority Actions Section */}
+            {/* Priority Actions Section - Always first */}
             {viewMode === 'user' && (
               <ShopperPackagePriorityActions 
                 pkg={pkg}
                 onQuote={onQuote}
               />
             )}
+            
+            {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
+            <ShippingInstructions pkg={pkg} />
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
