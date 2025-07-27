@@ -35,6 +35,7 @@ export const useNotificationGenerator = ({ packages, trips, currentUser }: Notif
         const pendingPackages = packages.filter(pkg => pkg.status === 'pending_approval');
         const pendingTrips = trips.filter(trip => trip.status === 'pending_approval');
         const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending');
+        const officeConfirmationsPending = packages.filter(pkg => pkg.status === 'pending_office_confirmation');
         
         // Only create notifications if there are items to review
         if (pendingPackages.length > 0) {
@@ -53,6 +54,16 @@ export const useNotificationGenerator = ({ packages, trips, currentUser }: Notif
             'Pagos pendientes de confirmación',
             `Tienes ${paymentsToConfirm.length} pagos esperando confirmación`,
             'payment',
+            'high'
+          );
+        }
+
+        if (officeConfirmationsPending.length > 0) {
+          await createNotification(
+            currentUser.id,
+            'Entregas pendientes de confirmar',
+            `Tienes ${officeConfirmationsPending.length} paquetes esperando confirmación de recepción en oficina`,
+            'delivery',
             'high'
           );
         }
