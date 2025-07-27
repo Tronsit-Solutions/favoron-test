@@ -85,7 +85,7 @@ const ShopperPackagePriorityActions = ({
         return {
           icon: Package2,
           title: "🚚 Paquete en camino",
-          description: "Tu paquete está siendo enviado por el viajero. Revisa el tracking abajo.",
+          description: "Tu paquete está en camino a la dirección del viajero. Recibirás una notificación cuando el viajero reciba el paquete.",
           button: null
         };
       case 'delivered':
