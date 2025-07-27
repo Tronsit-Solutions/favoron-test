@@ -20,6 +20,7 @@ interface QuoteDialogProps {
     item_link?: string;
     deliveryAddress?: any;
     delivery_method?: string;
+    quote_expires_at?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -48,8 +49,13 @@ const QuoteDialog = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const isMobile = useIsMobile();
 
+  const isQuoteExpired = packageDetails.quote_expires_at && new Date(packageDetails.quote_expires_at) < new Date();
+
   const handleSubmit = () => {
     if (existingQuote) {
+      if (isQuoteExpired) {
+        return; // Prevent submission if quote is expired
+      }
       onSubmit({ message: 'accepted' });
     } else {
       const basePrice = parseFloat(price);
@@ -155,38 +161,58 @@ const QuoteDialog = ({
 
           {/* Existing Quote Display */}
           {existingQuote && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-green-800 mb-2">Cotización del viajero:</p>
-              <div className="text-sm text-green-700 space-y-1">
-                {existingQuote.message && (
-                  <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
-                )}
-                <div className="mt-2 pt-2 border-t border-green-300">
-                  {(() => {
-                    const baseTotal = parseFloat(existingQuote.totalPrice || 0);
-                    const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
-                    const finalTotal = baseTotal + deliveryFee;
-                    
-                    return (
-                      <>
-                        {deliveryFee > 0 && (
-                          <div className="text-xs space-y-1 mb-2">
-                            <p><strong>Cotización del viajero, fee Favorón y seguro:</strong> Q{baseTotal.toFixed(2)}</p>
-                            <p><strong>Envío a domicilio:</strong> Q{deliveryFee.toFixed(2)}</p>
-                          </div>
-                        )}
-                        <p className="font-medium text-lg">
-                          <strong>Total a pagar:</strong> Q{finalTotal.toFixed(2)}
-                        </p>
-                      </>
-                    );
-                  })()}
-                  <p className="text-xs text-green-600 mt-1">
-                    Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
-                    {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
-                  </p>
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-green-800 mb-2">Cotización del viajero:</p>
+                <div className="text-sm text-green-700 space-y-1">
+                  {existingQuote.message && (
+                    <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
+                  )}
+                  <div className="mt-2 pt-2 border-t border-green-300">
+                    {(() => {
+                      const baseTotal = parseFloat(existingQuote.totalPrice || 0);
+                      const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
+                      const finalTotal = baseTotal + deliveryFee;
+                      
+                      return (
+                        <>
+                          {deliveryFee > 0 && (
+                            <div className="text-xs space-y-1 mb-2">
+                              <p><strong>Cotización del viajero, fee Favorón y seguro:</strong> Q{baseTotal.toFixed(2)}</p>
+                              <p><strong>Envío a domicilio:</strong> Q{deliveryFee.toFixed(2)}</p>
+                            </div>
+                          )}
+                          <p className="font-medium text-lg">
+                            <strong>Total a pagar:</strong> Q{finalTotal.toFixed(2)}
+                          </p>
+                        </>
+                      );
+                    })()}
+                    <p className="text-xs text-green-600 mt-1">
+                      Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
+                      {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
+                    </p>
+                  </div>
                 </div>
               </div>
+              
+              {/* Show expiration countdown for shoppers viewing quotes */}
+              {packageDetails.quote_expires_at && userType === 'user' && (
+                <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-warning mb-2">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm font-medium">Tiempo para completar el pago</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Esta cotización expira el {new Date(packageDetails.quote_expires_at).toLocaleString('es-GT')}
+                  </p>
+                  {new Date(packageDetails.quote_expires_at) < new Date() && (
+                    <p className="text-sm text-destructive mt-1 font-medium">
+                      ⚠️ Esta cotización ha expirado
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -318,10 +344,10 @@ const QuoteDialog = ({
                     <Button 
                       variant="default"
                       onClick={handleSubmit}
-                      disabled={userType === 'user' && !acceptedTerms}
+                      disabled={(userType === 'user' && !acceptedTerms) || isQuoteExpired}
                       className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 disabled:opacity-50"
                     >
-                      Aceptar Cotización
+                      {isQuoteExpired ? 'Cotización Expirada' : 'Aceptar Cotización'}
                     </Button>
                   </>
                 ) : (
