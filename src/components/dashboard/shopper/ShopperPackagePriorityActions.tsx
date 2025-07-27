@@ -16,6 +16,15 @@ const ShopperPackagePriorityActions = ({
     return null;
   }
 
+  // Debug logging to see why countdown might not appear
+  console.log('🕒 QuoteCountdown Debug:', {
+    packageId: pkg.id,
+    status: pkg.status,
+    quote_expires_at: pkg.quote_expires_at,
+    hasQuoteExpiresAt: !!pkg.quote_expires_at,
+    isQuoteExpired: pkg.quote_expires_at ? new Date(pkg.quote_expires_at) <= new Date() : 'N/A'
+  });
+
   const isQuoteExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date();
 
   const getActionConfig = () => {
