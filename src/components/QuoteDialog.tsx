@@ -4,9 +4,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import TermsAndConditionsModal from "./TermsAndConditionsModal";
 
 interface QuoteDialogProps {
   isOpen: boolean;
@@ -42,6 +44,8 @@ const QuoteDialog = ({
   const [message, setMessage] = useState(existingQuote?.message || '');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const isMobile = useIsMobile();
 
   const handleSubmit = () => {
@@ -229,6 +233,37 @@ const QuoteDialog = ({
             </div>
           )}
 
+          {/* Terms and Conditions Checkbox - Only for shoppers accepting quotes */}
+          {existingQuote && userType === 'user' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="acceptTerms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
+                    Entiendo y acepto los términos y condiciones de Favorón
+                  </Label>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Al aceptar esta cotización, confirmas que has leído y aceptas nuestros términos de servicio.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
+                    onClick={() => setShowTermsModal(true)}
+                  >
+                    <FileText className="h-3 w-3 mr-1" />
+                    Leer términos y condiciones
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Rejection Form */}
           {existingQuote && showRejectionForm && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -283,7 +318,8 @@ const QuoteDialog = ({
                     <Button 
                       variant="default"
                       onClick={handleSubmit}
-                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                      disabled={userType === 'user' && !acceptedTerms}
+                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 disabled:opacity-50"
                     >
                       Aceptar Cotización
                     </Button>
@@ -311,6 +347,12 @@ const QuoteDialog = ({
             )}
           </div>
         </div>
+        
+        {/* Terms and Conditions Modal */}
+        <TermsAndConditionsModal
+          isOpen={showTermsModal}
+          onClose={() => setShowTermsModal(false)}
+        />
       </DialogContent>
     </Dialog>
   );
