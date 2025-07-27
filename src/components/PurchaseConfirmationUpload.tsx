@@ -115,71 +115,62 @@ const PurchaseConfirmationUpload = ({
   const isCompleted = !!currentConfirmation;
 
   return (
-    <Card className={isCompleted ? "border-success-border bg-success-muted" : ""}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center space-x-2">
-          <FileText className="h-5 w-5" />
-          <span>Confirmación de Compra</span>
-          {isCompleted && <CheckCircle className="h-5 w-5 text-success" />}
-        </CardTitle>
-        <CardDescription>
-          {isCompleted 
-            ? "✅ Confirmación de compra subida exitosamente"
-            : "Sube la confirmación de compra del producto (screenshot, factura, email de confirmación)"
-          }
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isCompleted ? (
-          <div className="flex items-center space-x-2 p-4 bg-success-muted border border-success-border rounded-lg">
-            <CheckCircle className="h-5 w-5 text-success" />
-            <div>
-              <p className="text-sm font-medium text-success-foreground">Confirmación de compra subida exitosamente</p>
-              <p className="text-xs text-success-foreground/75">
-                {currentConfirmation.filename} • {new Date(currentConfirmation.uploadedAt).toLocaleDateString('es-GT')}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*,.pdf"
-              className="hidden"
-            />
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-              <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-4">
-                Arrastra tu confirmación de compra aquí o haz clic para seleccionar
-              </p>
-              <Button 
-                onClick={handleUploadClick}
-                className="w-full"
-                disabled={uploading}
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Subiendo...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Subir Confirmación de Compra</span>
-                    <span className="sm:hidden">Subir Confirmación</span>
-                  </>
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Formatos permitidos: PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
+    <div className="space-y-3">
+      <div className="flex items-center space-x-2">
+        <FileText className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Confirmación de Compra</span>
+        {isCompleted && <CheckCircle className="h-4 w-4 text-success" />}
+      </div>
+      
+      {isCompleted ? (
+        <div className="flex items-center space-x-2 p-3 bg-success/10 border border-success/20 rounded-md">
+          <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-success-foreground">Confirmación subida</p>
+            <p className="text-xs text-success-foreground/75 truncate">
+              {currentConfirmation.filename} • {new Date(currentConfirmation.uploadedAt).toLocaleDateString('es-GT')}
             </p>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      ) : (
+        <>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*,.pdf"
+            className="hidden"
+          />
+          <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-4 text-center">
+            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground mb-3">
+              Sube tu confirmación de compra (screenshot, factura, email)
+            </p>
+            <Button 
+              onClick={handleUploadClick}
+              size="sm"
+              disabled={uploading}
+              className="w-full"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  Subiendo...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-3 w-3 mr-2" />
+                  Subir Confirmación
+                </>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
+          </p>
+        </>
+      )}
+    </div>
   );
 };
 

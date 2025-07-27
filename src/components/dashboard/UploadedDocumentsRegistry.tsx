@@ -111,38 +111,33 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
   }
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center space-x-2">
-          <FileText className="h-4 w-4" />
-          <span>Documentos Subidos</span>
-          <Badge variant="secondary" className="text-xs">
-            {uploadedCount}
-          </Badge>
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Documentos subidos para este pedido (confirmación de compra y tracking son independientes)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
+      <div className="flex items-center space-x-2 mb-2">
+        <FileText className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium">Documentos Subidos</span>
+        <Badge variant="secondary" className="text-xs h-5">
+          {uploadedCount}
+        </Badge>
+      </div>
+      
+      <div className="space-y-2">
         {/* Payment Receipt */}
         {paymentReceipt && (
-          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <CreditCard className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-xs font-medium">Comprobante de pago</p>
-                <p className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+              <CreditCard className="h-3 w-3 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">Comprobante de pago</p>
+                <p className="text-xs text-muted-foreground truncate">
                   {paymentReceipt.filename || 'Comprobante subido'}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
               {paymentReceipt.uploadedAt && (
-                <Badge variant="outline" className="text-xs">
-                  <Calendar className="h-3 w-3 mr-1" />
+                <span className="text-xs text-muted-foreground">
                   {new Date(paymentReceipt.uploadedAt).toLocaleDateString('es-GT')}
-                </Badge>
+                </span>
               )}
               <Button
                 size="sm"
@@ -170,22 +165,21 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
 
         {/* Purchase Confirmation */}
         {purchaseConfirmation && (
-          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-xs font-medium">Confirmación de compra</p>
-                <p className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+              <FileText className="h-3 w-3 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">Confirmación de compra</p>
+                <p className="text-xs text-muted-foreground truncate">
                   {purchaseConfirmation.filename || 'Confirmación subida'}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
               {purchaseConfirmation.uploadedAt && (
-                <Badge variant="outline" className="text-xs">
-                  <Calendar className="h-3 w-3 mr-1" />
+                <span className="text-xs text-muted-foreground">
                   {new Date(purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
-                </Badge>
+                </span>
               )}
               <Button
                 size="sm"
@@ -213,22 +207,21 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
 
         {/* Tracking Information */}
         {trackingInfo && (
-          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Truck className="h-4 w-4 text-orange-600" />
-              <div>
-                <p className="text-xs font-medium">Información de seguimiento</p>
-                <p className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+              <Truck className="h-3 w-3 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate">Información de seguimiento</p>
+                <p className="text-xs text-muted-foreground truncate">
                   {trackingInfo.trackingNumber && `#${trackingInfo.trackingNumber}`}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
               {trackingInfo.timestamp && (
-                <Badge variant="outline" className="text-xs">
-                  <Calendar className="h-3 w-3 mr-1" />
+                <span className="text-xs text-muted-foreground">
                   {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
-                </Badge>
+                </span>
               )}
               {trackingInfo.trackingUrl && (
                 <Button
@@ -255,7 +248,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
             </div>
           </div>
         )}
-      </CardContent>
+      </div>
       
       {/* Modal para ver imágenes */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
@@ -274,7 +267,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 };
 
