@@ -42,6 +42,7 @@ const CollapsiblePackageCard = ({
     pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved'
   );
   const [showEditModal, setShowEditModal] = React.useState(false);
+  const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
     documentType: 'purchase_confirmation' | 'tracking_info' | null;
@@ -142,24 +143,28 @@ const CollapsiblePackageCard = ({
 
             {/* Información de envío collapsible para in_transit y estados posteriores */}
             {['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between mb-4">
-                    📦 Información de Envío
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 mb-4">
-                  <ShippingInstructions pkg={pkg} />
-                  {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && (
-                    <PackageShippingInstructions 
-                      travelerAddress={(pkg as any).trips.package_receiving_address}
-                      matchedTripDates={(pkg as any).trips}
-                    />
-                  )}
-                  <ShippingInfoRegistry pkg={pkg} />
-                </CollapsibleContent>
-              </Collapsible>
+              <div className="mb-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-between"
+                  onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
+                >
+                  📦 Información de Envío
+                  {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+                {shippingInfoOpen && (
+                  <div className="space-y-4 mt-4 p-4 border rounded-md bg-muted/20">
+                    <ShippingInstructions pkg={pkg} />
+                    {(pkg as any).trips?.package_receiving_address && (
+                      <PackageShippingInstructions 
+                        travelerAddress={(pkg as any).trips.package_receiving_address}
+                        matchedTripDates={(pkg as any).trips}
+                      />
+                    )}
+                    <ShippingInfoRegistry pkg={pkg} />
+                  </div>
+                )}
+              </div>
             )}
 
             <div className="grid md:grid-cols-2 gap-6">
