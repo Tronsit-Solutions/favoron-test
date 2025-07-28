@@ -312,6 +312,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               packages={packages}
               trips={trips}
               getStatusBadge={getStatusBadge}
+              currentUserId={user?.id}
             />
           </TabsContent>
 

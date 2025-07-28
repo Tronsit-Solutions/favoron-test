@@ -7,10 +7,17 @@ interface RecentActivityProps {
   packages: any[];
   trips: any[];
   getStatusBadge: (status: string) => JSX.Element;
+  currentUserId?: string;
 }
 
-const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps) => {
-  const hasActivity = packages.length > 0 || trips.length > 0;
+const RecentActivity = ({ packages, trips, getStatusBadge, currentUserId }: RecentActivityProps) => {
+  // Filtrar packages del usuario actual
+  const userPackages = packages.filter(pkg => pkg.user_id === currentUserId);
+  
+  // Filtrar trips del usuario actual
+  const userTrips = trips.filter(trip => trip.user_id === currentUserId);
+  
+  const hasActivity = userPackages.length > 0 || userTrips.length > 0;
 
   return (
     <Card>
@@ -28,7 +35,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
         ) : (
           <div className="space-y-4">
             {/* Primero mostrar paquetes */}
-            {packages
+            {userPackages
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .slice(0, 3)
               .map((item) => (
@@ -49,7 +56,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge }: RecentActivityProps
               ))}
             
             {/* Luego mostrar viajes */}
-            {trips
+            {userTrips
               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               .slice(0, 2)
               .map((item) => (
