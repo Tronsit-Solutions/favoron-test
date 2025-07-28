@@ -12,6 +12,7 @@ import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -85,9 +86,41 @@ const AdminTravelerPaymentsTab = () => {
         status: newStatus,
         notes: notes.trim() || undefined
       };
+      
       if (confirmDialog.action === 'complete') {
         updateData.completed_at = new Date().toISOString();
+        
+        // Subir foto del recibo si existe
+        if (receiptPhoto) {
+          try {
+            const fileExt = receiptPhoto.name.split('.').pop();
+            const fileName = `payment-${confirmDialog.order.id}-${Date.now()}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('payment-receipts')
+              .upload(fileName, receiptPhoto);
+              
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('payment-receipts')
+                .getPublicUrl(fileName);
+                
+              updateData.receipt_url = publicUrl;
+              updateData.receipt_filename = receiptPhoto.name;
+            } else {
+              console.error('Error uploading receipt:', uploadError);
+              toast({
+                title: "Error",
+                description: "Error al subir el comprobante, pero el pago se completará.",
+                variant: "destructive"
+              });
+            }
+          } catch (uploadError) {
+            console.error('Error uploading receipt:', uploadError);
+          }
+        }
       }
+      
       await updatePaymentOrder(confirmDialog.order.id, updateData);
       toast({
         title: confirmDialog.action === 'complete' ? "Pago completado" : "Pago rechazado",
