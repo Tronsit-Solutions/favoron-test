@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, Phone, CheckCircle, MailOpen, ArrowLeft } from 'lucide-react';
+import { Plane, Mail, Lock, User, Phone, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
@@ -20,7 +20,7 @@ const Auth = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  
   const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -84,19 +84,16 @@ const Auth = () => {
         }
       }
 
-      // Mostrar confirmación prominente
-      setShowEmailConfirmation(true);
-      
-      // Cambiar a pestaña de iniciar sesión después de 2 segundos
-      setTimeout(() => {
-        setCurrentTab('signin');
-      }, 2000);
-
       toast({
         title: "¡Cuenta creada exitosamente! ✅",
-        description: `Hemos enviado un enlace de confirmación a ${email}. Revisa tu bandeja de entrada (y spam) para activar tu cuenta.`,
-        duration: 8000,
+        description: "Ya puedes iniciar sesión con tu cuenta.",
+        duration: 4000,
       });
+
+      // Cambiar a pestaña de iniciar sesión después de 1 segundo
+      setTimeout(() => {
+        setCurrentTab('signin');
+      }, 1000);
 
       // Limpiar formulario
       setFirstName('');
@@ -193,22 +190,6 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Alerta de confirmación de email */}
-          {showEmailConfirmation && (
-            <Alert className="mb-6 border-green-200 bg-green-50 animate-fade-in">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <MailOpen className="h-5 w-5 text-green-600" />
-              </div>
-              <AlertDescription className="ml-12 text-green-800">
-                <div className="space-y-2">
-                  <p className="font-semibold">¡Cuenta creada exitosamente!</p>
-                  <p>Te hemos enviado un enlace de confirmación a <strong>{email}</strong></p>
-                  <p className="text-sm">Revisa tu bandeja de entrada (y carpeta de spam) para activar tu cuenta.</p>
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
