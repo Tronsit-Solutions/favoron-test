@@ -16,72 +16,37 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        console.log('Fetching app stats...');
+        console.log('Fetching app stats using new function...');
         
-        // Obtener usuarios totales sin autenticación requerida
-        const { count: usersCount, error: usersError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
+        // Usar la nueva función que bypassa RLS
+        const { data: statsData, error: statsError } = await supabase
+          .rpc('get_public_stats');
         
-        console.log('Users query result:', { count: usersCount, error: usersError });
+        console.log('Stats function result:', { data: statsData, error: statsError });
         
-        if (usersError) {
-          console.error('Users query error:', usersError);
-          // Fallback para usuarios
+        if (statsError) {
+          console.error('Stats function error:', statsError);
+          // Fallbacks
           setTotalUsers(1000);
-        } else if (usersCount !== null && usersCount > 0) {
-          console.log('Setting total users to:', usersCount);
-          setTotalUsers(usersCount);
-        } else {
-          setTotalUsers(1000); // Fallback
-        }
-        
-        // Para paquetes, usar una consulta directa sin filtros complejos
-        console.log('Fetching all packages first...');
-        const { data: allPackagesData, error: allError } = await supabase
-          .from('packages')
-          .select('status');
-        
-        console.log('All packages result:', { data: allPackagesData, error: allError });
-        
-        if (allError) {
-          console.error('All packages query error:', allError);
-          setCompletedPackages(1); // Mostrar al menos 1 para no confundir
-        } else if (allPackagesData) {
-          // Contar manualmente los completados
-          const completedCount = allPackagesData.filter(pkg => 
-            ['delivered_to_office', 'received_by_traveler', 'completed'].includes(pkg.status)
-          ).length;
+          setCompletedPackages(8);
+          setTotalTrips(50);
+        } else if (statsData && statsData.length > 0) {
+          const stats = statsData[0];
+          console.log('Setting stats from function:', stats);
           
-          console.log('Manual count of completed packages:', completedCount);
-          console.log('All statuses found:', allPackagesData.map(p => p.status));
-          
-          setCompletedPackages(completedCount > 0 ? completedCount : 1);
+          setCompletedPackages(Number(stats.total_packages_completed) || 8);
+          setTotalUsers(Number(stats.total_users) || 1000);
+          setTotalTrips(Number(stats.total_trips) || 50);
         } else {
-          setCompletedPackages(1); // Fallback
-        }
-        
-        // Obtener total de viajes registrados
-        console.log('Fetching all trips...');
-        const { count: tripsCount, error: tripsError } = await supabase
-          .from('trips')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log('Trips query result:', { count: tripsCount, error: tripsError });
-        
-        if (tripsError) {
-          console.error('Trips query error:', tripsError);
-          setTotalTrips(50); // Fallback
-        } else if (tripsCount !== null && tripsCount > 0) {
-          console.log('Setting total trips to:', tripsCount);
-          setTotalTrips(tripsCount);
-        } else {
-          setTotalTrips(50); // Fallback
+          // Fallbacks
+          setTotalUsers(1000);
+          setCompletedPackages(8);
+          setTotalTrips(50);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
-        setCompletedPackages(1);
+        setCompletedPackages(8);
         setTotalTrips(50);
       }
     };

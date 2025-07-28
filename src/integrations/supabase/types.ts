@@ -540,6 +540,14 @@ export type Database = {
           top_origins: Json
         }[]
       }
+      get_public_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_packages_completed: number
+          total_users: number
+          total_trips: number
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
