@@ -86,7 +86,16 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
       }
     };
 
+    // Fetch inicial
     fetchStats();
+    
+    // Actualizar cada 30 segundos
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 30000);
+    
+    // Cleanup del interval
+    return () => clearInterval(interval);
   }, []);
 
   return (
