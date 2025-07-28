@@ -757,6 +757,19 @@ export const useDashboardActions = (
       });
       
       console.log('✅ Package updated successfully:', result);
+
+      // Actualizar o crear trip payment accumulator después de marcar como completado
+      const packageForAccumulator = packages?.find(pkg => pkg.id === packageId);
+      if (packageForAccumulator?.matched_trip_id) {
+        const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
+        const tripId = packageForAccumulator.matched_trip_id;
+        const travelerId = packageForAccumulator.trips?.user_id || packageForAccumulator.trips?.profiles?.id;
+        
+        if (travelerId) {
+          console.log('🔄 Updating trip payment accumulator for trip:', tripId);
+          await createOrUpdateTripPaymentAccumulator(tripId, travelerId);
+        }
+      }
       
       // Find the package to get user info
       const updatedPackage = packages?.find(pkg => pkg.id === packageId);

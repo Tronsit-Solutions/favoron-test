@@ -29,8 +29,38 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     }
   };
 
-  if (loading || !tripPayment) {
+  const handleCreateAccumulator = async () => {
+    try {
+      const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
+      await createOrUpdateTripPaymentAccumulator(trip.id, userProfile.id);
+      window.location.reload(); // Refrescar para ver los cambios
+    } catch (error) {
+      console.error('Error creating accumulator:', error);
+    }
+  };
+
+  if (loading) {
     return null;
+  }
+
+  // Si no hay tripPayment, mostrar botón para crear el acumulador
+  if (!tripPayment) {
+    return (
+      <Card className="bg-muted/20 border">
+        <CardContent className="p-3 text-center">
+          <p className="text-xs text-muted-foreground mb-2">
+            Este viaje tiene paquetes entregados con tips
+          </p>
+          <Button 
+            onClick={handleCreateAccumulator}
+            size="sm"
+            className="text-xs"
+          >
+            Inicializar pagos
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   const isAllPackagesDelivered = tripPayment.delivered_packages_count === tripPayment.total_packages_count;
