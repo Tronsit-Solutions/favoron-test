@@ -55,16 +55,22 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente de Aprobación' },
     { value: 'approved', label: 'Aprobado' },
+    { value: 'rejected', label: 'Rechazado' },
     { value: 'matched', label: 'Match Realizado' },
     { value: 'quote_sent', label: 'Cotización Enviada' },
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
-    { value: 'address_confirmed', label: 'Dirección Confirmada' },
-    { value: 'paid', label: 'Pago Pendiente' },
+    { value: 'awaiting_payment', label: 'Esperando Pago' },
+    { value: 'payment_confirmed', label: 'Pago Confirmado' },
+    { value: 'pending_purchase', label: 'Pendiente de Compra' },
     { value: 'purchased', label: 'Comprado' },
     { value: 'in_transit', label: 'En Tránsito' },
+    { value: 'received_by_traveler', label: 'Recibido por Viajero' },
     { value: 'pending_office_confirmation', label: 'Esperando Confirmación Oficina' },
-    { value: 'delivered_to_office', label: 'Entregado en Oficina (Confirmado)' },
-    { value: 'rejected', label: 'Rechazado' },
+    { value: 'delivered_to_office', label: 'Entregado en Oficina' },
+    { value: 'ready_for_pickup', label: 'Listo para Recoger' },
+    { value: 'ready_for_delivery', label: 'Listo para Entrega' },
+    { value: 'completed', label: 'Completado' },
+    { value: 'cancelled', label: 'Cancelado' },
   ];
 
   const logAction = async (actionType: string, description: string, additionalData?: any) => {
