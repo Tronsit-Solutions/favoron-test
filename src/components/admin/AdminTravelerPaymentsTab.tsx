@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -59,6 +60,7 @@ const AdminTravelerPaymentsTab = () => {
     order: null
   });
   const [notes, setNotes] = useState("");
+  const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   
@@ -98,6 +100,7 @@ const AdminTravelerPaymentsTab = () => {
         order: null
       });
       setNotes("");
+      setReceiptPhoto(null);
     } catch (error) {
       console.error('Error updating payment order:', error);
     }
@@ -456,10 +459,59 @@ const AdminTravelerPaymentsTab = () => {
                 className="mt-1"
               />
             </div>
+            
+            {/* Photo Upload Section */}
+            <div>
+              <Label htmlFor="receipt-photo">Comprobante de pago (opcional)</Label>
+              <div className="mt-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="receipt-photo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setReceiptPhoto(file);
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('receipt-photo')?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    {receiptPhoto ? 'Cambiar foto' : 'Adjuntar foto'}
+                  </Button>
+                  {receiptPhoto && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setReceiptPhoto(null)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {receiptPhoto && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>{receiptPhoto.name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+                onClick={() => {
+                  setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                  setNotes("");
+                  setReceiptPhoto(null);
+                }}
               >
                 Cancelar
               </Button>
