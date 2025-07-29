@@ -344,6 +344,7 @@ export type Database = {
       trip_payment_accumulator: {
         Row: {
           accumulated_amount: number
+          all_packages_delivered: boolean | null
           created_at: string
           delivered_packages_count: number
           id: string
@@ -355,6 +356,7 @@ export type Database = {
         }
         Insert: {
           accumulated_amount?: number
+          all_packages_delivered?: boolean | null
           created_at?: string
           delivered_packages_count?: number
           id?: string
@@ -366,6 +368,7 @@ export type Database = {
         }
         Update: {
           accumulated_amount?: number
+          all_packages_delivered?: boolean | null
           created_at?: string
           delivered_packages_count?: number
           id?: string
