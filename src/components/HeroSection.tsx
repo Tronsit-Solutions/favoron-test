@@ -1,30 +1,30 @@
-
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
 }
-
-const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
+const HeroSection = ({
+  onOpenAuth
+}: HeroSectionProps) => {
   const [completedPackages, setCompletedPackages] = useState(500);
   const [totalUsers, setTotalUsers] = useState(1000);
   const [totalTrips, setTotalTrips] = useState(50);
-  const [totalTips, setTotalTips] = useState(0);
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
         console.log('Fetching app stats using new function...');
-        
+
         // Usar la nueva función que bypassa RLS
-        const { data: statsData, error: statsError } = await supabase
-          .rpc('get_public_stats');
-        
-        console.log('Stats function result:', { data: statsData, error: statsError });
-        
+        const {
+          data: statsData,
+          error: statsError
+        } = await supabase.rpc('get_public_stats');
+        console.log('Stats function result:', {
+          data: statsData,
+          error: statsError
+        });
         if (statsError) {
           console.error('Stats function error:', statsError);
           // Fallbacks
@@ -34,41 +34,35 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
         } else if (statsData && statsData.length > 0) {
           const stats = statsData[0];
           console.log('Setting stats from function:', stats);
-          
           setCompletedPackages(Number(stats.total_packages_completed) || 8);
           setTotalUsers(Number(stats.total_users) || 1000);
           setTotalTrips(Number(stats.total_trips) || 50);
-          setTotalTips(Number(stats.total_tips_distributed) || 0);
         } else {
           // Fallbacks
           setTotalUsers(1000);
           setCompletedPackages(8);
           setTotalTrips(50);
-          setTotalTips(0);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
         setCompletedPackages(8);
         setTotalTrips(50);
-        setTotalTips(0);
       }
     };
 
     // Fetch inicial
     fetchStats();
-    
+
     // Actualizar cada 30 segundos
     const interval = setInterval(() => {
       fetchStats();
     }, 30000);
-    
+
     // Cleanup del interval
     return () => clearInterval(interval);
   }, []);
-
-  return (
-    <header className="relative overflow-hidden">
+  return <header className="relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
@@ -107,29 +101,15 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           </div>
         </div>
 
-        <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed">
-          ¿Necesitas algo del extranjero? ¿Viajas y quieres ganar dinero extra? 
-          <br className="hidden sm:block" />
-          <span className="font-semibold text-gray-800">Te conectamos para que ambos ganen</span> ✨
-        </p>
+        
         
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button 
-            size="lg" 
-            variant="shopper" 
-            onClick={() => onOpenAuth("register")} 
-            className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
+          <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
             <Package className="h-5 w-5 mr-3" />
             Solicitar Paquete
           </Button>
-          <Button 
-            size="lg" 
-            variant="traveler" 
-            onClick={() => onOpenAuth("register")} 
-            className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
+          <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
             <Plane className="h-5 w-5 mr-3" />
             Registrar Viaje
           </Button>
@@ -146,13 +126,11 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
             <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-success mb-2">Q{totalTips.toFixed(0)}+</div>
-            <div className="text-gray-600">Tips repartidos</div>
+            <div className="text-2xl font-bold text-success mb-2">99%</div>
+            <div className="text-gray-600">Entregas exitosas</div>
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default HeroSection;
