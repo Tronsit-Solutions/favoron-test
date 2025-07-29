@@ -95,10 +95,6 @@ const HeroSection = ({
             <span className="text-gray-900">con viajeros</span>
           </h1>
           
-          {/* Decorative element */}
-          <div className="absolute -top-2 -right-4 sm:-right-8">
-            <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-80 animate-pulse"></div>
-          </div>
         </div>
 
         
