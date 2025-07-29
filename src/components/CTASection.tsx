@@ -35,7 +35,7 @@ const CTASection = ({
       
       <div className="container mx-auto px-4 text-center relative">
         {/* Background Airplane */}
-        <Plane className="absolute inset-0 w-96 h-96 text-white/10 -rotate-12 mx-auto my-auto" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-12deg)' }} />
+        <Plane className="absolute inset-0 w-96 h-96 text-white/10 -rotate-12 mx-auto my-auto" style={{ top: '50%', left: '65%', transform: 'translate(-50%, -50%) rotate(-12deg)' }} />
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8">
           <Sparkles className="h-4 w-4" />
