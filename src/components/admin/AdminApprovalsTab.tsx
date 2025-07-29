@@ -206,7 +206,7 @@ const AdminApprovalsTab = ({
                           </p>
                             <p className="text-sm text-muted-foreground">
                               {(trip as any).profiles ? 
-                                (trip as any).profiles.username || `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.email || trip.user_id
+                                `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || trip.user_id
                                 : trip.user_id}
                             </p>
                           <p className="text-sm text-muted-foreground">
