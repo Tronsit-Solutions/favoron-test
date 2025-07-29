@@ -500,6 +500,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      check_all_packages_delivered: {
+        Args: { _trip_id: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           _user_id: string
