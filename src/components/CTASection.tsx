@@ -24,7 +24,7 @@ const CTASection = ({
         <h3 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
           ¿Listo para unirte a la
           <br />
-          <span className="bg-gradient-to-r from-warning to-accent bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             comunidad más chilera de Guatemala?
           </span>
         </h3>
