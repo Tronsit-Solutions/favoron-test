@@ -546,6 +546,7 @@ export type Database = {
           total_packages_completed: number
           total_users: number
           total_trips: number
+          total_tips_distributed: number
         }[]
       }
       has_role: {

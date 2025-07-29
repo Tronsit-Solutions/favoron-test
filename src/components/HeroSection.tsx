@@ -12,6 +12,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
   const [completedPackages, setCompletedPackages] = useState(500);
   const [totalUsers, setTotalUsers] = useState(1000);
   const [totalTrips, setTotalTrips] = useState(50);
+  const [totalTips, setTotalTips] = useState(0);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -37,17 +38,20 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
           setCompletedPackages(Number(stats.total_packages_completed) || 8);
           setTotalUsers(Number(stats.total_users) || 1000);
           setTotalTrips(Number(stats.total_trips) || 50);
+          setTotalTips(Number(stats.total_tips_distributed) || 0);
         } else {
           // Fallbacks
           setTotalUsers(1000);
           setCompletedPackages(8);
           setTotalTrips(50);
+          setTotalTips(0);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
         setCompletedPackages(8);
         setTotalTrips(50);
+        setTotalTips(0);
       }
     };
 
@@ -142,7 +146,7 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
             <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-success mb-2">Q25,000+</div>
+            <div className="text-2xl font-bold text-success mb-2">Q{totalTips.toFixed(0)}+</div>
             <div className="text-gray-600">Tips repartidos</div>
           </div>
         </div>
