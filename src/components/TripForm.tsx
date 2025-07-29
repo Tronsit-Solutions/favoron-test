@@ -642,7 +642,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" variant="secondary" className="flex-1">
+            <Button type="submit" variant="traveler" className="flex-1">
               Registrar Viaje
             </Button>
           </div>
