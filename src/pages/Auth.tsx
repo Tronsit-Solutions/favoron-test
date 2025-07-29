@@ -17,6 +17,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [countryCode, setCountryCode] = useState('+502');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -49,7 +50,7 @@ const Auth = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
-            phone_number: phoneNumber,
+            phone_number: countryCode + phoneNumber,
             username: username,
           }
         }
@@ -283,17 +284,29 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">WhatsApp</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+502 1234 5678"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
+                  <div className="grid grid-cols-5 gap-2">
+                    <div className="col-span-2">
+                      <Input
+                        id="country-code"
+                        type="text"
+                        placeholder="+502"
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="col-span-3 relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="1234 5678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
