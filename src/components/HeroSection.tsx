@@ -142,8 +142,8 @@ const HeroSection = ({ onOpenAuth }: HeroSectionProps) => {
             <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-success mb-2">99%</div>
-            <div className="text-gray-600">Entregas exitosas</div>
+            <div className="text-2xl font-bold text-success mb-2">Q25,000+</div>
+            <div className="text-gray-600">Tips repartidos</div>
           </div>
         </div>
       </div>
