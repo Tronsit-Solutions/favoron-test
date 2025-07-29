@@ -82,6 +82,9 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               <div className="text-xs text-muted-foreground space-y-0.5">
                 <div className="font-medium">{trip.package_receiving_address.recipientName}</div>
                 <div>{trip.package_receiving_address.streetAddress}</div>
+                {trip.package_receiving_address.streetAddress2 && (
+                  <div>{trip.package_receiving_address.streetAddress2}</div>
+                )}
                 <div className="flex items-center justify-between">
                   <span>{trip.package_receiving_address.cityArea} {trip.package_receiving_address.postalCode && `CP: ${trip.package_receiving_address.postalCode}`}</span>
                   <div className="flex items-center space-x-1">
