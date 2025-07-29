@@ -36,7 +36,9 @@ const ProfileHeader = ({ user, userLevel, onUpdateUser }: ProfileHeaderProps) =>
                 )}
               </Avatar>
               <div className="text-center sm:text-left">
-                <CardTitle className="text-xl sm:text-2xl">{user.name}</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl">
+                  {user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Sin nombre'}
+                </CardTitle>
                 <CardDescription className="mt-1">
                   {user.username ? `@${user.username}` : 'Sin nombre de usuario'}
                 </CardDescription>
