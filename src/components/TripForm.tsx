@@ -8,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
+import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 
 interface TripFormProps {
   isOpen: boolean;
@@ -49,6 +51,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
   
   const [showMessengerForm, setShowMessengerForm] = useState(false);
   const [messengerData, setMessengerData] = useState(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const popularCities = [
     'Miami, FL',
@@ -101,6 +105,11 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
       return;
     }
 
+    if (!acceptedTerms) {
+      alert('Debes aceptar los términos y condiciones para continuar');
+      return;
+    }
+
     // Validar información de mensajero si seleccionó mensajero
     if (formData.deliveryMethod === 'mensajero' && !messengerData) {
       alert('Por favor completa la información de recolección por mensajero');
@@ -145,6 +154,8 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     });
     setShowMessengerForm(false);
     setMessengerData(null);
+    setAcceptedTerms(false);
+    setShowTermsModal(false);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -638,6 +649,35 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </div>
           </div>
 
+          {/* Terms and Conditions Checkbox */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="acceptTerms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
+                  Entiendo y acepto los términos y condiciones de Favorón
+                </Label>
+                <p className="text-xs text-blue-700 mt-1">
+                  Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
+                </p>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
+                  onClick={() => setShowTermsModal(true)}
+                >
+                  <FileText className="h-3 w-3 mr-1" />
+                  Leer términos y condiciones
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div className="flex space-x-3">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
@@ -647,6 +687,12 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
             </Button>
           </div>
         </form>
+        
+        {/* Terms and Conditions Modal */}
+        <TermsAndConditionsModal
+          isOpen={showTermsModal}
+          onClose={() => setShowTermsModal(false)}
+        />
       </DialogContent>
     </Dialog>
   );
