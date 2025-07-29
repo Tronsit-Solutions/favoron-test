@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, Check } from "lucide-react";
+import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 interface CTASectionProps {
@@ -34,6 +34,8 @@ const CTASection = ({
       <div className="absolute bottom-20 right-20 w-80 h-80 bg-yellow-300/20 rounded-full blur-3xl"></div>
       
       <div className="container mx-auto px-4 text-center relative">
+        {/* Background Airplane */}
+        <Plane className="absolute inset-0 w-96 h-96 text-white/10 -rotate-12 mx-auto my-auto" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-12deg)' }} />
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8">
           <Sparkles className="h-4 w-4" />
