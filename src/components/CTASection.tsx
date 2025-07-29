@@ -1,11 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 interface CTASectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
 }
 const CTASection = ({
   onOpenAuth
 }: CTASectionProps) => {
+  const [totalUsers, setTotalUsers] = useState(1000);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_public_stats');
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setTotalUsers(data[0].total_users || 1000);
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <section className="relative py-20 bg-gradient-to-br from-shopper via-traveler to-primary overflow-hidden">
       {/* Background Elements */}
@@ -17,7 +37,7 @@ const CTASection = ({
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8">
           <Sparkles className="h-4 w-4" />
-          <span>¡Únete a más de 1000 usuarios!</span>
+          <span>¡Únete a más de {totalUsers.toLocaleString()} usuarios!</span>
         </div>
 
         {/* Main Headline */}
@@ -64,7 +84,7 @@ const CTASection = ({
         {/* Trust indicators */}
         <div className="mt-12 pt-8 border-t border-white/20">
           <p className="text-white/70 text-sm">
-            Confiado por <span className="font-semibold text-white">+1000 usuarios</span> en Guatemala y el mundo
+            Confiado por <span className="font-semibold text-white">+{totalUsers.toLocaleString()} usuarios</span> en Guatemala y el mundo
           </p>
         </div>
       </div>
