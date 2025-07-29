@@ -19,12 +19,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UserStatusBadge from "./UserStatusBadge";
 import UserDetailModal from "./UserDetailModal";
 import { useUserManagement } from "@/hooks/useUserManagement";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Users, Eye, Filter } from "lucide-react";
+import { Search, Users, Eye, Filter, User as UserIcon } from "lucide-react";
 
 interface UserManagementProps {
   packages: Package[];
@@ -208,6 +209,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">Foto</TableHead>
                 <TableHead>Usuario</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>WhatsApp</TableHead>
@@ -220,7 +222,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                       <span>Cargando usuarios...</span>
@@ -228,8 +230,19 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                 users.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        {user.avatarUrl ? (
+                          <AvatarImage src={user.avatarUrl} alt={`Foto de ${user.name}`} />
+                        ) : (
+                          <AvatarFallback>
+                            <UserIcon className="h-5 w-5" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{user.name}</p>
