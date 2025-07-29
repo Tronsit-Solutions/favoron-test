@@ -50,7 +50,8 @@ const Auth = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
-            phone_number: countryCode + phoneNumber,
+            country_code: countryCode,
+            phone_number: phoneNumber,
             username: username,
           }
         }

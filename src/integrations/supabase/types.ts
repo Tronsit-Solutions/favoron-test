@@ -295,6 +295,7 @@ export type Database = {
           bank_account_type: string | null
           bank_name: string | null
           bank_swift_code: string | null
+          country_code: string | null
           created_at: string | null
           email: string | null
           first_name: string | null
@@ -312,6 +313,7 @@ export type Database = {
           bank_account_type?: string | null
           bank_name?: string | null
           bank_swift_code?: string | null
+          country_code?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
@@ -329,6 +331,7 @@ export type Database = {
           bank_account_type?: string | null
           bank_name?: string | null
           bank_swift_code?: string | null
+          country_code?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
