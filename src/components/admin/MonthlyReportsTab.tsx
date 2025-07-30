@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from 'xlsx';
 import { 
   TrendingUp, 
   Package, 
@@ -11,7 +13,8 @@ import {
   DollarSign, 
   Calendar,
   BarChart3,
-  MapPin
+  MapPin,
+  Download
 } from "lucide-react";
 
 interface MonthlyReport {
@@ -110,6 +113,118 @@ const MonthlyReportsTab = () => {
     setExpandedMonth(expandedMonth === monthKey ? null : monthKey);
   };
 
+  const exportToExcel = () => {
+    if (reports.length === 0) {
+      toast({
+        title: "Sin datos",
+        description: "No hay datos disponibles para exportar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Preparar datos para el resumen general
+      const summaryData = reports.map(report => ({
+        'Mes': report.month_name,
+        'Año': report.period_year,
+        'Total Paquetes': report.total_packages,
+        'Total Viajes': report.total_trips,
+        'Matches Exitosos': report.successful_matches,
+        'Entregas Completadas': report.completed_deliveries,
+        'Solicitudes Pendientes': report.pending_requests,
+        'Ingresos Totales (USD)': Number(report.total_revenue).toFixed(2),
+        'Tips Viajeros (USD)': Number(report.traveler_tips).toFixed(2),
+        'Ingresos Favorón (USD)': Number(report.favoron_revenue).toFixed(2),
+        'Ticket Promedio (USD)': Number(report.average_ticket).toFixed(2),
+        'GMV Total (USD)': Number(report.gmv_total).toFixed(2),
+        'Tasa de Match (%)': report.total_packages > 0 ? ((report.successful_matches / report.total_packages) * 100).toFixed(1) : '0',
+        'Tasa de Completación (%)': report.successful_matches > 0 ? ((report.completed_deliveries / report.successful_matches) * 100).toFixed(1) : '0'
+      }));
+
+      // Preparar datos detallados por estado
+      const statusData: any[] = [];
+      reports.forEach(report => {
+        Object.entries(report.packages_by_status).forEach(([status, count]) => {
+          statusData.push({
+            'Mes': report.month_name,
+            'Estado': status,
+            'Cantidad': Number(count)
+          });
+        });
+      });
+
+      // Preparar datos de destinos populares
+      const destinationData: any[] = [];
+      reports.forEach(report => {
+        Object.entries(report.top_destinations).forEach(([destination, count]) => {
+          destinationData.push({
+            'Mes': report.month_name,
+            'Destino': destination,
+            'Cantidad': Number(count)
+          });
+        });
+      });
+
+      // Preparar datos de orígenes populares
+      const originData: any[] = [];
+      reports.forEach(report => {
+        Object.entries(report.top_origins).forEach(([origin, count]) => {
+          originData.push({
+            'Mes': report.month_name,
+            'Origen': origin,
+            'Cantidad': Number(count)
+          });
+        });
+      });
+
+      // Crear workbook con múltiples hojas
+      const wb = XLSX.utils.book_new();
+      
+      // Hoja de resumen
+      const summaryWs = XLSX.utils.json_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(wb, summaryWs, "Resumen Mensual");
+      
+      // Hoja de estados
+      if (statusData.length > 0) {
+        const statusWs = XLSX.utils.json_to_sheet(statusData);
+        XLSX.utils.book_append_sheet(wb, statusWs, "Estados por Mes");
+      }
+      
+      // Hoja de destinos
+      if (destinationData.length > 0) {
+        const destinationWs = XLSX.utils.json_to_sheet(destinationData);
+        XLSX.utils.book_append_sheet(wb, destinationWs, "Destinos Populares");
+      }
+      
+      // Hoja de orígenes
+      if (originData.length > 0) {
+        const originWs = XLSX.utils.json_to_sheet(originData);
+        XLSX.utils.book_append_sheet(wb, originWs, "Orígenes Populares");
+      }
+
+      // Generar nombre del archivo con fecha
+      const today = new Date();
+      const dateString = today.toISOString().split('T')[0];
+      const filename = `Reportes_Mensuales_Favoron_${dateString}.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, filename);
+
+      toast({
+        title: "Descarga exitosa",
+        description: `El reporte se ha descargado como ${filename}`,
+      });
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo exportar el reporte a Excel",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -130,10 +245,23 @@ const MonthlyReportsTab = () => {
             Registro histórico de matches exitosos, solicitudes y métricas clave
           </p>
         </div>
-        <Badge variant="outline" className="text-sm">
-          <Calendar className="h-4 w-4 mr-2" />
-          {reports.length} meses registrados
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-sm">
+            <Calendar className="h-4 w-4 mr-2" />
+            {reports.length} meses registrados
+          </Badge>
+          {reports.length > 0 && (
+            <Button 
+              onClick={exportToExcel}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Descargar Excel
+            </Button>
+          )}
+        </div>
       </div>
 
       {reports.length === 0 ? (
