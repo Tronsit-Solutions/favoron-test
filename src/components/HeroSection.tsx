@@ -11,6 +11,7 @@ const HeroSection = ({
   const [completedPackages, setCompletedPackages] = useState(500);
   const [totalUsers, setTotalUsers] = useState(1000);
   const [totalTrips, setTotalTrips] = useState(50);
+  const [totalTipsDistributed, setTotalTipsDistributed] = useState(0);
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -31,23 +32,27 @@ const HeroSection = ({
           setTotalUsers(1000);
           setCompletedPackages(8);
           setTotalTrips(50);
+          setTotalTipsDistributed(0);
         } else if (statsData && statsData.length > 0) {
           const stats = statsData[0];
           console.log('Setting stats from function:', stats);
           setCompletedPackages(Number(stats.total_packages_completed) || 8);
           setTotalUsers(Number(stats.total_users) || 1000);
           setTotalTrips(Number(stats.total_trips) || 50);
+          setTotalTipsDistributed(Number(stats.total_tips_distributed) || 0);
         } else {
           // Fallbacks
           setTotalUsers(1000);
           setCompletedPackages(8);
           setTotalTrips(50);
+          setTotalTipsDistributed(0);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
         setCompletedPackages(8);
         setTotalTrips(50);
+        setTotalTipsDistributed(0);
       }
     };
 
@@ -129,7 +134,9 @@ const HeroSection = ({
             <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-success mb-2">$2,500+</div>
+            <div className="text-2xl font-bold text-success mb-2">
+              Q{totalTipsDistributed > 0 ? totalTipsDistributed.toLocaleString('es-GT') : '0'}
+            </div>
             <div className="text-gray-600">Tips ganados</div>
           </div>
         </div>
