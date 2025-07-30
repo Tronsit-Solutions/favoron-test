@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Plane, LogIn, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -18,12 +17,12 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard }: NavBarPr
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
         
         <div className="container mx-auto px-4 py-4 flex items-center justify-between relative">
-          {/* Logo - Simplified */}
+          {/* Logo - Smaller on mobile */}
           <Link to="/" className="flex items-center group">
             <img 
               src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
               alt="Favorón" 
-              className="h-10 w-auto transform group-hover:scale-105 transition-transform duration-200"
+              className="h-8 sm:h-10 w-auto transform group-hover:scale-105 transition-transform duration-200"
             />
           </Link>
 
