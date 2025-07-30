@@ -8,10 +8,15 @@ interface HeroSectionProps {
 const HeroSection = ({
   onOpenAuth
 }: HeroSectionProps) => {
-  const [completedPackages, setCompletedPackages] = useState(500);
+  // Historical values as base
+  const HISTORICAL_TIPS = 30000;
+  const HISTORICAL_PACKAGES = 202;
+  const HISTORICAL_TRIPS = 110;
+  
+  const [completedPackages, setCompletedPackages] = useState(HISTORICAL_PACKAGES);
   const [totalUsers, setTotalUsers] = useState(1000);
-  const [totalTrips, setTotalTrips] = useState(50);
-  const [totalTipsDistributed, setTotalTipsDistributed] = useState(0);
+  const [totalTrips, setTotalTrips] = useState(HISTORICAL_TRIPS);
+  const [totalTipsDistributed, setTotalTipsDistributed] = useState(HISTORICAL_TIPS);
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -28,31 +33,31 @@ const HeroSection = ({
         });
         if (statsError) {
           console.error('Stats function error:', statsError);
-          // Fallbacks
+          // Fallbacks with historical values
           setTotalUsers(1000);
-          setCompletedPackages(8);
-          setTotalTrips(50);
-          setTotalTipsDistributed(0);
+          setCompletedPackages(HISTORICAL_PACKAGES);
+          setTotalTrips(HISTORICAL_TRIPS);
+          setTotalTipsDistributed(HISTORICAL_TIPS);
         } else if (statsData && statsData.length > 0) {
           const stats = statsData[0];
           console.log('Setting stats from function:', stats);
-          setCompletedPackages(Number(stats.total_packages_completed) || 8);
+          setCompletedPackages(HISTORICAL_PACKAGES + (Number(stats.total_packages_completed) || 0));
           setTotalUsers(Number(stats.total_users) || 1000);
-          setTotalTrips(Number(stats.total_trips) || 50);
-          setTotalTipsDistributed(Number(stats.total_tips_distributed) || 0);
+          setTotalTrips(HISTORICAL_TRIPS + (Number(stats.total_trips) || 0));
+          setTotalTipsDistributed(HISTORICAL_TIPS + (Number(stats.total_tips_distributed) || 0));
         } else {
-          // Fallbacks
+          // Fallbacks with historical values
           setTotalUsers(1000);
-          setCompletedPackages(8);
-          setTotalTrips(50);
-          setTotalTipsDistributed(0);
+          setCompletedPackages(HISTORICAL_PACKAGES);
+          setTotalTrips(HISTORICAL_TRIPS);
+          setTotalTipsDistributed(HISTORICAL_TIPS);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
         setTotalUsers(1000);
-        setCompletedPackages(8);
-        setTotalTrips(50);
-        setTotalTipsDistributed(0);
+        setCompletedPackages(HISTORICAL_PACKAGES);
+        setTotalTrips(HISTORICAL_TRIPS);
+        setTotalTipsDistributed(HISTORICAL_TIPS);
       }
     };
 
