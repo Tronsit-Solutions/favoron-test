@@ -1,3 +1,7 @@
+// Re-export from organized lib for backward compatibility
+export { getStatusColor } from '@/lib/styles';
+export { getStatusLabel } from '@/lib/formatters';
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 
