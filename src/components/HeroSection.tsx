@@ -12,9 +12,10 @@ const HeroSection = ({
   const HISTORICAL_TIPS = 30000;
   const HISTORICAL_PACKAGES = 202;
   const HISTORICAL_TRIPS = 110;
+  const HISTORICAL_USERS = 188;
   
   const [completedPackages, setCompletedPackages] = useState(HISTORICAL_PACKAGES);
-  const [totalUsers, setTotalUsers] = useState(1000);
+  const [totalUsers, setTotalUsers] = useState(HISTORICAL_USERS);
   const [totalTrips, setTotalTrips] = useState(HISTORICAL_TRIPS);
   const [totalTipsDistributed, setTotalTipsDistributed] = useState(HISTORICAL_TIPS);
   useEffect(() => {
@@ -34,7 +35,7 @@ const HeroSection = ({
         if (statsError) {
           console.error('Stats function error:', statsError);
           // Fallbacks with historical values
-          setTotalUsers(1000);
+          setTotalUsers(HISTORICAL_USERS);
           setCompletedPackages(HISTORICAL_PACKAGES);
           setTotalTrips(HISTORICAL_TRIPS);
           setTotalTipsDistributed(HISTORICAL_TIPS);
@@ -42,19 +43,19 @@ const HeroSection = ({
           const stats = statsData[0];
           console.log('Setting stats from function:', stats);
           setCompletedPackages(HISTORICAL_PACKAGES + (Number(stats.total_packages_completed) || 0));
-          setTotalUsers(Number(stats.total_users) || 1000);
+          setTotalUsers(HISTORICAL_USERS + (Number(stats.total_users) || 0));
           setTotalTrips(HISTORICAL_TRIPS + (Number(stats.total_trips) || 0));
           setTotalTipsDistributed(HISTORICAL_TIPS + (Number(stats.total_tips_distributed) || 0));
         } else {
           // Fallbacks with historical values
-          setTotalUsers(1000);
+          setTotalUsers(HISTORICAL_USERS);
           setCompletedPackages(HISTORICAL_PACKAGES);
           setTotalTrips(HISTORICAL_TRIPS);
           setTotalTipsDistributed(HISTORICAL_TIPS);
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
-        setTotalUsers(1000);
+        setTotalUsers(HISTORICAL_USERS);
         setCompletedPackages(HISTORICAL_PACKAGES);
         setTotalTrips(HISTORICAL_TRIPS);
         setTotalTipsDistributed(HISTORICAL_TIPS);
