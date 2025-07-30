@@ -192,6 +192,18 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
     setFormData(prev => ({ ...prev, deliveryMethod: '' }));
   };
 
+  // Helper function to get the current origin city for display
+  const getDisplayFromCity = () => {
+    if (formData.fromCity === 'Otra ciudad') {
+      return formData.fromCityOther || 'destino';
+    }
+    if (formData.fromCity) {
+      // Clean up city text by removing state/country abbreviations
+      return formData.fromCity.split(',')[0];
+    }
+    return 'destino';
+  };
+
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
 
   return (
@@ -344,7 +356,7 @@ const TripForm = ({ isOpen, onClose, onSubmit }: TripFormProps) => {
               <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
                 <span className="text-xs text-primary-foreground font-bold">2</span>
               </div>
-              <h3 className="text-lg font-semibold text-primary">Dirección para recibir paquetes en destino</h3>
+              <h3 className="text-lg font-semibold text-primary">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
             </div>
             <p className="text-sm text-muted-foreground">
               Esta información se comparte únicamente con el shopper si el pedido es aprobado.
