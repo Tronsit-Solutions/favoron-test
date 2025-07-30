@@ -85,6 +85,13 @@ const HeroSection = ({
           </div>
         </div>
 
+        {/* Platform Description */}
+        <div className="mb-8">
+          <p className="text-lg sm:text-xl text-gray-600 bg-white/50 backdrop-blur-sm rounded-full px-6 py-3 inline-block border border-white/50">
+            Compras del extranjero de forma fácil, segura y económica a través de viajeros de confianza
+          </p>
+        </div>
+
         {/* Main Headline */}
         <div className="relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
