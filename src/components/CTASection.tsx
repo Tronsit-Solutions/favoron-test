@@ -8,7 +8,10 @@ interface CTASectionProps {
 const CTASection = ({
   onOpenAuth
 }: CTASectionProps) => {
-  const [totalUsers, setTotalUsers] = useState(1000);
+  // Historical users as base
+  const HISTORICAL_USERS = 188;
+  
+  const [totalUsers, setTotalUsers] = useState(HISTORICAL_USERS);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -16,10 +19,11 @@ const CTASection = ({
         const { data, error } = await supabase.rpc('get_public_stats');
         if (error) throw error;
         if (data && data.length > 0) {
-          setTotalUsers(data[0].total_users || 1000);
+          setTotalUsers(HISTORICAL_USERS + (data[0].total_users || 0));
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
+        setTotalUsers(HISTORICAL_USERS);
       }
     };
 
