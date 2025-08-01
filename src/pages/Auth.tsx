@@ -32,30 +32,37 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener to handle password reset from email links
+    // Check if this is a password reset redirect from email link
+    // Supabase sends recovery tokens in the URL hash fragment
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      // This is a password recovery from email link
+      setIsResettingPassword(true);
+      toast({
+        title: "Restablecer contraseña",
+        description: "Ingresa tu nueva contraseña para completar el proceso",
+        duration: 6000,
+      });
+    } else {
+      // Check if user is already logged in
+      const checkUser = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && !isResettingPassword) {
+          navigate('/');
+        }
+      };
+      checkUser();
+    }
+
+    // Set up auth state listener for other auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        // User clicked the password reset link in email
-        setIsResettingPassword(true);
-        toast({
-          title: "Restablecer contraseña",
-          description: "Ingresa tu nueva contraseña para completar el proceso",
-          duration: 6000,
-        });
-      } else if (event === 'SIGNED_IN' && session && !isResettingPassword) {
+      if (event === 'SIGNED_IN' && session && !isResettingPassword) {
         // User is signed in and not in password reset flow
         navigate('/');
       }
     });
-
-    // Check if user is already logged in on initial load
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session && !isResettingPassword) {
-        navigate('/');
-      }
-    };
-    checkUser();
 
     return () => subscription.unsubscribe();
   }, [navigate, toast, isResettingPassword]);
