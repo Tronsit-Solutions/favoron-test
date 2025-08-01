@@ -22,7 +22,7 @@ const PlatformDescriptionSection = () => {
             La plataforma que conecta compradores que necesitan productos del extranjero 
             con viajeros dispuestos a traerlos de forma <span className="text-traveler font-semibold">segura</span>, 
             <span className="text-green-600 font-semibold"> económica</span> y 
-            <span className="text-cyan-500 font-semibold"> confiable</span>.
+            <span className="text-shopper font-semibold"> confiable</span>.
           </p>
         </div>
 
