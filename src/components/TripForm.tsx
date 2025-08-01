@@ -479,17 +479,17 @@ const TripForm = ({
           </div>
 
           {/* Terms and Conditions Checkbox */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-4 hover:border-primary/40 transition-all duration-200 cursor-pointer group" onClick={() => setAcceptedTerms(!acceptedTerms)}>
             <div className="flex items-start space-x-3">
-              <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => setAcceptedTerms(!!checked)} className="mt-1" />
+              <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => setAcceptedTerms(!!checked)} className="mt-1 pointer-events-none" />
               <div className="flex-1">
-                <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
+                <Label htmlFor="acceptTerms" className="text-sm font-medium text-primary cursor-pointer group-hover:text-primary/80 transition-colors">
                   Entiendo y acepto los términos y condiciones de Favorón
                 </Label>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
                 </p>
-                <Button type="button" variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800" onClick={() => setShowTermsModal(true)}>
+                <Button type="button" variant="link" className="h-auto p-0 text-xs text-primary hover:text-primary/80" onClick={(e) => { e.stopPropagation(); setShowTermsModal(true); }}>
                   <FileText className="h-3 w-3 mr-1" />
                   Leer términos y condiciones
                 </Button>
