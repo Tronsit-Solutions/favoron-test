@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { useTripPayments } from '@/hooks/useTripPayments';
 import TripBankingConfirmationModal from '@/components/TripBankingConfirmationModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Banknote, Package, CheckCircle, Clock } from 'lucide-react';
 
 interface TripPaymentSummaryProps {
@@ -19,6 +20,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
 }) => {
   const { tripPayment, loading, createPaymentOrder } = useTripPayments(trip.id);
   const [showBankingModal, setShowBankingModal] = useState(false);
+  const [packageCounts, setPackageCounts] = useState<{total: number, completed: number} | null>(null);
 
   const handlePaymentRequest = async (bankingInfo: any) => {
     try {
@@ -28,6 +30,33 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       console.error('Error requesting payment:', error);
     }
   };
+
+  // Fetch package counts for this trip
+  useEffect(() => {
+    const fetchPackageCounts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('packages')
+          .select('status')
+          .eq('matched_trip_id', trip.id)
+          .not('status', 'in', '(rejected,cancelled)');
+
+        if (error) throw error;
+
+        const total = data?.length || 0;
+        const completed = data?.filter(pkg => pkg.status === 'completed').length || 0;
+        
+        setPackageCounts({ total, completed });
+      } catch (error) {
+        console.error('Error fetching package counts:', error);
+        setPackageCounts({ total: 0, completed: 0 });
+      }
+    };
+
+    if (trip.id) {
+      fetchPackageCounts();
+    }
+  }, [trip.id]);
 
   const handleCreateAccumulator = async () => {
     try {
@@ -43,21 +72,29 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     return null;
   }
 
-  // Si no hay tripPayment, mostrar botón para crear el acumulador
+  // Si no hay tripPayment, verificar si todos los paquetes están completados
   if (!tripPayment) {
+    if (!packageCounts) {
+      return null; // Still loading package counts
+    }
+
+    const allPackagesCompleted = packageCounts.total > 0 && packageCounts.completed === packageCounts.total;
+
     return (
       <Card className="bg-muted/20 border">
         <CardContent className="p-3 text-center">
           <p className="text-xs text-muted-foreground mb-2">
-            Este viaje tiene paquetes entregados con tips
+            {packageCounts.completed} de {packageCounts.total} paquetes entregados en oficina. Podrás crear tu orden de cobro cuando todos estén entregados.
           </p>
-          <Button 
-            onClick={handleCreateAccumulator}
-            size="sm"
-            className="text-xs"
-          >
-            Inicializar pagos
-          </Button>
+          {allPackagesCompleted && (
+            <Button 
+              onClick={handleCreateAccumulator}
+              size="sm"
+              className="text-xs"
+            >
+              Inicializar pagos
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
