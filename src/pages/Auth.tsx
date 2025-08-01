@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard } from 'lucide-react';
+import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
@@ -20,7 +21,8 @@ const Auth = () => {
   const [countryCode, setCountryCode] = useState('+502');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
-  const [dpi, setDpi] = useState('');
+  const [documentType, setDocumentType] = useState('');
+  const [documentNumber, setDocumentNumber] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -97,7 +99,8 @@ const Auth = () => {
             country_code: countryCode,
             phone_number: phoneNumber,
             username: username,
-            dpi: dpi,
+            document_type: documentType,
+            document_number: documentNumber,
           }
         }
       });
@@ -147,7 +150,8 @@ const Auth = () => {
       setLastName('');
       setPhoneNumber('');
       setUsername('');
-      setDpi('');
+      setDocumentType('');
+      setDocumentNumber('');
       setPassword('');
       setConfirmPassword('');
       setAvatarFile(null);
@@ -589,15 +593,28 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dpi">DPI</Label>
+                  <Label htmlFor="document-type">Tipo de documento</Label>
+                  <Select value={documentType} onValueChange={setDocumentType} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tipo de documento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DPI">DPI</SelectItem>
+                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="document-number">Número de documento</Label>
                   <div className="relative">
-                    <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="dpi"
+                      id="document-number"
                       type="text"
-                      placeholder="1234567890123"
-                      value={dpi}
-                      onChange={(e) => setDpi(e.target.value)}
+                      placeholder="Número del documento"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
                       className="pl-10"
                       required
                     />

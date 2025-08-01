@@ -297,7 +297,8 @@ export type Database = {
           bank_swift_code: string | null
           country_code: string | null
           created_at: string | null
-          dpi: string | null
+          document_number: string | null
+          document_type: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -316,7 +317,8 @@ export type Database = {
           bank_swift_code?: string | null
           country_code?: string | null
           created_at?: string | null
-          dpi?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string | null
           first_name?: string | null
           id: string
@@ -335,7 +337,8 @@ export type Database = {
           bank_swift_code?: string | null
           country_code?: string | null
           created_at?: string | null
-          dpi?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
