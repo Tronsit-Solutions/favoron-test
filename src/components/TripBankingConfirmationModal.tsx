@@ -94,7 +94,7 @@ const TripBankingConfirmationModal = ({
         <div className="flex-1 overflow-y-auto space-y-4 px-1">
           <div className="space-y-2">
           <Alert className="py-2 flex items-center">
-            <Shield className="h-4 w-4 shrink-0" />
+            <Shield className="h-4 w-4 shrink-0 self-start mt-0.5" />
             <AlertDescription className="text-xs ml-2">
               {hasCompleteBankingInfo && !isEditing 
                 ? "Revisa tu información bancaria." 
