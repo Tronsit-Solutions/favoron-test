@@ -34,10 +34,9 @@ const Auth = () => {
   useEffect(() => {
     // Check if this is a password reset redirect
     const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
+    const resetParam = urlParams.get('reset');
     
-    if (type === 'recovery') {
-      // This is a password recovery from email link
+    if (resetParam === 'true') {
       setIsResettingPassword(true);
       toast({
         title: "Restablecer contraseña",
@@ -45,19 +44,19 @@ const Auth = () => {
         duration: 6000,
       });
       
-      // Clear the URL parameters
+      // Clear the URL parameter
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       // Check if user is already logged in
       const checkUser = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && !isResettingPassword) {
+        if (session) {
           navigate('/');
         }
       };
       checkUser();
     }
-  }, [navigate, toast, isResettingPassword]);
+  }, [navigate, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
