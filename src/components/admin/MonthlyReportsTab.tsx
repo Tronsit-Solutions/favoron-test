@@ -2,8 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import * as XLSX from 'xlsx';
 import { 
   TrendingUp, 
@@ -11,10 +17,12 @@ import {
   Plane, 
   CheckCircle, 
   DollarSign, 
-  Calendar,
+  Calendar as CalendarIcon,
   BarChart3,
   MapPin,
-  Download
+  Download,
+  Filter,
+  RotateCcw
 } from "lucide-react";
 
 interface MonthlyReport {
@@ -41,18 +49,31 @@ const MonthlyReportsTab = () => {
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<string>("all");
   const { toast } = useToast();
 
   useEffect(() => {
     fetchMonthlyReports();
   }, []);
 
-  const fetchMonthlyReports = async () => {
+  const fetchMonthlyReports = async (customStartDate?: Date, customEndDate?: Date) => {
     try {
       setLoading(true);
       
+      const params: { start_date?: string; end_date?: string } = {};
+      
+      if (customStartDate) {
+        params.start_date = format(customStartDate, 'yyyy-MM-dd');
+      }
+      
+      if (customEndDate) {
+        params.end_date = format(customEndDate, 'yyyy-MM-dd');
+      }
+      
       const { data, error } = await supabase
-        .rpc('get_monthly_reports');
+        .rpc('get_monthly_reports', params);
       
       if (error) {
         throw error;
@@ -111,6 +132,50 @@ const MonthlyReportsTab = () => {
 
   const toggleMonthExpansion = (monthKey: string) => {
     setExpandedMonth(expandedMonth === monthKey ? null : monthKey);
+  };
+
+  const applyDateFilter = () => {
+    fetchMonthlyReports(startDate, endDate);
+  };
+
+  const resetDateFilter = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setDateRange("all");
+    fetchMonthlyReports();
+  };
+
+  const handlePresetRange = (preset: string) => {
+    const today = new Date();
+    let start: Date | undefined;
+    let end: Date | undefined;
+
+    switch (preset) {
+      case "last_month":
+        start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        end = new Date(today.getFullYear(), today.getMonth(), 0);
+        break;
+      case "last_3_months":
+        start = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        end = today;
+        break;
+      case "current_year":
+        start = new Date(today.getFullYear(), 0, 1);
+        end = today;
+        break;
+      case "last_year":
+        start = new Date(today.getFullYear() - 1, 0, 1);
+        end = new Date(today.getFullYear() - 1, 11, 31);
+        break;
+      default:
+        start = undefined;
+        end = undefined;
+    }
+
+    setStartDate(start);
+    setEndDate(end);
+    setDateRange(preset);
+    fetchMonthlyReports(start, end);
   };
 
   const exportToExcel = () => {
@@ -206,7 +271,17 @@ const MonthlyReportsTab = () => {
       // Generar nombre del archivo con fecha
       const today = new Date();
       const dateString = today.toISOString().split('T')[0];
-      const filename = `Reportes_Mensuales_Favoron_${dateString}.xlsx`;
+      let dateRangeString = "";
+      
+      if (startDate && endDate) {
+        const startStr = format(startDate, 'yyyy-MM-dd');
+        const endStr = format(endDate, 'yyyy-MM-dd');
+        dateRangeString = `_${startStr}_a_${endStr}`;
+      } else if (dateRange !== "all") {
+        dateRangeString = `_${dateRange}`;
+      }
+      
+      const filename = `Reportes_Mensuales_Favoron${dateRangeString}_${dateString}.xlsx`;
 
       // Descargar archivo
       XLSX.writeFile(wb, filename);
@@ -244,10 +319,20 @@ const MonthlyReportsTab = () => {
           <p className="text-muted-foreground">
             Registro histórico de matches exitosos, solicitudes y métricas clave
           </p>
+          {(startDate || endDate) && (
+            <p className="text-sm text-primary font-medium mt-1">
+              {startDate && endDate 
+                ? `Filtrado: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`
+                : startDate 
+                ? `Desde: ${format(startDate, 'dd/MM/yyyy')}`
+                : `Hasta: ${format(endDate!, 'dd/MM/yyyy')}`
+              }
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="text-sm">
-            <Calendar className="h-4 w-4 mr-2" />
+            <CalendarIcon className="h-4 w-4 mr-2" />
             {reports.length} meses registrados
           </Badge>
           {reports.length > 0 && (
@@ -263,6 +348,138 @@ const MonthlyReportsTab = () => {
           )}
         </div>
       </div>
+
+      {/* Filtros de fecha */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtros de Fecha
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Opciones predefinidas */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Rangos predefinidos</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={dateRange === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetRange("all")}
+              >
+                Todos los datos
+              </Button>
+              <Button
+                variant={dateRange === "last_month" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetRange("last_month")}
+              >
+                Último mes
+              </Button>
+              <Button
+                variant={dateRange === "last_3_months" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetRange("last_3_months")}
+              >
+                Últimos 3 meses
+              </Button>
+              <Button
+                variant={dateRange === "current_year" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetRange("current_year")}
+              >
+                Año actual
+              </Button>
+              <Button
+                variant={dateRange === "last_year" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePresetRange("last_year")}
+              >
+                Año pasado
+              </Button>
+            </div>
+          </div>
+
+          {/* Selectores de fecha personalizados */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <Label htmlFor="start-date" className="text-sm font-medium">
+                Fecha de inicio
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-1",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd/MM/yyyy") : "Seleccionar fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => {
+                      setStartDate(date);
+                      setDateRange("custom");
+                    }}
+                    disabled={(date) => endDate ? date > endDate : false}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <Label htmlFor="end-date" className="text-sm font-medium">
+                Fecha de fin
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal mt-1",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd/MM/yyyy") : "Seleccionar fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => {
+                      setEndDate(date);
+                      setDateRange("custom");
+                    }}
+                    disabled={(date) => startDate ? date < startDate : false}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={applyDateFilter} className="flex-1">
+                <Filter className="mr-2 h-4 w-4" />
+                Aplicar filtro
+              </Button>
+              <Button onClick={resetDateFilter} variant="outline">
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {reports.length === 0 ? (
         <Card>
