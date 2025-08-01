@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
@@ -20,6 +20,7 @@ const Auth = () => {
   const [countryCode, setCountryCode] = useState('+502');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
+  const [dpi, setDpi] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -96,6 +97,7 @@ const Auth = () => {
             country_code: countryCode,
             phone_number: phoneNumber,
             username: username,
+            dpi: dpi,
           }
         }
       });
@@ -145,6 +147,7 @@ const Auth = () => {
       setLastName('');
       setPhoneNumber('');
       setUsername('');
+      setDpi('');
       setPassword('');
       setConfirmPassword('');
       setAvatarFile(null);
@@ -579,6 +582,22 @@ const Auth = () => {
                       placeholder="tu_usuario"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dpi">DPI</Label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="dpi"
+                      type="text"
+                      placeholder="1234567890123"
+                      value={dpi}
+                      onChange={(e) => setDpi(e.target.value)}
                       className="pl-10"
                       required
                     />
