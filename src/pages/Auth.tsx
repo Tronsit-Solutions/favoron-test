@@ -32,31 +32,33 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if this is a password reset redirect
-    const urlParams = new URLSearchParams(window.location.search);
-    const resetParam = urlParams.get('reset');
-    
-    if (resetParam === 'true') {
-      setIsResettingPassword(true);
-      toast({
-        title: "Restablecer contraseña",
-        description: "Ingresa tu nueva contraseña para completar el proceso",
-        duration: 6000,
-      });
-      
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else {
-      // Check if user is already logged in
-      const checkUser = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          navigate('/');
-        }
-      };
-      checkUser();
-    }
-  }, [navigate, toast]);
+    // Set up auth state listener to handle password reset from email links
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked the password reset link in email
+        setIsResettingPassword(true);
+        toast({
+          title: "Restablecer contraseña",
+          description: "Ingresa tu nueva contraseña para completar el proceso",
+          duration: 6000,
+        });
+      } else if (event === 'SIGNED_IN' && session && !isResettingPassword) {
+        // User is signed in and not in password reset flow
+        navigate('/');
+      }
+    });
+
+    // Check if user is already logged in on initial load
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && !isResettingPassword) {
+        navigate('/');
+      }
+    };
+    checkUser();
+
+    return () => subscription.unsubscribe();
+  }, [navigate, toast, isResettingPassword]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
