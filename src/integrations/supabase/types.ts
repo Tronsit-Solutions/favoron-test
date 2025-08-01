@@ -536,25 +536,7 @@ export type Database = {
       }
       get_monthly_reports: {
         Args: { start_date?: string; end_date?: string }
-        Returns: {
-          period_year: number
-          period_month: number
-          month_name: string
-          total_packages: number
-          total_trips: number
-          successful_matches: number
-          completed_deliveries: number
-          pending_requests: number
-          total_revenue: number
-          traveler_tips: number
-          favoron_revenue: number
-          average_ticket: number
-          gmv_total: number
-          packages_by_status: Json
-          trips_by_status: Json
-          top_destinations: Json
-          top_origins: Json
-        }[]
+        Returns: Json
       }
       get_public_stats: {
         Args: Record<PropertyKey, never>
