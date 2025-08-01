@@ -34,35 +34,10 @@ const Auth = () => {
   useEffect(() => {
     // Check if this is a password reset redirect
     const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const resetParam = urlParams.get('reset');
+    const type = urlParams.get('type');
     
-    if (accessToken && refreshToken) {
-      // Set the session with the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      }).then(() => {
-        setIsResettingPassword(true);
-        toast({
-          title: "Restablecer contraseña",
-          description: "Ingresa tu nueva contraseña para completar el proceso",
-          duration: 6000,
-        });
-        
-        // Clear the URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }).catch((error) => {
-        console.error('Error setting session:', error);
-        toast({
-          title: "Error",
-          description: "Enlace de restablecimiento inválido o expirado",
-          variant: "destructive",
-        });
-      });
-    } else if (resetParam === 'true') {
-      // Handle the case where we have reset=true parameter
+    if (type === 'recovery') {
+      // This is a password recovery from email link
       setIsResettingPassword(true);
       toast({
         title: "Restablecer contraseña",
@@ -70,7 +45,7 @@ const Auth = () => {
         duration: 6000,
       });
       
-      // Clear the URL parameter
+      // Clear the URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       // Check if user is already logged in
