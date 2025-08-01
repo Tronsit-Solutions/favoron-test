@@ -569,7 +569,7 @@ const MonthlyReportsTab = () => {
                           </Card>
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Comisiones</p>
+                              <p className="text-sm text-muted-foreground">Ingresos Favorón</p>
                               <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.service_fees)}</p>
                             </CardContent>
                           </Card>
