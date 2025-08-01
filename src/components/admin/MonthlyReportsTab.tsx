@@ -26,23 +26,21 @@ import {
 } from "lucide-react";
 
 interface MonthlyReport {
-  period_year: number;
-  period_month: number;
+  month: string;
   month_name: string;
   total_packages: number;
   total_trips: number;
-  successful_matches: number;
-  completed_deliveries: number;
-  pending_requests: number;
   total_revenue: number;
-  traveler_tips: number;
-  favoron_revenue: number;
-  average_ticket: number;
-  gmv_total: number;
-  packages_by_status: any;
-  trips_by_status: any;
-  top_destinations: any;
-  top_origins: any;
+  average_package_value: number;
+  completion_rate: number;
+  status_breakdown: Record<string, { count: number; revenue: number }> | null;
+  top_destinations: Record<string, number> | null;
+  top_origins: Record<string, number> | null;
+  financial_metrics: {
+    gross_revenue: number;
+    net_revenue: number;
+    service_fees: number;
+  };
 }
 
 const MonthlyReportsTab = () => {
@@ -79,7 +77,7 @@ const MonthlyReportsTab = () => {
         throw error;
       }
       
-      setReports(data || []);
+      setReports(Array.isArray(data) ? data as unknown as MonthlyReport[] : []);
     } catch (error) {
       console.error('Error fetching monthly reports:', error);
       toast({
@@ -192,55 +190,57 @@ const MonthlyReportsTab = () => {
       // Preparar datos para el resumen general
       const summaryData = reports.map(report => ({
         'Mes': report.month_name,
-        'Año': report.period_year,
         'Total Paquetes': report.total_packages,
         'Total Viajes': report.total_trips,
-        'Matches Exitosos': report.successful_matches,
-        'Entregas Completadas': report.completed_deliveries,
-        'Solicitudes Pendientes': report.pending_requests,
         'Ingresos Totales (USD)': Number(report.total_revenue).toFixed(2),
-        'Tips Viajeros (USD)': Number(report.traveler_tips).toFixed(2),
-        'Ingresos Favorón (USD)': Number(report.favoron_revenue).toFixed(2),
-        'Ticket Promedio (USD)': Number(report.average_ticket).toFixed(2),
-        'GMV Total (USD)': Number(report.gmv_total).toFixed(2),
-        'Tasa de Match (%)': report.total_packages > 0 ? ((report.successful_matches / report.total_packages) * 100).toFixed(1) : '0',
-        'Tasa de Completación (%)': report.successful_matches > 0 ? ((report.completed_deliveries / report.successful_matches) * 100).toFixed(1) : '0'
+        'Valor Promedio Paquete (USD)': Number(report.average_package_value).toFixed(2),
+        'Tasa de Completación (%)': Number(report.completion_rate).toFixed(1),
+        'Ingresos Brutos (USD)': Number(report.financial_metrics.gross_revenue).toFixed(2),
+        'Ingresos Netos (USD)': Number(report.financial_metrics.net_revenue).toFixed(2),
+        'Comisiones de Servicio (USD)': Number(report.financial_metrics.service_fees).toFixed(2)
       }));
 
       // Preparar datos detallados por estado
       const statusData: any[] = [];
       reports.forEach(report => {
-        Object.entries(report.packages_by_status).forEach(([status, count]) => {
-          statusData.push({
-            'Mes': report.month_name,
-            'Estado': status,
-            'Cantidad': Number(count)
+        if (report.status_breakdown) {
+          Object.entries(report.status_breakdown).forEach(([status, data]) => {
+            statusData.push({
+              'Mes': report.month_name,
+              'Estado': status,
+              'Cantidad': Number(data.count),
+              'Ingresos (USD)': Number(data.revenue).toFixed(2)
+            });
           });
-        });
+        }
       });
 
       // Preparar datos de destinos populares
       const destinationData: any[] = [];
       reports.forEach(report => {
-        Object.entries(report.top_destinations).forEach(([destination, count]) => {
-          destinationData.push({
-            'Mes': report.month_name,
-            'Destino': destination,
-            'Cantidad': Number(count)
+        if (report.top_destinations) {
+          Object.entries(report.top_destinations).forEach(([destination, count]) => {
+            destinationData.push({
+              'Mes': report.month_name,
+              'Destino': destination,
+              'Cantidad': Number(count)
+            });
           });
-        });
+        }
       });
 
       // Preparar datos de orígenes populares
       const originData: any[] = [];
       reports.forEach(report => {
-        Object.entries(report.top_origins).forEach(([origin, count]) => {
-          originData.push({
-            'Mes': report.month_name,
-            'Origen': origin,
-            'Cantidad': Number(count)
+        if (report.top_origins) {
+          Object.entries(report.top_origins).forEach(([origin, count]) => {
+            originData.push({
+              'Mes': report.month_name,
+              'Origen': origin,
+              'Cantidad': Number(count)
+            });
           });
-        });
+        }
       });
 
       // Crear workbook con múltiples hojas
@@ -494,14 +494,8 @@ const MonthlyReportsTab = () => {
       ) : (
         <div className="space-y-4">
           {reports.map((report) => {
-            const monthKey = `${report.period_year}-${report.period_month}`;
+            const monthKey = report.month;
             const isExpanded = expandedMonth === monthKey;
-            const matchRate = report.total_packages > 0 
-              ? (report.successful_matches / report.total_packages) * 100 
-              : 0;
-            const completionRate = report.successful_matches > 0
-              ? (report.completed_deliveries / report.successful_matches) * 100
-              : 0;
 
             return (
               <Card key={monthKey} className="overflow-hidden">
@@ -513,7 +507,7 @@ const MonthlyReportsTab = () => {
                     <div>
                       <CardTitle className="text-lg">{report.month_name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {report.successful_matches} matches exitosos • {report.total_packages} solicitudes totales
+                        {report.total_packages} paquetes • {report.total_trips} viajes
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -522,8 +516,8 @@ const MonthlyReportsTab = () => {
                         <p className="text-xs text-muted-foreground">Ingresos totales</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">{formatPercentage(matchRate)}</p>
-                        <p className="text-xs text-muted-foreground">Tasa de match</p>
+                        <p className="text-sm font-medium">{formatPercentage(report.completion_rate)}</p>
+                        <p className="text-xs text-muted-foreground">Tasa de completación</p>
                       </div>
                     </div>
                   </div>
@@ -535,22 +529,22 @@ const MonthlyReportsTab = () => {
                     <div className="text-center p-4 bg-primary/5 rounded-lg">
                       <Package className="h-6 w-6 text-primary mx-auto mb-2" />
                       <p className="text-2xl font-bold text-primary">{report.total_packages}</p>
-                      <p className="text-xs text-muted-foreground">Solicitudes totales</p>
+                      <p className="text-xs text-muted-foreground">Total paquetes</p>
                     </div>
                     <div className="text-center p-4 bg-traveler/5 rounded-lg">
                       <Plane className="h-6 w-6 text-traveler mx-auto mb-2" />
                       <p className="text-2xl font-bold text-traveler">{report.total_trips}</p>
-                      <p className="text-xs text-muted-foreground">Viajes registrados</p>
+                      <p className="text-xs text-muted-foreground">Total viajes</p>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-green-600">{report.successful_matches}</p>
-                      <p className="text-xs text-muted-foreground">Matches exitosos</p>
+                      <DollarSign className="h-6 w-6 text-green-600 mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-green-600">{formatCurrency(report.total_revenue)}</p>
+                      <p className="text-xs text-muted-foreground">Ingresos totales</p>
                     </div>
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <DollarSign className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-blue-600">{report.completed_deliveries}</p>
-                      <p className="text-xs text-muted-foreground">Entregas completadas</p>
+                      <CheckCircle className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-blue-600">{formatPercentage(report.completion_rate)}</p>
+                      <p className="text-xs text-muted-foreground">Tasa completación</p>
                     </div>
                   </div>
 
@@ -560,43 +554,39 @@ const MonthlyReportsTab = () => {
                       {/* Métricas financieras */}
                       <div>
                         <h4 className="font-semibold mb-3">Métricas Financieras</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Ingresos totales</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.total_revenue)}</p>
+                              <p className="text-sm text-muted-foreground">Ingresos brutos</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.gross_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Tips viajeros</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.traveler_tips)}</p>
+                              <p className="text-sm text-muted-foreground">Ingresos netos</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.net_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Ingresos Favorón</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.favoron_revenue)}</p>
-                            </CardContent>
-                          </Card>
-                          <Card>
-                            <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Ticket promedio</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.average_ticket)}</p>
+                              <p className="text-sm text-muted-foreground">Comisiones</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.service_fees)}</p>
                             </CardContent>
                           </Card>
                         </div>
                       </div>
 
                       {/* Estado de paquetes */}
-                      <div>
-                        <h4 className="font-semibold mb-3">Estado de Paquetes</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.entries(report.packages_by_status).map(([status, count]) => 
-                            getStatusBadge(status, Number(count))
-                          )}
+                      {report.status_breakdown && (
+                        <div>
+                          <h4 className="font-semibold mb-3">Estado de Paquetes</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(report.status_breakdown).map(([status, data]) => 
+                              getStatusBadge(status, Number(data.count))
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Top destinos y orígenes */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -631,25 +621,17 @@ const MonthlyReportsTab = () => {
                         </div>
                       </div>
 
-                      {/* Métricas de rendimiento */}
+                      {/* Métricas adicionales */}
                       <div>
-                        <h4 className="font-semibold mb-3">Métricas de Rendimiento</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <h4 className="font-semibold mb-3">Métricas Adicionales</h4>
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="text-center p-3 bg-green-50 rounded">
-                            <p className="text-lg font-bold text-green-600">{formatPercentage(matchRate)}</p>
-                            <p className="text-xs text-muted-foreground">Tasa de match</p>
+                            <p className="text-lg font-bold text-green-600">{formatCurrency(report.average_package_value)}</p>
+                            <p className="text-xs text-muted-foreground">Valor promedio paquete</p>
                           </div>
                           <div className="text-center p-3 bg-blue-50 rounded">
-                            <p className="text-lg font-bold text-blue-600">{formatPercentage(completionRate)}</p>
+                            <p className="text-lg font-bold text-blue-600">{formatPercentage(report.completion_rate)}</p>
                             <p className="text-xs text-muted-foreground">Tasa de completación</p>
-                          </div>
-                          <div className="text-center p-3 bg-orange-50 rounded">
-                            <p className="text-lg font-bold text-orange-600">{report.pending_requests}</p>
-                            <p className="text-xs text-muted-foreground">Solicitudes pendientes</p>
-                          </div>
-                          <div className="text-center p-3 bg-purple-50 rounded">
-                            <p className="text-lg font-bold text-purple-600">{formatCurrency(report.gmv_total)}</p>
-                            <p className="text-xs text-muted-foreground">GMV total</p>
                           </div>
                         </div>
                       </div>
