@@ -20,9 +20,9 @@ const PlatformDescriptionSection = () => {
         <div className="text-center mb-12">
           <p className="text-xl sm:text-2xl text-gray-700 leading-relaxed max-w-4xl mx-auto font-medium">
             La plataforma que conecta compradores que necesitan productos del extranjero 
-            con viajeros dispuestos a traerlos de forma <span className="text-traveler font-semibold">segura</span>, 
-            <span className="text-shopper font-semibold"> económica</span> y 
-            <span className="text-success font-semibold"> confiable</span>.
+            con viajeros dispuestos a traerlos de forma <span className="text-blue-800 font-semibold">segura</span>, 
+            <span className="text-green-600 font-semibold"> económica</span> y 
+            <span className="text-cyan-500 font-semibold"> confiable</span>.
           </p>
         </div>
 
