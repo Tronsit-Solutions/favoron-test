@@ -36,6 +36,7 @@ const Auth = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get('access_token');
     const refreshToken = urlParams.get('refresh_token');
+    const resetParam = urlParams.get('reset');
     
     if (accessToken && refreshToken) {
       // Set the session with the tokens from the URL
@@ -60,6 +61,17 @@ const Auth = () => {
           variant: "destructive",
         });
       });
+    } else if (resetParam === 'true') {
+      // Handle the case where we have reset=true parameter
+      setIsResettingPassword(true);
+      toast({
+        title: "Restablecer contraseña",
+        description: "Ingresa tu nueva contraseña para completar el proceso",
+        duration: 6000,
+      });
+      
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       // Check if user is already logged in
       const checkUser = async () => {
