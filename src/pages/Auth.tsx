@@ -32,30 +32,45 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    
     // Check if this is a password reset redirect
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('reset') === 'true') {
-      setIsResettingPassword(true);
-      toast({
-        title: "Restablecer contraseña",
-        description: "Ingresa tu nueva contraseña para completar el proceso",
-        duration: 6000,
-      });
-      
-      // Clear the URL parameter
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
     
-    checkUser();
-  }, [navigate, toast]);
+    if (accessToken && refreshToken) {
+      // Set the session with the tokens from the URL
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      }).then(() => {
+        setIsResettingPassword(true);
+        toast({
+          title: "Restablecer contraseña",
+          description: "Ingresa tu nueva contraseña para completar el proceso",
+          duration: 6000,
+        });
+        
+        // Clear the URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }).catch((error) => {
+        console.error('Error setting session:', error);
+        toast({
+          title: "Error",
+          description: "Enlace de restablecimiento inválido o expirado",
+          variant: "destructive",
+        });
+      });
+    } else {
+      // Check if user is already logged in
+      const checkUser = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && !isResettingPassword) {
+          navigate('/');
+        }
+      };
+      checkUser();
+    }
+  }, [navigate, toast, isResettingPassword]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
