@@ -92,7 +92,8 @@ export const useNotifications = (userId?: string) => {
     type: Notification['type'] = 'general',
     priority: Notification['priority'] = 'normal',
     actionUrl?: string,
-    metadata?: any
+    metadata?: any,
+    sendEmail: boolean = false
   ) => {
     try {
       const { data, error } = await supabase
@@ -117,6 +118,26 @@ export const useNotifications = (userId?: string) => {
           title: title,
           description: message,
         });
+      }
+
+      // Send email notification if requested or for high priority notifications
+      if (sendEmail || priority === 'high' || priority === 'urgent') {
+        try {
+          await supabase.functions.invoke('send-notification-email', {
+            body: {
+              userId: targetUserId,
+              title,
+              message,
+              type,
+              priority,
+              actionUrl,
+              metadata
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // Don't fail the notification creation if email fails
+        }
       }
 
       return data;

@@ -14,6 +14,7 @@ import BankingInfoForm from "./profile/BankingInfoForm";
 import BankingInfoDisplay from "./profile/BankingInfoDisplay";
 import TripHistory from "./profile/TripHistory";
 import PackageHistory from "./profile/PackageHistory";
+import { EmailNotificationSettings } from "./profile/EmailNotificationSettings";
 
 interface UserProfileProps {
   user: any;
@@ -280,6 +281,13 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           <PersonalInfoDisplay user={user} />
         </CardContent>
       </Card>
+
+      {/* Email Notification Settings */}
+      <EmailNotificationSettings 
+        userId={user.id}
+        emailNotifications={user.email_notifications ?? true}
+        onUpdate={(value) => onUpdateUser({ ...user, email_notifications: value })}
+      />
 
       {/* Banking Information */}
       <Card>
