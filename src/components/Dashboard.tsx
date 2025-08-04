@@ -408,7 +408,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               </div>
 
               {/* Show packages assigned to user's trips - NOW GROUPED BY TRIP */}
-              {assignedPackages.length > 0 && (
+              {assignedPackages && assignedPackages.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                    
@@ -417,11 +417,11 @@ const Dashboard = ({ user }: DashboardProps) => {
                   
                   {/* Group packages by trip */}
                    <div className="space-y-6">
-                     {userTrips
-                        .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
+                     {userTrips && userTrips
+                        .filter(trip => trip && trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg && pkg.matched_trip_id === trip.id))
                         .map((trip) => {
-                         const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
-                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
+                         const tripPackages = assignedPackages.filter(pkg => pkg && pkg.matched_trip_id === trip.id);
+                        const hasPendingActions = tripPackages.some(pkg => pkg && ['matched', 'in_transit'].includes(pkg.status));
                         
                         return (
                           <TripPackagesGroup
