@@ -126,16 +126,18 @@ const Dashboard = ({ user }: DashboardProps) => {
   console.log('🔍 Dashboard Debug - All packages:', packages.length);
   console.log('🔍 Dashboard Debug - All packages data:', packages);
   
-  const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
-  const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
-  
-  console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
-  console.log('🔍 Dashboard Debug - User packages data:', userPackages);
-  
-  // Get packages assigned to user's trips (for traveler view)
-  const assignedPackages = packages.filter(pkg => 
-    userTrips.some(trip => trip.id === pkg.matched_trip_id)
-  );
+   const userPackages = packages?.filter(pkg => pkg.user_id === currentUser.id) || [];
+   const userTrips = trips?.filter(trip => trip.user_id === currentUser.id) || [];
+   
+   console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
+   console.log('🔍 Dashboard Debug - User packages data:', userPackages);
+   console.log('🔍 Dashboard Debug - User trips:', userTrips.length);
+   console.log('🔍 Dashboard Debug - User trips data:', userTrips);
+   
+   // Get packages assigned to user's trips (for traveler view) - with safety check
+   const assignedPackages = packages?.filter(pkg => 
+     userTrips.some(trip => trip && trip.id === pkg.matched_trip_id)
+   ) || [];
 
   // Set up real-time notifications based on user context
   useRealtimePackages({
