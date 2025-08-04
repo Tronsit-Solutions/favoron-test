@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { getStatusLabel } from "@/lib/formatters";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
@@ -299,7 +300,7 @@ const TravelerDeliveryConfirmationModal = ({
                     <div className="text-right">
                       <p className="font-medium">Q{pkg.quote?.price || '0.00'}</p>
                       <Badge variant="outline" className="text-xs">
-                        {pkg.status}
+                        {getStatusLabel(pkg.status)}
                       </Badge>
                     </div>
                   </div>

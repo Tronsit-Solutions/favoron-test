@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck } from "lucide-react";
 import { useState, useEffect } from "react";
+import { getStatusLabel } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminMatchDialogProps {
@@ -521,7 +522,7 @@ const AdminMatchDialog = ({
                                 ${pkg.estimated_price}
                               </Badge>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Estado: {pkg.status}
+                                Estado: {getStatusLabel(pkg.status)}
                               </p>
                             </div>
                           </div>
