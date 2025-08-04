@@ -39,6 +39,13 @@ const ShopperPackagePriorityActions = ({
             onClick: () => onQuote(pkg, 'user')
           }
         };
+      case 'approved':
+        return {
+          icon: Clock,
+          title: "✅ Pedido aprobado",
+          description: "Tu pedido fue aprobado y está pendiente de asignarse a un viajero disponible.",
+          button: null
+        };
       case 'quote_accepted':
         return {
           icon: CreditCard,
