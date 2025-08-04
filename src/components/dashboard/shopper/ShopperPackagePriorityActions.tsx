@@ -77,8 +77,8 @@ const ShopperPackagePriorityActions = ({
       case 'pending_purchase':
         return {
           icon: Package2,
-          title: "🛒 Viajero comprando",
-          description: "El viajero está comprando tu producto. Te notificaremos cuando confirme la compra.",
+          title: "🛒 Tu turno de comprar",
+          description: "Completa la compra y sube el comprobante e información de seguimiento.",
           button: null
         };
       case 'purchase_confirmed':
