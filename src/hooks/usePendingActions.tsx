@@ -27,6 +27,16 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const approvalsNeeded = packageApprovalsNeeded + tripApprovalsNeeded;
     const unmatchedPackages = packages.filter(pkg => pkg.status === 'approved').length;
     const rejectedByTravelers = packages.filter(pkg => pkg.status === 'quote_rejected').length;
+    
+    console.log('🔔 usePendingActions Debug - Admin totals:', {
+      paymentsToConfirm,
+      packageApprovalsNeeded,
+      tripApprovalsNeeded,
+      approvalsNeeded,
+      unmatchedPackages,
+      rejectedByTravelers,
+      adminTotal: paymentsToConfirm + approvalsNeeded + unmatchedPackages + rejectedByTravelers
+    });
 
     return {
       // Shopper actions
