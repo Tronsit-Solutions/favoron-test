@@ -9,19 +9,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Create Supabase client for this function
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
+// Create Supabase client for this function with service role key
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+console.log('🔧 Supabase URL:', supabaseUrl ? 'SET' : 'MISSING');
+console.log('🔧 Service Role Key:', supabaseServiceKey ? 'SET (length: ' + supabaseServiceKey.length + ')' : 'MISSING');
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 interface EmailNotificationRequest {
-  userId: string;
+  user_id: string;
   title: string;
   message: string;
   type: string;
   priority: string;
-  actionUrl?: string;
+  action_url?: string;
   metadata?: any;
 }
 
@@ -99,14 +107,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, title, message, type, priority, actionUrl, metadata }: EmailNotificationRequest = await req.json();
+    const { user_id, title, message, type, priority, action_url, metadata }: EmailNotificationRequest = await req.json();
 
     console.log('=== EMAIL NOTIFICATION REQUEST ===');
-    console.log('User ID:', userId);
+    console.log('User ID:', user_id);
     console.log('Title:', title);
     console.log('Type:', type);
     console.log('Priority:', priority);
-    console.log('Action URL:', actionUrl);
+    console.log('Action URL:', action_url);
     
     // Check if API key is configured
     const apiKey = Deno.env.get("RESEND_API_KEY");
@@ -121,11 +129,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('✅ API Key starts with:', apiKey.substring(0, 10) + '...');
 
     // Get user email and preferences from profiles
-    console.log('📧 Fetching user profile for email:', userId);
+    console.log('📧 Fetching user profile for email:', user_id);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('email, email_notifications, email_notification_preferences, first_name, last_name')
-      .eq('id', userId)
+      .eq('id', user_id)
       .single();
 
     if (profileError) {
@@ -175,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
     const userName = profile.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : 'Usuario';
     const personalizedMessage = message.replace(/Usuario/g, userName);
 
-    const emailHtml = getEmailTemplate(title, personalizedMessage, type, actionUrl);
+    const emailHtml = getEmailTemplate(title, personalizedMessage, type, action_url);
 
     console.log('🔧 Initializing Resend client...');
     console.log('📧 Attempting to send email to:', profile.email ? '***@***.***' : 'NO EMAIL');
