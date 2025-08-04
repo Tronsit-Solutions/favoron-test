@@ -84,8 +84,8 @@ const ShopperPackagePriorityActions = ({
       case 'in_transit':
         return {
           icon: Package2,
-          title: "🚚 En camino a oficina",
-          description: "El viajero tiene tu paquete y está en camino a la oficina de Favorón.",
+          title: "📦 Producto en camino al viajero",
+          description: "El producto fue comprado y está siendo enviado por la tienda (Amazon, etc.) a la dirección del viajero.",
           button: null
         };
       case 'pending_office_confirmation':
