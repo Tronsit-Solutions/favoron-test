@@ -21,9 +21,28 @@ export const usePackageActions = () => {
     }
   };
 
-  const handleConfirmPackageReceived = async (packageId: string, photo?: string) => {
+  const handleConfirmPackageReceived = async (packageId: string, photo?: string, updatePackage?: (id: string, updates: any) => Promise<any>) => {
     try {
-      // This should be handled by components with access to updatePackage
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        toast({
+          title: "Error del sistema",
+          description: "Función de actualización no disponible. Intenta refrescar la página.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const confirmationData = {
+        confirmedAt: new Date().toISOString(),
+        photo: photo || null
+      };
+
+      await updatePackage(packageId, {
+        status: 'received_by_traveler',
+        traveler_confirmation: confirmationData
+      });
+
       toast({
         title: "¡Paquete confirmado!",
         description: "Has confirmado la recepción del paquete.",

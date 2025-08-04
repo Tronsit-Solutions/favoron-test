@@ -617,11 +617,20 @@ export const useDashboardActions = (
 
   const handleConfirmPackageReceived = async (packageId: string, photo?: string) => {
     try {
+      console.log('🎯 handleConfirmPackageReceived called with:', { packageId, photo: !!photo });
+      
       if (!updatePackage) {
-        console.error('updatePackage function not available');
+        console.error('❌ updatePackage function not available');
+        toast({
+          title: "Error del sistema",
+          description: "Función de actualización no disponible. Intenta refrescar la página.",
+          variant: "destructive",
+        });
         return;
       }
 
+      console.log('✅ Updating package status to received_by_traveler');
+      
       await updatePackage(packageId, {
         status: 'received_by_traveler',
         traveler_confirmation: {
@@ -630,12 +639,14 @@ export const useDashboardActions = (
         }
       });
       
+      console.log('✅ Package updated successfully');
+      
       toast({
         title: "¡Paquete confirmado!",
         description: "Has confirmado la recepción del paquete.",
       });
     } catch (error) {
-      console.error('Error confirming package received:', error);
+      console.error('❌ Error confirming package received:', error);
       toast({
         title: "Error",
         description: "No se pudo confirmar la recepción del paquete. Inténtalo de nuevo.",
