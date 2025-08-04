@@ -398,20 +398,39 @@ const Dashboard = ({ user }: DashboardProps) => {
               })()}
               <div>
                 <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
-                {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
+                {(!userTrips || userTrips.filter(trip => trip && trip.status !== 'completed_paid').length === 0) ? (
                   <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
                 ) : (
                   <div className="grid gap-4">
-                    {userTrips.filter(trip => trip.status !== 'completed_paid').map((trip) => (
-                      <TripCard
-                        key={trip.id}
-                        trip={trip}
-                        getStatusBadge={getStatusBadge}
-                        onEditTrip={handleEditTrip}
-                        currentUser={currentUser}
-                        travelerProfile={currentUser} // Pasar el perfil actual como travelerProfile
-                      />
-                    ))}
+                    {userTrips
+                      .filter(trip => trip && trip.status !== 'completed_paid')
+                      .map((trip) => {
+                        // Add error boundary for each trip card
+                        try {
+                          if (!trip || !trip.id) {
+                            console.warn('Invalid trip data:', trip);
+                            return null;
+                          }
+                          return (
+                            <TripCard
+                              key={trip.id}
+                              trip={trip}
+                              getStatusBadge={getStatusBadge}
+                              onEditTrip={handleEditTrip}
+                              currentUser={currentUser}
+                              travelerProfile={currentUser}
+                            />
+                          );
+                        } catch (error) {
+                          console.error('Error rendering trip card:', error, trip);
+                          return (
+                            <div key={trip?.id || Math.random()} className="p-4 border rounded-lg bg-red-50">
+                              <p className="text-red-600">Error al cargar viaje</p>
+                            </div>
+                          );
+                        }
+                      })
+                      .filter(Boolean)}
                   </div>
                 )}
               </div>
