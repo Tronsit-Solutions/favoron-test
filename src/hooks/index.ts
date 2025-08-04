@@ -9,7 +9,7 @@ export { useRealtimePackages } from './useRealtimePackages';
 export { createOrUpdateTripPaymentAccumulator } from './useCreateTripPaymentAccumulator';
 export { useDashboardActions } from './useDashboardActions';
 export { useMatchFilters } from './useMatchFilters';
-export { useNotificationGenerator } from './useNotificationGenerator';
+
 export { usePackageActions } from './usePackageActions';
 export { usePackageChat } from './usePackageChat';
 export { usePackageTimeline } from './usePackageTimeline';
