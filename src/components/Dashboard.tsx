@@ -19,7 +19,6 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
-import TripsTabContent from "./dashboard/TripsTabContent";
 
 import UserManagement from "./admin/UserManagement";
 
@@ -127,18 +126,16 @@ const Dashboard = ({ user }: DashboardProps) => {
   console.log('🔍 Dashboard Debug - All packages:', packages.length);
   console.log('🔍 Dashboard Debug - All packages data:', packages);
   
-   const userPackages = packages?.filter(pkg => pkg.user_id === currentUser.id) || [];
-   const userTrips = trips?.filter(trip => trip.user_id === currentUser.id) || [];
-   
-   console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
-   console.log('🔍 Dashboard Debug - User packages data:', userPackages);
-   console.log('🔍 Dashboard Debug - User trips:', userTrips.length);
-   console.log('🔍 Dashboard Debug - User trips data:', userTrips);
-   
-   // Get packages assigned to user's trips (for traveler view) - with safety check
-   const assignedPackages = packages?.filter(pkg => 
-     userTrips.some(trip => trip && trip.id === pkg.matched_trip_id)
-   ) || [];
+  const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
+  const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
+  
+  console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
+  console.log('🔍 Dashboard Debug - User packages data:', userPackages);
+  
+  // Get packages assigned to user's trips (for traveler view)
+  const assignedPackages = packages.filter(pkg => 
+    userTrips.some(trip => trip.id === pkg.matched_trip_id)
+  );
 
   // Set up real-time notifications based on user context
   useRealtimePackages({
@@ -373,17 +370,79 @@ const Dashboard = ({ user }: DashboardProps) => {
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
-            <TripsTabContent
-              userTrips={userTrips}
-              assignedPackages={assignedPackages}
-              currentUser={currentUser}
-              getStatusBadge={getStatusBadge}
-              handleEditTrip={handleEditTrip}
-              handleQuote={handleQuote}
-              handleConfirmPackageReceived={handleConfirmPackageReceived}
-              handleConfirmOfficeReception={handleConfirmOfficeReception}
-              setShowTripForm={setShowTripForm}
-            />
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Button variant="traveler" onClick={() => setShowTripForm(true)} className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Viaje
+                </Button>
+              </div>
+            </div>
+
+            {/* Show user's trips */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
+                {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
+                  <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
+                ) : (
+                  <div className="grid gap-4">
+                    {userTrips.filter(trip => trip.status !== 'completed_paid').map((trip) => (
+                      <TripCard
+                        key={trip.id}
+                        trip={trip}
+                        getStatusBadge={getStatusBadge}
+                        onEditTrip={handleEditTrip}
+                        currentUser={currentUser}
+                        travelerProfile={currentUser} // Pasar el perfil actual como travelerProfile
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Show packages assigned to user's trips - NOW GROUPED BY TRIP */}
+              {assignedPackages.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
+                   
+                  {/* Tips Overview with trip filter */}
+                  <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
+                  
+                  {/* Group packages by trip */}
+                   <div className="space-y-6">
+                     {userTrips
+                        .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
+                        .map((trip) => {
+                         const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
+                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
+                        
+                        return (
+                          <TripPackagesGroup
+                            key={trip.id}
+                            trip={trip}
+                            packages={tripPackages}
+                            getStatusBadge={getStatusBadge}
+                            onQuote={handleQuote}
+                            onConfirmReceived={handleConfirmPackageReceived}
+                            onConfirmOfficeDelivery={(packageId) => {
+                              // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
+                              handleConfirmOfficeReception(packageId);
+                            }}
+                            defaultExpanded={hasPendingActions}
+                          />
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {isAdmin && (
