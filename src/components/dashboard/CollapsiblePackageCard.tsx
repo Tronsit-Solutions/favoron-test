@@ -186,8 +186,8 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Show upload documents after approval - Show individual sections based on completion */}
-                {(pkg.status === 'payment_confirmed' || pkg.status === 'approved' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
+                {/* Show upload documents when purchase is pending */}
+                {pkg.status === 'pending_purchase' && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
                   <div className="bg-warning-muted border border-warning-border rounded-md p-4">
                     <div className="mb-4">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
