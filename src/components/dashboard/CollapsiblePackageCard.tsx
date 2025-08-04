@@ -173,12 +173,17 @@ const CollapsiblePackageCard = ({
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                {/* Shipping Instructions for earlier states */}
-                {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
-                  <PackageShippingInstructions 
-                    travelerAddress={(pkg as any).trips.package_receiving_address}
-                    matchedTripDates={(pkg as any).trips}
-                  />
+                {/* Shipping Instructions for approved and pending_purchase states */}
+                {(pkg.status === 'approved' || pkg.status === 'pending_purchase') && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-primary mb-3 flex items-center">
+                      📍 Información del viajero para envío
+                    </h3>
+                    <PackageShippingInstructions 
+                      travelerAddress={(pkg as any).trips.package_receiving_address}
+                      matchedTripDates={(pkg as any).trips}
+                    />
+                  </div>
                 )}
 
                 {/* Show upload documents after approval - Show individual sections based on completion */}
