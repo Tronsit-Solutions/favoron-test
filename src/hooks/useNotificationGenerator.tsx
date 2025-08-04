@@ -44,7 +44,7 @@ export const useNotificationGenerator = ({ packages, trips, currentUser }: Notif
             'Solicitudes pendientes de aprobación',
             `Tienes ${pendingPackages.length} pedidos esperando aprobación`,
             'approval',
-            'high' // Changed from 'normal' to 'high' to trigger email sending
+            'high'
           );
         }
 
@@ -67,6 +67,44 @@ export const useNotificationGenerator = ({ packages, trips, currentUser }: Notif
             'high'
           );
         }
+
+        // Admin as package creator - get notifications for packages they created
+        const adminCreatedPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
+        const criticalAdminPackages = adminCreatedPackages.filter(pkg => 
+          ['quote_sent', 'delivered_to_office', 'matched'].includes(pkg.status)
+        );
+
+        criticalAdminPackages.forEach(async (pkg) => {
+          let title = '';
+          let message = '';
+          let priority: 'low' | 'normal' | 'high' | 'urgent' = 'high';
+
+          switch (pkg.status) {
+            case 'quote_sent':
+              title = 'Nueva cotización recibida (tu pedido)';
+              message = `Has recibido una cotización para tu pedido "${pkg.item_description}"`;
+              break;
+            case 'matched':
+              title = 'Tu pedido asignado a viajero';
+              message = `Tu pedido "${pkg.item_description}" ha sido asignado a un viajero`;
+              break;
+            case 'delivered_to_office':
+              title = '¡Tu pedido entregado!';
+              message = `Tu pedido "${pkg.item_description}" está listo para recoger en la oficina`;
+              priority = 'urgent';
+              break;
+          }
+
+          if (title) {
+            await createNotification(
+              currentUser.id,
+              title,
+              message,
+              'package',
+              priority
+            );
+          }
+        });
       }
 
       // User notifications - more targeted based on specific status changes

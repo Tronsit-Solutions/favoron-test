@@ -101,9 +101,26 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { userId, title, message, type, priority, actionUrl, metadata }: EmailNotificationRequest = await req.json();
 
-    console.log('Sending email notification:', { userId, title, type, priority });
+    console.log('=== EMAIL NOTIFICATION REQUEST ===');
+    console.log('User ID:', userId);
+    console.log('Title:', title);
+    console.log('Type:', type);
+    console.log('Priority:', priority);
+    console.log('Action URL:', actionUrl);
+    
+    // Check if API key is configured
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    if (!apiKey) {
+      console.error('❌ RESEND_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Email service not configured' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    console.log('✅ RESEND_API_KEY is configured');
 
     // Get user email and preferences from profiles
+    console.log('📧 Fetching user profile for email:', userId);
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('email, email_notifications, email_notification_preferences, first_name, last_name')
@@ -111,15 +128,21 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (profileError) {
-      console.error('Error fetching user profile:', profileError);
+      console.error('❌ Error fetching user profile:', profileError);
       return new Response(
         JSON.stringify({ error: 'User profile not found' }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    console.log('✅ Profile found:', {
+      email: profile.email ? '***@***.***' : 'NO EMAIL',
+      emailNotifications: profile.email_notifications,
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'No Name'
+    });
+
     if (!profile.email) {
-      console.log('User has no email address');
+      console.log('❌ User has no email address');
       return new Response(
         JSON.stringify({ error: 'User has no email address' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -127,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (!profile.email_notifications) {
-      console.log('User has email notifications disabled');
+      console.log('⚠️ User has email notifications disabled');
       return new Response(
         JSON.stringify({ message: 'User has email notifications disabled' }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -136,13 +159,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check specific notification type preference
     const preferences = profile.email_notification_preferences || {};
+    console.log('📋 User preferences:', preferences);
+    
     if (!preferences[type]) {
-      console.log(`User has disabled ${type} notifications`);
+      console.log(`⚠️ User has disabled ${type} notifications`);
       return new Response(
         JSON.stringify({ message: `User has disabled ${type} notifications` }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log('✅ All email checks passed, proceeding to send email');
 
     const userName = profile.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : 'Usuario';
     const personalizedMessage = message.replace(/Usuario/g, userName);
