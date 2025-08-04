@@ -1,10 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import EmptyState from './EmptyState';
-import TripCard from './TripCard';
-import TravelerTipsOverview from './TravelerTipsOverview';
-import TripPackagesGroup from './TripPackagesGroup';
 
 interface TripsTabContentProps {
   userTrips: any[];
@@ -29,19 +25,19 @@ const TripsTabContent: React.FC<TripsTabContentProps> = ({
   handleConfirmOfficeReception,
   setShowTripForm
 }) => {
-  // Error boundary wrapper for individual components
-  const SafeComponent = ({ children, fallback = "Error al cargar componente" }: { children: React.ReactNode, fallback?: string }) => {
-    try {
-      return <>{children}</>;
-    } catch (error) {
-      console.error('Safe component error:', error);
-      return <div className="p-2 text-red-600 text-sm">{fallback}</div>;
-    }
-  };
+  // Add extensive logging to identify the issue
+  console.log('🔍 TripsTabContent RENDER START');
+  console.log('🔍 userTrips:', userTrips, 'length:', userTrips?.length);
+  console.log('🔍 assignedPackages:', assignedPackages, 'length:', assignedPackages?.length);
+  console.log('🔍 currentUser:', currentUser);
+  
+  // Safe data validation
+  const safeUserTrips = Array.isArray(userTrips) ? userTrips : [];
+  const safeAssignedPackages = Array.isArray(assignedPackages) ? assignedPackages : [];
+  
+  console.log('🔍 After safety checks - safeUserTrips:', safeUserTrips.length, 'safeAssignedPackages:', safeAssignedPackages.length);
 
-  console.log('🔍 TripsTabContent - userTrips:', userTrips);
-  console.log('🔍 TripsTabContent - assignedPackages:', assignedPackages);
-
+  // Start with minimal safe rendering
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -60,71 +56,28 @@ const TripsTabContent: React.FC<TripsTabContentProps> = ({
         </div>
       </div>
 
-      {/* User's trips section */}
+      {/* Minimal safe content */}
       <div className="space-y-4">
         <div>
           <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
-          <SafeComponent fallback="Error al cargar viajes">
-            {(!userTrips || userTrips.length === 0) ? (
-              <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
-            ) : (
-              <div className="grid gap-4">
-                {userTrips
-                  .filter(trip => trip && trip.status !== 'completed_paid')
-                  .map((trip) => (
-                    <SafeComponent key={trip.id} fallback={`Error al cargar viaje ${trip.id}`}>
-                      <TripCard
-                        trip={trip}
-                        getStatusBadge={getStatusBadge}
-                        onEditTrip={handleEditTrip}
-                        currentUser={currentUser}
-                        travelerProfile={currentUser}
-                      />
-                    </SafeComponent>
-                  ))}
-              </div>
-            )}
-          </SafeComponent>
+          {safeUserTrips.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground">
+              No tienes viajes registrados. ¡Crea tu primer viaje!
+            </div>
+          ) : (
+            <div className="p-4 border rounded-lg">
+              <p>Encontrados {safeUserTrips.length} viajes</p>
+              <p>Debug: Datos de viajes disponibles - renderizado completo próximamente</p>
+            </div>
+          )}
         </div>
 
-        {/* Assigned packages section */}
-        {assignedPackages && assignedPackages.length > 0 && (
+        {safeAssignedPackages.length > 0 && (
           <div>
-            <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
-            
-            {/* Tips Overview */}
-            <SafeComponent fallback="Error al cargar resumen de compensaciones">
-              <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
-            </SafeComponent>
-            
-            {/* Group packages by trip */}
-            <div className="space-y-6">
-              <SafeComponent fallback="Error al cargar grupos de paquetes">
-                {userTrips
-                  .filter(trip => 
-                    trip && 
-                    trip.status !== 'completed_paid' && 
-                    assignedPackages.some(pkg => pkg && pkg.matched_trip_id === trip.id)
-                  )
-                  .map((trip) => {
-                    const tripPackages = assignedPackages.filter(pkg => pkg && pkg.matched_trip_id === trip.id);
-                    const hasPendingActions = tripPackages.some(pkg => pkg && ['matched', 'in_transit'].includes(pkg.status));
-                    
-                    return (
-                      <SafeComponent key={trip.id} fallback={`Error al cargar paquetes del viaje ${trip.id}`}>
-                        <TripPackagesGroup
-                          trip={trip}
-                          packages={tripPackages}
-                          getStatusBadge={getStatusBadge}
-                          onQuote={handleQuote}
-                          onConfirmReceived={handleConfirmPackageReceived}
-                          onConfirmOfficeDelivery={handleConfirmOfficeReception}
-                          defaultExpanded={hasPendingActions}
-                        />
-                      </SafeComponent>
-                    );
-                  })}
-              </SafeComponent>
+            <h4 className="text-lg font-semibold mb-4">Paquetes Asignados</h4>
+            <div className="p-4 border rounded-lg">
+              <p>Encontrados {safeAssignedPackages.length} paquetes asignados</p>
+              <p>Debug: Datos de paquetes disponibles - renderizado completo próximamente</p>
             </div>
           </div>
         )}
