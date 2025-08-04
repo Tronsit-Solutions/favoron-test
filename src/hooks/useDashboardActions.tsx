@@ -19,7 +19,8 @@ export const useDashboardActions = (
   createTrip?: (tripData: any) => Promise<any>,
   updatePackage?: (id: string, updates: any) => Promise<any>,
   updateTrip?: (id: string, updates: any) => Promise<any>,
-  setActiveTab?: (tab: string) => void
+  setActiveTab?: (tab: string) => void,
+  refreshPackages?: () => Promise<void>
 ) => {
   const { toast } = useToast();
 
@@ -728,6 +729,9 @@ export const useDashboardActions = (
           priority: 'high'
         });
       }
+
+      // Refrescar los paquetes para mostrar el cambio de estado
+      await refreshPackages();
 
       toast({
         title: "¡Entrega confirmada!",
