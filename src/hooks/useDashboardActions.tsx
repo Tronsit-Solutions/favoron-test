@@ -149,14 +149,28 @@ export const useDashboardActions = (
 
   const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user' | 'admin') => {
     try {
+      console.log('🚀 STARTING QUOTE SUBMIT');
+      console.log('📦 Selected package:', selectedPackage);
+      console.log('💰 Quote data:', quoteData);
+      console.log('👤 User type:', userType);
+      console.log('🔧 updatePackage function available:', !!updatePackage);
+      
       if (!updatePackage) {
-        console.error('updatePackage function not available');
+        console.error('❌ updatePackage function not available');
+        toast({
+          title: "Error del sistema",
+          description: "Función de actualización no disponible. Intenta refrescar la página.",
+          variant: "destructive",
+        });
         return;
       }
 
       // For sending a quote (when we have price data)
       if (quoteData.price !== undefined || quoteData.message === 'rejected') {
+        console.log('📋 Processing quote submission or rejection');
+        
         if (quoteData.message === 'rejected') {
+          console.log('❌ Processing rejection');
           // If traveler rejects, package goes back to pending match
           await updatePackage(selectedPackage.id, {
             status: 'approved',
@@ -167,12 +181,20 @@ export const useDashboardActions = (
             description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
           });
         } else {
+          console.log('✅ Processing quote sending');
           // Sending quote implies approval - need to set traveler address from matched trip
+          console.log('🔍 Looking for matched trip with ID:', selectedPackage.matched_trip_id);
+          console.log('🗂️ Available trips:', trips.map(t => ({ id: t.id, from: t.from_city, to: t.to_city })));
+          
           const matchedTrip = selectedPackage.matched_trip_id ? 
             trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
           
+          console.log('🎯 Found matched trip:', matchedTrip);
+          
           if (!matchedTrip) {
             console.error('❌ No matched trip found when sending quote for package:', selectedPackage.id);
+            console.error('❌ Package matched_trip_id:', selectedPackage.matched_trip_id);
+            console.error('❌ Available trip IDs:', trips.map(t => t.id));
             toast({
               title: "Error de sincronización",
               description: "No se encontró el viaje asociado. Intenta refrescar la página.",
