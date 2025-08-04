@@ -202,6 +202,7 @@ export const usePackagesData = () => {
   const updatePackage = async (id: string, updates: PackageUpdate) => {
     try {
       console.log('🔄 UPDATING PACKAGE:', id, 'with updates:', updates);
+      console.log('🔍 Update payload structure:', JSON.stringify(updates, null, 2));
       
       const { data, error } = await supabase
         .from('packages')
@@ -210,7 +211,13 @@ export const usePackagesData = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error details:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error details:', error.details);
+        throw error;
+      }
       
       console.log('✅ Package updated successfully:', data);
       
@@ -224,10 +231,14 @@ export const usePackagesData = () => {
       
       return data;
     } catch (error: any) {
-      console.error('Error updating package:', error);
+      console.error('💥 COMPLETE ERROR OBJECT:', error);
+      console.error('💥 Error name:', error.name);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Error stack:', error.stack);
+      
       toast({
         title: "Error",
-        description: "No se pudo actualizar el paquete",
+        description: `No se pudo actualizar el paquete: ${error.message || 'Error desconocido'}`,
         variant: "destructive",
       });
       throw error;
