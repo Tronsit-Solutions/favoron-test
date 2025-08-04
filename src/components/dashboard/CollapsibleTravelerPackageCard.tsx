@@ -40,10 +40,12 @@ const CollapsibleTravelerPackageCard = ({
   const { user } = useAuth();
 
   const handleConfirmReceived = (photo?: string) => {
+    console.log('🎯 handleConfirmReceived called for package:', pkg.id, pkg.item_description, 'photo:', !!photo);
     onConfirmReceived(pkg.id, photo);
   };
 
   const handleConfirmReceivedClick = () => {
+    console.log('🎯 handleConfirmReceivedClick called for package:', pkg.id, pkg.item_description);
     setShowConfirmationModal(true);
   };
 
