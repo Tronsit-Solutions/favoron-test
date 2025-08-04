@@ -1,0 +1,90 @@
+-- Update the create_notification function to properly call the edge function
+CREATE OR REPLACE FUNCTION public.create_notification(_user_id uuid, _title text, _message text, _type text DEFAULT 'general'::text, _priority text DEFAULT 'normal'::text, _action_url text DEFAULT NULL::text, _metadata jsonb DEFAULT NULL::jsonb)
+ RETURNS uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  notification_id UUID;
+  user_email TEXT;
+  user_first_name TEXT;
+  user_email_notifications BOOLEAN;
+  user_preferences JSONB;
+  should_send_email BOOLEAN := false;
+  http_result RECORD;
+BEGIN
+  -- Insert the notification first
+  INSERT INTO public.notifications (user_id, title, message, type, priority, action_url, metadata)
+  VALUES (_user_id, _title, _message, _type, _priority, _action_url, _metadata)
+  RETURNING id INTO notification_id;
+  
+  RAISE NOTICE 'Notification created with ID: % for user: %', notification_id, _user_id;
+  
+  -- Get user email preferences and profile info
+  SELECT 
+    p.email, 
+    p.first_name, 
+    p.email_notifications,
+    p.email_notification_preferences
+  INTO user_email, user_first_name, user_email_notifications, user_preferences
+  FROM public.profiles p
+  WHERE p.id = _user_id;
+  
+  RAISE NOTICE 'User profile: email=%, notifications=%, preferences=%', user_email, user_email_notifications, user_preferences;
+  
+  -- Determine if we should send email
+  IF user_email IS NOT NULL AND user_email_notifications = true THEN
+    -- Check if this notification type is enabled in user preferences
+    IF user_preferences IS NOT NULL AND user_preferences ? _type THEN
+      should_send_email := (user_preferences->>_type)::boolean;
+    ELSE
+      -- Default to true for high/urgent priority notifications if preference not set
+      should_send_email := (_priority IN ('high', 'urgent'));
+    END IF;
+  END IF;
+  
+  RAISE NOTICE 'Should send email: %, type: %, priority: %', should_send_email, _type, _priority;
+  
+  -- Send email if conditions are met
+  IF should_send_email THEN
+    BEGIN
+      RAISE NOTICE 'Attempting to send email notification for user: %', _user_id;
+      
+      -- Call the edge function using extensions.http
+      SELECT INTO http_result * FROM extensions.http((
+        'POST',
+        'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-notification-email',
+        ARRAY[
+          extensions.http_header('Content-Type', 'application/json'),
+          extensions.http_header('Authorization', 'Bearer ' || current_setting('app.jwt_secret', true))
+        ],
+        'application/json',
+        jsonb_build_object(
+          'user_id', _user_id,
+          'title', _title,
+          'message', _message,
+          'type', _type,
+          'priority', _priority,
+          'action_url', _action_url
+        )::text
+      ));
+      
+      RAISE NOTICE 'HTTP response status: %, content: %', http_result.status, http_result.content;
+      
+      -- Check if the HTTP call was successful
+      IF http_result.status BETWEEN 200 AND 299 THEN
+        RAISE NOTICE 'Email notification sent successfully for user % (notification: %)', _user_id, notification_id;
+      ELSE
+        RAISE WARNING 'Failed to send email notification for user % (notification: %): HTTP status %', _user_id, notification_id, http_result.status;
+      END IF;
+      
+    EXCEPTION WHEN OTHERS THEN
+      -- Log error but don't fail the notification creation
+      RAISE WARNING 'Exception while sending email notification for user % (notification: %): %', _user_id, notification_id, SQLERRM;
+    END;
+  END IF;
+  
+  RETURN notification_id;
+END;
+$function$;
