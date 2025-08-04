@@ -166,7 +166,7 @@ const AdminDashboard = ({
 
   // Use centralized pending actions hook for consistent notification badges
   const pendingActions = usePendingActions(packages, trips, currentUser);
-  const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
+  const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages, pendingTravelerPayments } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
   
   // Set up real-time notifications for document uploads
@@ -214,6 +214,9 @@ const AdminDashboard = ({
           </TabsTrigger>
           <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
             Pagos Viajeros
+            {pendingTravelerPayments > 0 && (
+              <NotificationBadge count={pendingTravelerPayments} />
+            )}
           </TabsTrigger>
           <TabsTrigger value="support" className="relative flex items-center gap-2">
             🔍 Soporte

@@ -28,6 +28,11 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const unmatchedPackages = packages.filter(pkg => pkg.status === 'approved').length;
     const rejectedByTravelers = packages.filter(pkg => pkg.status === 'quote_rejected').length;
     
+    // Count pending traveler payments - packages that are delivered_to_office but not yet paid to traveler
+    const pendingTravelerPayments = packages.filter(pkg => 
+      pkg.status === 'delivered_to_office' && pkg.matched_trip_id
+    ).length;
+    
     console.log('🔔 usePendingActions Debug - Admin totals:', {
       paymentsToConfirm,
       packageApprovalsNeeded,
@@ -55,6 +60,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       tripApprovalsNeeded,
       unmatchedPackages,
       rejectedByTravelers,
+      pendingTravelerPayments,
       
       // Totals
       shopperTotal: quotesToAccept + paymentsToMake + uploadsNeeded,
