@@ -111,13 +111,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if API key is configured
     const apiKey = Deno.env.get("RESEND_API_KEY");
     if (!apiKey) {
-      console.error('❌ RESEND_API_KEY not configured');
+      console.error('❌ RESEND_API_KEY not configured in environment');
       return new Response(
-        JSON.stringify({ error: 'Email service not configured' }),
+        JSON.stringify({ error: 'Email service not configured - API key missing' }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    console.log('✅ RESEND_API_KEY is configured');
+    console.log('✅ RESEND_API_KEY found, length:', apiKey.length);
+    console.log('✅ API Key starts with:', apiKey.substring(0, 10) + '...');
 
     // Get user email and preferences from profiles
     console.log('📧 Fetching user profile for email:', userId);
@@ -176,6 +177,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailHtml = getEmailTemplate(title, personalizedMessage, type, actionUrl);
 
+    console.log('🔧 Initializing Resend client...');
+    console.log('📧 Attempting to send email to:', profile.email ? '***@***.***' : 'NO EMAIL');
+
     const emailResponse = await resend.emails.send({
       from: "TravelPack <notifications@resend.dev>",
       to: [profile.email],
@@ -183,7 +187,21 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailHtml,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("📬 Resend API Response:", JSON.stringify(emailResponse, null, 2));
+    
+    if (emailResponse.error) {
+      console.error('❌ Resend API returned an error:', emailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to send email',
+          details: emailResponse.error 
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("✅ Email sent successfully! ID:", emailResponse.data?.id);
 
     return new Response(JSON.stringify({ 
       success: true, 
