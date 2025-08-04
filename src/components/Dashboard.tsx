@@ -179,7 +179,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'pending_approval': { label: 'Pendiente aprobación', variant: 'warning' as const },
+      'pending_approval': { label: 'Pendiente de aprobación', variant: 'warning' as const },
       'approved': { label: 'Aprobado', variant: 'success' as const },
       'matched': { label: 'Emparejado', variant: 'success' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
@@ -189,7 +189,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       'purchased': { label: 'Comprado', variant: 'default' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'success' as const },
-      'completed_paid': { label: 'Finalizado y Pagado', variant: 'success' as const },
+      'completed_paid': { label: 'Completado y Pagado', variant: 'success' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'success' as const },
     };
