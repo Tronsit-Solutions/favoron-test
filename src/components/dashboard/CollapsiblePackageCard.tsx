@@ -130,20 +130,24 @@ const CollapsiblePackageCard = ({
           <CardContent>
             {/* Priority Actions Section - Always first */}
             {viewMode === 'user' && (
-              <ShopperPackagePriorityActions 
-                pkg={pkg}
-                onQuote={onQuote}
-              />
+              <div className="mb-6">
+                <ShopperPackagePriorityActions 
+                  pkg={pkg}
+                  onQuote={onQuote}
+                />
+              </div>
             )}
             
             {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
             {['pending_approval', 'approved', 'payment_confirmed'].includes(pkg.status) && (
-              <ShippingInstructions pkg={pkg} />
+              <div className="mb-6">
+                <ShippingInstructions pkg={pkg} />
+              </div>
             )}
 
             {/* Información de envío collapsible para in_transit y estados posteriores */}
             {['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <Button 
                   variant="outline" 
                   className="w-full justify-between"
@@ -168,7 +172,7 @@ const CollapsiblePackageCard = ({
             )}
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-3">
+              <div className="space-y-6">
                 {/* Shipping Instructions for earlier states */}
                 {pkg.status === 'approved' && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
                   <PackageShippingInstructions 
@@ -179,8 +183,8 @@ const CollapsiblePackageCard = ({
 
                 {/* Show upload documents after approval - Show individual sections based on completion */}
                 {(pkg.status === 'payment_confirmed' || pkg.status === 'approved' || pkg.status === 'in_transit') && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
-                  <div className="bg-warning-muted border border-warning-border rounded-md p-2 mb-2">
-                    <div className="mb-3">
+                  <div className="bg-warning-muted border border-warning-border rounded-md p-4">
+                    <div className="mb-4">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
                       <p className="text-xs text-warning">Cada sección es independiente. Puedes subir la confirmación de compra y el tracking por separado.</p>
                     </div>
@@ -195,7 +199,7 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Show traveler confirmation when package is received */}
-                <TravelerConfirmationDisplay pkg={pkg} className="mb-4" />
+                <TravelerConfirmationDisplay pkg={pkg} />
 
                 {/* Show shipping information registry when saved - only for non-collapsible states */}
                 {!['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
