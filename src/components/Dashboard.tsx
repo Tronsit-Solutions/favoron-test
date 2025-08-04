@@ -19,6 +19,7 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import TripsTabContent from "./dashboard/TripsTabContent";
 
 import UserManagement from "./admin/UserManagement";
 
@@ -372,107 +373,17 @@ const Dashboard = ({ user }: DashboardProps) => {
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
-                <p className="text-muted-foreground text-sm sm:text-base">
-                  Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Button variant="traveler" onClick={() => setShowTripForm(true)} className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Viaje
-                </Button>
-              </div>
-            </div>
-
-            {/* Show user's trips */}
-            <div className="space-y-4">
-              {/* Debug logging for trips */}
-              {(() => {
-                console.log('🔍 Trips Debug - All trips:', trips);
-                console.log('🔍 Trips Debug - User trips:', userTrips);
-                console.log('🔍 Trips Debug - Assigned packages:', assignedPackages);
-                console.log('🔍 Trips Debug - userTrips type:', typeof userTrips);
-                console.log('🔍 Trips Debug - trips type:', typeof trips);
-                return null;
-              })()}
-              <div>
-                <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
-                {(!userTrips || userTrips.filter(trip => trip && trip.status !== 'completed_paid').length === 0) ? (
-                  <EmptyState type="trips" onAction={() => setShowTripForm(true)} />
-                ) : (
-                  <div className="grid gap-4">
-                    {userTrips
-                      .filter(trip => trip && trip.status !== 'completed_paid')
-                      .map((trip) => {
-                        // Add error boundary for each trip card
-                        try {
-                          if (!trip || !trip.id) {
-                            console.warn('Invalid trip data:', trip);
-                            return null;
-                          }
-                          return (
-                            <TripCard
-                              key={trip.id}
-                              trip={trip}
-                              getStatusBadge={getStatusBadge}
-                              onEditTrip={handleEditTrip}
-                              currentUser={currentUser}
-                              travelerProfile={currentUser}
-                            />
-                          );
-                        } catch (error) {
-                          console.error('Error rendering trip card:', error, trip);
-                          return (
-                            <div key={trip?.id || Math.random()} className="p-4 border rounded-lg bg-red-50">
-                              <p className="text-red-600">Error al cargar viaje</p>
-                            </div>
-                          );
-                        }
-                      })
-                      .filter(Boolean)}
-                  </div>
-                )}
-              </div>
-
-              {/* Show packages assigned to user's trips - NOW GROUPED BY TRIP */}
-              {assignedPackages && assignedPackages.length > 0 && (
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
-                   
-                  {/* Tips Overview with trip filter */}
-                  <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
-                  
-                  {/* Group packages by trip */}
-                   <div className="space-y-6">
-                     {userTrips && userTrips
-                        .filter(trip => trip && trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg && pkg.matched_trip_id === trip.id))
-                        .map((trip) => {
-                         const tripPackages = assignedPackages.filter(pkg => pkg && pkg.matched_trip_id === trip.id);
-                        const hasPendingActions = tripPackages.some(pkg => pkg && ['matched', 'in_transit'].includes(pkg.status));
-                        
-                        return (
-                          <TripPackagesGroup
-                            key={trip.id}
-                            trip={trip}
-                            packages={tripPackages}
-                            getStatusBadge={getStatusBadge}
-                            onQuote={handleQuote}
-                            onConfirmReceived={handleConfirmPackageReceived}
-                            onConfirmOfficeDelivery={(packageId) => {
-                              // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
-                              handleConfirmOfficeReception(packageId);
-                            }}
-                            defaultExpanded={hasPendingActions}
-                          />
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <TripsTabContent
+              userTrips={userTrips}
+              assignedPackages={assignedPackages}
+              currentUser={currentUser}
+              getStatusBadge={getStatusBadge}
+              handleEditTrip={handleEditTrip}
+              handleQuote={handleQuote}
+              handleConfirmPackageReceived={handleConfirmPackageReceived}
+              handleConfirmOfficeReception={handleConfirmOfficeReception}
+              setShowTripForm={setShowTripForm}
+            />
           </TabsContent>
 
           {isAdmin && (
