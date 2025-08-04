@@ -387,6 +387,15 @@ const Dashboard = ({ user }: DashboardProps) => {
 
             {/* Show user's trips */}
             <div className="space-y-4">
+              {/* Debug logging for trips */}
+              {(() => {
+                console.log('🔍 Trips Debug - All trips:', trips);
+                console.log('🔍 Trips Debug - User trips:', userTrips);
+                console.log('🔍 Trips Debug - Assigned packages:', assignedPackages);
+                console.log('🔍 Trips Debug - userTrips type:', typeof userTrips);
+                console.log('🔍 Trips Debug - trips type:', typeof trips);
+                return null;
+              })()}
               <div>
                 <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
                 {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
