@@ -286,7 +286,9 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       <EmailNotificationSettings 
         userId={user.id}
         emailNotifications={user.email_notifications ?? true}
+        emailNotificationPreferences={user.email_notification_preferences || {}}
         onUpdate={(value) => onUpdateUser({ ...user, email_notifications: value })}
+        onPreferencesUpdate={(preferences) => onUpdateUser({ ...user, email_notification_preferences: preferences })}
       />
 
       {/* Banking Information */}

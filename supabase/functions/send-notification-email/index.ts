@@ -106,7 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get user email and preferences from profiles
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('email, email_notifications, first_name, last_name')
+      .select('email, email_notifications, email_notification_preferences, first_name, last_name')
       .eq('id', userId)
       .single();
 
@@ -130,6 +130,16 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('User has email notifications disabled');
       return new Response(
         JSON.stringify({ message: 'User has email notifications disabled' }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check specific notification type preference
+    const preferences = profile.email_notification_preferences || {};
+    if (!preferences[type]) {
+      console.log(`User has disabled ${type} notifications`);
+      return new Response(
+        JSON.stringify({ message: `User has disabled ${type} notifications` }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

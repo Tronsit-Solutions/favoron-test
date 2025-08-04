@@ -300,6 +300,7 @@ export type Database = {
           document_number: string | null
           document_type: string | null
           email: string | null
+          email_notification_preferences: Json | null
           email_notifications: boolean | null
           first_name: string | null
           id: string
@@ -321,6 +322,7 @@ export type Database = {
           document_number?: string | null
           document_type?: string | null
           email?: string | null
+          email_notification_preferences?: Json | null
           email_notifications?: boolean | null
           first_name?: string | null
           id: string
@@ -342,6 +344,7 @@ export type Database = {
           document_number?: string | null
           document_type?: string | null
           email?: string | null
+          email_notification_preferences?: Json | null
           email_notifications?: boolean | null
           first_name?: string | null
           id?: string
