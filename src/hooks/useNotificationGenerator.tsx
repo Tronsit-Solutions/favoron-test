@@ -44,7 +44,7 @@ export const useNotificationGenerator = ({ packages, trips, currentUser }: Notif
             'Solicitudes pendientes de aprobación',
             `Tienes ${pendingPackages.length} pedidos esperando aprobación`,
             'approval',
-            'normal'
+            'high' // Changed from 'normal' to 'high' to trigger email sending
           );
         }
 
