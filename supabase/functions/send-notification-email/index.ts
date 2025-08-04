@@ -72,7 +72,7 @@ const getEmailTemplate = (title: string, message: string, type: string, actionUr
     <body>
       <div class="container">
         <div class="header">
-          <h1>📦 TravelPack</h1>
+          <h1>📦 Favoron</h1>
         </div>
         <div class="content">
           <div class="notification-type" style="${getTypeColor(type)}">
@@ -83,8 +83,8 @@ const getEmailTemplate = (title: string, message: string, type: string, actionUr
           ${actionButton}
         </div>
         <div class="footer">
-          <p>Este es un mensaje automático de TravelPack. No responder a este correo.</p>
-          <p>© 2024 TravelPack. Todos los derechos reservados.</p>
+          <p>Este es un mensaje automático de Favoron. No responder a este correo.</p>
+          <p>© 2024 Favoron. Todos los derechos reservados.</p>
         </div>
       </div>
     </body>
@@ -181,9 +181,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('📧 Attempting to send email to:', profile.email ? '***@***.***' : 'NO EMAIL');
 
     const emailResponse = await resend.emails.send({
-      from: "TravelPack <notifications@resend.dev>",
+      from: "Favoron <notifications@resend.dev>",
       to: [profile.email],
-      subject: `TravelPack - ${title}`,
+      subject: `Favoron - ${title}`,
       html: emailHtml,
     });
 
