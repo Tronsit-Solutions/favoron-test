@@ -69,20 +69,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      // Combinar queries en una sola para reducir requests
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle(),
+        supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle()
+      ]);
 
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (profileData) setProfile(profileData);
-      if (roleData) setUserRole(roleData);
+      if (profileResult.data) setProfile(profileResult.data);
+      if (roleResult.data) setUserRole(roleResult.data);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }

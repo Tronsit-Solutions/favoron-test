@@ -157,15 +157,41 @@ export const useTripPayments = (tripId?: string) => {
     fetchTripPayment();
   }, [tripId]);
 
-  // Refrescar datos cada 5 segundos para asegurar sincronización
+  // Usar real-time subscriptions en lugar de polling para mejor performance
   useEffect(() => {
     if (!tripId) return;
     
-    const interval = setInterval(() => {
-      fetchTripPayment();
-    }, 5000);
+    const channel = supabase
+      .channel('trip-payment-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trip_payment_accumulator',
+          filter: `trip_id=eq.${tripId}`
+        },
+        () => {
+          fetchTripPayment();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payment_orders',
+          filter: `trip_id=eq.${tripId}`
+        },
+        () => {
+          fetchTripPayment();
+        }
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [tripId]);
 
   return {
