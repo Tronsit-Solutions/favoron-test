@@ -181,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('📧 Attempting to send email to:', profile.email ? '***@***.***' : 'NO EMAIL');
 
     const emailResponse = await resend.emails.send({
-      from: "Favoron <notifications@resend.dev>",
+      from: "Favoron <noreply@favoron.com>",
       to: [profile.email],
       subject: `Favoron - ${title}`,
       html: emailHtml,
