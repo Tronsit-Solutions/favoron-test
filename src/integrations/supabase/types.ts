@@ -531,6 +531,18 @@ export type Database = {
         }
         Returns: string
       }
+      create_notification_with_direct_email: {
+        Args: {
+          _user_id: string
+          _title: string
+          _message: string
+          _type?: string
+          _priority?: string
+          _action_url?: string
+          _metadata?: Json
+        }
+        Returns: string
+      }
       get_database_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
