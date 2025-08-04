@@ -37,16 +37,22 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       try {
         const { data, error } = await supabase
           .from('packages')
-          .select('status')
+          .select('status, office_delivery')
           .eq('matched_trip_id', trip.id)
           .not('status', 'in', '(rejected,cancelled)');
 
         if (error) throw error;
 
         const total = data?.length || 0;
-        const completed = data?.filter(pkg => pkg.status === 'completed').length || 0;
+        // Contar paquetes confirmados en oficina (tienen office_delivery con datos)
+        const completed = data?.filter(pkg => pkg.office_delivery && Object.keys(pkg.office_delivery).length > 0).length || 0;
         
         setPackageCounts({ total, completed });
+
+        // Auto-crear accumulator si todos están confirmados y no existe tripPayment
+        if (total > 0 && completed === total && !tripPayment) {
+          handleCreateAccumulator();
+        }
       } catch (error) {
         console.error('Error fetching package counts:', error);
         setPackageCounts({ total: 0, completed: 0 });
@@ -56,7 +62,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     if (trip.id) {
       fetchPackageCounts();
     }
-  }, [trip.id]);
+  }, [trip.id, tripPayment]);
 
   const handleCreateAccumulator = async () => {
     try {
