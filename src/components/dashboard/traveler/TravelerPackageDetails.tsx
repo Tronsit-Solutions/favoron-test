@@ -206,11 +206,16 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
               {pkg.tracking_info && (
                 <div className="bg-card border border-border rounded-lg p-2">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Información de Seguimiento</p>
-                  <div className="text-xs text-foreground">
-                    <p><strong>Número de seguimiento:</strong> {pkg.tracking_info.trackingNumber}</p>
-                    {pkg.tracking_info.trackingUrl && (
-                      <p>
-                        <strong>Enlace:</strong>{" "}
+                  <div className="text-xs text-foreground space-y-1">
+                    <div>
+                      <strong>Número de seguimiento:</strong> {pkg.tracking_info.trackingNumber || 'No disponible'}
+                    </div>
+                    <div>
+                      <strong>Empresa de envío:</strong> {pkg.tracking_info.shippingCompany || 'No especificada'}
+                    </div>
+                    <div>
+                      <strong>Enlace de seguimiento:</strong>{" "}
+                      {pkg.tracking_info.trackingUrl ? (
                         <a 
                           href={pkg.tracking_info.trackingUrl} 
                           target="_blank" 
@@ -219,10 +224,14 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                         >
                           Ver seguimiento
                         </a>
-                      </p>
-                    )}
+                      ) : (
+                        <span className="text-muted-foreground italic">No proporcionado</span>
+                      )}
+                    </div>
                     {pkg.tracking_info.notes && (
-                      <p><strong>Notas:</strong> {pkg.tracking_info.notes}</p>
+                      <div>
+                        <strong>Notas:</strong> {pkg.tracking_info.notes}
+                      </div>
                     )}
                   </div>
                 </div>
