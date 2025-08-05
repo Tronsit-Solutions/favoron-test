@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Edit } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
-
+import UploadDocuments from "@/components/UploadDocuments";
 import EditPackageModal from "@/components/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
@@ -186,6 +186,21 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
+                {/* Show upload documents when purchase is pending */}
+                {pkg.status === 'pending_purchase' && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
+                  <div className="bg-warning-muted border border-warning-border rounded-md p-2">
+                    <div className="mb-2">
+                      <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
+                    </div>
+                    <UploadDocuments 
+                      packageId={pkg.id}
+                      currentStatus={pkg.status}
+                      currentConfirmation={pkg.purchase_confirmation}
+                      currentTracking={pkg.tracking_info}
+                      onUpload={(type, data) => onUploadDocument(pkg.id, type as ('confirmation' | 'tracking'), data)}
+                    />
+                  </div>
+                )}
 
                 {/* Show traveler confirmation when package is received */}
                 <TravelerConfirmationDisplay pkg={pkg} />
