@@ -40,7 +40,7 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             <div className="flex items-center justify-between py-0.5 px-1 bg-white/60 rounded text-xs">
               <div className="flex items-center space-x-1">
                 <span className="text-orange-600">📤</span>
-                <span className="text-gray-700">Último día:</span>
+                <span className="text-gray-700">Último día para recibir paquetes:</span>
               </div>
               <span className="font-semibold text-gray-800">
                 {new Date(matchedTripDates.last_day_packages).toLocaleDateString('es-GT')}
