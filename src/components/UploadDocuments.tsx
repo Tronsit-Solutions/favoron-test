@@ -48,7 +48,7 @@ const UploadDocuments = ({
           </h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Para completar tu pedido, necesitamos que subas los siguientes documentos:
+          Para completar tu pedido, necesitamos que subas los siguientes documentos: comprobante de compra e información de tracking.
         </p>
       </div>
 
