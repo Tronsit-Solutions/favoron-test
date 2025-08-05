@@ -61,8 +61,14 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   const handleCreateAccumulator = async () => {
     try {
       const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
-      await createOrUpdateTripPaymentAccumulator(trip.id, userProfile.id);
-      window.location.reload(); // Refrescar para ver los cambios
+      const result = await createOrUpdateTripPaymentAccumulator(trip.id, userProfile.id);
+      
+      if (result.success) {
+        // Refresh the tripPayment data instead of reloading the entire page
+        window.location.href = window.location.pathname;
+      } else {
+        console.error('Failed to create accumulator:', result.error);
+      }
     } catch (error) {
       console.error('Error creating accumulator:', error);
     }
