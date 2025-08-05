@@ -36,7 +36,7 @@ const UploadDocuments = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header Section */}
       <div className="p-3 bg-muted/20 rounded-md border">
         <div className="flex items-center space-x-2 mb-2">
