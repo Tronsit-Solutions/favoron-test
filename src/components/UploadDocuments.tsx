@@ -36,10 +36,10 @@ const UploadDocuments = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Header Section */}
-      <div className="p-3 bg-muted/20 rounded-md border">
-        <div className="flex items-center space-x-2 mb-2">
+      <div className="p-2 bg-muted/20 rounded-md border">
+        <div className="flex items-center space-x-2 mb-1">
           <div className="h-4 w-4 bg-primary/20 rounded-full flex items-center justify-center">
             <span className="text-xs">📋</span>
           </div>
@@ -54,21 +54,21 @@ const UploadDocuments = ({
 
 
       {/* Upload Sections */}
-      <div className="space-y-4">
+      <div className="space-y-2">
         {/* Step 1: Purchase Confirmation Upload */}
         {showConfirmationSection && (
-          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
+          <div className="border border-primary/30 rounded-lg">
             <div className="bg-primary/5 rounded-md">
-              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
+              <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
-                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                  <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                     1
                   </div>
                   <h4 className="font-semibold text-foreground">Comprobante de Compra</h4>
                 </div>
                 <span className="text-xs text-primary font-medium">REQUERIDO</span>
               </div>
-              <div className="p-3">
+              <div className="p-2">
                 <PurchaseConfirmationUpload
                   packageId={packageId}
                   currentConfirmation={currentConfirmation}
@@ -81,18 +81,18 @@ const UploadDocuments = ({
 
         {/* Step 2: Tracking Information */}
         {showTrackingSection && (
-          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
+          <div className="border border-primary/30 rounded-lg">
             <div className="bg-primary/5 rounded-md">
-              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
+              <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
-                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                  <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                     2
                   </div>
                   <h4 className="font-semibold text-foreground">Información de Tracking</h4>
                 </div>
                 <span className="text-xs text-primary font-medium">REQUERIDO</span>
               </div>
-              <div className="p-3">
+              <div className="p-2">
                 <TrackingInfoForm
                   packageId={packageId}
                   currentTracking={currentTracking}
@@ -106,7 +106,7 @@ const UploadDocuments = ({
 
       {/* Success Message */}
       {currentConfirmation && currentTracking && (
-        <div className="text-center p-4 bg-success/10 border border-success/20 rounded-lg">
+        <div className="text-center p-3 bg-success/10 border border-success/20 rounded-lg">
           <div className="text-success text-2xl mb-2">🎉</div>
           <h4 className="font-semibold text-success mb-1">¡Documentos Completos!</h4>
           <p className="text-sm text-success/80">
