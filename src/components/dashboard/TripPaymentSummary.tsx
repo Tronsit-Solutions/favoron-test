@@ -64,8 +64,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       const result = await createOrUpdateTripPaymentAccumulator(trip.id, userProfile.id);
       
       if (result.success) {
-        // Refresh the tripPayment data instead of reloading the entire page
-        window.location.href = window.location.pathname;
+        // Force component re-render by updating a key prop or using a callback
+        window.location.reload();
       } else {
         console.error('Failed to create accumulator:', result.error);
       }
