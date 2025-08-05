@@ -2,6 +2,7 @@ import { MapPin, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import AddressDisplay from "@/components/ui/address-display";
 interface TravelerPackageInfoProps {
   pkg: any;
 }
@@ -34,7 +35,13 @@ const TravelerPackageInfo = ({
   }, [pkg.id, pkg.status]);
   return <div className="space-y-2">
       {/* Delivery address if confirmed */}
-      {pkg.confirmed_delivery_address}
+      {pkg.confirmed_delivery_address && (
+        <AddressDisplay 
+          address={pkg.confirmed_delivery_address}
+          title="Dirección de entrega confirmada"
+          variant="success"
+        />
+      )}
 
       {/* Payment receipt */}
       {paymentReceipt && paymentReceipt.receipt_url && <div className="bg-green-50 border border-green-200 rounded-lg p-3">
