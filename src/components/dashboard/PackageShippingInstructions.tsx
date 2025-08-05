@@ -1,4 +1,6 @@
 import React from "react";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PackageShippingInstructionsProps {
   travelerAddress: any;
@@ -7,6 +9,7 @@ interface PackageShippingInstructionsProps {
 
 export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates }: PackageShippingInstructionsProps) => {
   return (
+    <TooltipProvider>
     <div className="bg-background border border-border rounded-md p-1.5 mb-2">
       <div className="flex items-center space-x-2 mb-2">
         <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
@@ -50,7 +53,15 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             <div className="flex items-center justify-between py-0.5 px-1 bg-white/60 rounded text-xs">
               <div className="flex items-center space-x-1">
                 <span className="text-purple-600">🏢</span>
-                <span className="text-gray-700">Entrega oficina:</span>
+                <span className="text-gray-700">Entrega en oficina:</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-gray-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Día en que el viajero entregará los paquetes en la oficina de Favorón</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <span className="font-semibold text-gray-800">
                 {new Date(matchedTripDates.delivery_date).toLocaleDateString('es-GT')}
@@ -123,5 +134,6 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
         Una vez enviado el producto, sube los documentos de compra y tracking abajo.
       </p>
     </div>
+    </TooltipProvider>
   );
 };
