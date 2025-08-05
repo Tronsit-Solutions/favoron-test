@@ -13,9 +13,9 @@ interface AddressDisplayProps {
 
 const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayProps) => {
   const variantStyles = {
-    success: 'bg-success-muted border-success-border text-success-foreground',
-    info: 'bg-info-muted border-info-border text-info-foreground', 
-    warning: 'bg-warning-muted border-warning-border text-warning-foreground'
+    success: 'bg-success-muted border-success-border text-foreground',
+    info: 'bg-info-muted border-info-border text-foreground', 
+    warning: 'bg-warning-muted border-warning-border text-foreground'
   };
 
   const iconColor = {
