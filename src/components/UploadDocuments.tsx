@@ -87,18 +87,18 @@ const UploadDocuments = ({
       <div className="space-y-4">
         {/* Step 1: Purchase Confirmation Upload */}
         {showConfirmationSection && (
-          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
+          <div className="border-2 border-dashed border-primary/30 rounded-lg p-0.5">
             <div className="bg-primary/5 rounded-md">
-              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
+              <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
-                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                  <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                     1
                   </div>
-                  <h4 className="font-semibold text-foreground">Comprobante de Compra</h4>
+                  <h4 className="font-semibold text-foreground text-sm">Comprobante de Compra</h4>
                 </div>
                 <span className="text-xs text-primary font-medium">REQUERIDO</span>
               </div>
-              <div className="p-3">
+              <div className="p-2">
                 <PurchaseConfirmationUpload
                   packageId={packageId}
                   currentConfirmation={currentConfirmation}
