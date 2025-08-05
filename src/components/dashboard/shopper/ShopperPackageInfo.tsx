@@ -47,7 +47,7 @@ const ShopperPackageInfo = ({
   };
 
   const renderDocumentUpload = () => {
-    if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
+    if (!['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status)) return null;
     return <div className="mt-2">
         <UploadDocuments 
           packageId={pkg.id}
@@ -103,7 +103,7 @@ const ShopperPackageInfo = ({
       {renderQuoteInfo()}
       {renderPaymentUpload()}
       {/* Removido renderTravelerAddress() - ahora se usa ShippingInfoRegistry */}
-      {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && renderDocumentUpload()}
+      {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;
