@@ -65,10 +65,10 @@ const HeroSection = ({
     // Fetch inicial
     fetchStats();
 
-    // Actualizar cada 30 segundos
+    // Actualizar cada 5 minutos en lugar de 30 segundos para reducir carga
     const interval = setInterval(() => {
       fetchStats();
-    }, 30000);
+    }, 300000); // 5 minutos
 
     // Cleanup del interval
     return () => clearInterval(interval);
