@@ -181,21 +181,6 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Show upload documents when purchase is pending */}
-                {pkg.status === 'pending_purchase' && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
-                  <div className="bg-warning-muted border border-warning-border rounded-md p-2">
-                    <div className="mb-2">
-                      <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
-                    </div>
-                    <UploadDocuments 
-                      packageId={pkg.id}
-                      currentStatus={pkg.status}
-                      currentConfirmation={pkg.purchase_confirmation}
-                      currentTracking={pkg.tracking_info}
-                      onUpload={(type, data) => onUploadDocument(pkg.id, type as ('confirmation' | 'tracking'), data)}
-                    />
-                  </div>
-                )}
 
                 {/* Show traveler confirmation when package is received */}
                 <TravelerConfirmationDisplay pkg={pkg} />
