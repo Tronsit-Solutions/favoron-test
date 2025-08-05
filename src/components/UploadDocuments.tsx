@@ -54,32 +54,30 @@ const UploadDocuments = ({
 
       {/* Progress Steps */}
       <div className="flex justify-center">
-        <div className="flex items-center space-x-4 p-3 bg-card rounded-lg border">
+        <div className="space-y-1 p-2 bg-card rounded-lg border">
           <div className="flex items-center space-x-2">
-            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
               currentConfirmation ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
             }`}>
               {currentConfirmation ? '✓' : '1'}
             </div>
-            <span className={`text-sm font-medium ${
+            <span className={`text-xs font-medium ${
               currentConfirmation ? 'text-success' : 'text-foreground'
             }`}>
-              Comprobante
+              Comprobante de compra
             </span>
           </div>
           
-          <div className={`h-0.5 w-8 ${currentConfirmation ? 'bg-success' : 'bg-border'}`} />
-          
           <div className="flex items-center space-x-2">
-            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${
+            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
               currentTracking ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
             }`}>
               {currentTracking ? '✓' : '2'}
             </div>
-            <span className={`text-sm font-medium ${
+            <span className={`text-xs font-medium ${
               currentTracking ? 'text-success' : 'text-foreground'
             }`}>
-              Tracking
+              Información de tracking
             </span>
           </div>
         </div>
