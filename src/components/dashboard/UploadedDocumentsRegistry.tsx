@@ -208,10 +208,15 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
         {/* Tracking Information */}
         {trackingInfo && (
           <div className="p-2 bg-muted/20 rounded-md border">
-            <div className="flex items-center space-x-2 mb-2">
-              <Truck className="h-3 w-3 text-primary" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium">Información de seguimiento</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <Truck className="h-3 w-3 text-primary" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">Información de seguimiento</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {trackingInfo.trackingNumber && `#${trackingInfo.trackingNumber}`}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center space-x-1">
                 {trackingInfo.timestamp && (
@@ -219,6 +224,21 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                     {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
                   </span>
                 )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                  onClick={() => {
+                    setModalImage({
+                      url: '',
+                      title: "Información de Seguimiento"
+                    });
+                    setModalOpen(true);
+                  }}
+                  title="Ver información de seguimiento"
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
                 {onEditDocument && (
                   <Button
                     size="sm"
@@ -232,57 +252,70 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 )}
               </div>
             </div>
-            
-            {/* Tracking details */}
-            <div className="space-y-1">
-              {/* Tracking number */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Número de seguimiento:</span>
-                <span className="text-xs font-mono">
-                  {trackingInfo.trackingNumber || 'No disponible'}
-                </span>
-              </div>
-              
-              {/* Shipping company */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Empresa de envío:</span>
-                <span className="text-xs">
-                  {(trackingInfo as any).shippingCompany || 'No especificada'}
-                </span>
-              </div>
-              
-              {/* Tracking URL */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Link de seguimiento:</span>
-                <div className="flex items-center space-x-1">
-                  {trackingInfo.trackingUrl ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Ver seguimiento
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">No proporcionado</span>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
       
-      {/* Modal para ver imágenes */}
+      {/* Modal para ver imágenes y tracking info */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>{modalImage?.title}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center">
-            {modalImage && (
+            {modalImage && modalImage.title === "Información de Seguimiento" ? (
+              <div className="w-full max-w-md space-y-4 p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Número de seguimiento:</span>
+                    <span className="text-sm font-mono">
+                      {trackingInfo?.trackingNumber || 'No disponible'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Empresa de envío:</span>
+                    <span className="text-sm">
+                      {(trackingInfo as any)?.shippingCompany || 'No especificada'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-start justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Link de seguimiento:</span>
+                    <div className="text-right">
+                      {trackingInfo?.trackingUrl ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Abrir seguimiento
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">No proporcionado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {(trackingInfo as any)?.notes && (
+                    <div className="border-b pb-2">
+                      <span className="text-sm text-muted-foreground">Notas:</span>
+                      <p className="text-sm mt-1">{(trackingInfo as any).notes}</p>
+                    </div>
+                  )}
+
+                  {trackingInfo?.timestamp && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Fecha de registro:</span>
+                      <span className="text-sm">
+                        {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : modalImage && (
               <img 
                 src={modalImage.url} 
                 alt={modalImage.title}
