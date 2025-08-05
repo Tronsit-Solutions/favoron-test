@@ -48,27 +48,57 @@ const UploadDocuments = ({
           </h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Para completar tu pedido, necesitamos que subas los siguientes documentos: comprobante de compra e información de tracking.
+          Para completar tu pedido, necesitamos que subas los siguientes documentos:
         </p>
       </div>
 
+      {/* Progress Steps */}
+      <div className="flex justify-center">
+        <div className="space-y-1 p-2 bg-card rounded-lg border">
+          <div className="flex items-center space-x-2">
+            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentConfirmation ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
+            }`}>
+              {currentConfirmation ? '✓' : '1'}
+            </div>
+            <span className={`text-xs font-medium ${
+              currentConfirmation ? 'text-success' : 'text-foreground'
+            }`}>
+              Comprobante de compra
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
+              currentTracking ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
+            }`}>
+              {currentTracking ? '✓' : '2'}
+            </div>
+            <span className={`text-xs font-medium ${
+              currentTracking ? 'text-success' : 'text-foreground'
+            }`}>
+              Información de tracking
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Upload Sections */}
       <div className="space-y-4">
         {/* Step 1: Purchase Confirmation Upload */}
         {showConfirmationSection && (
-          <div className="border-2 border-dashed border-primary/30 rounded-lg p-0.5">
+          <div className="border-2 border-dashed border-primary/30 rounded-lg p-1">
             <div className="bg-primary/5 rounded-md">
-              <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
+              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
-                  <div className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
                     1
                   </div>
-                  <h4 className="font-semibold text-foreground text-sm">Comprobante de Compra</h4>
+                  <h4 className="font-semibold text-foreground">Comprobante de Compra</h4>
                 </div>
                 <span className="text-xs text-primary font-medium">REQUERIDO</span>
               </div>
-              <div className="p-2">
+              <div className="p-3">
                 <PurchaseConfirmationUpload
                   packageId={packageId}
                   currentConfirmation={currentConfirmation}
