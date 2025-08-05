@@ -207,44 +207,69 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
 
         {/* Tracking Information */}
         {trackingInfo && (
-          <div className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
+          <div className="p-2 bg-muted/20 rounded-md border">
+            <div className="flex items-center space-x-2 mb-2">
               <Truck className="h-3 w-3 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate">Información de seguimiento</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {trackingInfo.trackingNumber && `#${trackingInfo.trackingNumber}`}
-                </p>
+                <p className="text-xs font-medium">Información de seguimiento</p>
+              </div>
+              <div className="flex items-center space-x-1">
+                {trackingInfo.timestamp && (
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
+                  </span>
+                )}
+                {onEditDocument && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={() => onEditDocument('tracking_info')}
+                    title="Editar información"
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-1">
-              {trackingInfo.timestamp && (
-                <span className="text-xs text-muted-foreground">
-                  {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
+            
+            {/* Tracking details */}
+            <div className="space-y-1">
+              {/* Tracking number */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Número de seguimiento:</span>
+                <span className="text-xs font-mono">
+                  {trackingInfo.trackingNumber || 'No disponible'}
                 </span>
-              )}
-              {trackingInfo.trackingUrl && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
-                  title="Ver seguimiento"
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
-              )}
-              {onEditDocument && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => onEditDocument('tracking_info')}
-                  title="Editar información"
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
-              )}
+              </div>
+              
+              {/* Shipping company */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Empresa de envío:</span>
+                <span className="text-xs">
+                  {(trackingInfo as any).shippingCompany || 'No especificada'}
+                </span>
+              </div>
+              
+              {/* Tracking URL */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Link de seguimiento:</span>
+                <div className="flex items-center space-x-1">
+                  {trackingInfo.trackingUrl ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Ver seguimiento
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">No proporcionado</span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
