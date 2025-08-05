@@ -44,6 +44,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
   });
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const destinationCities = [
     'Guatemala City',
@@ -63,7 +64,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (isSubmitting) return; // Prevent double submission
+    
     console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
+    setIsSubmitting(true);
     
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
@@ -71,18 +75,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     // Validate product
     if (!product.itemLink || !product.itemDescription || !product.estimatedPrice || !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios');
+      setIsSubmitting(false);
       return;
     }
 
     // Validar delivery method si destino es Guatemala
     if (finalDestination.toLowerCase().includes('guatemala') && !formData.deliveryMethod) {
       alert('Por favor selecciona cómo quieres recibir tu paquete en Guatemala');
+      setIsSubmitting(false);
       return;
     }
 
     // Validar dirección si seleccionó delivery
     if (formData.deliveryMethod === 'delivery' && !addressData) {
       alert('Por favor completa la información de entrega a domicilio');
+      setIsSubmitting(false);
       return;
     }
 
@@ -101,30 +108,31 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     try {
       await onSubmit(submitData);
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
+      
+      // Reset form only on success
+      setProduct({
+        itemLink: '',
+        itemDescription: '',
+        estimatedPrice: '',
+        quantity: '1'
+      });
+      setFormData({
+        deliveryDeadline: null,
+        additionalNotes: '',
+        packageDestination: '',
+        packageDestinationOther: '',
+        purchaseOrigin: '',
+        purchaseOriginOther: '',
+        deliveryMethod: ''
+      });
+      setShowAddressForm(false);
+      setAddressData(null);
     } catch (error) {
       console.error('❌ FORM SUBMIT ERROR:', error);
       alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    // Reset form
-    setProduct({
-      itemLink: '',
-      itemDescription: '',
-      estimatedPrice: '',
-      quantity: '1'
-    });
-    setFormData({
-      deliveryDeadline: null,
-      additionalNotes: '',
-      packageDestination: '',
-      packageDestinationOther: '',
-      purchaseOrigin: '',
-      purchaseOriginOther: '',
-      deliveryMethod: ''
-    });
-    setShowAddressForm(false);
-    setAddressData(null);
   };
 
   const updateProduct = (field: keyof Product, value: string) => {
@@ -430,8 +438,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" variant="shopper" className="flex-1">
-              Enviar Solicitud
+            <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
             </Button>
           </div>
         </form>
