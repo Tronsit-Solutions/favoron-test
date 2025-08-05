@@ -188,8 +188,8 @@ const CollapsiblePackageCard = ({
 
                 {/* Show upload documents when purchase is pending */}
                 {pkg.status === 'pending_purchase' && viewMode === 'user' && (!pkg.purchase_confirmation || !pkg.tracking_info) && (
-                  <div className="bg-warning-muted border border-warning-border rounded-md p-4">
-                    <div className="mb-4">
+                  <div className="bg-warning-muted border border-warning-border rounded-md p-2">
+                    <div className="mb-2">
                       <p className="text-sm font-medium text-warning">📋 Subir documentos de compra</p>
                       <p className="text-xs text-warning">Cada sección es independiente. Puedes subir la confirmación de compra y el tracking por separado.</p>
                     </div>
