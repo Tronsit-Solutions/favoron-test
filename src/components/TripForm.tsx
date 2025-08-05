@@ -479,7 +479,7 @@ const TripForm = ({
           </div>
 
           {/* Terms and Conditions Checkbox */}
-          <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-4 hover:border-primary/40 transition-all duration-200 group">
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group">
             <div className="flex items-start space-x-3">
               <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => setAcceptedTerms(!!checked)} className="mt-1" />
               <div className="flex-1">
