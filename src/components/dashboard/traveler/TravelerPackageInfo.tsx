@@ -34,14 +34,7 @@ const TravelerPackageInfo = ({
     fetchPaymentReceipt();
   }, [pkg.id, pkg.status]);
   return <div className="space-y-2">
-      {/* Delivery address if confirmed */}
-      {pkg.confirmed_delivery_address && (
-        <AddressDisplay 
-          address={pkg.confirmed_delivery_address}
-          title="Dirección de entrega confirmada"
-          variant="success"
-        />
-      )}
+      {/* Delivery address is only for admin - travelers deliver to Favorón */}
 
       {/* Payment receipt */}
       {paymentReceipt && paymentReceipt.receipt_url && <div className="bg-green-50 border border-green-200 rounded-lg p-3">
