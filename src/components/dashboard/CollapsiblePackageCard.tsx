@@ -92,11 +92,6 @@ const CollapsiblePackageCard = ({
           </Button>
         )}
         
-        {viewMode === 'user' && pkg.status === 'matched' && (
-          <Button size="sm" onClick={() => onQuote(pkg, 'user')}>
-            Enviar Cotización
-          </Button>
-        )}
       </div>
     );
   };

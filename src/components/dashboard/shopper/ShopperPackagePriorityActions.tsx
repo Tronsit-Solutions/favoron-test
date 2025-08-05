@@ -39,6 +39,13 @@ const ShopperPackagePriorityActions = ({
             onClick: () => onQuote(pkg, 'user')
           }
         };
+      case 'matched':
+        return {
+          icon: Package2,
+          title: "👥 Asignado a viajero",
+          description: "Tu paquete fue asignado a un viajero. Pronto recibirás una cotización.",
+          button: null
+        };
       case 'approved':
         return {
           icon: Clock,
