@@ -52,36 +52,6 @@ const UploadDocuments = ({
         </p>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex justify-center">
-        <div className="space-y-1 p-2 bg-card rounded-lg border">
-          <div className="flex items-center space-x-2">
-            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
-              currentConfirmation ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
-            }`}>
-              {currentConfirmation ? '✓' : '1'}
-            </div>
-            <span className={`text-xs font-medium ${
-              currentConfirmation ? 'text-success' : 'text-foreground'
-            }`}>
-              Comprobante de compra
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold ${
-              currentTracking ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground'
-            }`}>
-              {currentTracking ? '✓' : '2'}
-            </div>
-            <span className={`text-xs font-medium ${
-              currentTracking ? 'text-success' : 'text-foreground'
-            }`}>
-              Información de tracking
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Upload Sections */}
       <div className="space-y-4">
