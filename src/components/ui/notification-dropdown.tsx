@@ -90,10 +90,10 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-xs"
+              className="text-xs shrink-0"
             >
               <Check className="h-3 w-3 mr-1" />
-              Marcar todas como leídas
+              Marcar todas
             </Button>
           )}
         </div>
