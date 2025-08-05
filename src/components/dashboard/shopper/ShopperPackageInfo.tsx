@@ -20,15 +20,15 @@ const ShopperPackageInfo = ({
     const additionalFee = parseFloat(quote?.serviceFee || '0');
     const subtotal = basePrice + additionalFee;
     const totalWithFavoronFee = quote?.totalPrice ? parseFloat(quote.totalPrice) : subtotal * 1.4;
-    return <div className="bg-info-muted border border-info-border rounded-lg p-3">
-        <div className="flex items-center justify-between mb-2">
+    return <div className="bg-info-muted border border-info-border rounded-lg p-2">
+        <div className="flex items-center justify-between mb-1">
           <p className="text-sm font-medium text-info">Cotización recibida:</p>
           <p className="text-lg font-bold text-info">Q{totalWithFavoronFee.toFixed(2)}</p>
         </div>
         <p className="text-xs text-info">
           Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
         </p>
-        {quote?.message && <p className="text-sm text-info mt-2 italic">"{quote.message}"</p>}
+        {quote?.message && <p className="text-sm text-info mt-1 italic">"{quote.message}"</p>}
       </div>;
   };
   // Comentado - usando ShippingInfoRegistry en su lugar
@@ -38,7 +38,7 @@ const ShopperPackageInfo = ({
   // };
   const renderPaymentUpload = () => {
     if (!['quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
-    return <div className="mt-4">
+    return <div className="mt-2">
         <PaymentReceiptUpload pkg={pkg} onUploadComplete={updatedPkg => {
         // Actualizar solo este paquete específico sin hacer refresh completo
         onPackageUpdate?.(updatedPkg);
@@ -48,7 +48,7 @@ const ShopperPackageInfo = ({
 
   const renderDocumentUpload = () => {
     if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
-    return <div className="mt-4">
+    return <div className="mt-2">
         <UploadDocuments 
           packageId={pkg.id}
           currentStatus={pkg.status}
