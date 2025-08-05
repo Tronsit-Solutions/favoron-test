@@ -30,42 +30,36 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
             <span className="text-xs font-medium text-blue-800">Fechas importantes</span>
           </div>
           
-          <div className="space-y-0.5 text-xs">
-            <div className="flex items-center justify-between py-0.5 px-1 bg-white/60 rounded text-xs">
-              <div className="flex items-center space-x-1">
-                <span className="text-green-600">📥</span>
-                <span className="text-gray-700">Primer día para recibir paquetes:</span>
-              </div>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center space-x-2">
+              <span className="text-green-600">📥</span>
+              <span className="text-gray-700">Primer día para recibir paquetes:</span>
               <span className="font-semibold text-gray-800">
                 {new Date(matchedTripDates.first_day_packages).toLocaleDateString('es-GT')}
               </span>
             </div>
             
-            <div className="flex items-center justify-between py-0.5 px-1 bg-white/60 rounded text-xs">
-              <div className="flex items-center space-x-1">
-                <span className="text-orange-600">📤</span>
-                <span className="text-gray-700">Último día para recibir paquetes:</span>
-              </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-orange-600">📤</span>
+              <span className="text-gray-700">Último día para recibir paquetes:</span>
               <span className="font-semibold text-gray-800">
                 {new Date(matchedTripDates.last_day_packages).toLocaleDateString('es-GT')}
               </span>
             </div>
             
-            <div className="flex items-center justify-between py-0.5 px-1 bg-white/60 rounded text-xs">
-              <div className="flex items-center space-x-1">
-                <span className="text-purple-600">🏢</span>
-                <span className="text-gray-700">Entrega en oficina:</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-auto p-0 hover:bg-transparent">
-                      <Info className="h-3 w-3 text-gray-500 cursor-help" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Día en que el viajero entregará los paquetes en la oficina de Favorón</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-purple-600">🏢</span>
+              <span className="text-gray-700">Entrega en oficina:</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-auto p-0 hover:bg-transparent">
+                    <Info className="h-3 w-3 text-gray-500 cursor-help" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Día en que el viajero entregará los paquetes en la oficina de Favorón</p>
+                </TooltipContent>
+              </Tooltip>
               <span className="font-semibold text-gray-800">
                 {new Date(matchedTripDates.delivery_date).toLocaleDateString('es-GT')}
               </span>
