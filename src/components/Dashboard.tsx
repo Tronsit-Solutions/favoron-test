@@ -35,8 +35,6 @@ interface DashboardProps {
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   
-  // Debug log to check if userRole is being loaded correctly
-  console.log('Dashboard userRole:', userRole);
   const {
     currentUser,
     setCurrentUser,
@@ -122,15 +120,8 @@ const Dashboard = ({ user }: DashboardProps) => {
   const isAdmin = currentUser.role === 'admin';
   
   // Filter packages and trips for current user
-  console.log('🔍 Dashboard Debug - currentUser.id:', currentUser.id);
-  console.log('🔍 Dashboard Debug - All packages:', packages.length);
-  console.log('🔍 Dashboard Debug - All packages data:', packages);
-  
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
   const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
-  
-  console.log('🔍 Dashboard Debug - User packages:', userPackages.length);
-  console.log('🔍 Dashboard Debug - User packages data:', userPackages);
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => 
@@ -140,8 +131,6 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Set up real-time notifications based on user context
   useRealtimePackages({
     onPackageUpdate: () => {
-      // Force refresh packages when there are changes
-      console.log('🔄 Real-time package update received, refreshing...');
       refreshPackages();
     },
     userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')
@@ -166,14 +155,13 @@ const Dashboard = ({ user }: DashboardProps) => {
         .eq('id', currentUser.id);
 
       if (error) {
-        console.error('Error updating profile:', error);
         return;
       }
 
       // Update local state
       setCurrentUser(userData);
     } catch (error) {
-      console.error('Error updating user:', error);
+      // Error silently handled
     }
   };
 
@@ -254,7 +242,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     try {
       await deletePackage(pkg.id);
     } catch (error) {
-      console.error('Error discarding package:', error);
+      // Error silently handled
     }
   };
 
