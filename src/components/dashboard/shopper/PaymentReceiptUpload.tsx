@@ -226,10 +226,42 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         />
 
         <div className="mt-4 p-3 bg-info/5 border border-info/20 rounded-lg">
-          <p className="text-xs text-foreground">
-            <strong>Información de pago:</strong> Transfiere Q{(pkg.quote as any)?.totalPrice || '0.00'} a la cuenta de Favorón S.A. 
-            y sube tu comprobante para confirmar el pago.
-          </p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground mb-2">
+                Información de transferencia bancaria
+              </p>
+              <p className="text-xs text-foreground mb-3">
+                Monto a transferir: <strong>Q{(pkg.quote as any)?.totalPrice || '0.00'}</strong>
+              </p>
+            </div>
+            
+            <div className="bg-background/50 border border-info/30 rounded-md p-3">
+              <h4 className="text-xs font-semibold text-foreground mb-2">Datos bancarios de Favorón S.A.</h4>
+              <div className="grid grid-cols-1 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Banco:</span>
+                  <span className="ml-2 font-medium text-foreground">Banco Industrial</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Titular:</span>
+                  <span className="ml-2 font-medium text-foreground">Favorón S.A.</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">No. Cuenta:</span>
+                  <span className="ml-2 font-medium text-foreground">255-045678-9</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tipo:</span>
+                  <span className="ml-2 font-medium text-foreground">Cuenta Monetaria</span>
+                </div>
+              </div>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Realiza la transferencia y sube tu comprobante para confirmar el pago.
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
