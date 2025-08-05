@@ -250,7 +250,7 @@ const TripForm = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Fecha de llegada a destino *</Label>
+              <Label>Fecha de llegada a {displayToCity || 'destino'} *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
