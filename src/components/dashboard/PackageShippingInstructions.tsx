@@ -1,6 +1,7 @@
 import React from "react";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 interface PackageShippingInstructionsProps {
   travelerAddress: any;
@@ -56,7 +57,9 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
                 <span className="text-gray-700">Entrega en oficina:</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-gray-500 cursor-help" />
+                    <Button variant="ghost" size="sm" className="h-auto p-0 hover:bg-transparent">
+                      <Info className="h-3 w-3 text-gray-500 cursor-help" />
+                    </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs">Día en que el viajero entregará los paquetes en la oficina de Favorón</p>
