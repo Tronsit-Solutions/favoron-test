@@ -58,14 +58,13 @@ const Auth = () => {
         duration: 6000,
       });
     } else {
-      // Check if user is already logged in
-      const checkUser = async () => {
+      // Check if user is already logged in (but with a delay to avoid immediate redirect)
+      setTimeout(async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && !isResettingPassword) {
           navigate('/');
         }
-      };
-      checkUser();
+      }, 100);
     }
 
     // Set up auth state listener for other auth events
