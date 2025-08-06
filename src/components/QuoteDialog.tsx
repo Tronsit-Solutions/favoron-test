@@ -21,6 +21,7 @@ interface QuoteDialogProps {
     deliveryAddress?: any;
     delivery_method?: string;
     quote_expires_at?: string;
+    products_data?: any[];
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -119,8 +120,44 @@ const QuoteDialog = ({
                 <p className="font-medium text-foreground"><strong>Producto:</strong></p>
                 <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
               </div>
-              <div className="bg-background/80 rounded-lg p-2">
-                <p className="font-medium text-foreground"><strong>Precio estimado:</strong> <span className="text-lg font-bold text-primary">${packageDetails.estimated_price}</span></p>
+              <div className="bg-background/80 rounded-lg p-2 flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-foreground"><strong>Precio estimado:</strong></p>
+                  {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {packageDetails.products_data.map((product: any, index: number) => {
+                        const quantity = parseInt(product.quantity || '1');
+                        const unitPrice = parseFloat(product.estimatedPrice || '0');
+                        const totalPrice = quantity * unitPrice;
+                        
+                        return (
+                          <div key={index} className="mb-1">
+                            <span className="text-xs">
+                              {quantity} × ${unitPrice.toFixed(2)} = ${totalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Precio unitario</p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-bold text-primary">
+                    ${(() => {
+                      if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
+                        return packageDetails.products_data.reduce((sum: number, product: any) => {
+                          const quantity = parseInt(product.quantity || '1');
+                          const unitPrice = parseFloat(product.estimatedPrice || '0');
+                          return sum + (quantity * unitPrice);
+                        }, 0).toFixed(2);
+                      }
+                      return packageDetails.estimated_price;
+                    })()}
+                  </span>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                </div>
               </div>
               {packageDetails.item_link && (
                 <div className="bg-background/80 rounded-lg p-2">
