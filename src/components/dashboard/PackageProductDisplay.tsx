@@ -5,6 +5,7 @@ interface Product {
   itemDescription: string;
   estimatedPrice: string;
   itemLink?: string;
+  quantity?: string;
 }
 
 interface PackageProductDisplayProps {
@@ -33,6 +34,11 @@ const PackageProductDisplay = ({
                 <span className="text-sm text-muted-foreground">${product.estimatedPrice}</span>
               </div>
               <p className="text-sm mb-2">{product.itemDescription}</p>
+              {product.quantity && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  <strong>Cantidad:</strong> {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
+                </p>
+              )}
               {product.itemLink && (
                 <a 
                   href={product.itemLink} 
