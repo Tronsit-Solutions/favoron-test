@@ -500,7 +500,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             estimated_price: selectedPackageForQuote.estimated_price,
             item_link: selectedPackageForQuote.item_link,
             deliveryAddress: selectedPackageForQuote.confirmed_delivery_address,
-            delivery_method: selectedPackageForQuote.delivery_method
+            delivery_method: selectedPackageForQuote.delivery_method,
+            products_data: selectedPackageForQuote.products_data
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote}
