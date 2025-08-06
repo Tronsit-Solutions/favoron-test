@@ -10,7 +10,7 @@ import BenefitsSection from "@/components/BenefitsSection";
 import CTASection from "@/components/CTASection";
 
 const Index = () => {
-  const { user, profile, userRole, loading } = useAuth();
+  const { user, profile, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
   const openAuth = (mode: "login" | "register" = "login") => {
@@ -61,7 +61,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <NavBar onOpenAuth={openAuth} />
+      <NavBar 
+        onOpenAuth={openAuth} 
+        isAuthenticated={!!(user && profile)} 
+        onSignOut={signOut}
+      />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
         <PlatformDescriptionSection />
