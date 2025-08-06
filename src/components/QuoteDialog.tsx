@@ -174,10 +174,29 @@ const QuoteDialog = ({
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-muted-foreground">
                         <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
-                        <p><strong>Cantidad:</strong> 1 unidad</p>
+                        <p><strong>Cantidad:</strong> {(() => {
+                          // Intentar obtener cantidad de productos_data si existe
+                          if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
+                            const totalQuantity = packageDetails.products_data.reduce((sum: number, product: any) => {
+                              return sum + parseInt(product.quantity || '1');
+                            }, 0);
+                            return `${totalQuantity} unidad${totalQuantity !== 1 ? 'es' : ''}`;
+                          }
+                          return '1 unidad';
+                        })()} </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
+                        <p className="text-lg font-bold text-primary">${(() => {
+                          // Calcular total considerando cantidades de products_data
+                          if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
+                            return packageDetails.products_data.reduce((sum: number, product: any) => {
+                              const quantity = parseInt(product.quantity || '1');
+                              const unitPrice = parseFloat(product.estimatedPrice || packageDetails.estimated_price || '0');
+                              return sum + (quantity * unitPrice);
+                            }, 0).toFixed(2);
+                          }
+                          return packageDetails.estimated_price;
+                        })()}</p>
                         <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
