@@ -175,13 +175,11 @@ const QuoteDialog = ({
                       <div className="text-sm text-muted-foreground">
                         <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
                         <p><strong>Cantidad:</strong> {(() => {
-                          // Obtener cantidad total de productos_data
+                          // Mostrar la cantidad del producto que pidió el shopper
                           if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-                            const totalQuantity = packageDetails.products_data.reduce((sum: number, product: any) => {
-                              const qty = parseInt(product.quantity || '1');
-                              return sum + qty;
-                            }, 0);
-                            return `${totalQuantity} unidad${totalQuantity !== 1 ? 'es' : ''}`;
+                            const firstProduct = packageDetails.products_data[0];
+                            const qty = parseInt(firstProduct.quantity || '1');
+                            return `${qty} unidad${qty !== 1 ? 'es' : ''}`;
                           }
                           return '1 unidad';
                         })()} </p>
