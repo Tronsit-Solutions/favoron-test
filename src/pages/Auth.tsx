@@ -38,9 +38,13 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log('Auth component mounted, location.state:', location.state);
+    
     // Check for mode from navigation state
     const mode = location.state?.mode;
+    console.log('Navigation mode:', mode);
     if (mode === 'register') {
+      console.log('Setting currentTab to signup');
       setCurrentTab('signup');
     }
 
@@ -50,6 +54,7 @@ const Auth = () => {
     const type = hashParams.get('type');
     
     if (type === 'recovery') {
+      console.log('Password recovery detected');
       // This is a password recovery from email link
       setIsResettingPassword(true);
       toast({
@@ -59,17 +64,24 @@ const Auth = () => {
       });
     } else {
       // Check if user is already logged in (but with a delay to avoid immediate redirect)
+      console.log('Checking for existing session...');
       setTimeout(async () => {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Existing session check result:', session);
         if (session && !isResettingPassword) {
+          console.log('Existing session found, redirecting to home');
           navigate('/');
+        } else {
+          console.log('No existing session, staying on auth page');
         }
       }, 100);
     }
 
     // Set up auth state listener for other auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, 'Session:', !!session);
       if (event === 'SIGNED_IN' && session && !isResettingPassword) {
+        console.log('User signed in, redirecting to home');
         // User is signed in and not in password reset flow
         navigate('/');
       }

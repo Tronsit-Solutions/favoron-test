@@ -14,6 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const openAuth = (mode: "login" | "register" = "login") => {
+    console.log('openAuth called with mode:', mode);
     navigate('/auth', { state: { mode } });
   };
 
