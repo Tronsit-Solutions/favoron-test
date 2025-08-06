@@ -69,6 +69,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('fetchProfile called for userId:', userId);
+      
       // Combinar queries en una sola para reducir requests
       const [profileResult, roleResult] = await Promise.all([
         supabase
@@ -83,8 +85,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .maybeSingle()
       ]);
 
-      if (profileResult.data) setProfile(profileResult.data);
-      if (roleResult.data) setUserRole(roleResult.data);
+      console.log('Profile result:', profileResult);
+      console.log('Role result:', roleResult);
+
+      if (profileResult.data) {
+        console.log('Setting profile:', profileResult.data);
+        setProfile(profileResult.data);
+      }
+      if (roleResult.data) {
+        console.log('Setting userRole:', roleResult.data);
+        setUserRole(roleResult.data);
+      } else {
+        console.error('No role found for user:', userId);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
