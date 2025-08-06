@@ -3,12 +3,7 @@ import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-interface CTASectionProps {
-  onOpenAuth: (mode: "login" | "register") => void;
-}
-const CTASection = ({
-  onOpenAuth
-}: CTASectionProps) => {
+const CTASection = () => {
   // Historical users as base
   const HISTORICAL_USERS = 188;
   

@@ -3,12 +3,7 @@ import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-interface HeroSectionProps {
-  onOpenAuth: (mode: "login" | "register") => void;
-}
-const HeroSection = ({
-  onOpenAuth
-}: HeroSectionProps) => {
+const HeroSection = () => {
   // Historical values as base
   const HISTORICAL_TIPS = 30000;
   const HISTORICAL_PACKAGES = 202;

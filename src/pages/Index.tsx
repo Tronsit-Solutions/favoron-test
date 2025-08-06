@@ -62,11 +62,11 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar onOpenAuth={openAuth} />
       <main className="pb-safe">
-        <HeroSection onOpenAuth={openAuth} />
+        <HeroSection />
         <PlatformDescriptionSection />
         <HowItWorksSection />
         <BenefitsSection />
-        <CTASection onOpenAuth={openAuth} />
+        <CTASection />
       </main>
     </div>
   );
