@@ -117,67 +117,105 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
         
         <CollapsibleContent>
           <div className="mt-2 bg-card border border-border rounded-lg p-3 space-y-2">
-            {pkg.products_data && Array.isArray(pkg.products_data) ? pkg.products_data.map((product: any, index: number) => (
-              <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-foreground">
-                      Producto {index + 1}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
-                    {product.quantity && (
-                      <p className="text-xs text-muted-foreground font-medium">
-                        Cantidad: {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
+            {pkg.products_data && Array.isArray(pkg.products_data) ? pkg.products_data.map((product: any, index: number) => {
+              const quantity = parseInt(product.quantity || '1');
+              const unitPrice = parseFloat(product.estimatedPrice || '0');
+              const totalPrice = quantity * unitPrice;
+              
+              return (
+                <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                  <div className="flex items-start justify-between mb-1">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-foreground">
+                        Producto {index + 1}
                       </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
-                  </div>
-                </div>
-                {product.itemLink && (
-                  <a 
-                    href={product.itemLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Ver producto
-                  </a>
-                )}
-              </div>
-            )) : pkg.products ? pkg.products.map((product: any, index: number) => (
-              <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-foreground">
-                      Producto {index + 1}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
-                    {product.quantity && (
-                      <p className="text-xs text-muted-foreground font-medium">
-                        Cantidad: {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
+                      <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}
+                        </p>
+                        {quantity > 1 && (
+                          <p className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+                            💰 <strong>Total:</strong> ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-primary">
+                        ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
                       </p>
-                    )}
+                      {quantity > 1 && (
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
-                  </div>
+                  {product.itemLink && (
+                    <a 
+                      href={product.itemLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Ver producto
+                    </a>
+                  )}
                 </div>
-                {product.itemLink && (
-                  <a 
-                    href={product.itemLink} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Ver producto
-                  </a>
-                )}
-              </div>
-            )) : (
+              );
+            }) : pkg.products ? pkg.products.map((product: any, index: number) => {
+              const quantity = parseInt(product.quantity || '1');
+              const unitPrice = parseFloat(product.estimatedPrice || '0');
+              const totalPrice = quantity * unitPrice;
+              
+              return (
+                <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                  <div className="flex items-start justify-between mb-1">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-foreground">
+                        Producto {index + 1}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                      <div className="mt-1 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}
+                        </p>
+                        {quantity > 1 && (
+                          <p className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+                            💰 <strong>Total:</strong> ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-primary">
+                        ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
+                      </p>
+                      {quantity > 1 && (
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      )}
+                    </div>
+                  </div>
+                  {product.itemLink && (
+                    <a 
+                      href={product.itemLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Ver producto
+                    </a>
+                  )}
+                </div>
+              );
+            }) : (
               // Fallback for old single-product format
               <div className="bg-muted/30 border border-border/50 rounded p-2">
                 <div className="flex items-start justify-between mb-1">
