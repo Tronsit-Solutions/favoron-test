@@ -26,14 +26,18 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
 
   const getTotalValue = () => {
     if (pkg.products_data && Array.isArray(pkg.products_data)) {
-      return pkg.products_data.reduce((sum: number, product: any) => 
-        sum + parseFloat(product.estimatedPrice || 0), 0
-      ).toFixed(2);
+      return pkg.products_data.reduce((sum: number, product: any) => {
+        const quantity = parseInt(product.quantity || '1');
+        const unitPrice = parseFloat(product.estimatedPrice || '0');
+        return sum + (quantity * unitPrice);
+      }, 0).toFixed(2);
     }
     if (pkg.products) {
-      return pkg.products.reduce((sum: number, product: any) => 
-        sum + parseFloat(product.estimatedPrice || 0), 0
-      ).toFixed(2);
+      return pkg.products.reduce((sum: number, product: any) => {
+        const quantity = parseInt(product.quantity || '1');
+        const unitPrice = parseFloat(product.estimatedPrice || '0');
+        return sum + (quantity * unitPrice);
+      }, 0).toFixed(2);
     }
     return pkg.estimated_price;
   };
