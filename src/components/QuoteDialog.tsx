@@ -121,42 +121,67 @@ const QuoteDialog = ({
                 <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
               </div>
               <div className="bg-background/80 rounded-lg p-2 flex justify-between items-center">
-                <div>
-                  <p className="font-medium text-foreground"><strong>Precio estimado:</strong></p>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground mb-2"><strong>Información de precios:</strong></p>
                   {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                    <div className="text-sm text-muted-foreground mt-1">
+                    <div className="space-y-2">
                       {packageDetails.products_data.map((product: any, index: number) => {
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
                         
                         return (
-                          <div key={index} className="mb-1">
-                            <span className="text-xs">
-                              {quantity} × ${unitPrice.toFixed(2)} = ${totalPrice.toFixed(2)}
-                            </span>
+                          <div key={index} className="bg-muted/30 rounded p-2">
+                            <p className="text-sm font-medium text-foreground mb-1">
+                              Producto {index + 1}: {product.itemDescription}
+                            </p>
+                            <div className="flex justify-between items-center">
+                              <div className="text-sm text-muted-foreground">
+                                <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
+                                <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
+                                {quantity > 1 && (
+                                  <p className="text-primary font-medium">
+                                    ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">${totalPrice.toFixed(2)}</p>
+                                <p className="text-xs text-muted-foreground">Subtotal</p>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
+                      
+                      {/* Total general si hay múltiples productos */}
+                      {packageDetails.products_data.length > 1 && (
+                        <div className="border-t pt-2 mt-2">
+                          <div className="flex justify-between items-center">
+                            <p className="font-medium text-foreground">Total del pedido:</p>
+                            <p className="text-xl font-bold text-primary">
+                              ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                                const quantity = parseInt(product.quantity || '1');
+                                const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                return sum + (quantity * unitPrice);
+                              }, 0).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Precio unitario</p>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-muted-foreground">
+                        <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
+                        <p><strong>Cantidad:</strong> 1 unidad</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div className="text-right">
-                  <span className="text-lg font-bold text-primary">
-                    ${(() => {
-                      if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-                        return packageDetails.products_data.reduce((sum: number, product: any) => {
-                          const quantity = parseInt(product.quantity || '1');
-                          const unitPrice = parseFloat(product.estimatedPrice || '0');
-                          return sum + (quantity * unitPrice);
-                        }, 0).toFixed(2);
-                      }
-                      return packageDetails.estimated_price;
-                    })()}
-                  </span>
-                  <p className="text-xs text-muted-foreground">Total</p>
                 </div>
               </div>
               {packageDetails.item_link && (
