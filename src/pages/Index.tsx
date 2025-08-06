@@ -13,8 +13,8 @@ const Index = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
 
-  const openAuth = (mode: "login" | "register") => {
-    navigate('/auth', { state: { mode } });
+  const openAuth = () => {
+    navigate('/auth');
   };
 
   if (loading) {
@@ -62,11 +62,11 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar onOpenAuth={openAuth} />
       <main className="pb-safe">
-        <HeroSection />
+        <HeroSection onOpenAuth={openAuth} />
         <PlatformDescriptionSection />
         <HowItWorksSection />
         <BenefitsSection />
-        <CTASection />
+        <CTASection onOpenAuth={openAuth} />
       </main>
     </div>
   );

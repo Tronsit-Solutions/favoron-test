@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
 const Auth = () => {
@@ -35,17 +35,8 @@ const Auth = () => {
   const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    // Set initial tab based on navigation state
-    const state = location.state as { mode?: "login" | "register" };
-    if (state?.mode === "register") {
-      setCurrentTab('signup');
-    } else if (state?.mode === "login") {
-      setCurrentTab('signin');
-    }
-
     // Check if this is a password reset redirect from email link
     // Supabase sends recovery tokens in the URL hash fragment
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -79,38 +70,16 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast, isResettingPassword, location.state]);
+  }, [navigate, toast, isResettingPassword]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('Form submitted with data:', {
-      email,
-      password,
-      confirmPassword,
-      firstName,
-      lastName,
-      documentType,
-      documentNumber,
-      phoneNumber,
-      username
-    });
     
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       toast({
         title: "Error",
         description: "Las contraseñas no coinciden",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar que el tipo de documento esté seleccionado
-    if (!documentType) {
-      toast({
-        title: "Error",
-        description: "Por favor selecciona el tipo de documento",
         variant: "destructive",
       });
       return;
@@ -626,7 +595,7 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="document-type">Tipo de documento</Label>
-                  <Select value={documentType} onValueChange={setDocumentType}>
+                  <Select value={documentType} onValueChange={setDocumentType} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tipo de documento" />
                     </SelectTrigger>
