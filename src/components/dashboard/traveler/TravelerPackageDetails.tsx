@@ -15,11 +15,21 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
   const [hasNewDocuments, setHasNewDocuments] = useState(false);
 
   const getTotalProducts = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data)) {
+      return pkg.products_data.reduce((sum: number, product: any) => 
+        sum + parseInt(product.quantity || '1'), 0
+      );
+    }
     if (pkg.products) return pkg.products.length;
     return 1;
   };
 
   const getTotalValue = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data)) {
+      return pkg.products_data.reduce((sum: number, product: any) => 
+        sum + parseFloat(product.estimatedPrice || 0), 0
+      ).toFixed(2);
+    }
     if (pkg.products) {
       return pkg.products.reduce((sum: number, product: any) => 
         sum + parseFloat(product.estimatedPrice || 0), 0
@@ -107,7 +117,7 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
         
         <CollapsibleContent>
           <div className="mt-2 bg-card border border-border rounded-lg p-3 space-y-2">
-            {pkg.products ? pkg.products.map((product: any, index: number) => (
+            {pkg.products_data && Array.isArray(pkg.products_data) ? pkg.products_data.map((product: any, index: number) => (
               <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex-1">
@@ -115,6 +125,41 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       Producto {index + 1}
                     </p>
                     <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                    {product.quantity && (
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Cantidad: {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>
+                  </div>
+                </div>
+                {product.itemLink && (
+                  <a 
+                    href={product.itemLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Ver producto
+                  </a>
+                )}
+              </div>
+            )) : pkg.products ? pkg.products.map((product: any, index: number) => (
+              <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                <div className="flex items-start justify-between mb-1">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">
+                      Producto {index + 1}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                    {product.quantity && (
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Cantidad: {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-primary">${product.estimatedPrice}</p>

@@ -23,14 +23,26 @@ const TravelerPackageCard = ({
             <CardTitle className="text-lg flex items-center space-x-2">
               <Package className="h-5 w-5 text-primary" />
               <span>
-                {pkg.products && pkg.products.length > 0 
-                  ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}`
-                  : pkg.itemDescription || 'Pedido'
+                {pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0
+                  ? `${pkg.products_data.length > 1 ? `${pkg.products_data.length} productos` : pkg.products_data[0].itemDescription}`
+                  : pkg.products && pkg.products.length > 0 
+                    ? `${pkg.products.length > 1 ? `${pkg.products.length} productos` : pkg.products[0].itemDescription}`
+                    : pkg.itemDescription || pkg.item_description || 'Pedido'
                 }
               </span>
             </CardTitle>
             <CardDescription>
-              {pkg.products && pkg.products.length > 0 ? (
+              {pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0 ? (
+                <>
+                  Total estimado: ${pkg.products_data.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
+                  {pkg.products_data.some((p: any) => p.quantity && p.quantity !== '1') && (
+                    <> • Cantidades: {pkg.products_data.map((p: any) => p.quantity || '1').join(', ')}</>
+                  )}
+                  {pkg.delivery_deadline && (
+                    <> • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</>
+                  )}
+                </>
+              ) : pkg.products && pkg.products.length > 0 ? (
                 <>
                   Total estimado: ${pkg.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
                   {pkg.deliveryDeadline && (
@@ -39,7 +51,7 @@ const TravelerPackageCard = ({
                 </>
               ) : (
                 <>
-                  Precio estimado: ${pkg.estimatedPrice}
+                  Precio estimado: ${pkg.estimatedPrice || pkg.estimated_price}
                   {pkg.deliveryDeadline && (
                     <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>
                   )}
