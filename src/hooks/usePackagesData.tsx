@@ -116,10 +116,14 @@ export const usePackagesData = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw error;
+      }
+
+      if (!data) {
+        throw new Error('Package not found or you do not have permission to update it');
       }
       
       setPackages(prev => {
