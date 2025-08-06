@@ -20,7 +20,8 @@ export const useDashboardActions = (
   updatePackage?: (id: string, updates: any) => Promise<any>,
   updateTrip?: (id: string, updates: any) => Promise<any>,
   setActiveTab?: (tab: string) => void,
-  refreshPackages?: () => Promise<void>
+  refreshPackages?: () => Promise<void>,
+  refreshTrips?: () => Promise<void>
 ) => {
   const { toast } = useToast();
 
@@ -187,18 +188,52 @@ export const useDashboardActions = (
           console.log('🔍 Looking for matched trip with ID:', selectedPackage.matched_trip_id);
           console.log('🗂️ Available trips:', trips.map(t => ({ id: t.id, from: t.from_city, to: t.to_city })));
           
-          const matchedTrip = selectedPackage.matched_trip_id ? 
+          let matchedTrip = selectedPackage.matched_trip_id ? 
             trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
           
-          console.log('🎯 Found matched trip:', matchedTrip);
+          // If trip not found locally, try to fetch it directly from database
+          if (!matchedTrip && selectedPackage.matched_trip_id) {
+            console.log('🔄 Trip not found locally, fetching from database...');
+            try {
+              const { data: tripData, error } = await supabase
+                .from('trips')
+                .select(`
+                  *,
+                  profiles (
+                    id,
+                    first_name,
+                    last_name,
+                    username,
+                    email,
+                    phone_number,
+                    avatar_url,
+                    trust_level,
+                    created_at
+                  )
+                `)
+                .eq('id', selectedPackage.matched_trip_id)
+                .single();
+
+              if (error) throw error;
+              matchedTrip = tripData;
+              console.log('✅ Trip fetched from database:', matchedTrip);
+              
+              // Refresh trips data to sync local state
+              await refreshTrips();
+            } catch (error) {
+              console.error('❌ Failed to fetch trip from database:', error);
+            }
+          }
+          
+          console.log('🎯 Final matched trip:', matchedTrip);
           
           if (!matchedTrip) {
-            console.error('❌ No matched trip found when sending quote for package:', selectedPackage.id);
+            console.error('❌ No matched trip found after all attempts for package:', selectedPackage.id);
             console.error('❌ Package matched_trip_id:', selectedPackage.matched_trip_id);
             console.error('❌ Available trip IDs:', trips.map(t => t.id));
             toast({
               title: "Error de sincronización",
-              description: "No se encontró el viaje asociado. Intenta refrescar la página.",
+              description: "No se encontró el viaje asociado. Los datos han sido actualizados, intenta nuevamente.",
               variant: "destructive",
             });
             return;

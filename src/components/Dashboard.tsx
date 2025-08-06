@@ -111,7 +111,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     updatePackage,
     updateTrip,
     setActiveTab, // Add setActiveTab here
-    refreshPackages // Add refreshPackages function
+    refreshPackages, // Add refreshPackages function
+    refreshTrips // Add refreshTrips function
   );
 
   const pendingActions = usePendingActions(packages, trips, currentUser);

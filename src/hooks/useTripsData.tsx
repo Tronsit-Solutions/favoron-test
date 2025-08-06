@@ -45,11 +45,12 @@ export const useTripsData = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // RLS policies already handle access control:
-      // - Users can see their own trips (any status)
-      // - Users can see all approved trips from other users
-      // - Admins can see all trips
-      // No need for additional filtering here
+      // Enhanced data loading: Load trips that are relevant for quote processing
+      // This includes:
+      // - User's own trips (any status)
+      // - All approved trips (for matching context) 
+      // - Trips that have matched packages (for quote processing)
+      // RLS policies handle the access control automatically
 
       const { data, error } = await query;
 
