@@ -84,6 +84,16 @@ const Auth = () => {
       });
       return;
     }
+
+    // Validar que el tipo de documento esté seleccionado
+    if (!documentType) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona el tipo de documento",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setLoading(true);
 
@@ -595,7 +605,7 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="document-type">Tipo de documento</Label>
-                  <Select value={documentType} onValueChange={setDocumentType} required>
+                  <Select value={documentType} onValueChange={setDocumentType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tipo de documento" />
                     </SelectTrigger>
