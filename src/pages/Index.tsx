@@ -13,15 +13,7 @@ const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
-  console.log('Index component - Auth state:', { 
-    user: !!user, 
-    profile: !!profile, 
-    userRole: !!userRole, 
-    loading 
-  });
-
   const openAuth = (mode: "login" | "register" = "login") => {
-    console.log('openAuth called with mode:', mode);
     navigate('/auth', { state: { mode } });
   };
 
@@ -36,8 +28,7 @@ const Index = () => {
     );
   }
 
-  if (user && profile && userRole) {
-    console.log('Rendering Dashboard for authenticated user');
+  if (user && profile) {
     // Create user object compatible with existing Dashboard component
     const userData = {
       id: user.id,
@@ -46,7 +37,7 @@ const Index = () => {
       lastName: profile.last_name,
       email: user.email,
       phone: profile.phone_number,
-      role: userRole.role,
+      role: userRole?.role || 'user', // Fallback to 'user' if role not loaded
       trustLevel: profile.trust_level,
       avatar_url: profile.avatar_url,
       joinedAt: profile.created_at,
@@ -67,7 +58,7 @@ const Index = () => {
     return <Dashboard user={userData} />;
   }
 
-  console.log('Rendering landing page - user not fully authenticated');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar 

@@ -41,30 +41,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                 <span className="hidden sm:inline">Volver al Dashboard</span>
                 <span className="sm:hidden">Dashboard</span>
               </Button>
-            ) : isAuthenticated ? (
-              <>
-                <Button 
-                  onClick={() => window.location.href = '/'}
-                  size="sm"
-                  variant="outline"
-                  className="shadow-sm hover:shadow-md transition-all duration-200"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Dashboard</span>
-                  <span className="sm:hidden">Panel</span>
-                </Button>
-                <Button 
-                  onClick={onSignOut}
-                  size="sm"
-                  variant="destructive"
-                  className="shadow-sm hover:shadow-md transition-all duration-200"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Cerrar Sesión</span>
-                  <span className="sm:hidden">Salir</span>
-                </Button>
-              </>
-            ) : (
+            ) : !isAuthenticated ? (
               <>
                 <Button 
                   variant="outline" 
@@ -92,7 +69,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                   <span className="sm:hidden">Registro</span>
                 </Button>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </nav>

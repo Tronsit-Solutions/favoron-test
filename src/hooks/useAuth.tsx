@@ -96,7 +96,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.log('Setting userRole:', roleResult.data);
         setUserRole(roleResult.data);
       } else {
-        console.error('No role found for user:', userId);
+        console.log('No role found, using fallback');
+        // Fallback role si no se puede cargar
+        setUserRole({ 
+          id: 'fallback', 
+          user_id: userId, 
+          role: 'user', 
+          assigned_by: null, 
+          assigned_at: new Date().toISOString() 
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
