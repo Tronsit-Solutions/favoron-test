@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
 const Auth = () => {
@@ -35,8 +35,15 @@ const Auth = () => {
   const [currentTab, setCurrentTab] = useState('signin');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // Check for mode from navigation state
+    const mode = location.state?.mode;
+    if (mode === 'register') {
+      setCurrentTab('signup');
+    }
+
     // Check if this is a password reset redirect from email link
     // Supabase sends recovery tokens in the URL hash fragment
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -70,7 +77,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast, isResettingPassword]);
+  }, [navigate, toast, isResettingPassword, location.state]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,11 +177,8 @@ const Auth = () => {
   };
 
   const cleanupAuthState = () => {
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
+    // Only remove the main auth token, not all storage items
+    localStorage.removeItem('supabase.auth.token');
   };
 
   const handleSignIn = async (e: React.FormEvent) => {

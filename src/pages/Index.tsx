@@ -13,8 +13,8 @@ const Index = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
 
-  const openAuth = () => {
-    navigate('/auth');
+  const openAuth = (mode: "login" | "register" = "login") => {
+    navigate('/auth', { state: { mode } });
   };
 
   if (loading) {
