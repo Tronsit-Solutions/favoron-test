@@ -59,12 +59,14 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard }: NavBarPr
                   <LogIn className="h-4 w-4" />
                 </Button>
                 <Button 
-                  onClick={() => onOpenAuth("register")}
+                  asChild
                   size="sm"
                   className="shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                 >
-                  <span className="hidden sm:inline">Registrarse</span>
-                  <span className="sm:hidden">Registro</span>
+                  <Link to="/auth" state={{ mode: "register" }}>
+                    <span className="hidden sm:inline">Registrarse</span>
+                    <span className="sm:hidden">Registro</span>
+                  </Link>
                 </Button>
               </>
             )}

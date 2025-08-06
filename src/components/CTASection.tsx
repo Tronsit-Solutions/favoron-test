@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 interface CTASectionProps {
@@ -64,11 +65,13 @@ const CTASection = ({
         {/* CTA Button */}
         <Button 
           size="lg" 
-          onClick={() => onOpenAuth("register")} 
+          asChild
           className="text-lg px-12 py-6 bg-white text-shopper hover:bg-gray-50 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold"
         >
-          <span>Crear Cuenta Gratis</span>
-          <ArrowRight className="ml-3 h-5 w-5" />
+          <Link to="/auth" state={{ mode: "register" }}>
+            <span>Crear Cuenta Gratis</span>
+            <ArrowRight className="ml-3 h-5 w-5" />
+          </Link>
         </Button>
         
         {/* Benefits */}

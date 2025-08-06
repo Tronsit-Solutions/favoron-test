@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 interface HeroSectionProps {
@@ -113,13 +114,17 @@ const HeroSection = ({
         
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            <Package className="h-5 w-5 mr-3" />
-            Solicitar Paquete
+          <Button size="lg" variant="shopper" asChild className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <Link to="/auth" state={{ mode: "register" }}>
+              <Package className="h-5 w-5 mr-3" />
+              Solicitar Paquete
+            </Link>
           </Button>
-          <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            <Plane className="h-5 w-5 mr-3" />
-            Registrar Viaje
+          <Button size="lg" variant="traveler" asChild className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+            <Link to="/auth" state={{ mode: "register" }}>
+              <Plane className="h-5 w-5 mr-3" />
+              Registrar Viaje
+            </Link>
           </Button>
         </div>
 
