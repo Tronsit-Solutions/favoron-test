@@ -84,6 +84,18 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', {
+      email,
+      password,
+      confirmPassword,
+      firstName,
+      lastName,
+      documentType,
+      documentNumber,
+      phoneNumber,
+      username
+    });
+    
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       toast({
