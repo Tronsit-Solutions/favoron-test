@@ -131,6 +131,15 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
+                      <p className="text-sm font-medium">ID del Viajero</p>
+                      <p className="text-sm text-muted-foreground">
+                        <code className="font-mono text-xs">{trip.user_id}</code>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
                       <p className="text-sm font-medium">Nivel de Confianza</p>
                       <p className="text-sm text-muted-foreground">
                         {userProfile?.trust_level ? 
