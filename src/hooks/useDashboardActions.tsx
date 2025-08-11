@@ -534,7 +534,7 @@ export const useDashboardActions = (
     }
   };
 
-  const handleMatchPackage = async (packageId: string, tripId: string) => {
+  const handleMatchPackage = async (packageId: string, tripId: string, adminTip?: number) => {
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
@@ -543,15 +543,22 @@ export const useDashboardActions = (
 
       // Update package in Supabase with match information
       // Clear any previous quote data to ensure fresh start
-      await updatePackage(packageId, {
+      const updateData: any = {
         status: 'matched',
         matched_trip_id: tripId,
         quote: null // Clear any previous quote from previous match
-      });
+      };
+      
+      // Add admin tip if provided
+      if (adminTip && adminTip > 0) {
+        updateData.admin_assigned_tip = adminTip;
+      }
+
+      await updatePackage(packageId, updateData);
 
       toast({
         title: "¡Match realizado!",
-        description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
+        description: `Tu solicitud fue emparejada${adminTip ? ` con tip de $${adminTip}` : ''}. Espera una cotización del viajero.`,
       });
     } catch (error) {
       console.error('Error matching package:', error);

@@ -27,7 +27,7 @@ interface AdminDashboardProps {
   packages: any[];
   trips: any[];
   currentUser?: any;
-  onMatchPackage: (packageId: string, tripId: string) => void;
+  onMatchPackage: (packageId: string, tripId: string, adminTip?: number) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   onPaymentApproval: (packageId: string, action: 'approve' | 'reject') => void;
@@ -89,12 +89,12 @@ const AdminDashboard = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleMatch = () => {
+  const handleMatch = (adminTip?: number) => {
     if (selectedPackage && matchingTrip) {
-      onMatchPackage(selectedPackage.id, matchingTrip);
+      onMatchPackage(selectedPackage.id, matchingTrip, adminTip);
       toast({
         title: "¡Match exitoso!",
-        description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip}`,
+        description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip}${adminTip ? ` con tip de $${adminTip}` : ''}`,
       });
       setSelectedPackage(null);
       setMatchingTrip("");

@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,7 @@ interface AdminMatchDialogProps {
   matchingTrip: string;
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
-  onMatch: () => void;
+  onMatch: (adminTip?: number) => void;
 }
 
 const AdminMatchDialog = ({ 
@@ -35,6 +36,7 @@ const AdminMatchDialog = ({
   const [showTravelerInfo, setShowTravelerInfo] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
+  const [adminTip, setAdminTip] = useState<string>('');
 
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
@@ -121,7 +123,8 @@ const AdminMatchDialog = ({
 
   const handleMatch = () => {
     if (selectedTripId) {
-      onMatch();
+      const tipAmount = adminTip ? parseFloat(adminTip) : undefined;
+      onMatch(tipAmount);
     }
   };
   return (
@@ -397,6 +400,35 @@ const AdminMatchDialog = ({
             </ScrollArea>
           </div>
         </div>
+
+        {/* Admin Tip Assignment */}
+        {selectedTripId && (
+          <div className="border-t pt-4 pb-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="admin-tip" className="text-sm font-medium">
+                  Tip Asignado por Admin (opcional):
+                </Label>
+              </div>
+              <div className="flex-1 max-w-xs">
+                <Input
+                  id="admin-tip"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Ej: 25.00"
+                  value={adminTip}
+                  onChange={(e) => setAdminTip(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Monto en USD que se asignará al viajero por este paquete
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="border-t pt-4 flex space-x-3">
