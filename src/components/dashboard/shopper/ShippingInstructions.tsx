@@ -40,7 +40,7 @@ const ShippingInstructions = ({
                   <span>📅 Fechas importantes</span>
                 </h5>
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">📥 Primer día para recibir:</span>
                     <span className="font-semibold text-foreground">
                       {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
