@@ -10,6 +10,7 @@ export const useStatusHelpers = () => {
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
       quote_accepted: { label: "Cotización Aceptada", variant: "success" as const },
       quote_rejected: { label: "Cotización Rechazada", variant: "destructive" as const },
+      quote_expired: { label: "Cotización Expirada", variant: "warning" as const },
       payment_pending_approval: { label: "Pago Pendiente de Aprobación", variant: "warning" as const },
       payment_confirmed: { label: "Pago Confirmado", variant: "success" as const },
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
@@ -37,7 +38,7 @@ export const useStatusHelpers = () => {
     if (userType === 'traveler') {
       return pkg.status === 'matched' || pkg.status === 'in_transit';
     } else {
-      return pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'pending_purchase';
+      return pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'pending_purchase' || pkg.status === 'quote_expired';
     }
   };
 
@@ -49,6 +50,7 @@ export const useStatusHelpers = () => {
       quote_sent: "hsl(var(--warning))",
       quote_accepted: "hsl(var(--success))",
       quote_rejected: "hsl(var(--destructive))",
+      quote_expired: "hsl(var(--warning))",
       payment_pending_approval: "hsl(var(--warning))",
       payment_confirmed: "hsl(var(--success))",
       payment_pending: "hsl(var(--warning))",
