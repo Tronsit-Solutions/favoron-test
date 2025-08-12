@@ -1,4 +1,5 @@
 import { Package as PackageIcon, MapPin } from "lucide-react";
+import { useEffect } from "react";
 import { Package } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
@@ -11,6 +12,13 @@ const ShopperPackageInfo = ({
   pkg,
   onPackageUpdate
 }: ShopperPackageInfoProps) => {
+  useEffect(() => {
+    const shouldMove = Boolean(pkg.purchase_confirmation) && Boolean(pkg.tracking_info) && pkg.status !== 'in_transit' && ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
+    if (shouldMove) {
+      supabase.from('packages').update({ status: 'in_transit' }).eq('id', pkg.id)
+        .then(({ error }) => { if (!error) onPackageUpdate?.({ ...pkg, status: 'in_transit' }); });
+    }
+  }, [pkg.id, pkg.status, pkg.purchase_confirmation, pkg.tracking_info, onPackageUpdate]);
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
 
@@ -60,11 +68,8 @@ const ShopperPackageInfo = ({
             // Guardar en la base de datos según el tipo
             if (type === 'confirmation') {
               const updateData = { 
-                purchase_confirmation: data,
-                // Transition to in_transit when purchase confirmation is uploaded
-                ...(pkg.status === 'pending_purchase' && { status: 'in_transit' })
+                purchase_confirmation: data
               };
-              
               const { error } = await supabase
                 .from('packages')
                 .update(updateData)
@@ -75,11 +80,15 @@ const ShopperPackageInfo = ({
                 return;
               }
             } else if (type === 'tracking') {
+              const shouldMoveInTransit = ['pending_purchase','payment_confirmed','paid','in_transit'].includes(pkg.status as any);
+              const updateData = {
+                tracking_info: data,
+                ...(shouldMoveInTransit ? { status: 'in_transit' } : {})
+              };
               const { error } = await supabase
                 .from('packages')
-                .update({ tracking_info: data })
+                .update(updateData)
                 .eq('id', pkg.id);
-              
               if (error) {
                 console.error('Error saving tracking info:', error);
                 return;
@@ -89,10 +98,10 @@ const ShopperPackageInfo = ({
             // Actualizar el paquete con los nuevos documentos y posible cambio de status
             const updatedPkg = {
               ...pkg,
-              ...(type === 'confirmation' ? { 
-                purchase_confirmation: data,
-                ...(pkg.status === 'pending_purchase' && { status: 'in_transit' })
-              } : { tracking_info: data })
+              ...(type === 'confirmation' 
+                ? { purchase_confirmation: data } 
+                : { tracking_info: data, ...( ['pending_purchase','payment_confirmed','paid','in_transit'].includes(pkg.status as any) ? { status: 'in_transit' } : {}) }
+              )
             };
             onPackageUpdate?.(updatedPkg);
           }}
