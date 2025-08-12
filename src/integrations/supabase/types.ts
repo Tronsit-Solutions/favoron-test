@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_profile_access_log: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_profile_id: string
+          admin_user_id: string
+          id: string
+          reason: string | null
+          session_info: Json | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_profile_id: string
+          admin_user_id: string
+          id?: string
+          reason?: string | null
+          session_info?: Json | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_profile_id?: string
+          admin_user_id?: string
+          id?: string
+          reason?: string | null
+          session_info?: Json | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -583,6 +613,39 @@ export type Database = {
       admin_confirm_office_delivery: {
         Args: { _package_id: string; _admin_id: string }
         Returns: undefined
+      }
+      admin_view_profile_banking: {
+        Args: { target_user_id: string; access_reason: string }
+        Returns: {
+          id: string
+          bank_account_holder: string
+          bank_name: string
+          bank_account_type: string
+          bank_account_number: string
+          bank_swift_code: string
+        }[]
+      }
+      admin_view_profile_basic: {
+        Args: { target_user_id: string; access_reason?: string }
+        Returns: {
+          id: string
+          first_name: string
+          last_name: string
+          email: string
+          username: string
+          created_at: string
+          trust_level: string
+        }[]
+      }
+      admin_view_profile_sensitive: {
+        Args: { target_user_id: string; access_reason: string }
+        Returns: {
+          id: string
+          phone_number: string
+          document_type: string
+          document_number: string
+          country_code: string
+        }[]
       }
       archive_old_data: {
         Args: Record<PropertyKey, never>
