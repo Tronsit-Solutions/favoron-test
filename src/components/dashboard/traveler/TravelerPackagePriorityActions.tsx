@@ -21,7 +21,11 @@ const TravelerPackagePriorityActions = ({
 
   // Calculate tip/compensation for traveler (only show after quote is made)
   const getTravelerTip = () => {
-    // Only show traveler's own quote price after status progresses beyond 'matched'
+    // Show admin assigned tip if present (traveler cannot set tip)
+    if (pkg.admin_assigned_tip) {
+      return parseFloat(pkg.admin_assigned_tip).toFixed(2);
+    }
+    // Fallback: show quoted price only after matched (legacy cases)
     if (pkg.quote?.price && pkg.status !== 'matched') {
       return parseFloat(pkg.quote.price).toFixed(2);
     }
@@ -70,8 +74,8 @@ const TravelerPackagePriorityActions = ({
             <div className="flex-1">
               {pkg.status === 'matched' && (
                 <div>
-                  <p className="text-sm font-semibold mb-1">¿Te llevas este pedido?</p>
-                  <p className="text-xs text-muted-foreground">Haz tu cotización y gana dinero con este Favorón.</p>
+                  <p className="text-sm font-semibold mb-1">¿Aceptas el tip asignado por Favorón?</p>
+                  <p className="text-xs text-muted-foreground">El admin asignó tu tip. Puedes aceptarlo o rechazarlo.</p>
                 </div>
               )}
               {pkg.status === 'in_transit' && (
@@ -97,14 +101,24 @@ const TravelerPackagePriorityActions = ({
             </div>
           </div>
           <div className="flex-shrink-0">
-            {pkg.status === 'matched' && (
+            {pkg.status === 'matched' && pkg.admin_assigned_tip && (
               <Button 
                 size="sm" 
                 onClick={() => onQuote(pkg, 'user')} 
                 className="font-semibold px-4 py-2 h-8"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
-                Cotizar
+                Ver y Aceptar Tip
+              </Button>
+            )}
+            {pkg.status === 'matched' && !pkg.admin_assigned_tip && (
+              <Button 
+                size="sm"
+                variant="outline"
+                disabled
+                className="font-medium px-4 py-2 h-8"
+              >
+                Esperando tip del admin
               </Button>
             )}
             {pkg.status === 'in_transit' && (

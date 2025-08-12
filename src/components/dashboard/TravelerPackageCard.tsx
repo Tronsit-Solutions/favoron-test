@@ -169,14 +169,11 @@ const TravelerPackageCard = ({
           {/* Action buttons for travelers */}
           <div className="flex flex-wrap gap-2">
             {pkg.status === 'matched' && (
-              <Button 
-                size="sm"
-                onClick={() => onQuote(pkg, 'traveler')}
-                className="flex items-center space-x-2"
-              >
-                <DollarSign className="h-4 w-4" />
-                <span>Enviar Cotización</span>
-              </Button>
+              <div className="text-sm text-muted-foreground">
+                {pkg.admin_assigned_tip 
+                  ? `Tip asignado por admin: Q${Number(pkg.admin_assigned_tip).toFixed(2)}` 
+                  : 'Esperando tip asignado por admin'}
+              </div>
             )}
 
             {pkg.status === 'quote_sent' && (
