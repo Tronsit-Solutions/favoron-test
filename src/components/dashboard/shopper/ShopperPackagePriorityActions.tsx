@@ -1,17 +1,30 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
+import QuoteCountdown from "../QuoteCountdown";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
   onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
+  onRefresh?: () => void;
 }
 
 const ShopperPackagePriorityActions = ({
   pkg,
-  onQuote
+  onQuote,
+  onRefresh
 }: ShopperPackagePriorityActionsProps) => {
+  const { toast } = useToast();
+
+  const handleQuoteExpire = () => {
+    toast({
+      title: "⏰ Cotización expirada",
+      description: "Esta cotización ha expirado. Puedes solicitar una nueva al viajero.",
+      variant: "destructive"
+    });
+    onRefresh?.();
+  };
   // Always show instructions for all statuses
 
   // Debug logging to see why countdown might not appear
@@ -38,6 +51,13 @@ const ShopperPackagePriorityActions = ({
             text: "Ver y Responder Cotización",
             onClick: () => onQuote(pkg, 'user')
           }
+        };
+      case 'quote_expired':
+        return {
+          icon: Clock,
+          title: "⏰ Cotización expirada",
+          description: "La cotización para este paquete ha expirado. Puedes contactar al viajero para solicitar una nueva.",
+          button: null
         };
       case 'matched':
         return {
@@ -154,10 +174,16 @@ const ShopperPackagePriorityActions = ({
 
   return (
     <div className="space-y-4">
-      {/* Simple countdown text - outside the box */}
-      {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && pkg.quote_expires_at && !isQuoteExpired && (
+      {/* Countdown for active quotes */}
+      {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && 
+       pkg.quote_expires_at && 
+       !isQuoteExpired && (
         <div className="mb-4">
-          <SimpleCountdown expiresAt={pkg.quote_expires_at} />
+          <QuoteCountdown 
+            expiresAt={pkg.quote_expires_at} 
+            onExpire={handleQuoteExpire}
+            compact={true}
+          />
         </div>
       )}
       
@@ -185,37 +211,5 @@ const ShopperPackagePriorityActions = ({
   );
 };
 
-// Simple countdown component as text
-const SimpleCountdown = ({ expiresAt }: { expiresAt: string | Date }) => {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const expireTime = new Date(expiresAt).getTime();
-      const now = new Date().getTime();
-      const difference = expireTime - now;
-
-      if (difference <= 0) {
-        setTimeLeft("Expirado");
-        return;
-      }
-
-      const hours = Math.floor(difference / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-
-      setTimeLeft(`${hours}h ${minutes}m restantes`);
-    };
-
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
-    return () => clearInterval(interval);
-  }, [expiresAt]);
-
-  return (
-    <p className="text-sm text-foreground">
-      ⏰ Tiempo para responder: {timeLeft}
-    </p>
-  );
-};
 
 export default ShopperPackagePriorityActions;

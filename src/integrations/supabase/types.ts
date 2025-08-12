@@ -114,6 +114,7 @@ export type Database = {
         Row: {
           additional_notes: string | null
           admin_actions_log: Json | null
+          admin_assigned_tip: number | null
           confirmed_delivery_address: Json | null
           created_at: string
           delivery_deadline: string
@@ -144,6 +145,7 @@ export type Database = {
         Insert: {
           additional_notes?: string | null
           admin_actions_log?: Json | null
+          admin_assigned_tip?: number | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline: string
@@ -174,6 +176,7 @@ export type Database = {
         Update: {
           additional_notes?: string | null
           admin_actions_log?: Json | null
+          admin_assigned_tip?: number | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline?: string
@@ -542,6 +545,10 @@ export type Database = {
           _metadata?: Json
         }
         Returns: string
+      }
+      expire_old_quotes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_database_stats: {
         Args: Record<PropertyKey, never>

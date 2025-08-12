@@ -1,46 +1,24 @@
-import { useState, useEffect } from "react";
-import { formatDateTime, getDaysUntil } from "@/utils/dateHelpers";
+import { formatDateTime } from "@/utils/dateHelpers";
 import StatusAlert from "@/components/ui/status-alert";
+import { useCountdown } from "@/hooks/useCountdown";
 
 interface QuoteCountdownProps {
   expiresAt: string | Date;
   onExpire?: () => void;
+  compact?: boolean;
 }
 
-const QuoteCountdown = ({ expiresAt, onExpire }: QuoteCountdownProps) => {
-  const [timeLeft, setTimeLeft] = useState<{
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isExpired: boolean;
-  }>({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
-
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const expireTime = new Date(expiresAt).getTime();
-      const now = new Date().getTime();
-      const difference = expireTime - now;
-
-      if (difference <= 0) {
-        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isExpired: true });
-        onExpire?.();
-        return;
-      }
-
-      const hours = Math.floor(difference / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      setTimeLeft({ hours, minutes, seconds, isExpired: false });
-    };
-
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiresAt, onExpire]);
+const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdownProps) => {
+  const timeLeft = useCountdown({ expiresAt, onExpire });
 
   if (timeLeft.isExpired) {
+    if (compact) {
+      return (
+        <p className="text-sm text-destructive font-medium">
+          ⏰ Expirado
+        </p>
+      );
+    }
     return (
       <StatusAlert variant="warning" title="Cotización expirada">
         <p className="text-sm">
@@ -53,6 +31,14 @@ const QuoteCountdown = ({ expiresAt, onExpire }: QuoteCountdownProps) => {
 
   const isUrgent = timeLeft.hours < 3;
   const variant = isUrgent ? "warning" : "info";
+
+  if (compact) {
+    return (
+      <p className="text-sm text-foreground">
+        ⏰ Tiempo para responder: {timeLeft.hours}h {timeLeft.minutes}m restantes
+      </p>
+    );
+  }
 
   return (
     <StatusAlert variant={variant} title="Tiempo para completar el pago">

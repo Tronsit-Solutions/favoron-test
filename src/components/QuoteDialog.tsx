@@ -9,6 +9,7 @@ import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText } from "luc
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
+import QuoteCountdown from "./dashboard/QuoteCountdown";
 
 interface QuoteDialogProps {
   isOpen: boolean;
@@ -297,22 +298,15 @@ const QuoteDialog = ({
                 </div>
               </div>
               
-              {/* Show expiration countdown for shoppers viewing quotes */}
+              {/* Live countdown for shoppers viewing quotes */}
               {packageDetails.quote_expires_at && userType === 'user' && (
-                <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-warning mb-2">
-                    <Clock className="h-4 w-4" />
-                    <span className="text-sm font-medium">Tiempo para completar el pago</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Esta cotización expira el {new Date(packageDetails.quote_expires_at).toLocaleString('es-GT')}
-                  </p>
-                  {new Date(packageDetails.quote_expires_at) < new Date() && (
-                    <p className="text-sm text-destructive mt-1 font-medium">
-                      ⚠️ Esta cotización ha expirado
-                    </p>
-                  )}
-                </div>
+                <QuoteCountdown 
+                  expiresAt={packageDetails.quote_expires_at}
+                  onExpire={() => {
+                    // The dialog will need to be refreshed when quote expires
+                    console.log('Quote expired in dialog');
+                  }}
+                />
               )}
             </div>
           )}

@@ -32,6 +32,8 @@ export const STATUS_LABELS = {
   pending: 'Pendiente',
   admin_review: 'En revisión',
   quote_generated: 'Cotización generada',
+  quote_sent: 'Cotización enviada',
+  quote_expired: 'Cotización expirada',
   quote_accepted: 'Cotización aceptada',
   awaiting_payment: 'Esperando pago',
   payment_confirmed: 'Pago confirmado',
