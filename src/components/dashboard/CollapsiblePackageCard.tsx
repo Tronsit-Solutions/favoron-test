@@ -28,6 +28,7 @@ interface CollapsiblePackageCardProps {
   onConfirmAddress: (pkg: Package) => void;
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
+  onDeletePackage?: (pkg: Package) => void;
   viewMode?: 'user';
 }
 
@@ -37,6 +38,7 @@ const CollapsiblePackageCard = ({
   onConfirmAddress,
   onUploadDocument,
   onEditPackage,
+  onDeletePackage,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(
@@ -130,6 +132,7 @@ const CollapsiblePackageCard = ({
                 <ShopperPackagePriorityActions 
                   pkg={pkg}
                   onQuote={onQuote}
+                  onDeletePackage={onDeletePackage}
                 />
               </div>
             )}

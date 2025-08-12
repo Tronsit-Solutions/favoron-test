@@ -351,6 +351,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                       onConfirmAddress={handleAddressConfirmation}
                       onUploadDocument={handleUploadDocument}
                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
+                      onDeletePackage={(p) => deletePackage(p.id)}
                       viewMode="user"
                     />
                 ))}

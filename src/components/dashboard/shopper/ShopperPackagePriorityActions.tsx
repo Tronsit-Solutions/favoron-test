@@ -8,12 +8,14 @@ interface ShopperPackagePriorityActionsProps {
   pkg: Package;
   onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
   onRefresh?: () => void;
+  onDeletePackage?: (pkg: Package) => void;
 }
 
 const ShopperPackagePriorityActions = ({
   pkg,
   onQuote,
-  onRefresh
+  onRefresh,
+  onDeletePackage
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
 
@@ -36,7 +38,7 @@ const ShopperPackagePriorityActions = ({
     isQuoteExpired: pkg.quote_expires_at ? new Date(pkg.quote_expires_at) <= new Date() : 'N/A'
   });
 
-  const isQuoteExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date();
+  const isQuoteExpired = !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date());
 
   const getActionConfig = () => {
     switch (pkg.status) {
@@ -203,6 +205,26 @@ const ShopperPackagePriorityActions = ({
               >
                 {config.button.text}
               </Button>
+            )}
+            {(isQuoteExpired || pkg.status === 'quote_expired') && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button size="sm" onClick={() => onQuote(pkg, 'user')}>
+                  Solicitar re-cotización
+                </Button>
+                {onDeletePackage && (
+                  <Button 
+                    size="sm" 
+                    variant="destructive"
+                    onClick={() => {
+                      if (window.confirm('¿Seguro que deseas eliminar este pedido? Esta acción no se puede deshacer.')) {
+                        onDeletePackage(pkg);
+                      }
+                    }}
+                  >
+                    Eliminar pedido
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
