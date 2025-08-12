@@ -531,6 +531,10 @@ export type Database = {
         Args: { _trip_id: string }
         Returns: boolean
       }
+      complete_past_trips_without_packages: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_notification: {
         Args: {
           _user_id: string
