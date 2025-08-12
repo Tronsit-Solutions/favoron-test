@@ -125,6 +125,7 @@ export type Database = {
           internal_notes: string | null
           item_description: string
           item_link: string | null
+          matched_assignment_expires_at: string | null
           matched_trip_dates: Json | null
           matched_trip_id: string | null
           office_delivery: Json | null
@@ -156,6 +157,7 @@ export type Database = {
           internal_notes?: string | null
           item_description: string
           item_link?: string | null
+          matched_assignment_expires_at?: string | null
           matched_trip_dates?: Json | null
           matched_trip_id?: string | null
           office_delivery?: Json | null
@@ -187,6 +189,7 @@ export type Database = {
           internal_notes?: string | null
           item_description?: string
           item_link?: string | null
+          matched_assignment_expires_at?: string | null
           matched_trip_dates?: Json | null
           matched_trip_id?: string | null
           office_delivery?: Json | null
@@ -550,6 +553,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      expire_unresponded_assignments: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_database_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -587,6 +594,10 @@ export type Database = {
           _action_description: string
           _additional_data?: Json
         }
+        Returns: undefined
+      }
+      send_assignment_warnings: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }
