@@ -35,10 +35,10 @@ const TravelerPackagePriorityActions = ({
   const travelerTip = getTravelerTip();
 
   return (
-    <div className="mb-4 space-y-3">
+    <div className="mb-3 space-y-2">
       {/* Tip/Compensation display - most important for travelers */}
       {travelerTip && (
-        <div className="bg-muted/30 border rounded-lg p-4">
+        <div className="bg-muted/30 border rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
@@ -61,7 +61,7 @@ const TravelerPackagePriorityActions = ({
       )}
 
       {/* Action section */}
-      <div className="p-3 bg-muted/30 border rounded-lg">
+      <div className="p-2 bg-muted/30 border rounded-lg">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1">
             <div className="flex-shrink-0 w-6 h-6 bg-muted rounded-full flex items-center justify-center">

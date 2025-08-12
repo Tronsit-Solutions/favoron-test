@@ -148,7 +148,7 @@ const CollapsibleTravelerPackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className={`pt-0 pb-2 ${isMobile ? 'px-2' : ''}`}>
+          <CardContent className={`pt-0 pb-1 ${isMobile ? 'px-2' : 'px-4'}`}>
             <TravelerPackagePriorityActions
               pkg={pkg}
               onQuote={onQuote}
