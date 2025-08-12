@@ -133,8 +133,8 @@ const CollapsiblePackageCard = ({
               </div>
             )}
             
-            {/* Mostrar instrucciones de envío cuando el pago ha sido aprobado */}
-            {['pending_approval', 'approved', 'payment_confirmed'].includes(pkg.status) && (
+            {/* Mostrar instrucciones de envío solo cuando el pago está en proceso o confirmado */}
+            {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
               <div className="mb-6">
                 <ShippingInstructions pkg={pkg} />
               </div>
@@ -154,7 +154,7 @@ const CollapsiblePackageCard = ({
                 {shippingInfoOpen && (
                   <div className="space-y-4 mt-4 p-4 border rounded-md bg-muted/20">
                     <ShippingInstructions pkg={pkg} />
-                    {(pkg as any).trips?.package_receiving_address && (
+                    {(pkg as any).trips?.package_receiving_address && ['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
                       <PackageShippingInstructions 
                         travelerAddress={(pkg as any).trips.package_receiving_address}
                         matchedTripDates={(pkg as any).trips}
@@ -168,8 +168,8 @@ const CollapsiblePackageCard = ({
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                {/* Shipping Instructions for approved and pending_purchase states */}
-                {(pkg.status === 'approved' || pkg.status === 'pending_purchase') && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+                {/* Shipping Instructions only for pending_purchase and payment_confirmed */}
+                {(pkg.status === 'pending_purchase' || pkg.status === 'payment_confirmed') && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
                   <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-primary mb-3 flex items-center">
                       📍 Información del viajero para envío

@@ -173,15 +173,35 @@ export const useDashboardActions = (
         
         if (quoteData.message === 'rejected') {
           console.log('❌ Processing rejection');
-          // If traveler rejects, package goes back to pending match
-          await updatePackage(selectedPackage.id, {
-            status: 'approved',
-            matched_trip_id: null
-          });
-          toast({
-            title: "Pedido rechazado",
-            description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
-          });
+
+          // Determine rejection context by package status
+          if (selectedPackage.status === 'quote_sent') {
+            // Shopper is rejecting a received quote
+            await updatePackage(selectedPackage.id, {
+              status: 'quote_rejected',
+              quote: null,
+              matched_trip_id: null,
+              traveler_address: null,
+              matched_trip_dates: null,
+            });
+            toast({
+              title: "Cotización rechazada",
+              description: "Has rechazado la cotización del viajero.",
+            });
+          } else {
+            // Traveler rejects before/without sending a quote -> release package back to pool
+            await updatePackage(selectedPackage.id, {
+              status: 'approved',
+              quote: null,
+              matched_trip_id: null,
+              traveler_address: null,
+              matched_trip_dates: null,
+            });
+            toast({
+              title: "Pedido rechazado",
+              description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
+            });
+          }
         } else {
           console.log('✅ Processing quote sending');
           // Sending quote implies approval - need to set traveler address from matched trip
@@ -330,7 +350,9 @@ export const useDashboardActions = (
           await updatePackage(selectedPackage.id, {
             status: 'quote_rejected',
             quote: null, // Clear the quote when rejected
-            matched_trip_id: null // Clear the match when quote is rejected
+            matched_trip_id: null, // Clear the match when quote is rejected
+            traveler_address: null, // Clear sensitive address data
+            matched_trip_dates: null, // Clear trip dates
           });
           
           toast({
