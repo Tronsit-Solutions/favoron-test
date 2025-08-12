@@ -9,13 +9,15 @@ interface ShopperPackagePriorityActionsProps {
   onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
   onRefresh?: () => void;
   onDeletePackage?: (pkg: Package) => void;
+  onRequestRequote?: (pkg: Package) => void;
 }
 
 const ShopperPackagePriorityActions = ({
   pkg,
   onQuote,
   onRefresh,
-  onDeletePackage
+  onDeletePackage,
+  onRequestRequote
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
 
@@ -208,7 +210,7 @@ const ShopperPackagePriorityActions = ({
             )}
             {(isQuoteExpired || pkg.status === 'quote_expired') && (
               <div className="flex flex-wrap gap-2 mt-3">
-                <Button size="sm" onClick={() => onQuote(pkg, 'user')}>
+                <Button size="sm" onClick={() => (onRequestRequote ? onRequestRequote(pkg) : onQuote(pkg, 'user'))}>
                   Solicitar re-cotización
                 </Button>
                 {onDeletePackage && (

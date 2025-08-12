@@ -352,6 +352,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                       onUploadDocument={handleUploadDocument}
                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
                       onDeletePackage={(p) => deletePackage(p.id)}
+                      onRequestRequote={async (p) => {
+                        await updatePackage(p.id, {
+                          status: 'approved',
+                          matched_trip_id: null,
+                          quote: null,
+                          quote_expires_at: null,
+                          wants_requote: true,
+                        } as any);
+                      }}
                       viewMode="user"
                     />
                 ))}

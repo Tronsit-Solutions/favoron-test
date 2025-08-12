@@ -29,6 +29,7 @@ interface CollapsiblePackageCardProps {
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
   onDeletePackage?: (pkg: Package) => void;
+  onRequestRequote?: (pkg: Package) => void;
   viewMode?: 'user';
 }
 
@@ -39,6 +40,7 @@ const CollapsiblePackageCard = ({
   onUploadDocument,
   onEditPackage,
   onDeletePackage,
+  onRequestRequote,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(
@@ -133,6 +135,7 @@ const CollapsiblePackageCard = ({
                   pkg={pkg}
                   onQuote={onQuote}
                   onDeletePackage={onDeletePackage}
+                  onRequestRequote={onRequestRequote}
                 />
               </div>
             )}
