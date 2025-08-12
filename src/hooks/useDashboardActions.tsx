@@ -174,34 +174,34 @@ export const useDashboardActions = (
         if (quoteData.message === 'rejected') {
           console.log('❌ Processing rejection');
 
-          // Determine rejection context by package status
-          if (selectedPackage.status === 'quote_sent') {
-            // Shopper is rejecting a received quote
-            await updatePackage(selectedPackage.id, {
-              status: 'quote_rejected',
-              quote: null,
-              matched_trip_id: null,
-              traveler_address: null,
-              matched_trip_dates: null,
-            });
+          // Prepare update data with rejection details
+          const updateData: any = {
+            rejection_reason: quoteData.rejectionReason || null,
+            wants_requote: quoteData.wantsRequote || false,
+            additional_notes: quoteData.additionalNotes || null,
+            quote: null,
+            matched_trip_id: null,
+            traveler_address: null,
+            matched_trip_dates: null,
+          };
+
+          // If shopper wants requote (and it's not "no longer want"), set to approved for reassignment
+          if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
+            updateData.status = 'approved';
             toast({
-              title: "Cotización rechazada",
-              description: "Has rechazado la cotización del viajero.",
+              title: "Solicitud de nueva cotización",
+              description: "Tu paquete está nuevamente disponible para que otros viajeros envíen cotizaciones.",
             });
           } else {
-            // Traveler rejects before/without sending a quote -> release package back to pool
-            await updatePackage(selectedPackage.id, {
-              status: 'approved',
-              quote: null,
-              matched_trip_id: null,
-              traveler_address: null,
-              matched_trip_dates: null,
-            });
+            // Final rejection
+            updateData.status = 'quote_rejected';
             toast({
-              title: "Pedido rechazado",
-              description: "El pedido ha sido rechazado y estará disponible para un nuevo match.",
+              title: "Cotización rechazada",
+              description: "Has rechazado la cotización definitivamente.",
             });
           }
+
+          await updatePackage(selectedPackage.id, updateData);
         } else {
           console.log('✅ Processing quote sending');
           // Sending quote implies approval - need to set traveler address from matched trip

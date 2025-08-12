@@ -8,6 +8,7 @@ import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
+import RejectionReasonDisplay from "./RejectionReasonDisplay";
 
 interface PackageDetailModalProps {
   package: any;
@@ -738,16 +739,28 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
             </Card>
           )}
           
-          {/* Show rejection debug for any rejected package */}
-          {['rejected', 'quote_rejected'].includes(pkg.status) && !pkg.rejectionReason && (
+          {/* Show rejection reason if package was rejected */}
+          {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+            <RejectionReasonDisplay 
+              rejectionReason={pkg.rejection_reason}
+              wantsRequote={pkg.wants_requote}
+              additionalComments={pkg.additional_notes}
+              className="mb-4"
+            />
+          )}
+
+          {/* Show rejection debug for any rejected package without structured reason */}
+          {['rejected', 'quote_rejected'].includes(pkg.status) && !pkg.rejection_reason && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-red-700">Debug: Paquete rechazado sin razón</CardTitle>
+                <CardTitle className="text-red-700">Debug: Paquete rechazado sin razón estructurada</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Este paquete está marcado como rechazado pero no tiene rejectionReason.</p>
+                <p>Este paquete está marcado como rechazado pero no tiene rejection_reason estructurada.</p>
                 <pre className="text-xs bg-gray-100 p-2 rounded mt-2">
-                  {JSON.stringify(pkg, null, 2)}
+                  Status: {pkg.status}
+                  Rejection Reason: {pkg.rejection_reason || 'null'}
+                  Wants Requote: {pkg.wants_requote || 'null'}
                 </pre>
               </CardContent>
             </Card>

@@ -61,3 +61,10 @@ export const ROLE_LABELS = {
   traveler: 'Viajero',
   admin: 'Administrador'
 } as const;
+
+export const REJECTION_REASONS = {
+  no_longer_want: 'Ya no quiero el paquete',
+  too_expensive: 'La cotización fue muy cara',
+  wrong_delivery_time: 'El tiempo de entrega no es el que quería',
+  other: 'Otra razón'
+} as const;

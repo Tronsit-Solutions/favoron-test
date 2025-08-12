@@ -136,12 +136,14 @@ export type Database = {
           purchase_origin: string
           quote: Json | null
           quote_expires_at: string | null
+          rejection_reason: string | null
           status: string
           tracking_info: Json | null
           traveler_address: Json | null
           traveler_confirmation: Json | null
           updated_at: string
           user_id: string
+          wants_requote: boolean | null
         }
         Insert: {
           additional_notes?: string | null
@@ -168,12 +170,14 @@ export type Database = {
           purchase_origin: string
           quote?: Json | null
           quote_expires_at?: string | null
+          rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
           updated_at?: string
           user_id: string
+          wants_requote?: boolean | null
         }
         Update: {
           additional_notes?: string | null
@@ -200,12 +204,14 @@ export type Database = {
           purchase_origin?: string
           quote?: Json | null
           quote_expires_at?: string | null
+          rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
           updated_at?: string
           user_id?: string
+          wants_requote?: boolean | null
         }
         Relationships: [
           {

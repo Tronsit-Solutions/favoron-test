@@ -6,10 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
+import { REJECTION_REASONS } from "@/lib/constants";
 
 interface QuoteDialogProps {
   isOpen: boolean;
@@ -48,6 +51,8 @@ const QuoteDialog = ({
   const [price, setPrice] = useState(existingQuote?.price || '');
   const [message, setMessage] = useState(existingQuote?.message || '');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [wantsRequote, setWantsRequote] = useState(false);
+  const [additionalComments, setAdditionalComments] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -92,13 +97,15 @@ const QuoteDialog = ({
 
   const handleReject = () => {
     // If we're viewing an existing quote (not sending one), ask for rejection reason
-    if (existingQuote && !rejectionReason.trim()) {
+    if (existingQuote && !rejectionReason) {
       setShowRejectionForm(true);
       return;
     }
     onSubmit({ 
       message: 'rejected',
-      rejectionReason: existingQuote ? rejectionReason : undefined
+      rejectionReason: existingQuote ? rejectionReason : undefined,
+      wantsRequote: existingQuote ? wantsRequote : undefined,
+      additionalNotes: existingQuote ? additionalComments : undefined
     });
   };
 
@@ -421,22 +428,63 @@ const QuoteDialog = ({
 
           {/* Rejection Form */}
           {existingQuote && showRejectionForm && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <Label htmlFor="rejectionReason" className="text-red-800 font-medium">
-                Razón del rechazo (para administración) *
-              </Label>
-              <Textarea
-                id="rejectionReason"
-                placeholder="Explica por qué rechazas esta cotización..."
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={3}
-                className="mt-2"
-                required
-              />
-              <p className="text-xs text-red-600 mt-1">
-                Este mensaje será enviado al equipo de Favorón para revisión
-              </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-4">
+              <div>
+                <Label className="text-red-800 font-medium mb-3 block">
+                  ¿Por qué rechazas esta cotización? *
+                </Label>
+                <RadioGroup 
+                  value={rejectionReason} 
+                  onValueChange={setRejectionReason}
+                  className="space-y-2"
+                >
+                  {Object.entries(REJECTION_REASONS).map(([key, label]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <RadioGroupItem value={key} id={key} />
+                      <Label htmlFor={key} className="text-sm font-normal cursor-pointer">
+                        {label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Show requote option only if not "no longer want" */}
+              {rejectionReason && rejectionReason !== 'no_longer_want' && (
+                <div className="border-t border-red-300 pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="wantsRequote" className="text-sm font-medium text-red-800">
+                      ¿Quieres solicitar una nueva cotización para este paquete?
+                    </Label>
+                    <Switch
+                      id="wantsRequote"
+                      checked={wantsRequote}
+                      onCheckedChange={setWantsRequote}
+                    />
+                  </div>
+                  <p className="text-xs text-red-600 mt-1">
+                    {wantsRequote 
+                      ? "El paquete volverá a estar disponible para que otros viajeros puedan enviar cotizaciones."
+                      : "El paquete será marcado como rechazado definitivamente."
+                    }
+                  </p>
+                </div>
+              )}
+
+              {/* Additional comments */}
+              <div>
+                <Label htmlFor="additionalComments" className="text-red-800 font-medium">
+                  Comentarios adicionales (opcional)
+                </Label>
+                <Textarea
+                  id="additionalComments"
+                  placeholder="Agrega cualquier comentario adicional..."
+                  value={additionalComments}
+                  onChange={(e) => setAdditionalComments(e.target.value)}
+                  rows={2}
+                  className="mt-2"
+                />
+              </div>
             </div>
           )}
 
@@ -491,10 +539,10 @@ const QuoteDialog = ({
                     <Button 
                       variant="destructive" 
                       onClick={handleReject}
-                      disabled={!rejectionReason.trim()}
+                      disabled={!rejectionReason}
                       className="flex-1 sm:flex-none"
                     >
-                      Confirmar Rechazo
+                      {rejectionReason === 'no_longer_want' || !wantsRequote ? 'Rechazar Definitivamente' : 'Rechazar y Solicitar Nueva Cotización'}
                     </Button>
                   </>
                 )}

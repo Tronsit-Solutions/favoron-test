@@ -16,6 +16,7 @@ import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
 import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
+import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
@@ -177,6 +178,17 @@ const CollapsiblePackageCard = ({
                   className="mb-4"
                   onEditDocument={handleEditDocument}
                 />
+                
+                {/* Show rejection reason if package was rejected */}
+                {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                  <RejectionReasonDisplay 
+                    rejectionReason={pkg.rejection_reason}
+                    wantsRequote={pkg.wants_requote}
+                    additionalComments={pkg.additional_notes}
+                    className="mb-4"
+                  />
+                )}
+                
                 <ShopperPackageDetails pkg={pkg} />
                 <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
                   // PaymentReceiptUpload ya actualizó la base de datos correctamente
