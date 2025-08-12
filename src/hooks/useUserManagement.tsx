@@ -20,26 +20,41 @@ export const useUserManagement = () => {
       setLoading(true);
       console.log('Fetching users from Supabase...');
       
-      // Get profiles with their roles
-      const { data: profiles, error: profilesError } = await supabase
+      // Get all profile IDs first
+      const { data: allProfiles, error: allProfilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          phone_number,
-          trust_level,
-          created_at,
-          email,
-          username,
-          avatar_url
-        `);
+        .select('id')
+        .order('created_at', { ascending: false });
 
-      console.log('Profiles fetched:', profiles);
-      if (profilesError) {
-        console.error('Profiles error:', profilesError);
-        throw profilesError;
+      if (allProfilesError) {
+        console.error('Error fetching profile IDs:', allProfilesError);
+        throw allProfilesError;
       }
+
+      console.log('Found profile IDs:', allProfiles?.length);
+
+      // Fetch basic profile info for each user using the secure admin function
+      const profilePromises = allProfiles?.map(async (profile) => {
+        try {
+          const { data, error } = await supabase.rpc('admin_view_profile_basic', {
+            target_user_id: profile.id,
+            access_reason: 'User management dashboard access'
+          });
+          
+          if (error) {
+            console.error(`Error fetching profile ${profile.id}:`, error);
+            return null;
+          }
+          
+          return data?.[0] || null;
+        } catch (err) {
+          console.error(`Exception fetching profile ${profile.id}:`, err);
+          return null;
+        }
+      }) || [];
+
+      const profiles = (await Promise.all(profilePromises)).filter(Boolean);
+      console.log('Profiles fetched via admin function:', profiles);
 
       // Get user roles separately
       const { data: userRoles, error: rolesError } = await supabase
