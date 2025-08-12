@@ -91,10 +91,18 @@ const AdminDashboard = ({
 
   const handleMatch = (adminTip?: number) => {
     if (selectedPackage && matchingTrip) {
+      if (!adminTip || adminTip <= 0) {
+        toast({
+          title: "Tip requerido",
+          description: "Debes asignar un tip al viajero para confirmar el match.",
+          variant: "destructive",
+        });
+        return;
+      }
       onMatchPackage(selectedPackage.id, matchingTrip, adminTip);
       toast({
         title: "¡Match exitoso!",
-        description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip}${adminTip ? ` con tip de $${adminTip}` : ''}`,
+        description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
       });
       setSelectedPackage(null);
       setMatchingTrip("");

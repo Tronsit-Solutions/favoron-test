@@ -559,24 +559,30 @@ export const useDashboardActions = (
         return;
       }
 
+      // Require admin tip to proceed
+      if (!adminTip || adminTip <= 0) {
+        toast({
+          title: "Tip requerido",
+          description: "Debes asignar un tip al viajero para confirmar el match.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Update package in Supabase with match information
       // Clear any previous quote data to ensure fresh start
       const updateData: any = {
         status: 'matched',
         matched_trip_id: tripId,
-        quote: null // Clear any previous quote from previous match
+        quote: null, // Clear any previous quote from previous match
+        admin_assigned_tip: adminTip
       };
-      
-      // Add admin tip if provided
-      if (adminTip && adminTip > 0) {
-        updateData.admin_assigned_tip = adminTip;
-      }
 
       await updatePackage(packageId, updateData);
 
       toast({
         title: "¡Match realizado!",
-        description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
+        description: `Tu solicitud fue emparejada. Tip asignado: Q${adminTip}.`,
       });
     } catch (error) {
       console.error('Error matching package:', error);

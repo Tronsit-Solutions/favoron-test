@@ -409,7 +409,7 @@ const AdminMatchDialog = ({
               <div className="flex items-center space-x-2">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="admin-tip" className="text-sm font-medium">
-                  Tip Asignado por Admin (opcional):
+                  Tip asignado por Admin (obligatorio)
                 </Label>
               </div>
               <div className="flex-1 max-w-xs">
@@ -423,6 +423,9 @@ const AdminMatchDialog = ({
                   onChange={(e) => setAdminTip(e.target.value)}
                   className="text-sm"
                 />
+                {!adminTip && (
+                  <p className="text-xs text-destructive mt-1">Este campo es requerido para confirmar el match.</p>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 Monto en GTQ que se asignará al viajero por este paquete
@@ -436,7 +439,7 @@ const AdminMatchDialog = ({
           <Button 
             onClick={handleMatch} 
             className="flex-1 h-11"
-            disabled={!selectedTripId}
+            disabled={!selectedTripId || !adminTip || parseFloat(adminTip) <= 0}
             variant="shopper"
           >
             <Zap className="h-4 w-4 mr-2" />
