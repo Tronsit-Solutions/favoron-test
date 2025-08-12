@@ -402,17 +402,18 @@ const AdminMatchDialog = ({
           </div>
         </div>
 
-        {/* Admin Tip Assignment */}
-        {selectedTripId && (
-          <div className="border-t pt-4 pb-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+        {/* Action Bar: Tip + Buttons */}
+        <div className="border-t pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {selectedTripId && (
+            <div className="w-full sm:w-auto">
+              <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="admin-tip" className="text-sm font-medium">
-                  Tip asignado por Admin (obligatorio)
+                  Tip asignado por Admin
                 </Label>
               </div>
-              <div className="flex-1 max-w-xs">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Q</span>
                 <Input
                   id="admin-tip"
                   type="number"
@@ -421,42 +422,41 @@ const AdminMatchDialog = ({
                   placeholder="Ej: 25.00"
                   value={adminTip}
                   onChange={(e) => setAdminTip(e.target.value)}
-                  className="text-sm"
+                  className="text-sm pl-7 h-11 w-full sm:w-48"
                 />
-                {!adminTip && (
-                  <p className="text-xs text-destructive mt-1">Este campo es requerido para confirmar el match.</p>
-                )}
               </div>
-              <div className="text-xs text-muted-foreground">
+              {!adminTip && (
+                <p className="text-xs text-destructive mt-1">Este campo es requerido para confirmar el match.</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
                 Monto en GTQ que se asignará al viajero por este paquete
-              </div>
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Action Buttons */}
-        <div className="border-t pt-4 flex space-x-3">
-          <Button 
-            onClick={handleMatch} 
-            className="flex-1 h-11"
-            disabled={!selectedTripId || !adminTip || parseFloat(adminTip) <= 0}
-            variant="shopper"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Confirmar Match
-            {selectedTripId && (
-              <span className="ml-2 text-xs opacity-75">
-                (Viajero #{availableTrips.find(t => t.id === selectedTripId)?.user_id})
-              </span>
-            )}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowMatchDialog(false)}
-            className="px-8 h-11"
-          >
-            Cancelar
-          </Button>
+          <div className="flex w-full sm:w-auto items-center gap-3">
+            <Button 
+              onClick={handleMatch} 
+              className="flex-1 sm:flex-none sm:w-auto h-11"
+              disabled={!selectedTripId || !adminTip || parseFloat(adminTip) <= 0}
+              variant="shopper"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Confirmar Match
+              {selectedTripId && (
+                <span className="ml-2 text-xs opacity-75">
+                  (Viajero #{availableTrips.find(t => t.id === selectedTripId)?.user_id})
+                </span>
+              )}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowMatchDialog(false)}
+              className="px-8 h-11"
+            >
+              Cancelar
+            </Button>
+          </div>
         </div>
       </DialogContent>
 
