@@ -28,7 +28,7 @@ const ShopperPackageInfo = ({
         <p className="text-xs text-info">
           Este precio ya incluye todo: servicio Favorón + seguro + compensación al viajero.
         </p>
-        {quote?.message && <p className="text-sm text-info mt-1 italic">"{quote.message}"</p>}
+        
       </div>;
   };
   // Comentado - usando ShippingInfoRegistry en su lugar
