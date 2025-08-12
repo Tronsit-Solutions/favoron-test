@@ -21,6 +21,11 @@ const TravelerPackagePriorityActions = ({
 
   // Calculate tip/compensation for traveler
   const getTravelerTip = () => {
+    // Show admin assigned tip when status is 'matched' (before traveler makes quote)
+    if (pkg.status === 'matched' && pkg.admin_assigned_tip) {
+      return parseFloat(pkg.admin_assigned_tip).toFixed(2);
+    }
+    // Show traveler's own quote price for other statuses
     if (pkg.quote?.price) {
       return parseFloat(pkg.quote.price).toFixed(2);
     }
@@ -40,12 +45,16 @@ const TravelerPackagePriorityActions = ({
                 <span className="font-bold text-sm">Q</span>
               </div>
               <div>
-                <p className="text-sm font-semibold mb-1">💰 Tu compensación</p>
+                <p className="text-sm font-semibold mb-1">
+                  💰 {pkg.status === 'matched' ? 'Tip garantizado por Favorón' : 'Tu compensación'}
+                </p>
                 <p className="text-2xl font-bold">Q{travelerTip}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Ganancia por este Favorón</p>
+              <p className="text-xs text-muted-foreground">
+                {pkg.status === 'matched' ? 'Mínimo garantizado' : 'Ganancia por este Favorón'}
+              </p>
             </div>
           </div>
         </div>
