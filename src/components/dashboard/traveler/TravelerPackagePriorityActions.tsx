@@ -90,6 +90,7 @@ const TravelerPackagePriorityActions = ({
             {pkg.status === 'matched' && pkg.admin_assigned_tip && (
               <Button 
                 size="sm" 
+                variant="success"
                 onClick={() => onQuote(pkg, 'user')} 
                 className="font-semibold px-4 py-2 h-8"
               >
