@@ -8,11 +8,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
+import QuoteActionsForm from "./forms/QuoteActionsForm";
 
 interface QuoteDialogProps {
   isOpen: boolean;
@@ -426,66 +427,19 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {/* Rejection Form */}
           {existingQuote && showRejectionForm && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-4">
-              <div>
-                <Label className="text-red-800 font-medium mb-3 block">
-                  ¿Por qué rechazas esta cotización? *
-                </Label>
-                <RadioGroup 
-                  value={rejectionReason} 
-                  onValueChange={setRejectionReason}
-                  className="space-y-2"
-                >
-                  {Object.entries(REJECTION_REASONS).map(([key, label]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <RadioGroupItem value={key} id={key} />
-                      <Label htmlFor={key} className="text-sm font-normal cursor-pointer">
-                        {label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              {/* Show requote option only if not "no longer want" */}
-              {rejectionReason && rejectionReason !== 'no_longer_want' && (
-                <div className="border-t border-red-300 pt-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="wantsRequote" className="text-sm font-medium text-red-800">
-                      ¿Quieres solicitar una nueva cotización para este paquete?
-                    </Label>
-                    <Switch
-                      id="wantsRequote"
-                      checked={wantsRequote}
-                      onCheckedChange={setWantsRequote}
-                    />
-                  </div>
-                  <p className="text-xs text-red-600 mt-1">
-                    {wantsRequote 
-                      ? "El paquete volverá a estar disponible para que otros viajeros puedan enviar cotizaciones."
-                      : "El paquete será marcado como rechazado definitivamente."
-                    }
-                  </p>
-                </div>
-              )}
-
-              {/* Additional comments */}
-              <div>
-                <Label htmlFor="additionalComments" className="text-red-800 font-medium">
-                  Comentarios adicionales (opcional)
-                </Label>
-                <Textarea
-                  id="additionalComments"
-                  placeholder="Agrega cualquier comentario adicional..."
-                  value={additionalComments}
-                  onChange={(e) => setAdditionalComments(e.target.value)}
-                  rows={2}
-                  className="mt-2"
-                />
-              </div>
-            </div>
+            <QuoteActionsForm
+              initialValues={{
+                rejection_reason: (rejectionReason as any) || undefined,
+                wants_requote: wantsRequote,
+                additional_comments: additionalComments,
+              }}
+              onChange={(values) => {
+                setRejectionReason(values.rejection_reason);
+                setWantsRequote(values.wants_requote ?? false);
+                setAdditionalComments(values.additional_comments ?? "");
+              }}
+            />
           )}
 
           {/* Action Buttons */}

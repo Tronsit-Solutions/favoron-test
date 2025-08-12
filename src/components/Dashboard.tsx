@@ -480,10 +480,14 @@ const Dashboard = ({ user }: DashboardProps) => {
             setSelectedPackageForAddress(null);
           }}
           onConfirm={handleAddressConfirmation}
-          currentAddress={selectedPackageForAddress?.deliveryAddress || selectedPackageForAddress?.delivery_address || {}}
+          currentAddress={
+            (selectedPackageForAddress.confirmed_delivery_address as any) ||
+            (selectedPackageForAddress.traveler_address as any) ||
+            { streetAddress: '', cityArea: '', contactNumber: '' }
+          }
           packageDetails={{
             itemDescription: selectedPackageForAddress.item_description,
-            estimatedPrice: selectedPackageForAddress.estimated_price
+            estimatedPrice: String(selectedPackageForAddress.estimated_price ?? '')
           }}
         />
       )}

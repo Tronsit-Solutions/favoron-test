@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { usePackagesData } from './usePackagesData';
 import { useTripsData } from './useTripsData';
+import type { Package } from "@/types";
 
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
@@ -12,8 +13,8 @@ export const useDashboardState = (user: any) => {
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
-  const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<any>(null);
-  const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<any>(null);
+  const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<Package | null>(null);
+  const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
   // Use real data hooks
