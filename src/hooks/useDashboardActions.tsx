@@ -558,7 +558,7 @@ export const useDashboardActions = (
 
       toast({
         title: "¡Match realizado!",
-        description: `Tu solicitud fue emparejada${adminTip ? ` con tip de $${adminTip}` : ''}. Espera una cotización del viajero.`,
+        description: "Tu solicitud fue emparejada. Espera una cotización del viajero.",
       });
     } catch (error) {
       console.error('Error matching package:', error);
