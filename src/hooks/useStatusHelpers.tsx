@@ -2,7 +2,20 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Trip } from "@/types";
 
 export const useStatusHelpers = () => {
-  const getStatusBadge = (status: string, packageDestination?: string) => {
+  const getStatusBadge = (
+    status: string,
+    packageDestinationOrOptions?: string | { packageDestination?: string; isQuoteExpired?: boolean }
+  ) => {
+    const isObj = typeof packageDestinationOrOptions === 'object' && packageDestinationOrOptions !== null;
+    const packageDestination = (isObj
+      ? (packageDestinationOrOptions as { packageDestination?: string }).packageDestination
+      : (packageDestinationOrOptions as string | undefined));
+    const isQuoteExpired = isObj
+      ? !!(packageDestinationOrOptions as { isQuoteExpired?: boolean }).isQuoteExpired
+      : false;
+
+    const effectiveStatus = status === 'quote_sent' && isQuoteExpired ? 'quote_expired' : status;
+
     const statusConfig = {
       pending_approval: { label: "Pendiente", variant: "warning" as const },
       approved: { label: "Aprobado", variant: "success" as const },
@@ -28,8 +41,8 @@ export const useStatusHelpers = () => {
       rejected: { label: "Rechazado", variant: "destructive" as const }
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || 
-                   { label: status, variant: "secondary" as const };
+    const config = statusConfig[effectiveStatus as keyof typeof statusConfig] || 
+                   { label: effectiveStatus, variant: "secondary" as const };
 
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
