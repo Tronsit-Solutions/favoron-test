@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -70,9 +71,26 @@ const CollapsibleTravelerPackageCard = ({
       const total = pkg.products.reduce((sum: number, product: any) => 
         sum + parseFloat(product.estimatedPrice || 0), 0
       ).toFixed(2);
-      return `Total estimado: $${total}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
+      return `Total estimado: Q${total}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
     }
-    return `Precio estimado: $${pkg.estimated_price}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
+    return `Precio estimado: Q${pkg.estimated_price}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
+  };
+
+  const getTipAmount = () => {
+    if (pkg.quote && pkg.status !== 'matched') {
+      const quote = pkg.quote;
+      const totalPrice = parseFloat(quote.totalPrice || 0);
+      const price = parseFloat(quote.price || 0);
+      const serviceFee = parseFloat(quote.serviceFee || 0);
+      const tip = totalPrice - price - serviceFee;
+      return tip > 0 ? tip : 0;
+    }
+    
+    if (pkg.admin_assigned_tip && pkg.status === 'matched') {
+      return parseFloat(pkg.admin_assigned_tip);
+    }
+    
+    return 0;
   };
 
   return (
@@ -107,6 +125,14 @@ const CollapsibleTravelerPackageCard = ({
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex flex-col items-end text-right">
                   {getStatusBadge(pkg.status)}
+                  
+                  {/* Tip amount display */}
+                  {getTipAmount() > 0 && (
+                    <div className="mt-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
+                      Tip: Q{getTipAmount().toFixed(2)}
+                    </div>
+                  )}
+                  
                   {/* Status message */}
                   <div className="text-xs mt-1 max-w-48">
                     {pkg.status === 'quote_sent' && (
