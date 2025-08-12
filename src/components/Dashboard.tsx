@@ -502,17 +502,27 @@ const Dashboard = ({ user }: DashboardProps) => {
           onSubmit={(quoteData) => handleQuoteSubmit(quoteData, selectedPackageForQuote, quoteUserType)}
           packageDetails={{
             item_description: selectedPackageForQuote.item_description,
-            estimated_price: selectedPackageForQuote.estimated_price,
-            item_link: selectedPackageForQuote.item_link,
-            deliveryAddress: selectedPackageForQuote.confirmed_delivery_address,
-            delivery_method: selectedPackageForQuote.delivery_method,
-            products_data: selectedPackageForQuote.products_data,
-            admin_assigned_tip: selectedPackageForQuote.admin_assigned_tip,
-            status: selectedPackageForQuote.status
+            estimated_price: Number(selectedPackageForQuote.estimated_price || 0),
+            item_link: selectedPackageForQuote.item_link || undefined,
+            deliveryAddress: (selectedPackageForQuote.confirmed_delivery_address as any) || undefined,
+            delivery_method: selectedPackageForQuote.delivery_method || undefined,
+            products_data: Array.isArray(selectedPackageForQuote.products_data)
+              ? (selectedPackageForQuote.products_data as any[])
+              : undefined,
+            admin_assigned_tip:
+              selectedPackageForQuote.admin_assigned_tip != null
+                ? String(selectedPackageForQuote.admin_assigned_tip)
+                : undefined,
+            status: selectedPackageForQuote.status,
           }}
           userType={quoteUserType}
-          existingQuote={selectedPackageForQuote.quote}
-          tripDates={selectedPackageForQuote.matched_trip_dates}
+          existingQuote={selectedPackageForQuote.quote as any}
+          tripDates={(selectedPackageForQuote.matched_trip_dates as any) as {
+            first_day_packages: string;
+            last_day_packages: string;
+            delivery_date: string;
+            arrival_date: string;
+          }}
         />
       )}
 
