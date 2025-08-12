@@ -117,7 +117,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
               <TrendingUp className="h-3 w-3" />
               <p className="text-xs font-medium">Total Ganado</p>
             </div>
-            <p className="text-lg font-bold">${totalTips.toFixed(2)}</p>
+            <p className="text-lg font-bold">Q{totalTips.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">
               {packagesWithTips} confirmado{packagesWithTips !== 1 ? 's' : ''}
             </p>
@@ -217,7 +217,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">${tripData.totalTips.toFixed(2)}</p>
+                        <p className="font-semibold">Q{tripData.totalTips.toFixed(2)}</p>
                         <p className="text-xs text-muted-foreground">ganancia</p>
                       </div>
                     </div>
