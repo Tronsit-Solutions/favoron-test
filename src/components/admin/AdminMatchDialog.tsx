@@ -127,6 +127,7 @@ const AdminMatchDialog = ({
       onMatch(tipAmount);
     }
   };
+
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
       <DialogContent className="sm:max-w-4xl h-[90vh] overflow-hidden flex flex-col">
@@ -424,7 +425,7 @@ const AdminMatchDialog = ({
                 />
               </div>
               <div className="text-xs text-muted-foreground">
-                Monto en USD que se asignará al viajero por este paquete
+                Monto en GTQ que se asignará al viajero por este paquete
               </div>
             </div>
           </div>
