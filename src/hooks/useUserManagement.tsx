@@ -14,70 +14,28 @@ export const useUserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Fetch users from Supabase
+  // Fetch users from Supabase using the admin function
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log('Fetching users from Supabase...');
+      console.log('Fetching all users via admin function...');
       
-      // Get all profile IDs first
-      const { data: allProfiles, error: allProfilesError } = await supabase
-        .from('profiles')
-        .select('id')
-        .order('created_at', { ascending: false });
+      // Use the new admin function to get all users efficiently
+      const { data: profiles, error } = await supabase.rpc('admin_view_all_users', {
+        access_reason: 'User management dashboard access'
+      });
 
-      if (allProfilesError) {
-        console.error('Error fetching profile IDs:', allProfilesError);
-        throw allProfilesError;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
       }
 
-      console.log('Found profile IDs:', allProfiles?.length);
-
-      // Fetch basic profile info for each user using the secure admin function
-      const profilePromises = allProfiles?.map(async (profile) => {
-        try {
-          const { data, error } = await supabase.rpc('admin_view_profile_basic', {
-            target_user_id: profile.id,
-            access_reason: 'User management dashboard access'
-          });
-          
-          if (error) {
-            console.error(`Error fetching profile ${profile.id}:`, error);
-            return null;
-          }
-          
-          return data?.[0] || null;
-        } catch (err) {
-          console.error(`Exception fetching profile ${profile.id}:`, err);
-          return null;
-        }
-      }) || [];
-
-      const profiles = (await Promise.all(profilePromises)).filter(Boolean);
-      console.log('Profiles fetched via admin function:', profiles);
-
-      // Get user roles separately
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      console.log('User roles fetched:', userRoles);
-      if (rolesError) {
-        console.error('Roles error:', rolesError);
-        throw rolesError;
-      }
-
-      // Since we can't access auth.users from client, we'll need to store email in profiles
-      // For now, let's check if we can get current user's email and use a placeholder for others
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      console.log('Current user:', currentUser);
+      console.log('Users fetched successfully:', profiles?.length);
 
       const formattedUsers: UserWithProfileId[] = profiles?.map((profile: any, index: number) => {
-        const userRole = userRoles?.find(role => role.user_id === profile.id);
-        
         // Map roles correctly
         let role: 'user' | 'admin' = 'user';
-        if (userRole?.role === 'admin') {
+        if (profile.user_role === 'admin') {
           role = 'admin';
         } else {
           role = 'user'; // Default for regular users
@@ -89,7 +47,7 @@ export const useUserManagement = () => {
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: profile.email || 'Email no disponible',
           username: profile.username || undefined,
-          avatarUrl: profile.avatar_url || undefined,
+          avatarUrl: undefined, // Not included in the basic function for security
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
