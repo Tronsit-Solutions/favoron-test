@@ -322,7 +322,7 @@ const QuoteDialog = ({
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
                 <Package className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <p className="text-base sm:text-sm font-semibold text-green-800">💰 Tip asignado por Favorón</p>
+                <p className="text-base sm:text-sm font-semibold text-green-800">💰 Tip</p>
               </div>
               <div className="text-sm sm:text-sm ml-7 space-y-2">
                 <div className="bg-background/80 rounded-lg p-3">
