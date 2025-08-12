@@ -280,9 +280,7 @@ export const useDashboardActions = (
 
           await updatePackage(selectedPackage.id, {
             status: 'quote_sent',
-            quote: quoteData,
-            traveler_address: travelerAddress,
-            matched_trip_dates: matchedTripDates
+            quote: quoteData
           });
           toast({
             title: "¡Cotización enviada!",
@@ -331,11 +329,9 @@ export const useDashboardActions = (
             arrival_date: matchedTrip.arrival_date
           };
 
-          // Update package with traveler info and change status to quote_accepted
+          // Update package status to quote_accepted (address shared only after payment confirmation)
           await updatePackage(selectedPackage.id, {
-            status: 'quote_accepted',
-            traveler_address: travelerAddress,
-            matched_trip_dates: matchedTripDates
+            status: 'quote_accepted'
           });
           
           // Force close dialog and reset selection to trigger re-render
