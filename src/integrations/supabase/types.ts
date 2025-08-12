@@ -626,6 +626,14 @@ export type Database = {
           created_at: string
           trust_level: string
           user_role: string
+          bank_account_holder: string
+          bank_name: string
+          bank_account_type: string
+          bank_account_number: string
+          bank_swift_code: string
+          document_type: string
+          document_number: string
+          country_code: string
         }[]
       }
       admin_view_profile_banking: {

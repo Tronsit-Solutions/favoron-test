@@ -13,6 +13,16 @@ export interface User {
   trustLevel?: 'basic' | 'trusted' | 'premium';
   adminNotes?: string;
   documents?: Document[];
+  // Banking information
+  bankAccountHolder?: string;
+  bankName?: string;
+  bankAccountType?: string;
+  bankAccountNumber?: string;
+  bankSwiftCode?: string;
+  // Additional sensitive data
+  documentType?: string;
+  documentNumber?: string;
+  countryCode?: string;
 }
 
 export interface Document {

@@ -47,7 +47,7 @@ export const useUserManagement = () => {
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: profile.email || 'Email no disponible',
           username: profile.username || undefined,
-          avatarUrl: undefined, // Not included in the basic function for security
+          avatarUrl: undefined, // Not included for security
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
@@ -55,7 +55,17 @@ export const useUserManagement = () => {
           status: 'verified' as const, // Since they have profiles, assume verified
           trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
                      profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
-          adminNotes: ''
+          adminNotes: '',
+          // Banking information now included
+          bankAccountHolder: profile.bank_account_holder || undefined,
+          bankName: profile.bank_name || undefined,
+          bankAccountType: profile.bank_account_type || undefined,
+          bankAccountNumber: profile.bank_account_number || undefined,
+          bankSwiftCode: profile.bank_swift_code || undefined,
+          // Additional sensitive data
+          documentType: profile.document_type || undefined,
+          documentNumber: profile.document_number || undefined,
+          countryCode: profile.country_code || '+502'
         };
       }) || [];
 
