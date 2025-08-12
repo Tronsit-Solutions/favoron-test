@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -64,7 +65,7 @@ const TripPackagesGroup = ({
                   {totalTips > 0 && (
                     <div className="flex items-center gap-1 text-green-600 font-medium">
                       <DollarSign className="h-3 w-3" />
-                      <span>${totalTips.toFixed(2)}</span>
+                      <span>Q{totalTips.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
@@ -88,7 +89,7 @@ const TripPackagesGroup = ({
               <div className="mb-4 p-3 bg-muted/30 rounded-lg border">
                 <div className="grid grid-cols-3 gap-4 text-center text-sm">
                   <div>
-                    <p className="font-semibold">${totalTips.toFixed(2)}</p>
+                    <p className="font-semibold">Q{totalTips.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">Ganancia total</p>
                   </div>
                   <div>
