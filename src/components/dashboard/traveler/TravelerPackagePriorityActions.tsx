@@ -19,14 +19,10 @@ const TravelerPackagePriorityActions = ({
       pkg.status !== 'received_by_traveler' &&
       pkg.status !== 'pending_office_confirmation') return null;
 
-  // Calculate tip/compensation for traveler
+  // Calculate tip/compensation for traveler (only show after quote is made)
   const getTravelerTip = () => {
-    // Show admin assigned tip when status is 'matched' (before traveler makes quote)
-    if (pkg.status === 'matched' && pkg.admin_assigned_tip) {
-      return parseFloat(pkg.admin_assigned_tip).toFixed(2);
-    }
-    // Show traveler's own quote price for other statuses
-    if (pkg.quote?.price) {
+    // Only show traveler's own quote price after status progresses beyond 'matched'
+    if (pkg.quote?.price && pkg.status !== 'matched') {
       return parseFloat(pkg.quote.price).toFixed(2);
     }
     return null;

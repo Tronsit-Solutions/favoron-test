@@ -502,7 +502,9 @@ const Dashboard = ({ user }: DashboardProps) => {
             item_link: selectedPackageForQuote.item_link,
             deliveryAddress: selectedPackageForQuote.confirmed_delivery_address,
             delivery_method: selectedPackageForQuote.delivery_method,
-            products_data: selectedPackageForQuote.products_data
+            products_data: selectedPackageForQuote.products_data,
+            admin_assigned_tip: selectedPackageForQuote.admin_assigned_tip,
+            status: selectedPackageForQuote.status
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote}

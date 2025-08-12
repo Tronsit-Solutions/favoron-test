@@ -22,6 +22,8 @@ interface QuoteDialogProps {
     delivery_method?: string;
     quote_expires_at?: string;
     products_data?: any[];
+    admin_assigned_tip?: string;
+    status?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -51,6 +53,10 @@ const QuoteDialog = ({
   const isMobile = useIsMobile();
 
   const isQuoteExpired = packageDetails.quote_expires_at && new Date(packageDetails.quote_expires_at) < new Date();
+  
+  // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
+  const isAdminAssignedTip = packageDetails.status === 'matched' && packageDetails.admin_assigned_tip && userType === 'user';
+  const adminTipAmount = isAdminAssignedTip ? parseFloat(packageDetails.admin_assigned_tip).toFixed(2) : null;
 
   const handleSubmit = () => {
     if (existingQuote) {
@@ -58,6 +64,17 @@ const QuoteDialog = ({
         return; // Prevent submission if quote is expired
       }
       onSubmit({ message: 'accepted' });
+    } else if (isAdminAssignedTip) {
+      // Traveler accepting admin assigned tip
+      const basePrice = parseFloat(packageDetails.admin_assigned_tip);
+      const totalWithFee = basePrice * 1.4;
+      
+      onSubmit({
+        price: basePrice,
+        serviceFee: 0,
+        totalPrice: totalWithFee,
+        message: message || 'Acepto el tip asignado por Favorón'
+      });
     } else {
       const basePrice = parseFloat(price);
       // Add 40% Favorón fee automatically
@@ -98,12 +115,15 @@ const QuoteDialog = ({
 
         <DialogHeader className="pr-12 pb-4">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
-            {!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
+            {isAdminAssignedTip ? '💰 Tip Asignado por Favorón' : (!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización')}
           </DialogTitle>
           <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed">
-            {!existingQuote 
-              ? 'Proporciona tu mejor cotización para este Favorón'
-              : 'Revisa los detalles y responde a la cotización del viajero'
+            {isAdminAssignedTip 
+              ? 'Favorón ha asignado un tip específico para este pedido. Revisa y decide si aceptas.'
+              : (!existingQuote 
+                ? 'Proporciona tu mejor cotización para este Favorón'
+                : 'Revisa los detalles y responde a la cotización del viajero'
+              )
             }
           </DialogDescription>
         </DialogHeader>
@@ -297,8 +317,29 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {/* Quote Form - Show when sending a quote */}
-          {!existingQuote && (
+          {/* Admin Assigned Tip Display - When traveler needs to accept/reject */}
+          {isAdminAssignedTip && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start space-x-2 mb-3">
+                <Package className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <p className="text-base sm:text-sm font-semibold text-green-800">💰 Tip asignado por Favorón</p>
+              </div>
+              <div className="text-sm sm:text-sm ml-7 space-y-2">
+                <div className="bg-background/80 rounded-lg p-3">
+                  <p className="text-2xl font-bold text-green-700 mb-2">Q{adminTipAmount}</p>
+                  <p className="text-green-600 font-medium">
+                    Este es el tip que ganarás si aceptas llevar este paquete.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Favorón ha evaluado este pedido y ha asignado este monto como compensación justa para el viajero.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Quote Form - Show when sending a quote (not admin assigned tip) */}
+          {!existingQuote && !isAdminAssignedTip && (
             <div className="space-y-4">
               {/* Product Link for Travelers */}
               
@@ -337,6 +378,22 @@ const QuoteDialog = ({
                 />
               </div>
             </div>
+            </div>
+          )}
+
+          {/* Message for admin assigned tip acceptance */}
+          {isAdminAssignedTip && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="message">Mensaje adicional (opcional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Añade cualquier comentario sobre este pedido..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={3}
+                />
+              </div>
             </div>
           )}
 
@@ -405,10 +462,10 @@ const QuoteDialog = ({
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!price}
+                  disabled={!isAdminAssignedTip && !price}
                   className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Enviar Cotización
+                  {isAdminAssignedTip ? `Aceptar Tip Q${adminTipAmount}` : 'Enviar Cotización'}
                 </Button>
               </>
             ) : (
