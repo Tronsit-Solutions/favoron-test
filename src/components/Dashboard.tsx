@@ -173,6 +173,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       'matched': { label: 'Emparejado', variant: 'success' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
+      'quote_expired': { label: 'Cotización expirada', variant: 'warning' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
       'paid': { label: 'Pagado', variant: 'default' as const },
       'purchased': { label: 'Comprado', variant: 'default' as const },
