@@ -51,7 +51,7 @@ const ShippingInstructions = ({
                     </span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">📤 Último día para recibir:</span>
                     <span className="font-semibold text-foreground">
                       {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
@@ -62,7 +62,7 @@ const ShippingInstructions = ({
                     </span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">🏢 Entrega en Guatemala:</span>
                     <span className="font-semibold text-foreground">
                       {new Date(tripDates.delivery_date).toLocaleDateString("es-GT", {
