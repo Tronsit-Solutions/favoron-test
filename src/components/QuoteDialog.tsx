@@ -330,9 +330,6 @@ const QuoteDialog = ({
                   <p className="text-green-600 font-medium">
                     Este es el tip que ganarás si aceptas llevar este paquete.
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Favorón ha evaluado este pedido y ha asignado este monto como compensación justa para el viajero.
-                  </p>
                 </div>
               </div>
             </div>
