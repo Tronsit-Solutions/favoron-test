@@ -238,6 +238,58 @@ const UserDetailModal = ({
                   </div>
                 </div>
 
+                {/* Document Information */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Información de Documentos</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Tipo de Documento</Label>
+                      <p className="text-sm">{user.documentType || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Número de Documento</Label>
+                      <p className="text-sm">{user.documentNumber || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Código de País</Label>
+                      <p className="text-sm">{user.countryCode || '+502'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Banking Information */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Información Bancaria</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Titular de la Cuenta</Label>
+                      <p className="text-sm">{user.bankAccountHolder || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Banco</Label>
+                      <p className="text-sm">{user.bankName || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Tipo de Cuenta</Label>
+                      <p className="text-sm">{user.bankAccountType || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Número de Cuenta</Label>
+                      <p className="text-sm font-mono">{user.bankAccountNumber || 'No registrado'}</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Código SWIFT</Label>
+                      <p className="text-sm font-mono">{user.bankSwiftCode || 'No registrado'}</p>
+                    </div>
+                  </div>
+                </div>
+
                 {isEditing && (
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button variant="outline" onClick={handleCancel}>
