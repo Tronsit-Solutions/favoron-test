@@ -16,7 +16,7 @@ import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
 import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
-import { PackageShippingInstructions } from "@/components/dashboard/PackageShippingInstructions";
+
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
@@ -154,12 +154,6 @@ const CollapsiblePackageCard = ({
                 {shippingInfoOpen && (
                   <div className="space-y-4 mt-4 p-4 border rounded-md bg-muted/20">
                     <ShippingInstructions pkg={pkg} />
-                    {(pkg as any).trips?.package_receiving_address && ['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-                      <PackageShippingInstructions 
-                        travelerAddress={(pkg as any).trips.package_receiving_address}
-                        matchedTripDates={(pkg as any).trips}
-                      />
-                    )}
                     <ShippingInfoRegistry pkg={pkg} />
                   </div>
                 )}
@@ -168,18 +162,6 @@ const CollapsiblePackageCard = ({
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-6">
-                {/* Shipping Instructions only for pending_purchase and payment_confirmed */}
-                {(pkg.status === 'pending_purchase' || pkg.status === 'payment_confirmed') && viewMode === 'user' && (pkg as any).trips?.package_receiving_address && !['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-primary mb-3 flex items-center">
-                      📍 Información del viajero para envío
-                    </h3>
-                    <PackageShippingInstructions 
-                      travelerAddress={(pkg as any).trips.package_receiving_address}
-                      matchedTripDates={(pkg as any).trips}
-                    />
-                  </div>
-                )}
 
 
                 {/* Show traveler confirmation when package is received */}
