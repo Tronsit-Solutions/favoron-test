@@ -130,12 +130,12 @@ const QuoteDialog = ({
 
         <div className="space-y-4 sm:space-y-6">
           {/* Package Details */}
-          <div className="bg-muted/50 border rounded-lg p-2 sm:p-3">
-            <div className="flex items-start space-x-2 mb-3">
+          <div className="bg-muted/50 border rounded-lg p-1 sm:p-2">
+            <div className="flex items-start space-x-2 mb-2">
               <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
             </div>
-            <div className="text-sm sm:text-sm ml-7 space-y-0.5">
+            <div className="text-sm sm:text-sm ml-7 space-y-0">
               <div className="bg-background/80 rounded-lg p-2">
                 <p className="font-medium text-foreground"><strong>Producto:</strong></p>
                 <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
