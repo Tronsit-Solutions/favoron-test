@@ -9,6 +9,7 @@ export const TripCard = ({
   trip,
   onViewTripDetail
 }: TripCardProps) => {
+  console.log('TripCard debug:', trip);
   return <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
