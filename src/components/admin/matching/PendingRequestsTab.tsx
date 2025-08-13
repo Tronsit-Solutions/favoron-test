@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Search, Zap, Eye, CalendarDays, Trash2, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import RejectionTooltip from "@/components/admin/RejectionTooltip";
 
 interface PendingRequestsTabProps {
   packages: any[];
@@ -151,9 +152,19 @@ const PendingRequestsTab = ({
                            </span>
                         </div>
                       </div>
-                      <Badge className={`text-xs ${getStatusColor(pkg.status)}`}>
-                        {getStatusIcon(pkg.status)} {pkg.status?.replace('_', ' ') || 'Pendiente'}
-                      </Badge>
+                      <div className="flex items-center">
+                        <Badge className={`text-xs ${getStatusColor(pkg.status)}`}>
+                          {getStatusIcon(pkg.status)} {pkg.status?.replace('_', ' ') || 'Pendiente'}
+                        </Badge>
+                        {pkg.status === 'quote_rejected' && pkg.wants_requote && (
+                          <RejectionTooltip
+                            quote={pkg.quote}
+                            rejectionReason={pkg.rejection_reason}
+                            wantsRequote={pkg.wants_requote}
+                            additionalNotes={pkg.additional_notes}
+                          />
+                        )}
+                      </div>
                     </div>
 
                     {/* Route info */}
