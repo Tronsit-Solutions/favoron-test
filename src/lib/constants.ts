@@ -41,6 +41,7 @@ export const STATUS_LABELS = {
   purchase_confirmed: 'Compra confirmada',
   shipped: 'Enviado',
   in_transit: 'En tránsito',
+  received_by_traveler: 'Recibido por viajero',
   delivered: 'Entregado',
   cancelled: 'Cancelado',
   

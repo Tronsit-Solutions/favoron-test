@@ -13,6 +13,7 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'payment_confirmed': { icon: '✅', label: 'Pago confirmado', color: 'bg-green-100 text-green-800' },
   'pending_purchase': { icon: '🛒', label: 'Pendiente de compra', color: 'bg-orange-100 text-orange-800' },
   'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
+  'received_by_traveler': { icon: '👤', label: 'Recibido por viajero', color: 'bg-emerald-100 text-emerald-800' },
   'pending_office_confirmation': { icon: '⏳', label: 'Esperando confirmación', color: 'bg-amber-100 text-amber-800' },
   'ready_for_pickup': { icon: '📋', label: 'Listo para recoger', color: 'bg-blue-100 text-blue-800' },
   'ready_for_delivery': { icon: '🚛', label: 'Listo para entrega', color: 'bg-blue-100 text-blue-800' },
