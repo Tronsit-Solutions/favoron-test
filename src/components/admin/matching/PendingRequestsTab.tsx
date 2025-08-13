@@ -144,7 +144,9 @@ const PendingRequestsTab = ({
                          </h4>
                          <div className="flex items-center space-x-3">
                            <span className="text-xs text-muted-foreground">
-                             👤 Usuario: {pkg.user_id}
+                             👤 Usuario: {pkg.profiles 
+                               ? (`${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || pkg.profiles.email || 'Sin perfil')
+                               : 'Sin perfil'}
                            </span>
                            <span className="text-sm font-semibold text-primary">
                              ${pkg.estimated_price}
