@@ -19,6 +19,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     );
     const quotesToSend = matchedPackages.filter(pkg => pkg.status === 'matched').length;
     const packagesToReceive = matchedPackages.filter(pkg => pkg.status === 'in_transit').length;
+    const officeConfirmationsNeeded = matchedPackages.filter(pkg => pkg.status === 'pending_office_confirmation').length;
 
     // For admin
     const paymentsToConfirm = packages.filter(pkg => pkg.status === 'payment_pending_approval').length;
@@ -52,6 +53,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       // Traveler actions
       quotesToSend,
       packagesToReceive,
+      officeConfirmationsNeeded,
       
       // Admin actions
       paymentsToConfirm,
@@ -64,7 +66,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       
       // Totals
       shopperTotal: quotesToAccept + paymentsToMake + uploadsNeeded,
-      travelerTotal: quotesToSend + packagesToReceive,
+      travelerTotal: quotesToSend + packagesToReceive + officeConfirmationsNeeded,
       adminTotal: paymentsToConfirm + approvalsNeeded + unmatchedPackages + rejectedByTravelers
     };
   }, [packages, trips, currentUser]);

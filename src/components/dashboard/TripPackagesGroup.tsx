@@ -37,7 +37,7 @@ const TripPackagesGroup = ({
 
   const packagesWithTips = packages.filter(pkg => pkg.quote?.price).length;
   const pendingQuotes = packages.filter(pkg => pkg.status === 'matched').length;
-  const hasPendingActions = packages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
+  const hasPendingActions = packages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -108,13 +108,13 @@ const TripPackagesGroup = ({
             <div className="space-y-4">
               {packages
                 .sort((a, b) => {
-                  const aPriority = ['matched', 'in_transit'].includes(a.status) ? 1 : 0;
-                  const bPriority = ['matched', 'in_transit'].includes(b.status) ? 1 : 0;
+                   const aPriority = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status) ? 1 : 0;
+                   const bPriority = ['matched', 'in_transit', 'pending_office_confirmation'].includes(b.status) ? 1 : 0;
                   if (aPriority !== bPriority) return bPriority - aPriority;
                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((pkg) => {
-                  const hasPendingAction = ['matched', 'in_transit'].includes(pkg.status);
+                  const hasPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status);
                   return (
                     <CollapsibleTravelerPackageCard
                       key={pkg.id}

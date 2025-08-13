@@ -421,7 +421,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                         .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
                         .map((trip) => {
                          const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
-                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
+                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
                         
                         return (
                           <TripPackagesGroup
