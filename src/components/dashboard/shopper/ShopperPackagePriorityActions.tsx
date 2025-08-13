@@ -81,7 +81,7 @@ const ShopperPackagePriorityActions = ({
         return {
           icon: CreditCard,
           title: "¡Cotización aceptada!",
-          description: "Tu cotización fue aceptada. Ahora debes realizar el pago para que el viajero pueda comprar tu producto.",
+          description: "Tu cotización fue aceptada. Ahora debes realizar el pago para recibir la información de envío.",
           button: null
         };
       case 'payment_pending':
