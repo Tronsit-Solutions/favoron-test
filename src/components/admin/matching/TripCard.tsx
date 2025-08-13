@@ -23,10 +23,11 @@ export const TripCard = ({
                   </h4>
                 </div>
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                  <span>👤 Viajero: {trip?.profiles?.first_name || trip?.profiles?.last_name || trip?.profiles?.username
-                    ? `${[trip.profiles?.first_name, trip.profiles?.last_name].filter(Boolean).join(' ') || trip.profiles?.username}`
-                    : trip.user_id}
-                  </span>
+                  <span>👤 Viajero: {
+                    trip?.profiles?.first_name || trip?.profiles?.last_name 
+                      ? `${[trip.profiles?.first_name, trip.profiles?.last_name].filter(Boolean).join(' ')}`
+                      : trip?.profiles?.username || 'Sin nombre'
+                  }</span>
                   <span>📋 Estado: {trip.status}</span>
                 </div>
               </div>
