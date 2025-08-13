@@ -16,6 +16,14 @@ const RejectionTooltip = ({
   wantsRequote, 
   additionalNotes 
 }: RejectionTooltipProps) => {
+  console.log('RejectionTooltip debug:', {
+    adminAssignedTip,
+    rejectionReason,
+    wantsRequote,
+    additionalNotes,
+    REJECTION_REASONS
+  });
+  
   const rejectionLabel = REJECTION_REASONS[rejectionReason as keyof typeof REJECTION_REASONS] || rejectionReason;
 
   return (
