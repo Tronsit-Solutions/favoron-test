@@ -45,17 +45,18 @@ const AdminMatchDialog = ({
         const userIds = [...new Set(availableTrips.map(trip => trip.user_id))];
         
         try {
+          // Use admin function to bypass RLS
           const { data, error } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, username')
-            .in('id', userIds);
+            .rpc('admin_view_all_users');
           
           if (error) {
             console.error('Error fetching traveler profiles:', error);
             return;
           }
           
-          const profilesMap = data.reduce((acc, profile) => {
+          // Filter only the users we need
+          const relevantProfiles = data?.filter(profile => userIds.includes(profile.id)) || [];
+          const profilesMap = relevantProfiles.reduce((acc, profile) => {
             acc[profile.id] = profile;
             return acc;
           }, {});
