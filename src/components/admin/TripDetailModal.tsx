@@ -107,7 +107,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                       <p className="text-sm text-muted-foreground">
                         {userProfile?.first_name && userProfile?.last_name 
                           ? `${userProfile.first_name} ${userProfile.last_name}` 
-                          : userProfile?.username || `Usuario ID: ${trip.user_id}`}
+                          : userProfile?.username || 'No disponible'}
                       </p>
                     </div>
                   </div>
