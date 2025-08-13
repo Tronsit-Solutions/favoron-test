@@ -4,14 +4,14 @@ import { Info } from "lucide-react";
 import { REJECTION_REASONS } from "@/lib/constants";
 
 interface RejectionTooltipProps {
-  quote: any;
+  adminAssignedTip?: number;
   rejectionReason: string;
   wantsRequote: boolean;
   additionalNotes?: string;
 }
 
 const RejectionTooltip = ({ 
-  quote, 
+  adminAssignedTip, 
   rejectionReason, 
   wantsRequote, 
   additionalNotes 
@@ -30,20 +30,18 @@ const RejectionTooltip = ({
               📋 Cotización Rechazada
             </div>
             
-            {quote && (
+            {adminAssignedTip && (
               <div className="space-y-2">
                 <div className="text-sm">
-                  <span className="font-medium">💰 Precio anterior:</span>
-                  <span className="ml-2">${quote.price || 'No especificado'}</span>
+                  <span className="font-medium">💰 Tip anterior asignado:</span>
+                  <span className="ml-2">${adminAssignedTip}</span>
                 </div>
-                {quote.message && (
-                  <div className="text-sm">
-                    <span className="font-medium">💬 Mensaje:</span>
-                    <div className="bg-muted p-2 rounded text-xs mt-1 italic">
-                      "{quote.message}"
-                    </div>
-                  </div>
-                )}
+                <div className="bg-orange-50 border border-orange-200 p-2 rounded text-xs">
+                  <span className="font-medium text-orange-800">💡 Sugerencia:</span>
+                  <span className="text-orange-700 ml-1">
+                    Asignar un tip menor a ${adminAssignedTip}
+                  </span>
+                </div>
               </div>
             )}
             

@@ -156,9 +156,9 @@ const PendingRequestsTab = ({
                         <Badge className={`text-xs ${getStatusColor(pkg.status)}`}>
                           {getStatusIcon(pkg.status)} {pkg.status?.replace('_', ' ') || 'Pendiente'}
                         </Badge>
-                        {pkg.status === 'quote_rejected' && pkg.wants_requote && (
+                        {pkg.rejection_reason && pkg.wants_requote && (
                           <RejectionTooltip
-                            quote={pkg.quote}
+                            adminAssignedTip={pkg.admin_assigned_tip}
                             rejectionReason={pkg.rejection_reason}
                             wantsRequote={pkg.wants_requote}
                             additionalNotes={pkg.additional_notes}
