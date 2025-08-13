@@ -25,9 +25,9 @@ export const TripCard = ({
                 </div>
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground">
                   <span>👤 Viajero: {
-                    trip?.profiles?.first_name || trip?.profiles?.last_name 
-                      ? `${[trip.profiles?.first_name, trip.profiles?.last_name].filter(Boolean).join(' ')}`
-                      : trip?.profiles?.username || 'Sin nombre'
+                    trip?.profiles?.first_name && trip?.profiles?.last_name
+                      ? `${trip.profiles.first_name} ${trip.profiles.last_name}`
+                      : trip?.profiles?.first_name || trip?.profiles?.last_name || trip?.profiles?.username || 'Sin nombre'
                   }</span>
                   <span>📋 Estado: {trip.status}</span>
                 </div>
