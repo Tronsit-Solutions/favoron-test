@@ -293,7 +293,7 @@ export const MatchCard = ({
                 <Button 
                   size="sm" 
                   onClick={onConfirmShopperReceived} 
-                  className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  className="flex-1 bg-green-700 hover:bg-green-800"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   {getShopperReceivedButtonText()}
