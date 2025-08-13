@@ -9,6 +9,9 @@ export const TripCard = ({
   trip,
   onViewTripDetail
 }: TripCardProps) => {
+  console.log("TripCard trip data:", trip);
+  console.log("TripCard profiles data:", trip.profiles);
+  
   return <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
