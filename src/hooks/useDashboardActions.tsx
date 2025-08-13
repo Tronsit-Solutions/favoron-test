@@ -529,13 +529,27 @@ export const useDashboardActions = (
         return;
       }
 
+      // Get trip information to include traveler address and dates
+      const matchedTrip = trips.find(trip => trip.id === tripId);
+      const travelerAddress = buildTravelerAddress(matchedTrip);
+
+      // Include trip dates for shipping information
+      const matchedTripDates = matchedTrip ? {
+        first_day_packages: matchedTrip.first_day_packages,
+        last_day_packages: matchedTrip.last_day_packages,
+        delivery_date: matchedTrip.delivery_date,
+        arrival_date: matchedTrip.arrival_date
+      } : null;
+
       // Update package in Supabase with match information
       // Clear any previous quote data to ensure fresh start
       const updateData: any = {
         status: 'matched',
         matched_trip_id: tripId,
         quote: null, // Clear any previous quote from previous match
-        admin_assigned_tip: adminTip
+        admin_assigned_tip: adminTip,
+        traveler_address: travelerAddress,
+        matched_trip_dates: matchedTripDates
       };
 
       await updatePackage(packageId, updateData);
