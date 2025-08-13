@@ -51,6 +51,11 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
 
   if (!trip) return null;
 
+  // Debug logging to see what data we have
+  console.log('Trip data in TripDetailModal:', trip);
+  console.log('Available space value:', trip.available_space);
+  console.log('All trip keys:', Object.keys(trip));
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
