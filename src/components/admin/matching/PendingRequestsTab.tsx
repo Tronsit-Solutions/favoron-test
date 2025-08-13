@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Search, Zap, Eye, CalendarDays, Trash2, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import RejectionTooltip from "@/components/admin/RejectionTooltip";
+import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 
 interface PendingRequestsTabProps {
   packages: any[];
@@ -53,6 +54,7 @@ const PendingRequestsTab = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { getStatusBadge } = useStatusHelpers();
 
   // Filter packages for those that need matching (approved or quote rejected)
   const pendingPackages = packages.filter(p => p.status === 'approved' || p.status === 'quote_rejected');
@@ -152,10 +154,18 @@ const PendingRequestsTab = ({
                            </span>
                         </div>
                       </div>
-                      <div className="flex items-center">
-                        <Badge className={`text-xs ${getStatusColor(pkg.status)}`}>
-                          {getStatusIcon(pkg.status)} {pkg.status?.replace('_', ' ') || 'Pendiente'}
-                        </Badge>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex flex-col items-end space-y-1">
+                          {pkg.rejection_reason && (
+                            <div className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
+                              🔄 Cotización anterior rechazada
+                            </div>
+                          )}
+                          {getStatusBadge(pkg.status, { 
+                            packageDestination: pkg.package_destination,
+                            rejectionReason: pkg.rejection_reason 
+                          })}
+                        </div>
                         {pkg.rejection_reason && pkg.wants_requote && (
                           <RejectionTooltip
                             adminAssignedTip={pkg.admin_assigned_tip}

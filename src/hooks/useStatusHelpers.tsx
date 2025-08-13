@@ -4,7 +4,7 @@ import { Package, Trip } from "@/types";
 export const useStatusHelpers = () => {
   const getStatusBadge = (
     status: string,
-    packageDestinationOrOptions?: string | { packageDestination?: string; isQuoteExpired?: boolean }
+    packageDestinationOrOptions?: string | { packageDestination?: string; isQuoteExpired?: boolean; rejectionReason?: string }
   ) => {
     const isObj = typeof packageDestinationOrOptions === 'object' && packageDestinationOrOptions !== null;
     const packageDestination = (isObj
@@ -13,12 +13,18 @@ export const useStatusHelpers = () => {
     const isQuoteExpired = isObj
       ? !!(packageDestinationOrOptions as { isQuoteExpired?: boolean }).isQuoteExpired
       : false;
+    const rejectionReason = isObj
+      ? (packageDestinationOrOptions as { rejectionReason?: string }).rejectionReason
+      : undefined;
 
     const effectiveStatus = status === 'quote_sent' && isQuoteExpired ? 'quote_expired' : status;
+    
+    // Handle re-approved packages (approved after rejection)
+    const isReapproved = status === 'approved' && rejectionReason;
 
     const statusConfig = {
       pending_approval: { label: "Pendiente", variant: "warning" as const },
-      approved: { label: "Aprobado", variant: "success" as const },
+      approved: { label: isReapproved ? "Re-aprobado" : "Aprobado", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
       quote_accepted: { label: "Cotización Aceptada", variant: "success" as const },
