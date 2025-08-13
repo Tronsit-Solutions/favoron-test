@@ -22,7 +22,9 @@ const RejectionTooltip = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Info className="h-4 w-4 text-blue-500 cursor-help ml-1" />
+          <button className="inline-flex items-center">
+            <Info className="h-4 w-4 text-blue-500 cursor-help ml-1" />
+          </button>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-80 p-4">
           <div className="space-y-3">
