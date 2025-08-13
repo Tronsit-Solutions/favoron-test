@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle } from "lucide-react";
 import PendingRequestsTab from "./matching/PendingRequestsTab";
@@ -49,6 +50,7 @@ const AdminMatchingTab = ({
   const pendingPayments = packages.filter(pkg => 
     (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
   );
+  const pendingOfficeConfirmations = packages.filter(pkg => pkg.status === 'pending_office_confirmation');
 
   return (
     <div className="space-y-6">
@@ -113,6 +115,9 @@ const AdminMatchingTab = ({
               <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {activeMatches.length}
               </Badge>
+            )}
+            {pendingOfficeConfirmations.length > 0 && (
+              <NotificationBadge count={pendingOfficeConfirmations.length} className="absolute -top-1 -right-1" />
             )}
           </TabsTrigger>
           <TabsTrigger value="payments" className="relative">
