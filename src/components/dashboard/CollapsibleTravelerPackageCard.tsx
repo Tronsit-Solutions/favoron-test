@@ -203,8 +203,8 @@ const CollapsibleTravelerPackageCard = ({
               </div>
 
               <div className="space-y-2">
-                {/* Package Chat Timeline - Show from quote_sent onward */}
-                {['quote_sent', 'quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) && (
+                {/* Package Chat Timeline - Show from quote_accepted onward */}
+                {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) && (
                   <div className="mt-3">
                     <PackageTimeline pkg={pkg} />
                   </div>
