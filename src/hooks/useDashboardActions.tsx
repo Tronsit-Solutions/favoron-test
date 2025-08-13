@@ -615,8 +615,41 @@ export const useDashboardActions = (
       if (!updatePackage) return;
       
       if (action === 'approve') {
-        // Aprobar el pago y cambiar status a payment_confirmed
-        await updatePackage(packageId, { status: 'payment_confirmed' });
+        // Encontrar el paquete para obtener la información del viaje
+        const selectedPackage = packages.find(pkg => pkg.id === packageId);
+        const matchedTrip = selectedPackage?.matched_trip_id ? 
+          trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
+
+        let travelerAddress = null;
+        let matchedTripDates = null;
+
+        if (matchedTrip) {
+          // Build traveler address from trip data
+          travelerAddress = matchedTrip.package_receiving_address ? {
+            recipientName: matchedTrip.package_receiving_address.recipientName,
+            streetAddress: matchedTrip.package_receiving_address.streetAddress,
+            cityArea: matchedTrip.package_receiving_address.cityArea,
+            postalCode: matchedTrip.package_receiving_address.postalCode,
+            contactNumber: matchedTrip.package_receiving_address.contactNumber,
+            hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
+            accommodationType: matchedTrip.package_receiving_address.accommodationType
+          } : null;
+
+          // Build trip dates information
+          matchedTripDates = {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          };
+        }
+
+        // Aprobar el pago y guardar información de envío
+        await updatePackage(packageId, { 
+          status: 'pending_purchase',
+          traveler_address: travelerAddress,
+          matched_trip_dates: matchedTripDates
+        });
         toast({
           title: "¡Pago aprobado!",
           description: "El pago ha sido aprobado y la dirección de envío se ha compartido con el shopper.",
