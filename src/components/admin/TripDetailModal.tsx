@@ -19,22 +19,24 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
-  // Fetch user profile data directly from database using user_id
+  // Fetch user profile data using admin function
   useEffect(() => {
     if (trip?.user_id && isOpen) {
       setLoadingProfile(true);
       const fetchUserProfile = async () => {
         try {
+          // Use admin function to get all users and find the specific one
           const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', trip.user_id)
-            .single();
+            .rpc('admin_view_all_users', {
+              access_reason: 'Trip detail view for admin dashboard'
+            });
           
           if (error) {
-            console.error('Error fetching user profile:', error);
+            console.error('Error fetching user profiles:', error);
           } else {
-            setUserProfile(data);
+            // Find the specific user profile
+            const userProfile = data?.find((user: any) => user.id === trip.user_id);
+            setUserProfile(userProfile || null);
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
