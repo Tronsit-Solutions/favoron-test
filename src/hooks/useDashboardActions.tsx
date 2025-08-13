@@ -289,47 +289,7 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
-          console.log('🔍 Debugging quote acceptance:');
-          console.log('Selected package ID:', selectedPackage.id);
-          console.log('Package matched_trip_id:', selectedPackage.matched_trip_id);
-          console.log('Available trips:', trips.map(t => ({ id: t.id, from: t.from_city, to: t.to_city })));
-          
-          const matchedTrip = selectedPackage.matched_trip_id ? 
-            trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
-          
-          if (!matchedTrip) {
-            console.error('❌ No matched trip found for package:', selectedPackage.id);
-            console.error('Package matched_trip_id:', selectedPackage.matched_trip_id);
-            console.error('Available trip IDs:', trips.map(t => t.id));
-            
-            toast({
-              title: "Error de sincronización",
-              description: `El viaje asociado (${selectedPackage.matched_trip_id?.slice(0, 8)}) no está disponible. Intenta refrescar la página o contacta al administrador.`,
-              variant: "destructive",
-            });
-            return;
-          }
-
-          // Build traveler address from trip data
-          const travelerAddress = matchedTrip.package_receiving_address ? {
-            recipientName: matchedTrip.package_receiving_address.recipientName,
-            streetAddress: matchedTrip.package_receiving_address.streetAddress,
-            cityArea: matchedTrip.package_receiving_address.cityArea,
-            postalCode: matchedTrip.package_receiving_address.postalCode,
-            contactNumber: matchedTrip.package_receiving_address.contactNumber,
-            hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
-            accommodationType: matchedTrip.package_receiving_address.accommodationType
-          } : null;
-
-          // Build trip dates information
-          const matchedTripDates = {
-            first_day_packages: matchedTrip.first_day_packages,
-            last_day_packages: matchedTrip.last_day_packages,
-            delivery_date: matchedTrip.delivery_date,
-            arrival_date: matchedTrip.arrival_date
-          };
-
-          // Update package status to quote_accepted (address shared only after payment confirmation)
+          console.log('✅ Accepting quote without requiring local trip reference');
           await updatePackage(selectedPackage.id, {
             status: 'quote_accepted'
           });
