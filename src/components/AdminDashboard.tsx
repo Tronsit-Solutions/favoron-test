@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
@@ -201,17 +204,23 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="relative flex items-center gap-2">
             Resumen
-            {(approvalsNeeded + paymentsToConfirm) > 0 && (
-              <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
+            {(approvalsNeeded + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 && (
+              <NotificationBadge count={approvalsNeeded + paymentsToConfirm + pendingActions.rejectedByTravelers} />
             )}
           </TabsTrigger>
           <TabsTrigger value="approvals" className="relative flex items-center gap-2">
             Aprobaciones
             {approvalsNeeded > 0 && (
               <NotificationBadge count={approvalsNeeded} />
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="rejected" className="relative flex items-center gap-2">
+            Cotizaciones Rechazadas
+            {pendingActions.rejectedByTravelers > 0 && (
+              <NotificationBadge count={pendingActions.rejectedByTravelers} />
             )}
           </TabsTrigger>
           <TabsTrigger value="matching" className="relative flex items-center gap-2">
@@ -259,6 +268,72 @@ const AdminDashboard = ({
             onApproveReject={onApproveReject}
             getStatusBadge={getStatusBadge}
           />
+        </TabsContent>
+
+        <TabsContent value="rejected" className="space-y-4">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">Cotizaciones Rechazadas por Viajeros</h3>
+                <p className="text-sm text-muted-foreground">Paquetes que requieren nueva cotización o acción</p>
+              </div>
+            </div>
+
+            {packages.filter(p => p.status === 'quote_rejected').length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-4">✅</div>
+                <h3 className="text-lg font-medium mb-2">No hay cotizaciones rechazadas</h3>
+                <p className="text-muted-foreground">Todos los viajeros han aceptado sus cotizaciones</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {packages.filter(p => p.status === 'quote_rejected').map(pkg => (
+                  <Card key={pkg.id}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-lg">{pkg.item_description}</h4>
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <p>Precio estimado: Q{pkg.estimated_price || 0}</p>
+                            <p>Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}</p>
+                            <p>Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</p>
+                            {pkg.quote && (
+                              <p>Cotización rechazada: Q{pkg.quote.total_price} (Tip: Q{pkg.quote.tip})</p>
+                            )}
+                          </div>
+                        </div>
+                        {getStatusBadge(pkg.status)}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleOpenMatchDialog(pkg)}
+                        >
+                          Reasignar a otro viajero
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => onDiscardPackage(pkg)}
+                        >
+                          Descartar solicitud
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="financial" className="space-y-4">
