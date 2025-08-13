@@ -282,7 +282,7 @@ export const MatchCard = ({
                 <Button 
                   size="sm" 
                   onClick={onAdminConfirmOfficeDelivery} 
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 bg-green-600 hover:bg-green-700"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Confirmar recepción en oficina
