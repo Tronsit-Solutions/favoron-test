@@ -18,6 +18,8 @@ interface PendingRequestsTabProps {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
+    case 'approved': return '✅';
+    case 'quote_rejected': return '❌';
     case 'quote_sent': return '💬';
     case 'payment_pending': return '💳';
     case 'payment_confirmed': return '✅';
@@ -29,6 +31,8 @@ const getStatusIcon = (status: string) => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
+    case 'approved': return 'bg-green-100 text-green-800';
+    case 'quote_rejected': return 'bg-red-100 text-red-800';
     case 'quote_sent': return 'bg-blue-100 text-blue-800';
     case 'payment_pending': return 'bg-yellow-100 text-yellow-800';
     case 'payment_confirmed': return 'bg-green-100 text-green-800';
@@ -49,13 +53,14 @@ const PendingRequestsTab = ({
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const approvedPackages = packages.filter(p => p.status === 'approved');
+  // Filter packages for those that need matching (approved or quote rejected)
+  const pendingPackages = packages.filter(p => p.status === 'approved' || p.status === 'quote_rejected');
   
   // Get unique destinations for filter
-  const destinations = [...new Set(approvedPackages.map(pkg => pkg.package_destination || 'Guatemala'))];
+  const destinations = [...new Set(pendingPackages.map(pkg => pkg.package_destination || 'Guatemala'))];
 
   // Filter packages based on search and filters
-  const filteredPackages = approvedPackages.filter(pkg => {
+  const filteredPackages = pendingPackages.filter(pkg => {
     const matchesSearch = (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (pkg.user_id || '').toString().includes(searchTerm);
     const matchesDestination = destinationFilter === "all" || pkg.package_destination === destinationFilter;
@@ -71,7 +76,7 @@ const PendingRequestsTab = ({
         <div>
           <h3 className="text-lg font-semibold">📦 Solicitudes pendientes de Match</h3>
           <p className="text-sm text-muted-foreground">
-            {filteredPackages.length} solicitudes aprobadas sin viaje asignado
+            {filteredPackages.length} solicitudes (aprobadas y rechazadas) sin viaje asignado
           </p>
         </div>
         <Badge variant="secondary" className="bg-blue-50 text-blue-700">
