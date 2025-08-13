@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { User, Package, Trip } from "@/types";
 import {
   Dialog,
@@ -51,9 +51,20 @@ const UserDetailModal = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
 
-  const userPackages = packages.filter(pkg => pkg.user_id === user.id.toString());
-  const userTrips = trips.filter(trip => trip.user_id === user.id.toString());
+  const profileId = (user as any).profileId as string | undefined;
 
+  const userPackages = packages.filter(pkg => pkg.user_id === (profileId || ''));
+  const userTrips = trips.filter(trip => trip.user_id === (profileId || ''));
+
+  const derivedUsername = useMemo(() => {
+    if (user.username && user.username.trim()) return user.username;
+    const byPkg: any = allPackages?.find((p: any) => profileId && p.user_id === profileId);
+    const fromPkg = byPkg?.profiles?.username as string | undefined;
+    const byTrip: any = trips?.find((t: any) => profileId && t.user_id === profileId);
+    const fromTrip = byTrip?.profiles?.username as string | undefined;
+    const emailPrefix = user.email?.split('@')[0];
+    return fromPkg || fromTrip || emailPrefix || 'No definido';
+  }, [user.username, user.email, allPackages, trips, profileId]);
   const handleSave = () => {
     onUpdateUser(user.id, editedUser);
     setIsEditing(false);
@@ -140,7 +151,7 @@ const UserDetailModal = ({
                         onChange={(e) => setEditedUser(prev => ({ ...prev, username: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-sm">{user.username || 'No definido'}</p>
+                      <p className="text-sm">{derivedUsername}</p>
                     )}
                   </div>
                 </div>
