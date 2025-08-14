@@ -148,9 +148,6 @@ const PendingRequestsTab = ({
                                ? (`${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || pkg.profiles.email || 'Sin perfil')
                                : 'Sin perfil'}
                            </span>
-                           <span className="text-sm font-semibold text-primary">
-                             ${pkg.estimated_price}
-                           </span>
                            <span className="text-xs text-muted-foreground">
                              📍 {pkg.purchase_origin} → {pkg.package_destination}
                            </span>
