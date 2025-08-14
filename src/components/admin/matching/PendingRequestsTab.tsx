@@ -143,11 +143,11 @@ const PendingRequestsTab = ({
                            {pkg.item_description || "Sin descripción"}
                          </h4>
                          <div className="flex items-center space-x-3">
-                           <span className="text-xs text-muted-foreground">
-                             👤 Usuario: {pkg.profiles 
-                               ? (`${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || pkg.profiles.email || 'Sin perfil')
-                               : 'Sin perfil'}
-                           </span>
+                            <span className="text-xs text-muted-foreground">
+                              🛍️ Shopper: {pkg.profiles 
+                                ? (`${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || pkg.profiles.email || 'Sin perfil')
+                                : 'Sin perfil'}
+                            </span>
                            <span className="text-xs text-muted-foreground">
                              📍 {pkg.purchase_origin} → {pkg.package_destination}
                            </span>
