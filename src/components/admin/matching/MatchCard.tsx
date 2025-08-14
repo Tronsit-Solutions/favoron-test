@@ -97,7 +97,14 @@ export const MatchCard = ({
               </div>
               
               <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                <span>👤 {pkg.user_id}</span>
+                <span>
+                  🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name} 
+                  {matchedTrip && (
+                    <>
+                      {' '} 🤝 {matchedTrip.profiles?.first_name} {matchedTrip.profiles?.last_name} ✈️
+                    </>
+                  )}
+                </span>
                 <span className="font-medium text-primary">${pkg.estimated_price}</span>
                 <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
               </div>
