@@ -64,7 +64,6 @@ const TripPackagesGroup = ({
                   </Badge>
                   {totalTips > 0 && (
                     <div className="flex items-center gap-1 text-green-600 font-medium">
-                      <DollarSign className="h-3 w-3" />
                       <span>Q{totalTips.toFixed(2)}</span>
                     </div>
                   )}
