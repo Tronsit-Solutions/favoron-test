@@ -77,6 +77,12 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const getTipAmount = () => {
+    // Always prioritize admin_assigned_tip when available
+    if (pkg.admin_assigned_tip) {
+      return parseFloat(pkg.admin_assigned_tip);
+    }
+    
+    // Fallback to quote calculation only if no assigned tip
     if (pkg.quote && pkg.status !== 'matched') {
       const quote = pkg.quote;
       const totalPrice = parseFloat(quote.totalPrice || 0);
@@ -84,10 +90,6 @@ const CollapsibleTravelerPackageCard = ({
       const serviceFee = parseFloat(quote.serviceFee || 0);
       const tip = totalPrice - price - serviceFee;
       return tip > 0 ? tip : 0;
-    }
-    
-    if (pkg.admin_assigned_tip && pkg.status === 'matched') {
-      return parseFloat(pkg.admin_assigned_tip);
     }
     
     return 0;
