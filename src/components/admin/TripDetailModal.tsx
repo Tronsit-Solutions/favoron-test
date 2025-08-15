@@ -195,7 +195,9 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Espacio Disponible</p>
-                    <p className="text-sm text-muted-foreground">{trip.available_space} kg</p>
+                    <p className="text-sm text-muted-foreground">
+                      {trip.available_space ? `${trip.available_space} kg` : 'No especificado'}
+                    </p>
                   </div>
                 </div>
               </div>
