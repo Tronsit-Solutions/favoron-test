@@ -28,7 +28,7 @@ const AvailableTripsTab = ({ trips, onViewTripDetail }: AvailableTripsTabProps) 
     const matchesOrigin = originFilter === "all" || trip.from_city === originFilter;
     
     return matchesSearch && matchesOrigin;
-  });
+  }).sort((a, b) => new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime());
 
   const approvedCount = filteredTrips.filter(t => t.status === 'approved').length;
   const activeCount = filteredTrips.filter(t => t.status === 'active').length;

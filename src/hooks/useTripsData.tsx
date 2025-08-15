@@ -43,7 +43,7 @@ export const useTripsData = () => {
             created_at
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('departure_date', { ascending: true });
 
       // Enhanced data loading: Load trips that are relevant for quote processing
       // This includes:
