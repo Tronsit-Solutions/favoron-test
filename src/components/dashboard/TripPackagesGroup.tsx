@@ -62,11 +62,6 @@ const TripPackagesGroup = ({
                   <Badge variant="outline" className="text-xs">
                     {packages.length} paquete{packages.length !== 1 ? 's' : ''}
                   </Badge>
-                  {totalTips > 0 && (
-                    <div className="flex items-center gap-1 text-green-600 font-medium">
-                      <span>Q{totalTips.toFixed(2)}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               
