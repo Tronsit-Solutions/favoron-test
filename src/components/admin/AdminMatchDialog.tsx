@@ -189,7 +189,10 @@ const AdminMatchDialog = ({
                            <p className="font-medium text-sm text-blue-900">
                              {selectedPackage.profiles?.first_name && selectedPackage.profiles?.last_name 
                                ? `${selectedPackage.profiles.first_name} ${selectedPackage.profiles.last_name}`
-                               : selectedPackage.profiles?.username || `Usuario #${selectedPackage.user_id || 'N/A'}`}
+                               : selectedPackage.profiles?.username || 'Usuario'}
+                             <span className="text-xs text-blue-600 ml-2">
+                               (ID: {selectedPackage.user_id || 'N/A'})
+                             </span>
                            </p>
                         </div>
                       </div>
