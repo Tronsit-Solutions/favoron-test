@@ -275,9 +275,6 @@ const QuoteDialog = ({
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-sm font-medium text-green-800 mb-2">Cotización del viajero:</p>
                 <div className="text-sm text-green-700 space-y-1">
-                  {existingQuote.message && (
-                    <p><strong>Mensaje:</strong> "{existingQuote.message}"</p>
-                  )}
                   <div className="mt-2 pt-2 border-t border-green-300">
                     {(() => {
                       const baseTotal = parseFloat(existingQuote.totalPrice || 0);
