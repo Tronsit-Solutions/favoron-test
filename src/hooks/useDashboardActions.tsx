@@ -116,6 +116,7 @@ export const useDashboardActions = (
         delivery_method: tripData.deliveryMethod || 'oficina',
         messenger_pickup_info: tripData.messengerPickupInfo || null,
         package_receiving_address: tripData.packageReceivingAddress,
+        available_space: tripData.availableSpace ? parseFloat(tripData.availableSpace) : null,
         status: 'pending_approval'
       };
 
