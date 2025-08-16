@@ -160,7 +160,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                       <div>
                         <p className="text-sm font-medium">Usuario</p>
                         <p className="text-sm text-muted-foreground">
-                          @{matchedTrip.profiles?.username || 'Sin usuario'}
+                          @{matchedTrip?.profiles?.username || matchedTrip?.username || 'Sin usuario'}
                         </p>
                       </div>
                     </div>
