@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,6 +156,16 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     </div>
                     
                     <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Usuario</p>
+                        <p className="text-sm text-muted-foreground">
+                          @{matchedTrip.profiles?.username || 'Sin usuario'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Email</p>
@@ -177,9 +188,9 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                     <div className="flex items-center space-x-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">Usuario</p>
+                        <p className="text-sm font-medium">Usuario ID</p>
                         <p className="text-sm text-muted-foreground">
-                          @{matchedTrip.profiles?.username || 'Sin usuario'}
+                          {matchedTrip.user_id}
                         </p>
                       </div>
                     </div>
