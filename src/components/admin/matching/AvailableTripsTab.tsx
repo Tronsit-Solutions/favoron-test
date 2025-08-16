@@ -13,7 +13,14 @@ const AvailableTripsTab = ({ trips, onViewTripDetail }: AvailableTripsTabProps) 
   const [searchTerm, setSearchTerm] = useState("");
   const [originFilter, setOriginFilter] = useState("all");
 
-  const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+  
+  const availableTrips = trips.filter(trip => {
+    const isValidStatus = ['approved', 'active'].includes(trip.status);
+    const isNotExpired = new Date(trip.arrival_date) >= today;
+    return isValidStatus && isNotExpired;
+  });
   
   // Get unique origins for filter
   const origins = [...new Set(availableTrips.map(trip => trip.from_city))];
