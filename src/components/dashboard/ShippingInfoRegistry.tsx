@@ -18,8 +18,8 @@ const ShippingInfoRegistry = ({
     return null;
   }
 
-  // CRÍTICO: Esta información solo debe ser visible después de que el admin apruebe el pago
-  if (!['pending_purchase', 'payment_confirmed'].includes(pkg.status)) {
+  // CRÍTICO: Esta información solo debe ser visible en estados avanzados
+  if (!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) {
     return null;
   }
   const address = pkg.traveler_address as any;
@@ -27,7 +27,13 @@ const ShippingInfoRegistry = ({
   return <div className={className}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          
+          <button className="flex items-center justify-between w-full p-2 text-sm font-medium text-left bg-success/10 hover:bg-success/20 rounded-lg border border-success/20 transition-colors">
+            <span className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-success" />
+              <span>Información de envío guardada</span>
+            </span>
+            {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
         </CollapsibleTrigger>
         
         <CollapsibleContent>

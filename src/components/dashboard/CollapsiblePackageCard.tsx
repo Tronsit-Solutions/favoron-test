@@ -148,7 +148,7 @@ const CollapsiblePackageCard = ({
             )}
 
             {/* Información de envío collapsible para in_transit y estados posteriores */}
-            {['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+            {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
               <div className="mb-6">
                 <Button 
                   variant="outline" 
@@ -175,7 +175,7 @@ const CollapsiblePackageCard = ({
                 <TravelerConfirmationDisplay pkg={pkg} />
 
                 {/* Show shipping information registry when saved - only for non-collapsible states */}
-                {!['in_transit', 'out_for_delivery', 'delivered'].includes(pkg.status) && (
+                {!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
                   <ShippingInfoRegistry pkg={pkg} className="mb-4" />
                 )}
 
