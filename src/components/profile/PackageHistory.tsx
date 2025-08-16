@@ -11,8 +11,11 @@ interface PackageHistoryProps {
 }
 
 const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
-  // Filtrar solo paquetes completados (entregados en oficina o que pertenezcan a viajes completados)
+  // Filtrar paquetes completados (entregados en oficina, viajes completados, o cancelados)
   const completedPackages = packages.filter(pkg => {
+    // Paquetes cancelados
+    if (pkg.status === 'cancelled') return true;
+    
     // Paquetes entregados en oficina
     if (pkg.status === 'delivered_to_office') return true;
     
@@ -38,6 +41,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
   };
 
   const getStatusDisplay = (pkg: any) => {
+    if (pkg.status === 'cancelled') return 'Cancelado';
     if (pkg.status === 'delivered_to_office') return 'Entregado en oficina';
     const matchedTrip = getMatchedTrip(pkg.id);
     if (matchedTrip?.status === 'completed_paid') return 'Completado y pagado';
@@ -101,7 +105,10 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
-                        <Badge variant="default" className="bg-green-600 text-center">
+                        <Badge 
+                          variant={pkg.status === 'cancelled' ? 'destructive' : 'default'} 
+                          className={pkg.status === 'cancelled' ? 'text-center' : 'bg-green-600 text-center'}
+                        >
                           {getStatusDisplay(pkg)}
                         </Badge>
                         <CollapsibleTrigger asChild>

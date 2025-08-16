@@ -146,22 +146,34 @@ export const usePackagesData = () => {
 
   const deletePackage = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('packages')
-        .delete()
-        .eq('id', id);
+        .update({
+          status: 'cancelled',
+          matched_trip_id: null,
+          quote: null,
+          quote_expires_at: null,
+          matched_trip_dates: null,
+          traveler_address: null
+        })
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
       
-      setPackages(prev => prev.filter(pkg => pkg.id !== id));
+      setPackages(prev => prev.map(pkg => 
+        pkg.id === id ? { ...pkg, ...data } : pkg
+      ));
+      
       toast({
         title: "Éxito",
-        description: "Paquete eliminado correctamente",
+        description: "Pedido cancelado y movido a historial",
       });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "No se pudo eliminar el paquete",
+        description: "No se pudo cancelar el paquete",
         variant: "destructive",
       });
       throw error;
