@@ -98,7 +98,7 @@ const ShippingInstructions = ({
                       <p className="font-medium">{address.streetAddress}</p>
                       {address.streetAddress2 && <p>{address.streetAddress2}</p>}
                       <p>{address.cityArea}</p>
-                      {address.postalCode && <p className="font-mono">Código Postal: {address.postalCode}</p>}
+                      {address.postalCode && <p className="font-medium">Código Postal: {address.postalCode}</p>}
                     </div>
                   </div>
 
