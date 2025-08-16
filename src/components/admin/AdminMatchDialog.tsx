@@ -38,11 +38,20 @@ const AdminMatchDialog = ({
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [adminTip, setAdminTip] = useState<string>('');
 
+  // Filter trips to exclude those with past arrival dates
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const validTrips = availableTrips.filter(trip => {
+    const isNotExpired = new Date(trip.arrival_date) >= today;
+    return isNotExpired;
+  });
+
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
-    if (showMatchDialog && availableTrips.length > 0) {
+    if (showMatchDialog && validTrips.length > 0) {
       const fetchTravelerProfiles = async () => {
-        const userIds = [...new Set(availableTrips.map(trip => trip.user_id))];
+        const userIds = [...new Set(validTrips.map(trip => trip.user_id))];
         
         try {
           // Use admin function to bypass RLS
@@ -69,7 +78,7 @@ const AdminMatchDialog = ({
       
       fetchTravelerProfiles();
     }
-  }, [showMatchDialog, availableTrips]);
+  }, [showMatchDialog, validTrips]);
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
@@ -247,7 +256,7 @@ const AdminMatchDialog = ({
           <div className="flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-3 flex-shrink-0">
               <Label className="text-lg font-semibold text-gray-900">
-                Viajes Disponibles ({availableTrips.length})
+                Viajes Disponibles ({validTrips.length})
               </Label>
               <p className="text-sm text-gray-600">
                 Haz clic en un viaje para seleccionarlo
@@ -256,7 +265,7 @@ const AdminMatchDialog = ({
 
             <ScrollArea className="h-[500px] w-full">
               <div className="space-y-2 pr-4 pb-4">
-                {availableTrips.map((trip) => (
+                {validTrips.map((trip) => (
                   <Card 
                     key={trip.id} 
                     className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
@@ -451,7 +460,7 @@ const AdminMatchDialog = ({
               Confirmar Match
               {selectedTripId && (
                 <span className="ml-2 text-xs opacity-75">
-                  (Viajero #{availableTrips.find(t => t.id === selectedTripId)?.user_id})
+                  (Viajero #{validTrips.find(t => t.id === selectedTripId)?.user_id})
                 </span>
               )}
             </Button>
