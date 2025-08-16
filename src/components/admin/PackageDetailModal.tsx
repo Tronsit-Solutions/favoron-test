@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +86,16 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                       <p className="text-sm font-medium">Nombre</p>
                       <p className="text-sm text-muted-foreground">
                         {pkg.profiles ? `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || 'Sin nombre' : 'Sin información'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Usuario</p>
+                      <p className="text-sm text-muted-foreground">
+                        @{pkg.profiles?.username || 'Sin usuario'}
                       </p>
                     </div>
                   </div>
@@ -683,7 +692,6 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
               </div>
             </CardContent>
           </Card>
-
 
           {/* Payment Receipt Section */}
           {pkg.payment_receipt && (
