@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -611,62 +611,62 @@ export type Database = {
     }
     Functions: {
       admin_confirm_office_delivery: {
-        Args: { _package_id: string; _admin_id: string }
+        Args: { _admin_id: string; _package_id: string }
         Returns: undefined
       }
       admin_view_all_users: {
         Args: { access_reason?: string }
         Returns: {
-          id: string
-          first_name: string
-          last_name: string
-          email: string
-          username: string
-          phone_number: string
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          bank_swift_code: string
+          country_code: string
           created_at: string
+          document_number: string
+          document_type: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone_number: string
           trust_level: string
           user_role: string
-          bank_account_holder: string
-          bank_name: string
-          bank_account_type: string
-          bank_account_number: string
-          bank_swift_code: string
-          document_type: string
-          document_number: string
-          country_code: string
+          username: string
         }[]
       }
       admin_view_profile_banking: {
-        Args: { target_user_id: string; access_reason: string }
+        Args: { access_reason: string; target_user_id: string }
         Returns: {
-          id: string
           bank_account_holder: string
-          bank_name: string
-          bank_account_type: string
           bank_account_number: string
+          bank_account_type: string
+          bank_name: string
           bank_swift_code: string
+          id: string
         }[]
       }
       admin_view_profile_basic: {
-        Args: { target_user_id: string; access_reason?: string }
+        Args: { access_reason?: string; target_user_id: string }
         Returns: {
-          id: string
-          first_name: string
-          last_name: string
-          email: string
-          username: string
           created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
           trust_level: string
+          username: string
         }[]
       }
       admin_view_profile_sensitive: {
-        Args: { target_user_id: string; access_reason: string }
+        Args: { access_reason: string; target_user_id: string }
         Returns: {
+          country_code: string
+          document_number: string
+          document_type: string
           id: string
           phone_number: string
-          document_type: string
-          document_number: string
-          country_code: string
         }[]
       }
       archive_old_data: {
@@ -683,25 +683,25 @@ export type Database = {
       }
       create_notification: {
         Args: {
-          _user_id: string
-          _title: string
-          _message: string
-          _type?: string
-          _priority?: string
           _action_url?: string
+          _message: string
           _metadata?: Json
+          _priority?: string
+          _title: string
+          _type?: string
+          _user_id: string
         }
         Returns: string
       }
       create_notification_with_direct_email: {
         Args: {
-          _user_id: string
-          _title: string
-          _message: string
-          _type?: string
-          _priority?: string
           _action_url?: string
+          _message: string
           _metadata?: Json
+          _priority?: string
+          _title: string
+          _type?: string
+          _user_id: string
         }
         Returns: string
       }
@@ -716,39 +716,39 @@ export type Database = {
       get_database_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          table_name: string
-          row_count: number
-          table_size: string
           index_size: string
+          row_count: number
+          table_name: string
+          table_size: string
         }[]
       }
       get_monthly_reports: {
-        Args: { start_date?: string; end_date?: string }
+        Args: { end_date?: string; start_date?: string }
         Returns: Json
       }
       get_public_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
           total_packages_completed: number
-          total_users: number
-          total_trips: number
           total_tips_distributed: number
+          total_trips: number
+          total_users: number
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       log_admin_action: {
         Args: {
-          _package_id: string
-          _admin_id: string
-          _action_type: string
           _action_description: string
+          _action_type: string
           _additional_data?: Json
+          _admin_id: string
+          _package_id: string
         }
         Returns: undefined
       }
