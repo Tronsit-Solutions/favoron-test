@@ -96,8 +96,8 @@ const ShippingInstructions = ({
                     <span className="text-muted-foreground font-medium">Dirección completa:</span>
                     <div className="text-foreground">
                       <p className="font-medium">{address.streetAddress}</p>
-                      {address.streetAddress2 && <p>{address.streetAddress2}</p>}
-                      <p>{address.cityArea}</p>
+                      {address.streetAddress2 && <p className="font-medium">{address.streetAddress2}</p>}
+                      <p className="font-medium">{address.cityArea}</p>
                       {address.postalCode && <p className="font-medium">Código Postal: {address.postalCode}</p>}
                     </div>
                   </div>
