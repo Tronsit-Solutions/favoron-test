@@ -42,6 +42,19 @@ const ShopperPackagePriorityActions = ({
 
   const isQuoteExpired = !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date());
 
+  // Define advanced states where timer and re-quote options should never appear
+  const advancedStates = [
+    'payment_confirmed', 
+    'pending_purchase', 
+    'purchase_confirmed', 
+    'in_transit', 
+    'pending_office_confirmation', 
+    'ready_for_pickup', 
+    'ready_for_delivery', 
+    'delivered', 
+    'completed'
+  ];
+
   const getActionConfig = () => {
     switch (pkg.status) {
       case 'quote_sent':
@@ -178,8 +191,8 @@ const ShopperPackagePriorityActions = ({
 
   return (
     <div className="space-y-4">
-      {/* Countdown for active quotes */}
-      {['quote_sent', 'quote_accepted', 'awaiting_payment', 'payment_pending_approval'].includes(pkg.status) && 
+      {/* Countdown for active quotes - only while shopper is deciding */}
+      {['quote_sent', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && 
        pkg.quote_expires_at && 
        !isQuoteExpired && (
         <div className="mb-4">
@@ -208,7 +221,8 @@ const ShopperPackagePriorityActions = ({
                 {config.button.text}
               </Button>
             )}
-            {(isQuoteExpired || pkg.status === 'quote_expired') && (
+            {/* Only show re-quote options for early states, not advanced processing states */}
+            {(isQuoteExpired || pkg.status === 'quote_expired') && !advancedStates.includes(pkg.status) && (
               <div className="flex flex-wrap gap-2 mt-3">
                 <Button size="sm" onClick={() => (onRequestRequote ? onRequestRequote(pkg) : onQuote(pkg, 'user'))}>
                   Solicitar re-cotización
