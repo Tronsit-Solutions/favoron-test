@@ -369,17 +369,13 @@ export const useDashboardActions = (
 
       if (type === 'confirmation') {
         updatedData.purchase_confirmation = data;
-        // Keep current status - don't automatically advance to in_transit
-        // Only advance when both confirmation AND tracking are present
-        if (pkg.tracking_info) {
+        // Move to in_transit immediately when purchase confirmation is uploaded
+        if (['pending_purchase','payment_confirmed','paid'].includes(pkg.status)) {
           newStatus = 'in_transit';
         }
       } else if (type === 'tracking') {
         updatedData.tracking_info = data;
-        // Only move to in_transit if BOTH confirmation and tracking are present
-        if (pkg.purchase_confirmation) {
-          newStatus = 'in_transit';
-        }
+        // Tracking upload doesn't change status - only confirmation does
       } else if (type === 'payment_receipt') {
         updatedData.payment_receipt = data;
         newStatus = 'payment_pending';

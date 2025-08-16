@@ -13,12 +13,12 @@ const ShopperPackageInfo = ({
   onPackageUpdate
 }: ShopperPackageInfoProps) => {
   useEffect(() => {
-    const shouldMove = Boolean(pkg.purchase_confirmation) && Boolean(pkg.tracking_info) && pkg.status !== 'in_transit' && ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
+    const shouldMove = Boolean(pkg.purchase_confirmation) && pkg.status !== 'in_transit' && ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
     if (shouldMove) {
       supabase.from('packages').update({ status: 'in_transit' }).eq('id', pkg.id)
         .then(({ error }) => { if (!error) onPackageUpdate?.({ ...pkg, status: 'in_transit' }); });
     }
-  }, [pkg.id, pkg.status, pkg.purchase_confirmation, pkg.tracking_info, onPackageUpdate]);
+  }, [pkg.id, pkg.status, pkg.purchase_confirmation, onPackageUpdate]);
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
 
@@ -67,8 +67,10 @@ const ShopperPackageInfo = ({
             
             // Guardar en la base de datos según el tipo
             if (type === 'confirmation') {
+              const shouldMoveInTransit = ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
               const updateData = { 
-                purchase_confirmation: data
+                purchase_confirmation: data,
+                ...(shouldMoveInTransit ? { status: 'in_transit' } : {})
               };
               const { error } = await supabase
                 .from('packages')
@@ -80,10 +82,8 @@ const ShopperPackageInfo = ({
                 return;
               }
             } else if (type === 'tracking') {
-              const shouldMoveInTransit = ['pending_purchase','payment_confirmed','paid','in_transit'].includes(pkg.status as any);
               const updateData = {
-                tracking_info: data,
-                ...(shouldMoveInTransit ? { status: 'in_transit' } : {})
+                tracking_info: data
               };
               const { error } = await supabase
                 .from('packages')
@@ -99,8 +99,11 @@ const ShopperPackageInfo = ({
             const updatedPkg = {
               ...pkg,
               ...(type === 'confirmation' 
-                ? { purchase_confirmation: data } 
-                : { tracking_info: data, ...( ['pending_purchase','payment_confirmed','paid','in_transit'].includes(pkg.status as any) ? { status: 'in_transit' } : {}) }
+                ? { 
+                    purchase_confirmation: data,
+                    ...(['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any) ? { status: 'in_transit' } : {})
+                  } 
+                : { tracking_info: data }
               )
             };
             onPackageUpdate?.(updatedPkg);
