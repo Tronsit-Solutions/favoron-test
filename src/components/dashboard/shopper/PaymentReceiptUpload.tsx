@@ -228,7 +228,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         <div className="mt-4 p-2 bg-info/5 border border-info/20 rounded-lg">
           <div className="space-y-2">
             <p className="text-xs text-foreground">
-              <strong>Monto:</strong> Q{(pkg.quote as any)?.totalPrice || '0.00'} • <strong>Datos bancarios Favorón S.A.:</strong>
+              <strong>Monto:</strong> Q{parseFloat((pkg.quote as any)?.totalPrice || '0').toFixed(2)} • <strong>Datos bancarios Favorón S.A.:</strong>
             </p>
             
             <div className="bg-background/50 border border-info/30 rounded-md p-2">
