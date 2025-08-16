@@ -1,3 +1,4 @@
+
 import { Package } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Calendar, CheckCircle } from "lucide-react";
@@ -104,10 +105,12 @@ const ShippingInfoRegistry = ({
                 </div>
               )}
               
-              {/* Próximos pasos */}
-              <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700 border border-blue-200">
-                💡 <strong>Próximo:</strong> Compra el producto y envíalo a la dirección mostrada.
-              </div>
+              {/* Próximos pasos - Solo mostrar cuando está pending_purchase */}
+              {pkg.status === 'pending_purchase' && (
+                <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700 border border-blue-200">
+                  💡 <strong>Próximo:</strong> Compra el producto y envíalo a la dirección mostrada.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
