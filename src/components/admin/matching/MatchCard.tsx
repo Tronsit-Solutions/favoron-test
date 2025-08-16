@@ -138,8 +138,8 @@ export const MatchCard = ({
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-700">Estado Actual</span>
-                <span className="text-xs text-gray-500">
-                  ID: {pkg.id.split('-')[0]}...
+                <span className="text-xs text-gray-500 font-mono">
+                  ID: {pkg.id}
                 </span>
               </div>
               
