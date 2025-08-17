@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Plane, LogIn, ArrowLeft, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -77,7 +78,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
       {/* Sub Navigation Bar - Made smaller on mobile */}
       <div className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100/50">
         <div className="container mx-auto px-4 py-1 sm:py-2">
-          <div className="flex items-center justify-center space-x-4 sm:space-x-8">
+          <div className="flex items-center justify-start space-x-4 sm:space-x-8">
             <Link 
               to="/regulacion-aduanera" 
               className="group flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200"
