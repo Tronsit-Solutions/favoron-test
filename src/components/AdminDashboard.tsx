@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileTabs } from "@/components/ui/mobile-tabs";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 import AdminStatsOverview from "./admin/AdminStatsOverview";
@@ -68,6 +70,7 @@ const AdminDashboard = ({
   const [showActionsModal, setShowActionsModal] = useState(false);
   const [selectedActionsPackage, setSelectedActionsPackage] = useState<any>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -191,6 +194,45 @@ const AdminDashboard = ({
     }
   });
   
+  // Create tabs array for mobile and desktop tabs
+  const adminTabs = [
+    {
+      value: "overview",
+      label: "Resumen",
+      badge: (approvalsNeeded + paymentsToConfirm) > 0 ? <NotificationBadge count={approvalsNeeded + paymentsToConfirm} /> : undefined
+    },
+    {
+      value: "approvals",
+      label: "Aprobaciones",
+      badge: approvalsNeeded > 0 ? <NotificationBadge count={approvalsNeeded} /> : undefined
+    },
+    {
+      value: "matching",
+      label: "Gestión",
+      badge: (matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
+    },
+    {
+      value: "traveler-payments",
+      label: "Pagos Viajeros",
+      badge: pendingTravelerPayments > 0 ? <NotificationBadge count={pendingTravelerPayments} /> : undefined
+    },
+    {
+      value: "support",
+      label: "🔍 Soporte",
+      badge: packages.filter(p => p.incident_flag).length > 0 ? <NotificationBadge count={packages.filter(p => p.incident_flag).length} /> : undefined
+    },
+    {
+      value: "financial",
+      label: "Financiero",
+      badge: undefined
+    },
+    {
+      value: "reports",
+      label: "Reportes",
+      badge: undefined
+    }
+  ];
+  
 
   return (
     <div className="space-y-6">
@@ -204,44 +246,26 @@ const AdminDashboard = ({
       <AdminStatsOverview packages={packages} trips={trips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview" className="relative flex items-center gap-2">
-            Resumen
-            {(approvalsNeeded + paymentsToConfirm) > 0 && (
-              <NotificationBadge count={approvalsNeeded + paymentsToConfirm} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="approvals" className="relative flex items-center gap-2">
-            Aprobaciones
-            {approvalsNeeded > 0 && (
-              <NotificationBadge count={approvalsNeeded} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="matching" className="relative flex items-center gap-2">
-            Gestión
-            {(matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 && (
-              <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="traveler-payments" className="relative flex items-center gap-2">
-            Pagos Viajeros
-            {pendingTravelerPayments > 0 && (
-              <NotificationBadge count={pendingTravelerPayments} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="support" className="relative flex items-center gap-2">
-            🔍 Soporte
-            {packages.filter(p => p.incident_flag).length > 0 && (
-              <NotificationBadge count={packages.filter(p => p.incident_flag).length} />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="relative flex items-center gap-2">
-            Financiero
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="relative flex items-center gap-2">
-            Reportes
-          </TabsTrigger>
-        </TabsList>
+        {isMobile ? (
+          <MobileTabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            tabs={adminTabs}
+          />
+        ) : (
+          <TabsList className="grid w-full grid-cols-7">
+            {adminTabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="relative flex items-center gap-2"
+              >
+                {tab.label}
+                {tab.badge}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        )}
 
         <TabsContent value="overview" className="space-y-4">
           <AdminOverviewTab 
