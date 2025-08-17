@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileTabs } from "@/components/ui/mobile-tabs";
 import PendingRequestsTab from "./matching/PendingRequestsTab";
 import AvailableTripsTab from "./matching/AvailableTripsTab";
 import ActiveMatchesTab from "./matching/ActiveMatchesTab";
@@ -40,6 +42,7 @@ const AdminMatchingTab = ({
   getStatusBadge 
 }: AdminMatchingTabProps) => {
   const [activeTab, setActiveTab] = useState("pending");
+  const isMobile = useIsMobile();
 
   // Calculate stats
   const approvedPackages = packages.filter(p => p.status === 'approved');
@@ -51,6 +54,53 @@ const AdminMatchingTab = ({
     (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
   );
   const pendingOfficeConfirmations = packages.filter(pkg => pkg.status === 'pending_office_confirmation');
+
+  // Tabs configuration for mobile
+  const tabsConfig = [
+    {
+      value: "pending",
+      label: "📦 Solicitudes",
+      badge: pendingRequests.length > 0 ? (
+        <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+          {pendingRequests.length}
+        </Badge>
+      ) : undefined
+    },
+    {
+      value: "trips",
+      label: "✈️ Viajes",
+      badge: availableTrips.length > 0 ? (
+        <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+          {availableTrips.length}
+        </Badge>
+      ) : undefined
+    },
+    {
+      value: "matches",
+      label: "🔗 Matches",
+      badge: (
+        <>
+          {activeMatches.length > 0 && (
+            <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+              {activeMatches.length}
+            </Badge>
+          )}
+          {pendingOfficeConfirmations.length > 0 && (
+            <NotificationBadge count={pendingOfficeConfirmations.length} className="absolute -top-1 -right-1" />
+          )}
+        </>
+      )
+    },
+    {
+      value: "payments",
+      label: "💳 Pagos",
+      badge: pendingPayments.length > 0 ? (
+        <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+          {pendingPayments.length}
+        </Badge>
+      ) : undefined
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -92,43 +142,51 @@ const AdminMatchingTab = ({
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="pending" className="relative">
-            📦 Solicitudes
-            {pendingRequests.length > 0 && (
-              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {pendingRequests.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="trips" className="relative">
-            ✈️ Viajes
-            {availableTrips.length > 0 && (
-              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {availableTrips.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="matches" className="relative">
-            🔗 Matches
-            {activeMatches.length > 0 && (
-              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {activeMatches.length}
-              </Badge>
-            )}
-            {pendingOfficeConfirmations.length > 0 && (
-              <NotificationBadge count={pendingOfficeConfirmations.length} className="absolute -top-1 -right-1" />
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="relative">
-            💳 Pagos
-            {pendingPayments.length > 0 && (
-              <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {pendingPayments.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
+        {isMobile ? (
+          <MobileTabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            tabs={tabsConfig}
+          />
+        ) : (
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="pending" className="relative">
+              📦 Solicitudes
+              {pendingRequests.length > 0 && (
+                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                  {pendingRequests.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="trips" className="relative">
+              ✈️ Viajes
+              {availableTrips.length > 0 && (
+                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                  {availableTrips.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="matches" className="relative">
+              🔗 Matches
+              {activeMatches.length > 0 && (
+                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                  {activeMatches.length}
+                </Badge>
+              )}
+              {pendingOfficeConfirmations.length > 0 && (
+                <NotificationBadge count={pendingOfficeConfirmations.length} className="absolute -top-1 -right-1" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="relative">
+              💳 Pagos
+              {pendingPayments.length > 0 && (
+                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                  {pendingPayments.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        )}
         <TabsContent value="pending" className="mt-6">
           <PendingRequestsTab
             packages={pendingRequests}
