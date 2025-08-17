@@ -304,7 +304,9 @@ const QuoteDialog = ({
               </div>
               
               {/* Live countdown for shoppers viewing quotes */}
-              {packageDetails.quote_expires_at && userType === 'user' && (
+              {packageDetails.quote_expires_at && 
+                userType === 'user' && 
+                ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageDetails.status) && (
                 <QuoteCountdown 
                   expiresAt={packageDetails.quote_expires_at}
                   onExpire={() => {

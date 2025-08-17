@@ -52,7 +52,8 @@ const ShopperPackagePriorityActions = ({
     'ready_for_pickup', 
     'ready_for_delivery', 
     'delivered', 
-    'completed'
+    'completed',
+    'received_by_traveler'
   ];
 
   const getActionConfig = () => {
@@ -192,7 +193,7 @@ const ShopperPackagePriorityActions = ({
   return (
     <div className="space-y-4">
       {/* Countdown for active quotes - only while shopper is deciding */}
-      {['quote_sent', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && 
+      {['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && 
        pkg.quote_expires_at && 
        !isQuoteExpired && (
         <div className="mb-4">
