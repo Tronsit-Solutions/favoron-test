@@ -237,7 +237,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) throw error;
@@ -255,6 +255,8 @@ const Auth = () => {
         title: "Error",
         description: error.message === "User not found" 
           ? "No encontramos una cuenta con ese email" 
+          : error.message === "over_email_send_rate_limit"
+          ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
           : error.message,
         variant: "destructive",
       });
