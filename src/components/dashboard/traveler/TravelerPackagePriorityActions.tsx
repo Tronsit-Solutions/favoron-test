@@ -87,7 +87,7 @@ const TravelerPackagePriorityActions = ({
             </div>
           </div>
           <div className="flex-shrink-0">
-            {pkg.status === 'matched' && pkg.admin_assigned_tip && (
+            {pkg.status === 'matched' && pkg.admin_assigned_tip && pkg.matched_trip_id && (
               <Button 
                 size="sm" 
                 variant="success"

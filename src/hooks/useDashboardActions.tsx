@@ -211,6 +211,13 @@ export const useDashboardActions = (
               title: "Asignación rechazada",
               description: "Has rechazado la asignación. El paquete está disponible para reasignación.",
             });
+
+            // Force immediate refresh of packages and trips data
+            await refreshPackages();
+            await refreshTrips();
+            
+            // Switch to trips tab to refresh the view
+            setActiveTab?.('trips');
             
           } else {
             // Original logic for other rejections (shoppers rejecting quotes)
