@@ -59,12 +59,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   const cleanupAuthState = () => {
+    // Remove standard auth tokens
+    try { localStorage.removeItem('supabase.auth.token'); } catch {}
+
     // Remove all Supabase auth keys from localStorage
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
         localStorage.removeItem(key);
       }
     });
+
+    // Remove from sessionStorage as well
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch {}
   };
 
   const fetchProfile = async (userId: string) => {

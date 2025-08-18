@@ -12,6 +12,20 @@ import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, Fil
 import { useNavigate, useLocation } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 
+const PRODUCTION_ORIGIN = 'https://83029cdd-4a24-4c8c-80e4-b84bf2312db5.lovableproject.com';
+
+const getSafeOrigin = () => {
+  try {
+    const origin = window.location.origin;
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return PRODUCTION_ORIGIN;
+    }
+    return origin;
+  } catch {
+    return PRODUCTION_ORIGIN;
+  }
+};
+
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -80,6 +94,15 @@ const Auth = () => {
     // Set up auth state listener for other auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state change:', event, 'Session:', !!session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+        toast({
+          title: 'Restablecer contraseña',
+          description: 'Ingresa tu nueva contraseña para continuar',
+          duration: 6000,
+        });
+        return;
+      }
       if (event === 'SIGNED_IN' && session && !isResettingPassword) {
         console.log('User signed in, redirecting to home');
         // User is signed in and not in password reset flow
@@ -110,7 +133,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${getSafeOrigin()}/`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -188,8 +211,24 @@ const Auth = () => {
   };
 
   const cleanupAuthState = () => {
-    // Only remove the main auth token, not all storage items
-    localStorage.removeItem('supabase.auth.token');
+    // Remove standard auth tokens
+    try { localStorage.removeItem('supabase.auth.token'); } catch {}
+    // Remove all Supabase auth keys from localStorage
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {}
+    // Remove from sessionStorage as well
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch {}
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -237,7 +276,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${getSafeOrigin()}/auth`,
       });
 
       if (error) throw error;
@@ -252,13 +291,16 @@ const Auth = () => {
       setForgotPasswordEmail('');
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message === "User not found" 
-          ? "No encontramos una cuenta con ese email" 
-          : error.message === "over_email_send_rate_limit"
-          ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
-          : error.message,
-        variant: "destructive",
+        title: 'Error',
+        description:
+          error.message === 'User not found'
+            ? 'No encontramos una cuenta con ese email'
+            : error.message === 'over_email_send_rate_limit'
+            ? 'Has enviado demasiados emails. Espera un momento antes de intentar de nuevo.'
+            : (typeof error.message === 'string' && error.message.toLowerCase().includes('failed to fetch'))
+            ? 'No se pudo conectar. Si el enlace apunta a localhost, solicita la recuperación desde el sitio en producción.'
+            : error.message,
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
