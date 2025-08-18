@@ -75,24 +75,22 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
         </div>
       </nav>
 
-      {/* Sub Navigation Bar - Made smaller on mobile */}
-      <div className="bg-gray-50/80 backdrop-blur-sm border-b border-gray-100/50">
-        <div className="container mx-auto px-4 py-1 sm:py-2">
-          <div className="flex items-center justify-start space-x-4 sm:space-x-8">
+      {/* Secondary Navigation - Clean and minimal */}
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-center space-x-8">
             <Link 
               to="/regulacion-aduanera" 
-              className="group flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-              <span>Regulación Aduanera</span>
+              Regulación Aduanera
             </Link>
-            <div className="w-px h-3 sm:h-4 bg-gray-300"></div>
+            <div className="w-px h-4 bg-border"></div>
             <Link 
               to="/terminos-y-condiciones" 
-              className="group flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50/50 transition-all duration-200"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-              <span>Términos y Condiciones</span>
+              Términos y Condiciones
             </Link>
           </div>
         </div>
