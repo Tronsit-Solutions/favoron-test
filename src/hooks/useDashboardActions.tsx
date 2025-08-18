@@ -175,34 +175,83 @@ export const useDashboardActions = (
         if (quoteData.message === 'rejected') {
           console.log('❌ Processing rejection');
 
-          // Prepare update data with rejection details
-          const updateData: any = {
-            rejection_reason: quoteData.rejectionReason || null,
-            wants_requote: quoteData.wantsRequote || false,
-            additional_notes: quoteData.additionalNotes || null,
-            quote: null,
-            matched_trip_id: null,
-            traveler_address: null,
-            matched_trip_dates: null,
-          };
+          // Check if this is a traveler rejecting an admin-assigned tip (matched status)
+          const isTravelerRejectingAssignedTip = userType === 'user' && 
+                                                selectedPackage.status === 'matched' && 
+                                                selectedPackage.admin_assigned_tip;
 
-          // If shopper wants requote (and it's not "no longer want"), set to approved for reassignment
-          if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
-            updateData.status = 'approved';
-            toast({
-              title: "Solicitud de nueva cotización",
-              description: "Tu paquete está nuevamente disponible para que otros viajeros envíen cotizaciones.",
+          if (isTravelerRejectingAssignedTip) {
+            console.log('🔧 Using RPC function for traveler rejection of admin-assigned tip');
+            
+            // Use the secure RPC function for traveler rejections
+            const { error } = await supabase.rpc('traveler_reject_assignment', {
+              _package_id: selectedPackage.id,
+              _rejection_reason: quoteData.rejectionReason || null,
+              _wants_requote: quoteData.wantsRequote || false,
+              _additional_comments: quoteData.additionalNotes || null
             });
+
+            if (error) {
+              console.error('❌ RPC error:', error);
+              if (error.message.includes('No tienes permisos')) {
+                toast({
+                  title: "Sin permisos",
+                  description: "No tienes permisos para rechazar este paquete.",
+                  variant: "destructive",
+                });
+              } else {
+                toast({
+                  title: "Error",
+                  description: "No se pudo procesar el rechazo. Intenta de nuevo.",
+                  variant: "destructive",
+                });
+              }
+              return;
+            }
+
+            // Success toast messages
+            if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
+              toast({
+                title: "Asignación rechazada",
+                description: "Has rechazado la asignación. El paquete está disponible para nueva cotización.",
+              });
+            } else {
+              toast({
+                title: "Asignación rechazada",
+                description: "Has rechazado definitivamente la asignación del paquete.",
+              });
+            }
+            
           } else {
-            // Final rejection
-            updateData.status = 'quote_rejected';
-            toast({
-              title: "Cotización rechazada",
-              description: "Has rechazado la cotización definitivamente.",
-            });
-          }
+            // Original logic for other rejections (shoppers rejecting quotes)
+            const updateData: any = {
+              rejection_reason: quoteData.rejectionReason || null,
+              wants_requote: quoteData.wantsRequote || false,
+              additional_notes: quoteData.additionalNotes || null,
+              quote: null,
+              matched_trip_id: null,
+              traveler_address: null,
+              matched_trip_dates: null,
+            };
 
-          await updatePackage(selectedPackage.id, updateData);
+            // If shopper wants requote (and it's not "no longer want"), set to approved for reassignment
+            if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
+              updateData.status = 'approved';
+              toast({
+                title: "Solicitud de nueva cotización",
+                description: "Tu paquete está nuevamente disponible para que otros viajeros envíen cotizaciones.",
+              });
+            } else {
+              // Final rejection
+              updateData.status = 'quote_rejected';
+              toast({
+                title: "Cotización rechazada",
+                description: "Has rechazado la cotización definitivamente.",
+              });
+            }
+
+            await updatePackage(selectedPackage.id, updateData);
+          }
         } else {
           console.log('✅ Processing quote sending');
           // Sending quote implies approval - need to set traveler address from matched trip

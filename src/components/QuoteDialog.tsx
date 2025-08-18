@@ -97,16 +97,16 @@ const QuoteDialog = ({
   };
 
   const handleReject = () => {
-    // If we're viewing an existing quote (not sending one), ask for rejection reason
-    if (existingQuote && !rejectionReason) {
+    // If we're viewing an existing quote OR rejecting an admin-assigned tip, ask for rejection reason
+    if ((existingQuote || isAdminAssignedTip) && !rejectionReason) {
       setShowRejectionForm(true);
       return;
     }
     onSubmit({ 
       message: 'rejected',
-      rejectionReason: existingQuote ? rejectionReason : undefined,
-      wantsRequote: existingQuote ? wantsRequote : undefined,
-      additionalNotes: existingQuote ? additionalComments : undefined
+      rejectionReason: (existingQuote || isAdminAssignedTip) ? rejectionReason : undefined,
+      wantsRequote: (existingQuote || isAdminAssignedTip) ? wantsRequote : undefined,
+      additionalNotes: (existingQuote || isAdminAssignedTip) ? additionalComments : undefined
     });
   };
 
@@ -426,7 +426,7 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {existingQuote && showRejectionForm && (
+          {(existingQuote || isAdminAssignedTip) && showRejectionForm && (
             <QuoteActionsForm
               initialValues={{
                 rejection_reason: (rejectionReason as any) || undefined,

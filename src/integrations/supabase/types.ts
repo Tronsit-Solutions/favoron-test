@@ -756,6 +756,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      traveler_reject_assignment: {
+        Args: {
+          _additional_comments?: string
+          _package_id: string
+          _rejection_reason?: string
+          _wants_requote?: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       trust_level: "basic" | "earned" | "verified"
