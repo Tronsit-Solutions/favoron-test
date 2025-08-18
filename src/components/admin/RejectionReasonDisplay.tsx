@@ -18,7 +18,35 @@ const RejectionReasonDisplay = ({
 }: RejectionReasonDisplayProps) => {
   if (!rejectionReason) return null;
 
-  const reasonLabel = REJECTION_REASONS[rejectionReason as keyof typeof REJECTION_REASONS] || rejectionReason;
+  // Centralized translation function
+  const translateRejectionReason = (reason: string): string => {
+    // First check if it's a known enum key
+    if (REJECTION_REASONS[reason as keyof typeof REJECTION_REASONS]) {
+      return REJECTION_REASONS[reason as keyof typeof REJECTION_REASONS];
+    }
+    
+    // Then translate common English rejection reasons
+    const translations: Record<string, string> = {
+      'Product not available': 'Producto no disponible',
+      'Price too high': 'Precio muy alto',
+      'Delivery time too long': 'Tiempo de entrega muy largo',
+      'Cannot deliver to location': 'No se puede entregar en esa ubicación',
+      'Product restrictions': 'Restricciones del producto',
+      'Size/weight limitations': 'Limitaciones de tamaño/peso',
+      'Other': 'Otro',
+      'Item unavailable': 'Artículo no disponible',
+      'Too expensive': 'Muy caro',
+      'Wrong size': 'Tamaño incorrecto',
+      'Wrong color': 'Color incorrecto',
+      'Shipping restrictions': 'Restricciones de envío',
+      'Quality issues': 'Problemas de calidad',
+      'Changed mind': 'Cambié de opinión'
+    };
+    
+    return translations[reason] || reason;
+  };
+
+  const reasonLabel = translateRejectionReason(rejectionReason);
   
   return (
     <Card className={`bg-red-50 border-red-200 ${className}`}>

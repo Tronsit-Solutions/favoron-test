@@ -22,6 +22,46 @@ interface PackageDetailModalProps {
 const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {
   if (!pkg) return null;
 
+  // Centralized rejection reason translation function
+  const translateRejectionReason = (reason: any): string => {
+    if (!reason) return 'Razón no especificada';
+    
+    const reasonText = typeof reason === 'string' ? reason : reason?.value;
+    if (!reasonText) return 'Razón no especificada';
+    
+    // First check if it's a known enum key from constants
+    const REJECTION_REASONS = {
+      no_longer_want: 'Ya no quiero el paquete',
+      too_expensive: 'La cotización fue muy cara',
+      wrong_delivery_time: 'El tiempo de entrega no es el que quería',
+      other: 'Otra razón'
+    };
+    
+    if (REJECTION_REASONS[reasonText as keyof typeof REJECTION_REASONS]) {
+      return REJECTION_REASONS[reasonText as keyof typeof REJECTION_REASONS];
+    }
+    
+    // Then translate common English rejection reasons
+    const translations: Record<string, string> = {
+      'Product not available': 'Producto no disponible',
+      'Price too high': 'Precio muy alto',
+      'Delivery time too long': 'Tiempo de entrega muy largo',
+      'Cannot deliver to location': 'No se puede entregar en esa ubicación',
+      'Product restrictions': 'Restricciones del producto',
+      'Size/weight limitations': 'Limitaciones de tamaño/peso',
+      'Other': 'Otro',
+      'Item unavailable': 'Artículo no disponible',
+      'Too expensive': 'Muy caro',
+      'Wrong size': 'Tamaño incorrecto',
+      'Wrong color': 'Color incorrecto',
+      'Shipping restrictions': 'Restricciones de envío',
+      'Quality issues': 'Problemas de calidad',
+      'Changed mind': 'Cambié de opinión'
+    };
+    
+    return translations[reasonText] || reasonText;
+  };
+
   // Find the matched trip if this package is matched
   const matchedTrip = pkg.matched_trip_id 
     ? trips.find(trip => trip.id === pkg.matched_trip_id)
@@ -691,26 +731,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                           ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Solicitud rechazada'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {(() => {
-                            const reason = (pkg.rejection_reason || pkg.rejectionReason);
-                            if (!reason) return 'Razón no especificada';
-                            
-                            const reasonText = typeof reason === 'string' ? reason : reason.value;
-                            if (!reasonText) return 'Razón no especificada';
-                            
-                            // Translate common English rejection reasons to Spanish
-                            const translations = {
-                              'Product not available': 'Producto no disponible',
-                              'Price too high': 'Precio muy alto',
-                              'Delivery time too long': 'Tiempo de entrega muy largo',
-                              'Cannot deliver to location': 'No se puede entregar en esa ubicación',
-                              'Product restrictions': 'Restricciones del producto',
-                              'Size/weight limitations': 'Limitaciones de tamaño/peso',
-                              'Other': 'Otro'
-                            };
-                            
-                            return translations[reasonText] || reasonText;
-                          })()}
+                          {translateRejectionReason(pkg.rejection_reason || pkg.rejectionReason)}
                         </p>
                       </div>
                       <p className="text-xs text-red-600">Finalizado</p>
@@ -761,12 +782,9 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                   <p className="text-sm font-medium text-red-800 mb-2">
                     {pkg.status === 'quote_rejected' ? 'Razón del rechazo de cotización:' : 'Razón del rechazo por el shopper:'}
                   </p>
-                  <p className="text-sm text-red-700">
-                    {typeof pkg.rejectionReason === 'string' 
-                      ? pkg.rejectionReason 
-                      : pkg.rejectionReason?.value || 'No especificada'
-                    }
-                  </p>
+                   <p className="text-sm text-red-700">
+                     {translateRejectionReason(pkg.rejectionReason)}
+                   </p>
                   <div className="text-xs text-red-600 mt-2">
                     Rechazado el {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleTimeString('es-GT')}
                   </div>
