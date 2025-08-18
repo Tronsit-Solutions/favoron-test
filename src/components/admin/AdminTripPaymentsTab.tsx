@@ -131,6 +131,8 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
         return <Badge variant="default">Completado</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rechazado</Badge>;
+      case 'cancelled':
+        return <Badge variant="secondary">Cancelado</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }

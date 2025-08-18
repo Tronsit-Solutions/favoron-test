@@ -147,6 +147,8 @@ const AdminTravelerPaymentsTab = () => {
         return <Badge variant="default" className="bg-green-500 text-xs">Completado</Badge>;
       case 'rejected':
         return <Badge variant="destructive" className="text-xs">Rechazado</Badge>;
+      case 'cancelled':
+        return <Badge variant="secondary" className="text-xs">Cancelado</Badge>;
       default:
         return <Badge variant="outline" className="text-xs">{status}</Badge>;
     }

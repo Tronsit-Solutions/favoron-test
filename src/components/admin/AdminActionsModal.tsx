@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
+import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 
 interface AdminActionsModalProps {
   package: any;
@@ -47,6 +48,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   const { user } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
+  const { getStatusBadge } = useStatusHelpers();
 
   if (!pkg) return null;
 
@@ -404,7 +406,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="status">Estado actual: <Badge>{pkg.status}</Badge></Label>
+                  <Label htmlFor="status">Estado actual: {getStatusBadge(pkg.status)}</Label>
                   <Select value={newStatus} onValueChange={setNewStatus}>
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Selecciona nuevo estado" />

@@ -21,7 +21,8 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'delivered': { icon: '📦', label: 'Entregado', color: 'bg-emerald-100 text-emerald-800' },
   'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' },
   'rejected': { icon: '❌', label: 'Match roto', color: 'bg-red-100 text-red-800' },
-  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-red-100 text-red-800' }
+  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-red-100 text-red-800' },
+  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-red-100 text-red-800' }
 };
 
 export const getStatusInfo = (status: string): StatusInfo => {
