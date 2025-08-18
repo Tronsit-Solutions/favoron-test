@@ -691,11 +691,26 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                           ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Solicitud rechazada'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {(pkg.rejection_reason || pkg.rejectionReason) && typeof (pkg.rejection_reason || pkg.rejectionReason) === 'string' 
-                            ? (pkg.rejection_reason || pkg.rejectionReason)
-                            : (pkg.rejection_reason || pkg.rejectionReason) && typeof (pkg.rejection_reason || pkg.rejectionReason) === 'object' && (pkg.rejection_reason || pkg.rejectionReason).value 
-                            ? (pkg.rejection_reason || pkg.rejectionReason).value
-                            : 'Razón no especificada'}
+                          {(() => {
+                            const reason = (pkg.rejection_reason || pkg.rejectionReason);
+                            if (!reason) return 'Razón no especificada';
+                            
+                            const reasonText = typeof reason === 'string' ? reason : reason.value;
+                            if (!reasonText) return 'Razón no especificada';
+                            
+                            // Translate common English rejection reasons to Spanish
+                            const translations = {
+                              'Product not available': 'Producto no disponible',
+                              'Price too high': 'Precio muy alto',
+                              'Delivery time too long': 'Tiempo de entrega muy largo',
+                              'Cannot deliver to location': 'No se puede entregar en esa ubicación',
+                              'Product restrictions': 'Restricciones del producto',
+                              'Size/weight limitations': 'Limitaciones de tamaño/peso',
+                              'Other': 'Otro'
+                            };
+                            
+                            return translations[reasonText] || reasonText;
+                          })()}
                         </p>
                       </div>
                       <p className="text-xs text-red-600">Finalizado</p>
