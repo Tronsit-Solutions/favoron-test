@@ -691,9 +691,11 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
                           ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Solicitud rechazada'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' ? pkg.rejectionReason :
-                           pkg.rejectionReason && typeof pkg.rejectionReason === 'object' && pkg.rejectionReason.value ? pkg.rejectionReason.value :
-                           'Razón no especificada'}
+                          {(pkg.rejection_reason || pkg.rejectionReason) && typeof (pkg.rejection_reason || pkg.rejectionReason) === 'string' 
+                            ? (pkg.rejection_reason || pkg.rejectionReason)
+                            : (pkg.rejection_reason || pkg.rejectionReason) && typeof (pkg.rejection_reason || pkg.rejectionReason) === 'object' && (pkg.rejection_reason || pkg.rejectionReason).value 
+                            ? (pkg.rejection_reason || pkg.rejectionReason).value
+                            : 'Razón no especificada'}
                         </p>
                       </div>
                       <p className="text-xs text-red-600">Finalizado</p>
