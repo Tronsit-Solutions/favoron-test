@@ -97,16 +97,18 @@ const QuoteDialog = ({
   };
 
   const handleReject = () => {
-    // If we're viewing an existing quote OR rejecting an admin-assigned tip, ask for rejection reason
-    if ((existingQuote || isAdminAssignedTip) && !rejectionReason) {
+    // Only show rejection form for shoppers rejecting quotes, not for travelers rejecting admin tips
+    if (existingQuote && !rejectionReason) {
       setShowRejectionForm(true);
       return;
     }
+    
+    // For admin-assigned tips, travelers can reject directly without justification
     onSubmit({ 
       message: 'rejected',
-      rejectionReason: (existingQuote || isAdminAssignedTip) ? rejectionReason : undefined,
-      wantsRequote: (existingQuote || isAdminAssignedTip) ? wantsRequote : undefined,
-      additionalNotes: (existingQuote || isAdminAssignedTip) ? additionalComments : undefined
+      rejectionReason: existingQuote ? rejectionReason : undefined,
+      wantsRequote: existingQuote ? wantsRequote : undefined,
+      additionalNotes: existingQuote ? additionalComments : undefined
     });
   };
 

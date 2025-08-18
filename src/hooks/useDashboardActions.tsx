@@ -185,10 +185,7 @@ export const useDashboardActions = (
             
             // Use the secure RPC function for traveler rejections
             const { error } = await supabase.rpc('traveler_reject_assignment', {
-              _package_id: selectedPackage.id,
-              _rejection_reason: quoteData.rejectionReason || null,
-              _wants_requote: quoteData.wantsRequote || false,
-              _additional_comments: quoteData.additionalNotes || null
+              _package_id: selectedPackage.id
             });
 
             if (error) {
@@ -209,18 +206,11 @@ export const useDashboardActions = (
               return;
             }
 
-            // Success toast messages
-            if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
-              toast({
-                title: "Asignación rechazada",
-                description: "Has rechazado la asignación. El paquete está disponible para nueva cotización.",
-              });
-            } else {
-              toast({
-                title: "Asignación rechazada",
-                description: "Has rechazado definitivamente la asignación del paquete.",
-              });
-            }
+            // Success message for traveler rejection
+            toast({
+              title: "Asignación rechazada",
+              description: "Has rechazado la asignación. El paquete está disponible para reasignación.",
+            });
             
           } else {
             // Original logic for other rejections (shoppers rejecting quotes)
