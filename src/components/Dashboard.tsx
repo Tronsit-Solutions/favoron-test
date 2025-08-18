@@ -26,6 +26,7 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardProps {
@@ -166,27 +167,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      'pending_approval': { label: 'Pendiente de aprobación', variant: 'warning' as const },
-      'approved': { label: 'Aprobado', variant: 'success' as const },
-      'matched': { label: 'Emparejado', variant: 'success' as const },
-      'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
-      'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
-      'quote_expired': { label: 'Cotización expirada', variant: 'warning' as const },
-      'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
-      'paid': { label: 'Pagado', variant: 'default' as const },
-      'purchased': { label: 'Comprado', variant: 'default' as const },
-      'in_transit': { label: 'En tránsito', variant: 'default' as const },
-      'delivered': { label: 'Entregado', variant: 'success' as const },
-      'completed_paid': { label: 'Completado y Pagado', variant: 'success' as const },
-      'rejected': { label: 'Rechazado', variant: 'destructive' as const },
-      'active': { label: 'Activo', variant: 'success' as const },
-    };
-    
-    const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+  const { getStatusBadge } = useStatusHelpers();
 
 
   if (showProfile) {
