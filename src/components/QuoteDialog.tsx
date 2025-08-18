@@ -428,7 +428,7 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {(existingQuote || isAdminAssignedTip) && showRejectionForm && (
+          {existingQuote && showRejectionForm && (
             <QuoteActionsForm
               initialValues={{
                 rejection_reason: (rejectionReason as any) || undefined,
