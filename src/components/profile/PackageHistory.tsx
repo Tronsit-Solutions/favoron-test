@@ -159,7 +159,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                               <div className="text-sm font-semibold">
                                 {new Date(getDeliveryDate(pkg)).toLocaleDateString('es-GT')}
                               </div>
-                              <div className="text-xs text-muted-foreground">Fecha entrega</div>
+                              <div className="text-xs text-muted-foreground">Fecha de entrega en oficina</div>
                             </CardContent>
                           </Card>
 
