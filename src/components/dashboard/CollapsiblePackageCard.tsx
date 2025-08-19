@@ -24,24 +24,22 @@ import { Package, UserType, DocumentType } from "@/types";
 
 interface CollapsiblePackageCardProps {
   pkg: Package;
-  userId: string;
   onQuote: (pkg: Package, userType: UserType) => void;
   onConfirmAddress: (pkg: Package) => void;
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
-  onUpdatePackage: (id: string, updates: any) => Promise<any>;
+  onDeletePackage?: (pkg: Package) => void;
   onRequestRequote?: (pkg: Package) => void;
   viewMode?: 'user';
 }
 
 const CollapsiblePackageCard = ({ 
   pkg, 
-  userId,
   onQuote, 
   onConfirmAddress,
   onUploadDocument,
   onEditPackage,
-  onUpdatePackage,
+  onDeletePackage,
   onRequestRequote,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
@@ -135,9 +133,8 @@ const CollapsiblePackageCard = ({
               <div className="mb-6">
                 <ShopperPackagePriorityActions 
                   pkg={pkg}
-                  userId={userId}
                   onQuote={onQuote}
-                  onUpdatePackage={onUpdatePackage}
+                  onDeletePackage={onDeletePackage}
                   onRequestRequote={onRequestRequote}
                 />
               </div>
