@@ -45,7 +45,7 @@ export const useStatusHelpers = () => {
       active: { label: "Activo", variant: "success" as const },
       completed: { label: "Completado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const },
-      cancelled: { label: "Cancelado", variant: "destructive" as const }
+      cancelled: { label: "Cancelado", variant: "secondary" as const }
     };
 
     const config = statusConfig[effectiveStatus as keyof typeof statusConfig] || 
@@ -83,7 +83,7 @@ export const useStatusHelpers = () => {
       active: "hsl(var(--success))",
       completed: "hsl(var(--success))",
       rejected: "hsl(var(--destructive))",
-      cancelled: "hsl(var(--destructive))"
+      cancelled: "hsl(var(--muted-foreground))"
     };
 
     return colorMap[status as keyof typeof colorMap] || "hsl(var(--muted-foreground))";
