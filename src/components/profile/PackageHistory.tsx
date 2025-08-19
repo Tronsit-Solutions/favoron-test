@@ -149,7 +149,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                             <CardContent className="p-2 md:p-3 text-center">
                               <DollarSign className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-muted-foreground" />
                               <div className="text-sm font-semibold">Q{pkg.quote?.totalPrice || '0'}</div>
-                              <div className="text-xs text-muted-foreground">Precio final</div>
+                              <div className="text-xs text-muted-foreground">Precio Favorón</div>
                             </CardContent>
                           </Card>
 
