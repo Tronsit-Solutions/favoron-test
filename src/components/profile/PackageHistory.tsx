@@ -234,14 +234,6 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                                       <strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}
                                     </span>
                                   </div>
-                                  {pkg.quote?.price && (
-                                    <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                                      <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                      <span className="text-sm">
-                                        <strong>Tip al viajero:</strong> Q{pkg.quote.price}
-                                      </span>
-                                    </div>
-                                  )}
                                 </div>
                               </CardContent>
                             </Card>
