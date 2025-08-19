@@ -1,5 +1,5 @@
 
-import { User, Mail, Phone, CreditCard, AtSign } from "lucide-react";
+import { User, Mail, Phone, CreditCard, AtSign, Hash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface PersonalInfoDisplayProps {
@@ -38,12 +38,17 @@ const PersonalInfoDisplay = ({ user }: PersonalInfoDisplayProps) => {
       icon: CreditCard,
       label: "Identificación",
       value: user.idNumber || 'No registrado'
+    },
+    {
+      icon: Hash,
+      label: "User ID",
+      value: user.id || user.profileId || 'No disponible'
     }
   ];
 
   // Add username if it exists
   if (user.username) {
-    infoItems.push({
+    infoItems.splice(4, 0, {
       icon: AtSign,
       label: "Nombre de usuario",
       value: `@${user.username}`
