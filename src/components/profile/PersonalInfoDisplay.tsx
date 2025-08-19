@@ -7,11 +7,22 @@ interface PersonalInfoDisplayProps {
 }
 
 const PersonalInfoDisplay = ({ user }: PersonalInfoDisplayProps) => {
+  // Get the user's full name from various possible fields
+  const getFullName = () => {
+    if (user.name) return user.name;
+    
+    const firstName = user.first_name || user.firstName || '';
+    const lastName = user.last_name || user.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    return fullName || 'Sin nombre registrado';
+  };
+
   const infoItems = [
     {
       icon: User,
       label: "Nombre completo",
-      value: user.name
+      value: getFullName()
     },
     {
       icon: Mail,
@@ -21,7 +32,7 @@ const PersonalInfoDisplay = ({ user }: PersonalInfoDisplayProps) => {
     {
       icon: Phone,
       label: "WhatsApp",
-      value: user.phone || 'No registrado'
+      value: user.phone || user.phone_number || 'No registrado'
     },
     {
       icon: CreditCard,
@@ -44,8 +55,8 @@ const PersonalInfoDisplay = ({ user }: PersonalInfoDisplayProps) => {
       {/* Avatar Display */}
       <div className="flex justify-center">
         <Avatar className="h-20 w-20">
-          {user.avatarUrl ? (
-            <AvatarImage src={user.avatarUrl} alt="Foto de perfil" />
+          {user.avatarUrl || user.avatar_url ? (
+            <AvatarImage src={user.avatarUrl || user.avatar_url} alt="Foto de perfil" />
           ) : (
             <AvatarFallback className="text-xl">
               <User className="h-8 w-8" />
