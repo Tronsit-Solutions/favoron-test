@@ -15,10 +15,12 @@ import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
+import DashboardFilters from "./dashboard/DashboardFilters";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { useDashboardFilters } from "@/hooks/useDashboardFilters";
 
 import UserManagement from "./admin/UserManagement";
 
@@ -124,6 +126,9 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Filter packages and trips for current user
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
   const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
+  
+  // Use dashboard filters for user packages
+  const { filters, filteredPackages, toggleFilter, getFilterStats } = useDashboardFilters(userPackages);
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => 
@@ -303,57 +308,50 @@ const Dashboard = ({ user }: DashboardProps) => {
               </div>
             </div>
 
-            {userPackages.filter(pkg => {
-              // Excluir paquetes cancelados
-              if (pkg.status === 'cancelled') return false;
-              
-              // Excluir paquetes que pertenecen a viajes completados y pagados
-              if (pkg.matched_trip_id) {
-                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
-              }
-              return true;
-            }).length === 0 ? (
-              <EmptyState type="packages" onAction={() => setShowPackageForm(true)} />
-            ) : (
-              <div className="grid gap-6">
-                 {userPackages.filter(pkg => {
-                   // Excluir paquetes cancelados
-                   if (pkg.status === 'cancelled') return false;
-                   
-                   // Excluir paquetes que pertenecen a viajes completados y pagados
-                   if (pkg.matched_trip_id) {
-                     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                     if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
-                   }
-                   return true;
-                 }).map((pkg) => (
-                    <CollapsiblePackageCard
-                      key={pkg.id}
-                      pkg={pkg}
-                       onQuote={(pkg, userType) => {
-                         setSelectedPackageForQuote(pkg);
-                         setQuoteUserType(userType);
-                         setShowQuoteDialog(true);
-                       }}
-                      onConfirmAddress={handleAddressConfirmation}
-                      onUploadDocument={handleUploadDocument}
-                      onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
-                      onDeletePackage={(p) => deletePackage(p.id)}
-                      onRequestRequote={async (p) => {
-                        await updatePackage(p.id, {
-                          status: 'approved',
-                          matched_trip_id: null,
-                          quote: null,
-                          quote_expires_at: null,
-                          wants_requote: true,
-                        } as any);
-                      }}
-                      viewMode="user"
-                    />
-                ))}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3 space-y-6">
+                {filteredPackages.length === 0 ? (
+                  <EmptyState type="packages" onAction={() => setShowPackageForm(true)} />
+                ) : (
+                  <div className="space-y-6">
+                     {filteredPackages.map((pkg) => (
+                       <CollapsiblePackageCard
+                         key={pkg.id}
+                         pkg={pkg}
+                         userId={user.id}
+                          onQuote={(pkg, userType) => {
+                            setSelectedPackageForQuote(pkg);
+                            setQuoteUserType(userType);
+                            setShowQuoteDialog(true);
+                          }}
+                         onConfirmAddress={handleAddressConfirmation}
+                         onUploadDocument={handleUploadDocument}
+                         onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
+                         onUpdatePackage={updatePackage}
+                         onRequestRequote={async (p) => {
+                           await updatePackage(p.id, {
+                             status: 'approved',
+                             matched_trip_id: null,
+                             quote: null,
+                             quote_expires_at: null,
+                             wants_requote: true,
+                           } as any);
+                        }}
+                        viewMode="user"
+                      />
+                  ))}
+                  </div>
+                )}
               </div>
-            )}
+              
+              <div className="lg:col-span-1">
+                <DashboardFilters
+                  filters={filters}
+                  onToggleFilter={toggleFilter}
+                  stats={getFilterStats()}
+                />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">

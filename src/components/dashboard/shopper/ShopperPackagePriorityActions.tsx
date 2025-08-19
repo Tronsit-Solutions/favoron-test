@@ -1,25 +1,33 @@
 import { Button } from "@/components/ui/button";
-import { Clock, CreditCard, Package2 } from "lucide-react";
+import { Clock, CreditCard, Package2, Trash2 } from "lucide-react";
 import { Package } from "@/types";
 import QuoteCountdown from "../QuoteCountdown";
 import { useToast } from "@/hooks/use-toast";
+import { canCancelPackage } from "@/lib/permissions";
+import { useState } from "react";
+import PackageCancelModal from "../PackageCancelModal";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
+  userId: string;
   onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
   onRefresh?: () => void;
-  onDeletePackage?: (pkg: Package) => void;
+  onUpdatePackage: (id: string, updates: any) => Promise<any>;
   onRequestRequote?: (pkg: Package) => void;
 }
 
 const ShopperPackagePriorityActions = ({
   pkg,
+  userId,
   onQuote,
   onRefresh,
-  onDeletePackage,
+  onUpdatePackage,
   onRequestRequote
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const canCancel = canCancelPackage(pkg, userId);
 
   const handleQuoteExpire = () => {
     toast({
@@ -222,30 +230,49 @@ const ShopperPackagePriorityActions = ({
                 {config.button.text}
               </Button>
             )}
-            {/* Only show re-quote options for early states, not advanced processing states */}
+            {/* Action buttons based on status and permissions */}
             {(isQuoteExpired || pkg.status === 'quote_expired') && !advancedStates.includes(pkg.status) && (
               <div className="flex flex-wrap gap-2 mt-3">
                 <Button size="sm" onClick={() => (onRequestRequote ? onRequestRequote(pkg) : onQuote(pkg, 'user'))}>
                   Solicitar re-cotización
                 </Button>
-                {onDeletePackage && (
+                {canCancel && (
                   <Button 
                     size="sm" 
                     variant="destructive"
-                    onClick={() => {
-                      if (window.confirm('¿Seguro que deseas eliminar este pedido? Esta acción no se puede deshacer.')) {
-                        onDeletePackage(pkg);
-                      }
-                    }}
+                    onClick={() => setShowCancelModal(true)}
                   >
-                    Eliminar pedido
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Cancelar pedido
                   </Button>
                 )}
+              </div>
+            )}
+            
+            {/* Cancel option for early states without expired quotes */}
+            {canCancel && !isQuoteExpired && !['quote_expired', 'quote_sent'].includes(pkg.status) && (
+              <div className="mt-3">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowCancelModal(true)}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Cancelar pedido
+                </Button>
               </div>
             )}
           </div>
         </div>
       </div>
+      
+      <PackageCancelModal
+        pkg={pkg}
+        userId={userId}
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onUpdatePackage={onUpdatePackage}
+      />
     </div>
   );
 };
