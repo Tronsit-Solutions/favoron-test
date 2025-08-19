@@ -82,7 +82,8 @@ export const useStatusHelpers = () => {
       out_for_delivery: "hsl(var(--warning))",
       active: "hsl(var(--success))",
       completed: "hsl(var(--success))",
-      rejected: "hsl(var(--destructive))"
+      rejected: "hsl(var(--destructive))",
+      cancelled: "hsl(var(--destructive))"
     };
 
     return colorMap[status as keyof typeof colorMap] || "hsl(var(--muted-foreground))";
