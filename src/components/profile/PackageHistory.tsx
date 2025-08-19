@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Calendar, MapPin, Package, DollarSign, CheckCircle, ShoppingBag, ChevronDown } from "lucide-react";
+import { Calendar, MapPin, Package, DollarSign, CheckCircle, ShoppingBag, ChevronDown, User } from "lucide-react";
 import { useState } from "react";
 
 interface PackageHistoryProps {
@@ -234,6 +234,17 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
                                       <strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}
                                     </span>
                                   </div>
+                                  {matchedTrip.profiles && (
+                                    <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                      <span className="text-sm">
+                                        <strong>Viajero:</strong> {matchedTrip.profiles.first_name} {matchedTrip.profiles.last_name}
+                                        {matchedTrip.profiles.username && (
+                                          <span className="text-muted-foreground ml-1">(@{matchedTrip.profiles.username})</span>
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </CardContent>
                             </Card>
