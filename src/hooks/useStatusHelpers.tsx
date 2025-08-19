@@ -45,7 +45,7 @@ export const useStatusHelpers = () => {
       active: { label: "Activo", variant: "success" as const },
       completed: { label: "Completado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const },
-      cancelled: { label: "Cancelado", variant: "outline" as const }
+      cancelled: { label: "Cancelado", variant: "secondary" as const }
     };
 
     const config = statusConfig[effectiveStatus as keyof typeof statusConfig] || 
