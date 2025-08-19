@@ -157,6 +157,15 @@ export const useOptimizedPackagesData = () => {
 
   const updatePackage = useCallback(async (id: string, updates: PackageUpdate) => {
     try {
+      // Special handling: if rejecting with "no_longer_want", move to archived status
+      if (updates.rejection_reason === 'no_longer_want') {
+        updates = {
+          ...updates,
+          status: 'archived_by_shopper',
+          wants_requote: false // Force to false when no longer wanted
+        };
+      }
+
       const { data, error } = await supabase
         .from('packages')
         .update(updates)
@@ -170,6 +179,14 @@ export const useOptimizedPackagesData = () => {
       setPackages(prev => prev.map(pkg => 
         pkg.id === id ? { ...pkg, ...data } : pkg
       ));
+      
+      // Show appropriate message based on the update
+      if (updates.status === 'archived_by_shopper') {
+        toast({
+          title: "Paquete archivado",
+          description: "El paquete se ha movido a tu historial",
+        });
+      }
       
       return data;
     } catch (error: any) {
