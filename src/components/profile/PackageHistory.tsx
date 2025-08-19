@@ -11,10 +11,13 @@ interface PackageHistoryProps {
 }
 
 const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
-  // Filtrar paquetes completados (entregados en oficina, viajes completados, o cancelados)
+  // Filtrar paquetes completados (entregados en oficina, viajes completados, cancelados o archivados por el shopper)
   const completedPackages = packages.filter(pkg => {
     // Paquetes cancelados
     if (pkg.status === 'cancelled') return true;
+
+    // Paquetes archivados por el shopper
+    if (pkg.status === 'archived_by_shopper') return true;
     
     // Paquetes entregados en oficina
     if (pkg.status === 'delivered_to_office') return true;
@@ -42,10 +45,16 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
 
   const getStatusDisplay = (pkg: any) => {
     if (pkg.status === 'cancelled') return 'Cancelado';
+    if (pkg.status === 'archived_by_shopper') return 'Archivado por el shopper';
     if (pkg.status === 'delivered_to_office') return 'Entregado en oficina';
     const matchedTrip = getMatchedTrip(pkg.id);
     if (matchedTrip?.status === 'completed_paid') return 'Completado y pagado';
     return 'Completado';
+  };
+
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+  const toggleExpanded = (id: string) => {
+    setExpandedIds(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   if (completedPackages.length === 0) {
@@ -84,7 +93,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
             const deliveryDate = getDeliveryDate(pkg);
 
             return (
-              <Collapsible key={pkg.id}>
+              <Collapsible key={pkg.id} open={!!expandedIds[pkg.id]} onOpenChange={() => toggleExpanded(pkg.id)}>
                 <Card className="transition-shadow">
                   <CardContent className="p-3 md:p-4">
                     <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">

@@ -1,4 +1,4 @@
-// Re-export from organized lib for backward compatibility
+
 export { getStatusColor } from '@/lib/styles';
 export { getStatusLabel } from '@/lib/formatters';
 
@@ -18,13 +18,14 @@ export const getStatusBadge = (status: string) => {
     pending_office_confirmation: { label: 'Esperando confirmación', variant: 'secondary' },
     delivered_to_office: { label: 'Entregado en oficina', variant: 'default' },
     cancelled: { label: 'Cancelado', variant: 'destructive' },
+    archived_by_shopper: { label: 'Archivado por el shopper', variant: 'secondary' },
     
     // Trip statuses
     active: { label: 'Activo', variant: 'default' },
     completed: { label: 'Completado', variant: 'default' },
   };
 
-  const config = statusConfig[status as keyof typeof statusConfig] || { 
+  const config = (statusConfig as any)[status] || { 
     label: status, 
     variant: 'secondary' as const 
   };
