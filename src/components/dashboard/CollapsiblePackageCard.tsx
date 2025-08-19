@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2 } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import EditPackageModal from "@/components/EditPackageModal";
@@ -21,6 +21,22 @@ import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CollapsiblePackageCardProps {
   pkg: Package;
@@ -55,6 +71,7 @@ const CollapsiblePackageCard = ({
     isOpen: false,
     documentType: null
   });
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   
   const { getStatusBadge } = useStatusHelpers();
 
@@ -84,6 +101,26 @@ const CollapsiblePackageCard = ({
     }
     setShowEditModal(false);
   };
+
+  const handleDeletePackage = () => {
+    if (onDeletePackage) {
+      onDeletePackage(pkg);
+    }
+    setShowDeleteDialog(false);
+  };
+
+  // Determine if package actions dropdown should be shown
+  const canShowPackageActions = viewMode === 'user' && onDeletePackage && [
+    'pending_approval',
+    'approved', 
+    'matched',
+    'quote_sent',
+    'quote_accepted',
+    'quote_rejected',
+    'quote_expired',
+    'payment_pending',
+    'payment_pending_approval'
+  ].includes(pkg.status);
 
   const renderActionButtons = () => {
     const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
@@ -121,7 +158,39 @@ const CollapsiblePackageCard = ({
                   Precio estimado: ${pkg.estimated_price} • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                 </CardDescription>
               </div>
-              {getStatusBadge(pkg.status, { packageDestination: pkg.package_destination, isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()) })}
+              <div className="flex items-center gap-2">
+                {getStatusBadge(pkg.status, { packageDestination: pkg.package_destination, isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()) })}
+                {canShowPackageActions && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-muted"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="bg-background border shadow-md z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Descartar pedido
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
           </CardHeader>
         </CollapsibleTrigger>
@@ -239,6 +308,28 @@ const CollapsiblePackageCard = ({
           }
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Descartar pedido?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción cancelará permanentemente tu pedido de "{pkg.item_description}". 
+              No podrás recuperarlo después de confirmarlo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePackage}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Descartar pedido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Collapsible>
   );
 };
