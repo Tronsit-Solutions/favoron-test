@@ -17,7 +17,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   const [uploadedFile, setUploadedFile] = useState<any>(pkg.payment_receipt);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo();
+  const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
