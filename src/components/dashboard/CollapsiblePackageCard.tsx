@@ -275,7 +275,10 @@ const CollapsiblePackageCard = ({
               </div>
 
               <div className="space-y-4">
-                <PackageStatusTimeline currentStatus={pkg.status} />
+                <PackageStatusTimeline 
+                  currentStatus={pkg.status} 
+                  deliveryMethod={pkg.delivery_method}
+                />
                 
                 {/* Package Chat Timeline - Always visible for shoppers */}
                 <div className="mt-6">

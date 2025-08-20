@@ -3,10 +3,11 @@ import { Check, Clock, Package, Truck, MapPin, Building } from "lucide-react";
 
 interface PackageStatusTimelineProps {
   currentStatus: string;
+  deliveryMethod?: string;
   className?: string;
 }
 
-const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusTimelineProps) => {
+const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }: PackageStatusTimelineProps) => {
   const statuses = [
     { 
       key: 'pending_approval', 
@@ -88,7 +89,15 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
     }
   ];
 
-  const currentIndex = statuses.findIndex(status => status.key === currentStatus);
+  // Filter out "out_for_delivery" status when delivery method is pickup
+  const filteredStatuses = statuses.filter(status => {
+    if (status.key === 'out_for_delivery' && deliveryMethod === 'pickup') {
+      return false;
+    }
+    return true;
+  });
+
+  const currentIndex = filteredStatuses.findIndex(status => status.key === currentStatus);
 
   const getStatusState = (index: number) => {
     // Si el paquete está completado, todos los pasos se muestran como completados
@@ -107,7 +116,7 @@ const PackageStatusTimeline = ({ currentStatus, className = "" }: PackageStatusT
       </div>
       
       <div className="space-y-1 ml-3">
-        {statuses.map((status, index) => {
+        {filteredStatuses.map((status, index) => {
           const state = getStatusState(index);
           const Icon = status.icon;
           
