@@ -44,29 +44,6 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
           </div>
         </div>
 
-        {!loading && upcomingTrips.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm font-medium text-muted-foreground">Próximos viajes:</div>
-            {upcomingTrips.map((trip) => (
-              <div key={trip.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-1">
-                  <span className="text-foreground">{trip.from_city}</span>
-                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-foreground">{trip.to_city}</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <span className="text-xs">
-                    {new Date(trip.arrival_date).toLocaleDateString('es-ES', {
-                      day: 'numeric',
-                      month: 'short'
-                    })}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         <Button 
           onClick={onViewTrips} 
