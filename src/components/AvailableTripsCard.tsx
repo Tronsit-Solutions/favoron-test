@@ -2,21 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plane, Calendar, ArrowRight } from "lucide-react";
-import { usePublicTrips } from "@/hooks/usePublicTrips";
+import { usePublicStats } from "@/hooks/usePublicStats";
 
 interface AvailableTripsCardProps {
   onViewTrips: () => void;
 }
 
 const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
-  const { trips, loading } = usePublicTrips();
-
-  const tripsThisWeek = trips.filter(trip => {
-    const arrivalDate = new Date(trip.arrival_date);
-    const today = new Date();
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return arrivalDate >= today && arrivalDate <= nextWeek;
-  });
+  const { stats, loading } = usePublicStats();
 
   return (
     <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg">
@@ -31,16 +24,25 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
           <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 text-center border border-slate-200 hover:bg-white/70 transition-all duration-300 hover:scale-105">
             <div className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-1">
               <span>✈️</span>
-              {loading ? "..." : trips.length}
+              {loading ? "..." : stats.total_trips}
             </div>
-            <div className="text-sm text-slate-600">Total disponibles</div>
+            <div className="text-sm text-slate-600">Viajes activos</div>
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 text-center border border-slate-200 hover:bg-white/70 transition-all duration-300 hover:scale-105">
             <div className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-1">
-              <span>⚡</span>
-              {loading ? "..." : tripsThisWeek.length}
+              <span>📦</span>
+              {loading ? "..." : stats.total_packages_completed}
             </div>
-            <div className="text-sm text-slate-600">Esta semana</div>
+            <div className="text-sm text-slate-600">Entregas exitosas</div>
+          </div>
+        </div>
+
+        <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4 border border-slate-200 mb-4">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-slate-800 mb-1">
+              ${loading ? "..." : stats.total_tips_distributed.toLocaleString()} GTQ
+            </div>
+            <div className="text-sm text-slate-600">En propinas pagadas a viajeros</div>
           </div>
         </div>
 
