@@ -69,8 +69,8 @@ const Index = () => {
       />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
-        <TravelsHubSection />
         <PlatformDescriptionSection />
+        <TravelsHubSection />
         <HowItWorksSection />
         <BenefitsSection />
         <CTASection onOpenAuth={openAuth} />
