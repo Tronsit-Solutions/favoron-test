@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
+import TravelsHubSection from "@/components/TravelsHubSection";
 import PlatformDescriptionSection from "@/components/PlatformDescriptionSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import BenefitsSection from "@/components/BenefitsSection";
@@ -68,6 +69,7 @@ const Index = () => {
       />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
+        <TravelsHubSection />
         <PlatformDescriptionSection />
         <HowItWorksSection />
         <BenefitsSection />
