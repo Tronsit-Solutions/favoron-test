@@ -36,6 +36,17 @@ export const usePublicTrips = () => {
         return;
       }
 
+      console.log('📈 Public trips fetched:', {
+        total: data?.length || 0,
+        trips: data?.map(t => ({ 
+          id: t.id.slice(0, 8), 
+          from: t.from_city, 
+          to: t.to_city, 
+          arrival: t.arrival_date,
+          status: t.status 
+        }))
+      });
+
       setTrips(data || []);
     } catch (error) {
       console.error('Error fetching public trips:', error);
@@ -52,10 +63,32 @@ export const usePublicTrips = () => {
   useEffect(() => {
     fetchPublicTrips();
 
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchPublicTrips, 5 * 60 * 1000);
+    // Set up real-time subscription for trips
+    const channel = supabase
+      .channel('public-trips-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trips',
+          filter: 'status=in.(approved,active)'
+        },
+        (payload) => {
+          console.log('🔄 Real-time trip update:', payload);
+          // Refresh data when trips change
+          fetchPublicTrips();
+        }
+      )
+      .subscribe();
+
+    // Reduced interval fallback: refresh every 30 seconds  
+    const interval = setInterval(fetchPublicTrips, 30 * 1000);
     
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   return {
