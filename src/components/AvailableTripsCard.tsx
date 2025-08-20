@@ -18,36 +18,35 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
     return arrivalDate >= today && arrivalDate <= nextWeek;
   });
 
-  const upcomingTrips = trips.slice(0, 3);
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plane className="h-5 w-5 text-primary" />
-          Viajes Disponibles
+    <Card className="overflow-hidden bg-gradient-to-br from-teal-500 via-cyan-400 to-emerald-500 border-0 shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-white">
+          <span className="text-lg">🌍</span>
+          Hub de Viajes
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center border border-white/30 hover:bg-white/30 transition-all duration-300 hover:scale-105">
+            <div className="text-2xl font-bold text-white flex items-center justify-center gap-1">
+              <span>✈️</span>
               {loading ? "..." : trips.length}
             </div>
-            <div className="text-sm text-muted-foreground">Total disponibles</div>
+            <div className="text-sm text-white/80">Total disponibles</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 text-center border border-white/30 hover:bg-white/30 transition-all duration-300 hover:scale-105">
+            <div className="text-2xl font-bold text-white flex items-center justify-center gap-1">
+              <span>⚡</span>
               {loading ? "..." : tripsThisWeek.length}
             </div>
-            <div className="text-sm text-muted-foreground">Esta semana</div>
+            <div className="text-sm text-white/80">Esta semana</div>
           </div>
         </div>
 
-
         <Button 
           onClick={onViewTrips} 
-          className="w-full" 
+          className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-all duration-300 hover:scale-105" 
           variant="outline"
           disabled={loading}
         >

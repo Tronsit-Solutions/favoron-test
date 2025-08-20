@@ -41,6 +41,13 @@
 
     --radius: 0.75rem;
 
+    /* Hub de Viajes - Turquoise Green Theme */
+    --turquoise: 180 83% 55%; /* #1dd1a1 */
+    --turquoise-foreground: 210 40% 98%;
+    --teal: 180 83% 55%;
+    --cyan: 187 85% 53%;
+    --emerald: 160 84% 39%;
+
     /* Status Colors - Expanded */
     --success: 142 71% 45%;
     --success-foreground: 210 40% 98%;
