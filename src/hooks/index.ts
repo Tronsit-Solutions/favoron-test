@@ -18,3 +18,4 @@ export { useStatusHelpers } from './useStatusHelpers';
 export { useTripPayments } from './useTripPayments';
 export { useUserManagement } from './useUserManagement';
 export { useToast } from './use-toast';
+export { useFavoronBankingInfo } from './useFavoronBankingInfo';
