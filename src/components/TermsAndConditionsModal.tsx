@@ -57,7 +57,7 @@ const TermsAndConditionsModal = ({ isOpen, onClose }: TermsAndConditionsModalPro
                   <li><strong>Tiempos de entrega:</strong> Las fechas son estimadas. No se garantizan entregas exactas, pero Favorón facilitará el proceso.</li>
                   <li><strong>Entrega segura:</strong> Los paquetes deben enviarse a la oficina de Favorón o a un lugar autorizado previamente acordado.</li>
                   <li><strong>Costes adicionales:</strong> Todo impuesto, tributo o gasto aduanero deberá ser cubierto por el shopper. Si el viajero incurre en estos pagos, el costo será trasladado al shopper.</li>
-                  <li><strong>Retrasos en la entrega:</strong> Cada pedido tiene una fecha límite de llegada pactada. Si el paquete llega más tarde a la dirección del viajero o a Guatemala, Favorón no se hace responsable por daños, pérdidas, vencimientos o inconvenientes derivados. Si esto ocurre, Favorón podrá ayudar a recuperarlo, pero pueden aplicarse cargos por gestión, recuperación o nuevo envío.</li>
+                  <li><strong>Retrasos en la entrega:</strong> Cada pedido tiene una fecha límite de llegada pactada. Si el paquete llega más tarde a la dirección del viajero, Favorón no se hace responsable por daños, pérdidas, vencimientos o inconvenientes derivados. Si esto ocurre, Favorón podrá ayudar a recuperarlo, pero pueden aplicarse cargos por gestión, recuperación o nuevo envío.</li>
                   <li><strong>Cobertura por pérdida o robo:</strong></li>
                     <ul className="ml-4 space-y-1 text-xs text-gray-600">
                       <li>• Si el paquete es robado por el viajero, Favorón reembolsa el 100% del valor (una vez validado el caso).</li>
@@ -106,7 +106,7 @@ const TermsAndConditionsModal = ({ isOpen, onClose }: TermsAndConditionsModalPro
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li><strong>Papel de intermediario:</strong> Favorón no es una empresa de transporte ni courier. Solo actúa como intermediario.</li>
                   <li><strong>Problemas ajenos:</strong> No somos responsables por retrasos o problemas ajenos (aerolíneas, aduanas, etc.), aunque ayudaremos a resolverlos.</li>
-                  <li><strong>Retrasos y perjuicios:</strong> Si un paquete llega tarde al viajero o a Guatemala, Favorón no se hace responsable por pérdidas, vencimientos o perjuicios derivados.</li>
+                  <li><strong>Retrasos y perjuicios:</strong> Si un paquete llega tarde al viajero, Favorón no se hace responsable por pérdidas, vencimientos o perjuicios derivados.</li>
                   <li><strong>Responsabilidad limitada:</strong> La responsabilidad de Favorón se limita al valor declarado y comprobable del producto.</li>
                 </ul>
               </CardContent>
