@@ -37,14 +37,6 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
           </div>
         </div>
 
-        <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4 border border-slate-200 mb-4">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-slate-800 mb-1">
-              ${loading ? "..." : stats.total_tips_distributed.toLocaleString()} GTQ
-            </div>
-            <div className="text-sm text-slate-600">En propinas pagadas a viajeros</div>
-          </div>
-        </div>
 
         <Button 
           onClick={onViewTrips} 
