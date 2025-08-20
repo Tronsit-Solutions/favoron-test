@@ -14,7 +14,7 @@ const TravelsHubSection = () => {
   };
 
   return (
-    <section className="py-10 px-4 bg-gradient-to-br from-teal-400 via-cyan-300 to-emerald-400 relative overflow-hidden">
+    <section className="py-10 px-4 bg-gradient-to-br from-blue-50 to-white relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
       <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
