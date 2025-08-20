@@ -735,6 +735,17 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_public_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          arrival_date: string
+          departure_date: string
+          from_city: string
+          id: string
+          status: string
+          to_city: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]

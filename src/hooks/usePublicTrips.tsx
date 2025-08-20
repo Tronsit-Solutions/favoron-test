@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,14 +21,11 @@ export const usePublicTrips = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('trips')
-        .select('id, from_city, to_city, arrival_date, departure_date, status')
-        .in('status', ['approved', 'active'])
-        .order('departure_date', { ascending: true });
+      // Fetch solo campos públicos via función segura que evita exponer datos sensibles
+      const { data, error } = await supabase.rpc('get_public_trips');
 
       if (error) {
-        console.error('Error fetching public trips:', error);
+        console.error('Error fetching public trips (RPC):', error);
         toast({
           title: "Error",
           description: "No se pudieron cargar los viajes disponibles",
@@ -36,9 +34,9 @@ export const usePublicTrips = () => {
         return;
       }
 
-      console.log('📈 Public trips fetched:', {
+      console.log('📈 Public trips fetched (RPC):', {
         total: data?.length || 0,
-        trips: data?.map(t => ({ 
+        trips: (data as PublicTrip[] | null)?.map(t => ({ 
           id: t.id.slice(0, 8), 
           from: t.from_city, 
           to: t.to_city, 
@@ -47,9 +45,9 @@ export const usePublicTrips = () => {
         }))
       });
 
-      setTrips(data || []);
+      setTrips((data as PublicTrip[]) || []);
     } catch (error) {
-      console.error('Error fetching public trips:', error);
+      console.error('Error fetching public trips (RPC):', error);
       toast({
         title: "Error",
         description: "No se pudieron cargar los viajes disponibles",
@@ -63,30 +61,11 @@ export const usePublicTrips = () => {
   useEffect(() => {
     fetchPublicTrips();
 
-    // Set up real-time subscription for trips
-    const channel = supabase
-      .channel('public-trips-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'trips',
-          filter: 'status=in.(approved,active)'
-        },
-        (payload) => {
-          console.log('🔄 Real-time trip update:', payload);
-          // Refresh data when trips change
-          fetchPublicTrips();
-        }
-      )
-      .subscribe();
-
-    // Reduced interval fallback: refresh every 30 seconds  
+    // Para landing público: evitamos realtime sobre la tabla (respeta RLS y podría incluir campos sensibles).
+    // Usamos un refresco periódico ligero cada 30s.
     const interval = setInterval(fetchPublicTrips, 30 * 1000);
     
     return () => {
-      supabase.removeChannel(channel);
       clearInterval(interval);
     };
   }, []);
