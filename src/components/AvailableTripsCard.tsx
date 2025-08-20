@@ -3,15 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plane, Calendar, ArrowRight } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
-import { usePublicStats } from "@/hooks/usePublicStats";
 
 interface AvailableTripsCardProps {
   onViewTrips: () => void;
 }
 
 const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
-  const { stats, loading: statsLoading } = usePublicStats();
-  const { trips, loading: tripsLoading } = usePublicTrips();
+  const { trips, loading } = usePublicTrips();
 
   const tripsThisWeek = trips.filter(trip => {
     const arrivalDate = new Date(trip.arrival_date);
@@ -33,14 +31,14 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
           <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 text-center border border-slate-200 hover:bg-white/70 transition-all duration-300 hover:scale-105">
             <div className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-1">
               <span>✈️</span>
-              {statsLoading || tripsLoading ? "..." : stats.total_trips}
+              {loading ? "..." : trips.length}
             </div>
             <div className="text-sm text-slate-600">Viajes activos</div>
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 text-center border border-slate-200 hover:bg-white/70 transition-all duration-300 hover:scale-105">
             <div className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-1">
               <span>⚡</span>
-              {statsLoading || tripsLoading ? "..." : tripsThisWeek.length}
+              {loading ? "..." : tripsThisWeek.length}
             </div>
             <div className="text-sm text-slate-600">Esta semana</div>
           </div>
@@ -51,7 +49,7 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
           onClick={onViewTrips} 
           className="w-full bg-white/60 hover:bg-white/70 text-slate-800 border-slate-200 backdrop-blur-sm transition-all duration-300 hover:scale-105" 
           variant="outline"
-          disabled={statsLoading || tripsLoading}
+          disabled={loading}
         >
           <Plane className="h-4 w-4 mr-2" />
           Ver todos los viajes
