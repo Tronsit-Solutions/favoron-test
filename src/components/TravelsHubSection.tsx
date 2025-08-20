@@ -14,20 +14,50 @@ const TravelsHubSection = () => {
   };
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
-            Viajes Disponibles Ahora
+    <section className="py-20 px-4 bg-gradient-to-br from-teal-400 via-cyan-300 to-emerald-400 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
+      <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
+      <div className="absolute bottom-20 right-20 w-48 h-48 bg-teal-200/30 rounded-full blur-2xl"></div>
+      
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-6 py-3 mb-6">
+            <span className="text-2xl">🌍</span>
+            <span className="text-slate-800 font-medium">Hub de Viajes</span>
+          </div>
+          
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mb-6 leading-tight">
+            Viajes Disponibles
+            <span className="block text-3xl md:text-4xl bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+              en Tiempo Real
+            </span>
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Descubre viajeros reales que pueden traer tus productos. 
-            Nuestra plataforma conecta personas en tiempo real.
+          
+          <p className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
+            Conectamos personas reales que viajan con quienes necesitan productos del extranjero. 
+            <span className="font-semibold">Transparencia total, confianza real.</span>
           </p>
         </div>
         
         <div className="max-w-md mx-auto">
           <AvailableTripsCard onViewTrips={handleViewTrips} />
+        </div>
+        
+        {/* Stats section */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
+            <div className="text-3xl font-bold text-slate-800 mb-2">100%</div>
+            <div className="text-slate-700 font-medium">Transparente</div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
+            <div className="text-3xl font-bold text-slate-800 mb-2">24/7</div>
+            <div className="text-slate-700 font-medium">Tiempo Real</div>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
+            <div className="text-3xl font-bold text-slate-800 mb-2">🔒</div>
+            <div className="text-slate-700 font-medium">Seguro</div>
+          </div>
         </div>
       </div>
 
