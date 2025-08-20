@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,13 @@ export const MatchCard = ({
     }
   };
 
+  const getTravelerName = () => {
+    if (matchedTrip?.profiles?.first_name || matchedTrip?.profiles?.last_name) {
+      return `${matchedTrip.profiles.first_name || ''} ${matchedTrip.profiles.last_name || ''}`.trim();
+    }
+    return matchedTrip?.profiles?.username || `Usuario ${matchedTrip?.user_id || 'N/A'}`;
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -101,7 +109,7 @@ export const MatchCard = ({
                   🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name} 
                   {matchedTrip && (
                     <>
-                      {' '} 🤝 {matchedTrip.profiles?.first_name} {matchedTrip.profiles?.last_name} ✈️
+                      {' '} 🤝 {getTravelerName()} ✈️
                     </>
                   )}
                 </span>
@@ -209,7 +217,7 @@ export const MatchCard = ({
                 </div>
                 <div className="text-xs text-blue-700">
                   <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                  <p>👤 Viajero: {matchedTrip.user_id}</p>
+                  <p>👤 Viajero: {getTravelerName()}</p>
                 </div>
               </div>
             )}
@@ -225,7 +233,7 @@ export const MatchCard = ({
                 </div>
                 <div className="text-xs text-red-700 space-y-1">
                   <p>🛫 {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                  <p>👤 Viajero: {matchedTrip.user_id}</p>
+                  <p>👤 Viajero: {getTravelerName()}</p>
                   {pkg.rejectionReason && typeof pkg.rejectionReason === 'string' && (
                     <p className="font-medium">📝 Razón: {pkg.rejectionReason}</p>
                   )}
