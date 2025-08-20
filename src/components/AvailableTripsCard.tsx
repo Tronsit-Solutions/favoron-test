@@ -14,7 +14,10 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
   const tripsThisWeek = trips.filter(trip => {
     const arrivalDate = new Date(trip.arrival_date);
     const today = new Date();
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    
     return arrivalDate >= today && arrivalDate <= nextWeek;
   });
 

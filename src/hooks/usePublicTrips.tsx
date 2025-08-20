@@ -7,6 +7,7 @@ export interface PublicTrip {
   from_city: string;
   to_city: string;
   arrival_date: string;
+  departure_date: string;
   status: string;
 }
 
@@ -19,11 +20,15 @@ export const usePublicTrips = () => {
     try {
       setLoading(true);
       
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+
       const { data, error } = await supabase
         .from('trips')
-        .select('id, from_city, to_city, arrival_date, status')
-        .eq('status', 'approved')
-        .order('arrival_date', { ascending: true });
+        .select('id, from_city, to_city, arrival_date, departure_date, status')
+        .in('status', ['approved', 'active'])
+        .gte('arrival_date', today.toISOString())
+        .order('departure_date', { ascending: true });
 
       if (error) {
         console.error('Error fetching public trips:', error);
