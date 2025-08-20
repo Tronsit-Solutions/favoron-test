@@ -15,6 +15,8 @@ import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
+import AvailableTripsCard from "./AvailableTripsCard";
+import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
@@ -35,6 +37,7 @@ interface DashboardProps {
 
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
+  const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   
   const {
     currentUser,
@@ -277,6 +280,9 @@ const Dashboard = ({ user }: DashboardProps) => {
             <QuickActions 
               onShowPackageForm={() => setShowPackageForm(true)}
               onShowTripForm={() => setShowTripForm(true)}
+            />
+            <AvailableTripsCard 
+              onViewTrips={() => setShowAvailableTripsModal(true)}
             />
             <RecentActivity 
               packages={packages}
@@ -523,6 +529,11 @@ const Dashboard = ({ user }: DashboardProps) => {
           }}
         />
       )}
+
+      <AvailableTripsModal
+        isOpen={showAvailableTripsModal}
+        onClose={() => setShowAvailableTripsModal(false)}
+      />
 
     </div>
   );
