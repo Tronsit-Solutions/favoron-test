@@ -233,24 +233,32 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
             </p>
             
             <div className="bg-background/50 border border-info/30 rounded-md p-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Banco:</span>{' '}
-                  <span className="font-medium text-foreground">{bankAccount?.bank_name || '—'}</span>
+              {bankLoading ? (
+                <p className="text-xs text-muted-foreground">Cargando información bancaria...</p>
+              ) : bankAccount ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Banco:</span>{' '}
+                    <span className="font-medium text-foreground">{bankAccount.bank_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Titular:</span>{' '}
+                    <span className="font-medium text-foreground">{bankAccount.account_holder}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Cuenta:</span>{' '}
+                    <span className="font-medium text-foreground">{bankAccount.account_number}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Tipo:</span>{' '}
+                    <span className="font-medium text-foreground">{bankAccount.account_type}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Titular:</span>{' '}
-                  <span className="font-medium text-foreground">{bankAccount?.account_holder || '—'}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Cuenta:</span>{' '}
-                  <span className="font-medium text-foreground">{bankAccount?.account_number || '—'}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Tipo:</span>{' '}
-                  <span className="font-medium text-foreground">{bankAccount?.account_type || '—'}</span>
-                </div>
-              </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Información bancaria no disponible. Contacta a soporte.
+                </p>
+              )}
             </div>
           </div>
         </div>
