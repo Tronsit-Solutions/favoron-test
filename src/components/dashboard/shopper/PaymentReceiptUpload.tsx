@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Package } from "@/types";
 import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
+
 interface PaymentReceiptUploadProps {
   pkg: Package;
   onUploadComplete: (updatedPkg: Package) => void;
@@ -16,7 +17,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   const [uploadedFile, setUploadedFile] = useState<any>(pkg.payment_receipt);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
+  const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
