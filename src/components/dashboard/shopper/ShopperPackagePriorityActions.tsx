@@ -48,7 +48,8 @@ const ShopperPackagePriorityActions = ({
     'pending_purchase', 
     'purchase_confirmed', 
     'in_transit', 
-    'pending_office_confirmation', 
+    'pending_office_confirmation',
+    'delivered_to_office',
     'ready_for_pickup', 
     'ready_for_delivery', 
     'delivered', 
@@ -145,6 +146,13 @@ const ShopperPackagePriorityActions = ({
           icon: Clock,
           title: "📦 Esperando confirmación",
           description: "El viajero entregó el paquete en oficina. Esperando confirmación de recepción.",
+          button: null
+        };
+      case 'delivered_to_office':
+        return {
+          icon: Package2,
+          title: "📦 Entregado en oficina",
+          description: "Tu paquete fue entregado y confirmado en la oficina de Favorón. Está listo para recoger o entregar.",
           button: null
         };
       case 'ready_for_pickup':
