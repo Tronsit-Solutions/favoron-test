@@ -14,14 +14,14 @@ const TravelsHubSection = () => {
   };
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-teal-400 via-cyan-300 to-emerald-400 relative overflow-hidden">
+    <section className="py-10 px-4 bg-gradient-to-br from-teal-400 via-cyan-300 to-emerald-400 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl"></div>
       <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
       <div className="absolute bottom-20 right-20 w-48 h-48 bg-teal-200/30 rounded-full blur-2xl"></div>
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-6 py-3 mb-6">
             <span className="text-2xl">🌍</span>
             <span className="text-slate-800 font-medium">Hub de Viajes</span>
@@ -45,7 +45,7 @@ const TravelsHubSection = () => {
         </div>
         
         {/* Stats section */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
             <div className="text-3xl font-bold text-slate-800 mb-2">100%</div>
             <div className="text-slate-700 font-medium">Transparente</div>
