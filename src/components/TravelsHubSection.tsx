@@ -22,10 +22,6 @@ const TravelsHubSection = () => {
       
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-6 py-3 mb-6">
-            <span className="text-2xl">🌍</span>
-            <span className="text-slate-800 font-medium">Hub de Viajes</span>
-          </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-slate-800 mb-6 leading-tight">
             Viajes Disponibles
