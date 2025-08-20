@@ -755,6 +755,15 @@ export type Database = {
           table_size: string
         }[]
       }
+      get_favoron_bank_info: {
+        Args: { _package_id: string }
+        Returns: {
+          account_holder: string
+          account_number: string
+          account_type: string
+          bank_name: string
+        }[]
+      }
       get_monthly_reports: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
