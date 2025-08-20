@@ -9,7 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Eye, CheckCircle, XCircle, Banknote, MapPin, Calendar } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Banknote, MapPin, Calendar, FileText } from 'lucide-react';
+import PaymentOrderDetailModal from './PaymentOrderDetailModal';
 
 interface AdminTripPaymentsTabProps {
   paymentOrders: any[];
@@ -24,7 +25,14 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
 }) => {
   const [confirmAction, setConfirmAction] = useState<{ action: string; order: any } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
+
+  const handleViewDetails = (order: any) => {
+    setSelectedOrder(order);
+    setShowDetailModal(true);
+  };
 
   // Filtrar órdenes de pago por viaje (tienen trip_id)
   const tripPaymentOrders = paymentOrders.filter(order => order.trip_id);
@@ -204,10 +212,10 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onViewPaymentDetail?.(order)}
+                onClick={() => handleViewDetails(order)}
               >
-                <Eye className="h-4 w-4 mr-1" />
-                Ver detalles
+                <FileText className="h-4 w-4 mr-1" />
+                Ver Trazabilidad
               </Button>
               <Button
                 size="sm"
@@ -281,12 +289,24 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
               <CardTitle>Pagos por Viaje Procesados</CardTitle>
             </CardHeader>
             <CardContent>
-              {processedTripPayments.length === 0 ? (
+          {processedTripPayments.length === 0 ? (
                 <p className="text-muted-foreground">No hay pagos por viaje procesados</p>
               ) : (
                 <div className="space-y-4">
                   {processedTripPayments.map(order => (
-                    <TripPaymentCard key={order.id} order={order} />
+                    <div key={order.id} className="space-y-2">
+                      <TripPaymentCard order={order} />
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDetails(order)}
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Ver Trazabilidad Completa
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -318,6 +338,12 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PaymentOrderDetailModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        paymentOrder={selectedOrder}
+      />
     </div>
   );
 };

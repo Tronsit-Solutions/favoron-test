@@ -316,6 +316,7 @@ export type Database = {
           bank_name: string
           completed_at: string | null
           created_at: string
+          historical_packages: Json | null
           id: string
           notes: string | null
           receipt_filename: string | null
@@ -333,6 +334,7 @@ export type Database = {
           bank_name: string
           completed_at?: string | null
           created_at?: string
+          historical_packages?: Json | null
           id?: string
           notes?: string | null
           receipt_filename?: string | null
@@ -350,6 +352,7 @@ export type Database = {
           bank_name?: string
           completed_at?: string | null
           created_at?: string
+          historical_packages?: Json | null
           id?: string
           notes?: string | null
           receipt_filename?: string | null
@@ -735,6 +738,18 @@ export type Database = {
           _title: string
           _type?: string
           _user_id: string
+        }
+        Returns: string
+      }
+      create_payment_order_with_snapshot: {
+        Args: {
+          _amount: number
+          _bank_account_holder: string
+          _bank_account_number: string
+          _bank_account_type: string
+          _bank_name: string
+          _traveler_id: string
+          _trip_id: string
         }
         Returns: string
       }

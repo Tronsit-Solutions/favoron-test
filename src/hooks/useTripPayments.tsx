@@ -90,21 +90,17 @@ export const useTripPayments = (tripId?: string) => {
 
       if (profileError) throw profileError;
 
-      // Crear la orden de pago por viaje
-      const { data: paymentOrder, error: paymentError } = await supabase
-        .from('payment_orders')
-        .insert({
-          trip_id: tripId,
-          traveler_id: user.id,
-          amount: tripPayment.accumulated_amount,
-          bank_account_holder: bankingInfo.bank_account_holder,
-          bank_name: bankingInfo.bank_name,
-          bank_account_type: bankingInfo.bank_account_type,
-          bank_account_number: bankingInfo.bank_account_number,
-          status: 'pending'
-        })
-        .select()
-        .single();
+      // Use the new function that captures package snapshots
+      const { data: paymentOrderId, error: paymentError } = await supabase
+        .rpc('create_payment_order_with_snapshot', {
+          _traveler_id: user.id,
+          _trip_id: tripId,
+          _amount: tripPayment.accumulated_amount,
+          _bank_name: bankingInfo.bank_name,
+          _bank_account_holder: bankingInfo.bank_account_holder,
+          _bank_account_number: bankingInfo.bank_account_number,
+          _bank_account_type: bankingInfo.bank_account_type
+        });
 
       if (paymentError) throw paymentError;
 
@@ -141,7 +137,7 @@ export const useTripPayments = (tripId?: string) => {
         description: "Solicitud de pago creada correctamente",
       });
 
-      return paymentOrder;
+      return paymentOrderId;
     } catch (error: any) {
       console.error('Error creating payment order:', error);
       toast({
