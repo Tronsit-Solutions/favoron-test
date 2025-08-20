@@ -113,8 +113,8 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   };
 
   const activeRequests = userPackages.filter(pkg => {
-    // Excluir paquetes rechazados o entregados en oficina
-    if (['delivered_to_office', 'rejected'].includes(pkg.status)) return false;
+    // Excluir paquetes rechazados, cancelados o entregados en oficina
+    if (['delivered_to_office', 'rejected', 'cancelled'].includes(pkg.status)) return false;
     
     // Excluir paquetes que pertenecen a viajes completados y pagados
     if (pkg.matched_trip_id) {
