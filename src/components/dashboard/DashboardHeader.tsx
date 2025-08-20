@@ -38,7 +38,8 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
           <img 
             src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
             alt="Favorón Logo" 
-            className="h-6 sm:h-8 w-auto"
+            className="h-6 sm:h-8 w-auto cursor-pointer"
+            onClick={handleHomeClick}
           />
         </div>
 
