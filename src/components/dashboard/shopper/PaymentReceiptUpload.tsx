@@ -235,16 +235,16 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
             <div className="bg-background/50 border border-info/30 rounded-md p-2">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                 <div>
-                  <span className="text-muted-foreground">Banco:</span> <span className="font-medium text-foreground">Banco Industrial</span>
+                  <span className="text-muted-foreground">Banco:</span> <span className="font-medium text-foreground">{bankAccount?.bank_name || 'Banco Industrial'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Titular:</span> <span className="font-medium text-foreground">Favorón S.A.</span>
+                  <span className="text-muted-foreground">Titular:</span> <span className="font-medium text-foreground">{bankAccount?.account_holder || 'Favorón S.A.'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Cuenta:</span> <span className="font-medium text-foreground">255-045678-9</span>
+                  <span className="text-muted-foreground">Cuenta:</span> <span className="font-medium text-foreground">{bankAccount?.account_number || '255-045678-9'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Tipo:</span> <span className="font-medium text-foreground">Monetaria</span>
+                  <span className="text-muted-foreground">Tipo:</span> <span className="font-medium text-foreground">{bankAccount?.account_type || 'Monetaria'}</span>
                 </div>
               </div>
             </div>
