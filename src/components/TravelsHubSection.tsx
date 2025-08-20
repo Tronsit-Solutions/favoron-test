@@ -43,22 +43,6 @@ const TravelsHubSection = () => {
         <div className="max-w-md mx-auto">
           <AvailableTripsCard onViewTrips={handleViewTrips} />
         </div>
-        
-        {/* Stats section */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
-            <div className="text-3xl font-bold text-slate-800 mb-2">100%</div>
-            <div className="text-slate-700 font-medium">Transparente</div>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
-            <div className="text-3xl font-bold text-slate-800 mb-2">24/7</div>
-            <div className="text-slate-700 font-medium">Tiempo Real</div>
-          </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 text-center border border-white/30 hover:bg-white/25 transition-all duration-300">
-            <div className="text-3xl font-bold text-slate-800 mb-2">🔒</div>
-            <div className="text-slate-700 font-medium">Seguro</div>
-          </div>
-        </div>
       </div>
 
       <AvailableTripsModal 
