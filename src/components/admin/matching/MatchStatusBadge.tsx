@@ -7,30 +7,30 @@ export interface StatusInfo {
 }
 
 const STATUS_MAP: Record<string, StatusInfo> = {
-  'pending_approval': { icon: '⏳', label: 'Pendiente de aprobación', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
-  'approved': { icon: '✅', label: 'Aprobado', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'matched': { icon: '🤝', label: 'Emparejado con viajero', color: 'bg-info/10 text-info-foreground border-info/20' },
-  'quote_sent': { icon: '💬', label: 'Cotización enviada', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
-  'quote_accepted': { icon: '✅', label: 'Cotización aceptada', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20' },
-  'quote_expired': { icon: '⏰', label: 'Cotización expirada', color: 'bg-muted/50 text-muted-foreground border-muted' },
-  'payment_pending': { icon: '💳', label: 'Esperando pago', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
-  'payment_confirmed': { icon: '💰', label: 'Pago confirmado', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'pending_purchase': { icon: '🛒', label: 'Comprando productos', color: 'bg-info/10 text-info-foreground border-info/20' },
-  'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-info/10 text-info-foreground border-info/20' },
-  'received_by_traveler': { icon: '👤', label: 'Recibido por viajero', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'pending_office_confirmation': { icon: '🏢', label: 'Esperando confirmación oficina', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
-  'ready_for_pickup': { icon: '📋', label: 'Listo para recoger', color: 'bg-info/10 text-info-foreground border-info/20' },
-  'ready_for_delivery': { icon: '🚛', label: 'Listo para entrega', color: 'bg-info/10 text-info-foreground border-info/20' },
-  'delivered_to_office': { icon: '📦', label: 'Entregado en oficina', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'delivered': { icon: '📦', label: 'Entregado al destinatario', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'completed': { icon: '🎉', label: 'Completado', color: 'bg-success/10 text-success-foreground border-success/20' },
-  'rejected': { icon: '❌', label: 'Rechazado', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20' },
-  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-muted-foreground border-muted' }
+  'pending_approval': { icon: '⏳', label: 'Pendiente de aprobación', color: 'bg-warning/10 text-black border-warning/20' },
+  'approved': { icon: '✅', label: 'Aprobado', color: 'bg-success/10 text-black border-success/20' },
+  'matched': { icon: '🤝', label: 'Emparejado con viajero', color: 'bg-info/10 text-black border-info/20' },
+  'quote_sent': { icon: '💬', label: 'Cotización enviada', color: 'bg-warning/10 text-black border-warning/20' },
+  'quote_accepted': { icon: '✅', label: 'Cotización aceptada', color: 'bg-success/10 text-black border-success/20' },
+  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-destructive/10 text-black border-destructive/20' },
+  'quote_expired': { icon: '⏰', label: 'Cotización expirada', color: 'bg-muted/50 text-black border-muted' },
+  'payment_pending': { icon: '💳', label: 'Esperando pago', color: 'bg-warning/10 text-black border-warning/20' },
+  'payment_confirmed': { icon: '💰', label: 'Pago confirmado', color: 'bg-success/10 text-black border-success/20' },
+  'pending_purchase': { icon: '🛒', label: 'Comprando productos', color: 'bg-info/10 text-black border-info/20' },
+  'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-info/10 text-black border-info/20' },
+  'received_by_traveler': { icon: '👤', label: 'Recibido por viajero', color: 'bg-success/10 text-black border-success/20' },
+  'pending_office_confirmation': { icon: '🏢', label: 'Esperando confirmación oficina', color: 'bg-warning/10 text-black border-warning/20' },
+  'ready_for_pickup': { icon: '📋', label: 'Listo para recoger', color: 'bg-info/10 text-black border-info/20' },
+  'ready_for_delivery': { icon: '🚛', label: 'Listo para entrega', color: 'bg-info/10 text-black border-info/20' },
+  'delivered_to_office': { icon: '📦', label: 'Entregado en oficina', color: 'bg-success/10 text-black border-success/20' },
+  'delivered': { icon: '📦', label: 'Entregado al destinatario', color: 'bg-success/10 text-black border-success/20' },
+  'completed': { icon: '🎉', label: 'Completado', color: 'bg-success/10 text-black border-success/20' },
+  'rejected': { icon: '❌', label: 'Rechazado', color: 'bg-destructive/10 text-black border-destructive/20' },
+  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-black border-muted' }
 };
 
 export const getStatusInfo = (status: string): StatusInfo => {
-  return STATUS_MAP[status] || { icon: '⏳', label: 'Estado desconocido', color: 'bg-muted/50 text-muted-foreground border-muted' };
+  return STATUS_MAP[status] || { icon: '⏳', label: 'Estado desconocido', color: 'bg-muted/50 text-black border-muted' };
 };
 
 interface MatchStatusBadgeProps {
