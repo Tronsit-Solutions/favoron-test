@@ -35,7 +35,7 @@ export const STATUS_LABELS = {
   quote_sent: 'Cotización enviada',
   quote_expired: 'Cotización expirada',
   quote_accepted: 'Cotización aceptada',
-  awaiting_payment: 'Esperando pago',
+  awaiting_payment: 'Cotización Aceptada - Pendiente Pago',
   payment_confirmed: 'Pago confirmado',
   pending_purchase: 'Compra pendiente',
   purchase_confirmed: 'Compra confirmada',

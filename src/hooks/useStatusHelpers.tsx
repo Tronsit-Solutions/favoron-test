@@ -27,7 +27,7 @@ export const useStatusHelpers = () => {
       approved: { label: isReapproved ? "Re-aprobado" : "Aprobado", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
-      quote_accepted: { label: "Cotización Aceptada", variant: "success" as const },
+      quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
       quote_rejected: { label: "Cotización Rechazada", variant: "destructive" as const },
       quote_expired: { label: "Cotización Expirada", variant: "warning" as const },
       payment_pending_approval: { label: "Pago Pendiente de Aprobación", variant: "warning" as const },
