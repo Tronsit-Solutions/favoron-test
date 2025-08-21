@@ -1,4 +1,5 @@
 
+
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
@@ -66,6 +67,7 @@ const Index = () => {
         onOpenAuth={openAuth} 
         isAuthenticated={!!(user && profile)} 
         onSignOut={signOut}
+        user={profile} // Pass profile data to show user info
       />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
@@ -80,3 +82,4 @@ const Index = () => {
 };
 
 export default Index;
+

@@ -1,7 +1,16 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Plane, LogIn, ArrowLeft, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavBarProps {
   onOpenAuth: (mode: "login" | "register") => void;
@@ -9,9 +18,10 @@ interface NavBarProps {
   onBackToDashboard?: () => void;
   isAuthenticated?: boolean;
   onSignOut?: () => void;
+  user?: any; // Add user prop to show user info
 }
 
-const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenticated, onSignOut }: NavBarProps) => {
+const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenticated, onSignOut, user }: NavBarProps) => {
   return (
     <>
       {/* Main Navigation Bar */}
@@ -29,7 +39,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
             />
           </Link>
 
-          {/* Action Buttons - Keeping the ones you like */}
+          {/* Action Buttons - Updated for authenticated state */}
           <div className="flex items-center space-x-3">
             {showBackToDashboard && onBackToDashboard ? (
               <Button 
@@ -42,7 +52,54 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                 <span className="hidden sm:inline">Volver al Dashboard</span>
                 <span className="sm:hidden">Dashboard</span>
               </Button>
-            ) : !isAuthenticated ? (
+            ) : isAuthenticated ? (
+              // Show user menu when authenticated
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="shadow-sm hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+                  >
+                    <Avatar className="h-5 w-5 mr-2">
+                      {user?.avatar_url ? (
+                        <AvatarImage src={user.avatar_url} alt="Foto de perfil" />
+                      ) : (
+                        <AvatarFallback className="text-xs">
+                          {user?.first_name?.[0] || user?.email?.[0] || 'U'}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <span className="hidden sm:inline">Mi Cuenta</span>
+                    <User className="h-4 w-4 sm:hidden" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5 text-sm">
+                    <p className="font-medium">
+                      {user?.first_name && user?.last_name 
+                        ? `${user.first_name} ${user.last_name}` 
+                        : user?.email || 'Usuario'
+                      }
+                    </p>
+                    <p className="text-xs text-muted-foreground">{user?.email || ''}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/" className="w-full">
+                      <User className="h-4 w-4 mr-2" />
+                      Ir al Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              // Show login/register buttons when not authenticated
               <>
                 <Button 
                   variant="outline" 
@@ -70,7 +127,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                   <span className="sm:hidden">Registro</span>
                 </Button>
               </>
-            ) : null}
+            )}
           </div>
         </div>
       </nav>
@@ -100,3 +157,4 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
 };
 
 export default NavBar;
+
