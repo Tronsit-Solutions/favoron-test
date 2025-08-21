@@ -7,26 +7,30 @@ export interface StatusInfo {
 }
 
 const STATUS_MAP: Record<string, StatusInfo> = {
-  'quote_sent': { icon: '💬', label: 'Cotización enviada', color: 'bg-blue-100 text-blue-800' },
-  'payment_pending': { icon: '💳', label: 'Pago pendiente', color: 'bg-yellow-100 text-yellow-800' },
-  'paid': { icon: '💳', label: 'Pago pendiente', color: 'bg-yellow-100 text-yellow-800' },
-  'payment_confirmed': { icon: '✅', label: 'Pago confirmado', color: 'bg-green-100 text-green-800' },
-  'pending_purchase': { icon: '🛒', label: 'Pendiente de compra', color: 'bg-orange-100 text-orange-800' },
-  'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-purple-100 text-purple-800' },
-  'received_by_traveler': { icon: '👤', label: 'Recibido por viajero', color: 'bg-emerald-100 text-emerald-800' },
-  'pending_office_confirmation': { icon: '⏳', label: 'Esperando confirmación', color: 'bg-amber-100 text-amber-800' },
-  'ready_for_pickup': { icon: '📋', label: 'Listo para recoger', color: 'bg-blue-100 text-blue-800' },
-  'ready_for_delivery': { icon: '🚛', label: 'Listo para entrega', color: 'bg-blue-100 text-blue-800' },
-  'delivered_to_office': { icon: '📦', label: 'Entregado en oficina', color: 'bg-emerald-100 text-emerald-800' },
-  'delivered': { icon: '📦', label: 'Entregado', color: 'bg-emerald-100 text-emerald-800' },
-  'completed': { icon: '🎉', label: 'Completado', color: 'bg-emerald-100 text-emerald-800' },
-  'rejected': { icon: '❌', label: 'Match roto', color: 'bg-red-100 text-red-800' },
-  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-red-100 text-red-800' },
-  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-red-100 text-red-800' }
+  'pending_approval': { icon: '⏳', label: 'Pendiente de aprobación', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
+  'approved': { icon: '✅', label: 'Aprobado', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'matched': { icon: '🤝', label: 'Emparejado con viajero', color: 'bg-info/10 text-info-foreground border-info/20' },
+  'quote_sent': { icon: '💬', label: 'Cotización enviada', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
+  'quote_accepted': { icon: '✅', label: 'Cotización aceptada', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20' },
+  'quote_expired': { icon: '⏰', label: 'Cotización expirada', color: 'bg-muted/50 text-muted-foreground border-muted' },
+  'payment_pending': { icon: '💳', label: 'Esperando pago', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
+  'payment_confirmed': { icon: '💰', label: 'Pago confirmado', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'pending_purchase': { icon: '🛒', label: 'Comprando productos', color: 'bg-info/10 text-info-foreground border-info/20' },
+  'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-info/10 text-info-foreground border-info/20' },
+  'received_by_traveler': { icon: '👤', label: 'Recibido por viajero', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'pending_office_confirmation': { icon: '🏢', label: 'Esperando confirmación oficina', color: 'bg-warning/10 text-warning-foreground border-warning/20' },
+  'ready_for_pickup': { icon: '📋', label: 'Listo para recoger', color: 'bg-info/10 text-info-foreground border-info/20' },
+  'ready_for_delivery': { icon: '🚛', label: 'Listo para entrega', color: 'bg-info/10 text-info-foreground border-info/20' },
+  'delivered_to_office': { icon: '📦', label: 'Entregado en oficina', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'delivered': { icon: '📦', label: 'Entregado al destinatario', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'completed': { icon: '🎉', label: 'Completado', color: 'bg-success/10 text-success-foreground border-success/20' },
+  'rejected': { icon: '❌', label: 'Rechazado', color: 'bg-destructive/10 text-destructive-foreground border-destructive/20' },
+  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-muted-foreground border-muted' }
 };
 
 export const getStatusInfo = (status: string): StatusInfo => {
-  return STATUS_MAP[status] || { icon: '⏳', label: 'Pendiente', color: 'bg-gray-100 text-gray-800' };
+  return STATUS_MAP[status] || { icon: '⏳', label: 'Estado desconocido', color: 'bg-muted/50 text-muted-foreground border-muted' };
 };
 
 interface MatchStatusBadgeProps {
@@ -38,7 +42,7 @@ export const MatchStatusBadge = ({ status, className = "text-xs" }: MatchStatusB
   const statusInfo = getStatusInfo(status);
   
   return (
-    <Badge className={`${className} ${statusInfo.color} flex-shrink-0`}>
+    <Badge className={`${className} ${statusInfo.color} flex-shrink-0 border`}>
       {statusInfo.icon} {statusInfo.label}
     </Badge>
   );
