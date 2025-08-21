@@ -19,9 +19,17 @@ interface NavBarProps {
   isAuthenticated?: boolean;
   onSignOut?: () => void;
   user?: any; // Add user prop to show user info
+  loading?: boolean; // Add loading state
 }
 
-const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenticated, onSignOut, user }: NavBarProps) => {
+const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenticated, onSignOut, user, loading }: NavBarProps) => {
+  // Debug logging for NavBar
+  console.log('🔍 NavBar Debug:', {
+    isAuthenticated,
+    hasUser: !!user,
+    loading,
+    showBackToDashboard
+  });
   return (
     <>
       {/* Main Navigation Bar */}
@@ -52,7 +60,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                 <span className="hidden sm:inline">Volver al Dashboard</span>
                 <span className="sm:hidden">Dashboard</span>
               </Button>
-            ) : isAuthenticated ? (
+            ) : isAuthenticated && !loading ? (
               // Show user menu when authenticated
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -74,7 +82,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                     <User className="h-4 w-4 sm:hidden" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-background border border-border shadow-lg z-50">
                   <div className="px-2 py-1.5 text-sm">
                     <p className="font-medium">
                       {user?.first_name && user?.last_name 

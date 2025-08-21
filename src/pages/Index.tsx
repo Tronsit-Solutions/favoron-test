@@ -68,6 +68,7 @@ const Index = () => {
         isAuthenticated={!!(user && profile)} 
         onSignOut={signOut}
         user={profile} // Pass profile data to show user info
+        loading={loading}
       />
       <main className="pb-safe">
         <HeroSection onOpenAuth={openAuth} />
