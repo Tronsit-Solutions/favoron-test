@@ -302,7 +302,7 @@ const QuoteDialog = ({
                       {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
                     </p>
                     <p className="text-xs text-red-600 mt-1 font-medium">
-                      El encargado de hacer la compra es el shopper.
+                      Tú eres el encargado de hacer la compra del producto y la cotización no incluye el precio de tu producto.
                     </p>
                   </div>
                 </div>
