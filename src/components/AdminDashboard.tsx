@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { getStatusLabel } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye } from "lucide-react";
@@ -91,7 +92,7 @@ const AdminDashboard = ({
       'completed_paid': { label: 'Completado y Pagado', variant: 'success' as const },
     };
     
-    const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
+    const config = statusMap[status as keyof typeof statusMap] || { label: getStatusLabel(status), variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
