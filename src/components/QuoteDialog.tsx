@@ -301,6 +301,9 @@ const QuoteDialog = ({
                       Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
                       {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
                     </p>
+                    <p className="text-xs text-red-600 mt-1 font-medium">
+                      El encargado de hacer la compra es el shopper.
+                    </p>
                   </div>
                 </div>
               </div>
