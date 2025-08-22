@@ -9,6 +9,8 @@ import { Search, Zap, Eye, CalendarDays, Trash2, MoreHorizontal } from "lucide-r
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import RejectionTooltip from "@/components/admin/RejectionTooltip";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
+import { usePackageHistory } from "@/hooks/usePackageHistory";
+import { PackageHistoryIndicator } from "./PackageHistoryIndicator";
 
 interface PendingRequestsTabProps {
   packages: any[];
@@ -54,16 +56,24 @@ const PendingRequestsTab = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'new' | 'requoted'>('all');
   const { getStatusBadge } = useStatusHelpers();
+  const { filterPackagesByHistory, getReQuoteStats } = usePackageHistory();
 
   // Filter packages for those that need matching (approved or quote rejected)
   const pendingPackages = packages.filter(p => p.status === 'approved' || p.status === 'quote_rejected');
   
   // Get unique destinations for filter
   const destinations = [...new Set(pendingPackages.map(pkg => pkg.package_destination || 'Guatemala'))];
+  
+  // Get statistics
+  const reQuoteStats = getReQuoteStats(pendingPackages);
+
+  // Apply history filter first
+  const historyFilteredPackages = filterPackagesByHistory(pendingPackages, historyFilter);
 
   // Filter packages based on search and filters
-  const filteredPackages = pendingPackages.filter(pkg => {
+  const filteredPackages = historyFilteredPackages.filter(pkg => {
     const matchesSearch = (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (pkg.user_id || '').toString().includes(searchTerm);
     const matchesDestination = destinationFilter === "all" || pkg.package_destination === destinationFilter;
@@ -88,27 +98,54 @@ const PendingRequestsTab = ({
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por descripción o usuario..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por descripción o usuario..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={destinationFilter} onValueChange={setDestinationFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filtrar por destino" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los destinos</SelectItem>
+              {destinations.map(dest => (
+                <SelectItem key={dest} value={dest}>{dest}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={destinationFilter} onValueChange={setDestinationFilter}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Filtrar por destino" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los destinos</SelectItem>
-            {destinations.map(dest => (
-              <SelectItem key={dest} value={dest}>{dest}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <Select value={historyFilter} onValueChange={(value: 'all' | 'new' | 'requoted') => setHistoryFilter(value)}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filtrar por historial" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos ({reQuoteStats.total})</SelectItem>
+              <SelectItem value="new">Nuevos ({reQuoteStats.new})</SelectItem>
+              <SelectItem value="requoted">Re-cotizados ({reQuoteStats.expired + reQuoteStats.rejected})</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              📊 Nuevos: <Badge variant="secondary" className="text-xs">{reQuoteStats.new}</Badge>
+            </span>
+            <span className="flex items-center gap-1">
+              🕐 Expirados: <Badge variant="secondary" className="text-xs">{reQuoteStats.expired}</Badge>
+            </span>
+            <span className="flex items-center gap-1">
+              ❌ Rechazados: <Badge variant="secondary" className="text-xs">{reQuoteStats.rejected}</Badge>
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Requests List */}
@@ -143,37 +180,33 @@ const PendingRequestsTab = ({
                            {pkg.item_description || "Sin descripción"}
                          </h4>
                          <div className="flex items-center space-x-3">
-                            <span className="text-xs text-muted-foreground">
-                              🛍️ Shopper: {pkg.profiles 
-                                ? (`${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || pkg.profiles.email || 'Sin perfil')
-                                : 'Sin perfil'}
-                            </span>
+                             <span className="text-xs text-muted-foreground">
+                               🛍️ Shopper: {pkg.user_id || 'Sin ID'}
+                             </span>
                            <span className="text-xs text-muted-foreground">
                              📍 {pkg.purchase_origin} → {pkg.package_destination}
                            </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex flex-col items-end space-y-1">
-                          {pkg.rejection_reason && (
-                            <div className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
-                              🔄 Cotización anterior rechazada
-                            </div>
-                          )}
-                          {getStatusBadge(pkg.status, { 
-                            packageDestination: pkg.package_destination,
-                            rejectionReason: pkg.rejection_reason 
-                          })}
-                        </div>
-                        {pkg.rejection_reason && pkg.wants_requote && (
-                          <RejectionTooltip
-                            adminAssignedTip={pkg.admin_assigned_tip}
-                            rejectionReason={pkg.rejection_reason}
-                            wantsRequote={pkg.wants_requote}
-                            additionalNotes={pkg.additional_notes}
-                          />
-                        )}
-                      </div>
+                       <div className="flex items-center space-x-2">
+                         <div className="flex flex-col items-end space-y-1">
+                           <div className="flex items-center gap-2">
+                             {getStatusBadge(pkg.status, { 
+                               packageDestination: pkg.package_destination,
+                               rejectionReason: pkg.rejection_reason 
+                             })}
+                             <PackageHistoryIndicator package={pkg} />
+                           </div>
+                         </div>
+                         {pkg.rejection_reason && pkg.wants_requote && (
+                           <RejectionTooltip
+                             adminAssignedTip={pkg.admin_assigned_tip}
+                             rejectionReason={pkg.rejection_reason}
+                             wantsRequote={pkg.wants_requote}
+                             additionalNotes={pkg.additional_notes}
+                           />
+                         )}
+                       </div>
                     </div>
 
                     {/* Route info */}
