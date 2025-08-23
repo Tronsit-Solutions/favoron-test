@@ -172,6 +172,20 @@ export const useDashboardActions = (
       if (quoteData.price !== undefined || quoteData.message === 'rejected') {
         console.log('📋 Processing quote submission or rejection');
         
+        // Special case: traveler accepting admin-assigned tip (reassigned, already pagado)
+        const isTravelerAcceptingAssignedTip = userType === 'user' &&
+                                              selectedPackage.status === 'matched' &&
+                                              selectedPackage.admin_assigned_tip &&
+                                              quoteData.adminAssignedTipAccepted;
+        if (isTravelerAcceptingAssignedTip) {
+          console.log('✅ Traveler accepted admin-assigned tip, moving to pending_purchase');
+          await handleConfirmPayment(selectedPackage.id);
+          // Close dialog after acceptance handled
+          setShowQuoteDialog(false);
+          setSelectedPackageForQuote(null);
+          return;
+        }
+        
         if (quoteData.message === 'rejected') {
           console.log('❌ Processing rejection');
 

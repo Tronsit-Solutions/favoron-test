@@ -80,7 +80,8 @@ const QuoteDialog = ({
         price: basePrice,
         serviceFee: 0,
         totalPrice: totalWithFee,
-        message: message || 'Acepto el tip asignado por Favorón'
+        message: message || 'Acepto el tip asignado por Favorón',
+        adminAssignedTipAccepted: true,
       });
     } else {
       const basePrice = parseFloat(price);

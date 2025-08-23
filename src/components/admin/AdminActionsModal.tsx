@@ -139,22 +139,46 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
 
     setIsLoading(true);
     try {
+      // Determinar tip ya pagado (si existe) para asignarlo al nuevo viajero
+      const adminAssignedTip = pkg?.quote?.price ? parseFloat(pkg.quote.price) : undefined;
+
+      // Preparar actualización: mover a 'matched' y limpiar datos dependientes del viajero previo
+      const updatePayload: any = {
+        matched_trip_id: selectedTripId,
+        status: 'matched', // Requiere aceptación del nuevo viajero
+        traveler_address: null,
+        matched_trip_dates: null,
+        // Limpiar documentos que podrían corresponder al viajero previo
+        purchase_confirmation: null,
+        tracking_info: null,
+        // Guardar tip asignado administrativamente si existe
+        ...(adminAssignedTip ? { admin_assigned_tip: adminAssignedTip } : {}),
+        // Dejar que el trigger set_assignment_expiration establezca vencimiento de 24h
+        matched_assignment_expires_at: null,
+        quote_expires_at: null,
+      };
+
       const { error } = await supabase
         .from('packages')
-        .update({ 
-          matched_trip_id: selectedTripId,
-          status: 'matched'
-        })
+        .update(updatePayload)
         .eq('id', pkg.id);
 
       if (error) throw error;
 
       const selectedTrip = availableTrips.find(t => t.id === selectedTripId);
-      await logAction('trip_reassigned', `Paquete reasignado al viaje ${selectedTrip?.from_city} → ${selectedTrip?.to_city}`);
+      await logAction(
+        'trip_reassigned',
+        `Paquete reasignado al viaje ${selectedTrip?.from_city} → ${selectedTrip?.to_city}`,
+        {
+          new_trip_id: selectedTripId,
+          requires_traveler_acceptance: true,
+          admin_assigned_tip: adminAssignedTip ?? null,
+        }
+      );
       
       toast({
-        title: "Viaje reasignado",
-        description: "El paquete se asignó al nuevo viaje exitosamente"
+        title: "Reasignado correctamente",
+        description: "El nuevo viajero tiene 24h para aceptar. El shopper verá instrucciones cuando el viajero acepte.",
       });
 
       onRefresh?.();
