@@ -253,7 +253,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className={`grid w-full text-xs sm:text-sm ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            <TabsTrigger value="overview">Resumen</TabsTrigger>
+            <TabsTrigger value="overview">Home</TabsTrigger>
             <TabsTrigger value="packages" className="relative flex items-center gap-2">
               Mis Pedidos
               {pendingActions.shopperTotal > 0 && (
