@@ -5,7 +5,19 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   const matchedPackages = useMemo(() => 
-    packages.filter(pkg => pkg.matched_trip_id), 
+    packages.filter(pkg => {
+      // Must have a matched trip
+      if (!pkg.matched_trip_id) return false;
+      
+      // Exclude expired quotes (by status or by time)
+      const now = Date.now();
+      const quoteExpiredByTime = pkg.status === 'quote_sent' && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
+      const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
+      
+      if (pkg.status === 'quote_expired' || quoteExpiredByTime || assignmentExpiredByTime) return false;
+      
+      return true;
+    }), 
     [packages]
   );
 
@@ -13,7 +25,7 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
     [...new Set(matchedPackages.map(pkg => pkg.status))], 
     [matchedPackages]
   );
-
+  
   const filteredMatches = useMemo(() => {
     return matchedPackages.filter(pkg => {
       const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);

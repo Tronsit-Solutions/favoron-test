@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import PendingRequestsTab from "./matching/PendingRequestsTab";
 import AvailableTripsTab from "./matching/AvailableTripsTab";
 import ActiveMatchesTab from "./matching/ActiveMatchesTab";
 import PaymentsTab from "./matching/PaymentsTab";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminMatchingTabProps {
   packages: any[];
@@ -44,12 +45,29 @@ const AdminMatchingTab = ({
   const [activeTab, setActiveTab] = useState("pending");
   const isMobile = useIsMobile();
 
+  // One-time cleanup: expire old quotes server-side when opening matching
+  useEffect(() => {
+    (async () => {
+      try {
+        await supabase.rpc('expire_old_quotes');
+      } catch {}
+    })();
+  }, []);
+
   // Calculate stats
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const rejectedQuotes = packages.filter(p => p.status === 'quote_rejected');
   const pendingRequests = [...approvedPackages, ...rejectedQuotes]; // Combine both types
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
-  const activeMatches = packages.filter(pkg => pkg.matchedTripId);
+  // Active matches exclude expired quotes or expired assignments in real-time
+  const activeMatches = packages.filter(pkg => {
+    if (!pkg.matched_trip_id) return false;
+    const now = Date.now();
+    const quoteExpiredByTime = pkg.status === 'quote_sent' && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
+    const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
+    if (pkg.status === 'quote_expired' || quoteExpiredByTime || assignmentExpiredByTime) return false;
+    return true;
+  });
   const pendingPayments = packages.filter(pkg => 
     (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
   );
