@@ -458,11 +458,6 @@ const AdminMatchDialog = ({
             >
               <Zap className="h-4 w-4 mr-2" />
               Confirmar Match
-              {selectedTripId && (
-                <span className="ml-2 text-xs opacity-75">
-                  (Viajero #{validTrips.find(t => t.id === selectedTripId)?.user_id})
-                </span>
-              )}
             </Button>
             <Button 
               variant="outline" 
