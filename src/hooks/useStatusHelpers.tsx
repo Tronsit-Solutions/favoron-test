@@ -2,22 +2,80 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Trip } from "@/types";
 
 export const useStatusHelpers = () => {
+  // Helper functions to detect expiration states
+  const isQuoteExpired = (pkg: any): boolean => {
+    if (!pkg.quote_expires_at) return false;
+    return new Date(pkg.quote_expires_at) < new Date();
+  };
+
+  const isAssignmentExpired = (pkg: any): boolean => {
+    if (!pkg.matched_assignment_expires_at) return false;
+    return new Date(pkg.matched_assignment_expires_at) < new Date();
+  };
+
+  const getExpirationInfo = (pkg: any) => {
+    const quoteExp = isQuoteExpired(pkg);
+    const assignmentExp = isAssignmentExpired(pkg);
+    
+    if (assignmentExp && pkg.status === 'matched') {
+      const expiredAt = new Date(pkg.matched_assignment_expires_at);
+      const hoursAgo = Math.floor((Date.now() - expiredAt.getTime()) / (1000 * 60 * 60));
+      return {
+        type: 'assignment_expired',
+        message: `Asignación expirada hace ${hoursAgo}h`,
+        hoursAgo
+      };
+    }
+    
+    if (quoteExp && pkg.status === 'quote_sent') {
+      const expiredAt = new Date(pkg.quote_expires_at);
+      const hoursAgo = Math.floor((Date.now() - expiredAt.getTime()) / (1000 * 60 * 60));
+      return {
+        type: 'quote_expired',
+        message: `Cotización expirada hace ${hoursAgo}h`,
+        hoursAgo
+      };
+    }
+    
+    return null;
+  };
+
   const getStatusBadge = (
     status: string,
-    packageDestinationOrOptions?: string | { packageDestination?: string; isQuoteExpired?: boolean; rejectionReason?: string }
+    packageDestinationOrOptions?: string | { 
+      packageDestination?: string; 
+      isQuoteExpired?: boolean; 
+      rejectionReason?: string;
+      pkg?: any; // Add package object for expiration detection
+    }
   ) => {
     const isObj = typeof packageDestinationOrOptions === 'object' && packageDestinationOrOptions !== null;
     const packageDestination = (isObj
       ? (packageDestinationOrOptions as { packageDestination?: string }).packageDestination
       : (packageDestinationOrOptions as string | undefined));
-    const isQuoteExpired = isObj
+    const isQuoteExpiredFlag = isObj
       ? !!(packageDestinationOrOptions as { isQuoteExpired?: boolean }).isQuoteExpired
       : false;
     const rejectionReason = isObj
       ? (packageDestinationOrOptions as { rejectionReason?: string }).rejectionReason
       : undefined;
+    const pkg = isObj
+      ? (packageDestinationOrOptions as { pkg?: any }).pkg
+      : undefined;
 
-    const effectiveStatus = status === 'quote_sent' && isQuoteExpired ? 'quote_expired' : status;
+    // Check for real-time expiration states
+    let effectiveStatus = status;
+    
+    if (pkg) {
+      const expirationInfo = getExpirationInfo(pkg);
+      if (expirationInfo?.type === 'assignment_expired') {
+        effectiveStatus = 'assignment_expired';
+      } else if (expirationInfo?.type === 'quote_expired') {
+        effectiveStatus = 'quote_expired';
+      }
+    } else if (status === 'quote_sent' && isQuoteExpiredFlag) {
+      effectiveStatus = 'quote_expired';
+    }
     
     // Handle re-approved packages (approved after rejection)
     const isReapproved = status === 'approved' && rejectionReason;
@@ -26,10 +84,11 @@ export const useStatusHelpers = () => {
       pending_approval: { label: "Pendiente", variant: "warning" as const },
       approved: { label: isReapproved ? "Re-aprobado" : "Aprobado", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
+      assignment_expired: { label: "⏰ Asignación Expirada", variant: "destructive" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
       quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
       quote_rejected: { label: "Cotización Rechazada", variant: "destructive" as const },
-      quote_expired: { label: "Cotización Expirada", variant: "warning" as const },
+      quote_expired: { label: "⏰ Cotización Expirada", variant: "destructive" as const },
       payment_pending_approval: { label: "Pago Pendiente de Aprobación", variant: "warning" as const },
       payment_confirmed: { label: "Pago Confirmado", variant: "success" as const },
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
@@ -92,6 +151,9 @@ export const useStatusHelpers = () => {
   return {
     getStatusBadge,
     hasActionRequired,
-    getStatusColor
+    getStatusColor,
+    isQuoteExpired,
+    isAssignmentExpired,
+    getExpirationInfo
   };
 };

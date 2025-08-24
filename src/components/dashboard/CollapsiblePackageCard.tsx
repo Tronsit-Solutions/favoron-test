@@ -19,6 +19,7 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package, UserType, DocumentType } from "@/types";
 import {
@@ -73,7 +74,8 @@ const CollapsiblePackageCard = ({
   });
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   
-  const { getStatusBadge } = useStatusHelpers();
+  const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
+  const expirationInfo = getExpirationInfo(pkg);
 
   React.useEffect(() => {
     if (pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved') {
@@ -159,7 +161,28 @@ const CollapsiblePackageCard = ({
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {getStatusBadge(pkg.status, { packageDestination: pkg.package_destination, isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()) })}
+                {expirationInfo ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {getStatusBadge(pkg.status, { 
+                          packageDestination: pkg.package_destination, 
+                          isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                          pkg: pkg
+                        })}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{expirationInfo.message}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  getStatusBadge(pkg.status, { 
+                    packageDestination: pkg.package_destination, 
+                    isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                    pkg: pkg
+                  })
+                )}
                 {canShowPackageActions && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
