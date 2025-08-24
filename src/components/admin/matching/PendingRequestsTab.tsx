@@ -179,14 +179,16 @@ const PendingRequestsTab = ({
                          <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">
                            {pkg.item_description || "Sin descripción"}
                          </h4>
-                         <div className="flex items-center space-x-3">
-                             <span className="text-xs text-muted-foreground">
-                               🛍️ Shopper: {pkg.user_id || 'Sin ID'}
-                             </span>
-                           <span className="text-xs text-muted-foreground">
-                             📍 {pkg.purchase_origin} → {pkg.package_destination}
-                           </span>
-                        </div>
+                          <div className="flex items-center space-x-3">
+                              <span className="text-xs text-muted-foreground">
+                                🛍️ Shopper: {pkg.profiles?.first_name && pkg.profiles?.last_name 
+                                  ? `${pkg.profiles.first_name} ${pkg.profiles.last_name}` 
+                                  : pkg.profiles?.username || 'Sin nombre'}
+                              </span>
+                            <span className="text-xs text-muted-foreground">
+                              📍 {pkg.purchase_origin} → {pkg.package_destination}
+                            </span>
+                         </div>
                       </div>
                        <div className="flex items-center space-x-2">
                          <div className="flex flex-col items-end space-y-1">
