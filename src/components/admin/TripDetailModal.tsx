@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home } from "lucide-react";
+import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag } from "lucide-react";
+import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TripDetailModalProps {
@@ -18,6 +19,9 @@ interface TripDetailModalProps {
 const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(false);
+  const { getStatusBadge } = useStatusHelpers();
 
   // Fetch user profile data using admin function
   useEffect(() => {
@@ -49,6 +53,41 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
     }
   }, [trip?.user_id, isOpen]);
 
+  // Fetch packages associated with this trip
+  useEffect(() => {
+    if (trip?.id && isOpen) {
+      setLoadingPackages(true);
+      const fetchPackages = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('packages')
+            .select(`
+              *,
+              profiles:user_id (
+                first_name,
+                last_name,
+                email
+              )
+            `)
+            .eq('matched_trip_id', trip.id)
+            .order('created_at', { ascending: false });
+          
+          if (error) {
+            console.error('Error fetching trip packages:', error);
+          } else {
+            setPackages(data || []);
+          }
+        } catch (error) {
+          console.error('Error fetching trip packages:', error);
+        } finally {
+          setLoadingPackages(false);
+        }
+      };
+      
+      fetchPackages();
+    }
+  }, [trip?.id, isOpen]);
+
   if (!trip) return null;
 
   // Debug logging to see what data we have
@@ -56,7 +95,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
   console.log('Available space value:', trip.available_space);
   console.log('All trip keys:', Object.keys(trip));
 
-  const getStatusBadge = (status: string) => {
+  const getTripStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
       'approved': { label: 'Aprobado', variant: 'default' as const },
@@ -89,7 +128,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
           {/* Status */}
           <div className="flex justify-between items-center">
             <span className="font-medium">Estado actual:</span>
-            {getStatusBadge(trip.status)}
+            {getTripStatusBadge(trip.status)}
           </div>
 
           {/* Traveler Information */}
@@ -395,6 +434,76 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
               <div className="text-xs text-muted-foreground">
                 Viaje registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')} a las {new Date(trip.created_at).toLocaleTimeString('es-GT')}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Packages Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <ShoppingBag className="h-4 w-4" />
+                <span>Paquetes Asignados ({packages.length})</span>
+              </CardTitle>
+              <CardDescription>
+                Paquetes que lleva este viajero en su viaje
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingPackages ? (
+                <div className="text-center text-muted-foreground py-4">
+                  Cargando paquetes...
+                </div>
+              ) : packages.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Este viaje no tiene paquetes asignados aún</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {packages.map((pkg) => (
+                    <div key={pkg.id} className="border rounded-lg p-4 bg-muted/30">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground">{pkg.item_description}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Shopper: {pkg.profiles?.first_name && pkg.profiles?.last_name 
+                              ? `${pkg.profiles.first_name} ${pkg.profiles.last_name}`
+                              : pkg.profiles?.email || 'No disponible'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(pkg.status, { 
+                            packageDestination: pkg.package_destination,
+                            pkg: pkg
+                          })}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Origen:</p>
+                          <p>{pkg.purchase_origin}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Destino:</p>
+                          <p>{pkg.package_destination}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Precio estimado:</p>
+                          <p className="font-semibold text-green-600">${pkg.estimated_price}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-muted-foreground/20">
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                          <span>Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
+                          <span>ID: {pkg.id.slice(0, 8)}...</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
