@@ -8,6 +8,7 @@ import { User, Mail, Lock, Phone, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
+import { logAuthError, getEmailDomain } from "@/lib/authErrorLogger";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -92,6 +93,20 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
       }
     } catch (error: any) {
       console.error('Auth error:', error);
+      
+      // Log auth error
+      logAuthError(
+        mode === 'login' ? 'auth_signin' : 'auth_signup',
+        `${mode === 'login' ? 'Signin' : 'Signup'} failed in modal: ${error.message}`,
+        'error',
+        {
+          emailDomain: getEmailDomain(formData.email),
+          supabaseErrorCode: error.name || error.code,
+          supabaseErrorMsg: error.message,
+          redirectUrl: window.location.origin
+        }
+      );
+
       toast({
         title: "Error",
         description: error.message || "Error en la autenticación",
@@ -118,6 +133,20 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
       // Don't close modal here - user will be redirected
     } catch (error: any) {
       console.error('Google auth error:', error);
+      
+      // Log OAuth error
+      logAuthError(
+        'auth_oauth',
+        `Google OAuth failed in modal: ${error.message}`,
+        'error',
+        {
+          provider: 'google',
+          supabaseErrorCode: error.name || error.code,
+          supabaseErrorMsg: error.message,
+          redirectUrl: window.location.origin
+        }
+      );
+
       toast({
         title: "Error",
         description: "Error al iniciar sesión con Google",

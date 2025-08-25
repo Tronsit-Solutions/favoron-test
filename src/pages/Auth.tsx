@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
+import { logAuthError, getEmailDomain, detectAuthErrorFromUrl } from '@/lib/authErrorLogger';
 
 const PRODUCTION_ORIGIN = 'https://83029cdd-4a24-4c8c-80e4-b84bf2312db5.lovableproject.com';
 
@@ -53,6 +54,9 @@ const Auth = () => {
 
   useEffect(() => {
     console.log('Auth component mounted, location.state:', location.state);
+    
+    // Check for OAuth errors in URL
+    detectAuthErrorFromUrl();
     
     // Check for mode from navigation state
     const mode = location.state?.mode;
@@ -198,6 +202,19 @@ const Auth = () => {
       setAvatarFile(null);
       
     } catch (error: any) {
+      // Log signup error
+      logAuthError(
+        'auth_signup',
+        `Signup failed: ${error.message}`,
+        'error',
+        {
+          emailDomain: getEmailDomain(email),
+          supabaseErrorCode: error.name || error.code,
+          supabaseErrorMsg: error.message,
+          redirectUrl: getSafeOrigin()
+        }
+      );
+
       toast({
         title: "Error al crear cuenta",
         description: error.message === "over_email_send_rate_limit" 
@@ -258,6 +275,18 @@ const Auth = () => {
         window.location.href = '/';
       }
     } catch (error: any) {
+      // Log signin error
+      logAuthError(
+        'auth_signin',
+        `Signin failed: ${error.message}`,
+        'error',
+        {
+          emailDomain: getEmailDomain(email),
+          supabaseErrorCode: error.name || error.code,
+          supabaseErrorMsg: error.message
+        }
+      );
+
       toast({
         title: "Error",
         description: error.message === "Invalid login credentials" 

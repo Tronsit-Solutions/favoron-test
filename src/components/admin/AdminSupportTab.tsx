@@ -413,7 +413,7 @@ const AdminSupportTab = ({
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -426,13 +426,24 @@ const AdminSupportTab = ({
                 <Input
                   value={routeFilter}
                   onChange={(e) => setRouteFilter(e.target.value)}
-                  placeholder="Filtrar por ruta (ej. /checkout)"
+                  placeholder="Filtrar por ruta (ej. /auth)"
                 />
                 <Input
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
                   placeholder="Severidad (error, warning, info)"
                 />
+                <Button
+                  variant={errorSearch.includes('auth_') || routeFilter.includes('/auth') ? "default" : "outline"}
+                  onClick={() => {
+                    setErrorSearch('auth_');
+                    setRouteFilter('/auth');
+                    setSeverity('');
+                  }}
+                  className="w-full"
+                >
+                  🔐 Filtro Auth
+                </Button>
               </div>
 
               <div className="text-sm text-muted-foreground">
