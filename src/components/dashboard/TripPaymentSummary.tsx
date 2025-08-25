@@ -18,7 +18,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   trip, 
   userProfile 
 }) => {
-  const { tripPayment, loading, createPaymentOrder } = useTripPayments(trip.id);
+  const { tripPayment, loading, isCreating, createPaymentOrder } = useTripPayments(trip.id);
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [packageCounts, setPackageCounts] = useState<{total: number, completed: number} | null>(null);
 
@@ -163,8 +163,9 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                         onClick={() => setShowBankingModal(true)}
                         className="w-full h-7 text-xs py-0"
                         size="sm"
+                        disabled={isCreating}
                       >
-                        Solicitar {formatCurrency(tripPayment.accumulated_amount)}
+                        {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
                       </Button>
                     </div>
                   ) : (

@@ -18,6 +18,7 @@ export interface TripPaymentAccumulator {
 export const useTripPayments = (tripId?: string) => {
   const [tripPayment, setTripPayment] = useState<TripPaymentAccumulator | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
   const fetchTripPayment = async () => {
@@ -46,6 +47,8 @@ export const useTripPayments = (tripId?: string) => {
           .select('status')
           .eq('trip_id', tripId)
           .eq('traveler_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (!paymentError && paymentOrder) {
@@ -71,8 +74,9 @@ export const useTripPayments = (tripId?: string) => {
   };
 
   const createPaymentOrder = async (bankingInfo: any) => {
-    if (!tripPayment || tripPayment.payment_order_created) return;
+    if (!tripPayment || tripPayment.payment_order_created || isCreating) return;
 
+    setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
@@ -146,6 +150,8 @@ export const useTripPayments = (tripId?: string) => {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -193,6 +199,7 @@ export const useTripPayments = (tripId?: string) => {
   return {
     tripPayment,
     loading,
+    isCreating,
     createPaymentOrder,
     refreshTripPayment: fetchTripPayment
   };
