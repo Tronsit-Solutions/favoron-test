@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -338,6 +338,23 @@ const AdminTravelerPaymentsTab = () => {
                 </div>
               </div>
             </div>
+
+            {order.receipt_url && (
+              <div>
+                <Label className="text-sm font-medium">Comprobante de Pago</Label>
+                <div className="bg-muted/30 rounded p-3 mt-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(order.receipt_url, '_blank')}
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Ver Comprobante
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {order.notes && (
               <div>
