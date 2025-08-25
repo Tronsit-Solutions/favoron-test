@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('fetchProfile called for userId:', userId);
       
       // Combinar queries en una sola para reducir requests
-      const [profileResult, roleResult] = await Promise.all([
+      const [profileResult, rolesResult] = await Promise.all([
         supabase
           .from('profiles')
           .select('*')
@@ -94,21 +94,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .from('user_roles')
           .select('*')
           .eq('user_id', userId)
-          .maybeSingle()
       ]);
 
       console.log('Profile result:', profileResult);
-      console.log('Role result:', roleResult);
+      console.log('Roles result:', rolesResult);
 
       if (profileResult.data) {
         console.log('Setting profile:', profileResult.data);
         setProfile(profileResult.data);
       }
-      if (roleResult.data) {
-        console.log('Setting userRole:', roleResult.data);
-        setUserRole(roleResult.data);
+      
+      // Handle multiple roles and prioritize admin
+      if (rolesResult.data && rolesResult.data.length > 0) {
+        const roles = rolesResult.data;
+        console.log('Found roles:', roles);
+        
+        // Prioritize admin role if present
+        const adminRole = roles.find(role => role.role === 'admin');
+        const selectedRole = adminRole || roles[0];
+        
+        console.log('Setting userRole:', selectedRole);
+        setUserRole(selectedRole);
       } else {
-        console.log('No role found, using fallback');
+        console.log('No roles found, using fallback');
         // Fallback role si no se puede cargar
         setUserRole({ 
           id: 'fallback', 
