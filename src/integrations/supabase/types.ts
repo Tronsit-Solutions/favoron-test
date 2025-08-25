@@ -44,6 +44,75 @@ export type Database = {
         }
         Relationships: []
       }
+      client_errors: {
+        Row: {
+          browser: Json | null
+          context: Json | null
+          created_at: string
+          fingerprint: string | null
+          id: string
+          message: string
+          name: string | null
+          referrer: string | null
+          route: string | null
+          session_id: string | null
+          severity: string | null
+          stack: string | null
+          type: string | null
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: Json | null
+          context?: Json | null
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          message: string
+          name?: string | null
+          referrer?: string | null
+          route?: string | null
+          session_id?: string | null
+          severity?: string | null
+          stack?: string | null
+          type?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: Json | null
+          context?: Json | null
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          message?: string
+          name?: string | null
+          referrer?: string | null
+          route?: string | null
+          session_id?: string | null
+          severity?: string | null
+          stack?: string | null
+          type?: string | null
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_errors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_errors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favoron_bank_accounts: {
         Row: {
           account_holder: string
