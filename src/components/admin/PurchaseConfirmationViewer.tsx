@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,13 @@ interface PurchaseConfirmationViewerProps {
     uploadedAt: string;
     type?: string;
     filePath?: string;
+    bucket?: string; // nuevo: si existe, lo usamos
   };
   packageId: string;
   className?: string;
 }
+
+const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts'] as const;
 
 const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className }: PurchaseConfirmationViewerProps) => {
   const [showModal, setShowModal] = useState(false);
@@ -30,7 +34,15 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     if (!signedUrl) {
       generateSignedUrl();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedUrl]);
+
+  const resolveBuckets = (): string[] => {
+    // Si viene bucket en el objeto, lo usamos primero; luego fallback al orden por defecto
+    const preferred = purchaseConfirmation.bucket ? [purchaseConfirmation.bucket] : [];
+    const rest = DEFAULT_BUCKETS_ORDER.filter(b => !preferred.includes(b));
+    return [...preferred, ...rest];
+  };
 
   const generateSignedUrl = async () => {
     if (signedUrl) return signedUrl;
@@ -41,7 +53,6 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
       let filePath: string;
       
       if ('filePath' in purchaseConfirmation && purchaseConfirmation.filePath) {
-        // New format: has filePath
         filePath = purchaseConfirmation.filePath;
       } else {
         // Old format: construct path with packageId
@@ -49,23 +60,32 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
       }
 
       console.log('Attempting to access file at path:', filePath);
-      
-      const { data, error } = await supabase.storage
-        .from('payment-receipts')
-        .createSignedUrl(filePath, 3600); // 1 hour expiry
 
-      if (error) {
-        console.error('Error generating signed URL:', error);
-        toast({
-          title: "Error",
-          description: "No se pudo generar la URL para mostrar el archivo",
-          variant: "destructive",
-        });
-        return null;
+      // Try in preferred bucket, then fallbacks
+      const bucketsToTry = resolveBuckets();
+      console.log('Buckets to try for purchase confirmation:', bucketsToTry);
+
+      for (const bucket of bucketsToTry) {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+        if (!error && data?.signedUrl) {
+          console.log('Signed URL generated from bucket:', bucket);
+          setSignedUrl(data.signedUrl);
+          return data.signedUrl;
+        } else {
+          console.warn(`Failed to generate signed URL from ${bucket}`, error);
+        }
       }
 
-      setSignedUrl(data.signedUrl);
-      return data.signedUrl;
+      // If all attempts failed
+      toast({
+        title: "Error",
+        description: "No se pudo generar la URL para mostrar el archivo",
+        variant: "destructive",
+      });
+      return null;
     } catch (error) {
       console.error('Error generating signed URL:', error);
       toast({

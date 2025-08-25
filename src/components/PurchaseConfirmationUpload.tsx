@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,10 +57,11 @@ const PurchaseConfirmationUpload = ({
       const fileExtension = file.name.split('.').pop();
       const fileName = `purchase_confirmation_${packageId}_${Date.now()}.${fileExtension}`;
       const filePath = `${user.id}/${fileName}`;
+      const bucketName = 'purchase-confirmations';
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage (purchase-confirmations bucket)
       const { error: uploadError } = await supabase.storage
-        .from('payment-receipts')
+        .from(bucketName)
         .upload(filePath, file);
 
       if (uploadError) {
@@ -72,16 +74,15 @@ const PurchaseConfirmationUpload = ({
         return;
       }
 
-      // Update package status to in_transit when confirmation is uploaded
-      // REMOVED: Let the main flow handle status updates in useDashboardActions
-      // This prevents conflicts with the coordinated document upload flow
-
-      // Call onUpload with file information
+      // Call onUpload with file information (including bucket for clarity)
       onUpload({
         filename: file.name,
         uploadedAt: new Date().toISOString(),
         type: 'purchase_confirmation',
-        filePath: filePath
+        filePath: filePath,
+        bucket: bucketName,
+        mimeType: file.type,
+        size: file.size,
       });
       
       // Send message to chat about the uploaded confirmation
