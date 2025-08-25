@@ -23,6 +23,10 @@ interface ClientErrorRow {
   user_id?: string | null;
   browser?: any | null;
   context?: any | null;
+  profiles?: {
+    first_name?: string | null;
+    last_name?: string | null;
+  } | null;
 }
 
 interface AdminSupportTabProps {
@@ -79,7 +83,12 @@ const AdminSupportTab = ({
     try {
       let query = supabase
         .from('client_errors')
-        .select('*')
+        .select(`
+          *,
+          profiles!client_errors_user_id_fkey (
+            first_name, last_name
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(200);
 
@@ -479,7 +488,16 @@ const AdminSupportTab = ({
                             </TableCell>
                             <TableCell className="align-top text-xs">
                               {e.user_id ? (
-                                <span className="font-mono">{e.user_id.slice(0,8)}…</span>
+                                <div>
+                                  {e.profiles?.first_name && e.profiles?.last_name ? (
+                                    <div className="font-medium">
+                                      {e.profiles.first_name} {e.profiles.last_name}
+                                    </div>
+                                  ) : null}
+                                  <span className="font-mono text-muted-foreground">
+                                    {e.user_id.slice(0,8)}…
+                                  </span>
+                                </div>
                               ) : (
                                 <span className="text-muted-foreground">anónimo</span>
                               )}
