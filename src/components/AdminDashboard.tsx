@@ -25,6 +25,7 @@ import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
+import ClientErrorsTab from "./admin/ClientErrorsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -223,6 +224,11 @@ const AdminDashboard = ({
       badge: packages.filter(p => p.incident_flag).length > 0 ? <NotificationBadge count={packages.filter(p => p.incident_flag).length} /> : undefined
     },
     {
+      value: "errors",
+      label: "Errores",
+      badge: undefined
+    },
+    {
       value: "financial",
       label: "Financiero",
       badge: undefined
@@ -254,7 +260,7 @@ const AdminDashboard = ({
             tabs={adminTabs}
           />
         ) : (
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             {adminTabs.map((tab) => (
               <TabsTrigger
                 key={tab.value}
@@ -315,6 +321,9 @@ const AdminDashboard = ({
           <AdminTravelerPaymentsTab />
         </TabsContent>
 
+        <TabsContent value="errors" className="space-y-4">
+          <ClientErrorsTab />
+        </TabsContent>
 
         <TabsContent value="support" className="space-y-4">
           <AdminSupportTab 
