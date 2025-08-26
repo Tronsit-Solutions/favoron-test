@@ -101,7 +101,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
               <h3 className="font-semibold">Ventana para Recibir Paquetes</h3>
             </div>
             <div className="bg-muted/30 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
                 <div>
                   <div className="text-sm font-medium">Primer día</div>
                   <div className="text-sm text-muted-foreground">
