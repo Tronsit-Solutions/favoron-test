@@ -499,7 +499,7 @@ const QuoteDialog = ({
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
                 <Textarea
                   id="message"
-                  placeholder="Añade cualquier comentario sobre este pedido..."
+                  placeholder=""
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={3}
