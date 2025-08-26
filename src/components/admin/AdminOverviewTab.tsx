@@ -34,7 +34,7 @@ const AdminOverviewTab = ({
           ) : (
             <div className="space-y-2">
               {approvedPackages.map(pkg => (
-                <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
+                <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4">
                   <div className="flex-1">
                     <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
@@ -47,7 +47,7 @@ const AdminOverviewTab = ({
                       Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
                     </p>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0 w-full sm:w-auto">
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -95,7 +95,7 @@ const AdminOverviewTab = ({
           ) : (
             <div className="space-y-2">
               {packages.filter(pkg => pkg.status === 'payment_pending').map(pkg => (
-                <div key={pkg.id} className="flex items-center justify-between p-3 border rounded">
+                <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4">
                   <div className="flex-1">
                     <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ const AdminOverviewTab = ({
                       </p>
                     )}
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0 w-full sm:w-auto">
                     <Button 
                       size="sm" 
                       variant="outline"
