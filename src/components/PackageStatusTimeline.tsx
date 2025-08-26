@@ -1,4 +1,3 @@
-
 import { Check, Clock, Package, Truck, MapPin, Building } from "lucide-react";
 
 interface PackageStatusTimelineProps {
@@ -115,21 +114,21 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
   };
 
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 w-full ${className}`}>
-      <div className="flex items-center space-x-2 mb-3">
-        <Package className="h-4 w-4 text-blue-600" />
-        <p className="text-sm font-medium text-blue-800">Estado del Paquete</p>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-2 w-full ${className}`}>
+      <div className="flex items-center space-x-1.5 mb-2">
+        <Package className="h-3 w-3 text-blue-600" />
+        <p className="text-xs font-medium text-blue-800">Estado del Paquete</p>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-1">
         {filteredStatuses.map((status, index) => {
           const state = getStatusState(index);
           const Icon = status.icon;
           
           return (
-            <div key={status.key} className="flex items-center space-x-3">
+            <div key={status.key} className="flex items-center space-x-2">
               <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center border-2 flex-shrink-0
+                w-4 h-4 rounded-full flex items-center justify-center border flex-shrink-0
                 ${state === 'completed' 
                   ? 'bg-green-500 border-green-500 text-white' 
                   : state === 'current'
@@ -138,29 +137,29 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
                 }
               `}>
                 {state === 'completed' ? (
-                  <Check className="h-3 w-3" />
+                  <Check className="h-2 w-2" />
                 ) : state === 'current' ? (
-                  <Icon className="h-3 w-3" />
+                  <Icon className="h-2 w-2" />
                 ) : (
-                  <Clock className="h-3 w-3" />
+                  <Clock className="h-2 w-2" />
                 )}
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${
+                <p className={`text-xs font-medium ${
                   state === 'pending' ? 'text-gray-500' : 'text-blue-800'
                 }`}>
                   {status.label}
                 </p>
                 {state === 'current' && (
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-[10px] text-blue-600 mt-0.5">
                     {status.description}
                   </p>
                 )}
               </div>
               
               {state === 'completed' && (
-                <div className="text-sm text-green-600 font-medium">✓</div>
+                <div className="text-xs text-green-600 font-medium">✓</div>
               )}
             </div>
           );
