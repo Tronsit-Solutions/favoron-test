@@ -46,7 +46,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-2xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-auto">
+      <DialogContent className="w-full max-w-2xl max-h-[95vh] overflow-y-auto mx-4 sm:mx-auto">
         <DialogHeader className="px-2 sm:px-6 pt-4 pb-2">
           <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-left">
             <span className="flex items-center gap-2 text-base sm:text-lg">
