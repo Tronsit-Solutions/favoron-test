@@ -196,7 +196,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                 <h3 className="font-semibold">Capacidad Disponible</h3>
               </div>
               <div className="bg-muted/30 rounded-lg p-4">
-                <div className="text-lg font-medium">{trip.available_space} libras</div>
+                <div className="text-lg font-medium">{trip.available_space} kg</div>
               </div>
             </div>
           )}
