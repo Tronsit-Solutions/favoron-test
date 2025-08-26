@@ -24,9 +24,6 @@ const PackageQuoteInfo = ({ quote, quoteExpiresAt, onQuoteExpire }: PackageQuote
         <p className="text-xs opacity-90">
           El monto cotizado incluye la tarifa completa del servicio: comisión Favorón, cobertura de seguro y compensación para el viajero.
         </p>
-        {quote.message && (
-          <p className="italic">"{quote.message}"</p>
-        )}
       </div>
     </StatusAlert>
   );
