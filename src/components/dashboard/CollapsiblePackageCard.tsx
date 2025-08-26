@@ -275,9 +275,17 @@ const CollapsiblePackageCard = ({
               </div>
             )}
 
+            {/* Payment Upload Section - Prominent for payment_pending */}
+            {pkg.status === 'payment_pending' && viewMode === 'user' && (
+              <div className="mb-6">
+                <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                  console.log('Payment receipt uploaded successfully:', updatedPkg);
+                }} />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
-
 
                 {/* Show traveler confirmation when package is received */}
                 <TravelerConfirmationDisplay pkg={pkg} />
@@ -304,12 +312,12 @@ const CollapsiblePackageCard = ({
                 )}
                 
                 <ShopperPackageDetails pkg={pkg} />
-                <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                  // PaymentReceiptUpload ya actualizó la base de datos correctamente
-                  // El sistema de tiempo real debería actualizar el estado automáticamente
-                  // No necesitamos hacer nada adicional aquí
-                  console.log('Payment receipt uploaded successfully:', updatedPkg);
-                }} />
+                {/* Show ShopperPackageInfo only if not payment_pending (already shown prominently above) */}
+                {pkg.status !== 'payment_pending' && (
+                  <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                    console.log('Package updated successfully:', updatedPkg);
+                  }} />
+                )}
                 {renderActionButtons()}
               </div>
 

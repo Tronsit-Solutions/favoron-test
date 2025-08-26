@@ -145,126 +145,100 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
   if (uploadedFile) {
     return (
-      <Card className="border-success">
-        <CardHeader className="pb-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
-              <Check className="h-4 w-4 text-success" />
-            </div>
-            <div>
-              <CardTitle className="text-success text-base">Comprobante de pago subido</CardTitle>
-              <CardDescription className="text-success/80">
-                Tu pago está siendo verificado
-              </CardDescription>
-            </div>
+      <div className="bg-success/10 border border-success/30 rounded-lg p-3">
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Check className="h-3 w-3 text-success" />
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="bg-success/5 border border-success/20 rounded-lg p-3">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-4 w-4 text-success" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-success">{uploadedFile.filename}</p>
-                <p className="text-xs text-success/80">
-                  Subido el {new Date(uploadedFile.uploadedAt).toLocaleDateString('es-GT')}
-                </p>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-success">Comprobante subido</p>
+            <p className="text-xs text-success/80 truncate">{uploadedFile.filename}</p>
           </div>
-          <p className="text-xs text-success/80 mt-2">
-            El administrador verificará tu pago y confirmará tu pedido pronto.
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+        <p className="text-xs text-success/80">
+          El administrador verificará tu pago pronto.
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card className="border-primary/20">
-      <CardHeader className="pb-3">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-            <Upload className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-foreground text-base">Subir comprobante de pago</CardTitle>
-            <CardDescription>
-              Sube tu comprobante de transferencia bancaria
-            </CardDescription>
-          </div>
+    <div className="bg-warning/10 border-2 border-warning/40 rounded-lg p-3 space-y-3">
+      {/* Header */}
+      <div className="flex items-center space-x-2">
+        <div className="w-6 h-6 bg-warning/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <Upload className="h-3 w-3 text-warning" />
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div
-          className="border-2 border-dashed border-primary/30 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {uploading ? (
-            <div className="space-y-2">
-              <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto" />
-              <p className="text-sm text-foreground">Subiendo comprobante...</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Upload className="h-12 w-12 text-primary/60 mx-auto" />
-              <p className="text-sm text-foreground font-medium">
-                Arrastra tu comprobante aquí o haz clic para seleccionar
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Formatos permitidos: JPG, PNG, PDF • Máximo 5MB
-              </p>
-            </div>
-          )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-warning">¡Sube tu comprobante de pago!</h3>
+          <p className="text-xs text-foreground/80">Monto: Q{parseFloat((pkg.quote as any)?.totalPrice || '0').toFixed(2)}</p>
         </div>
+      </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".jpg,.jpeg,.png,.pdf"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
-        <div className="mt-4 p-2 bg-info/5 border border-info/20 rounded-lg">
-          <div className="space-y-2">
-            <p className="text-xs text-foreground">
-              <strong>Monto:</strong> Q{parseFloat((pkg.quote as any)?.totalPrice || '0').toFixed(2)} • <strong>Datos bancarios Favorón S.A.:</strong>
+      {/* Upload Area */}
+      <div
+        className="border-2 border-dashed border-warning/50 rounded-lg p-4 text-center hover:border-warning/70 transition-colors cursor-pointer bg-warning/5"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {uploading ? (
+          <div className="space-y-1">
+            <Loader2 className="h-8 w-8 text-warning animate-spin mx-auto" />
+            <p className="text-xs text-foreground">Subiendo...</p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <Upload className="h-8 w-8 text-warning/70 mx-auto" />
+            <p className="text-xs text-foreground font-medium">
+              Arrastra tu comprobante o haz clic aquí
             </p>
-            
-            <div className="bg-background/50 border border-info/30 rounded-md p-2">
-              {bankLoading ? (
-                <p className="text-xs text-muted-foreground">Cargando información bancaria...</p>
-              ) : bankAccount ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Banco:</span>{' '}
-                    <span className="font-medium text-foreground">{bankAccount.bank_name}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Titular:</span>{' '}
-                    <span className="font-medium text-foreground">{bankAccount.account_holder}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Cuenta:</span>{' '}
-                    <span className="font-medium text-foreground">{bankAccount.account_number}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Tipo:</span>{' '}
-                    <span className="font-medium text-foreground">{bankAccount.account_type}</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Información bancaria no disponible. Contacta a soporte.
-                </p>
-              )}
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG, PDF • Max 5MB
+            </p>
+          </div>
+        )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".jpg,.jpeg,.png,.pdf"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
+      {/* Banking Info - Compact */}
+      <div className="bg-info/5 border border-info/20 rounded-md p-2">
+        <p className="text-xs font-medium text-foreground mb-1">Datos bancarios Favorón:</p>
+        {bankLoading ? (
+          <p className="text-xs text-muted-foreground">Cargando...</p>
+        ) : bankAccount ? (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            <div>
+              <span className="text-muted-foreground">Banco:</span>{' '}
+              <span className="font-medium">{bankAccount.bank_name}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Titular:</span>{' '}
+              <span className="font-medium">{bankAccount.account_holder}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Cuenta:</span>{' '}
+              <span className="font-medium">{bankAccount.account_number}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Tipo:</span>{' '}
+              <span className="font-medium">{bankAccount.account_type}</span>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Info no disponible. Contacta soporte.
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 
