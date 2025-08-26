@@ -195,11 +195,7 @@ const QuoteDialog = ({
                                 )}
                               </div>
                               <div className="text-right">
-                                <p className="text-lg font-bold text-primary">${totalPrice.toFixed(2)}</p>
                                 <p className="text-xs text-muted-foreground">Subtotal</p>
-                                {adminTip > 0 && (
-                                  <p className="text-xs font-medium text-green-600">+Q{adminTip.toFixed(2)} tip</p>
-                                )}
                               </div>
                             </div>
                           </div>
