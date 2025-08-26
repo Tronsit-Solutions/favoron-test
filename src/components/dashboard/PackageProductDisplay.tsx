@@ -88,7 +88,7 @@ const PackageProductDisplay = ({
         </div>
         <StatusAlert variant="info">
           <div className="space-y-1">
-            <p className="font-medium">
+            <p className="font-medium text-foreground">
               Total estimado: ${products.reduce((sum: number, p: Product) => {
                 const price = parseFloat(p.estimatedPrice || '0');
                 const quantity = parseInt(p.quantity || '1');
