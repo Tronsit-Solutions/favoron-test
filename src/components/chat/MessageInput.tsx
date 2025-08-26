@@ -77,31 +77,32 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
   };
 
   return (
-    <div className="border-t pt-4">
-      <div className="flex gap-2">
+    <div className="border-t pt-3 sm:pt-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
         <div className="flex-1">
           <Textarea
-            placeholder="Escribe un mensaje... (máx 300 caracteres)"
+            placeholder="Escribe un mensaje..."
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, 300))}
             onKeyDown={handleKeyDown}
-            className="min-h-[60px] resize-none"
+            className="min-h-[50px] sm:min-h-[60px] resize-none text-sm sm:text-base"
             disabled={isSending || disabled}
           />
-          <div className="flex justify-between items-center mt-1">
+          <div className="flex justify-between items-center mt-2">
             <span className="text-xs text-muted-foreground">
               {message.length}/300
             </span>
-            <div className="flex gap-2">
-              <label htmlFor="file-upload">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <label htmlFor="file-upload" className="flex-1 sm:flex-none">
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
                   disabled={isUploading || disabled}
                   asChild
+                  className="w-full sm:w-auto h-9 text-xs sm:text-sm"
                 >
-                  <span className="cursor-pointer">
+                  <span className="cursor-pointer flex items-center justify-center">
                     <Paperclip className="h-3 w-3 mr-1" />
                     {isUploading ? 'Subiendo...' : 'Adjuntar'}
                   </span>
@@ -119,6 +120,7 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
                 size="sm" 
                 onClick={handleSendMessage}
                 disabled={!message.trim() || isSending || disabled}
+                className="w-full sm:w-auto h-9 text-xs sm:text-sm font-medium"
               >
                 <Send className="h-3 w-3 mr-1" />
                 {isSending ? 'Enviando...' : 'Enviar'}

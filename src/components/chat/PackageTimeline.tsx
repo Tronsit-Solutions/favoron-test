@@ -48,19 +48,20 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-6">
-        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Historial & Mensajes
+      <div className="p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline">Historial & Mensajes</span>
+          <span className="sm:hidden">Chat</span>
         </h3>
 
         {/* Timeline */}
-        <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-64 sm:max-h-96 overflow-y-auto scrollbar-thin">
           {messages.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>No hay mensajes aún</p>
-              <p className="text-sm">Inicia la conversación enviando un mensaje</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm sm:text-base">No hay mensajes aún</p>
+              <p className="text-xs sm:text-sm">Inicia la conversación enviando un mensaje</p>
             </div>
           ) : (
             messages.map((message) => {
