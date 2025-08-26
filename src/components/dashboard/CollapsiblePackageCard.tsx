@@ -265,14 +265,11 @@ const CollapsiblePackageCard = ({
                 )}
               </div>
 
-              {/* Timeline de Estados */}
-              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">📊 Estado del Pedido</h3>
-                <PackageStatusTimeline 
-                  currentStatus={pkg.status} 
-                  deliveryMethod={pkg.delivery_method}
-                />
-              </div>
+              {/* Timeline de Estados - Sin contenedor */}
+              <PackageStatusTimeline 
+                currentStatus={pkg.status} 
+                deliveryMethod={pkg.delivery_method}
+              />
 
               {/* Acciones y Archivos del Usuario */}
               <div className="border rounded-lg p-4 bg-muted/20 h-fit">
