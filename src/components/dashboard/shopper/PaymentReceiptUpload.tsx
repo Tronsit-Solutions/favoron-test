@@ -145,7 +145,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
   if (uploadedFile) {
     return (
-      <div className="bg-success/10 border border-success/30 rounded-lg p-3">
+      <div className="bg-success/10 border border-success/30 rounded-lg p-3 w-[40%] mx-auto">
         <div className="flex items-center space-x-2 mb-2">
           <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
             <Check className="h-3 w-3 text-success" />
@@ -163,7 +163,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <div className="bg-warning/10 border-2 border-warning/40 rounded-lg p-3 space-y-3 h-fit">
+    <div className="bg-warning/10 border-2 border-warning/40 rounded-lg p-3 space-y-3 h-fit w-[40%] mx-auto">
       {/* Header - More compact */}
       <div className="flex items-center space-x-2">
         <div className="w-4 h-4 bg-warning/20 rounded-full flex items-center justify-center flex-shrink-0">
