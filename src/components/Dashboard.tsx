@@ -390,7 +390,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                       <TripCard
                         key={trip.id}
                         trip={trip}
-                        getStatusBadge={getStatusBadge}
+                        getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
                         onEditTrip={handleEditTrip}
                         currentUser={currentUser}
                         travelerProfile={currentUser} // Pasar el perfil actual como travelerProfile

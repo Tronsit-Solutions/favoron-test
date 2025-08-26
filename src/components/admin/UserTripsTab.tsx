@@ -80,7 +80,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(trip.status)}
+                      {getStatusBadge(trip.status, { context: 'trip' })}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1 text-sm">

@@ -6,7 +6,7 @@ import { Package, Plane } from "lucide-react";
 interface RecentActivityProps {
   packages: any[];
   trips: any[];
-  getStatusBadge: (status: string) => JSX.Element;
+  getStatusBadge: (status: string, options?: any) => JSX.Element;
   currentUserId?: string;
 }
 
@@ -72,7 +72,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge, currentUserId }: Rece
                       </p>
                     </div>
                   </div>
-                  {getStatusBadge(item.status)}
+                   {getStatusBadge(item.status, { context: 'trip' })}
                 </div>
               ))}
           </div>

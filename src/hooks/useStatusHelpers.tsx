@@ -32,6 +32,7 @@ export const useStatusHelpers = () => {
       isQuoteExpired?: boolean; 
       rejectionReason?: string;
       pkg?: any; // Add package object for expiration detection
+      context?: 'package' | 'trip'; // Add context to differentiate between package and trip
     }
   ) => {
     const isObj = typeof packageDestinationOrOptions === 'object' && packageDestinationOrOptions !== null;
@@ -46,6 +47,9 @@ export const useStatusHelpers = () => {
       : undefined;
     const pkg = isObj
       ? (packageDestinationOrOptions as { pkg?: any }).pkg
+      : undefined;
+    const context = isObj
+      ? (packageDestinationOrOptions as { context?: 'package' | 'trip' }).context
       : undefined;
 
     // Check for real-time expiration states
@@ -65,7 +69,14 @@ export const useStatusHelpers = () => {
 
     const statusConfig = {
       pending_approval: { label: "Pendiente de aprobación", variant: "warning" as const },
-      approved: { label: isReapproved ? "Re-aprobado" : "Pendiente de asignar a un viajero", variant: isReapproved ? "warning" as const : "success" as const },
+      approved: { 
+        label: isReapproved 
+          ? "Re-aprobado" 
+          : context === 'trip' 
+            ? "Aprobado" 
+            : "Pendiente de asignar a un viajero", 
+        variant: isReapproved ? "warning" as const : "success" as const 
+      },
       matched: { label: "Emparejado", variant: "success" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
       quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
