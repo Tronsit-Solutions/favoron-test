@@ -170,9 +170,21 @@ const TravelerPackageCard = ({
           <div className="flex flex-wrap gap-2">
             {pkg.status === 'matched' && (
               <div className="text-sm text-muted-foreground">
-                {pkg.admin_assigned_tip 
-                  ? `Tip asignado por admin: Q${Number(pkg.admin_assigned_tip).toFixed(2)}` 
-                  : 'Esperando tip asignado por admin'}
+                {(() => {
+                  // Calculate tip from products_data first, fallback to admin_assigned_tip
+                  let totalTip = 0;
+                  if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+                    totalTip = pkg.products_data.reduce((sum: number, product: any) => {
+                      return sum + parseFloat(product.adminAssignedTip || '0');
+                    }, 0);
+                  } else {
+                    totalTip = parseFloat(pkg.admin_assigned_tip || '0');
+                  }
+                  
+                  return totalTip > 0 
+                    ? `Tip asignado por admin: Q${totalTip.toFixed(2)}` 
+                    : 'Esperando tip asignado por admin';
+                })()}
               </div>
             )}
 

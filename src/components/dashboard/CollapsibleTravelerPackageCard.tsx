@@ -77,7 +77,13 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const getTipAmount = () => {
-    return parseFloat(pkg.admin_assigned_tip || 0);
+    // First try to get tip from products_data, fallback to admin_assigned_tip
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      return pkg.products_data.reduce((sum: number, product: any) => {
+        return sum + parseFloat(product.adminAssignedTip || '0');
+      }, 0);
+    }
+    return parseFloat(pkg.admin_assigned_tip || '0');
   };
 
   return (

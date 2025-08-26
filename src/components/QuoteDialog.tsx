@@ -172,11 +172,8 @@ const QuoteDialog = ({
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
                         
-                        // For single products, check if tip is in admin_assigned_tip first, then quote
-                        const isSingle = packageDetails.products_data.length === 1;
-                        const fallbackSingleTip = isSingle ? 
-                          (parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0')) : 0;
-                        const adminTip = product.adminAssignedTip || fallbackSingleTip;
+                        // Always use adminAssignedTip from products_data - this is the traveler's tip without Favoron's fee
+                        const adminTip = parseFloat(product.adminAssignedTip || '0');
                         
                         return (
                           <div key={index} className="bg-muted/30 rounded p-2">
@@ -264,16 +261,15 @@ const QuoteDialog = ({
                                 <p className="font-medium text-green-600">
                                   {isAdminAssignedTip ? 'Tip total:' : userType === 'user' ? 'Cotización total:' : 'Tip total:'}
                                 </p>
-                                <p className="text-lg font-bold text-green-600">
-                                  Q{(() => {
-                                    const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
-                                      const fallbackSingleTip = isSingle ? 
-                                        (parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0')) : 0;
-                                      return sum + (product.adminAssignedTip || fallbackSingleTip);
-                                    }, 0);
-                                    return (isAdminAssignedTip || userType === 'admin') ? totalTip.toFixed(2) : (totalTip * 1.4).toFixed(2);
-                                  })()}
-                                </p>
+                                 <p className="text-lg font-bold text-green-600">
+                                   Q{(() => {
+                                     const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
+                                       // Always use adminAssignedTip from products_data
+                                       return sum + parseFloat(product.adminAssignedTip || '0');
+                                     }, 0);
+                                     return (isAdminAssignedTip || userType === 'admin') ? totalTip.toFixed(2) : (totalTip * 1.4).toFixed(2);
+                                   })()}
+                                 </p>
                               </div>
                             );
                           })()}
@@ -310,18 +306,19 @@ const QuoteDialog = ({
                           })()}</p>
                           <p className="text-xs text-muted-foreground">Total</p>
                         </div>
-                        {(() => {
-                          // Show tip for old format (no products_data)
-                          const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0');
-                          return fallbackTip > 0 && (
-                            <div>
-                              {isAdminAssignedTip ? (
-                                // Traveler sees admin assigned tip amount (without fee)
-                                <>
-                                  <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
-                                  <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                </>
-                              ) : userType === 'user' ? (
+                         {(() => {
+                           // Fallback for old format packages - use admin_assigned_tip with temporary fallback to quote
+                           // After migration, all packages should have products_data with adminAssignedTip
+                           const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0');
+                           return fallbackTip > 0 && (
+                             <div>
+                               {isAdminAssignedTip ? (
+                                 // Traveler sees admin assigned tip amount (without fee)
+                                 <>
+                                   <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
+                                   <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                 </>
+                               ) : userType === 'user' ? (
                                 // Shopper sees final price (tip + 40%)
                                 <>
                                   <p className="text-lg font-bold text-green-600">Q{(fallbackTip * 1.4).toFixed(2)}</p>
