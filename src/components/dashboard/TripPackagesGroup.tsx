@@ -51,7 +51,9 @@ const TripPackagesGroup = ({
                     <MapPin className="h-4 w-4 text-primary" />
                     <span>{trip.from_city} → {trip.to_city}</span>
                   </div>
-                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  <div className="flex items-center gap-2 p-1 sm:p-0 rounded-md hover:bg-muted/50 transition-colors">
+                    {isExpanded ? <ChevronUp className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />}
+                  </div>
                 </CardTitle>
                 
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
