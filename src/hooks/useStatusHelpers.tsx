@@ -82,7 +82,7 @@ export const useStatusHelpers = () => {
 
     const statusConfig = {
       pending_approval: { label: "Pendiente", variant: "warning" as const },
-      approved: { label: isReapproved ? "Re-aprobado" : "Aprobado", variant: isReapproved ? "warning" as const : "success" as const },
+      approved: { label: isReapproved ? "Re-aprobado" : "Pendiente de asignar a un viajero", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
       assignment_expired: { label: "⏰ Asignación Expirada", variant: "destructive" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
