@@ -38,9 +38,9 @@ const ProductTipAssignmentModal = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [tipValues, setTipValues] = useState<string[]>([]);
   
-  // Update products and tipValues when initialProducts changes
+  // Initialize only once when modal opens
   useEffect(() => {
-    if (initialProducts.length === 0) return;
+    if (initialProducts.length === 0 || products.length > 0) return;
     
     console.log('🔍 DEBUG Setting products from initialProducts:', initialProducts);
     const mappedProducts = initialProducts.map(p => ({
@@ -49,12 +49,14 @@ const ProductTipAssignmentModal = ({
     }));
     setProducts(mappedProducts);
     
-    // Initialize tipValues with existing tips or empty string
-    const initialTipValues = mappedProducts.map(p => p.adminAssignedTip ? p.adminAssignedTip.toString() : '');
+    // Initialize tipValues with existing tips or '0'
+    const initialTipValues = mappedProducts.map(p => 
+      p.adminAssignedTip && p.adminAssignedTip > 0 ? p.adminAssignedTip.toString() : '0'
+    );
     setTipValues(initialTipValues);
     console.log('🔍 DEBUG Initialized products:', mappedProducts);
     console.log('🔍 DEBUG Initialized tipValues:', initialTipValues);
-  }, [initialProducts]);
+  }, [initialProducts.length]); // Only depend on length, not the full array
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -211,7 +213,7 @@ const ProductTipAssignmentModal = ({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={tipValues[index] || ''}
+                            value={tipValues[index] || '0'}
                             onChange={(e) => updateTipValue(index, e.target.value)}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
