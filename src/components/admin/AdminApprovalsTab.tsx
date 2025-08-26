@@ -105,73 +105,80 @@ const AdminApprovalsTab = ({
               ) : (
                 <div className="space-y-3">
                   {pendingPackages.map(pkg => (
-                    <div key={pkg.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium">
+                    <div key={pkg.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                        <div className="flex-1 space-y-1">
+                          <h4 className="font-medium text-sm sm:text-base break-words">
                             {pkg.item_description}
                           </h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                               Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
                                 (pkg as any).profiles.username || `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.email || pkg.user_id
                                 : pkg.user_id}
                             </p>
                             {(pkg as any).profiles && (
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-xs sm:text-sm text-muted-foreground break-words">
                                 Email: {(pkg as any).profiles.email || 'Sin email'} • Tel: {(pkg as any).profiles.phone_number || 'Sin teléfono'}
                               </p>
                             )}
-                           <p className="text-sm text-muted-foreground">
+                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
                            </p>
-                           <p className="text-sm text-muted-foreground">
+                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                            </p>
-                           <p className="text-sm text-muted-foreground">
+                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Método de entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
                            </p>
                           {pkg.item_link && (
-                            <p className="text-sm">
+                            <p className="text-xs sm:text-sm break-words">
                               <strong>Link:</strong>{' '}
-                              <a href={pkg.item_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                              <a href={pkg.item_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
                                 Ver producto
                               </a>
                             </p>
                           )}
                           {pkg.additional_notes && (
-                            <p className="text-sm">
+                            <p className="text-xs sm:text-sm break-words">
                               <strong>Notas:</strong> {pkg.additional_notes}
                             </p>
                           )}
                         </div>
-                        {getStatusBadge(pkg.status)}
+                        <div className="flex-shrink-0 self-start">
+                          {getStatusBadge(pkg.status)}
+                        </div>
                       </div>
                       
-                      <div className="flex space-x-2 mt-3 justify-end">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:justify-end pt-3 border-t border-border/50">
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => onViewPackageDetail(pkg)}
+                          className="w-full sm:w-auto text-xs sm:text-sm"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Ver Detalles
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="success"
-                          onClick={() => onApproveReject('package', pkg.id, 'approve')}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Aprobar
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => onApproveReject('package', pkg.id, 'reject')}
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Rechazar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="success"
+                            onClick={() => onApproveReject('package', pkg.id, 'approve')}
+                            className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          >
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Aprobar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => onApproveReject('package', pkg.id, 'reject')}
+                            className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          >
+                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Rechazar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -196,54 +203,61 @@ const AdminApprovalsTab = ({
               ) : (
                 <div className="space-y-3">
                   {pendingTrips.map(trip => (
-                    <div key={trip.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-medium">{trip.from_city} → {trip.to_city}</h4>
-                          <p className="text-sm text-muted-foreground">
+                    <div key={trip.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                        <div className="flex-1 space-y-1">
+                          <h4 className="font-medium text-sm sm:text-base break-words">{trip.from_city} → {trip.to_city}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                               {(trip as any).profiles ? 
                                 `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || trip.user_id
                                 : trip.user_id}
                             </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Recepción paquetes: {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
                           </p>
                         </div>
-                        {getStatusBadge(trip.status)}
+                        <div className="flex-shrink-0 self-start">
+                          {getStatusBadge(trip.status)}
+                        </div>
                       </div>
                       
-                      <div className="flex space-x-2 mt-3 justify-end">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:justify-end pt-3 border-t border-border/50">
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => onViewTripDetail(trip)}
+                          className="w-full sm:w-auto text-xs sm:text-sm"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Ver Detalles
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="success"
-                          onClick={() => onApproveReject('trip', trip.id, 'approve')}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Aprobar
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => onApproveReject('trip', trip.id, 'reject')}
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Rechazar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="success"
+                            onClick={() => onApproveReject('trip', trip.id, 'approve')}
+                            className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          >
+                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Aprobar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => onApproveReject('trip', trip.id, 'reject')}
+                            className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          >
+                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Rechazar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
