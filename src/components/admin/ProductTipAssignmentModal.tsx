@@ -138,83 +138,91 @@ const ProductTipAssignmentModal = ({
             const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
             
             return (
-              <Card key={index} className="border">
-                <CardContent className="p-3 space-y-2">
-                  {/* Product Header */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Producto #{index + 1}</span>
-                    <Badge variant="outline" className="text-xs">${productValue.toFixed(2)}</Badge>
-                  </div>
-                  
-                  {/* Product Info */}
-                  <div className="text-xs bg-muted/50 p-2 rounded">
-                    <p className="font-medium text-foreground mb-1">
-                      {product.itemDescription || 'Sin descripción'}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span>${product.estimatedPrice || '0.00'} × {product.quantity || '1'}</span>
-                      {product.itemLink && (
-                        <a 
-                          href={product.itemLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Ver
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Tip Assignment */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Label htmlFor={`tip-${index}`} className="text-xs text-muted-foreground">
-                        Tip (Q)
-                      </Label>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
-                        <Input
-                          id={`tip-${index}`}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={product.adminAssignedTip || ''}
-                          onChange={(e) => updateProductTip(index, parseFloat(e.target.value) || 0)}
-                          placeholder="0.00"
-                          className="h-8 text-xs pl-6"
-                        />
+              <Card key={index} className="border border-border/50 bg-card">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Left Side - Product Information */}
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
+                        {product.itemLink && (
+                          <a 
+                            href={product.itemLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                      
+                      <p className="text-sm font-medium leading-tight">
+                        {product.itemDescription || 'Sin descripción'}
+                      </p>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                        <span>${product.estimatedPrice || '0.00'}</span>
+                        <span>×</span>
+                        <span>{product.quantity || '1'}</span>
+                        <span>=</span>
+                        <span className="font-semibold text-foreground">${productValue.toFixed(2)}</span>
                       </div>
                     </div>
                     
-                    {/* Quick buttons */}
-                    <div className="flex gap-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateProductTip(index, productValue * 0.1)}
-                        className="h-8 px-2 text-xs"
-                      >
-                        10%
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateProductTip(index, productValue * 0.15)}
-                        className="h-8 px-2 text-xs"
-                      >
-                        15%
-                      </Button>
+                    {/* Right Side - Tip Assignment */}
+                    <div className="flex items-center gap-2 min-w-[200px]">
+                      <div className="flex-1">
+                        <Label htmlFor={`tip-${index}`} className="text-xs text-muted-foreground">
+                          Tip
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
+                          <Input
+                            id={`tip-${index}`}
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={product.adminAssignedTip || ''}
+                            onChange={(e) => updateProductTip(index, parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                            className="h-8 text-xs pl-6 font-mono"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateProductTip(index, productValue * 0.1)}
+                          className="h-8 px-2 text-xs"
+                        >
+                          10%
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateProductTip(index, productValue * 0.15)}
+                          className="h-8 px-2 text-xs"
+                        >
+                          15%
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
                   {/* Status indicator */}
                   {product.adminAssignedTip && productValue > 0 && (
-                    <div className="text-xs text-success bg-success/10 p-1 rounded">
-                      ✓ {((product.adminAssignedTip / productValue) * 100).toFixed(1)}% del valor
+                    <div className="mt-2 pt-2 border-t border-border/30">
+                      <div className="text-xs text-muted-foreground flex justify-between items-center">
+                        <span>Porcentaje del valor:</span>
+                        <Badge variant="secondary" className="text-xs font-mono">
+                          {((product.adminAssignedTip / productValue) * 100).toFixed(1)}%
+                        </Badge>
+                      </div>
                     </div>
                   )}
                 </CardContent>
