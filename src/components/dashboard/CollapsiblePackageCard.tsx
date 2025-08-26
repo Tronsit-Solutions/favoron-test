@@ -262,7 +262,7 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Payment Receipt Upload Section */}
+                {/* Payment Receipt Upload and Timeline Section */}
                 {(pkg.status === 'quote_accepted' || 
                   pkg.status === 'payment_pending' || 
                   pkg.status === 'payment_confirmed' ||
@@ -273,10 +273,16 @@ const CollapsiblePackageCard = ({
                   pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <PaymentReceiptUpload 
-                    pkg={pkg}
-                    onUploadComplete={() => {}}
-                  />
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <PaymentReceiptUpload 
+                      pkg={pkg}
+                      onUploadComplete={() => {}}
+                    />
+                    <PackageStatusTimeline 
+                      currentStatus={pkg.status}
+                      deliveryMethod={pkg.delivery_method}
+                    />
+                  </div>
                 )}
 
                 {/* Document Upload Section */}
