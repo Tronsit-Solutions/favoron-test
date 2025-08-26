@@ -8,6 +8,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const shopperPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
     const quotesToAccept = shopperPackages.filter(pkg => pkg.status === 'quote_sent').length;
     const paymentsToMake = shopperPackages.filter(pkg => pkg.status === 'quote_accepted').length;
+    const purchasesToMake = shopperPackages.filter(pkg => pkg.status === 'pending_purchase').length;
     const uploadsNeeded = shopperPackages.filter(pkg => 
       pkg.status === 'payment_confirmed' && !pkg.purchase_confirmation
     ).length;
@@ -48,6 +49,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       // Shopper actions
       quotesToAccept,
       paymentsToMake,
+      purchasesToMake,
       uploadsNeeded,
       
       // Traveler actions
@@ -65,7 +67,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
       pendingTravelerPayments,
       
       // Totals
-      shopperTotal: quotesToAccept + paymentsToMake + uploadsNeeded,
+      shopperTotal: quotesToAccept + paymentsToMake + purchasesToMake + uploadsNeeded,
       travelerTotal: quotesToSend + packagesToReceive + officeConfirmationsNeeded,
       adminTotal: paymentsToConfirm + approvalsNeeded + unmatchedPackages + rejectedByTravelers
     };
