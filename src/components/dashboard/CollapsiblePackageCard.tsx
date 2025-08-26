@@ -238,6 +238,74 @@ const CollapsiblePackageCard = ({
           <CardContent className="w-full max-w-full">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[400px]">
               
+              {/* Acciones y Archivos del Usuario - Siempre a la izquierda */}
+              <div className="lg:w-80 lg:flex-shrink-0 border rounded-lg p-4 bg-muted/20 h-fit lg:mr-auto">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
+                
+                {/* Priority Actions Section */}
+                <div className="mb-4">
+                  <ShopperPackagePriorityActions 
+                    pkg={pkg} 
+                    onQuote={onQuote}
+                    onDeletePackage={onDeletePackage}
+                    onRequestRequote={onRequestRequote}
+                  />
+                </div>
+
+                {/* Payment Receipt Upload Section */}
+                {(pkg.status === 'quote_accepted' || 
+                  pkg.status === 'payment_pending' || 
+                  pkg.status === 'payment_confirmed' ||
+                  pkg.status === 'purchased' ||
+                  pkg.status === 'shipped' ||
+                  pkg.status === 'matched' ||
+                  pkg.status === 'in_transit' ||
+                  pkg.status === 'received_by_traveler' ||
+                  pkg.status === 'delivered' ||
+                  pkg.status === 'pending_office_confirmation') && (
+                  <PaymentReceiptUpload 
+                    pkg={pkg}
+                    onUploadComplete={() => {}}
+                  />
+                )}
+
+                {/* Document Upload Section */}
+                {(pkg.status === 'payment_confirmed' || 
+                  pkg.status === 'purchased' ||
+                  pkg.status === 'shipped' ||
+                  pkg.status === 'matched' ||
+                  pkg.status === 'in_transit' ||
+                  pkg.status === 'received_by_traveler' ||
+                  pkg.status === 'delivered' ||
+                  pkg.status === 'pending_office_confirmation') && (
+                  <UploadDocuments 
+                    packageId={pkg.id}
+                    currentStatus={pkg.status}
+                    currentConfirmation={pkg.purchase_confirmation}
+                    currentTracking={pkg.tracking_info}
+                    onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+                  />
+                )}
+
+                {/* Uploaded Documents Registry */}
+                <UploadedDocumentsRegistry 
+                  pkg={pkg}
+                  onEditDocument={handleEditDocument}
+                />
+
+                {/* Traveler Confirmation Display */}
+                {(pkg.status === 'matched' || 
+                  pkg.status === 'in_transit' || 
+                  pkg.status === 'received_by_traveler' ||
+                  pkg.status === 'delivered' ||
+                  pkg.status === 'pending_office_confirmation') && (
+                  <TravelerConfirmationDisplay pkg={pkg} />
+                )}
+
+                {/* Edit Actions */}
+                {renderActionButtons()}
+              </div>
+
               {/* Contenido Principal */}
               <div className="flex-1 space-y-4">
                 {/* Información del Producto */}
@@ -273,64 +341,6 @@ const CollapsiblePackageCard = ({
                     currentStatus={pkg.status} 
                     deliveryMethod={pkg.delivery_method}
                   />
-                </div>
-              </div>
-
-              {/* Acciones y Archivos del Usuario - Siempre a la derecha */}
-              <div className="lg:w-80 lg:flex-shrink-0 border rounded-lg p-4 bg-muted/20 h-fit lg:ml-auto">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
-                
-                {/* Priority Actions Section */}
-                {viewMode === 'user' && (
-                  <div className="mb-4">
-                    <ShopperPackagePriorityActions 
-                      pkg={pkg}
-                      onQuote={onQuote}
-                      onDeletePackage={onDeletePackage}
-                      onRequestRequote={onRequestRequote}
-                    />
-                  </div>
-                )}
-
-                {/* Payment Upload Section */}
-                {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
-                  <div className="mb-4">
-                    <PaymentReceiptUpload 
-                      pkg={pkg} 
-                      onUploadComplete={(updatedPkg) => {
-                        console.log('Payment receipt uploaded successfully:', updatedPkg);
-                      }} 
-                    />
-                  </div>
-                )}
-
-                {/* Document Upload Section */}
-                {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
-                  <div className="mb-4">
-                    <UploadDocuments 
-                      packageId={pkg.id}
-                      currentStatus={pkg.status}
-                      currentConfirmation={pkg.purchase_confirmation}
-                      currentTracking={pkg.tracking_info}
-                      onUpload={(type, data) => {
-                        console.log('Documents updated successfully:', type, data);
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Uploaded Documents Registry */}
-                <UploadedDocumentsRegistry
-                  pkg={pkg} 
-                  onEditDocument={handleEditDocument}
-                />
-                
-                {/* Show traveler confirmation when package is received */}
-                <TravelerConfirmationDisplay pkg={pkg} />
-
-                {/* Edit Actions */}
-                <div className="mt-4">
-                  {renderActionButtons()}
                 </div>
               </div>
 
