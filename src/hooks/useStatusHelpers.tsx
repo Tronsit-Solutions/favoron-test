@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Package, Trip } from "@/types";
 
@@ -8,24 +9,8 @@ export const useStatusHelpers = () => {
     return new Date(pkg.quote_expires_at) < new Date();
   };
 
-  const isAssignmentExpired = (pkg: any): boolean => {
-    if (!pkg.matched_assignment_expires_at) return false;
-    return new Date(pkg.matched_assignment_expires_at) < new Date();
-  };
-
   const getExpirationInfo = (pkg: any) => {
     const quoteExp = isQuoteExpired(pkg);
-    const assignmentExp = isAssignmentExpired(pkg);
-    
-    if (assignmentExp && pkg.status === 'matched') {
-      const expiredAt = new Date(pkg.matched_assignment_expires_at);
-      const hoursAgo = Math.floor((Date.now() - expiredAt.getTime()) / (1000 * 60 * 60));
-      return {
-        type: 'assignment_expired',
-        message: `Asignación expirada hace ${hoursAgo}h`,
-        hoursAgo
-      };
-    }
     
     if (quoteExp && pkg.status === 'quote_sent') {
       const expiredAt = new Date(pkg.quote_expires_at);
@@ -68,9 +53,7 @@ export const useStatusHelpers = () => {
     
     if (pkg) {
       const expirationInfo = getExpirationInfo(pkg);
-      if (expirationInfo?.type === 'assignment_expired') {
-        effectiveStatus = 'assignment_expired';
-      } else if (expirationInfo?.type === 'quote_expired') {
+      if (expirationInfo?.type === 'quote_expired') {
         effectiveStatus = 'quote_expired';
       }
     } else if (status === 'quote_sent' && isQuoteExpiredFlag) {
@@ -84,7 +67,6 @@ export const useStatusHelpers = () => {
       pending_approval: { label: "Pendiente de aprobación", variant: "warning" as const },
       approved: { label: isReapproved ? "Re-aprobado" : "Pendiente de asignar a un viajero", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
-      assignment_expired: { label: "⏰ Asignación Expirada", variant: "destructive" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
       quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
       quote_rejected: { label: "Cotización Rechazada", variant: "destructive" as const },
@@ -153,7 +135,6 @@ export const useStatusHelpers = () => {
     hasActionRequired,
     getStatusColor,
     isQuoteExpired,
-    isAssignmentExpired,
     getExpirationInfo
   };
 };
