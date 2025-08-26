@@ -165,9 +165,22 @@ const QuoteDialog = ({
                         
                         return (
                           <div key={index} className="bg-muted/30 rounded p-2">
-                            <p className="text-sm font-medium text-foreground mb-1">
-                              Producto {index + 1}: {product.itemDescription}
-                            </p>
+                            <div className="flex justify-between items-start mb-2">
+                              <p className="text-sm font-medium text-foreground">
+                                Producto {index + 1}: {product.itemDescription}
+                              </p>
+                              {product.itemLink && (
+                                <a 
+                                  href={product.itemLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors ml-2"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  <span className="text-xs">Ver</span>
+                                </a>
+                              )}
+                            </div>
                             <div className="flex justify-between items-center">
                               <div className="text-sm text-muted-foreground">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
