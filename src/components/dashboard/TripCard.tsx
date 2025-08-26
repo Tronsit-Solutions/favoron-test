@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Phone, Edit, CheckCircle, Info } from "lucide-react";
+import { Phone, Edit, CheckCircle, Info } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -73,34 +73,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-
-          {/* Display package receiving address */}
-          {trip.package_receiving_address && (
-            <div className="bg-muted/30 border rounded p-2">
-              <div className="flex items-center space-x-1 mb-1">
-                <Home className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs font-medium">Dirección:</span>
-              </div>
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                <div className="font-medium">{trip.package_receiving_address.recipientName}</div>
-                <div>{trip.package_receiving_address.streetAddress}</div>
-                {trip.package_receiving_address.streetAddress2 && (
-                  <div>{trip.package_receiving_address.streetAddress2}</div>
-                )}
-                <div className="flex items-center justify-between">
-                  <span>{trip.package_receiving_address.cityArea} {trip.package_receiving_address.postalCode && `CP: ${trip.package_receiving_address.postalCode}`}</span>
-                  <div className="flex items-center space-x-1">
-                    <Phone className="h-3 w-3" />
-                    <span>{trip.package_receiving_address.contactNumber}</span>
-                  </div>
-                </div>
-                {trip.package_receiving_address.hotelAirbnbName && (
-                  <div className="text-xs italic">{trip.package_receiving_address.hotelAirbnbName}</div>
-                )}
-              </div>
-            </div>
-          )}
-
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
