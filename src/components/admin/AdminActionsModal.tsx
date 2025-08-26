@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,8 @@ import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
+// Added: display breakdown of products
+import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 
 interface AdminActionsModalProps {
   package: any;
@@ -494,6 +497,17 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* NEW: Product breakdown for admins */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Desglose de productos</CardTitle>
+            <CardDescription>Detalle de cada producto solicitado</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PackageProductDisplay products={products} />
           </CardContent>
         </Card>
 
