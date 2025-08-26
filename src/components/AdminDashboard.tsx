@@ -126,6 +126,7 @@ const AdminDashboard = ({
     // Extract products from products_data (main) or fallback to additional_notes (legacy)
     let products = null;
     let originalNotes = pkg.additional_notes;
+    let isMultipleProducts = false;
     
     console.log('🔍 Package data for detail modal:', {
       products_data: pkg.products_data,
@@ -135,20 +136,32 @@ const AdminDashboard = ({
       estimated_price: pkg.estimated_price
     });
     
-    // First try to parse products_data (main source)
+    // PRIORITY 1: Try to use products_data (main source for modern packages)
     try {
-      if (pkg.products_data && typeof pkg.products_data === 'string') {
-        const parsedProducts = JSON.parse(pkg.products_data);
+      if (pkg.products_data) {
+        let parsedProducts = null;
+        
+        if (typeof pkg.products_data === 'string') {
+          parsedProducts = JSON.parse(pkg.products_data);
+        } else if (typeof pkg.products_data === 'object') {
+          parsedProducts = pkg.products_data;
+        }
+        
         if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
           products = parsedProducts;
-          console.log('✅ Using products from products_data:', products);
+          isMultipleProducts = parsedProducts.length > 1;
+          console.log('✅ Using products from products_data:', { 
+            count: products.length, 
+            isMultiple: isMultipleProducts,
+            products 
+          });
         }
       }
     } catch (error) {
       console.log('❌ Error parsing products_data:', error);
     }
     
-    // Fallback: try to parse additional_notes (legacy)
+    // PRIORITY 2: Fallback to additional_notes (legacy multi-product format)
     if (!products) {
       try {
         if (pkg.additional_notes && typeof pkg.additional_notes === 'string') {
@@ -156,7 +169,12 @@ const AdminDashboard = ({
           if (parsedNotes.products && Array.isArray(parsedNotes.products)) {
             products = parsedNotes.products;
             originalNotes = parsedNotes.originalNotes;
-            console.log('✅ Using products from additional_notes:', products);
+            isMultipleProducts = parsedNotes.products.length > 1;
+            console.log('✅ Using products from additional_notes (legacy):', { 
+              count: products.length, 
+              isMultiple: isMultipleProducts,
+              products 
+            });
           }
         }
       } catch (error) {
@@ -164,7 +182,7 @@ const AdminDashboard = ({
       }
     }
     
-    // Final fallback: create product from legacy fields
+    // PRIORITY 3: Final fallback for genuinely old single-product packages
     if (!products && (pkg.item_description || pkg.item_link || pkg.estimated_price)) {
       products = [{
         itemDescription: pkg.item_description || 'Producto sin descripción',
@@ -172,7 +190,15 @@ const AdminDashboard = ({
         itemLink: pkg.item_link || null,
         quantity: '1'
       }];
-      console.log('✅ Created product from legacy fields:', products);
+      isMultipleProducts = false;
+      console.log('✅ Created product from legacy fields (single product fallback):', products);
+    }
+    
+    // Log final decision
+    if (isMultipleProducts) {
+      console.log('🎯 MULTIPLE PRODUCTS DETECTED - Using products_data, ignoring legacy fields');
+    } else {
+      console.log('🎯 Single product package detected');
     }
     
     // Add mock user data for demo
