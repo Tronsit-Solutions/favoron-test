@@ -74,12 +74,6 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                 </div>
               </div>
               <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-sm font-medium">Fecha de Llegada</div>
-                <div className="text-sm text-muted-foreground">
-                  {formatDate(trip.arrival_date)}
-                </div>
-              </div>
-              <div className="bg-muted/30 rounded-lg p-3">
                 <div className="text-sm font-medium">Fecha de Entrega</div>
                 <div className="text-sm text-muted-foreground">
                   {formatDate(trip.delivery_date)}
