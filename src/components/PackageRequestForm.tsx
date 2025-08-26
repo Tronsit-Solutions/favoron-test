@@ -27,12 +27,12 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
-  const [product, setProduct] = useState<Product>({
+  const [products, setProducts] = useState<Product[]>([{
     itemLink: '',
     itemDescription: '',
     estimatedPrice: '',
     quantity: '1'
-  });
+  }]);
   const [formData, setFormData] = useState({
     deliveryDeadline: null as Date | null,
     additionalNotes: '',
@@ -72,9 +72,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     
-    // Validate product
-    if (!product.itemLink || !product.itemDescription || !product.estimatedPrice || !finalDestination || !finalOrigin) {
-      alert('Por favor completa todos los campos obligatorios');
+    // Validate products
+    const isValidProduct = (p: Product) => p.itemLink && p.itemDescription && p.estimatedPrice;
+    if (!products.every(isValidProduct) || !finalDestination || !finalOrigin) {
+      alert('Por favor completa todos los campos obligatorios para todos los productos');
       setIsSubmitting(false);
       return;
     }
@@ -95,8 +96,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
     const submitData = {
       ...formData,
-      // Send single product in array format for compatibility
-      products: [product],
+      products: products,
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin,
       deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
@@ -110,12 +110,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
       // Reset form only on success
-      setProduct({
+      setProducts([{
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
         quantity: '1'
-      });
+      }]);
       setFormData({
         deliveryDeadline: null,
         additionalNotes: '',
@@ -135,8 +135,35 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
     }
   };
 
-  const updateProduct = (field: keyof Product, value: string) => {
-    setProduct(prev => ({ ...prev, [field]: value }));
+  const updateProduct = (index: number, field: keyof Product, value: string) => {
+    setProducts(prev => prev.map((product, i) => 
+      i === index ? { ...product, [field]: value } : product
+    ));
+  };
+
+  const addProduct = () => {
+    if (products.length < 5) {
+      setProducts(prev => [...prev, {
+        itemLink: '',
+        itemDescription: '',
+        estimatedPrice: '',
+        quantity: '1'
+      }]);
+    }
+  };
+
+  const removeProduct = (index: number) => {
+    if (products.length > 1) {
+      setProducts(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const calculateTotalEstimated = () => {
+    return products.reduce((total, product) => {
+      const price = parseFloat(product.estimatedPrice || '0');
+      const quantity = parseInt(product.quantity || '1');
+      return total + (price * quantity);
+    }, 0);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -180,81 +207,126 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <Label className="text-base font-medium">Producto *</Label>
-            
-            <div className="border border-gray-200 rounded-lg p-3 space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="itemLink" className="text-sm">Link del producto *</Label>
-                <div className="relative">
-                  <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="itemLink"
-                    type="url"
-                    placeholder="https://amazon.com/producto..."
-                    value={product.itemLink}
-                    onChange={(e) => updateProduct('itemLink', e.target.value)}
-                    className="pl-10 h-9"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Copia el link del producto desde Amazon, eBay, u otra tienda online
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="itemDescription" className="text-sm">Descripción del producto *</Label>
-                <Textarea
-                  id="itemDescription"
-                  placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                  value={product.itemDescription}
-                  onChange={(e) => updateProduct('itemDescription', e.target.value)}
-                  className="min-h-[36px] resize-y"
-                  rows={1}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Describe detalladamente el producto (marca, modelo, color, talla, etc.)
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="estimatedPrice" className="text-sm">Precio estimado (USD) *</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="estimatedPrice"
-                    type="number"
-                    step="0.01"
-                    placeholder="299.99"
-                    value={product.estimatedPrice}
-                    onChange={(e) => updateProduct('estimatedPrice', e.target.value)}
-                    className="pl-10 h-9"
-                    required
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Precio aproximado del producto sin incluir envío
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="quantity" className="text-sm">Cantidad *</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  placeholder="1"
-                  value={product.quantity}
-                  onChange={(e) => updateProduct('quantity', e.target.value)}
-                  className="h-9"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  ¿Cuántas unidades necesitas? Si es un pack (varios productos juntos), cuenta como 1 unidad
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
+              {products.length < 5 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addProduct}
+                  className="flex items-center space-x-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Agregar producto</span>
+                </Button>
+              )}
             </div>
+            
+            <div className="space-y-4">
+              {products.map((product, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Producto #{index + 1}</Label>
+                    {products.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeProduct(index)}
+                        className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>Eliminar</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor={`itemLink-${index}`} className="text-sm">Link del producto *</Label>
+                    <div className="relative">
+                      <Link2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id={`itemLink-${index}`}
+                        type="url"
+                        placeholder="https://amazon.com/producto..."
+                        value={product.itemLink}
+                        onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                        className="pl-10 h-9"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Copia el link del producto desde Amazon, eBay, u otra tienda online
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor={`itemDescription-${index}`} className="text-sm">Descripción del producto *</Label>
+                    <Textarea
+                      id={`itemDescription-${index}`}
+                      placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                      value={product.itemDescription}
+                      onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                      className="min-h-[36px] resize-y"
+                      rows={1}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Describe detalladamente el producto (marca, modelo, color, talla, etc.)
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor={`estimatedPrice-${index}`} className="text-sm">Precio estimado (USD) *</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id={`estimatedPrice-${index}`}
+                        type="number"
+                        step="0.01"
+                        placeholder="299.99"
+                        value={product.estimatedPrice}
+                        onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                        className="pl-10 h-9"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Precio aproximado del producto sin incluir envío
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor={`quantity-${index}`} className="text-sm">Cantidad *</Label>
+                    <Input
+                      id={`quantity-${index}`}
+                      type="number"
+                      min="1"
+                      placeholder="1"
+                      value={product.quantity}
+                      onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
+                      className="h-9"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      ¿Cuántas unidades necesitas? Si es un pack (varios productos juntos), cuenta como 1 unidad
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {products.length > 1 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Total estimado: ${calculateTotalEstimated().toFixed(2)} USD
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Pedido de {products.length} productos
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

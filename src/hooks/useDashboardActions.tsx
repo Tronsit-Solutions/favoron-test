@@ -37,21 +37,20 @@ export const useDashboardActions = (
       console.log('🚚 Delivery Method:', packageData.deliveryMethod);
       console.log('📍 Delivery Address:', packageData.deliveryAddress);
       
-      // Handle multiple products or single product format
-      const hasMultipleProducts = packageData.products && packageData.products.length > 0;
-      const products = hasMultipleProducts ? packageData.products : [{
-        itemLink: packageData.itemLink || '',
-        itemDescription: packageData.itemDescription || '',
-        estimatedPrice: packageData.estimatedPrice || ''
-      }];
+      // Handle multiple products format from new form
+      const products = packageData.products || [];
       
-      const totalEstimatedPrice = products.reduce((sum: number, product: any) => 
-        sum + parseFloat(product.estimatedPrice || 0), 0
-      );
+      const totalEstimatedPrice = products.reduce((sum: number, product: any) => {
+        const price = parseFloat(product.estimatedPrice || '0');
+        const quantity = parseInt(product.quantity || '1');
+        return sum + (price * quantity);
+      }, 0);
       
       const dbPackageData = {
-        item_description: products[0].itemDescription,
-        item_link: products[0].itemLink,
+        item_description: products.length > 1 
+          ? `Pedido de ${products.length} productos` 
+          : products[0]?.itemDescription || '',
+        item_link: products[0]?.itemLink || null,
         estimated_price: totalEstimatedPrice || null,
         products_data: products, // Store all products in the new field
         delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days

@@ -22,13 +22,15 @@ import {
   Save,
   X,
   CheckCircle,
-  Package
+  Package,
+  DollarSign
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
+import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 
 interface AdminActionsModalProps {
   package: any;
@@ -45,6 +47,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   const [internalNote, setInternalNote] = useState(pkg?.internal_notes || "");
   const [selectedTripId, setSelectedTripId] = useState(pkg?.matched_trip_id || "");
   const [adminNotes, setAdminNotes] = useState("");
+  const [showProductTipModal, setShowProductTipModal] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
@@ -53,6 +56,15 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   if (!pkg) return null;
 
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
+  
+  // Check if package has multiple products
+  const hasMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
+  const products = pkg.products_data || [{
+    itemDescription: pkg.item_description,
+    estimatedPrice: pkg.estimated_price?.toString() || '0',
+    itemLink: pkg.item_link,
+    quantity: '1'
+  }];
 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente de Aprobación' },
@@ -370,7 +382,51 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
     }
   };
 
+  const handleProductTipSave = async (productsWithTips: any[], totalTip: number) => {
+    setIsLoading(true);
+    try {
+      // Update the package with the new products data including individual tips
+      const { error } = await supabase
+        .from('packages')
+        .update({
+          products_data: productsWithTips,
+          admin_assigned_tip: totalTip,
+          status: 'matched' // Set to matched so traveler can accept
+        })
+        .eq('id', pkg.id);
+
+      if (error) throw error;
+
+      await logAction('product_tips_assigned', `Tips asignados por producto. Total: Q${totalTip.toFixed(2)}`);
+      
+      toast({
+        title: "Tips asignados",
+        description: `Se asignaron tips individuales por un total de Q${totalTip.toFixed(2)}`,
+      });
+
+      onRefresh?.();
+      setShowProductTipModal(false);
+    } catch (error) {
+      console.error('Error saving product tips:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron asignar los tips",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
+    <>
+      <ProductTipAssignmentModal
+        isOpen={showProductTipModal}
+        onClose={() => setShowProductTipModal(false)}
+        onSave={handleProductTipSave}
+        products={products}
+        packageId={pkg.id}
+      />
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -388,7 +444,12 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium">{pkg.item_description}</h3>
+                <h3 className="font-medium">
+                  {hasMultipleProducts 
+                    ? `Pedido de ${products.length} productos`
+                    : pkg.item_description
+                  }
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   {pkg.profiles ? `${pkg.profiles.first_name} ${pkg.profiles.last_name}` : `Usuario: ${pkg.user_id.slice(0, 8)}`}
                 </p>
@@ -400,9 +461,39 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
                     <span>Incidencia</span>
                   </Badge>
                 )}
-                <Badge variant="outline">${pkg.estimated_price}</Badge>
+                {hasMultipleProducts && (
+                  <Badge variant="outline" className="flex items-center space-x-1">
+                    <Package className="h-3 w-3" />
+                    <span>{products.length} productos</span>
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  ${hasMultipleProducts 
+                    ? products.reduce((sum: number, p: any) => {
+                        const price = parseFloat(p.estimatedPrice || '0');
+                        const quantity = parseInt(p.quantity || '1');
+                        return sum + (price * quantity);
+                      }, 0).toFixed(2)
+                    : pkg.estimated_price
+                  }
+                </Badge>
               </div>
             </div>
+            
+            {/* Quick tip assignment for multiple products */}
+            {hasMultipleProducts && (
+              <div className="mt-3 pt-3 border-t">
+                <Button
+                  onClick={() => setShowProductTipModal(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  <span>Asignar Tips por Producto</span>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -727,6 +818,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 

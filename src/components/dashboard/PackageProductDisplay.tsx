@@ -6,6 +6,7 @@ interface Product {
   estimatedPrice: string;
   itemLink?: string;
   quantity?: string;
+  adminAssignedTip?: number;
 }
 
 interface PackageProductDisplayProps {
@@ -39,6 +40,11 @@ const PackageProductDisplay = ({
                   <strong>Cantidad:</strong> {product.quantity} unidad{product.quantity !== '1' ? 'es' : ''}
                 </p>
               )}
+              {product.adminAssignedTip && (
+                <p className="text-xs text-green-600 font-medium mb-2">
+                  <strong>Tip asignado:</strong> Q{product.adminAssignedTip.toFixed(2)}
+                </p>
+              )}
               {product.itemLink && (
                 <a 
                   href={product.itemLink} 
@@ -53,9 +59,20 @@ const PackageProductDisplay = ({
           ))}
         </div>
         <StatusAlert variant="info">
-          <p className="font-medium">
-            Total estimado: ${products.reduce((sum: number, p: Product) => sum + parseFloat(p.estimatedPrice || '0'), 0).toFixed(2)}
-          </p>
+          <div className="space-y-1">
+            <p className="font-medium">
+              Total estimado: ${products.reduce((sum: number, p: Product) => {
+                const price = parseFloat(p.estimatedPrice || '0');
+                const quantity = parseInt(p.quantity || '1');
+                return sum + (price * quantity);
+              }, 0).toFixed(2)}
+            </p>
+            {products.some(p => p.adminAssignedTip) && (
+              <p className="font-medium text-green-600">
+                Tip total asignado: Q{products.reduce((sum: number, p: Product) => sum + (p.adminAssignedTip || 0), 0).toFixed(2)}
+              </p>
+            )}
+          </div>
         </StatusAlert>
       </div>
     );

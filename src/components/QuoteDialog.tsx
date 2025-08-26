@@ -161,6 +161,7 @@ const QuoteDialog = ({
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
+                        const adminTip = product.adminAssignedTip || 0;
                         
                         return (
                           <div key={index} className="bg-muted/30 rounded p-2">
@@ -176,10 +177,18 @@ const QuoteDialog = ({
                                     ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                                   </p>
                                 )}
+                                {adminTip > 0 && (
+                                  <p className="text-green-600 font-medium">
+                                    <strong>Tip:</strong> Q{adminTip.toFixed(2)}
+                                  </p>
+                                )}
                               </div>
                               <div className="text-right">
                                 <p className="text-lg font-bold text-primary">${totalPrice.toFixed(2)}</p>
                                 <p className="text-xs text-muted-foreground">Subtotal</p>
+                                {adminTip > 0 && (
+                                  <p className="text-xs font-medium text-green-600">+Q{adminTip.toFixed(2)} tip</p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -199,6 +208,16 @@ const QuoteDialog = ({
                               }, 0).toFixed(2)}
                             </p>
                           </div>
+                          {packageDetails.products_data.some((p: any) => p.adminAssignedTip) && (
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="font-medium text-green-600">Tip total:</p>
+                              <p className="text-lg font-bold text-green-600">
+                                Q{packageDetails.products_data.reduce((sum: number, product: any) => {
+                                  return sum + (product.adminAssignedTip || 0);
+                                }, 0).toFixed(2)}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
