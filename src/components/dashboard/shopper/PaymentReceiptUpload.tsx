@@ -163,7 +163,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <div className="bg-warning/10 border border-warning/40 rounded-md p-1.5 space-y-1.5 h-fit flex-1">
+    <div className="bg-warning/10 border border-warning/40 rounded-md p-1.5 space-y-1.5 h-full flex-1">
       {/* Header - More compact */}
       <div className="flex items-center space-x-2">
         <div className="w-4 h-4 bg-warning/20 rounded-full flex items-center justify-center flex-shrink-0">
