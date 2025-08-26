@@ -47,8 +47,8 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
   }
 
   return (
-    <Card className={className}>
-      <div className="p-4 sm:p-6">
+    <Card className={`${className} max-w-sm`}>
+      <div className="p-2 sm:p-3">{" "}
         <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
           <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Historial & Mensajes</span>
