@@ -163,35 +163,35 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <div className="bg-warning/10 border-2 border-warning/40 rounded-lg p-2 space-y-2">
-      {/* Header */}
+    <div className="bg-warning/10 border-2 border-warning/40 rounded-lg p-3 space-y-3 h-fit">
+      {/* Header - More compact */}
       <div className="flex items-center space-x-2">
-        <div className="w-5 h-5 bg-warning/20 rounded-full flex items-center justify-center flex-shrink-0">
-          <Upload className="h-3 w-3 text-warning" />
+        <div className="w-4 h-4 bg-warning/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <Upload className="h-2.5 w-2.5 text-warning" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-warning">¡Sube tu comprobante de pago!</h3>
+          <h3 className="text-xs font-semibold text-warning">¡Sube tu comprobante de pago!</h3>
           <p className="text-xs text-foreground/80">Monto: Q{parseFloat((pkg.quote as any)?.totalPrice || '0').toFixed(2)}</p>
         </div>
       </div>
 
-      {/* Upload Area - Compact */}
+      {/* Upload Area - More compact */}
       <div
-        className="border-2 border-dashed border-warning/50 rounded-lg p-2 text-center hover:border-warning/70 transition-colors cursor-pointer bg-warning/5"
+        className="border-2 border-dashed border-warning/50 rounded-md p-3 text-center hover:border-warning/70 transition-colors cursor-pointer bg-warning/5"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
         {uploading ? (
           <div className="space-y-1">
-            <Loader2 className="h-6 w-6 text-warning animate-spin mx-auto" />
+            <Loader2 className="h-5 w-5 text-warning animate-spin mx-auto" />
             <p className="text-xs text-foreground">Subiendo...</p>
           </div>
         ) : (
           <div className="space-y-1">
-            <Upload className="h-6 w-6 text-warning/70 mx-auto" />
+            <Upload className="h-5 w-5 text-warning/70 mx-auto" />
             <p className="text-xs text-foreground font-medium">
-              Arrastra tu comprobante o haz clic aquí
+              Arrastra tu comprobante aquí
             </p>
             <p className="text-xs text-muted-foreground">
               JPG, PNG, PDF • Max 5MB
@@ -208,28 +208,24 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         className="hidden"
       />
 
-      {/* Banking Info - More Compact */}
-      <div className="bg-info/5 border border-info/20 rounded-md p-1.5">
+      {/* Banking Info - Very compact */}
+      <div className="bg-info/5 border border-info/20 rounded-md p-2">
         <p className="text-xs font-medium text-foreground mb-1">Datos bancarios Favorón:</p>
         {bankLoading ? (
           <p className="text-xs text-muted-foreground">Cargando...</p>
         ) : bankAccount ? (
-          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs">
-            <div>
-              <span className="text-muted-foreground">Banco:</span>{' '}
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Banco:</span>
               <span className="font-medium">{bankAccount.bank_name}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Titular:</span>{' '}
-              <span className="font-medium">{bankAccount.account_holder}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Cuenta:</span>{' '}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Cuenta:</span>
               <span className="font-medium">{bankAccount.account_number}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">Tipo:</span>{' '}
-              <span className="font-medium">{bankAccount.account_type}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Titular:</span>
+              <span className="font-medium">{bankAccount.account_holder}</span>
             </div>
           </div>
         ) : (
