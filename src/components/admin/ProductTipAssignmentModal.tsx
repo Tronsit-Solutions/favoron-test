@@ -218,9 +218,9 @@ const ProductTipAssignmentModal = ({
                   {product.adminAssignedTip && productValue > 0 && (
                     <div className="mt-2 pt-2 border-t border-border/30">
                       <div className="text-xs text-muted-foreground flex justify-between items-center">
-                        <span>Porcentaje del valor:</span>
+                        <span>Tip asignado:</span>
                         <Badge variant="secondary" className="text-xs font-mono">
-                          {((product.adminAssignedTip / productValue) * 100).toFixed(1)}%
+                          Q{product.adminAssignedTip.toFixed(2)}
                         </Badge>
                       </div>
                     </div>
