@@ -48,7 +48,7 @@ const TravelerPackagePriorityActions = ({
 
       {/* Action section */}
       <div className="p-2 bg-muted/30 border rounded-lg">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-start sm:items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-3 flex-1">
             <div className="flex-shrink-0 w-6 h-6 bg-muted rounded-full flex items-center justify-center">
               {pkg.status === 'matched' ? (
@@ -86,7 +86,7 @@ const TravelerPackagePriorityActions = ({
               )}
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 mt-1 sm:mt-0">
             {pkg.status === 'matched' && pkg.admin_assigned_tip && pkg.matched_trip_id && (
               <Button 
                 size="sm" 
@@ -113,10 +113,11 @@ const TravelerPackagePriorityActions = ({
                 size="sm" 
                 onClick={onConfirmReceived} 
                 variant="success"
-                className="font-medium px-4 py-2 h-8"
+                className="font-medium px-3 py-2 h-9 sm:px-4 sm:h-8 text-xs sm:text-sm whitespace-nowrap min-w-0 flex-shrink-0"
               >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Confirmar recibido
+                <CheckCircle className="h-3 w-3 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Confirmar recibido</span>
+                <span className="xs:hidden">Recibido</span>
               </Button>
             )}
             {pkg.status === 'received_by_traveler' && onConfirmOfficeDelivery && (
