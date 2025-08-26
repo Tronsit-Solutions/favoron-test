@@ -128,11 +128,11 @@ const CollapsiblePackageCard = ({
     const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
     
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 w-full">
         {viewMode === 'user' && canEdit && onEditPackage && (
-          <Button size="sm" variant="outline" onClick={() => setShowEditModal(true)}>
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
+          <Button size="sm" variant="outline" onClick={() => setShowEditModal(true)} className="flex-1 sm:flex-none min-w-0">
+            <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
+            <span className="truncate">Editar</span>
           </Button>
         )}
         
@@ -144,55 +144,71 @@ const CollapsiblePackageCard = ({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <CardTitle className="text-lg flex items-center space-x-2">
-                   <span>
-                    {pkg.item_description || 'Sin descripción'}
-                  </span>
-                  {needsAction && (
-                    <NotificationBadge count={1} className="ml-2" />
-                  )}
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base sm:text-lg flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex items-center justify-between w-full sm:w-auto">
+                    <span className="truncate pr-2">
+                      {pkg.item_description || 'Sin descripción'}
+                    </span>
+                    <div className="flex items-center gap-1 flex-shrink-0 sm:hidden">
+                      {needsAction && (
+                        <NotificationBadge count={1} />
+                      )}
+                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex sm:items-center sm:gap-2">
+                    {needsAction && (
+                      <NotificationBadge count={1} />
+                    )}
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </div>
                 </CardTitle>
-                <CardDescription>
-                  Precio estimado: ${pkg.estimated_price} • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                <CardDescription className="text-xs sm:text-sm mt-1 sm:mt-0">
+                  <div className="flex flex-col sm:flex-row sm:gap-2">
+                    <span>Precio: ${pkg.estimated_price}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span>Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
+                  </div>
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                {expirationInfo ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {getStatusBadge(pkg.status, { 
-                          packageDestination: pkg.package_destination, 
-                          isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                          pkg: pkg
-                        })}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{expirationInfo.message}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  getStatusBadge(pkg.status, { 
-                    packageDestination: pkg.package_destination, 
-                    isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                    pkg: pkg
-                  })
-                )}
+              <div className="flex items-center gap-2 justify-between sm:justify-end w-full sm:w-auto">
+                <div className="flex-shrink-0">
+                  {expirationInfo ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          {getStatusBadge(pkg.status, { 
+                            packageDestination: pkg.package_destination, 
+                            isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                            pkg: pkg
+                          })}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{expirationInfo.message}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    getStatusBadge(pkg.status, { 
+                      packageDestination: pkg.package_destination, 
+                      isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                      pkg: pkg
+                    })
+                  )}
+                </div>
                 {canShowPackageActions && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-muted"
+                        className="h-8 w-8 p-0 hover:bg-muted flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <MoreHorizontal className="h-3 w-3" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent 
@@ -219,7 +235,7 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             {/* Priority Actions Section - Always first */}
             {viewMode === 'user' && (
               <div className="mb-6">
@@ -259,8 +275,8 @@ const CollapsiblePackageCard = ({
               </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
 
 
                 {/* Show traveler confirmation when package is received */}
@@ -297,7 +313,7 @@ const CollapsiblePackageCard = ({
                 {renderActionButtons()}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 order-1 lg:order-2">
                 <PackageStatusTimeline 
                   currentStatus={pkg.status} 
                   deliveryMethod={pkg.delivery_method}
