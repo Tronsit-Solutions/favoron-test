@@ -142,7 +142,6 @@ export const useDashboardActions = (
         : pkg
     ));
     setShowAddressConfirmation(false);
-    setSelectedPackageForAddress(null);
     toast({
       title: "¡Dirección confirmada!",
       description: "El comprador ya puede proceder con la compra y envío.",
@@ -366,12 +365,28 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
-          console.log('✅ Accepting quote without requiring local trip reference');
-          await updatePackage(selectedPackage.id, {
-            status: 'payment_pending'
-          });
+          console.log('✅ Accepting quote via RPC accept_quote');
           
-          // Force close dialog and reset selection to trigger re-render
+          const { error } = await supabase.rpc('accept_quote', {
+            _package_id: selectedPackage.id
+          });
+
+          if (error) {
+            console.error('❌ RPC accept_quote error:', error);
+            toast({
+              title: "Error",
+              description: error.message || "No se pudo aceptar la cotización.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Opcional: refrescar paquetes para ver el cambio inmediato
+          if (refreshPackages) {
+            await refreshPackages();
+          }
+
+          // Cerrar diálogo y limpiar selección
           setShowQuoteDialog(false);
           setSelectedPackageForQuote(null);
           

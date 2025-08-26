@@ -756,6 +756,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_quote: {
+        Args: { _package_id: string }
+        Returns: undefined
+      }
       admin_confirm_office_delivery: {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
