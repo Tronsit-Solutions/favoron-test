@@ -73,7 +73,19 @@ const QuoteDialog = ({
   
   // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
   const isAdminAssignedTip = packageDetails.status === 'matched' && packageDetails.admin_assigned_tip && userType === 'user';
-  const adminTipAmount = isAdminAssignedTip ? parseFloat(packageDetails.admin_assigned_tip).toFixed(2) : null;
+  
+  // Get admin tip amount - always from products_data first
+  const adminTipAmount = (() => {
+    if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
+      const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
+        return sum + parseFloat(product.adminAssignedTip || '0');
+      }, 0);
+      return totalTip > 0 ? totalTip.toFixed(2) : null;
+    }
+    // Fallback to admin_assigned_tip for backward compatibility
+    const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0');
+    return fallbackTip > 0 ? fallbackTip.toFixed(2) : null;
+  })();
 
   const handleSubmit = () => {
     if (existingQuote) {
@@ -137,10 +149,10 @@ const QuoteDialog = ({
 
         <DialogHeader className="pr-12 pb-4">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
-            {isAdminAssignedTip ? '💰 Tip Asignado por Favorón' : (!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización')}
+            {adminTipAmount ? '💰 Tip Asignado por Favorón' : (!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización')}
           </DialogTitle>
           <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed">
-            {isAdminAssignedTip 
+            {adminTipAmount 
               ? 'Favorón ha asignado un tip específico para este pedido. Revisa y decide si aceptas.'
               : (!existingQuote 
                 ? 'Proporciona tu mejor cotización para este Favorón'
@@ -172,7 +184,7 @@ const QuoteDialog = ({
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
                         
-                        // Always use adminAssignedTip from products_data - this is the traveler's tip without Favoron's fee
+                        // Always use adminAssignedTip from products_data
                         const adminTip = parseFloat(product.adminAssignedTip || '0');
                         
                         return (
@@ -209,25 +221,8 @@ const QuoteDialog = ({
                               <div className="text-right">
                                 {adminTip > 0 ? (
                                   <div>
-                                    {isAdminAssignedTip ? (
-                                      // Traveler sees admin assigned tip amount (without fee)
-                                      <>
-                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                      </>
-                                    ) : userType === 'user' ? (
-                                      // Shopper sees final price (tip + 40%)
-                                      <>
-                                        <p className="text-lg font-bold text-green-600">Q{(adminTip * 1.4).toFixed(2)}</p>
-                                        <p className="text-xs text-muted-foreground">Cotización final</p>
-                                      </>
-                                    ) : (
-                                      // Admin sees base tip amount
-                                      <>
-                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                      </>
-                                    )}
+                                    <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                    <p className="text-xs text-muted-foreground">Tip asignado</p>
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">Sin tip</p>
@@ -250,29 +245,12 @@ const QuoteDialog = ({
                               }, 0).toFixed(2)}
                             </p>
                           </div>
-                          {(() => {
-                            // Check if any product has adminAssignedTip or if single product has fallback tip
-                            const isSingle = packageDetails.products_data.length === 1;
-                            const hasTips = packageDetails.products_data.some((p: any) => p.adminAssignedTip) ||
-                              (isSingle && (existingQuote?.price || packageDetails.admin_assigned_tip));
-                            
-                            return hasTips && (
-                              <div className="flex justify-between items-center mt-1">
-                                <p className="font-medium text-green-600">
-                                  {isAdminAssignedTip ? 'Tip total:' : userType === 'user' ? 'Cotización total:' : 'Tip total:'}
-                                </p>
-                                 <p className="text-lg font-bold text-green-600">
-                                   Q{(() => {
-                                     const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
-                                       // Always use adminAssignedTip from products_data
-                                       return sum + parseFloat(product.adminAssignedTip || '0');
-                                     }, 0);
-                                     return (isAdminAssignedTip || userType === 'admin') ? totalTip.toFixed(2) : (totalTip * 1.4).toFixed(2);
-                                   })()}
-                                 </p>
-                              </div>
-                            );
-                          })()}
+                          {adminTipAmount && (
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="font-medium text-green-600">Tip total:</p>
+                              <p className="text-lg font-bold text-green-600">Q{adminTipAmount}</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -280,60 +258,19 @@ const QuoteDialog = ({
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-muted-foreground">
                         <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
-                        <p><strong>Cantidad:</strong> {(() => {
-                          // Mostrar la cantidad total de todos los productos
-                          if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-                            const totalQuantity = packageDetails.products_data.reduce((sum: number, product: any) => {
-                              return sum + parseInt(product.quantity || '1');
-                            }, 0);
-                            return `${totalQuantity} unidad${totalQuantity !== 1 ? 'es' : ''}`;
-                          }
-                          return '1 unidad';
-                        })()} </p>
+                        <p><strong>Cantidad:</strong> 1 unidad</p>
                       </div>
                       <div className="text-right space-y-2">
                         <div>
-                          <p className="text-lg font-bold text-primary">${(() => {
-                            // Calcular total considerando cantidades de products_data
-                            if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-                              return packageDetails.products_data.reduce((sum: number, product: any) => {
-                                const quantity = parseInt(product.quantity || '1');
-                                const unitPrice = parseFloat(product.estimatedPrice || packageDetails.estimated_price || '0');
-                                return sum + (quantity * unitPrice);
-                              }, 0).toFixed(2);
-                            }
-                            return packageDetails.estimated_price;
-                          })()}</p>
+                          <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
                           <p className="text-xs text-muted-foreground">Total</p>
                         </div>
-                         {(() => {
-                           // Fallback for old format packages - use admin_assigned_tip with temporary fallback to quote
-                           // After migration, all packages should have products_data with adminAssignedTip
-                           const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0');
-                           return fallbackTip > 0 && (
-                             <div>
-                               {isAdminAssignedTip ? (
-                                 // Traveler sees admin assigned tip amount (without fee)
-                                 <>
-                                   <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
-                                   <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                 </>
-                               ) : userType === 'user' ? (
-                                // Shopper sees final price (tip + 40%)
-                                <>
-                                  <p className="text-lg font-bold text-green-600">Q{(fallbackTip * 1.4).toFixed(2)}</p>
-                                  <p className="text-xs text-muted-foreground">Cotización final</p>
-                                </>
-                              ) : (
-                                // Admin sees base tip amount
-                                <>
-                                  <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
-                                  <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                </>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        {adminTipAmount && (
+                          <div>
+                            <p className="text-lg font-bold text-green-600">Q{adminTipAmount}</p>
+                            <p className="text-xs text-muted-foreground">Tip asignado</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -438,7 +375,7 @@ const QuoteDialog = ({
           )}
 
           {/* Admin Assigned Tip Display - When traveler needs to accept/reject */}
-          {isAdminAssignedTip && (
+          {adminTipAmount && userType === 'user' && packageDetails.status === 'matched' && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
                 <Package className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -456,50 +393,48 @@ const QuoteDialog = ({
           )}
 
           {/* Quote Form - Show when sending a quote (not admin assigned tip) */}
-          {!existingQuote && !isAdminAssignedTip && (
+          {!existingQuote && !adminTipAmount && (
             <div className="space-y-4">
-              {/* Product Link for Travelers */}
-              
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="price">Precio del servicio en Quetzales (Q) *</Label>
-                <p className="text-xs text-muted-foreground mt-1 mb-2">
-                  💰 Esta es tu compensación como viajero por realizar el Favorón
-                </p>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-sans">Q</span>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="0.00"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    className="pl-8 w-32"
-                    style={{ fontFamily: 'Arial, sans-serif' }}
-                    required
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="price">Precio del servicio en Quetzales (Q) *</Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                    💰 Esta es tu compensación como viajero por realizar el Favorón
+                  </p>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-sans">Q</span>
+                    <Input
+                      id="price"
+                      type="number"
+                      placeholder="0.00"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="pl-8 w-32"
+                      style={{ fontFamily: 'Arial, sans-serif' }}
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠️ Asegúrate de considerar cualquier costo adicional por recibir el paquete (algunos hoteles cobran por este servicio)
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="message">Mensaje (opcional)</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Añade cualquier información adicional..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={3}
                   />
                 </div>
-                <p className="text-xs text-amber-600 mt-1">
-                  ⚠️ Asegúrate de considerar cualquier costo adicional por recibir el paquete (algunos hoteles cobran por este servicio)
-                </p>
               </div>
-              
-              <div>
-                <Label htmlFor="message">Mensaje (opcional)</Label>
-                <Textarea
-                  id="message"
-                  placeholder="Añade cualquier información adicional..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </div>
             </div>
           )}
 
           {/* Message for admin assigned tip acceptance */}
-          {isAdminAssignedTip && (
+          {adminTipAmount && (
             <div className="space-y-4">
               <div>
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
@@ -573,10 +508,10 @@ const QuoteDialog = ({
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!isAdminAssignedTip && !price}
+                  disabled={!adminTipAmount && !price}
                   className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {isAdminAssignedTip ? `Aceptar Tip Q${adminTipAmount}` : 'Enviar Cotización'}
+                  {adminTipAmount ? `Aceptar Tip Q${adminTipAmount}` : 'Enviar Cotización'}
                 </Button>
               </>
             ) : (
