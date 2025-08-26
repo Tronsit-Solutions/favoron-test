@@ -171,14 +171,31 @@ export const useDashboardActions = (
       if (quoteData.price !== undefined || quoteData.message === 'rejected') {
         console.log('📋 Processing quote submission or rejection');
         
-        // Special case: traveler accepting admin-assigned tip (reassigned, already pagado)
+        // Special case: traveler accepting admin-assigned tip
         const isTravelerAcceptingAssignedTip = userType === 'user' &&
                                               selectedPackage.status === 'matched' &&
                                               selectedPackage.admin_assigned_tip &&
                                               quoteData.adminAssignedTipAccepted;
         if (isTravelerAcceptingAssignedTip) {
-          console.log('✅ Traveler accepted admin-assigned tip, moving to pending_purchase');
-          await handleConfirmPayment(selectedPackage.id);
+          console.log('✅ Traveler accepted admin-assigned tip, sending quote to shopper');
+          
+          // Update package with quote data and move to quote_sent status
+          await updatePackage(selectedPackage.id, {
+            status: 'quote_sent',
+            quote: {
+              price: quoteData.price,
+              serviceFee: quoteData.serviceFee,
+              totalPrice: quoteData.totalPrice,
+              message: quoteData.message,
+              adminAssignedTipAccepted: true
+            }
+          });
+          
+          toast({
+            title: "¡Tip aceptado!",
+            description: "Se ha enviado la cotización al shopper para su aprobación.",
+          });
+          
           // Close dialog after acceptance handled
           setShowQuoteDialog(false);
           setSelectedPackageForQuote(null);
@@ -437,7 +454,7 @@ export const useDashboardActions = (
         // Tracking upload doesn't change status - only confirmation does
       } else if (type === 'payment_receipt') {
         updatedData.payment_receipt = data;
-        newStatus = 'payment_pending';
+        newStatus = 'payment_pending_approval';
       }
 
       // Update status if it changed
