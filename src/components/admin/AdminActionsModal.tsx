@@ -62,12 +62,25 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   
   // Check if package has multiple products
   const hasMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
-  const products = pkg.products_data || [{
-    itemDescription: pkg.item_description,
-    estimatedPrice: pkg.estimated_price?.toString() || '0',
-    itemLink: pkg.item_link,
-    quantity: '1'
-  }];
+  
+  // Debug: Log the raw data
+  console.log('📦 Package data debug:', {
+    id: pkg.id,
+    products_data: pkg.products_data,
+    item_description: pkg.item_description,
+    estimated_price: pkg.estimated_price,
+    item_link: pkg.item_link
+  });
+  
+  // Properly construct products array with correct field names
+  const products = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0 
+    ? pkg.products_data 
+    : [{
+        itemDescription: pkg.item_description,
+        estimatedPrice: pkg.estimated_price?.toString() || '0',
+        itemLink: pkg.item_link,
+        quantity: '1'
+      }];
 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente de Aprobación' },
