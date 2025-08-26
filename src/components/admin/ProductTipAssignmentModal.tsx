@@ -36,7 +36,7 @@ const ProductTipAssignmentModal = ({
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
   
   const [products, setProducts] = useState<Product[]>([]);
-  const [tipValues, setTipValues] = useState<number[]>([]);
+  const [tipValues, setTipValues] = useState<string[]>([]);
   
   // Update products and tipValues when initialProducts changes
   useEffect(() => {
@@ -49,8 +49,8 @@ const ProductTipAssignmentModal = ({
     }));
     setProducts(mappedProducts);
     
-    // Initialize tipValues with existing tips or 0
-    const initialTipValues = mappedProducts.map(p => p.adminAssignedTip || 0);
+    // Initialize tipValues with existing tips or empty string
+    const initialTipValues = mappedProducts.map(p => p.adminAssignedTip ? p.adminAssignedTip.toString() : '');
     setTipValues(initialTipValues);
     console.log('🔍 DEBUG Initialized products:', mappedProducts);
     console.log('🔍 DEBUG Initialized tipValues:', initialTipValues);
@@ -60,14 +60,13 @@ const ProductTipAssignmentModal = ({
   const { toast } = useToast();
 
   const calculateTotalTip = () => {
-    return tipValues.reduce((total, tip) => total + tip, 0);
+    return tipValues.reduce((total, tip) => total + (parseFloat(tip) || 0), 0);
   };
 
   const updateTipValue = (index: number, value: string) => {
-    const numericValue = parseFloat(value) || 0;
     setTipValues(prev => {
       const newTipValues = [...prev];
-      newTipValues[index] = numericValue;
+      newTipValues[index] = value;
       return newTipValues;
     });
   };
@@ -78,12 +77,12 @@ const ProductTipAssignmentModal = ({
     const tipValue = parseFloat(equalTip.toFixed(2));
     
     // Update all tip values
-    setTipValues(new Array(products.length).fill(tipValue));
+    setTipValues(new Array(products.length).fill(tipValue.toString()));
   };
 
   const handleSave = async () => {
     // Validate that all products have tips assigned
-    const hasUnassignedTips = tipValues.some(tip => tip <= 0);
+    const hasUnassignedTips = tipValues.some(tip => (parseFloat(tip) || 0) <= 0);
     if (hasUnassignedTips) {
       toast({
         title: "Error",
@@ -98,7 +97,7 @@ const ProductTipAssignmentModal = ({
       // Create products with current tip values
       const productsWithTips = products.map((product, index) => ({
         ...product,
-        adminAssignedTip: tipValues[index]
+        adminAssignedTip: parseFloat(tipValues[index]) || 0
       }));
       
       const totalTip = calculateTotalTip();
@@ -212,7 +211,7 @@ const ProductTipAssignmentModal = ({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={tipValues[index] || 0}
+                            value={tipValues[index] || ''}
                             onChange={(e) => updateTipValue(index, e.target.value)}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
@@ -250,12 +249,12 @@ const ProductTipAssignmentModal = ({
                   </div>
                   
                   {/* Status indicator */}
-                  {tipValues[index] && productValue > 0 && (
+                  {tipValues[index] && parseFloat(tipValues[index]) > 0 && productValue > 0 && (
                     <div className="mt-2 pt-2 border-t border-border/30">
                       <div className="text-xs text-muted-foreground flex justify-between items-center">
                         <span>Tip asignado:</span>
                         <Badge variant="secondary" className="text-xs font-mono">
-                          Q{tipValues[index].toFixed(2)}
+                          Q{(parseFloat(tipValues[index]) || 0).toFixed(2)}
                         </Badge>
                       </div>
                     </div>
@@ -282,7 +281,7 @@ const ProductTipAssignmentModal = ({
               variant="outline"
               size="sm"
               onClick={() => {
-                setTipValues(new Array(products.length).fill(50));
+                setTipValues(new Array(products.length).fill('50'));
               }}
               className="h-7 px-2 text-xs"
             >
@@ -297,7 +296,7 @@ const ProductTipAssignmentModal = ({
                   const price = parseFloat(product.estimatedPrice || '0') || 0;
                   const quantity = parseInt(product.quantity || '1') || 1;
                   const productValue = price * quantity;
-                  return parseFloat((productValue * 0.15).toFixed(2));
+                  return (productValue * 0.15).toFixed(2);
                 });
                 setTipValues(newTipValues);
               }}
