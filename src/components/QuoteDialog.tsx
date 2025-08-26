@@ -29,6 +29,7 @@ interface QuoteDialogProps {
     products_data?: any[];
     admin_assigned_tip?: string;
     status?: string;
+    traveler_address?: any;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -320,10 +321,10 @@ const QuoteDialog = ({
                   <MapPin className="h-3 w-3" />
                   <span><strong>Fecha de entrega del viajero:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
                 </div>
-                {existingQuote?.traveler_postal_code && (
+                {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-3 w-3" />
-                    <span><strong>Código postal del viajero:</strong> {existingQuote.traveler_postal_code}</span>
+                    <span><strong>Código postal del viajero:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}</span>
                   </div>
                 )}
               </div>

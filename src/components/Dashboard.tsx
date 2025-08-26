@@ -518,6 +518,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                 ? String(selectedPackageForQuote.admin_assigned_tip)
                 : undefined,
             status: selectedPackageForQuote.status,
+            traveler_address: selectedPackageForQuote.traveler_address || undefined,
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote as any}
