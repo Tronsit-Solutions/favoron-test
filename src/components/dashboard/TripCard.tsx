@@ -73,16 +73,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <div className="grid grid-cols-1 gap-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Entrega:</span>
-              <span>{new Date(trip.delivery_date).toLocaleDateString('es-GT')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Paquetes:</span>
-              <span>{new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}</span>
-            </div>
-          </div>
 
           {/* Display package receiving address */}
           {trip.package_receiving_address && (
