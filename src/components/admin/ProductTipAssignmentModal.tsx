@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,8 @@ const ProductTipAssignmentModal = ({
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
   
   const [products, setProducts] = useState<Product[]>([]);
-  const [tipValues, setTipValues] = useState<string[]>([]);
+  const tipInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [, forceUpdate] = useState(0); // Force re-render trigger
   
   // Update products when initialProducts changes
   useEffect(() => {
@@ -49,53 +50,50 @@ const ProductTipAssignmentModal = ({
     }));
     setProducts(mappedProducts);
     
-    // Initialize tip values state
-    const tipVals = mappedProducts.map(p => (p.adminAssignedTip || 0).toString());
-    setTipValues(tipVals);
-    console.log('🔍 DEBUG Initialized tipValues:', tipVals);
+    // Initialize input refs array
+    tipInputRefs.current = new Array(mappedProducts.length).fill(null);
+    console.log('🔍 DEBUG Initialized products:', mappedProducts);
   }, [initialProducts]);
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleTipChange = (index: number, value: string) => {
-    console.log('🔍 DEBUG handleTipChange - index:', index, 'value:', value);
-    
-    // Update tip values state
-    setTipValues(prev => {
-      const updated = [...prev];
-      updated[index] = value;
-      return updated;
-    });
-    
-    // Update products state
-    setProducts(prev => {
-      const updated = [...prev];
-      const numValue = value === '' ? 0 : parseFloat(value) || 0;
-      updated[index] = { ...updated[index], adminAssignedTip: numValue };
-      console.log('🔍 DEBUG Updated products:', updated);
-      return updated;
+  const getCurrentTipValues = (): number[] => {
+    return tipInputRefs.current.map(ref => {
+      if (!ref || !ref.value) return 0;
+      return parseFloat(ref.value) || 0;
     });
   };
 
   const calculateTotalTip = () => {
-    return products.reduce((total, product) => total + (product.adminAssignedTip || 0), 0);
+    return getCurrentTipValues().reduce((total, tip) => total + tip, 0);
+  };
+
+  const triggerUpdate = () => {
+    forceUpdate(prev => prev + 1);
   };
 
   const distributeEqually = () => {
     const totalTip = calculateTotalTip();
     const equalTip = totalTip / products.length;
     const tipValue = parseFloat(equalTip.toFixed(2));
-    setProducts(prev => prev.map(product => ({
-      ...product,
-      adminAssignedTip: tipValue
-    })));
-    setTipValues(prev => prev.map(() => tipValue.toString()));
+    
+    // Update all input refs
+    tipInputRefs.current.forEach(ref => {
+      if (ref) {
+        ref.value = tipValue.toString();
+      }
+    });
+    
+    triggerUpdate();
   };
 
   const handleSave = async () => {
+    // Get current tip values from inputs
+    const currentTipValues = getCurrentTipValues();
+    
     // Validate that all products have tips assigned
-    const hasUnassignedTips = products.some(p => !p.adminAssignedTip || p.adminAssignedTip <= 0);
+    const hasUnassignedTips = currentTipValues.some(tip => tip <= 0);
     if (hasUnassignedTips) {
       toast({
         title: "Error",
@@ -107,8 +105,14 @@ const ProductTipAssignmentModal = ({
 
     setIsLoading(true);
     try {
+      // Create products with current tip values
+      const productsWithTips = products.map((product, index) => ({
+        ...product,
+        adminAssignedTip: currentTipValues[index]
+      }));
+      
       const totalTip = calculateTotalTip();
-      await onSave(products, totalTip);
+      await onSave(productsWithTips, totalTip);
       onClose();
     } catch (error) {
       console.error('Error saving tips:', error);
@@ -213,12 +217,15 @@ const ProductTipAssignmentModal = ({
                         <div className="relative">
                           <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
                           <Input
+                            ref={(el) => {
+                              tipInputRefs.current[index] = el;
+                            }}
                             id={`tip-${index}`}
                             type="number"
                             min="0"
                             step="0.01"
-                            value={tipValues[index] || ''}
-                            onChange={(e) => handleTipChange(index, e.target.value)}
+                            defaultValue={product.adminAssignedTip || 0}
+                            onChange={triggerUpdate}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
                           />
@@ -232,7 +239,10 @@ const ProductTipAssignmentModal = ({
                           size="sm"
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.1).toFixed(2));
-                            handleTipChange(index, tip.toString());
+                            if (tipInputRefs.current[index]) {
+                              tipInputRefs.current[index]!.value = tip.toString();
+                            }
+                            triggerUpdate();
                           }}
                           className="h-8 px-2 text-xs"
                         >
@@ -244,7 +254,10 @@ const ProductTipAssignmentModal = ({
                           size="sm"
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.15).toFixed(2));
-                            handleTipChange(index, tip.toString());
+                            if (tipInputRefs.current[index]) {
+                              tipInputRefs.current[index]!.value = tip.toString();
+                            }
+                            triggerUpdate();
                           }}
                           className="h-8 px-2 text-xs"
                         >
@@ -287,11 +300,12 @@ const ProductTipAssignmentModal = ({
               variant="outline"
               size="sm"
               onClick={() => {
-                setProducts(prev => prev.map(product => ({
-                  ...product,
-                  adminAssignedTip: 50
-                })));
-                setTipValues(prev => prev.map(() => '50'));
+                tipInputRefs.current.forEach(ref => {
+                  if (ref) {
+                    ref.value = '50';
+                  }
+                });
+                triggerUpdate();
               }}
               className="h-7 px-2 text-xs"
             >
@@ -302,24 +316,17 @@ const ProductTipAssignmentModal = ({
               variant="outline"
               size="sm"
               onClick={() => {
-                setProducts(prev => prev.map(product => {
+                products.forEach((product, index) => {
                   const price = parseFloat(product.estimatedPrice || '0') || 0;
                   const quantity = parseInt(product.quantity || '1') || 1;
                   const productValue = price * quantity;
                   const tip = parseFloat((productValue * 0.15).toFixed(2));
-                  return {
-                    ...product,
-                    adminAssignedTip: tip
-                  };
-                }));
-                setTipValues(prev => prev.map((_, index) => {
-                  const product = products[index];
-                  const price = parseFloat(product.estimatedPrice || '0') || 0;
-                  const quantity = parseInt(product.quantity || '1') || 1;
-                  const productValue = price * quantity;
-                  const tip = parseFloat((productValue * 0.15).toFixed(2));
-                  return tip.toString();
-                }));
+                  
+                  if (tipInputRefs.current[index]) {
+                    tipInputRefs.current[index]!.value = tip.toString();
+                  }
+                });
+                triggerUpdate();
               }}
               className="h-7 px-2 text-xs"
             >
