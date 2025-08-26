@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye, CalendarDays, Plane } from "lucide-react";
@@ -41,7 +42,7 @@ export const TripCard = ({
               <div className="flex items-center space-x-1">
                 <CalendarDays className="h-3 w-3 text-blue-500" />
                 <span className="text-blue-600">
-                  Llegada: {new Date(trip.arrival_date).toLocaleDateString()}
+                  Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString()}
                 </span>
               </div>
               
