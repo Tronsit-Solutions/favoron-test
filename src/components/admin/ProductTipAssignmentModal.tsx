@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,15 +34,20 @@ const ProductTipAssignmentModal = ({
   console.log('🔍 DEBUG ProductTipAssignmentModal - initialProducts:', initialProducts);
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
   
-  const [products, setProducts] = useState<Product[]>(
-    initialProducts.map(p => {
+  const [products, setProducts] = useState<Product[]>([]);
+  
+  // Update products when initialProducts changes
+  useEffect(() => {
+    console.log('🔍 DEBUG Setting products from initialProducts:', initialProducts);
+    const mappedProducts = initialProducts.map(p => {
       console.log('🔍 DEBUG Mapping product:', p);
       return {
         ...p,
         adminAssignedTip: p.adminAssignedTip || 0
       };
-    })
-  );
+    });
+    setProducts(mappedProducts);
+  }, [initialProducts]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
