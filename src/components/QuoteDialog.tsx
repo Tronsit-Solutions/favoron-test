@@ -172,10 +172,10 @@ const QuoteDialog = ({
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
                         
-                        // For single products, check if tip is in quote or package level
+                        // For single products, check if tip is in admin_assigned_tip first, then quote
                         const isSingle = packageDetails.products_data.length === 1;
                         const fallbackSingleTip = isSingle ? 
-                          (parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0')) : 0;
+                          (parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0')) : 0;
                         const adminTip = product.adminAssignedTip || fallbackSingleTip;
                         
                         return (
@@ -262,7 +262,7 @@ const QuoteDialog = ({
                                   Q{(() => {
                                     const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
                                       const fallbackSingleTip = isSingle ? 
-                                        (parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0')) : 0;
+                                        (parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0')) : 0;
                                       return sum + (product.adminAssignedTip || fallbackSingleTip);
                                     }, 0);
                                     return userType === 'user' ? (totalTip * 1.4).toFixed(2) : totalTip.toFixed(2);
@@ -306,7 +306,7 @@ const QuoteDialog = ({
                         </div>
                         {(() => {
                           // Show tip for old format (no products_data)
-                          const fallbackTip = parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0');
+                          const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0');
                           return fallbackTip > 0 && (
                             <div>
                               {userType === 'user' ? (
