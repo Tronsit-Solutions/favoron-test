@@ -36,7 +36,6 @@ const ProductTipAssignmentModal = ({
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
   
   const [products, setProducts] = useState<Product[]>([]);
-  const [inputValues, setInputValues] = useState<string[]>([]);
   
   // Update products when initialProducts changes
   useEffect(() => {
@@ -51,15 +50,8 @@ const ProductTipAssignmentModal = ({
       };
     });
     setProducts(mappedProducts);
-    
-    // Initialize input values with current tip values
-    const inputVals = mappedProducts.map(p => {
-      const tip = p.adminAssignedTip || 0;
-      return tip === 0 ? '' : tip.toString();
-    });
-    setInputValues(inputVals);
-    console.log('🔍 DEBUG Initial inputValues:', inputVals);
   }, [initialProducts]);
+  
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -68,30 +60,6 @@ const ProductTipAssignmentModal = ({
     setProducts(prev => prev.map((product, i) => 
       i === index ? { ...product, adminAssignedTip: tip } : product
     ));
-  };
-
-  const updateInputValue = (index: number, value: string) => {
-    console.log('🔍 DEBUG updateInputValue - index:', index, 'value:', value);
-    setInputValues(prev => {
-      const newValues = [...prev];
-      newValues[index] = value;
-      console.log('🔍 DEBUG New inputValues:', newValues);
-      return newValues;
-    });
-  };
-
-  const handleInputBlur = (index: number, value: string) => {
-    console.log('🔍 DEBUG handleInputBlur - index:', index, 'value:', value);
-    const numValue = parseFloat(value) || 0;
-    updateProductTip(index, numValue);
-    
-    // Synchronize input value with the actual tip value
-    const displayValue = numValue === 0 ? '' : numValue.toString();
-    setInputValues(prev => {
-      const newValues = [...prev];
-      newValues[index] = displayValue;
-      return newValues;
-    });
   };
 
   const calculateTotalTip = () => {
@@ -106,7 +74,6 @@ const ProductTipAssignmentModal = ({
       ...product,
       adminAssignedTip: tipValue
     })));
-    setInputValues(prev => prev.map(() => tipValue === 0 ? '' : tipValue.toString()));
   };
 
   const handleSave = async () => {
@@ -228,28 +195,16 @@ const ProductTipAssignmentModal = ({
                         </Label>
                         <div className="relative">
                           <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
-                           <Input
+                          <Input
                             id={`tip-${index}`}
                             type="number"
                             min="0"
                             step="0.01"
-                            value={inputValues[index] || ''}
+                            value={product.adminAssignedTip === 0 ? '' : product.adminAssignedTip?.toString() || ''}
                             onChange={(e) => {
                               const value = e.target.value;
-                              console.log('🔍 DEBUG Input onChange - value:', value);
-                              updateInputValue(index, value);
-                            }}
-                            onBlur={(e) => {
-                              const value = e.target.value;
-                              console.log('🔍 DEBUG Input onBlur - value:', value);
-                              handleInputBlur(index, value);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                const value = e.currentTarget.value;
-                                handleInputBlur(index, value);
-                                e.currentTarget.blur();
-                              }
+                              const numValue = value === '' ? 0 : parseFloat(value) || 0;
+                              updateProductTip(index, numValue);
                             }}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
@@ -265,7 +220,6 @@ const ProductTipAssignmentModal = ({
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.1).toFixed(2));
                             updateProductTip(index, tip);
-                            updateInputValue(index, tip.toString());
                           }}
                           className="h-8 px-2 text-xs"
                         >
@@ -278,7 +232,6 @@ const ProductTipAssignmentModal = ({
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.15).toFixed(2));
                             updateProductTip(index, tip);
-                            updateInputValue(index, tip.toString());
                           }}
                           className="h-8 px-2 text-xs"
                         >
@@ -325,7 +278,6 @@ const ProductTipAssignmentModal = ({
                   ...product,
                   adminAssignedTip: 50
                 })));
-                setInputValues(prev => prev.map(() => '50'));
               }}
               className="h-7 px-2 text-xs"
             >
@@ -345,14 +297,6 @@ const ProductTipAssignmentModal = ({
                     ...product,
                     adminAssignedTip: tip
                   };
-                }));
-                setInputValues(prev => prev.map((_, index) => {
-                  const product = products[index];
-                  const price = parseFloat(product.estimatedPrice || '0') || 0;
-                  const quantity = parseInt(product.quantity || '1') || 1;
-                  const productValue = price * quantity;
-                  const tip = parseFloat((productValue * 0.15).toFixed(2));
-                  return tip.toString();
                 }));
               }}
               className="h-7 px-2 text-xs"
