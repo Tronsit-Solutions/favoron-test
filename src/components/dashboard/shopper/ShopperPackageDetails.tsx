@@ -1,14 +1,65 @@
-import { Package, TripDates } from "@/types";
+import { useState } from "react";
+import { Package } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Eye, Package2 } from "lucide-react";
+import ProductDetailsModal from "../ProductDetailsModal";
 
 interface ShopperPackageDetailsProps {
   pkg: Package;
 }
 
 const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
+  const [showModal, setShowModal] = useState(false);
+
+  // Check if it's a multiple product order
+  const isMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
+  
+  const getProductCount = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data)) {
+      return pkg.products_data.length;
+    }
+    return 1;
+  };
+
   const renderProducts = () => {
-    // Check if there's products_data (new format)
+    // If multiple products, show summary and button
+    if (isMultipleProducts) {
+      const productCount = getProductCount();
+      const totalEstimated = Array.isArray(pkg.products_data) 
+        ? (pkg.products_data as any[]).reduce((sum: number, product: any) => {
+            const price = parseFloat(product.estimatedPrice || '0');
+            const quantity = parseInt(product.quantity || '1');
+            return sum + (price * quantity);
+          }, 0)
+        : 0;
+
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm">
+              <strong>Pedido múltiple:</strong> {productCount} productos
+            </p>
+            <span className="text-sm font-semibold text-primary">
+              Total: ${totalEstimated.toFixed(2)}
+            </span>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowModal(true)}
+            className="w-full"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Ver todos los productos ({productCount})
+          </Button>
+        </div>
+      );
+    }
+
+    // Single product display (keep existing logic)
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-      const product = pkg.products_data[0] as any; // Type assertion for JSONB data
+      const product = pkg.products_data[0] as any;
       return (
         <div className="space-y-3">
           <p className="text-sm">
@@ -56,19 +107,27 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
   };
 
   return (
-    <div className="space-y-3">
-      {renderProducts()}
-      
-      {pkg.additional_notes && (
-        <p className="text-sm">
-          <strong>Notas adicionales:</strong> {pkg.additional_notes}
+    <>
+      <div className="space-y-3">
+        {renderProducts()}
+        
+        {pkg.additional_notes && (
+          <p className="text-sm">
+            <strong>Notas adicionales:</strong> {pkg.additional_notes}
+          </p>
+        )}
+        
+        <p className="text-xs text-muted-foreground">
+          Creado el {new Date(pkg.created_at).toLocaleDateString('es-GT')}
         </p>
-      )}
-      
-      <p className="text-xs text-muted-foreground">
-        Creado el {new Date(pkg.created_at).toLocaleDateString('es-GT')}
-      </p>
-    </div>
+      </div>
+
+      <ProductDetailsModal 
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        pkg={pkg}
+      />
+    </>
   );
 };
 
