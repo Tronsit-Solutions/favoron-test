@@ -196,11 +196,24 @@ const QuoteDialog = ({
                               </div>
                               <div className="text-right">
                                 {adminTip > 0 ? (
-                                  <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                  <div>
+                                    {userType === 'user' ? (
+                                      // Shopper sees final price (tip + 40%)
+                                      <>
+                                        <p className="text-lg font-bold text-green-600">Q{(adminTip * 1.4).toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Cotización final</p>
+                                      </>
+                                    ) : (
+                                      // Admin sees base tip amount
+                                      <>
+                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                      </>
+                                    )}
+                                  </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">Sin tip</p>
                                 )}
-                                <p className="text-xs text-muted-foreground">Tip asignado</p>
                               </div>
                             </div>
                           </div>
@@ -221,11 +234,16 @@ const QuoteDialog = ({
                           </div>
                           {packageDetails.products_data.some((p: any) => p.adminAssignedTip) && (
                             <div className="flex justify-between items-center mt-1">
-                              <p className="font-medium text-green-600">Tip total:</p>
+                              <p className="font-medium text-green-600">
+                                {userType === 'user' ? 'Cotización total:' : 'Tip total:'}
+                              </p>
                               <p className="text-lg font-bold text-green-600">
-                                Q{packageDetails.products_data.reduce((sum: number, product: any) => {
-                                  return sum + (product.adminAssignedTip || 0);
-                                }, 0).toFixed(2)}
+                                Q{(() => {
+                                  const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
+                                    return sum + (product.adminAssignedTip || 0);
+                                  }, 0);
+                                  return userType === 'user' ? (totalTip * 1.4).toFixed(2) : totalTip.toFixed(2);
+                                })()}
                               </p>
                             </div>
                           )}
