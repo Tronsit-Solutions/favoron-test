@@ -33,8 +33,8 @@ const StatusAlert = ({ variant, title, children, showIcon = true }: StatusAlertP
   const Icon = icons[variant];
 
   return (
-    <div className={`${variantStyles[variant]} border rounded-lg p-4 shadow-sm`}>
-      <div className="flex items-start space-x-3">
+    <div className={`${variantStyles[variant]} border rounded-lg p-3 shadow-sm`}>
+      <div className="flex items-start space-x-2">
         {showIcon && <Icon className={`h-4 w-4 ${iconColors[variant]} mt-0.5 flex-shrink-0`} />}
         <div className="flex-1 min-w-0">
           {title && <p className="text-sm font-semibold mb-2 leading-tight text-black">{title}</p>}

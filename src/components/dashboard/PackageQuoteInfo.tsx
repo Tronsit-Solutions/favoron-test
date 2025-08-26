@@ -17,8 +17,8 @@ const PackageQuoteInfo = ({ quote, quoteExpiresAt, onQuoteExpire }: PackageQuote
   
   return (
     <StatusAlert variant="info" title="Cotización recibida">
-      <div className="space-y-2">
-        <p className="text-lg font-semibold">
+      <div className="space-y-1">
+        <p className="text-sm font-medium">
           Total: ${totalPrice.toFixed(2)}
         </p>
         <p className="text-xs opacity-90">
