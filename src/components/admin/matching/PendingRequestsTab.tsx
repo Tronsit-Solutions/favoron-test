@@ -167,31 +167,31 @@ const PendingRequestsTab = ({
         ) : (
           filteredPackages.map(pkg => (
             <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3">
                   <div className="flex-1 space-y-2">
                     {/* Main info row */}
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-2">
                       <div>
                         <div className="mb-1">
                           <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                         </div>
-                         <h4 className="font-semibold text-base leading-tight mb-2 text-foreground">
+                         <h4 className="font-semibold text-sm sm:text-base leading-tight mb-2 text-foreground break-words">
                            {pkg.item_description || "Sin descripción"}
                          </h4>
-                          <div className="flex items-center space-x-3">
-                              <span className="text-xs text-muted-foreground">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                              <span className="text-xs text-muted-foreground break-words">
                                 🛍️ Shopper: {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
                                   ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
                                   : (pkg as any)?.profiles?.username || 'Sin nombre'}
                               </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground break-words">
                               📍 {pkg.purchase_origin} → {pkg.package_destination}
                             </span>
                          </div>
                       </div>
-                       <div className="flex items-center space-x-2">
-                         <div className="flex flex-col items-end space-y-1">
+                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                            <div className="flex items-center gap-2">
                              {getStatusBadge(pkg.status, { 
                                packageDestination: pkg.package_destination,
@@ -199,25 +199,25 @@ const PendingRequestsTab = ({
                              })}
                              <PackageHistoryIndicator package={pkg} />
                            </div>
+                           {pkg.rejection_reason && pkg.wants_requote && (
+                             <RejectionTooltip
+                               adminAssignedTip={pkg.admin_assigned_tip}
+                               rejectionReason={pkg.rejection_reason}
+                               wantsRequote={pkg.wants_requote}
+                               additionalNotes={pkg.additional_notes}
+                             />
+                           )}
                          </div>
-                         {pkg.rejection_reason && pkg.wants_requote && (
-                           <RejectionTooltip
-                             adminAssignedTip={pkg.admin_assigned_tip}
-                             rejectionReason={pkg.rejection_reason}
-                             wantsRequote={pkg.wants_requote}
-                             additionalNotes={pkg.additional_notes}
-                           />
-                         )}
                        </div>
                     </div>
 
                     {/* Route info */}
-                    <div className="flex items-center space-x-2 text-xs">
-                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded w-fit">
                         🌎 {pkg.purchase_origin || 'País no especificado'}
                       </span>
-                      <span className="text-muted-foreground">→</span>
-                      <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                      <span className="text-muted-foreground hidden sm:block">→</span>
+                      <span className="bg-green-50 text-green-700 px-2 py-1 rounded w-fit">
                         🏠 {pkg.package_destination || 'Guatemala'}
                       </span>
                     </div>
@@ -225,8 +225,8 @@ const PendingRequestsTab = ({
                     {/* Deadline */}
                     {pkg.delivery_deadline && (
                       <div className="flex items-center space-x-1 text-xs">
-                        <CalendarDays className="h-3 w-3 text-orange-500" />
-                        <span className="text-orange-600">
+                        <CalendarDays className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                        <span className="text-orange-600 break-words">
                           Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                         </span>
                       </div>
@@ -234,22 +234,25 @@ const PendingRequestsTab = ({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex space-x-2 ml-4">
+                  <div className="flex flex-row lg:flex-col gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 lg:border-l lg:pl-3 border-border/50">
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => onViewPackageDetail(pkg)}
+                      className="flex-1 lg:flex-none text-xs sm:text-sm"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-0 mr-1" />
+                      <span className="lg:hidden">Ver</span>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="h-8 w-8 p-0"
+                          className="flex-1 lg:flex-none lg:h-8 lg:w-8 lg:p-0 text-xs sm:text-sm"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-0 mr-1" />
+                          <span className="lg:hidden">Más</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -288,9 +291,9 @@ const PendingRequestsTab = ({
                       size="sm" 
                       onClick={() => onOpenMatchDialog(pkg)}
                       disabled={availableTripsCount === 0}
-                      className="bg-primary hover:bg-primary/90"
+                      className="bg-primary hover:bg-primary/90 flex-1 lg:flex-none text-xs sm:text-sm"
                     >
-                      <Zap className="h-4 w-4 mr-1" />
+                      <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       Match
                     </Button>
                   </div>
