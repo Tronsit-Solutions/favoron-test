@@ -52,9 +52,9 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
     <Card className={className}>
       <div className="p-2 sm:p-3">
         {/* Estructura horizontal: Timeline + Chat */}
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
           {/* Timeline de Estados */}
-          <div className="lg:w-64 lg:flex-shrink-0">
+          <div className="lg:max-w-sm">
             <PackageStatusTimeline 
               currentStatus={pkg.status} 
               deliveryMethod={pkg.delivery_method}
@@ -62,7 +62,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
           </div>
 
           {/* Historial & Mensajes */}
-          <div className="flex-1 min-w-0">
+          <div className="lg:max-w-lg">
             <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
               <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="hidden sm:inline">Historial & Mensajes</span>
