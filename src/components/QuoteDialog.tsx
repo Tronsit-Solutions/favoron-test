@@ -171,7 +171,12 @@ const QuoteDialog = ({
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
-                        const adminTip = product.adminAssignedTip || 0;
+                        
+                        // For single products, check if tip is in quote or package level
+                        const isSingle = packageDetails.products_data.length === 1;
+                        const fallbackSingleTip = isSingle ? 
+                          (parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0')) : 0;
+                        const adminTip = product.adminAssignedTip || fallbackSingleTip;
                         
                         return (
                           <div key={index} className="bg-muted/30 rounded p-2">
@@ -242,21 +247,30 @@ const QuoteDialog = ({
                               }, 0).toFixed(2)}
                             </p>
                           </div>
-                          {packageDetails.products_data.some((p: any) => p.adminAssignedTip) && (
-                            <div className="flex justify-between items-center mt-1">
-                              <p className="font-medium text-green-600">
-                                {userType === 'user' ? 'Cotización total:' : 'Tip total:'}
-                              </p>
-                              <p className="text-lg font-bold text-green-600">
-                                Q{(() => {
-                                  const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
-                                    return sum + (product.adminAssignedTip || 0);
-                                  }, 0);
-                                  return userType === 'user' ? (totalTip * 1.4).toFixed(2) : totalTip.toFixed(2);
-                                })()}
-                              </p>
-                            </div>
-                          )}
+                          {(() => {
+                            // Check if any product has adminAssignedTip or if single product has fallback tip
+                            const isSingle = packageDetails.products_data.length === 1;
+                            const hasTips = packageDetails.products_data.some((p: any) => p.adminAssignedTip) ||
+                              (isSingle && (existingQuote?.price || packageDetails.admin_assigned_tip));
+                            
+                            return hasTips && (
+                              <div className="flex justify-between items-center mt-1">
+                                <p className="font-medium text-green-600">
+                                  {userType === 'user' ? 'Cotización total:' : 'Tip total:'}
+                                </p>
+                                <p className="text-lg font-bold text-green-600">
+                                  Q{(() => {
+                                    const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
+                                      const fallbackSingleTip = isSingle ? 
+                                        (parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0')) : 0;
+                                      return sum + (product.adminAssignedTip || fallbackSingleTip);
+                                    }, 0);
+                                    return userType === 'user' ? (totalTip * 1.4).toFixed(2) : totalTip.toFixed(2);
+                                  })()}
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
@@ -275,19 +289,42 @@ const QuoteDialog = ({
                           return '1 unidad';
                         })()} </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-primary">${(() => {
-                          // Calcular total considerando cantidades de products_data
-                          if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-                            return packageDetails.products_data.reduce((sum: number, product: any) => {
-                              const quantity = parseInt(product.quantity || '1');
-                              const unitPrice = parseFloat(product.estimatedPrice || packageDetails.estimated_price || '0');
-                              return sum + (quantity * unitPrice);
-                            }, 0).toFixed(2);
-                          }
-                          return packageDetails.estimated_price;
-                        })()}</p>
-                        <p className="text-xs text-muted-foreground">Total</p>
+                      <div className="text-right space-y-2">
+                        <div>
+                          <p className="text-lg font-bold text-primary">${(() => {
+                            // Calcular total considerando cantidades de products_data
+                            if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
+                              return packageDetails.products_data.reduce((sum: number, product: any) => {
+                                const quantity = parseInt(product.quantity || '1');
+                                const unitPrice = parseFloat(product.estimatedPrice || packageDetails.estimated_price || '0');
+                                return sum + (quantity * unitPrice);
+                              }, 0).toFixed(2);
+                            }
+                            return packageDetails.estimated_price;
+                          })()}</p>
+                          <p className="text-xs text-muted-foreground">Total</p>
+                        </div>
+                        {(() => {
+                          // Show tip for old format (no products_data)
+                          const fallbackTip = parseFloat(existingQuote?.price || '0') || parseFloat(packageDetails.admin_assigned_tip || '0');
+                          return fallbackTip > 0 && (
+                            <div>
+                              {userType === 'user' ? (
+                                // Shopper sees final price (tip + 40%)
+                                <>
+                                  <p className="text-lg font-bold text-green-600">Q{(fallbackTip * 1.4).toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground">Cotización final</p>
+                                </>
+                              ) : (
+                                // Admin sees base tip amount
+                                <>
+                                  <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
