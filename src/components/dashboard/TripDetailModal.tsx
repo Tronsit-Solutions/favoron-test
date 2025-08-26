@@ -68,7 +68,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-sm font-medium">Fecha de Salida</div>
+                <div className="text-sm font-medium">Fecha de Viaje</div>
                 <div className="text-sm text-muted-foreground">
                   {formatDate(trip.departure_date)}
                 </div>
