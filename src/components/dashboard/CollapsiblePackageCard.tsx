@@ -236,10 +236,10 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent className="w-full max-w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[400px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[400px]">
               
               {/* Información del Producto */}
-              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+              <div className="lg:col-span-3 border rounded-lg p-4 bg-muted/20 h-fit">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
                 <ShopperPackageDetails pkg={pkg} />
                 
@@ -265,14 +265,16 @@ const CollapsiblePackageCard = ({
                 )}
               </div>
 
-              {/* Timeline de Estados - Sin contenedor */}
-              <PackageStatusTimeline 
-                currentStatus={pkg.status} 
-                deliveryMethod={pkg.delivery_method}
-              />
+              {/* Timeline de Estados */}
+              <div className="lg:col-span-2">
+                <PackageStatusTimeline 
+                  currentStatus={pkg.status} 
+                  deliveryMethod={pkg.delivery_method}
+                />
+              </div>
 
               {/* Acciones y Archivos del Usuario */}
-              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+              <div className="lg:col-span-1 border rounded-lg p-4 bg-muted/20 h-fit">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
                 
                 {/* Priority Actions Section */}
