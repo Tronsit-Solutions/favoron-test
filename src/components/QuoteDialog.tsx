@@ -177,11 +177,6 @@ const QuoteDialog = ({
                                     ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                                   </p>
                                 )}
-                                {adminTip > 0 && (
-                                  <p className="text-green-600 font-medium">
-                                    <strong>Tip:</strong> Q{adminTip.toFixed(2)}
-                                  </p>
-                                )}
                                 {product.itemLink && (
                                   <p>
                                     <a 
