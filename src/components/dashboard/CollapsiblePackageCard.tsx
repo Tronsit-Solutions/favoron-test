@@ -252,6 +252,16 @@ const CollapsiblePackageCard = ({
                   />
                 </div>
 
+                {/* Quote Information Section - Moved from Product Information */}
+                {pkg.quote && (
+                  <div className="mb-4">
+                    <PackageQuoteInfo 
+                      quote={pkg.quote as any}
+                      quoteExpiresAt={pkg.quote_expires_at}
+                    />
+                  </div>
+                )}
+
                 {/* Payment Receipt Upload Section */}
                 {(pkg.status === 'quote_accepted' || 
                   pkg.status === 'payment_pending' || 
@@ -316,16 +326,6 @@ const CollapsiblePackageCard = ({
                     {/* Contenido principal del producto */}
                     <div className="flex-1">
                       <ShopperPackageDetails pkg={pkg} />
-                      
-                      {/* Mostrar información de cotización cuando existe */}
-                      {pkg.quote && (
-                        <div className="mt-4">
-                          <PackageQuoteInfo 
-                            quote={pkg.quote as any}
-                            quoteExpiresAt={pkg.quote_expires_at}
-                          />
-                        </div>
-                      )}
                       
                       {/* Show rejection reason if package was rejected */}
                       {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
