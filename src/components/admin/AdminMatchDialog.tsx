@@ -209,8 +209,8 @@ const AdminMatchDialog = ({
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Expandable Package Summary */}
           {selectedPackage && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
                    <span className="font-medium text-gray-900 text-sm">
