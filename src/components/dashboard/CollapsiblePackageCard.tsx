@@ -236,101 +236,143 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent className="p-3 sm:p-4 lg:p-6 w-full max-w-full">
-            {/* Priority Actions Section - Always first */}
-            {viewMode === 'user' && (
-              <div className="mb-6">
-                <ShopperPackagePriorityActions 
-                  pkg={pkg}
-                  onQuote={onQuote}
-                  onDeletePackage={onDeletePackage}
-                  onRequestRequote={onRequestRequote}
-                />
+            {/* Layout reorganizado en 4 cuadrantes */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[400px]">
+              
+              {/* CUADRANTE SUPERIOR IZQUIERDO: Información del Producto */}
+              <div className="space-y-4 order-1">
+                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
+                  <ShopperPackageDetails pkg={pkg} />
+                  
+                  {/* Mostrar información de cotización cuando existe */}
+                  {pkg.quote && (
+                    <div className="mt-4">
+                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                        console.log('Quote info updated:', updatedPkg);
+                      }} />
+                    </div>
+                  )}
+                  
+                  {/* Show rejection reason if package was rejected */}
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="mt-4">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-            
-            {/* Mostrar instrucciones de envío solo cuando el pago está en proceso o confirmado */}
-            {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-              <div className="mb-6">
-                <ShippingInstructions pkg={pkg} />
-              </div>
-            )}
 
-            {/* Información de envío collapsible para in_transit y estados posteriores */}
-            {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-              <div className="mb-6">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-between"
-                  onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
-                >
-                  📦 Información de Envío
-                  {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-                {shippingInfoOpen && (
-                  <div className="space-y-4 mt-4 p-4 border rounded-md bg-muted/20">
-                    <ShippingInstructions pkg={pkg} />
-                    <ShippingInfoRegistry pkg={pkg} />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
-
-                {/* Show traveler confirmation when package is received */}
-                <TravelerConfirmationDisplay pkg={pkg} />
-
-                {/* Show shipping information registry when saved - only for non-collapsible states */}
-                {!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                  <ShippingInfoRegistry pkg={pkg} className="mb-4" />
-                )}
-
-                <UploadedDocumentsRegistry
-                  pkg={pkg} 
-                  className="mb-4"
-                  onEditDocument={handleEditDocument}
-                />
-                
-                {/* Show rejection reason if package was rejected */}
-                {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                  <RejectionReasonDisplay 
-                    rejectionReason={pkg.rejection_reason}
-                    wantsRequote={pkg.wants_requote}
-                    additionalComments={pkg.additional_notes}
-                    className="mb-4"
+              {/* CUADRANTE SUPERIOR DERECHO: Timeline de Estados */}
+              <div className="space-y-4 order-2">
+                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📊 Estado del Pedido</h3>
+                  <PackageStatusTimeline 
+                    currentStatus={pkg.status} 
+                    deliveryMethod={pkg.delivery_method}
                   />
-                )}
-                
-                <ShopperPackageDetails pkg={pkg} />
-                {/* Show ShopperPackageInfo only if not payment_pending (already shown prominently above) */}
-                {pkg.status !== 'payment_pending' && (
-                  <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                    console.log('Package updated successfully:', updatedPkg);
-                  }} />
-                )}
-                {renderActionButtons()}
+                </div>
               </div>
 
-              <div className="space-y-4 order-1 lg:order-2">
-                {/* Payment Upload Section - Above chat for payment_pending */}
-                {pkg.status === 'payment_pending' && viewMode === 'user' && (
-                  <div className="mb-4">
-                    <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                      console.log('Payment receipt uploaded successfully:', updatedPkg);
-                    }} />
+              {/* CUADRANTE INFERIOR IZQUIERDO: Acciones y Archivos del Usuario */}
+              <div className="space-y-4 order-3">
+                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
+                  
+                  {/* Priority Actions Section */}
+                  {viewMode === 'user' && (
+                    <div className="mb-4">
+                      <ShopperPackagePriorityActions 
+                        pkg={pkg}
+                        onQuote={onQuote}
+                        onDeletePackage={onDeletePackage}
+                        onRequestRequote={onRequestRequote}
+                      />
+                    </div>
+                  )}
+
+                  {/* Payment Upload Section */}
+                  {pkg.status === 'payment_pending' && viewMode === 'user' && (
+                    <div className="mb-4">
+                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                        console.log('Payment receipt uploaded successfully:', updatedPkg);
+                      }} />
+                    </div>
+                  )}
+
+                  {/* Document Upload Section */}
+                  {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                    <div className="mb-4">
+                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                        console.log('Documents updated successfully:', updatedPkg);
+                      }} />
+                    </div>
+                  )}
+
+                  {/* Uploaded Documents Registry */}
+                  <UploadedDocumentsRegistry
+                    pkg={pkg} 
+                    onEditDocument={handleEditDocument}
+                  />
+                  
+                  {/* Show traveler confirmation when package is received */}
+                  <TravelerConfirmationDisplay pkg={pkg} />
+
+                  {/* Edit Actions */}
+                  <div className="mt-4">
+                    {renderActionButtons()}
                   </div>
-                )}
-                
-                <PackageStatusTimeline 
-                  currentStatus={pkg.status} 
-                  deliveryMethod={pkg.delivery_method}
-                />
-                
-                {/* Package Chat Timeline - Always visible for shoppers */}
-                <div className="mt-6">
+                </div>
+              </div>
+
+              {/* CUADRANTE INFERIOR DERECHO: Comunicación */}
+              <div className="space-y-4 order-4">
+                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">💬 Comunicación</h3>
                   <PackageTimeline pkg={pkg} />
                 </div>
+
+                {/* Shipping Information - Conditional Display */}
+                {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
+                  ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) && (
+                  <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">🚚 Información de Envío</h3>
+                    
+                    {/* Always show for pending_purchase and payment_confirmed */}
+                    {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
+                      <ShippingInstructions pkg={pkg} />
+                    )}
+                    
+                    {/* Collapsible for in_transit and later states */}
+                    {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
+                      <div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-between mb-3"
+                          onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
+                        >
+                          Ver detalles de envío
+                          {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
+                        {shippingInfoOpen && (
+                          <div className="space-y-4">
+                            <ShippingInstructions pkg={pkg} />
+                            <ShippingInfoRegistry pkg={pkg} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Show shipping information registry for non-collapsible states */}
+                    {!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
+                      <ShippingInfoRegistry pkg={pkg} />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
