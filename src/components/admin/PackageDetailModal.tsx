@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -249,61 +248,142 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
             )}
           </div>
 
-          {/* Package Information */}
+          {/* Enhanced Package/Products Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Package className="h-4 w-4" />
-                <span>
-                  {pkg.products && pkg.products.length > 0 
-                    ? `Productos Solicitados (${pkg.products.length})`
-                    : 'Detalles del Artículo'
-                  }
-                </span>
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center space-x-2">
+                  <Package className="h-4 w-4" />
+                  <span>
+                    {pkg.products && pkg.products.length > 0 
+                      ? `Productos Solicitados`
+                      : 'Detalles del Artículo'
+                    }
+                  </span>
+                </div>
+                {pkg.products && pkg.products.length > 0 && (
+                  <Badge variant="outline" className="text-sm">
+                    {pkg.products.length} producto{pkg.products.length !== 1 ? 's' : ''}
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Multiple products display */}
+              {/* Multiple products display - Enhanced */}
               {pkg.products && pkg.products.length > 0 ? (
                 <div className="space-y-4">
-                  {pkg.products.map((product: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-lg">Producto #{index + 1}</p>
-                        <Badge variant="outline">${product.estimatedPrice}</Badge>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm font-medium mb-1">Descripción:</p>
-                        <p className="text-sm text-muted-foreground">{product.itemDescription}</p>
-                      </div>
-
-                      {product.itemLink && (
-                        <div>
-                          <p className="text-sm font-medium mb-1">Link del producto:</p>
-                          <a 
-                            href={product.itemLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-2 text-primary hover:underline text-sm"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            <span>Ver producto en línea</span>
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {/* Total price summary */}
+                  {/* Products summary header */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Total Estimado:</span>
-                      <span className="text-lg font-bold text-blue-800">
-                        ${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)}
-                      </span>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium text-blue-800">Total de productos:</p>
+                        <p className="text-blue-700">{pkg.products.length} artículos</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-blue-800">Valor total estimado:</p>
+                        <p className="text-blue-700 text-lg font-bold">
+                          ${pkg.products.reduce((sum: number, p: any) => {
+                            const price = parseFloat(p.estimatedPrice || '0');
+                            const quantity = parseInt(p.quantity || '1');
+                            return sum + (price * quantity);
+                          }, 0).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Individual products */}
+                  <div className="space-y-3">
+                    {pkg.products.map((product: any, index: number) => {
+                      const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
+                      
+                      return (
+                        <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="secondary" className="text-xs">
+                                #{index + 1}
+                              </Badge>
+                              <p className="font-medium text-base">Producto {index + 1}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Valor unitario: ${product.estimatedPrice}</p>
+                              <p className="font-medium text-lg">${productValue.toFixed(2)}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground mb-1">Descripción:</p>
+                              <p className="text-sm bg-white p-2 rounded border">{product.itemDescription}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground mb-1">Cantidad:</p>
+                                <p className="text-sm bg-white p-2 rounded border">
+                                  {product.quantity || '1'} unidad{product.quantity !== '1' ? 'es' : ''}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground mb-1">Precio estimado:</p>
+                                <p className="text-sm bg-white p-2 rounded border font-medium">
+                                  ${product.estimatedPrice}
+                                </p>
+                              </div>
+                            </div>
+
+                            {product.adminAssignedTip && (
+                              <div className="bg-green-50 border border-green-200 rounded p-2">
+                                <p className="text-sm font-medium text-green-800">
+                                  Tip asignado por admin: Q{product.adminAssignedTip.toFixed(2)}
+                                </p>
+                              </div>
+                            )}
+
+                            {product.itemLink && (
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground mb-1">Link del producto:</p>
+                                <a 
+                                  href={product.itemLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center space-x-2 text-primary hover:underline text-sm bg-white p-2 rounded border"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  <span className="truncate">Ver producto en línea</span>
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Admin tip summary for multiple products */}
+                  {pkg.products.some((p: any) => p.adminAssignedTip) && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-green-800">Total Tips Asignados por Admin:</span>
+                        <span className="text-lg font-bold text-green-800">
+                          Q{pkg.products.reduce((sum: number, p: any) => sum + (p.adminAssignedTip || 0), 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-sm text-green-700">
+                        <p>Desglose por producto:</p>
+                        <ul className="list-disc list-inside mt-1">
+                          {pkg.products.map((p: any, idx: number) => (
+                            p.adminAssignedTip && (
+                              <li key={idx}>
+                                Producto #{idx + 1}: Q{p.adminAssignedTip.toFixed(2)}
+                              </li>
+                            )
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 // Single product display (backward compatibility)
