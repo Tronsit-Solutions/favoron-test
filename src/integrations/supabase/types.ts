@@ -230,6 +230,13 @@ export type Database = {
             foreignKeyName: "fk_package_messages_package"
             columns: ["package_id"]
             isOneToOne: false
+            referencedRelation: "package_products_view"
+            referencedColumns: ["package_id"]
+          },
+          {
+            foreignKeyName: "fk_package_messages_package"
+            columns: ["package_id"]
+            isOneToOne: false
             referencedRelation: "packages"
             referencedColumns: ["id"]
           },
@@ -686,6 +693,40 @@ export type Database = {
       }
     }
     Views: {
+      package_products_view: {
+        Row: {
+          admin_assigned_tip: number | null
+          created_at: string | null
+          estimated_price: number | null
+          item_description: string | null
+          item_link: string | null
+          line_total: number | null
+          package_destination: string | null
+          package_id: string | null
+          product_index: number | null
+          purchase_origin: string | null
+          quantity: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null
