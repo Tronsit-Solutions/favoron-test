@@ -45,7 +45,9 @@ const ShopperPackageInfo = ({
   //   return <ShippingInstructions pkg={pkg} />;
   // };
   const renderPaymentUpload = () => {
+    console.log('renderPaymentUpload check for package:', pkg.item_description, 'status:', pkg.status, 'shouldRender:', ['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status));
     if (!['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
+    console.log('Rendering PaymentReceiptUpload for package:', pkg.item_description);
     return <div className="mt-2">
         <PaymentReceiptUpload pkg={pkg} onUploadComplete={updatedPkg => {
         // Actualizar solo este paquete específico sin hacer refresh completo
@@ -111,6 +113,7 @@ const ShopperPackageInfo = ({
         />
       </div>;
   };
+  console.log('ShopperPackageInfo rendering for:', pkg.item_description, 'status:', pkg.status);
   return <>
       {renderQuoteInfo()}
       {renderPaymentUpload()}
