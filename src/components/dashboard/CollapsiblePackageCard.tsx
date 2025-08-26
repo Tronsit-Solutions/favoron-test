@@ -235,147 +235,171 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="w-full max-w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[400px]">
+          <CardContent className="w-full max-w-full p-3">
+            {/* Layout compacto optimizado para una pantalla */}
+            <div className="space-y-3">
               
-              {/* Información del Producto */}
-              <div className="lg:col-span-3 border rounded-lg p-4 bg-muted/20 h-fit">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
-                <ShopperPackageDetails pkg={pkg} />
+              {/* Fila superior: Información del Producto + Cotización en una sola línea */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                <div className="bg-muted/10 rounded-md p-3 space-y-2">
+                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    📦 <span>Producto</span>
+                  </h3>
+                  <ShopperPackageDetails pkg={pkg} />
+                </div>
                 
-                {/* Mostrar información de cotización cuando existe */}
-                {pkg.quote && (
-                  <div className="mt-4">
-                    <PackageQuoteInfo 
-                      quote={pkg.quote as any}
-                      quoteExpiresAt={pkg.quote_expires_at}
-                    />
-                  </div>
-                )}
-                
-                {/* Show rejection reason if package was rejected */}
-                {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                  <div className="mt-4">
-                    <RejectionReasonDisplay 
-                      rejectionReason={pkg.rejection_reason}
-                      wantsRequote={pkg.wants_requote}
-                      additionalComments={pkg.additional_notes}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Timeline de Estados */}
-              <div className="lg:col-span-2">
-                <PackageStatusTimeline 
-                  currentStatus={pkg.status} 
-                  deliveryMethod={pkg.delivery_method}
-                />
-              </div>
-
-              {/* Acciones y Archivos del Usuario */}
-              <div className="lg:col-span-1 border rounded-lg p-4 bg-muted/20 h-fit">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
-                
-                {/* Priority Actions Section */}
-                {viewMode === 'user' && (
-                  <div className="mb-4">
-                    <ShopperPackagePriorityActions 
-                      pkg={pkg}
-                      onQuote={onQuote}
-                      onDeletePackage={onDeletePackage}
-                      onRequestRequote={onRequestRequote}
-                    />
-                  </div>
-                )}
-
-                {/* Payment Upload Section */}
-                {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
-                  <div className="mb-4">
-                    <PaymentReceiptUpload 
-                      pkg={pkg} 
-                      onUploadComplete={(updatedPkg) => {
-                        console.log('Payment receipt uploaded successfully:', updatedPkg);
-                      }} 
-                    />
-                  </div>
-                )}
-
-                {/* Document Upload Section */}
-                {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
-                  <div className="mb-4">
-                    <UploadDocuments 
-                      packageId={pkg.id}
-                      currentStatus={pkg.status}
-                      currentConfirmation={pkg.purchase_confirmation}
-                      currentTracking={pkg.tracking_info}
-                      onUpload={(type, data) => {
-                        console.log('Documents updated successfully:', type, data);
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Uploaded Documents Registry */}
-                <UploadedDocumentsRegistry
-                  pkg={pkg} 
-                  onEditDocument={handleEditDocument}
-                />
-                
-                {/* Show traveler confirmation when package is received */}
-                <TravelerConfirmationDisplay pkg={pkg} />
-
-                {/* Edit Actions */}
-                <div className="mt-4">
-                  {renderActionButtons()}
+                {/* Cotización y rechazo en columna derecha */}
+                <div className="space-y-2">
+                  {pkg.quote && (
+                    <div className="bg-muted/10 rounded-md p-3">
+                      <PackageQuoteInfo 
+                        quote={pkg.quote as any}
+                        quoteExpiresAt={pkg.quote_expires_at}
+                      />
+                    </div>
+                  )}
+                  
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="bg-muted/10 rounded-md p-3">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Comunicación */}
-              <div className="space-y-4">
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">💬 Comunicación</h3>
-                  <PackageTimeline pkg={pkg} />
+              {/* Fila principal: Timeline + Acciones + Comunicación en horizontal */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 h-fit max-h-[300px]">
+                
+                {/* Timeline de Estados - Compacto */}
+                <div className="lg:col-span-4 bg-muted/10 rounded-md p-3 overflow-hidden">
+                  <h3 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                    📊 <span>Estado</span>
+                  </h3>
+                  <div className="scale-90 origin-top-left -ml-2">
+                    <PackageStatusTimeline 
+                      currentStatus={pkg.status} 
+                      deliveryMethod={pkg.delivery_method}
+                    />
+                  </div>
                 </div>
 
-                {/* Shipping Information - Conditional Display */}
-                {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
-                  ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) && (
-                  <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">🚚 Información de Envío</h3>
+                {/* Acciones - Compacto */}
+                <div className="lg:col-span-4 bg-muted/10 rounded-md p-3 space-y-2 overflow-y-auto max-h-[280px]">
+                  <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1 sticky top-0 bg-muted/10 pb-1">
+                    ⚡ <span>Acciones</span>
+                  </h3>
+                  
+                  {/* Priority Actions Section */}
+                  {viewMode === 'user' && (
+                    <div className="space-y-2">
+                      <ShopperPackagePriorityActions 
+                        pkg={pkg}
+                        onQuote={onQuote}
+                        onDeletePackage={onDeletePackage}
+                        onRequestRequote={onRequestRequote}
+                      />
+                    </div>
+                  )}
+
+                  {/* Payment Upload Section */}
+                  {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
+                    <div className="space-y-2">
+                      <PaymentReceiptUpload 
+                        pkg={pkg} 
+                        onUploadComplete={(updatedPkg) => {
+                          console.log('Payment receipt uploaded successfully:', updatedPkg);
+                        }} 
+                      />
+                    </div>
+                  )}
+
+                  {/* Document Upload Section */}
+                  {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
+                    <div className="space-y-2">
+                      <UploadDocuments 
+                        packageId={pkg.id}
+                        currentStatus={pkg.status}
+                        currentConfirmation={pkg.purchase_confirmation}
+                        currentTracking={pkg.tracking_info}
+                        onUpload={(type, data) => {
+                          console.log('Documents updated successfully:', type, data);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Uploaded Documents Registry */}
+                  <UploadedDocumentsRegistry
+                    pkg={pkg} 
+                    onEditDocument={handleEditDocument}
+                  />
+                  
+                  {/* Show traveler confirmation when package is received */}
+                  <TravelerConfirmationDisplay pkg={pkg} />
+
+                  {/* Edit Actions */}
+                  <div className="pt-2">
+                    {renderActionButtons()}
+                  </div>
+                </div>
+
+                {/* Comunicación - Compacto */}
+                <div className="lg:col-span-4 bg-muted/10 rounded-md p-3 overflow-y-auto max-h-[280px]">
+                  <h3 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1 sticky top-0 bg-muted/10 pb-1">
+                    💬 <span>Chat</span>
+                  </h3>
+                  <div className="scale-95 origin-top-left -ml-1">
+                    <PackageTimeline pkg={pkg} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de Envío - Colapsable y compacta */}
+              {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
+                ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) && (
+                <div className="bg-muted/10 rounded-md p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      🚚 <span>Envío</span>
+                    </h3>
                     
+                    {/* Toggle button para estados avanzados */}
+                    {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
+                      >
+                        {shippingInfoOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Contenido de envío */}
+                  <div className="space-y-2">
                     {/* Always show for pending_purchase and payment_confirmed */}
                     {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-                      <ShippingInstructions pkg={pkg} />
+                      <>
+                        <ShippingInstructions pkg={pkg} />
+                        <ShippingInfoRegistry pkg={pkg} />
+                      </>
                     )}
                     
                     {/* Collapsible for in_transit and later states */}
-                    {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                      <div>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-between mb-3"
-                          onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
-                        >
-                          Ver detalles de envío
-                          {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
-                        {shippingInfoOpen && (
-                          <div className="space-y-4">
-                            <ShippingInstructions pkg={pkg} />
-                            <ShippingInfoRegistry pkg={pkg} />
-                          </div>
-                        )}
+                    {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && shippingInfoOpen && (
+                      <div className="space-y-2 animate-fade-in">
+                        <ShippingInstructions pkg={pkg} />
+                        <ShippingInfoRegistry pkg={pkg} />
                       </div>
                     )}
-                    
-                    {/* Show shipping information registry for non-collapsible states */}
-                    {!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                      <ShippingInfoRegistry pkg={pkg} />
-                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </CollapsibleContent>
