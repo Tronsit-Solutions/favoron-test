@@ -114,7 +114,7 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
   };
 
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-1.5 max-w-xs ${className}`}>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-1.5 max-w-md ml-auto ${className}`}>
       <div className="flex items-center space-x-1 mb-1.5">
         <Package className="h-2.5 w-2.5 text-blue-600" />
         <p className="text-[10px] font-medium text-blue-800">Estado del Paquete</p>
