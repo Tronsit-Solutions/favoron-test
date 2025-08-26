@@ -300,22 +300,32 @@ const QuoteDialog = ({
             </div>
           </div>
 
-          {/* KEY DATES - Show for shoppers viewing quotes */}
+          {/* IMPORTANT INFO - Show for shoppers viewing quotes */}
           {existingQuote && tripDates && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
                 <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
-                <p className="text-sm font-medium text-blue-800">Fechas importantes del viaje:</p>
+                <p className="text-sm font-medium text-blue-800">📋 Información importante previo a aceptar cotización:</p>
               </div>
               <div className="text-sm text-blue-700 ml-6 space-y-2">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
-                  <span><strong>Fecha límite para enviar paquete:</strong> {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Primera fecha para recibir paquetes:</strong> {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-3 w-3" />
+                  <span><strong>Última fecha para recibir paquetes:</strong> {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-3 w-3" />
-                  <span><strong>Entrega en oficina Favorón:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Fecha de entrega del viajero:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
                 </div>
+                {existingQuote?.traveler_postal_code && (
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-3 w-3" />
+                    <span><strong>Código postal del viajero:</strong> {existingQuote.traveler_postal_code}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
