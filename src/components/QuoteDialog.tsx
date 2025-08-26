@@ -62,6 +62,15 @@ const QuoteDialog = ({
 
   const isQuoteExpired = packageDetails.quote_expires_at && new Date(packageDetails.quote_expires_at) < new Date();
   
+  console.log('🔍 Quote Debug Info:', {
+    quote_expires_at: packageDetails.quote_expires_at,
+    currentDate: new Date().toISOString(),
+    isQuoteExpired,
+    acceptedTerms,
+    userType,
+    buttonDisabled: (userType === 'user' && !acceptedTerms) || isQuoteExpired
+  });
+  
   // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
   const isAdminAssignedTip = packageDetails.status === 'matched' && packageDetails.admin_assigned_tip && userType === 'user';
   const adminTipAmount = isAdminAssignedTip ? parseFloat(packageDetails.admin_assigned_tip).toFixed(2) : null;
