@@ -36,6 +36,7 @@ const ProductTipAssignmentModal = ({
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
   
   const [products, setProducts] = useState<Product[]>([]);
+  const [inputValues, setInputValues] = useState<string[]>([]);
   
   // Update products when initialProducts changes
   useEffect(() => {
@@ -48,6 +49,10 @@ const ProductTipAssignmentModal = ({
       };
     });
     setProducts(mappedProducts);
+    
+    // Initialize input values
+    const inputVals = mappedProducts.map(p => (p.adminAssignedTip || 0).toString());
+    setInputValues(inputVals);
   }, [initialProducts]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -59,6 +64,16 @@ const ProductTipAssignmentModal = ({
     ));
   };
 
+  const updateInputValue = (index: number, value: string) => {
+    setInputValues(prev => prev.map((val, i) => i === index ? value : val));
+  };
+
+  const handleInputBlur = (index: number, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    updateProductTip(index, numValue);
+    updateInputValue(index, numValue.toString());
+  };
+
   const calculateTotalTip = () => {
     return products.reduce((total, product) => total + (product.adminAssignedTip || 0), 0);
   };
@@ -66,10 +81,12 @@ const ProductTipAssignmentModal = ({
   const distributeEqually = () => {
     const totalTip = calculateTotalTip();
     const equalTip = totalTip / products.length;
+    const tipValue = parseFloat(equalTip.toFixed(2));
     setProducts(prev => prev.map(product => ({
       ...product,
-      adminAssignedTip: parseFloat(equalTip.toFixed(2))
+      adminAssignedTip: tipValue
     })));
+    setInputValues(prev => prev.map(() => tipValue.toString()));
   };
 
   const handleSave = async () => {
@@ -191,20 +208,27 @@ const ProductTipAssignmentModal = ({
                         </Label>
                         <div className="relative">
                           <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
-                          <Input
+                           <Input
                             id={`tip-${index}`}
                             type="number"
                             min="0"
                             step="0.01"
-                            value={product.adminAssignedTip === 0 ? '0' : (product.adminAssignedTip || '')}
+                            value={inputValues[index] || ''}
                             onChange={(e) => {
                               const value = e.target.value;
                               console.log('🔍 DEBUG Input onChange - value:', value);
-                              if (value === '' || value === null) {
-                                updateProductTip(index, 0);
-                              } else {
-                                const numValue = parseFloat(value);
-                                updateProductTip(index, isNaN(numValue) ? 0 : numValue);
+                              updateInputValue(index, value);
+                            }}
+                            onBlur={(e) => {
+                              const value = e.target.value;
+                              console.log('🔍 DEBUG Input onBlur - value:', value);
+                              handleInputBlur(index, value);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const value = e.currentTarget.value;
+                                handleInputBlur(index, value);
+                                e.currentTarget.blur();
                               }
                             }}
                             placeholder="0.00"
@@ -214,11 +238,15 @@ const ProductTipAssignmentModal = ({
                       </div>
                       
                       <div className="flex gap-1">
-                        <Button
+                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => updateProductTip(index, productValue * 0.1)}
+                          onClick={() => {
+                            const tip = productValue * 0.1;
+                            updateProductTip(index, tip);
+                            updateInputValue(index, tip.toString());
+                          }}
                           className="h-8 px-2 text-xs"
                         >
                           10%
@@ -227,7 +255,11 @@ const ProductTipAssignmentModal = ({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => updateProductTip(index, productValue * 0.15)}
+                          onClick={() => {
+                            const tip = productValue * 0.15;
+                            updateProductTip(index, tip);
+                            updateInputValue(index, tip.toString());
+                          }}
                           className="h-8 px-2 text-xs"
                         >
                           15%
@@ -273,6 +305,7 @@ const ProductTipAssignmentModal = ({
                   ...product,
                   adminAssignedTip: 50
                 })));
+                setInputValues(prev => prev.map(() => '50'));
               }}
               className="h-7 px-2 text-xs"
             >
@@ -287,10 +320,19 @@ const ProductTipAssignmentModal = ({
                   const price = parseFloat(product.estimatedPrice || '0') || 0;
                   const quantity = parseInt(product.quantity || '1') || 1;
                   const productValue = price * quantity;
+                  const tip = parseFloat((productValue * 0.15).toFixed(2));
                   return {
                     ...product,
-                    adminAssignedTip: parseFloat((productValue * 0.15).toFixed(2))
+                    adminAssignedTip: tip
                   };
+                }));
+                setInputValues(prev => prev.map((_, index) => {
+                  const product = products[index];
+                  const price = parseFloat(product.estimatedPrice || '0') || 0;
+                  const quantity = parseInt(product.quantity || '1') || 1;
+                  const productValue = price * quantity;
+                  const tip = parseFloat((productValue * 0.15).toFixed(2));
+                  return tip.toString();
                 }));
               }}
               className="h-7 px-2 text-xs"
