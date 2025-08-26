@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -117,8 +118,8 @@ const ProductTipAssignmentModal = ({
                 <div>
                   <span className="text-muted-foreground">{products.length} productos</span>
                   <p className="font-semibold">${products.reduce((sum, p) => {
-                    const price = parseFloat(p.estimatedPrice || '0');
-                    const quantity = parseInt(p.quantity || '1');
+                    const price = parseFloat(p.estimatedPrice || '0') || 0;
+                    const quantity = parseInt(p.quantity || '1') || 1;
                     return sum + (price * quantity);
                   }, 0).toFixed(2)}</p>
                 </div>
@@ -140,7 +141,9 @@ const ProductTipAssignmentModal = ({
           )}
           
           {products.map((product, index) => {
-            const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
+            const price = parseFloat(product.estimatedPrice || '0') || 0;
+            const quantity = parseInt(product.quantity || '1') || 1;
+            const productValue = price * quantity;
             
             return (
               <Card key={index} className="border border-border/50 bg-card">
@@ -167,9 +170,9 @@ const ProductTipAssignmentModal = ({
                       </p>
                       
                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
-                        <span>${product.estimatedPrice || '0.00'}</span>
+                        <span>${price.toFixed(2)}</span>
                         <span>×</span>
-                        <span>{product.quantity || '1'}</span>
+                        <span>{quantity}</span>
                         <span>=</span>
                         <span className="font-semibold text-foreground">${productValue.toFixed(2)}</span>
                       </div>
@@ -267,7 +270,9 @@ const ProductTipAssignmentModal = ({
               size="sm"
               onClick={() => {
                 setProducts(prev => prev.map(product => {
-                  const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
+                  const price = parseFloat(product.estimatedPrice || '0') || 0;
+                  const quantity = parseInt(product.quantity || '1') || 1;
+                  const productValue = price * quantity;
                   return {
                     ...product,
                     adminAssignedTip: parseFloat((productValue * 0.15).toFixed(2))
