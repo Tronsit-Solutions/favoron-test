@@ -195,7 +195,7 @@ const AdminMatchDialog = ({
 
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-3 sm:p-6">
+      <DialogContent className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4">
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -320,7 +320,7 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
-            <ScrollArea className="h-[500px] w-full">
+            <ScrollArea className="flex-1 w-full min-h-0">
               <div className="space-y-2 pr-4 pb-4">
                 {validTrips.map((trip) => (
                   <Card 
