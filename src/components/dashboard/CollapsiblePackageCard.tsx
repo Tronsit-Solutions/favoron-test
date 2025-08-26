@@ -236,45 +236,48 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent className="w-full max-w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-h-[400px]">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[400px]">
               
-              {/* Información del Producto */}
-              <div className="lg:col-span-3 border rounded-lg p-4 bg-muted/20 h-fit">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
-                <ShopperPackageDetails pkg={pkg} />
-                
-                {/* Mostrar información de cotización cuando existe */}
-                {pkg.quote && (
-                  <div className="mt-4">
-                    <PackageQuoteInfo 
-                      quote={pkg.quote as any}
-                      quoteExpiresAt={pkg.quote_expires_at}
-                    />
-                  </div>
-                )}
-                
-                {/* Show rejection reason if package was rejected */}
-                {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                  <div className="mt-4">
-                    <RejectionReasonDisplay 
-                      rejectionReason={pkg.rejection_reason}
-                      wantsRequote={pkg.wants_requote}
-                      additionalComments={pkg.additional_notes}
-                    />
-                  </div>
-                )}
+              {/* Contenido Principal */}
+              <div className="flex-1 space-y-4">
+                {/* Información del Producto */}
+                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
+                  <ShopperPackageDetails pkg={pkg} />
+                  
+                  {/* Mostrar información de cotización cuando existe */}
+                  {pkg.quote && (
+                    <div className="mt-4">
+                      <PackageQuoteInfo 
+                        quote={pkg.quote as any}
+                        quoteExpiresAt={pkg.quote_expires_at}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Show rejection reason if package was rejected */}
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="mt-4">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Timeline de Estados */}
+                <div>
+                  <PackageStatusTimeline 
+                    currentStatus={pkg.status} 
+                    deliveryMethod={pkg.delivery_method}
+                  />
+                </div>
               </div>
 
-              {/* Timeline de Estados */}
-              <div className="lg:col-span-2">
-                <PackageStatusTimeline 
-                  currentStatus={pkg.status} 
-                  deliveryMethod={pkg.delivery_method}
-                />
-              </div>
-
-              {/* Acciones y Archivos del Usuario */}
-              <div className="lg:col-span-1 border rounded-lg p-4 bg-muted/20 h-fit">
+              {/* Acciones y Archivos del Usuario - Siempre a la derecha */}
+              <div className="lg:w-80 lg:flex-shrink-0 border rounded-lg p-4 bg-muted/20 h-fit lg:ml-auto">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
                 
                 {/* Priority Actions Section */}
