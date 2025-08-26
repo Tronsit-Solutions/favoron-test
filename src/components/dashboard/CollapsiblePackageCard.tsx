@@ -263,9 +263,12 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Payment Receipt Upload and Timeline Section */}
-                {(pkg.status === 'quote_accepted' || 
+                {(pkg.status === 'quote_sent' ||
+                  pkg.status === 'quote_accepted' || 
                   pkg.status === 'payment_pending' || 
                   pkg.status === 'payment_confirmed' ||
+                  pkg.status === 'paid' ||
+                  pkg.status === 'pending_purchase' ||
                   pkg.status === 'purchased' ||
                   pkg.status === 'shipped' ||
                   pkg.status === 'matched' ||
@@ -287,6 +290,8 @@ const CollapsiblePackageCard = ({
 
                 {/* Document Upload Section */}
                 {(pkg.status === 'payment_confirmed' || 
+                  pkg.status === 'paid' ||
+                  pkg.status === 'pending_purchase' ||
                   pkg.status === 'purchased' ||
                   pkg.status === 'shipped' ||
                   pkg.status === 'matched' ||

@@ -45,8 +45,8 @@ const ShopperPackageInfo = ({
   //   return <ShippingInstructions pkg={pkg} />;
   // };
   const renderPaymentUpload = () => {
-    console.log('renderPaymentUpload check for package:', pkg.item_description, 'status:', pkg.status, 'shouldRender:', ['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status));
-    if (!['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
+    console.log('renderPaymentUpload check for package:', pkg.item_description, 'status:', pkg.status, 'shouldRender:', ['quote_sent', 'payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status));
+    if (!['quote_sent', 'payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
     console.log('Rendering PaymentReceiptUpload for package:', pkg.item_description);
     return <div className="mt-2">
         <PaymentReceiptUpload pkg={pkg} onUploadComplete={updatedPkg => {
@@ -57,7 +57,7 @@ const ShopperPackageInfo = ({
   };
 
   const renderDocumentUpload = () => {
-    if (!['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status)) return null;
+    if (!['pending_purchase', 'payment_confirmed', 'paid', 'in_transit'].includes(pkg.status)) return null;
     return <div className="mt-2">
         <UploadDocuments 
           packageId={pkg.id}
@@ -118,7 +118,7 @@ const ShopperPackageInfo = ({
       {renderQuoteInfo()}
       {renderPaymentUpload()}
       {/* Removido renderTravelerAddress() - ahora se usa ShippingInfoRegistry */}
-      {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && renderDocumentUpload()}
+      {['pending_purchase', 'payment_confirmed', 'paid', 'in_transit'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;
