@@ -153,21 +153,25 @@ const ProductTipAssignmentModal = ({
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
-                        {product.itemLink && (
-                          <a 
-                            href={product.itemLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary hover:text-primary/80 transition-colors"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
                       </div>
                       
                       <p className="text-sm font-medium leading-tight">
                         {product.itemDescription || 'Sin descripción'}
                       </p>
+                      
+                      {product.itemLink && (
+                        <div className="pt-1">
+                          <a 
+                            href={product.itemLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Ver producto en tienda
+                          </a>
+                        </div>
+                      )}
                       
                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                         <span>${price.toFixed(2)}</span>
