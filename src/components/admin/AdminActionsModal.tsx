@@ -401,11 +401,17 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
   const handleProductTipSave = async (productsWithTips: any[], totalTip: number) => {
     setIsLoading(true);
     try {
+      // Ensure adminAssignedTip is always stored in products_data for consistency
+      const normalizedProducts = productsWithTips.map(product => ({
+        ...product,
+        adminAssignedTip: product.adminAssignedTip || 0 // Ensure field exists even if 0
+      }));
+
       // Update the package with the new products data including individual tips
       const { error } = await supabase
         .from('packages')
         .update({
-          products_data: productsWithTips,
+          products_data: normalizedProducts,
           admin_assigned_tip: totalTip,
           status: 'matched' // Set to matched so traveler can accept
         })
