@@ -136,17 +136,17 @@ const PackageReceiptConfirmation = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Confirmar recepción del paquete</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[95vh] overflow-y-auto mx-auto">
+        <DialogHeader className="px-1 sm:px-0">
+          <DialogTitle className="text-base sm:text-lg">Confirmar recepción del paquete</DialogTitle>
+          <DialogDescription className="text-sm">
             Confirma que recibiste: <strong>{packageName}</strong>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-1 sm:px-0">
           <div>
-            <Label htmlFor="photo" className="text-sm font-medium">
+            <Label htmlFor="photo" className="text-xs sm:text-sm font-medium">
               Foto del paquete (opcional)
             </Label>
             <div className="mt-2">
@@ -155,7 +155,7 @@ const PackageReceiptConfirmation = ({
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="cursor-pointer"
+                className="cursor-pointer text-xs sm:text-sm"
                 disabled={uploading}
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -169,16 +169,25 @@ const PackageReceiptConfirmation = ({
               <img 
                 src={photoPreview} 
                 alt="Vista previa" 
-                className="w-full h-32 object-cover rounded"
+                className="w-full h-24 sm:h-32 object-cover rounded"
               />
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4">
-            <Button variant="outline" onClick={handleClose} disabled={uploading}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={handleClose} 
+              disabled={uploading}
+              className="text-sm w-full sm:w-auto"
+            >
               Cancelar
             </Button>
-            <Button onClick={handleConfirm} disabled={uploading} className="flex items-center space-x-2">
+            <Button 
+              onClick={handleConfirm} 
+              disabled={uploading} 
+              className="flex items-center justify-center gap-2 text-sm w-full sm:w-auto"
+            >
               {uploading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
