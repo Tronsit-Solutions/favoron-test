@@ -296,6 +296,7 @@ const ProductTipAssignmentModal = ({
               variant="outline" 
               onClick={onClose} 
               className="flex-1 h-8 text-xs"
+              disabled={isLoading}
             >
               Cancelar
             </Button>
