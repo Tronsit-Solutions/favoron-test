@@ -212,7 +212,13 @@ const QuoteDialog = ({
                               <div className="text-right">
                                 {adminTip > 0 ? (
                                   <div>
-                                    {userType === 'user' ? (
+                                    {isAdminAssignedTip ? (
+                                      // Traveler sees admin assigned tip amount (without fee)
+                                      <>
+                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                      </>
+                                    ) : userType === 'user' ? (
                                       // Shopper sees final price (tip + 40%)
                                       <>
                                         <p className="text-lg font-bold text-green-600">Q{(adminTip * 1.4).toFixed(2)}</p>
@@ -256,7 +262,7 @@ const QuoteDialog = ({
                             return hasTips && (
                               <div className="flex justify-between items-center mt-1">
                                 <p className="font-medium text-green-600">
-                                  {userType === 'user' ? 'Cotización total:' : 'Tip total:'}
+                                  {isAdminAssignedTip ? 'Tip total:' : userType === 'user' ? 'Cotización total:' : 'Tip total:'}
                                 </p>
                                 <p className="text-lg font-bold text-green-600">
                                   Q{(() => {
@@ -265,7 +271,7 @@ const QuoteDialog = ({
                                         (parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0')) : 0;
                                       return sum + (product.adminAssignedTip || fallbackSingleTip);
                                     }, 0);
-                                    return userType === 'user' ? (totalTip * 1.4).toFixed(2) : totalTip.toFixed(2);
+                                    return (isAdminAssignedTip || userType === 'admin') ? totalTip.toFixed(2) : (totalTip * 1.4).toFixed(2);
                                   })()}
                                 </p>
                               </div>
@@ -309,7 +315,13 @@ const QuoteDialog = ({
                           const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0') || parseFloat(existingQuote?.price || '0');
                           return fallbackTip > 0 && (
                             <div>
-                              {userType === 'user' ? (
+                              {isAdminAssignedTip ? (
+                                // Traveler sees admin assigned tip amount (without fee)
+                                <>
+                                  <p className="text-lg font-bold text-green-600">Q{fallbackTip.toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                </>
+                              ) : userType === 'user' ? (
                                 // Shopper sees final price (tip + 40%)
                                 <>
                                   <p className="text-lg font-bold text-green-600">Q{(fallbackTip * 1.4).toFixed(2)}</p>
