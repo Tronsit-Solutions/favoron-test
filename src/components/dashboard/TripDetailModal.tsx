@@ -120,34 +120,51 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                 <Home className="h-4 w-4 text-muted-foreground" />
                 <h3 className="font-semibold">Dirección de Recepción</h3>
               </div>
-              <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">{address.recipientName}</span>
+              <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                {/* Nombre del destinatario */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-sm font-medium text-muted-foreground">Nombre:</div>
+                  <div className="col-span-2 text-sm">{address.recipientName}</div>
                 </div>
-                
-                <div className="text-sm space-y-1">
-                  <div>{address.streetAddress}</div>
-                  {address.streetAddress2 && <div>{address.streetAddress2}</div>}
-                  <div>
-                    {address.cityArea}
-                    {address.postalCode && `, CP: ${address.postalCode}`}
+
+                {/* Dirección */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-sm font-medium text-muted-foreground">Dirección:</div>
+                  <div className="col-span-2 text-sm">
+                    <div>{address.streetAddress}</div>
+                    {address.streetAddress2 && <div>{address.streetAddress2}</div>}
                   </div>
                 </div>
 
-                {address.hotelAirbnbName && (
-                  <div className="bg-background rounded p-2">
-                    <div className="text-xs text-muted-foreground">
-                      {address.accommodationType === 'hotel' ? 'Hotel' : 'Airbnb'}
-                    </div>
-                    <div className="text-sm font-medium">{address.hotelAirbnbName}</div>
+                {/* Ciudad */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-sm font-medium text-muted-foreground">Ciudad:</div>
+                  <div className="col-span-2 text-sm">{address.cityArea}</div>
+                </div>
+
+                {/* Código Postal */}
+                {address.postalCode && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-sm font-medium text-muted-foreground">Código Postal:</div>
+                    <div className="col-span-2 text-sm">{address.postalCode}</div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{address.contactNumber}</span>
+                {/* Teléfono */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-sm font-medium text-muted-foreground">Teléfono:</div>
+                  <div className="col-span-2 text-sm">{address.contactNumber}</div>
                 </div>
+
+                {/* Hotel/Airbnb */}
+                {address.hotelAirbnbName && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {address.accommodationType === 'hotel' ? 'Hotel:' : 'Airbnb:'}
+                    </div>
+                    <div className="col-span-2 text-sm">{address.hotelAirbnbName}</div>
+                  </div>
+                )}
 
                 {address.additionalInstructions && (
                   <div className="bg-background rounded p-2">
