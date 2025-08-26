@@ -1,11 +1,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Phone, Edit, CheckCircle } from "lucide-react";
+import { Home, Phone, Edit, CheckCircle, Info } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
+import { TripDetailModal } from "./TripDetailModal";
 
 interface TripCardProps {
   trip: any;
@@ -20,6 +21,7 @@ interface TripCardProps {
 const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
@@ -49,14 +51,24 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     <Card key={trip.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-lg">{trip.from_city} → {trip.to_city}</CardTitle>
             <CardDescription>
               Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
               Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
             </CardDescription>
           </div>
-          {getStatusBadge(trip.status)}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowDetailModal(true)}
+              className="h-8 px-2"
+            >
+              <Info className="h-4 w-4" />
+            </Button>
+            {getStatusBadge(trip.status)}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -159,6 +171,15 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       packages={packages}
       travelerProfile={travelerProfile}
       onConfirmDelivery={handleDeliveryConfirmed}
+    />
+
+    {/* Trip Detail Modal */}
+    <TripDetailModal
+      isOpen={showDetailModal}
+      onClose={() => setShowDetailModal(false)}
+      trip={trip}
+      getStatusBadge={getStatusBadge}
+      packages={packages}
     />
     </>
   );
