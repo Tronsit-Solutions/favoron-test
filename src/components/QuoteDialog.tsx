@@ -211,13 +211,14 @@ const QuoteDialog = ({
                       {packageDetails.products_data.length > 1 && (
                         <div className="border-t pt-2 mt-2">
                           <div className="flex justify-between items-center">
-                            <p className="font-medium text-foreground">Total del pedido:</p>
-                            <p className="text-xl font-bold text-primary">
-                              ${packageDetails.products_data.reduce((sum: number, product: any) => {
-                                const quantity = parseInt(product.quantity || '1');
-                                const unitPrice = parseFloat(product.estimatedPrice || '0');
-                                return sum + (quantity * unitPrice);
-                              }, 0).toFixed(2)}
+                            <p className="font-medium text-foreground">
+                              Total del pedido: <span className="text-xl font-bold text-primary">
+                                ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                                  const quantity = parseInt(product.quantity || '1');
+                                  const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                  return sum + (quantity * unitPrice);
+                                }, 0).toFixed(2)}
+                              </span>
                             </p>
                           </div>
                           {packageDetails.products_data.some((p: any) => p.adminAssignedTip) && (
