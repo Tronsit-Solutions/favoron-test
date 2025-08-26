@@ -165,24 +165,11 @@ const QuoteDialog = ({
                         
                         return (
                           <div key={index} className="bg-muted/30 rounded p-2">
-                            <div className="flex justify-between items-start mb-2">
-                              <p className="text-sm font-medium text-foreground">
-                                Producto {index + 1}: {product.itemDescription}
-                              </p>
-                              {product.itemLink && (
-                                <a 
-                                  href={product.itemLink} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors ml-2"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  <span className="text-xs">Ver</span>
-                                </a>
-                              )}
-                            </div>
+                            <p className="text-sm font-medium text-foreground mb-2">
+                              Producto {index + 1}: {product.itemDescription}
+                            </p>
                             <div className="flex justify-between items-center">
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground space-y-1">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
                                 <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
                                 {quantity > 1 && (
@@ -193,6 +180,19 @@ const QuoteDialog = ({
                                 {adminTip > 0 && (
                                   <p className="text-green-600 font-medium">
                                     <strong>Tip:</strong> Q{adminTip.toFixed(2)}
+                                  </p>
+                                )}
+                                {product.itemLink && (
+                                  <p>
+                                    <a 
+                                      href={product.itemLink} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
+                                    >
+                                      <ExternalLink className="h-3 w-3" />
+                                      <span className="text-xs font-medium">Ver producto</span>
+                                    </a>
                                   </p>
                                 )}
                               </div>
