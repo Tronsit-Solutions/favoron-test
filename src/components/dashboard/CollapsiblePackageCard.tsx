@@ -9,7 +9,8 @@ import UploadDocuments from "@/components/UploadDocuments";
 import EditPackageModal from "@/components/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
-import ShopperPackageInfo from "@/components/dashboard/shopper/ShopperPackageInfo";
+import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
+import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
@@ -248,9 +249,10 @@ const CollapsiblePackageCard = ({
                   {/* Mostrar información de cotización cuando existe */}
                   {pkg.quote && (
                     <div className="mt-4">
-                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                        console.log('Quote info updated:', updatedPkg);
-                      }} />
+                      <PackageQuoteInfo 
+                        quote={pkg.quote as any}
+                        quoteExpiresAt={pkg.quote_expires_at}
+                      />
                     </div>
                   )}
                   
@@ -296,20 +298,29 @@ const CollapsiblePackageCard = ({
                   )}
 
                   {/* Payment Upload Section */}
-                  {pkg.status === 'payment_pending' && viewMode === 'user' && (
+                  {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
                     <div className="mb-4">
-                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                        console.log('Payment receipt uploaded successfully:', updatedPkg);
-                      }} />
+                      <PaymentReceiptUpload 
+                        pkg={pkg} 
+                        onUploadComplete={(updatedPkg) => {
+                          console.log('Payment receipt uploaded successfully:', updatedPkg);
+                        }} 
+                      />
                     </div>
                   )}
 
                   {/* Document Upload Section */}
-                  {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                  {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
                     <div className="mb-4">
-                      <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                        console.log('Documents updated successfully:', updatedPkg);
-                      }} />
+                      <UploadDocuments 
+                        packageId={pkg.id}
+                        currentStatus={pkg.status}
+                        currentConfirmation={pkg.purchase_confirmation}
+                        currentTracking={pkg.tracking_info}
+                        onUpload={(type, data) => {
+                          console.log('Documents updated successfully:', type, data);
+                        }}
+                      />
                     </div>
                   )}
 
