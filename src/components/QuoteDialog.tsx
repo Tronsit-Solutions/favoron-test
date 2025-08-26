@@ -75,17 +75,47 @@ const QuoteDialog = ({
   const isAdminAssignedTip = packageDetails.status === 'matched' && packageDetails.admin_assigned_tip && userType === 'user';
   
   // Get admin tip amount - always from products_data first
-  const adminTipAmount = (() => {
+  const getTipAmount = () => {
     if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
       const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
         return sum + parseFloat(product.adminAssignedTip || '0');
       }, 0);
-      return totalTip > 0 ? totalTip.toFixed(2) : null;
+      return totalTip > 0 ? totalTip : null;
     }
     // Fallback to admin_assigned_tip for backward compatibility
     const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0');
-    return fallbackTip > 0 ? fallbackTip.toFixed(2) : null;
-  })();
+    return fallbackTip > 0 ? fallbackTip : null;
+  };
+
+  const adminTipAmount = getTipAmount();
+
+  // Determine if this is a traveler viewing admin assigned tip or shopper viewing quote
+  const isTravelerContext = isAdminAssignedTip;
+  const isShopperViewingQuote = existingQuote && userType === 'user' && !isTravelerContext;
+
+  // Get display amount based on context
+  const getDisplayAmount = () => {
+    if (!adminTipAmount && !existingQuote) return null;
+    
+    if (isTravelerContext) {
+      // Traveler sees base tip amount
+      return adminTipAmount;
+    }
+    
+    if (isShopperViewingQuote && existingQuote) {
+      // Shopper sees quote total (already includes 1.4x multiplier)
+      return parseFloat(existingQuote.totalPrice || existingQuote.price || '0');
+    }
+    
+    if (adminTipAmount && isShopperViewingQuote) {
+      // If shopper is viewing admin assigned tip as quote, show 1.4x
+      return adminTipAmount * 1.4;
+    }
+    
+    return adminTipAmount;
+  };
+
+  const displayAmount = getDisplayAmount();
 
   const handleSubmit = () => {
     if (existingQuote) {
@@ -149,10 +179,10 @@ const QuoteDialog = ({
 
         <DialogHeader className="pr-12 pb-4">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
-            {adminTipAmount ? '💰 Tip Asignado por Favorón' : (!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización')}
+            {isTravelerContext ? '💰 Tip Asignado por Favorón' : (!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización')}
           </DialogTitle>
           <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed">
-            {adminTipAmount 
+            {isTravelerContext 
               ? 'Favorón ha asignado un tip específico para este pedido. Revisa y decide si aceptas.'
               : (!existingQuote 
                 ? 'Proporciona tu mejor cotización para este Favorón'
@@ -221,8 +251,19 @@ const QuoteDialog = ({
                               <div className="text-right">
                                 {adminTip > 0 ? (
                                   <div>
-                                    <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                    <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                    {isTravelerContext ? (
+                                      // Traveler sees base tip
+                                      <>
+                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                      </>
+                                    ) : (
+                                      // Shopper sees quote amount (tip × 1.4)
+                                      <>
+                                        <p className="text-lg font-bold text-green-600">Q{(adminTip * 1.4).toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Cotización</p>
+                                      </>
+                                    )}
                                   </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground">Sin tip</p>
@@ -245,10 +286,19 @@ const QuoteDialog = ({
                               }, 0).toFixed(2)}
                             </p>
                           </div>
-                          {adminTipAmount && (
+                          {displayAmount && (
                             <div className="flex justify-between items-center mt-1">
-                              <p className="font-medium text-green-600">Tip total:</p>
-                              <p className="text-lg font-bold text-green-600">Q{adminTipAmount}</p>
+                              {isTravelerContext ? (
+                                <>
+                                  <p className="font-medium text-green-600">Tip total:</p>
+                                  <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="font-medium text-green-600">Cotización total:</p>
+                                  <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -265,10 +315,19 @@ const QuoteDialog = ({
                           <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
                           <p className="text-xs text-muted-foreground">Total</p>
                         </div>
-                        {adminTipAmount && (
+                        {displayAmount && (
                           <div>
-                            <p className="text-lg font-bold text-green-600">Q{adminTipAmount}</p>
-                            <p className="text-xs text-muted-foreground">Tip asignado</p>
+                            {isTravelerContext ? (
+                              <>
+                                <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
+                                <p className="text-xs text-muted-foreground">Tip asignado</p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
+                                <p className="text-xs text-muted-foreground">Cotización</p>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -375,7 +434,7 @@ const QuoteDialog = ({
           )}
 
           {/* Admin Assigned Tip Display - When traveler needs to accept/reject */}
-          {adminTipAmount && userType === 'user' && packageDetails.status === 'matched' && (
+          {displayAmount && isTravelerContext && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-start space-x-2 mb-3">
                 <Package className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -383,7 +442,7 @@ const QuoteDialog = ({
               </div>
               <div className="text-sm sm:text-sm ml-7 space-y-2">
                 <div className="bg-background/80 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-green-700 mb-2">Q{adminTipAmount}</p>
+                  <p className="text-2xl font-bold text-green-700 mb-2">Q{displayAmount.toFixed(2)}</p>
                   <p className="text-green-600 font-medium">
                     Este es el tip que ganarás si aceptas llevar este paquete.
                   </p>
@@ -393,7 +452,7 @@ const QuoteDialog = ({
           )}
 
           {/* Quote Form - Show when sending a quote (not admin assigned tip) */}
-          {!existingQuote && !adminTipAmount && (
+          {!existingQuote && !displayAmount && (
             <div className="space-y-4">
               <div className="space-y-4">
                 <div>
@@ -434,7 +493,7 @@ const QuoteDialog = ({
           )}
 
           {/* Message for admin assigned tip acceptance */}
-          {adminTipAmount && (
+          {displayAmount && (
             <div className="space-y-4">
               <div>
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
@@ -508,10 +567,13 @@ const QuoteDialog = ({
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!adminTipAmount && !price}
+                  disabled={!displayAmount && !price}
                   className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {adminTipAmount ? `Aceptar Tip Q${adminTipAmount}` : 'Enviar Cotización'}
+                  {displayAmount ? 
+                    (isTravelerContext ? `Aceptar Tip Q${displayAmount.toFixed(2)}` : `Aceptar Cotización Q${displayAmount.toFixed(2)}`) 
+                    : 'Enviar Cotización'
+                  }
                 </Button>
               </>
             ) : (
