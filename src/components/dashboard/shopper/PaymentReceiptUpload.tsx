@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,6 +176,33 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         </div>
       </div>
 
+      {/* Banking Info - Very compact - MOVED TO TOP */}
+      <div className="bg-info/5 border border-info/20 rounded-md p-2">
+        <p className="text-xs font-medium text-foreground mb-1">Datos bancarios Favorón:</p>
+        {bankLoading ? (
+          <p className="text-xs text-muted-foreground">Cargando...</p>
+        ) : bankAccount ? (
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Banco:</span>
+              <span className="font-medium">{bankAccount.bank_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Cuenta:</span>
+              <span className="font-medium">{bankAccount.account_number}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Titular:</span>
+              <span className="font-medium">{bankAccount.account_holder}</span>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Info no disponible. Contacta soporte.
+          </p>
+        )}
+      </div>
+
       {/* Upload Area - More compact */}
       <div
         className="border-2 border-dashed border-warning/50 rounded-md p-3 text-center hover:border-warning/70 transition-colors cursor-pointer bg-warning/5"
@@ -207,33 +235,6 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         onChange={handleFileSelect}
         className="hidden"
       />
-
-      {/* Banking Info - Very compact */}
-      <div className="bg-info/5 border border-info/20 rounded-md p-2">
-        <p className="text-xs font-medium text-foreground mb-1">Datos bancarios Favorón:</p>
-        {bankLoading ? (
-          <p className="text-xs text-muted-foreground">Cargando...</p>
-        ) : bankAccount ? (
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Banco:</span>
-              <span className="font-medium">{bankAccount.bank_name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cuenta:</span>
-              <span className="font-medium">{bankAccount.account_number}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Titular:</span>
-              <span className="font-medium">{bankAccount.account_holder}</span>
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Info no disponible. Contacta soporte.
-          </p>
-        )}
-      </div>
     </div>
   );
 };
