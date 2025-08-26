@@ -57,7 +57,7 @@ const TripPackagesGroup = ({
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>{new Date(trip.departure_date).toLocaleDateString('es-GT')} - {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
+                    <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">
                     {packages.length} paquete{packages.length !== 1 ? 's' : ''}
