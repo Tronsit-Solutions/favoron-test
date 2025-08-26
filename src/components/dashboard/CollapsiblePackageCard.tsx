@@ -311,36 +311,42 @@ const CollapsiblePackageCard = ({
                 {/* Información del Producto */}
                 <div className="border rounded-lg p-4 bg-muted/20 h-fit">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
-                  <ShopperPackageDetails pkg={pkg} />
                   
-                  {/* Mostrar información de cotización cuando existe */}
-                  {pkg.quote && (
-                    <div className="mt-4">
-                      <PackageQuoteInfo 
-                        quote={pkg.quote as any}
-                        quoteExpiresAt={pkg.quote_expires_at}
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Contenido principal del producto */}
+                    <div className="flex-1">
+                      <ShopperPackageDetails pkg={pkg} />
+                      
+                      {/* Mostrar información de cotización cuando existe */}
+                      {pkg.quote && (
+                        <div className="mt-4">
+                          <PackageQuoteInfo 
+                            quote={pkg.quote as any}
+                            quoteExpiresAt={pkg.quote_expires_at}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Show rejection reason if package was rejected */}
+                      {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                        <div className="mt-4">
+                          <RejectionReasonDisplay 
+                            rejectionReason={pkg.rejection_reason}
+                            wantsRequote={pkg.wants_requote}
+                            additionalComments={pkg.additional_notes}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Timeline de Estados - Alineado a la derecha */}
+                    <div className="lg:w-80 lg:flex-shrink-0">
+                      <PackageStatusTimeline 
+                        currentStatus={pkg.status} 
+                        deliveryMethod={pkg.delivery_method}
                       />
                     </div>
-                  )}
-                  
-                  {/* Show rejection reason if package was rejected */}
-                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-4">
-                      <RejectionReasonDisplay 
-                        rejectionReason={pkg.rejection_reason}
-                        wantsRequote={pkg.wants_requote}
-                        additionalComments={pkg.additional_notes}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Timeline de Estados */}
-                <div>
-                  <PackageStatusTimeline 
-                    currentStatus={pkg.status} 
-                    deliveryMethod={pkg.delivery_method}
-                  />
+                  </div>
                 </div>
               </div>
 
