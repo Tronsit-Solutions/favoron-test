@@ -275,15 +275,6 @@ const CollapsiblePackageCard = ({
               </div>
             )}
 
-            {/* Payment Upload Section - Prominent for payment_pending */}
-            {pkg.status === 'payment_pending' && viewMode === 'user' && (
-              <div className="mb-6">
-                <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
-                  console.log('Payment receipt uploaded successfully:', updatedPkg);
-                }} />
-              </div>
-            )}
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-4 sm:space-y-6 order-2 lg:order-1">
 
@@ -322,6 +313,15 @@ const CollapsiblePackageCard = ({
               </div>
 
               <div className="space-y-4 order-1 lg:order-2">
+                {/* Payment Upload Section - Above chat for payment_pending */}
+                {pkg.status === 'payment_pending' && viewMode === 'user' && (
+                  <div className="mb-4">
+                    <ShopperPackageInfo pkg={pkg} onPackageUpdate={(updatedPkg) => {
+                      console.log('Payment receipt uploaded successfully:', updatedPkg);
+                    }} />
+                  </div>
+                )}
+                
                 <PackageStatusTimeline 
                   currentStatus={pkg.status} 
                   deliveryMethod={pkg.delivery_method}
