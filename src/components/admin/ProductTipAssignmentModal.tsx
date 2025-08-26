@@ -53,6 +53,7 @@ const ProductTipAssignmentModal = ({
   const { toast } = useToast();
 
   const updateProductTip = (index: number, tip: number) => {
+    console.log('🔍 DEBUG updateProductTip - index:', index, 'tip:', tip);
     setProducts(prev => prev.map((product, i) => 
       i === index ? { ...product, adminAssignedTip: tip } : product
     ));
@@ -195,8 +196,17 @@ const ProductTipAssignmentModal = ({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={product.adminAssignedTip || ''}
-                            onChange={(e) => updateProductTip(index, parseFloat(e.target.value) || 0)}
+                            value={product.adminAssignedTip === 0 ? '0' : (product.adminAssignedTip || '')}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              console.log('🔍 DEBUG Input onChange - value:', value);
+                              if (value === '' || value === null) {
+                                updateProductTip(index, 0);
+                              } else {
+                                const numValue = parseFloat(value);
+                                updateProductTip(index, isNaN(numValue) ? 0 : numValue);
+                              }
+                            }}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
                           />
