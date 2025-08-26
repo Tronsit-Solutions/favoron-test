@@ -170,6 +170,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       trip={trip}
       getStatusBadge={getStatusBadge}
       packages={packages}
+      onEditTrip={onEditTrip}
+      currentUser={currentUser}
     />
     </>
   );

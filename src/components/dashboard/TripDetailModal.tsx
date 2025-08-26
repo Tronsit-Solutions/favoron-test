@@ -2,6 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import EditTripModal from "@/components/EditTripModal";
 import { 
   Calendar, 
   MapPin, 
@@ -11,7 +13,8 @@ import {
   Plane, 
   Package,
   Clock,
-  Info
+  Info,
+  Edit
 } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
 
@@ -21,12 +24,24 @@ interface TripDetailModalProps {
   trip: any;
   getStatusBadge: (status: string) => JSX.Element;
   packages?: any[];
+  onEditTrip?: (tripData: any) => void;
+  currentUser?: any;
 }
 
-export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, packages = [] }: TripDetailModalProps) => {
+export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, packages = [], onEditTrip, currentUser }: TripDetailModalProps) => {
   if (!trip) return null;
 
+  const [showEditModal, setShowEditModal] = useState(false);
   const address = trip.package_receiving_address;
+  const canEdit = ['pending_approval', 'approved'].includes(trip.status);
+  const isOwner = currentUser?.id === trip.user_id;
+
+  const handleEditSubmit = (editedData: any) => {
+    if (onEditTrip) {
+      onEditTrip(editedData);
+    }
+    setShowEditModal(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -37,7 +52,20 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
               <Plane className="h-5 w-5" />
               Detalles del Viaje
             </span>
-            {getStatusBadge(trip.status)}
+            <div className="flex items-center gap-2">
+              {canEdit && isOwner && onEditTrip && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowEditModal(true)}
+                  className="h-8 px-3"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+              )}
+              {getStatusBadge(trip.status)}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
@@ -264,6 +292,14 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
           </Button>
         </div>
       </DialogContent>
+
+      {/* Edit Modal */}
+      <EditTripModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+        tripData={trip}
+      />
     </Dialog>
   );
 };
