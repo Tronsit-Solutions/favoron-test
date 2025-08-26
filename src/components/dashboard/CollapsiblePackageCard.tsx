@@ -142,17 +142,17 @@ const CollapsiblePackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card>
+      <Card className="w-full max-w-full overflow-hidden">
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-4 lg:p-6 w-full">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-3 w-full min-w-0">
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base sm:text-lg flex flex-col sm:flex-row sm:items-center gap-2">
-                  <div className="flex items-center justify-between w-full sm:w-auto">
-                    <span className="truncate pr-2">
+                <CardTitle className="text-sm sm:text-base lg:text-lg flex flex-col sm:flex-row sm:items-center gap-2 w-full min-w-0">
+                  <div className="flex items-center justify-between w-full min-w-0">
+                    <span className="truncate pr-1 flex-1 min-w-0 text-xs sm:text-sm lg:text-base">
                       {pkg.item_description || 'Sin descripción'}
                     </span>
-                    <div className="flex items-center gap-1 flex-shrink-0 sm:hidden">
+                    <div className="flex items-center gap-1 flex-shrink-0 sm:hidden ml-2">
                       {needsAction && (
                         <NotificationBadge count={1} />
                       )}
@@ -166,16 +166,16 @@ const CollapsiblePackageCard = ({
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </div>
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-1 sm:mt-0">
-                  <div className="flex flex-col sm:flex-row sm:gap-2">
-                    <span>Precio: ${pkg.estimated_price}</span>
-                    <span className="hidden sm:inline">•</span>
-                    <span>Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
+                <CardDescription className="text-xs sm:text-sm mt-1 sm:mt-0 w-full min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:gap-2 w-full">
+                    <span className="truncate">Precio: ${pkg.estimated_price}</span>
+                    <span className="hidden sm:inline flex-shrink-0">•</span>
+                    <span className="truncate">Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
                   </div>
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2 justify-between sm:justify-end w-full sm:w-auto">
-                <div className="flex-shrink-0">
+              <div className="flex items-center gap-1 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto flex-shrink-0 min-w-0">
+                <div className="flex-shrink-0 min-w-0">
                   {expirationInfo ? (
                     <TooltipProvider>
                       <Tooltip>
@@ -235,7 +235,7 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6 w-full max-w-full">
             {/* Priority Actions Section - Always first */}
             {viewMode === 'user' && (
               <div className="mb-6">
