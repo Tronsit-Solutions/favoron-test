@@ -12,6 +12,7 @@ export const getStatusBadge = (status: string) => {
     matched: { label: 'Emparejado', variant: 'default' },
     quote_sent: { label: 'Cotización enviada', variant: 'default' },
     quote_expired: { label: 'Cotización expirada', variant: 'warning' },
+    payment_pending: { label: 'Pago pendiente', variant: 'warning' },
     quote_accepted: { label: 'Cotización Aceptada - Pendiente Pago', variant: 'destructive' },
     purchased: { label: 'Comprado', variant: 'default' },
     in_transit: { label: 'En tránsito', variant: 'default' },

@@ -368,7 +368,7 @@ export const useDashboardActions = (
         if (quoteData.message === 'accepted') {
           console.log('✅ Accepting quote without requiring local trip reference');
           await updatePackage(selectedPackage.id, {
-            status: 'quote_accepted'
+            status: 'payment_pending'
           });
           
           // Force close dialog and reset selection to trigger re-render
@@ -377,7 +377,7 @@ export const useDashboardActions = (
           
           toast({
             title: "¡Cotización aceptada!",
-            description: "Ahora debes hacer el pago a la cuenta bancaria de Favorón.",
+            description: "Ahora sube tu comprobante de pago.",
           });
         } else {
           await updatePackage(selectedPackage.id, {

@@ -45,7 +45,7 @@ const ShopperPackageInfo = ({
   //   return <ShippingInstructions pkg={pkg} />;
   // };
   const renderPaymentUpload = () => {
-    if (!['quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
+    if (!['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
     return <div className="mt-2">
         <PaymentReceiptUpload pkg={pkg} onUploadComplete={updatedPkg => {
         // Actualizar solo este paquete específico sin hacer refresh completo
