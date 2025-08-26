@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -236,112 +235,105 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="p-3 sm:p-4 lg:p-6 w-full max-w-full">
-            {/* Layout reorganizado en 4 cuadrantes */}
+          <CardContent className="w-full max-w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-h-[400px]">
               
-              {/* CUADRANTE SUPERIOR IZQUIERDO: Información del Producto */}
-              <div className="space-y-4 order-1">
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
-                  <ShopperPackageDetails pkg={pkg} />
-                  
-                  {/* Mostrar información de cotización cuando existe */}
-                  {pkg.quote && (
-                    <div className="mt-4">
-                      <PackageQuoteInfo 
-                        quote={pkg.quote as any}
-                        quoteExpiresAt={pkg.quote_expires_at}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Show rejection reason if package was rejected */}
-                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-4">
-                      <RejectionReasonDisplay 
-                        rejectionReason={pkg.rejection_reason}
-                        wantsRequote={pkg.wants_requote}
-                        additionalComments={pkg.additional_notes}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* CUADRANTE SUPERIOR DERECHO: Timeline de Estados */}
-              <div className="space-y-4 order-2">
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📊 Estado del Pedido</h3>
-                  <PackageStatusTimeline 
-                    currentStatus={pkg.status} 
-                    deliveryMethod={pkg.delivery_method}
-                  />
-                </div>
-              </div>
-
-              {/* CUADRANTE INFERIOR IZQUIERDO: Acciones y Archivos del Usuario */}
-              <div className="space-y-4 order-3">
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
-                  
-                  {/* Priority Actions Section */}
-                  {viewMode === 'user' && (
-                    <div className="mb-4">
-                      <ShopperPackagePriorityActions 
-                        pkg={pkg}
-                        onQuote={onQuote}
-                        onDeletePackage={onDeletePackage}
-                        onRequestRequote={onRequestRequote}
-                      />
-                    </div>
-                  )}
-
-                  {/* Payment Upload Section */}
-                  {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
-                    <div className="mb-4">
-                      <PaymentReceiptUpload 
-                        pkg={pkg} 
-                        onUploadComplete={(updatedPkg) => {
-                          console.log('Payment receipt uploaded successfully:', updatedPkg);
-                        }} 
-                      />
-                    </div>
-                  )}
-
-                  {/* Document Upload Section */}
-                  {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
-                    <div className="mb-4">
-                      <UploadDocuments 
-                        packageId={pkg.id}
-                        currentStatus={pkg.status}
-                        currentConfirmation={pkg.purchase_confirmation}
-                        currentTracking={pkg.tracking_info}
-                        onUpload={(type, data) => {
-                          console.log('Documents updated successfully:', type, data);
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Uploaded Documents Registry */}
-                  <UploadedDocumentsRegistry
-                    pkg={pkg} 
-                    onEditDocument={handleEditDocument}
-                  />
-                  
-                  {/* Show traveler confirmation when package is received */}
-                  <TravelerConfirmationDisplay pkg={pkg} />
-
-                  {/* Edit Actions */}
+              {/* Información del Producto */}
+              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
+                <ShopperPackageDetails pkg={pkg} />
+                
+                {/* Mostrar información de cotización cuando existe */}
+                {pkg.quote && (
                   <div className="mt-4">
-                    {renderActionButtons()}
+                    <PackageQuoteInfo 
+                      quote={pkg.quote as any}
+                      quoteExpiresAt={pkg.quote_expires_at}
+                    />
                   </div>
+                )}
+                
+                {/* Show rejection reason if package was rejected */}
+                {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                  <div className="mt-4">
+                    <RejectionReasonDisplay 
+                      rejectionReason={pkg.rejection_reason}
+                      wantsRequote={pkg.wants_requote}
+                      additionalComments={pkg.additional_notes}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Timeline de Estados */}
+              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">📊 Estado del Pedido</h3>
+                <PackageStatusTimeline 
+                  currentStatus={pkg.status} 
+                  deliveryMethod={pkg.delivery_method}
+                />
+              </div>
+
+              {/* Acciones y Archivos del Usuario */}
+              <div className="border rounded-lg p-4 bg-muted/20 h-fit">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
+                
+                {/* Priority Actions Section */}
+                {viewMode === 'user' && (
+                  <div className="mb-4">
+                    <ShopperPackagePriorityActions 
+                      pkg={pkg}
+                      onQuote={onQuote}
+                      onDeletePackage={onDeletePackage}
+                      onRequestRequote={onRequestRequote}
+                    />
+                  </div>
+                )}
+
+                {/* Payment Upload Section */}
+                {['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status) && viewMode === 'user' && (
+                  <div className="mb-4">
+                    <PaymentReceiptUpload 
+                      pkg={pkg} 
+                      onUploadComplete={(updatedPkg) => {
+                        console.log('Payment receipt uploaded successfully:', updatedPkg);
+                      }} 
+                    />
+                  </div>
+                )}
+
+                {/* Document Upload Section */}
+                {['pending_purchase', 'payment_confirmed', 'in_transit'].includes(pkg.status) && viewMode === 'user' && (
+                  <div className="mb-4">
+                    <UploadDocuments 
+                      packageId={pkg.id}
+                      currentStatus={pkg.status}
+                      currentConfirmation={pkg.purchase_confirmation}
+                      currentTracking={pkg.tracking_info}
+                      onUpload={(type, data) => {
+                        console.log('Documents updated successfully:', type, data);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Uploaded Documents Registry */}
+                <UploadedDocumentsRegistry
+                  pkg={pkg} 
+                  onEditDocument={handleEditDocument}
+                />
+                
+                {/* Show traveler confirmation when package is received */}
+                <TravelerConfirmationDisplay pkg={pkg} />
+
+                {/* Edit Actions */}
+                <div className="mt-4">
+                  {renderActionButtons()}
                 </div>
               </div>
 
-              {/* CUADRANTE INFERIOR DERECHO: Comunicación */}
-              <div className="space-y-4 order-4">
+              {/* Comunicación */}
+              <div className="space-y-4">
                 <div className="border rounded-lg p-4 bg-muted/20 h-fit">
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3">💬 Comunicación</h3>
                   <PackageTimeline pkg={pkg} />
