@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef } from "react";
@@ -303,12 +303,12 @@ const QuoteDialog = ({
 
           {/* IMPORTANT INFO - Show for shoppers viewing quotes */}
           {existingQuote && tripDates && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-md">
               <div className="flex items-start space-x-2 mb-3">
-                <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
-                <p className="text-sm font-medium text-blue-800">📋 Información importante previo a aceptar cotización:</p>
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 animate-pulse" />
+                <p className="text-sm font-medium text-amber-800">📋 Información importante previo a aceptar cotización:</p>
               </div>
-              <div className="text-sm text-blue-700 ml-6 space-y-2">
+              <div className="text-sm text-amber-700 ml-6 space-y-2">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
                   <span><strong>Primera fecha para recibir paquetes:</strong> {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')}</span>
