@@ -1,7 +1,8 @@
 
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, Info } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -65,7 +66,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               onClick={() => setShowDetailModal(true)}
               className="h-8 px-2"
             >
-              <Info className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
             {getStatusBadge(trip.status)}
           </div>
@@ -150,3 +151,4 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 };
 
 export default TripCard;
+
