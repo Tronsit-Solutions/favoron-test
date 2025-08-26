@@ -142,14 +142,32 @@ const AdminMatchDialog = ({
   };
 
   const getProductsForModal = () => {
-    if (!selectedPackage?.products_data) return [];
-    return selectedPackage.products_data.map((product: any) => ({
-      itemDescription: product.itemDescription || '',
-      estimatedPrice: product.estimatedPrice || '0',
-      itemLink: product.itemLink || '',
-      quantity: product.quantity || '1',
-      adminAssignedTip: product.adminAssignedTip || 0
-    }));
+    console.log('🔍 DEBUG getProductsForModal - selectedPackage:', selectedPackage);
+    console.log('🔍 DEBUG products_data:', selectedPackage?.products_data);
+    
+    if (!selectedPackage?.products_data) {
+      console.log('❌ No products_data found');
+      return [];
+    }
+    
+    const products = selectedPackage.products_data.map((product: any, index: number) => {
+      console.log(`🔍 DEBUG Product ${index}:`, product);
+      
+      // Handle different data structure possibilities
+      const mappedProduct = {
+        itemDescription: product.itemDescription || product.item_description || product.description || '',
+        estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
+        itemLink: product.itemLink || product.item_link || product.link || '',
+        quantity: product.quantity || product.qty || '1',
+        adminAssignedTip: product.adminAssignedTip || 0
+      };
+      
+      console.log(`🔍 DEBUG Mapped Product ${index}:`, mappedProduct);
+      return mappedProduct;
+    });
+    
+    console.log('🔍 DEBUG Final products for modal:', products);
+    return products;
   };
 
   const getTotalAssignedTip = () => {
