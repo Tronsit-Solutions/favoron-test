@@ -51,7 +51,7 @@ const QuoteDialog = ({
   tripDates 
 }: QuoteDialogProps) => {
   const [price, setPrice] = useState(existingQuote?.price || '');
-  const [message, setMessage] = useState(existingQuote?.message || '');
+  const [message, setMessage] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [wantsRequote, setWantsRequote] = useState(false);
   const [additionalComments, setAdditionalComments] = useState('');
@@ -132,7 +132,7 @@ const QuoteDialog = ({
         price: basePrice,
         serviceFee: 0,
         totalPrice: totalWithFee,
-        message: message || 'Acepto el tip asignado por Favorón',
+        message: message || '',
         adminAssignedTipAccepted: true,
       });
     } else {
