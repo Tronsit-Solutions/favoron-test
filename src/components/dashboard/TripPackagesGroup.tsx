@@ -51,16 +51,14 @@ const TripPackagesGroup = ({
                     <MapPin className="h-4 w-4 text-primary" />
                     <span>{trip.from_city} → {trip.to_city}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
-                    </div>
-                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </div>
+                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
                 
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
+                  </div>
                   <Badge variant="outline" className="text-xs">
                     {packages.length} paquete{packages.length !== 1 ? 's' : ''}
                   </Badge>
