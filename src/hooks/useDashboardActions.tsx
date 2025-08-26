@@ -568,7 +568,7 @@ export const useDashboardActions = (
     }
   };
 
-  const handleMatchPackage = async (packageId: string, tripId: string, adminTip?: number) => {
+  const handleMatchPackage = async (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[]) => {
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
@@ -607,6 +607,22 @@ export const useDashboardActions = (
         traveler_address: travelerAddress,
         matched_trip_dates: matchedTripDates
       };
+
+      // If this is a multi-product order with individual tips, update products_data
+      if (productsWithTips && productsWithTips.length > 0) {
+        const currentPackage = packages.find(pkg => pkg.id === packageId);
+        if (currentPackage?.products_data) {
+          // Update existing products_data with assigned tips
+          const updatedProductsData = currentPackage.products_data.map((product: any, index: number) => {
+            const productWithTip = productsWithTips[index];
+            return {
+              ...product,
+              adminAssignedTip: productWithTip?.adminAssignedTip || 0
+            };
+          });
+          updateData.products_data = updatedProductsData;
+        }
+      }
 
       await updatePackage(packageId, updateData);
 

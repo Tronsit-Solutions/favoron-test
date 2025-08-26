@@ -5,10 +5,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
+import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 
 interface AdminMatchDialogProps {
   showMatchDialog: boolean;
@@ -17,7 +18,7 @@ interface AdminMatchDialogProps {
   matchingTrip: string;
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
-  onMatch: (adminTip?: number) => void;
+  onMatch: (adminTip?: number, productsWithTips?: any[]) => void;
 }
 
 const AdminMatchDialog = ({ 
@@ -37,6 +38,8 @@ const AdminMatchDialog = ({
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [adminTip, setAdminTip] = useState<string>('');
+  const [showProductTipModal, setShowProductTipModal] = useState(false);
+  const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
 
   // Filter trips to exclude those with past arrival dates
   const today = new Date();
@@ -131,10 +134,44 @@ const AdminMatchDialog = ({
     setMatchingTrip(tripId.toString());
   };
 
+  // Helper functions to detect multi-product orders
+  const isMultiProductOrder = () => {
+    return selectedPackage?.products_data && 
+           Array.isArray(selectedPackage.products_data) && 
+           selectedPackage.products_data.length > 1;
+  };
+
+  const getProductsForModal = () => {
+    if (!selectedPackage?.products_data) return [];
+    return selectedPackage.products_data.map((product: any) => ({
+      itemDescription: product.itemDescription || '',
+      estimatedPrice: product.estimatedPrice || '0',
+      itemLink: product.itemLink || '',
+      quantity: product.quantity || '1',
+      adminAssignedTip: product.adminAssignedTip || 0
+    }));
+  };
+
+  const getTotalAssignedTip = () => {
+    if (isMultiProductOrder() && assignedProductsWithTips.length > 0) {
+      return assignedProductsWithTips.reduce((total, product) => total + (product.adminAssignedTip || 0), 0);
+    }
+    return adminTip ? parseFloat(adminTip) : 0;
+  };
+
+  const handleProductTipSave = (productsWithTips: any[], totalTip: number) => {
+    setAssignedProductsWithTips(productsWithTips);
+    setAdminTip(totalTip.toString());
+  };
+
   const handleMatch = () => {
     if (selectedTripId) {
-      const tipAmount = adminTip ? parseFloat(adminTip) : undefined;
-      onMatch(tipAmount);
+      const tipAmount = getTotalAssignedTip();
+      if (isMultiProductOrder()) {
+        onMatch(tipAmount, assignedProductsWithTips);
+      } else {
+        onMatch(tipAmount);
+      }
     }
   };
 
@@ -423,29 +460,58 @@ const AdminMatchDialog = ({
             <div className="w-full sm:w-auto">
               <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="admin-tip" className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   Tip asignado por Admin
                 </Label>
               </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Q</span>
-                <Input
-                  id="admin-tip"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Ej: 25.00"
-                  value={adminTip}
-                  onChange={(e) => setAdminTip(e.target.value)}
-                  className="text-sm pl-7 h-11 w-full sm:w-48"
-                />
-              </div>
-              {!adminTip && (
-                <p className="text-xs text-destructive mt-1">Este campo es requerido para confirmar el match.</p>
+              
+              {isMultiProductOrder() ? (
+                // Multi-product order: Show button to open modal
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowProductTipModal(true)}
+                    className="w-full sm:w-auto"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Asignar Tips por Producto ({selectedPackage.products_data.length} productos)
+                  </Button>
+                  {getTotalAssignedTip() > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm font-medium text-green-800">
+                        Tips asignados: Q{getTotalAssignedTip().toFixed(2)}
+                      </p>
+                      <p className="text-xs text-green-600">
+                        {assignedProductsWithTips.length} producto{assignedProductsWithTips.length !== 1 ? 's' : ''} con tips individuales
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Single product order: Show input field
+                <div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">Q</span>
+                    <Input
+                      id="admin-tip"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Ej: 25.00"
+                      value={adminTip}
+                      onChange={(e) => setAdminTip(e.target.value)}
+                      className="text-sm pl-7 h-11 w-full sm:w-48"
+                    />
+                  </div>
+                  {!adminTip && (
+                    <p className="text-xs text-destructive mt-1">Este campo es requerido para confirmar el match.</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Monto en GTQ que se asignará al viajero por este paquete
+                  </p>
+                </div>
               )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Monto en GTQ que se asignará al viajero por este paquete
-              </p>
             </div>
           )}
 
@@ -453,7 +519,7 @@ const AdminMatchDialog = ({
             <Button 
               onClick={handleMatch} 
               className="flex-1 sm:flex-none sm:w-auto h-11"
-              disabled={!selectedTripId || !adminTip || parseFloat(adminTip) <= 0}
+              disabled={!selectedTripId || getTotalAssignedTip() <= 0}
               variant="shopper"
             >
               <Zap className="h-4 w-4 mr-2" />
@@ -587,6 +653,15 @@ const AdminMatchDialog = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Product Tip Assignment Modal */}
+      <ProductTipAssignmentModal
+        isOpen={showProductTipModal}
+        onClose={() => setShowProductTipModal(false)}
+        onSave={handleProductTipSave}
+        products={getProductsForModal()}
+        packageId={selectedPackage?.id || ''}
+      />
     </Dialog>
   );
 };

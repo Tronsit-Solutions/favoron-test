@@ -33,7 +33,7 @@ interface AdminDashboardProps {
   packages: any[];
   trips: any[];
   currentUser?: any;
-  onMatchPackage: (packageId: string, tripId: string, adminTip?: number) => void;
+  onMatchPackage: (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[]) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   onPaymentApproval: (packageId: string, action: 'approve' | 'reject') => void;
@@ -96,7 +96,7 @@ const AdminDashboard = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleMatch = (adminTip?: number) => {
+  const handleMatch = (adminTip?: number, productsWithTips?: any[]) => {
     if (selectedPackage && matchingTrip) {
       if (!adminTip || adminTip <= 0) {
         toast({
@@ -106,10 +106,14 @@ const AdminDashboard = ({
         });
         return;
       }
-      onMatchPackage(selectedPackage.id, matchingTrip, adminTip);
+      onMatchPackage(selectedPackage.id, matchingTrip, adminTip, productsWithTips);
+      
+      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
       toast({
         title: "¡Match exitoso!",
-        description: `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
+        description: isMultiProduct 
+          ? `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tips por producto (Total: Q${adminTip})`
+          : `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
       });
       setSelectedPackage(null);
       setMatchingTrip("");
