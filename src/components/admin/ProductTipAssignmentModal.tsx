@@ -31,11 +31,17 @@ const ProductTipAssignmentModal = ({
   products: initialProducts,
   packageId 
 }: ProductTipAssignmentModalProps) => {
+  console.log('🔍 DEBUG ProductTipAssignmentModal - initialProducts:', initialProducts);
+  console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
+  
   const [products, setProducts] = useState<Product[]>(
-    initialProducts.map(p => ({
-      ...p,
-      adminAssignedTip: p.adminAssignedTip || 0
-    }))
+    initialProducts.map(p => {
+      console.log('🔍 DEBUG Mapping product:', p);
+      return {
+        ...p,
+        adminAssignedTip: p.adminAssignedTip || 0
+      };
+    })
   );
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -136,6 +142,16 @@ const ProductTipAssignmentModal = ({
             <h3 className="text-lg font-semibold text-foreground">
               Asignación de Tips por Producto
             </h3>
+            
+            {/* Debug info for products */}
+            {products.length === 0 && (
+              <div className="p-4 bg-muted rounded-lg text-center">
+                <p className="text-muted-foreground">
+                  ⚠️ No se encontraron productos para mostrar
+                </p>
+              </div>
+            )}
+            
             {products.map((product, index) => {
               const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
               
@@ -156,31 +172,31 @@ const ProductTipAssignmentModal = ({
                         </div>
                         
                         <div className="space-y-3">
-                          <div>
-                            <Label className="text-sm font-medium text-muted-foreground">
-                              Descripción del producto
-                            </Label>
-                            <p className="text-sm text-foreground mt-1 p-3 bg-muted rounded-md">
-                              {product.itemDescription}
-                            </p>
-                          </div>
+                           <div>
+                             <Label className="text-sm font-medium text-muted-foreground">
+                               Descripción del producto
+                             </Label>
+                             <p className="text-sm text-foreground mt-1 p-3 bg-muted rounded-md">
+                               {product.itemDescription || 'Sin descripción disponible'}
+                             </p>
+                           </div>
                           
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-sm font-medium text-muted-foreground">
-                                Precio unitario
-                              </Label>
-                              <p className="text-lg font-semibold text-foreground">
-                                ${product.estimatedPrice}
-                              </p>
+                               <Label className="text-sm font-medium text-muted-foreground">
+                                 Precio unitario
+                               </Label>
+                               <p className="text-lg font-semibold text-foreground">
+                                 ${product.estimatedPrice || '0.00'}
+                               </p>
                             </div>
                             <div>
-                              <Label className="text-sm font-medium text-muted-foreground">
-                                Cantidad
-                              </Label>
-                              <p className="text-lg font-semibold text-foreground">
-                                {product.quantity} unidad{parseInt(product.quantity || '1') !== 1 ? 'es' : ''}
-                              </p>
+                               <Label className="text-sm font-medium text-muted-foreground">
+                                 Cantidad
+                               </Label>
+                               <p className="text-lg font-semibold text-foreground">
+                                 {product.quantity || '1'} unidad{parseInt(product.quantity || '1') !== 1 ? 'es' : ''}
+                               </p>
                             </div>
                           </div>
                           
