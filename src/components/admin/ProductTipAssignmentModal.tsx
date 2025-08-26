@@ -42,24 +42,26 @@ const ProductTipAssignmentModal = ({
     if (initialProducts.length === 0) return;
     
     console.log('🔍 DEBUG Setting products from initialProducts:', initialProducts);
-    const mappedProducts = initialProducts.map(p => {
-      console.log('🔍 DEBUG Mapping product:', p);
-      return {
-        ...p,
-        adminAssignedTip: p.adminAssignedTip || 0
-      };
-    });
+    const mappedProducts = initialProducts.map(p => ({
+      ...p,
+      adminAssignedTip: p.adminAssignedTip || 0
+    }));
     setProducts(mappedProducts);
   }, [initialProducts]);
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const updateProductTip = (index: number, tip: number) => {
-    console.log('🔍 DEBUG updateProductTip - index:', index, 'tip:', tip);
-    setProducts(prev => prev.map((product, i) => 
-      i === index ? { ...product, adminAssignedTip: tip } : product
-    ));
+  const handleTipChange = (index: number, value: string) => {
+    console.log('🔍 DEBUG handleTipChange - index:', index, 'value:', value);
+    
+    setProducts(prev => {
+      const updated = [...prev];
+      const numValue = value === '' ? 0 : parseFloat(value) || 0;
+      updated[index] = { ...updated[index], adminAssignedTip: numValue };
+      console.log('🔍 DEBUG Updated products:', updated);
+      return updated;
+    });
   };
 
   const calculateTotalTip = () => {
@@ -200,12 +202,8 @@ const ProductTipAssignmentModal = ({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={product.adminAssignedTip === 0 ? '' : product.adminAssignedTip?.toString() || ''}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              const numValue = value === '' ? 0 : parseFloat(value) || 0;
-                              updateProductTip(index, numValue);
-                            }}
+                            defaultValue={product.adminAssignedTip || 0}
+                            onChange={(e) => handleTipChange(index, e.target.value)}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
                           />
@@ -219,7 +217,7 @@ const ProductTipAssignmentModal = ({
                           size="sm"
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.1).toFixed(2));
-                            updateProductTip(index, tip);
+                            handleTipChange(index, tip.toString());
                           }}
                           className="h-8 px-2 text-xs"
                         >
@@ -231,7 +229,7 @@ const ProductTipAssignmentModal = ({
                           size="sm"
                           onClick={() => {
                             const tip = parseFloat((productValue * 0.15).toFixed(2));
-                            updateProductTip(index, tip);
+                            handleTipChange(index, tip.toString());
                           }}
                           className="h-8 px-2 text-xs"
                         >
