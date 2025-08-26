@@ -81,7 +81,7 @@ export const useStatusHelpers = () => {
     const isReapproved = status === 'approved' && rejectionReason;
 
     const statusConfig = {
-      pending_approval: { label: "Pendiente", variant: "warning" as const },
+      pending_approval: { label: "Pendiente de aprobación", variant: "warning" as const },
       approved: { label: isReapproved ? "Re-aprobado" : "Pendiente de asignar a un viajero", variant: isReapproved ? "warning" as const : "success" as const },
       matched: { label: "Emparejado", variant: "success" as const },
       assignment_expired: { label: "⏰ Asignación Expirada", variant: "destructive" as const },

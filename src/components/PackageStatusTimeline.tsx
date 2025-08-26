@@ -47,9 +47,9 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
     },
     { 
       key: 'pending_purchase', 
-      label: 'Pendiente de aprobación', 
+      label: 'Pendiente de Compra', 
       icon: Clock,
-      description: 'Pendiente de aprobación para proceder'
+      description: 'Debes realizar la compra del producto'
     },
     { 
       key: 'purchased', 
