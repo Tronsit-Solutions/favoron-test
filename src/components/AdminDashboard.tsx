@@ -123,21 +123,56 @@ const AdminDashboard = ({
   };
 
   const handleViewPackageDetail = (pkg: any) => {
-    // Extract multiple products information if stored in additional_notes
+    // Extract products from products_data (main) or fallback to additional_notes (legacy)
     let products = null;
     let originalNotes = pkg.additional_notes;
     
+    console.log('🔍 Package data for detail modal:', {
+      products_data: pkg.products_data,
+      additional_notes: pkg.additional_notes,
+      item_description: pkg.item_description,
+      item_link: pkg.item_link,
+      estimated_price: pkg.estimated_price
+    });
+    
+    // First try to parse products_data (main source)
     try {
-      if (pkg.additional_notes && typeof pkg.additional_notes === 'string') {
-        const parsedNotes = JSON.parse(pkg.additional_notes);
-        if (parsedNotes.products && Array.isArray(parsedNotes.products)) {
-          products = parsedNotes.products;
-          originalNotes = parsedNotes.originalNotes;
+      if (pkg.products_data && typeof pkg.products_data === 'string') {
+        const parsedProducts = JSON.parse(pkg.products_data);
+        if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
+          products = parsedProducts;
+          console.log('✅ Using products from products_data:', products);
         }
       }
     } catch (error) {
-      // If parsing fails, treat as regular notes
-      console.log('Notes are not JSON, treating as regular notes');
+      console.log('❌ Error parsing products_data:', error);
+    }
+    
+    // Fallback: try to parse additional_notes (legacy)
+    if (!products) {
+      try {
+        if (pkg.additional_notes && typeof pkg.additional_notes === 'string') {
+          const parsedNotes = JSON.parse(pkg.additional_notes);
+          if (parsedNotes.products && Array.isArray(parsedNotes.products)) {
+            products = parsedNotes.products;
+            originalNotes = parsedNotes.originalNotes;
+            console.log('✅ Using products from additional_notes:', products);
+          }
+        }
+      } catch (error) {
+        console.log('❌ Error parsing additional_notes:', error);
+      }
+    }
+    
+    // Final fallback: create product from legacy fields
+    if (!products && (pkg.item_description || pkg.item_link || pkg.estimated_price)) {
+      products = [{
+        itemDescription: pkg.item_description || 'Producto sin descripción',
+        estimatedPrice: pkg.estimated_price || '0',
+        itemLink: pkg.item_link || null,
+        quantity: '1'
+      }];
+      console.log('✅ Created product from legacy fields:', products);
     }
     
     // Add mock user data for demo
@@ -154,6 +189,8 @@ const AdminDashboard = ({
         completedRequests: Math.floor(Math.random() * 5)
       }
     };
+    
+    console.log('📦 Final package for modal:', packageWithUser);
     setSelectedDetailPackage(packageWithUser);
     setShowPackageDetail(true);
   };
