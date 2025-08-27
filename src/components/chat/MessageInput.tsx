@@ -77,56 +77,60 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
   };
 
   return (
-    <div className="border-t pt-3 sm:pt-4">
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
-        <div className="flex-1">
+    <div className="bg-background/80 backdrop-blur-sm rounded-lg border border-border/60 p-4">
+      <div className="space-y-3">
+        <div className="relative">
           <Textarea
             placeholder="Escribe un mensaje..."
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, 300))}
             onKeyDown={handleKeyDown}
-            className="min-h-[50px] sm:min-h-[60px] resize-none text-sm sm:text-base"
+            className="min-h-[60px] md:min-h-[80px] resize-none text-sm md:text-base pr-4 pl-4 py-3 border-0 bg-muted/40 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all duration-200"
             disabled={isSending || disabled}
           />
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-xs text-muted-foreground">
-              {message.length}/300
-            </span>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <label htmlFor="file-upload" className="flex-1 sm:flex-none">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isUploading || disabled}
-                  asChild
-                  className="w-full sm:w-auto h-9 text-xs sm:text-sm"
-                >
-                  <span className="cursor-pointer flex items-center justify-center">
-                    <Paperclip className="h-3 w-3 mr-1" />
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground/70 font-mono">
+            {message.length}/300
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <label htmlFor="file-upload">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={isUploading || disabled}
+                asChild
+                className="h-9 px-3 text-sm hover:bg-muted/60 transition-colors"
+              >
+                <span className="cursor-pointer flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  <span className="hidden sm:inline">
                     {isUploading ? 'Subiendo...' : 'Adjuntar'}
                   </span>
-                </Button>
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileUpload}
-                className="hidden"
-                accept="image/*,.pdf,.doc,.docx,.txt"
-                disabled={isUploading || disabled}
-              />
-              <Button 
-                size="sm" 
-                onClick={handleSendMessage}
-                disabled={!message.trim() || isSending || disabled}
-                className="w-full sm:w-auto h-9 text-xs sm:text-sm font-medium"
-              >
-                <Send className="h-3 w-3 mr-1" />
-                {isSending ? 'Enviando...' : 'Enviar'}
+                </span>
               </Button>
-            </div>
+            </label>
+            <input
+              id="file-upload"
+              type="file"
+              onChange={handleFileUpload}
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              disabled={isUploading || disabled}
+            />
           </div>
+          
+          <Button 
+            size="sm" 
+            onClick={handleSendMessage}
+            disabled={!message.trim() || isSending || disabled}
+            className="h-9 px-4 text-sm font-medium bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {isSending ? 'Enviando...' : 'Enviar'}
+          </Button>
         </div>
       </div>
     </div>
