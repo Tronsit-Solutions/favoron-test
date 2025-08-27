@@ -264,8 +264,8 @@ const CollapsiblePackageCard = ({
                 </div>
                 
                 {/* Status & Progress Section */}
-                <div className="bg-card border-2 border-primary/20 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="bg-card border-2 border-primary/20 rounded-lg p-2 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-semibold text-primary">Estado y Progreso</h3>
                   </div>
