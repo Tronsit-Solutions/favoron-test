@@ -49,53 +49,55 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-1 md:p-2">
-        {/* Chat Header */}
-        <div className="border-b border-border/50 pb-2 mb-3">
-          <h3 className="text-sm md:text-base font-semibold flex items-center gap-2">
-            <div className="p-1 bg-primary/10 rounded-lg">
-              <MessageCircle className="h-4 w-4 text-primary" />
-            </div>
-            <span className="hidden sm:inline">Chat</span>
-            <span className="sm:hidden">Chat</span>
-          </h3>
-        </div>
-
-        {/* Messages Container - Much smaller */}
-        <div className="bg-muted/30 rounded-lg border border-muted/50 p-1 mb-2">
-          <div className="space-y-1 max-h-16 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-            {messages.length === 0 ? (
-              <div className="text-center py-3 text-muted-foreground">
-                <div className="p-2 bg-background/50 rounded-full w-fit mx-auto mb-2">
-                  <MessageCircle className="h-6 w-6 opacity-50" />
-                </div>
-                <p className="text-xs font-medium mb-1">No hay mensajes</p>
-                <p className="text-xs">Envía un mensaje</p>
+      {/* Flex container to position chatbox on the left */}
+      <div className="flex justify-start">
+        {/* Compact chatbox - left aligned, half width */}
+        <div className="w-full sm:w-1/2 md:max-w-md p-1">
+          {/* Chat Header */}
+          <div className="border-b border-border/50 pb-1 mb-2">
+            <h3 className="text-xs font-medium flex items-center gap-1">
+              <div className="p-1 bg-primary/10 rounded">
+                <MessageCircle className="h-3 w-3 text-primary" />
               </div>
-            ) : (
-              messages.map((message) => {
-                const role = getUserRole(message.user_id, pkg);
-                
-                return (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    role={role}
-                    onDownload={handleDownload}
-                  />
-                );
-              })
-            )}
+              <span>Chat</span>
+            </h3>
           </div>
-        </div>
 
-        {/* Message Input Section */}
-        <div className="border-t border-border/50 pt-2">
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            onFileUpload={handleFileUpload}
-            disabled={loading}
-          />
+          {/* Messages Container - Extra compact */}
+          <div className="bg-muted/30 rounded border border-muted/50 p-1 mb-1">
+            <div className="space-y-1 max-h-12 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+              {messages.length === 0 ? (
+                <div className="text-center py-2 text-muted-foreground">
+                  <div className="p-1 bg-background/50 rounded-full w-fit mx-auto mb-1">
+                    <MessageCircle className="h-4 w-4 opacity-50" />
+                  </div>
+                  <p className="text-xs">No hay mensajes</p>
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const role = getUserRole(message.user_id, pkg);
+                  
+                  return (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      role={role}
+                      onDownload={handleDownload}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Message Input Section */}
+          <div className="border-t border-border/50 pt-1">
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              onFileUpload={handleFileUpload}
+              disabled={loading}
+            />
+          </div>
         </div>
       </div>
     </Card>
