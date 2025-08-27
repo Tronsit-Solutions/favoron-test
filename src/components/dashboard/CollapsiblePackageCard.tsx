@@ -60,9 +60,7 @@ const CollapsiblePackageCard = ({
   onRequestRequote,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
-  const [isOpen, setIsOpen] = React.useState(
-    pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved'
-  );
+  const [isOpen, setIsOpen] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
@@ -77,11 +75,6 @@ const CollapsiblePackageCard = ({
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
 
-  React.useEffect(() => {
-    if (pkg.status === 'quote_accepted' || pkg.status === 'quote_sent' || pkg.status === 'approved') {
-      setIsOpen(true);
-    }
-  }, [pkg.status]);
 
   const needsAction = viewMode === 'user' && (
     pkg.status === 'quote_sent' || 

@@ -120,7 +120,7 @@ const TripPackagesGroup = ({
                       onConfirmReceived={onConfirmReceived}
                       onConfirmOfficeDelivery={onConfirmOfficeDelivery}
                       hasPendingAction={hasPendingAction}
-                      autoExpand={hasPendingAction}
+                      autoExpand={false}
                     />
                   );
                 })}
