@@ -11,10 +11,13 @@ interface PackageHistoryProps {
 }
 
 const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
-  // Filtrar paquetes completados (entregados en oficina, viajes completados, cancelados o archivados por el shopper)
+  // Filtrar paquetes completados (completados, entregados en oficina, viajes completados, cancelados o archivados por el shopper)
   const completedPackages = packages.filter(pkg => {
     // Paquetes cancelados
     if (pkg.status === 'cancelled') return true;
+
+    // Paquetes completados
+    if (pkg.status === 'completed') return true;
 
     // Paquetes archivados por el shopper
     if (pkg.status === 'archived_by_shopper') return true;
@@ -45,6 +48,7 @@ const PackageHistory = ({ packages, trips }: PackageHistoryProps) => {
 
   const getStatusDisplay = (pkg: any) => {
     if (pkg.status === 'cancelled') return 'Cancelado';
+    if (pkg.status === 'completed') return 'Completado';
     if (pkg.status === 'archived_by_shopper') return 'Archivado por el shopper';
     if (pkg.status === 'delivered_to_office') return 'Entregado en oficina';
     const matchedTrip = getMatchedTrip(pkg.id);
