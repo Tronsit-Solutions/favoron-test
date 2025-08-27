@@ -167,30 +167,30 @@ const PendingRequestsTab = ({
         ) : (
           filteredPackages.map(pkg => (
             <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-3">
-                  <div className="flex-1 space-y-2">
+              <CardContent className="p-2 sm:p-3 lg:p-2">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-1">
+                  <div className="flex-1 space-y-2 lg:space-y-1 min-w-0">
                     {/* Main info row */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 lg:gap-1">
                       <div>
-                        <div className="mb-1">
+                        <div className="mb-1 lg:hidden">
                           <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                         </div>
-                         <h4 className="font-semibold text-sm sm:text-base leading-tight mb-2 text-foreground break-words">
+                         <h4 className="font-semibold text-sm lg:text-xs leading-tight mb-1 lg:mb-0 text-foreground break-words">
                            {pkg.item_description || "Sin descripción"}
                          </h4>
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                              <span className="text-xs text-muted-foreground break-words">
-                                🛍️ Shopper: {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
+                          <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 sm:gap-3 lg:gap-2">
+                              <span className="text-xs lg:text-[10px] text-muted-foreground break-words">
+                                🛍️ {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
                                   ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
                                   : (pkg as any)?.profiles?.username || 'Sin nombre'}
                               </span>
-                            <span className="text-xs text-muted-foreground break-words">
+                            <span className="text-xs lg:text-[10px] text-muted-foreground break-words">
                               📍 {pkg.purchase_origin} → {pkg.package_destination}
                             </span>
                          </div>
                       </div>
-                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 lg:hidden">
                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                            <div className="flex items-center gap-2">
                              {getStatusBadge(pkg.status, { 
@@ -211,21 +211,38 @@ const PendingRequestsTab = ({
                        </div>
                     </div>
 
-                    {/* Route info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
-                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded w-fit">
+                    {/* Desktop badges - inline with content */}
+                    <div className="hidden lg:flex items-center gap-1">
+                      {getStatusBadge(pkg.status, { 
+                        packageDestination: pkg.package_destination,
+                        rejectionReason: pkg.rejection_reason 
+                      })}
+                      <PackageHistoryIndicator package={pkg} />
+                      {pkg.rejection_reason && pkg.wants_requote && (
+                        <RejectionTooltip
+                          adminAssignedTip={pkg.admin_assigned_tip}
+                          rejectionReason={pkg.rejection_reason}
+                          wantsRequote={pkg.wants_requote}
+                          additionalNotes={pkg.additional_notes}
+                        />
+                      )}
+                    </div>
+
+                    {/* Route info - more compact for desktop */}
+                    <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 lg:gap-1 text-xs lg:text-[10px]">
+                      <span className="bg-blue-50 text-blue-700 px-1 lg:px-1 py-0.5 lg:py-0 rounded text-xs lg:text-[9px] w-fit">
                         🌎 {pkg.purchase_origin || 'País no especificado'}
                       </span>
                       <span className="text-muted-foreground hidden sm:block">→</span>
-                      <span className="bg-green-50 text-green-700 px-2 py-1 rounded w-fit">
+                      <span className="bg-green-50 text-green-700 px-1 lg:px-1 py-0.5 lg:py-0 rounded text-xs lg:text-[9px] w-fit">
                         🏠 {pkg.package_destination || 'Guatemala'}
                       </span>
                     </div>
 
-                    {/* Deadline */}
+                    {/* Deadline - more compact */}
                     {pkg.delivery_deadline && (
-                      <div className="flex items-center space-x-1 text-xs">
-                        <CalendarDays className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                      <div className="flex items-center space-x-1 text-xs lg:text-[10px]">
+                        <CalendarDays className="h-3 w-3 lg:h-2 lg:w-2 text-orange-500 flex-shrink-0" />
                         <span className="text-orange-600 break-words">
                           Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                         </span>
@@ -233,15 +250,15 @@ const PendingRequestsTab = ({
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-row lg:flex-col gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 lg:border-l lg:pl-3 border-border/50">
+                  {/* Actions - Right side for desktop */}
+                  <div className="flex flex-row lg:flex-row gap-1 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/50 lg:border-none lg:ml-2">
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => onViewPackageDetail(pkg)}
-                      className="flex-1 lg:flex-none text-xs sm:text-sm"
+                      className="flex-1 lg:flex-none lg:h-6 lg:px-2 text-xs lg:text-[10px]"
                     >
-                      <Eye className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-0 mr-1" />
+                      <Eye className="h-3 w-3 lg:h-2 lg:w-2 lg:mr-0 mr-1" />
                       <span className="lg:hidden">Ver</span>
                     </Button>
                     <DropdownMenu>
@@ -249,9 +266,9 @@ const PendingRequestsTab = ({
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="flex-1 lg:flex-none lg:h-8 lg:w-8 lg:p-0 text-xs sm:text-sm"
+                          className="flex-1 lg:flex-none lg:h-6 lg:w-6 lg:p-0 text-xs lg:text-[10px]"
                         >
-                          <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4 lg:mr-0 mr-1" />
+                          <MoreHorizontal className="h-3 w-3 lg:h-2 lg:w-2 lg:mr-0 mr-1" />
                           <span className="lg:hidden">Más</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -291,10 +308,10 @@ const PendingRequestsTab = ({
                       size="sm" 
                       onClick={() => onOpenMatchDialog(pkg)}
                       disabled={availableTripsCount === 0}
-                      className="bg-primary hover:bg-primary/90 flex-1 lg:flex-none text-xs sm:text-sm"
+                      className="bg-primary hover:bg-primary/90 flex-1 lg:flex-none lg:h-6 lg:px-2 text-xs lg:text-[10px]"
                     >
-                      <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      Match
+                      <Zap className="h-3 w-3 lg:h-2 lg:w-2 mr-1 lg:mr-0.5" />
+                      <span className="lg:text-[9px]">Match</span>
                     </Button>
                   </div>
                 </div>
