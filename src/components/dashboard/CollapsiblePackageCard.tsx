@@ -235,15 +235,15 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-2 sm:p-3">
             {/* Main Content Layout - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0">
               
               {/* Left Column: Control Panel */}
-              <div className="md:col-span-2 space-y-4 p-2 md:p-3 bg-muted/30 rounded-lg border border-muted/50">
+              <div className="md:col-span-2 space-y-2 p-1 md:p-2 bg-muted/30 rounded-lg border border-muted/50">
                 
                 {/* Product Information Section */}
-                <div className="bg-card border rounded-lg p-2 shadow-sm">
+                <div className="bg-card border rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
@@ -264,7 +264,7 @@ const CollapsiblePackageCard = ({
                 </div>
                 
                 {/* Status & Progress Section */}
-                <div className="bg-card border-2 border-primary/20 rounded-lg p-2 shadow-sm">
+                <div className="bg-card border-2 border-primary/20 rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-semibold text-primary">Estado y Progreso</h3>
@@ -276,7 +276,7 @@ const CollapsiblePackageCard = ({
                 </div>
 
                 {/* Uploaded Documents Section */}
-                <div className="bg-card border-2 border-success/20 rounded-lg p-4 shadow-sm">
+                <div className="bg-card border-2 border-success/20 rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-success rounded-full"></div>
                     <h3 className="text-sm font-semibold text-success">Documentos Subidos</h3>
@@ -288,7 +288,7 @@ const CollapsiblePackageCard = ({
                 </div>
 
                 {/* Communication Section */}
-                <div className="bg-card border-2 border-purple-500/20 rounded-lg p-4 shadow-sm">
+                <div className="bg-card border-2 border-purple-500/20 rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                     <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">Comunicación</h3>
@@ -300,13 +300,13 @@ const CollapsiblePackageCard = ({
               </div>
 
               {/* Right Column: Information & Communication */}
-              <div className="md:col-span-3 space-y-4 p-2 md:p-3 bg-card/50 rounded-lg border border-card/80">
+              <div className="md:col-span-3 space-y-2 p-1 md:p-2 bg-card/50 rounded-lg border border-card/80">
                 
                 {/* Traveler Confirmation Section */}
                 {(pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <div className="bg-card border-2 border-accent/20 rounded-lg p-4 shadow-sm">
+                  <div className="bg-card border-2 border-accent/20 rounded-lg p-2 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-accent rounded-full"></div>
                       <h3 className="text-sm font-semibold text-accent">Confirmación del Viajero</h3>
@@ -316,7 +316,7 @@ const CollapsiblePackageCard = ({
                 )}
                 
                 {/* Required Actions Section */}
-                <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
+                <div className="bg-card border-2 border-warning/20 rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-semibold text-warning">Acciones Requeridas</h3>
