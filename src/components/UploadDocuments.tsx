@@ -37,22 +37,6 @@ const UploadDocuments = ({
 
   return (
     <div className="space-y-2">
-      {/* Header Section */}
-      <div className="p-2 bg-muted/20 rounded-md border">
-        <div className="flex items-center space-x-2 mb-1">
-          <div className="h-4 w-4 bg-primary/20 rounded-full flex items-center justify-center">
-            <span className="text-xs">📋</span>
-          </div>
-          <h3 className="text-sm font-medium text-foreground">
-            Documentos Requeridos
-          </h3>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Para completar tu pedido, necesitamos que subas los siguientes documentos:
-        </p>
-      </div>
-
-
       {/* Upload Sections */}
       <div className="space-y-2">
         {/* Step 1: Purchase Confirmation Upload */}
