@@ -30,12 +30,14 @@ const PaymentsTab = ({
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
     <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <h4 className="font-medium">{pkg.item_description}</h4>
-              {getStatusBadge(pkg.status)}
+      <CardContent className="p-2 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-2 gap-1 sm:gap-0">
+              <h4 className="font-medium truncate pr-2">{pkg.item_description}</h4>
+              <div className="flex-shrink-0">
+                {getStatusBadge(pkg.status)}
+              </div>
             </div>
             <p className="text-sm text-muted-foreground">
               Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
@@ -43,7 +45,7 @@ const PaymentsTab = ({
             {pkg.payment_receipt && (
               <div className="mt-2 p-2 bg-blue-50 rounded">
                 <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
-                <p className="text-xs text-blue-600">
+                <p className="text-xs text-blue-600 truncate">
                   📄 {pkg.payment_receipt.filename}
                 </p>
                 <p className="text-xs text-blue-600">
@@ -52,23 +54,24 @@ const PaymentsTab = ({
               </div>
             )}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
             <Button 
               size="sm" 
               variant="outline"
               onClick={() => onViewPackageDetail(pkg)}
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Eye className="h-4 w-4 mr-1" />
-              Ver Comprobante
+              <span className="sm:inline">Ver Comprobante</span>
             </Button>
             {showConfirmButton && (
               <Button 
                 size="sm" 
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs sm:text-sm"
                 onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
-                Confirmar Pago
+                <span className="sm:inline">Confirmar Pago</span>
               </Button>
             )}
           </div>
