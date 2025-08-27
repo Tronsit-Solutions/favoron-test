@@ -242,6 +242,27 @@ const CollapsiblePackageCard = ({
               {/* Left Column: Control Panel (Fixed Width) */}
               <div className="lg:col-span-1 space-y-4">
                 
+                {/* Product Information Section */}
+                <div className="bg-card border rounded-lg p-2 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
+                  </div>
+                  
+                  <ShopperPackageDetails pkg={pkg} />
+                  
+                  {/* Rejection Reason */}
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="mt-4">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
+                </div>
+                
                 {/* Status & Progress Section */}
                 <div className="bg-card border-2 border-primary/20 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
@@ -294,27 +315,6 @@ const CollapsiblePackageCard = ({
               {/* Right Column: Information & Communication (Flexible) */}
               <div className="lg:col-span-2 space-y-4">
                 
-                {/* Product Information Section */}
-                <div className="bg-card border rounded-lg p-2 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
-                  </div>
-                  
-                  <ShopperPackageDetails pkg={pkg} />
-                  
-                  {/* Rejection Reason */}
-                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-4">
-                      <RejectionReasonDisplay 
-                        rejectionReason={pkg.rejection_reason}
-                        wantsRequote={pkg.wants_requote}
-                        additionalComments={pkg.additional_notes}
-                      />
-                    </div>
-                  )}
-                </div>
-
                 {/* Required Actions Section */}
                 <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
