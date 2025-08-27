@@ -297,6 +297,12 @@ const CollapsiblePackageCard = ({
                 </div>
 
                 {/* Traveler Confirmation */}
+              </div>
+
+              {/* Right Column: Information & Communication (Flexible) */}
+              <div className="lg:col-span-2 space-y-4">
+                
+                {/* Traveler Confirmation Section */}
                 {(pkg.status === 'matched' || 
                   pkg.status === 'in_transit' || 
                   pkg.status === 'received_by_traveler' ||
@@ -310,10 +316,6 @@ const CollapsiblePackageCard = ({
                     <TravelerConfirmationDisplay pkg={pkg} />
                   </div>
                 )}
-              </div>
-
-              {/* Right Column: Information & Communication (Flexible) */}
-              <div className="lg:col-span-2 space-y-4">
                 
                 {/* Required Actions Section */}
                 <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
