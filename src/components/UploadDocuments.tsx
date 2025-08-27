@@ -38,7 +38,7 @@ const UploadDocuments = ({
   return (
     <div className="space-y-2">
       {/* Upload Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
         {/* Step 1: Purchase Confirmation Upload */}
         {showConfirmationSection && (
           <div className="border border-primary/30 rounded-lg">
