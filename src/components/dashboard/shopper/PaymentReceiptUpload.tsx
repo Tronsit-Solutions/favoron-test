@@ -143,8 +143,19 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
     }
   };
 
+  // Don't show upload form if payment has been approved by admin
+  const paymentApprovedStatuses = ['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'];
+  
+  if (paymentApprovedStatuses.includes(pkg.status)) {
+    return null; // Don't show anything - payment already processed
+  }
+
   // Don't show the upload success message if payment has been approved by admin
-  if (uploadedFile && !['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'].includes(pkg.status)) {
+  if (uploadedFile && !['payment_pending', 'payment_pending_approval'].includes(pkg.status)) {
+    return null; // Hide success message after admin approval
+  }
+
+  if (uploadedFile) {
     return (
       <div className="bg-success/10 border border-success/30 rounded-lg p-3 h-fit max-w-md">
         <div className="flex items-center space-x-2 mb-2">
