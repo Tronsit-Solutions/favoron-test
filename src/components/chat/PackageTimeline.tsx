@@ -8,7 +8,6 @@ import { getUserRole } from '@/utils/chatHelpers';
 import { usePackageTimeline } from '@/hooks/usePackageTimeline';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
-import PackageStatusTimeline from '@/components/PackageStatusTimeline';
 
 interface PackageTimelineProps {
   pkg: Package;
@@ -51,56 +50,43 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
   return (
     <Card className={className}>
       <div className="p-2 sm:p-3">
-        {/* Estructura horizontal: Timeline + Chat */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6">
-          {/* Timeline de Estados */}
-          <div className="lg:max-w-sm">
-            <PackageStatusTimeline 
-              currentStatus={pkg.status} 
-              deliveryMethod={pkg.delivery_method}
-            />
-          </div>
+        {/* Chat Section */}
+        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline">Historial & Mensajes</span>
+          <span className="sm:hidden">Chat</span>
+        </h3>
 
-          {/* Historial & Mensajes */}
-          <div className="lg:max-w-lg">
-            <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden sm:inline">Historial & Mensajes</span>
-              <span className="sm:hidden">Chat</span>
-            </h3>
-
-            {/* Timeline */}
-            <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-64 sm:max-h-96 overflow-y-auto scrollbar-thin">
-              {messages.length === 0 ? (
-                <div className="text-center py-6 sm:py-8 text-muted-foreground">
-                  <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm sm:text-base">No hay mensajes aún</p>
-                  <p className="text-xs sm:text-sm">Inicia la conversación enviando un mensaje</p>
-                </div>
-              ) : (
-                messages.map((message) => {
-                  const role = getUserRole(message.user_id, pkg);
-                  
-                  return (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      role={role}
-                      onDownload={handleDownload}
-                    />
-                  );
-                })
-              )}
+        {/* Messages */}
+        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-64 sm:max-h-96 overflow-y-auto scrollbar-thin">
+          {messages.length === 0 ? (
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm sm:text-base">No hay mensajes aún</p>
+              <p className="text-xs sm:text-sm">Inicia la conversación enviando un mensaje</p>
             </div>
-
-            {/* Message Input */}
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              onFileUpload={handleFileUpload}
-              disabled={loading}
-            />
-          </div>
+          ) : (
+            messages.map((message) => {
+              const role = getUserRole(message.user_id, pkg);
+              
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  role={role}
+                  onDownload={handleDownload}
+                />
+              );
+            })
+          )}
         </div>
+
+        {/* Message Input */}
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          onFileUpload={handleFileUpload}
+          disabled={loading}
+        />
       </div>
     </Card>
   );
