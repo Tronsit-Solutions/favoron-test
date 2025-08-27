@@ -25,10 +25,17 @@ export const PackageHistoryIndicator = ({ package: pkg }: PackageHistoryIndicato
   if (hasRejectionReason && wantsRequote) {
     // Manual rejection with re-quote request
     indicatorType = 'rejected';
-    badgeText = 'Cotización rechazada';
+    badgeText = 'Recotización';
     badgeVariant = 'destructive';
-    Icon = X;
+    Icon = RotateCcw;
     tooltipContent = `Razón: ${pkg.rejection_reason}`;
+  } else if (wantsRequote) {
+    // Re-quote request without rejection reason
+    indicatorType = 'rejected';
+    badgeText = 'Recotización';
+    badgeVariant = 'secondary';
+    Icon = RotateCcw;
+    tooltipContent = 'Solicitud de nueva cotización';
   } else if (hasAdminLog) {
     // Check admin log for expiration
     const logs = pkg.admin_actions_log as any[];
