@@ -237,7 +237,7 @@ const CollapsiblePackageCard = ({
         <CollapsibleContent>
           <CardContent className="p-4 sm:p-6">
             {/* Main Content Layout - 2 Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0">
               
               {/* Left Column: Control Panel */}
               <div className="md:col-span-2 space-y-4 p-3 md:p-4 bg-muted/30 rounded-lg border border-muted/50">
