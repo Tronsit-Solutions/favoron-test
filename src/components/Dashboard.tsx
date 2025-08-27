@@ -333,7 +333,20 @@ const Dashboard = ({ user }: DashboardProps) => {
                      if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
                    }
                    return true;
-                 }).map((pkg) => (
+                 })
+                 .sort((a, b) => {
+                   // Ordenar: completados/entregados al final
+                   const completedStatuses = ['delivered', 'completed'];
+                   const aCompleted = completedStatuses.includes(a.status);
+                   const bCompleted = completedStatuses.includes(b.status);
+                   
+                   if (aCompleted && !bCompleted) return 1;
+                   if (!aCompleted && bCompleted) return -1;
+                   
+                   // Si ambos son completados o ambos no son completados, ordenar por fecha de creación (más recientes primero)
+                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                 })
+                 .map((pkg) => (
                     <CollapsiblePackageCard
                       key={pkg.id}
                       pkg={pkg}
