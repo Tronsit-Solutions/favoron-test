@@ -48,30 +48,34 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
   }
 
   return (
-    <Card className={className}>
-      {/* Flex container to position chatbox on the left */}
-      <div className="flex justify-start">
-        {/* Compact chatbox - left aligned, half width */}
-        <div className="w-full sm:w-1/2 md:max-w-md p-1">
-          {/* Chat Header */}
-          <div className="border-b border-border/50 pb-1 mb-2">
-            <h3 className="text-xs font-medium flex items-center gap-1">
-              <div className="p-1 bg-primary/10 rounded">
-                <MessageCircle className="h-3 w-3 text-primary" />
+    <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg`}>
+      {/* Enhanced chat container */}
+      <div className="flex justify-start p-4">
+        {/* Modern chatbox with improved design */}
+        <div className="w-full sm:w-2/3 lg:w-1/2 xl:max-w-lg">
+          {/* Enhanced Chat Header */}
+          <div className="flex items-center gap-3 pb-4 mb-4 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg shadow-sm">
+                <MessageCircle className="h-4 w-4 text-primary" />
               </div>
-              <span>Chat</span>
-            </h3>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Chat del Paquete</h3>
+                <p className="text-xs text-muted-foreground">Comunicación en tiempo real</p>
+              </div>
+            </div>
           </div>
 
-          {/* Messages Container - Extra compact */}
-          <div className="bg-muted/30 rounded border border-muted/50 p-1 mb-1">
-            <div className="space-y-1 max-h-12 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          {/* Enhanced Messages Container */}
+          <div className="bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-3 mb-4">
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pr-2">
               {messages.length === 0 ? (
-                <div className="text-center py-2 text-muted-foreground">
-                  <div className="p-1 bg-background/50 rounded-full w-fit mx-auto mb-1">
-                    <MessageCircle className="h-4 w-4 opacity-50" />
+                <div className="text-center py-8 text-muted-foreground">
+                  <div className="p-3 bg-gradient-to-br from-background/80 to-muted/30 rounded-full w-fit mx-auto mb-3 shadow-sm">
+                    <MessageCircle className="h-6 w-6 opacity-40" />
                   </div>
-                  <p className="text-xs">No hay mensajes</p>
+                  <p className="text-sm font-medium mb-1">No hay mensajes</p>
+                  <p className="text-xs opacity-75">Inicia la conversación</p>
                 </div>
               ) : (
                 messages.map((message) => {
@@ -90,8 +94,8 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
             </div>
           </div>
 
-          {/* Message Input Section */}
-          <div className="border-t border-border/50 pt-1">
+          {/* Enhanced Message Input Section */}
+          <div className="bg-gradient-to-r from-background to-muted/20 rounded-lg border border-border/30 p-3">
             <MessageInput
               onSendMessage={handleSendMessage}
               onFileUpload={handleFileUpload}
