@@ -134,9 +134,6 @@ const ShippingInstructions = ({
                 </div>
               </div>}
             
-            <div className="mt-2 p-2 bg-muted/30 rounded text-xs text-muted-foreground">
-              💡 <strong>Próximos pasos:</strong> Compra el producto y envíalo a la dirección mostrada. Luego sube los documentos de compra y tracking.
-            </div>
           </div>
         </CardContent>
       </Card>
