@@ -71,9 +71,6 @@ const QuoteDialog = ({
     buttonDisabled: (userType === 'user' && !acceptedTerms) || isQuoteExpired
   });
   
-  // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
-  const isAdminAssignedTip = packageDetails.status === 'matched' && packageDetails.admin_assigned_tip && userType === 'user';
-  
   // Get admin tip amount - always from products_data first
   const getTipAmount = () => {
     if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
@@ -88,6 +85,9 @@ const QuoteDialog = ({
   };
 
   const adminTipAmount = getTipAmount();
+  
+  // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
+  const isAdminAssignedTip = packageDetails.status === 'matched' && (packageDetails.admin_assigned_tip || adminTipAmount) && userType === 'user';
 
   // Determine if this is a traveler viewing admin assigned tip or shopper viewing quote
   const isTravelerContext = isAdminAssignedTip;
