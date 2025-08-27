@@ -295,7 +295,7 @@ const CollapsiblePackageCard = ({
               <div className="lg:col-span-2 space-y-4">
                 
                 {/* Product Information Section */}
-                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                <div className="bg-card border rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
