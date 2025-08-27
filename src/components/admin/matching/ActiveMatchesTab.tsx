@@ -69,25 +69,34 @@ const ActiveMatchesTab = ({
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
     // Define status priorities
+    const topPriority = ['delivered_to_office'];
     const adminActionRequired = ['pending_office_confirmation', 'received_by_traveler'];
-    const completedStatuses = ['completed', 'delivered_to_office'];
+    const completedStatuses = ['completed'];
     
+    const aTopPriority = topPriority.includes(a.status);
+    const bTopPriority = topPriority.includes(b.status);
     const aRequiresAction = adminActionRequired.includes(a.status);
     const bRequiresAction = adminActionRequired.includes(b.status);
     const aCompleted = completedStatuses.includes(a.status);
     const bCompleted = completedStatuses.includes(b.status);
     
-    // 1. Packages requiring admin action go first
-    if (aRequiresAction && !bRequiresAction) return -1;
-    if (!aRequiresAction && bRequiresAction) return 1;
+    // 1. delivered_to_office packages go first
+    if (aTopPriority && !bTopPriority) return -1;
+    if (!aTopPriority && bTopPriority) return 1;
     
-    // 2. Among non-action packages, completed go last
-    if (!aRequiresAction && !bRequiresAction) {
-      if (aCompleted && !bCompleted) return 1;
-      if (!aCompleted && bCompleted) return -1;
+    // 2. Among non-top-priority, packages requiring admin action go next
+    if (!aTopPriority && !bTopPriority) {
+      if (aRequiresAction && !bRequiresAction) return -1;
+      if (!aRequiresAction && bRequiresAction) return 1;
+      
+      // 3. Among non-action packages, completed go last
+      if (!aRequiresAction && !bRequiresAction) {
+        if (aCompleted && !bCompleted) return 1;
+        if (!aCompleted && bCompleted) return -1;
+      }
     }
     
-    // 3. If same priority, sort by creation date (newest first)
+    // 4. If same priority, sort by creation date (newest first)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
