@@ -5,22 +5,28 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     // Obtener todos los paquetes completados del viaje con quotes
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote')
+      .select('id, quote, status, office_delivery')
       .eq('matched_trip_id', tripId)
-      .eq('status', 'completed')
+      .in('status', ['completed', 'delivered_to_office'])
       .not('quote', 'is', null);
 
     if (packagesError) throw packagesError;
 
-    // Calcular el monto acumulado de tips (totalPrice - (price + serviceFee))
+    // Calcular el monto acumulado de tips sumando el tip base de cada paquete (quote.price)
     let accumulatedAmount = 0;
-    completedPackages?.forEach(pkg => {
+    let deliveredEligibleCount = 0;
+    completedPackages?.forEach((pkg: any) => {
+      // Considerar paquetes completamente finalizados o entregados en oficina con confirmación de admin
+      const isDelivered = pkg.status === 'completed' || (pkg.status === 'delivered_to_office' && pkg.office_delivery && pkg.office_delivery.admin_confirmation);
+      if (isDelivered) {
+        deliveredEligibleCount += 1;
+      } else {
+        return;
+      }
+
       if (pkg.quote) {
         const quote = pkg.quote as any;
-        const totalPrice = parseFloat(quote.totalPrice || 0);
-        const price = parseFloat(quote.price || 0);
-        const serviceFee = parseFloat(quote.serviceFee || 0);
-        const tip = totalPrice - price - serviceFee;
+        const tip = Number(quote?.price ?? 0);
         if (tip > 0) {
           accumulatedAmount += tip;
         }
@@ -36,7 +42,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     if (allPackagesError) throw allPackagesError;
 
     const totalPackagesCount = allPackages?.length || 0;
-    const deliveredPackagesCount = completedPackages?.length || 0;
+    const deliveredPackagesCount = deliveredEligibleCount;
 
     // Verificar si ya existe un acumulador
     const { data: existingAccumulator, error: checkError } = await supabase
