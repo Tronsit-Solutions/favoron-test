@@ -235,143 +235,189 @@ const CollapsiblePackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="w-full max-w-full">
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[400px]">
-              
-              {/* Acciones y Archivos del Usuario - Siempre a la izquierda */}
-              <div className="lg:w-80 lg:flex-shrink-0 border rounded-lg p-4 bg-muted/20 h-fit lg:mr-auto">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚡ Acciones Requeridas</h3>
-                
-                {/* Priority Actions Section */}
-                <div className="mb-4">
-                  <ShopperPackagePriorityActions 
-                    pkg={pkg} 
-                    onQuote={onQuote}
-                    onDeletePackage={onDeletePackage}
-                    onRequestRequote={onRequestRequote}
-                  />
+          <CardContent className="p-4 sm:p-6">
+            {/* Enhanced Header Section with Status and Key Info */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/10">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2 className="text-lg font-semibold text-foreground">📦 {pkg.item_description}</h2>
+                    {getStatusBadge(pkg.status, { 
+                      packageDestination: pkg.package_destination, 
+                      isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                      pkg: pkg
+                    })}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium">Precio estimado:</span> ${pkg.estimated_price} • 
+                    <span className="font-medium ml-2">Fecha límite:</span> {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                  </div>
                 </div>
+                <div className="flex gap-2">
+                  {renderActionButtons()}
+                </div>
+              </div>
+            </div>
 
-                {/* Quote Information Section - Moved from Product Information */}
-                {pkg.quote && (
-                  <div className="mb-4">
-                    <PackageQuoteInfo 
-                      quote={pkg.quote as any}
-                      quoteExpiresAt={pkg.quote_expires_at}
-                    />
+            {/* Main Content Layout - 2 Columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Left Column: Control Panel (Fixed Width) */}
+              <div className="lg:col-span-1 space-y-4">
+                
+                {/* Status & Progress Section */}
+                <div className="bg-card border-2 border-primary/20 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <h3 className="text-sm font-semibold text-primary">Estado y Progreso</h3>
                   </div>
-                )}
-
-                {/* Document Upload Section */}
-                {(pkg.status === 'payment_confirmed' || 
-                  pkg.status === 'paid' ||
-                  pkg.status === 'pending_purchase' ||
-                  pkg.status === 'purchased' ||
-                  pkg.status === 'shipped' ||
-                  pkg.status === 'matched' ||
-                  pkg.status === 'in_transit' ||
-                  pkg.status === 'received_by_traveler' ||
-                  pkg.status === 'delivered' ||
-                  pkg.status === 'pending_office_confirmation') && (
-                  <div className="mb-4">
-                    <UploadDocuments 
-                      packageId={pkg.id}
-                      currentStatus={pkg.status}
-                      currentConfirmation={pkg.purchase_confirmation}
-                      currentTracking={pkg.tracking_info}
-                      onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-                    />
-                  </div>
-                )}
-
-                {/* Payment Receipt Upload Section */}
-                {(pkg.status === 'quote_sent' ||
-                  pkg.status === 'quote_accepted' || 
-                  pkg.status === 'payment_pending' || 
-                  pkg.status === 'payment_confirmed' ||
-                  pkg.status === 'paid' ||
-                  pkg.status === 'pending_purchase' ||
-                  pkg.status === 'purchased' ||
-                  pkg.status === 'shipped' ||
-                  pkg.status === 'matched' ||
-                  pkg.status === 'in_transit' ||
-                  pkg.status === 'received_by_traveler' ||
-                  pkg.status === 'delivered' ||
-                  pkg.status === 'pending_office_confirmation') && (
-                  <div className="mb-4">
-                    <PaymentReceiptUpload 
-                      pkg={pkg}
-                      onUploadComplete={() => {}}
-                    />
-                  </div>
-                )}
-
-                {/* Package Status Timeline */}
-                <div className="mb-4">
                   <PackageStatusTimeline 
                     currentStatus={pkg.status}
                     deliveryMethod={pkg.delivery_method}
                   />
                 </div>
 
-                {/* Uploaded Documents Registry */}
-                <UploadedDocumentsRegistry 
-                  pkg={pkg}
-                  onEditDocument={handleEditDocument}
-                />
+                {/* Required Actions Section */}
+                <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
+                    <h3 className="text-sm font-semibold text-warning">Acciones Requeridas</h3>
+                  </div>
+                  
+                  {/* Priority Actions */}
+                  <div className="mb-4">
+                    <ShopperPackagePriorityActions 
+                      pkg={pkg} 
+                      onQuote={onQuote}
+                      onDeletePackage={onDeletePackage}
+                      onRequestRequote={onRequestRequote}
+                    />
+                  </div>
 
-                {/* Traveler Confirmation Display */}
+                  {/* Quote Information */}
+                  {pkg.quote && (
+                    <div className="mb-4">
+                      <PackageQuoteInfo 
+                        quote={pkg.quote as any}
+                        quoteExpiresAt={pkg.quote_expires_at}
+                      />
+                    </div>
+                  )}
+
+                  {/* Payment Receipt Upload */}
+                  {(pkg.status === 'quote_sent' ||
+                    pkg.status === 'quote_accepted' || 
+                    pkg.status === 'payment_pending' || 
+                    pkg.status === 'payment_confirmed' ||
+                    pkg.status === 'paid' ||
+                    pkg.status === 'pending_purchase' ||
+                    pkg.status === 'purchased' ||
+                    pkg.status === 'shipped' ||
+                    pkg.status === 'matched' ||
+                    pkg.status === 'in_transit' ||
+                    pkg.status === 'received_by_traveler' ||
+                    pkg.status === 'delivered' ||
+                    pkg.status === 'pending_office_confirmation') && (
+                    <div className="mb-4">
+                      <PaymentReceiptUpload 
+                        pkg={pkg}
+                        onUploadComplete={() => {}}
+                      />
+                    </div>
+                  )}
+
+                  {/* Document Upload */}
+                  {(pkg.status === 'payment_confirmed' || 
+                    pkg.status === 'paid' ||
+                    pkg.status === 'pending_purchase' ||
+                    pkg.status === 'purchased' ||
+                    pkg.status === 'shipped' ||
+                    pkg.status === 'matched' ||
+                    pkg.status === 'in_transit' ||
+                    pkg.status === 'received_by_traveler' ||
+                    pkg.status === 'delivered' ||
+                    pkg.status === 'pending_office_confirmation') && (
+                    <div className="mb-4">
+                      <UploadDocuments 
+                        packageId={pkg.id}
+                        currentStatus={pkg.status}
+                        currentConfirmation={pkg.purchase_confirmation}
+                        currentTracking={pkg.tracking_info}
+                        onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Uploaded Documents Section */}
+                <div className="bg-card border-2 border-success/20 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-success rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-success">Documentos Subidos</h3>
+                  </div>
+                  <UploadedDocumentsRegistry 
+                    pkg={pkg}
+                    onEditDocument={handleEditDocument}
+                  />
+                </div>
+
+                {/* Traveler Confirmation */}
                 {(pkg.status === 'matched' || 
                   pkg.status === 'in_transit' || 
                   pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <TravelerConfirmationDisplay pkg={pkg} />
-                )}
-
-                {/* Edit Actions */}
-                {renderActionButtons()}
-              </div>
-
-              {/* Contenido Principal */}
-              <div className="flex-1 space-y-4">
-                {/* Información del Producto */}
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">📦 Información del Producto</h3>
-                  
-                  <div className="flex flex-col lg:flex-row gap-4">
-                    {/* Contenido principal del producto */}
-                    <div className="flex-1">
-                      <ShopperPackageDetails pkg={pkg} />
-                      
-                      {/* Show rejection reason if package was rejected */}
-                      {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                        <div className="mt-4">
-                          <RejectionReasonDisplay 
-                            rejectionReason={pkg.rejection_reason}
-                            wantsRequote={pkg.wants_requote}
-                            additionalComments={pkg.additional_notes}
-                          />
-                        </div>
-                      )}
+                  <div className="bg-card border-2 border-accent/20 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-2 h-2 bg-accent rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-accent">Confirmación del Viajero</h3>
                     </div>
+                    <TravelerConfirmationDisplay pkg={pkg} />
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Comunicación */}
-              <div className="space-y-4">
-                {/* Timeline y Chat integrados */}
-                <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">💬 Comunicación</h3>
+              {/* Right Column: Information & Communication (Flexible) */}
+              <div className="lg:col-span-2 space-y-4">
+                
+                {/* Product Information Section */}
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
+                  </div>
+                  
+                  <ShopperPackageDetails pkg={pkg} />
+                  
+                  {/* Rejection Reason */}
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="mt-4">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Communication Section */}
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">Comunicación</h3>
+                  </div>
                   <PackageTimeline pkg={pkg} />
                 </div>
 
-                {/* Shipping Information - Conditional Display */}
+                {/* Shipping Information Section */}
                 {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
                   ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) && (
-                  <div className="border rounded-lg p-4 bg-muted/20 h-fit">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">🚚 Información de Envío</h3>
+                  <div className="bg-card border rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">Información de Envío</h3>
+                    </div>
                     
                     {/* Always show for pending_purchase and payment_confirmed */}
                     {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
