@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileTabs } from "@/components/ui/mobile-tabs";
 import PackageDetailModal from "./admin/PackageDetailModal";
@@ -248,8 +249,12 @@ const AdminDashboard = ({
 
   // Use centralized pending actions hook for consistent notification badges
   const pendingActions = usePendingActions(packages, trips, currentUser);
-  const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages, pendingTravelerPayments } = pendingActions;
+  const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
+  
+  // Get payment orders to count pending traveler payments
+  const { paymentOrders } = usePaymentOrders();
+  const pendingTravelerPayments = paymentOrders.filter(order => order.status === 'pending').length;
   
   // Set up real-time notifications for document uploads
   useRealtimePackages({

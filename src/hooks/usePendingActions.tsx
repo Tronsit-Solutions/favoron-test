@@ -30,10 +30,8 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const unmatchedPackages = packages.filter(pkg => pkg.status === 'approved').length;
     const rejectedByTravelers = packages.filter(pkg => pkg.status === 'quote_rejected').length;
     
-    // Count pending traveler payments - packages that are delivered_to_office but not yet paid to traveler
-    const pendingTravelerPayments = packages.filter(pkg => 
-      pkg.status === 'delivered_to_office' && pkg.matched_trip_id
-    ).length;
+    // Count pending traveler payments - this will be handled by payment orders hook
+    const pendingTravelerPayments = 0; // Will be replaced by actual payment orders count
     
     console.log('🔔 usePendingActions Debug - Admin totals:', {
       paymentsToConfirm,
