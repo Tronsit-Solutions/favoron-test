@@ -254,6 +254,18 @@ const CollapsiblePackageCard = ({
                   />
                 </div>
 
+                {/* Uploaded Documents Section */}
+                <div className="bg-card border-2 border-success/20 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-success rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-success">Documentos Subidos</h3>
+                  </div>
+                  <UploadedDocumentsRegistry 
+                    pkg={pkg}
+                    onEditDocument={handleEditDocument}
+                  />
+                </div>
+
                 {/* Required Actions Section */}
                 <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
@@ -324,18 +336,6 @@ const CollapsiblePackageCard = ({
                       />
                     </div>
                   )}
-                </div>
-
-                {/* Uploaded Documents Section */}
-                <div className="bg-card border-2 border-success/20 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-success">Documentos Subidos</h3>
-                  </div>
-                  <UploadedDocumentsRegistry 
-                    pkg={pkg}
-                    onEditDocument={handleEditDocument}
-                  />
                 </div>
 
                 {/* Traveler Confirmation */}
