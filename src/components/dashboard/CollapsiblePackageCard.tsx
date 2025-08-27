@@ -303,9 +303,7 @@ const CollapsiblePackageCard = ({
               <div className="lg:col-span-2 space-y-2 lg:space-y-4">
                 
                 {/* Traveler Confirmation Section */}
-                {(pkg.status === 'matched' || 
-                  pkg.status === 'in_transit' || 
-                  pkg.status === 'received_by_traveler' ||
+                {(pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
                   <div className="bg-card border-2 border-accent/20 rounded-lg p-4 shadow-sm">
