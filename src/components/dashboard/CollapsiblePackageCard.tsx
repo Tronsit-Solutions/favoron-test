@@ -132,7 +132,8 @@ const CollapsiblePackageCard = ({
       'completed',
       'delivered',
       'delivered_to_office',
-      'cancelled'
+      'cancelled',
+      'rejected'
     ].includes(pkg.status))
   );
 
@@ -141,7 +142,8 @@ const CollapsiblePackageCard = ({
     'completed',
     'delivered', 
     'delivered_to_office',
-    'cancelled'
+    'cancelled',
+    'rejected'
   ].includes(pkg.status);
 
   const renderActionButtons = () => {
