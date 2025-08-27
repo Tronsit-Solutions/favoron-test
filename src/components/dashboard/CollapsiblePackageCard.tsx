@@ -266,12 +266,12 @@ const CollapsiblePackageCard = ({
                 </div>
                 
                 {/* Status & Progress Section */}
-                <div className="bg-card border-2 border-primary/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
+                <div className="bg-card border-2 border-primary/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm w-full max-w-full overflow-hidden min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-medium text-primary">Estado y Progreso</h3>
                   </div>
-                  <div className="max-w-full overflow-hidden">
+                  <div className="w-full max-w-full overflow-x-auto overflow-y-hidden min-w-0">
                     <PackageStatusTimeline 
                       currentStatus={pkg.status}
                       deliveryMethod={pkg.delivery_method}
