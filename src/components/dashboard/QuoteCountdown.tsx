@@ -1,6 +1,8 @@
+
 import { formatDateTime } from "@/utils/dateHelpers";
 import StatusAlert from "@/components/ui/status-alert";
 import { useCountdown } from "@/hooks/useCountdown";
+import { Clock, AlertTriangle } from "lucide-react";
 
 interface QuoteCountdownProps {
   expiresAt: string | Date;
@@ -14,9 +16,12 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdown
   if (timeLeft.isExpired) {
     if (compact) {
       return (
-        <p className="text-sm text-destructive font-medium">
-          ⏰ Expirado
-        </p>
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+          <p className="text-sm text-destructive font-medium">
+            Expirado
+          </p>
+        </div>
       );
     }
     return (
@@ -34,29 +39,59 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdown
 
   if (compact) {
     return (
-      <p className="text-sm text-foreground">
-        ⏰ Tiempo para responder: {timeLeft.hours}h {timeLeft.minutes}m restantes
-      </p>
+      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <Clock className="h-4 w-4 text-blue-600" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-blue-900">
+            Tiempo para responder
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-1 font-mono text-lg font-bold text-blue-700">
+              <span className="bg-white px-2 py-1 rounded border">
+                {String(timeLeft.hours).padStart(2, '0')}
+              </span>
+              <span>:</span>
+              <span className="bg-white px-2 py-1 rounded border">
+                {String(timeLeft.minutes).padStart(2, '0')}
+              </span>
+            </div>
+            <span className="text-xs text-blue-600 font-medium">restantes</span>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
     <StatusAlert variant={variant} title="Tiempo para completar el pago">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-lg font-mono font-semibold">
-          <span>{String(timeLeft.hours).padStart(2, '0')}</span>
-          <span>:</span>
-          <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
-          <span>:</span>
-          <span>{String(timeLeft.seconds).padStart(2, '0')}</span>
+      <div className="space-y-3">
+        <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center gap-2 font-mono text-2xl font-bold">
+            <div className="bg-background border-2 px-3 py-2 rounded-lg shadow-sm">
+              <span>{String(timeLeft.hours).padStart(2, '0')}</span>
+            </div>
+            <span className="text-muted-foreground">:</span>
+            <div className="bg-background border-2 px-3 py-2 rounded-lg shadow-sm">
+              <span>{String(timeLeft.minutes).padStart(2, '0')}</span>
+            </div>
+            <span className="text-muted-foreground">:</span>
+            <div className="bg-background border-2 px-3 py-2 rounded-lg shadow-sm">
+              <span>{String(timeLeft.seconds).padStart(2, '0')}</span>
+            </div>
+          </div>
         </div>
-        <p className="text-sm opacity-90">
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground font-medium">
+            HORAS : MINUTOS : SEGUNDOS
+          </p>
+        </div>
+        <p className="text-sm opacity-90 text-center">
           {isUrgent 
             ? "¡Tiempo limitado! Completa el pago pronto."
             : "Tienes tiempo suficiente para completar el pago."
           }
         </p>
-        <p className="text-xs opacity-75">
+        <p className="text-xs opacity-75 text-center">
           Expira: {formatDateTime(expiresAt)}
         </p>
       </div>
