@@ -38,10 +38,10 @@ const UploadDocuments = ({
   return (
     <div className="space-y-2">
       {/* Upload Sections */}
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Step 1: Purchase Confirmation Upload */}
         {showConfirmationSection && (
-          <div className="border border-primary/30 rounded-lg">
+          <div className="border border-primary/30 rounded-lg h-fit">
             <div className="bg-primary/5 rounded-md">
               <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
@@ -65,7 +65,7 @@ const UploadDocuments = ({
 
         {/* Step 2: Tracking Information */}
         {showTrackingSection && (
-          <div className="border border-primary/30 rounded-lg">
+          <div className="border border-primary/30 rounded-lg h-fit">
             <div className="bg-primary/5 rounded-md">
               <div className="flex items-center justify-between p-2 bg-primary/10 rounded-t-md">
                 <div className="flex items-center space-x-2">
