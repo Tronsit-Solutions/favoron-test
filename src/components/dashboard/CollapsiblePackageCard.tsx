@@ -243,17 +243,19 @@ const CollapsiblePackageCard = ({
               <div className="md:col-span-2 space-y-1 sm:space-y-2 px-1 py-0.5 md:p-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
                 
                 {/* Product Information Section */}
-                <div className="bg-card border rounded-lg p-0.5 sm:p-1 shadow-sm mobile-spacing">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <h3 className="text-sm font-medium text-primary">Información del Producto</h3>
                   </div>
                   
-                  <ShopperPackageDetails pkg={pkg} />
+                  <div className="max-w-full overflow-hidden">
+                    <ShopperPackageDetails pkg={pkg} />
+                  </div>
                   
                   {/* Rejection Reason */}
                   {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-4">
+                    <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
                       <RejectionReasonDisplay 
                         rejectionReason={pkg.rejection_reason}
                         wantsRequote={pkg.wants_requote}
@@ -264,31 +266,35 @@ const CollapsiblePackageCard = ({
                 </div>
                 
                 {/* Status & Progress Section */}
-                <div className="bg-card border-2 border-primary/20 rounded-lg p-0.5 sm:p-1 shadow-sm mobile-spacing">
+                <div className="bg-card border-2 border-primary/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-medium text-primary">Estado y Progreso</h3>
                   </div>
-                  <PackageStatusTimeline 
-                    currentStatus={pkg.status}
-                    deliveryMethod={pkg.delivery_method}
-                  />
+                  <div className="max-w-full overflow-hidden">
+                    <PackageStatusTimeline 
+                      currentStatus={pkg.status}
+                      deliveryMethod={pkg.delivery_method}
+                    />
+                  </div>
                 </div>
 
                 {/* Uploaded Documents Section */}
-                <div className="bg-card border rounded-lg p-1 sm:p-2 shadow-sm mobile-spacing">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
                     <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
                     <h3 className="text-sm font-medium text-muted-foreground">Documentos Subidos</h3>
                   </div>
-                  <UploadedDocumentsRegistry 
-                    pkg={pkg}
-                    onEditDocument={handleEditDocument}
-                  />
+                  <div className="max-w-full overflow-hidden">
+                    <UploadedDocumentsRegistry 
+                      pkg={pkg}
+                      onEditDocument={handleEditDocument}
+                    />
+                  </div>
                 </div>
 
                 {/* Communication Section */}
-                <div className="bg-card border rounded-lg p-0.5 sm:p-1 shadow-sm mobile-spacing">
+                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
                     <h3 className="text-sm font-medium text-muted-foreground">Comunicación</h3>
@@ -306,17 +312,19 @@ const CollapsiblePackageCard = ({
                 {(pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <div className="bg-card border rounded-lg p-1 sm:p-2 shadow-sm mobile-spacing">
-                    <div className="flex items-center gap-2 mb-4">
+                  <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-4">
                       <div className="w-2 h-2 bg-primary rounded-full"></div>
                       <h3 className="text-sm font-medium text-primary">Confirmación del Viajero</h3>
                     </div>
-                    <TravelerConfirmationDisplay pkg={pkg} />
+                    <div className="max-w-full overflow-hidden">
+                      <TravelerConfirmationDisplay pkg={pkg} />
+                    </div>
                   </div>
                 )}
                 
                 {/* Required Actions Section */}
-                <div className="bg-card border-2 border-warning/20 rounded-lg p-1 sm:p-2 shadow-sm mobile-spacing">
+                <div className="bg-card border-2 border-warning/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
                     <h3 className="text-sm font-medium text-warning">Acciones Requeridas</h3>
