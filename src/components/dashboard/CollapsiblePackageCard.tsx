@@ -239,16 +239,30 @@ const CollapsiblePackageCard = ({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isArchivable ? (
-                        <DropdownMenuItem
-                          className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleArchivePackage();
-                          }}
-                        >
-                          <Archive className="mr-2 h-4 w-4" />
-                          Archivar
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem
+                            className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleArchivePackage();
+                            }}
+                          >
+                            <Archive className="mr-2 h-4 w-4" />
+                            Archivar
+                          </DropdownMenuItem>
+                          {pkg.status === 'rejected' && (
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteDialog(true);
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Descartar pedido
+                            </DropdownMenuItem>
+                          )}
+                        </>
                       ) : (
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
