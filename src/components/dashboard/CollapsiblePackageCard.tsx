@@ -333,7 +333,7 @@ const CollapsiblePackageCard = ({
                   </div>
 
                   {/* Quote Information */}
-                  {pkg.quote && (
+                  {pkg.quote && !['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'].includes(pkg.status) && (
                     <div className="mb-4">
                       <PackageQuoteInfo 
                         quote={pkg.quote as any}
