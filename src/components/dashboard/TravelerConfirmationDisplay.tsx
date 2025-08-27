@@ -14,8 +14,9 @@ interface TravelerConfirmationDisplayProps {
 export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived }: TravelerConfirmationDisplayProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   
-  // Only show if package is received by traveler and has confirmation
-  if (pkg.status !== 'received_by_traveler' || !pkg.traveler_confirmation) {
+  // Show for all states after in_transit that have confirmation
+  const postInTransitStates = ['received_by_traveler', 'delivered', 'pending_office_confirmation', 'completed'];
+  if (!postInTransitStates.includes(pkg.status) || !pkg.traveler_confirmation) {
     return null;
   }
 
