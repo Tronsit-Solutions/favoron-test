@@ -49,44 +49,54 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-2 sm:p-3">
-        {/* Chat Section */}
-        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 flex items-center gap-2">
-          <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="hidden sm:inline">Historial & Mensajes</span>
-          <span className="sm:hidden">Chat</span>
-        </h3>
-
-        {/* Messages */}
-        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-64 sm:max-h-96 overflow-y-auto scrollbar-thin">
-          {messages.length === 0 ? (
-            <div className="text-center py-6 sm:py-8 text-muted-foreground">
-              <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm sm:text-base">No hay mensajes aún</p>
-              <p className="text-xs sm:text-sm">Inicia la conversación enviando un mensaje</p>
+      <div className="p-4 md:p-6">
+        {/* Chat Header */}
+        <div className="border-b border-border/50 pb-4 mb-6">
+          <h3 className="text-lg md:text-xl font-semibold flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <MessageCircle className="h-5 w-5 md:h-6 md:w-6 text-primary" />
             </div>
-          ) : (
-            messages.map((message) => {
-              const role = getUserRole(message.user_id, pkg);
-              
-              return (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  role={role}
-                  onDownload={handleDownload}
-                />
-              );
-            })
-          )}
+            <span className="hidden sm:inline">Historial & Mensajes</span>
+            <span className="sm:hidden">Chat</span>
+          </h3>
         </div>
 
-        {/* Message Input */}
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          onFileUpload={handleFileUpload}
-          disabled={loading}
-        />
+        {/* Messages Container */}
+        <div className="bg-muted/30 rounded-lg border border-muted/50 p-4 mb-6">
+          <div className="space-y-4 max-h-80 md:max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+            {messages.length === 0 ? (
+              <div className="text-center py-8 md:py-12 text-muted-foreground">
+                <div className="p-4 bg-background/50 rounded-full w-fit mx-auto mb-4">
+                  <MessageCircle className="h-12 w-12 md:h-16 md:w-16 opacity-50" />
+                </div>
+                <p className="text-base md:text-lg font-medium mb-2">No hay mensajes aún</p>
+                <p className="text-sm md:text-base">Inicia la conversación enviando un mensaje</p>
+              </div>
+            ) : (
+              messages.map((message) => {
+                const role = getUserRole(message.user_id, pkg);
+                
+                return (
+                  <MessageBubble
+                    key={message.id}
+                    message={message}
+                    role={role}
+                    onDownload={handleDownload}
+                  />
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Message Input Section */}
+        <div className="border-t border-border/50 pt-4">
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            onFileUpload={handleFileUpload}
+            disabled={loading}
+          />
+        </div>
       </div>
     </Card>
   );
