@@ -385,47 +385,40 @@ const CollapsiblePackageCard = ({
                       />
                     </div>
                   )}
+
+                  {/* Shipping Instructions */}
+                  {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
+                    <div className="mb-4">
+                      <ShippingInstructions pkg={pkg} />
+                    </div>
+                  )}
                 </div>
 
 
-                {/* Shipping Information Section */}
-                {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
-                  ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status)) && (
+                {/* Collapsible Shipping Information Section for later states only */}
+                {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
                   <div className="bg-card border rounded-lg p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">Información de Envío</h3>
                     </div>
                     
-                    {/* Always show for pending_purchase and payment_confirmed */}
-                    {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-                      <ShippingInstructions pkg={pkg} />
-                    )}
-                    
-                    {/* Collapsible for in_transit and later states */}
-                    {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                      <div>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-between mb-3"
-                          onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
-                        >
-                          Ver detalles de envío
-                          {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
-                        {shippingInfoOpen && (
-                          <div className="space-y-4">
-                            <ShippingInstructions pkg={pkg} />
-                            <ShippingInfoRegistry pkg={pkg} />
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Show shipping information registry for non-collapsible states */}
-                    {!['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                      <ShippingInfoRegistry pkg={pkg} />
-                    )}
+                    <div>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-between mb-3"
+                        onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
+                      >
+                        Ver detalles de envío
+                        {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                      {shippingInfoOpen && (
+                        <div className="space-y-4">
+                          <ShippingInstructions pkg={pkg} />
+                          <ShippingInfoRegistry pkg={pkg} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
