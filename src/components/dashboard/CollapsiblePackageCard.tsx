@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive } from "lucide-react";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import EditPackageModal from "@/components/EditPackageModal";
@@ -46,6 +46,7 @@ interface CollapsiblePackageCardProps {
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
   onEditPackage?: (packageData: Package) => void;
   onDeletePackage?: (pkg: Package) => void;
+  onArchivePackage?: (pkg: Package) => void;
   onRequestRequote?: (pkg: Package) => void;
   viewMode?: 'user';
 }
@@ -57,6 +58,7 @@ const CollapsiblePackageCard = ({
   onUploadDocument,
   onEditPackage,
   onDeletePackage,
+  onArchivePackage,
   onRequestRequote,
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
@@ -107,17 +109,39 @@ const CollapsiblePackageCard = ({
     setShowDeleteDialog(false);
   };
 
+  const handleArchivePackage = () => {
+    if (onArchivePackage) {
+      onArchivePackage(pkg);
+    }
+  };
+
   // Determine if package actions dropdown should be shown
-  const canShowPackageActions = viewMode === 'user' && onDeletePackage && [
-    'pending_approval',
-    'approved', 
-    'matched',
-    'quote_sent',
-    'quote_accepted',
-    'quote_rejected',
-    'quote_expired',
-    'payment_pending',
-    'payment_pending_approval'
+  const canShowPackageActions = viewMode === 'user' && (
+    (onDeletePackage && [
+      'pending_approval',
+      'approved', 
+      'matched',
+      'quote_sent',
+      'quote_accepted',
+      'quote_rejected',
+      'quote_expired',
+      'payment_pending',
+      'payment_pending_approval'
+    ].includes(pkg.status)) ||
+    (onArchivePackage && [
+      'completed',
+      'delivered',
+      'delivered_to_office',
+      'cancelled'
+    ].includes(pkg.status))
+  );
+
+  // Determine if this is an archivable status
+  const isArchivable = [
+    'completed',
+    'delivered', 
+    'delivered_to_office',
+    'cancelled'
   ].includes(pkg.status);
 
   const renderActionButtons = () => {
@@ -207,21 +231,34 @@ const CollapsiblePackageCard = ({
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
+                     <DropdownMenuContent 
                       align="end" 
                       className="bg-background border shadow-md z-50"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowDeleteDialog(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Descartar pedido
-                      </DropdownMenuItem>
+                      {isArchivable ? (
+                        <DropdownMenuItem
+                          className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchivePackage();
+                          }}
+                        >
+                          <Archive className="mr-2 h-4 w-4" />
+                          Archivar
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteDialog(true);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Descartar pedido
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}

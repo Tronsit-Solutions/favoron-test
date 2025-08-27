@@ -232,6 +232,14 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   };
 
+  const handleArchivePackage = async (pkg: any) => {
+    try {
+      await updatePackage(pkg.id, { status: 'archived_by_shopper' });
+    } catch (error) {
+      // Error silently handled
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader 
@@ -347,29 +355,30 @@ const Dashboard = ({ user }: DashboardProps) => {
                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                  })
                  .map((pkg) => (
-                    <CollapsiblePackageCard
-                      key={pkg.id}
-                      pkg={pkg}
-                       onQuote={(pkg, userType) => {
-                         setSelectedPackageForQuote(pkg);
-                         setQuoteUserType(userType);
-                         setShowQuoteDialog(true);
+                     <CollapsiblePackageCard
+                       key={pkg.id}
+                       pkg={pkg}
+                        onQuote={(pkg, userType) => {
+                          setSelectedPackageForQuote(pkg);
+                          setQuoteUserType(userType);
+                          setShowQuoteDialog(true);
+                        }}
+                       onConfirmAddress={handleAddressConfirmation}
+                       onUploadDocument={handleUploadDocument}
+                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
+                       onDeletePackage={(p) => deletePackage(p.id)}
+                       onArchivePackage={handleArchivePackage}
+                       onRequestRequote={async (p) => {
+                         await updatePackage(p.id, {
+                           status: 'approved',
+                           matched_trip_id: null,
+                           quote: null,
+                           quote_expires_at: null,
+                           wants_requote: true,
+                         } as any);
                        }}
-                      onConfirmAddress={handleAddressConfirmation}
-                      onUploadDocument={handleUploadDocument}
-                      onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
-                      onDeletePackage={(p) => deletePackage(p.id)}
-                      onRequestRequote={async (p) => {
-                        await updatePackage(p.id, {
-                          status: 'approved',
-                          matched_trip_id: null,
-                          quote: null,
-                          quote_expires_at: null,
-                          wants_requote: true,
-                        } as any);
-                      }}
-                      viewMode="user"
-                    />
+                       viewMode="user"
+                     />
                 ))}
               </div>
             )}
