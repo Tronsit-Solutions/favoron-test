@@ -246,7 +246,7 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-primary">Información del Producto</h3>
+                    <h3 className="text-sm font-medium text-primary">Información del Producto</h3>
                   </div>
                   
                   <ShopperPackageDetails pkg={pkg} />
@@ -267,7 +267,7 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border-2 border-primary/20 rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <h3 className="text-sm font-semibold text-primary">Estado y Progreso</h3>
+                    <h3 className="text-sm font-medium text-primary">Estado y Progreso</h3>
                   </div>
                   <PackageStatusTimeline 
                     currentStatus={pkg.status}
@@ -279,7 +279,7 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-muted-foreground">Documentos Subidos</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">Documentos Subidos</h3>
                   </div>
                   <UploadedDocumentsRegistry 
                     pkg={pkg}
@@ -291,7 +291,7 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-muted-foreground">Comunicación</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">Comunicación</h3>
                   </div>
                   <PackageTimeline pkg={pkg} />
                 </div>
@@ -309,7 +309,7 @@ const CollapsiblePackageCard = ({
                   <div className="bg-card border rounded-lg p-2 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <h3 className="text-sm font-semibold text-primary">Confirmación del Viajero</h3>
+                      <h3 className="text-sm font-medium text-primary">Confirmación del Viajero</h3>
                     </div>
                     <TravelerConfirmationDisplay pkg={pkg} />
                   </div>
@@ -319,7 +319,7 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border-2 border-warning/20 rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
-                    <h3 className="text-sm font-semibold text-warning">Acciones Requeridas</h3>
+                    <h3 className="text-sm font-medium text-warning">Acciones Requeridas</h3>
                   </div>
                   
                   {/* Priority Actions */}
@@ -400,7 +400,7 @@ const CollapsiblePackageCard = ({
                   <div className="bg-card border rounded-lg p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                      <h3 className="text-sm font-semibold text-muted-foreground">Información de Envío</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground">Información de Envío</h3>
                     </div>
                     
                     <div>
