@@ -52,7 +52,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
       {/* Enhanced chat container */}
       <div className="flex justify-start p-4">
         {/* Modern chatbox with improved design */}
-        <div className="w-full sm:w-2/3 lg:w-1/2 xl:max-w-lg">
+        <div className="w-full">
           {/* Enhanced Chat Header */}
           <div className="flex items-center gap-3 pb-4 mb-4 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent">
             <div className="flex items-center gap-2">
