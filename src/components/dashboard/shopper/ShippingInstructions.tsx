@@ -31,8 +31,8 @@ const ShippingInstructions = ({
             <span>Información de envío y fechas del viaje</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0 px-2 pb-2">
-          <div className="space-y-4 text-xs">
+        <CardContent className="pt-0 px-2 pb-1">
+          <div className="space-y-2 text-xs">
             {/* Fechas importantes */}
             {tripDates && <div className="space-y-1">
                 <h5 className="font-semibold text-success text-sm flex items-center space-x-1">
