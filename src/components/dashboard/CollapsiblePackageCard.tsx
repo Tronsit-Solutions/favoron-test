@@ -85,6 +85,7 @@ const CollapsiblePackageCard = ({
     pkg.status === 'payment_pending' ||
     pkg.status === 'payment_pending_approval' ||
     pkg.status === 'pending_purchase'
+    // Removed: 'pending_approval', 'approved', 'matched' - no action needed from shopper
   );
 
   const handleEditDocument = (type: 'purchase_confirmation' | 'tracking_info') => {
