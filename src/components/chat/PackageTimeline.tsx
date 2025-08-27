@@ -49,28 +49,28 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-2 md:p-3">
+      <div className="p-1 md:p-2">
         {/* Chat Header */}
-        <div className="border-b border-border/50 pb-4 mb-6">
-          <h3 className="text-lg md:text-xl font-semibold flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <MessageCircle className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+        <div className="border-b border-border/50 pb-2 mb-3">
+          <h3 className="text-sm md:text-base font-semibold flex items-center gap-2">
+            <div className="p-1 bg-primary/10 rounded-lg">
+              <MessageCircle className="h-4 w-4 text-primary" />
             </div>
-            <span className="hidden sm:inline">Historial & Mensajes</span>
+            <span className="hidden sm:inline">Chat</span>
             <span className="sm:hidden">Chat</span>
           </h3>
         </div>
 
-        {/* Messages Container */}
-        <div className="bg-muted/30 rounded-lg border border-muted/50 p-2 mb-3">
-          <div className="space-y-2 max-h-32 md:max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+        {/* Messages Container - Much smaller */}
+        <div className="bg-muted/30 rounded-lg border border-muted/50 p-1 mb-2">
+          <div className="space-y-1 max-h-16 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {messages.length === 0 ? (
-              <div className="text-center py-8 md:py-12 text-muted-foreground">
-                <div className="p-4 bg-background/50 rounded-full w-fit mx-auto mb-4">
-                  <MessageCircle className="h-12 w-12 md:h-16 md:w-16 opacity-50" />
+              <div className="text-center py-3 text-muted-foreground">
+                <div className="p-2 bg-background/50 rounded-full w-fit mx-auto mb-2">
+                  <MessageCircle className="h-6 w-6 opacity-50" />
                 </div>
-                <p className="text-base md:text-lg font-medium mb-2">No hay mensajes aún</p>
-                <p className="text-sm md:text-base">Inicia la conversación enviando un mensaje</p>
+                <p className="text-xs font-medium mb-1">No hay mensajes</p>
+                <p className="text-xs">Envía un mensaje</p>
               </div>
             ) : (
               messages.map((message) => {
@@ -90,7 +90,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
         </div>
 
         {/* Message Input Section */}
-        <div className="border-t border-border/50 pt-4">
+        <div className="border-t border-border/50 pt-2">
           <MessageInput
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
