@@ -300,7 +300,7 @@ const CollapsiblePackageCard = ({
               </div>
 
               {/* Right Column: Information & Communication (Flexible) */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="lg:col-span-2 space-y-2 lg:space-y-4">
                 
                 {/* Traveler Confirmation Section */}
                 {(pkg.status === 'matched' || 
