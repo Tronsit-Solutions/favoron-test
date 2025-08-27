@@ -236,29 +236,6 @@ const CollapsiblePackageCard = ({
         
         <CollapsibleContent>
           <CardContent className="p-4 sm:p-6">
-            {/* Enhanced Header Section with Status and Key Info */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/10">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-lg font-semibold text-foreground">📦 {pkg.item_description}</h2>
-                    {getStatusBadge(pkg.status, { 
-                      packageDestination: pkg.package_destination, 
-                      isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                      pkg: pkg
-                    })}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Precio estimado:</span> ${pkg.estimated_price} • 
-                    <span className="font-medium ml-2">Fecha límite:</span> {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {renderActionButtons()}
-                </div>
-              </div>
-            </div>
-
             {/* Main Content Layout - 2 Columns */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
