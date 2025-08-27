@@ -54,7 +54,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
         {/* Modern chatbox with improved design */}
         <div className="w-full">
           {/* Enhanced Chat Header */}
-          <div className="flex items-center gap-3 pb-4 mb-4 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent">
+          <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-gradient-to-br from-primary/20 to-primary/10 rounded-lg shadow-sm">
                 <MessageCircle className="h-4 w-4 text-primary" />
@@ -67,8 +67,8 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
           </div>
 
           {/* Enhanced Messages Container */}
-          <div className="bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-3 mb-4">
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pr-2">
+          <div className="bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-2 mb-3">
+            <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent pr-2">
               {messages.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <div className="p-3 bg-gradient-to-br from-background/80 to-muted/30 rounded-full w-fit mx-auto mb-3 shadow-sm">
@@ -95,7 +95,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
           </div>
 
           {/* Enhanced Message Input Section */}
-          <div className="bg-gradient-to-r from-background to-muted/20 rounded-lg border border-border/30 p-3">
+          <div className="bg-gradient-to-r from-background to-muted/20 rounded-lg border border-border/30 p-2">
             <MessageInput
               onSendMessage={handleSendMessage}
               onFileUpload={handleFileUpload}
