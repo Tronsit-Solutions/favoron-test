@@ -157,12 +157,12 @@ export const useOptimizedPackagesData = () => {
 
   const updatePackage = useCallback(async (id: string, updates: PackageUpdate) => {
     try {
-      // Special handling: if rejecting with "no_longer_want", move to archived status
+      // Si el shopper ya no quiere el paquete, cancelarlo y desactivar re-cotización
       if (updates.rejection_reason === 'no_longer_want') {
         updates = {
           ...updates,
-          status: 'archived_by_shopper',
-          wants_requote: false // Force to false when no longer wanted
+          status: 'cancelled',
+          wants_requote: false,
         };
       }
 
@@ -174,26 +174,24 @@ export const useOptimizedPackagesData = () => {
         .single();
 
       if (error) throw error;
-      
-      // Optimistic update
-      setPackages(prev => prev.map(pkg => 
-        pkg.id === id ? { ...pkg, ...data } : pkg
-      ));
-      
-      // Show appropriate message based on the update
-      if (updates.status === 'archived_by_shopper') {
+
+      // Actualización optimista
+      setPackages(prev => prev.map(pkg => (pkg.id === id ? { ...pkg, ...data } : pkg)));
+
+      // Mensaje apropiado
+      if (updates.status === 'cancelled') {
         toast({
-          title: "Paquete archivado",
-          description: "El paquete se ha movido a tu historial",
+          title: 'Paquete cancelado',
+          description: 'El paquete se ha movido a tu historial de cancelados.',
         });
       }
-      
+
       return data;
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `No se pudo actualizar el paquete: ${error.message}`,
-        variant: "destructive",
+        variant: 'destructive',
       });
       throw error;
     }

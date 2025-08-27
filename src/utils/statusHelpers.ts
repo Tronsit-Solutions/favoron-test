@@ -19,12 +19,10 @@ export const getStatusBadge = (status: string) => {
     pending_office_confirmation: { label: 'Esperando confirmación', variant: 'secondary' },
     delivered_to_office: { label: 'Entregado en oficina', variant: 'default' },
     cancelled: { label: 'Cancelado', variant: 'destructive' },
-    archived_by_shopper: { label: 'Archivado por el shopper', variant: 'secondary' },
-    
     // Trip statuses
     active: { label: 'Activo', variant: 'default' },
     completed: { label: 'Completado', variant: 'default' },
-  };
+  } as const;
 
   const config = (statusConfig as any)[status] || { 
     label: status, 
