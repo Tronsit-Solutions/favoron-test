@@ -490,16 +490,60 @@ const AdminTravelerPaymentsTab = () => {
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => 
         setConfirmDialog(prev => ({ ...prev, isOpen: open }))
       }>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <p>
-              ¿Estás seguro de que quieres {confirmDialog.action === 'complete' ? 'completar' : 'rechazar'} 
-              el pago de Q{confirmDialog.order?.amount} para {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}?
+          <div className="space-y-6">
+            {/* Payment Amount Section */}
+            <div className="text-center p-6 bg-muted/30 rounded-lg border">
+              <div className="text-sm text-muted-foreground mb-1">Monto a pagar</div>
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                Q{confirmDialog.order?.amount}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}
+              </div>
+            </div>
+
+            {/* Banking Information Section */}
+            {confirmDialog.action === 'complete' && confirmDialog.order && (
+              <Card className="bg-blue-50/50 border-blue-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Información Bancaria
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">Titular:</span>
+                      <div className="font-medium">{confirmDialog.order.bank_account_holder}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Banco:</span>
+                      <div className="font-medium">{confirmDialog.order.bank_name}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Tipo:</span>
+                      <div className="font-medium capitalize">{confirmDialog.order.bank_account_type}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Número:</span>
+                      <div className="font-mono text-sm bg-white px-2 py-1 rounded border">
+                        {confirmDialog.order.bank_account_number}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <p className="text-sm text-muted-foreground text-center">
+              ¿Estás seguro de que quieres {confirmDialog.action === 'complete' ? 'completar' : 'rechazar'} esta orden de pago?
             </p>
             <div>
               <Label htmlFor="notes">Notas (opcional)</Label>
