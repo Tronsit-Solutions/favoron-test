@@ -237,10 +237,10 @@ const CollapsiblePackageCard = ({
         <CollapsibleContent>
           <CardContent className="p-4 sm:p-6">
             {/* Main Content Layout - 2 Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-4">
               
               {/* Left Column: Control Panel */}
-              <div className="md:col-span-2 space-y-4 p-3 md:p-4 bg-muted/30 rounded-lg border border-muted/50">
+              <div className="md:col-span-3 space-y-4 p-3 md:p-4 bg-muted/30 rounded-lg border border-muted/50">
                 
                 {/* Product Information Section */}
                 <div className="bg-card border rounded-lg p-2 shadow-sm">
@@ -300,7 +300,7 @@ const CollapsiblePackageCard = ({
               </div>
 
               {/* Right Column: Information & Communication */}
-              <div className="md:col-span-1 space-y-4 p-3 md:p-4 bg-card/50 rounded-lg border border-card/80">
+              <div className="md:col-span-2 space-y-4 p-3 md:p-4 bg-card/50 rounded-lg border border-card/80">
                 
                 {/* Traveler Confirmation Section */}
                 {(pkg.status === 'received_by_traveler' ||
