@@ -332,6 +332,13 @@ const CollapsiblePackageCard = ({
                     />
                   </div>
 
+                  {/* Shipping Instructions */}
+                  {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
+                    <div className="mb-4">
+                      <ShippingInstructions pkg={pkg} />
+                    </div>
+                  )}
+
                   {/* Quote Information */}
                   {pkg.quote && !['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'].includes(pkg.status) && (
                     <div className="mb-4">
@@ -383,13 +390,6 @@ const CollapsiblePackageCard = ({
                         currentTracking={pkg.tracking_info}
                         onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
                       />
-                    </div>
-                  )}
-
-                  {/* Shipping Instructions */}
-                  {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-                    <div className="mb-4">
-                      <ShippingInstructions pkg={pkg} />
                     </div>
                   )}
                 </div>
