@@ -40,26 +40,28 @@ const ShippingInstructions = ({
                   <span>📅 Fechas importantes</span>
                 </h5>
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">📥 Primer día para recibir:</span>
-                    <span className="font-semibold text-foreground">
-                      {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric"
-                  })}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">📤 Último día para recibir:</span>
-                    <span className="font-semibold text-foreground">
-                      {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric"
-                  })}
-                    </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">📥 Primer día para recibir:</span>
+                      <span className="font-semibold text-foreground">
+                        {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">📤 Último día para recibir:</span>
+                      <span className="font-semibold text-foreground">
+                        {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
