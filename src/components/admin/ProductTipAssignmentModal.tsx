@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, DollarSign, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminTips } from "@/hooks/useAdminTips";
 
 interface Product {
   itemDescription: string;
@@ -60,6 +60,7 @@ const ProductTipAssignmentModal = ({
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { saveProductTips } = useAdminTips();
 
   const calculateTotalTip = () => {
     return tipValues.reduce((total, tip) => total + (parseFloat(tip) || 0), 0);
@@ -103,7 +104,21 @@ const ProductTipAssignmentModal = ({
       }));
       
       const totalTip = calculateTotalTip();
-      await onSave(productsWithTips, totalTip);
+
+      // Persist tips DIRECTLY into packages.products_data (new flow)
+      await saveProductTips(packageId, productsWithTips.map(p => ({
+        itemDescription: p.itemDescription,
+        estimatedPrice: p.estimatedPrice,
+        itemLink: p.itemLink,
+        quantity: p.quantity,
+        adminAssignedTip: p.adminAssignedTip || 0
+      })));
+
+      // Keep parent callback for UI refresh/side-effects (doesn't need to write)
+      if (onSave) {
+        await onSave(productsWithTips, totalTip);
+      }
+
       onClose();
     } catch (error) {
       console.error('Error saving tips:', error);
