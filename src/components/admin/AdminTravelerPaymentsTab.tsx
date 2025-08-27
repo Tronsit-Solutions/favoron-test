@@ -496,11 +496,11 @@ const AdminTravelerPaymentsTab = () => {
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Payment Amount Section */}
-            <div className="text-center p-4 bg-muted/30 rounded-lg border">
-              <div className="text-sm text-muted-foreground mb-1">Monto a pagar</div>
-              <div className="text-2xl font-bold text-green-600 mb-1">
+            <div className="text-center p-3 bg-muted/30 rounded-lg border">
+              <div className="text-xs text-muted-foreground mb-1">Monto a pagar</div>
+              <div className="text-xl font-bold text-green-600 mb-1">
                 Q{confirmDialog.order?.amount}
               </div>
               <div className="text-xs text-muted-foreground">
