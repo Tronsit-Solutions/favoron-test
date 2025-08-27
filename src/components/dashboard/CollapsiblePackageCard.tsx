@@ -266,6 +266,15 @@ const CollapsiblePackageCard = ({
                   />
                 </div>
 
+                {/* Communication Section */}
+                <div className="bg-card border-2 border-purple-500/20 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">Comunicación</h3>
+                  </div>
+                  <PackageTimeline pkg={pkg} />
+                </div>
+
                 {/* Traveler Confirmation */}
                 {(pkg.status === 'matched' || 
                   pkg.status === 'in_transit' || 
@@ -378,14 +387,6 @@ const CollapsiblePackageCard = ({
                   )}
                 </div>
 
-                {/* Communication Section */}
-                <div className="bg-card border rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">Comunicación</h3>
-                  </div>
-                  <PackageTimeline pkg={pkg} />
-                </div>
 
                 {/* Shipping Information Section */}
                 {(['pending_purchase', 'payment_confirmed'].includes(pkg.status) || 
