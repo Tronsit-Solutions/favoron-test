@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
@@ -124,7 +125,7 @@ const ShopperPackagePriorityActions = ({
         return {
           icon: Package2,
           title: "🛒 Tu turno de comprar",
-          description: "Ahora debes: 1) Realizar la compra del producto en la tienda/sitio web, 2) Subir el comprobante de compra (recibo/factura), 3) Proporcionar la información de seguimiento si la tienda la envía por correo/paquetería.",
+          description: "Compra el producto, sube el comprobante e información de seguimiento.",
           button: null
         };
       case 'purchase_confirmed':
