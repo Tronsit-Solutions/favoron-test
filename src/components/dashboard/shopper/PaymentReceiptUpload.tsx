@@ -175,7 +175,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   }
 
   return (
-    <div className="bg-primary/10 border border-primary/40 rounded-md p-1.5 space-y-1.5 h-full flex-1">
+    <div className="bg-transparent border border-primary/40 rounded-md p-1.5 space-y-1.5 h-full flex-1">
       {/* Header - More compact */}
       <div className="flex items-center space-x-2">
         <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
