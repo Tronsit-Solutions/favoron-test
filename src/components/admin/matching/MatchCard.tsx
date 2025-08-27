@@ -244,33 +244,26 @@ export const MatchCard = ({
               </div>
             )}
 
-            {/* Financial Info */}
-            {pkg.quote && (
-              <div className="flex items-center space-x-4 text-xs">
+            {/* Financial Info & Important Dates */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {pkg.quote && (
                 <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
                   💰 Cotización: Q{(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
                 </span>
-              </div>
-            )}
-
-            {/* Important Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              )}
+              
               {pkg.delivery_deadline && (
-                <div className="flex items-center space-x-1">
-                  <CalendarDays className="h-3 w-3 text-orange-500" />
-                  <span className="text-orange-600">
-                    Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
-                  </span>
-                </div>
+                <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" />
+                  Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                </span>
               )}
               
               {matchedTrip?.delivery_date && (
-                <div className="flex items-center space-x-1">
-                  <CalendarDays className="h-3 w-3 text-purple-500" />
-                  <span className="text-purple-600">
-                    Entrega: {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}
-                  </span>
-                </div>
+                <span className="bg-purple-50 text-purple-600 px-2 py-1 rounded flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" />
+                  Entrega: {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}
+                </span>
               )}
             </div>
 
