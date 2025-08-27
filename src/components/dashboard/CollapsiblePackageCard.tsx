@@ -266,6 +266,46 @@ const CollapsiblePackageCard = ({
                   />
                 </div>
 
+                {/* Traveler Confirmation */}
+                {(pkg.status === 'matched' || 
+                  pkg.status === 'in_transit' || 
+                  pkg.status === 'received_by_traveler' ||
+                  pkg.status === 'delivered' ||
+                  pkg.status === 'pending_office_confirmation') && (
+                  <div className="bg-card border-2 border-accent/20 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-2 h-2 bg-accent rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-accent">Confirmación del Viajero</h3>
+                    </div>
+                    <TravelerConfirmationDisplay pkg={pkg} />
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Information & Communication (Flexible) */}
+              <div className="lg:col-span-2 space-y-4">
+                
+                {/* Product Information Section */}
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
+                  </div>
+                  
+                  <ShopperPackageDetails pkg={pkg} />
+                  
+                  {/* Rejection Reason */}
+                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                    <div className="mt-4">
+                      <RejectionReasonDisplay 
+                        rejectionReason={pkg.rejection_reason}
+                        wantsRequote={pkg.wants_requote}
+                        additionalComments={pkg.additional_notes}
+                      />
+                    </div>
+                  )}
+                </div>
+
                 {/* Required Actions Section */}
                 <div className="bg-card border-2 border-warning/20 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
@@ -333,46 +373,6 @@ const CollapsiblePackageCard = ({
                         currentConfirmation={pkg.purchase_confirmation}
                         currentTracking={pkg.tracking_info}
                         onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Traveler Confirmation */}
-                {(pkg.status === 'matched' || 
-                  pkg.status === 'in_transit' || 
-                  pkg.status === 'received_by_traveler' ||
-                  pkg.status === 'delivered' ||
-                  pkg.status === 'pending_office_confirmation') && (
-                  <div className="bg-card border-2 border-accent/20 rounded-lg p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
-                      <h3 className="text-sm font-semibold text-accent">Confirmación del Viajero</h3>
-                    </div>
-                    <TravelerConfirmationDisplay pkg={pkg} />
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column: Information & Communication (Flexible) */}
-              <div className="lg:col-span-2 space-y-4">
-                
-                {/* Product Information Section */}
-                <div className="bg-card border rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
-                  </div>
-                  
-                  <ShopperPackageDetails pkg={pkg} />
-                  
-                  {/* Rejection Reason */}
-                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-4">
-                      <RejectionReasonDisplay 
-                        rejectionReason={pkg.rejection_reason}
-                        wantsRequote={pkg.wants_requote}
-                        additionalComments={pkg.additional_notes}
                       />
                     </div>
                   )}
