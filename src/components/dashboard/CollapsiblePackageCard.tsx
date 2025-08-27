@@ -269,12 +269,19 @@ const CollapsiblePackageCard = ({
                 <div className="bg-card border-2 border-primary/20 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <h3 className="text-sm font-semibold text-primary">Estado y Progreso</h3>
+                    <h3 className="text-sm font-semibold text-primary">Estado Actual</h3>
                   </div>
-                  <PackageStatusTimeline 
-                    currentStatus={pkg.status}
-                    deliveryMethod={pkg.delivery_method}
-                  />
+                  <div className="flex items-center gap-3">
+                    {getStatusBadge(pkg.status, { 
+                      packageDestination: pkg.package_destination, 
+                      isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                      pkg: pkg
+                    })}
+                    <div className="text-sm text-muted-foreground">
+                      <p><strong>Paquete:</strong> {pkg.item_description}</p>
+                      <p><strong>Precio:</strong> ${pkg.estimated_price}</p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Required Actions Section */}
