@@ -4,7 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
+import { Search, Filter, ChevronDown } from "lucide-react";
 import { useMatchFilters } from "@/hooks/useMatchFilters";
 import { MatchCard } from "./MatchCard";
 import { MatchStatsHeader } from "./MatchStatsHeader";
@@ -103,9 +112,9 @@ const ActiveMatchesTab = ({
       />
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col sm:flex-row gap-3">
         {/* Search Bar */}
-        <div className="relative">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por descripción, usuario o ruta..."
@@ -115,54 +124,54 @@ const ActiveMatchesTab = ({
           />
         </div>
 
-        {/* Status Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Label className="font-medium">Filtrar por estados:</Label>
-            </div>
+        {/* Status Filters Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto justify-between">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <span>Estados ({selectedStatuses.size}/{statuses.length})</span>
+              </div>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80 bg-background border shadow-lg z-50" align="end">
+            <DropdownMenuLabel className="flex items-center justify-between">
+              <span>Filtrar por estados</span>
+              <span className="text-xs text-muted-foreground">
+                {selectedStatuses.size}/{statuses.length} sel.
+              </span>
+            </DropdownMenuLabel>
             
-            <div className="space-y-3">
-              {/* Select All/None Toggle */}
-              <div className="flex items-center space-x-2 pb-2 border-b">
-                <Checkbox
-                  id="toggle-all"
-                  checked={selectedStatuses.size === statuses.length}
-                  onCheckedChange={toggleAllStatuses}
-                />
-                <Label htmlFor="toggle-all" className="text-sm font-medium">
-                  {selectedStatuses.size === statuses.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
-                </Label>
-                <span className="text-xs text-muted-foreground">
-                  ({selectedStatuses.size}/{statuses.length} seleccionados)
-                </span>
-              </div>
-
-              {/* Individual Status Checkboxes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {statuses.map(status => {
-                  const info = getStatusInfo(status);
-                  return (
-                    <div key={status} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`status-${status}`}
-                        checked={selectedStatuses.has(status)}
-                        onCheckedChange={() => toggleStatus(status)}
-                      />
-                      <Label 
-                        htmlFor={`status-${status}`} 
-                        className="text-sm flex items-center gap-1 cursor-pointer"
-                      >
-                        {info.icon} {info.label}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuCheckboxItem
+              checked={selectedStatuses.size === statuses.length}
+              onCheckedChange={toggleAllStatuses}
+              className="font-medium"
+            >
+              {selectedStatuses.size === statuses.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+            </DropdownMenuCheckboxItem>
+            
+            <DropdownMenuSeparator />
+            
+            {statuses.map(status => {
+              const info = getStatusInfo(status);
+              return (
+                <DropdownMenuCheckboxItem
+                  key={status}
+                  checked={selectedStatuses.has(status)}
+                  onCheckedChange={() => toggleStatus(status)}
+                  className="flex items-center gap-2"
+                >
+                  <span className="flex items-center gap-2">
+                    {info.icon} {info.label}
+                  </span>
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Matches List */}
