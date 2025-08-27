@@ -49,7 +49,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={className}>
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-3">
         {/* Chat Header */}
         <div className="border-b border-border/50 pb-4 mb-6">
           <h3 className="text-lg md:text-xl font-semibold flex items-center gap-3">
@@ -62,8 +62,8 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
         </div>
 
         {/* Messages Container */}
-        <div className="bg-muted/30 rounded-lg border border-muted/50 p-4 mb-6">
-          <div className="space-y-4 max-h-48 md:max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+        <div className="bg-muted/30 rounded-lg border border-muted/50 p-2 mb-3">
+          <div className="space-y-2 max-h-32 md:max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {messages.length === 0 ? (
               <div className="text-center py-8 md:py-12 text-muted-foreground">
                 <div className="p-4 bg-background/50 rounded-full w-fit mx-auto mb-4">
