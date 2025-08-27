@@ -63,7 +63,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
         {/* Messages Container */}
         <div className="bg-muted/30 rounded-lg border border-muted/50 p-4 mb-6">
-          <div className="space-y-4 max-h-80 md:max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          <div className="space-y-4 max-h-48 md:max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {messages.length === 0 ? (
               <div className="text-center py-8 md:py-12 text-muted-foreground">
                 <div className="p-4 bg-background/50 rounded-full w-fit mx-auto mb-4">
