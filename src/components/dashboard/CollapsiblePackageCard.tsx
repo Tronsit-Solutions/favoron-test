@@ -245,8 +245,8 @@ const CollapsiblePackageCard = ({
                 {/* Product Information Section */}
                 <div className="bg-card border rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300">Información del Producto</h3>
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-primary">Información del Producto</h3>
                   </div>
                   
                   <ShopperPackageDetails pkg={pkg} />
@@ -276,10 +276,10 @@ const CollapsiblePackageCard = ({
                 </div>
 
                 {/* Uploaded Documents Section */}
-                <div className="bg-card border-2 border-success/20 rounded-lg p-2 shadow-sm">
+                <div className="bg-card border rounded-lg p-2 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-success">Documentos Subidos</h3>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-muted-foreground">Documentos Subidos</h3>
                   </div>
                   <UploadedDocumentsRegistry 
                     pkg={pkg}
@@ -288,10 +288,10 @@ const CollapsiblePackageCard = ({
                 </div>
 
                 {/* Communication Section */}
-                <div className="bg-card border-2 border-purple-500/20 rounded-lg p-1 shadow-sm">
+                <div className="bg-card border rounded-lg p-1 shadow-sm">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-300">Comunicación</h3>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                    <h3 className="text-sm font-semibold text-muted-foreground">Comunicación</h3>
                   </div>
                   <PackageTimeline pkg={pkg} />
                 </div>
@@ -306,10 +306,10 @@ const CollapsiblePackageCard = ({
                 {(pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <div className="bg-card border-2 border-accent/20 rounded-lg p-2 shadow-sm">
+                  <div className="bg-card border rounded-lg p-2 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
-                      <h3 className="text-sm font-semibold text-accent">Confirmación del Viajero</h3>
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-primary">Confirmación del Viajero</h3>
                     </div>
                     <TravelerConfirmationDisplay pkg={pkg} />
                   </div>
@@ -399,8 +399,8 @@ const CollapsiblePackageCard = ({
                 {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
                   <div className="bg-card border rounded-lg p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <h3 className="text-sm font-semibold text-green-700 dark:text-green-300">Información de Envío</h3>
+                      <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                      <h3 className="text-sm font-semibold text-muted-foreground">Información de Envío</h3>
                     </div>
                     
                     <div>
