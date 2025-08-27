@@ -262,7 +262,29 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Payment Receipt Upload and Timeline Section */}
+                {/* Document Upload Section */}
+                {(pkg.status === 'payment_confirmed' || 
+                  pkg.status === 'paid' ||
+                  pkg.status === 'pending_purchase' ||
+                  pkg.status === 'purchased' ||
+                  pkg.status === 'shipped' ||
+                  pkg.status === 'matched' ||
+                  pkg.status === 'in_transit' ||
+                  pkg.status === 'received_by_traveler' ||
+                  pkg.status === 'delivered' ||
+                  pkg.status === 'pending_office_confirmation') && (
+                  <div className="mb-4">
+                    <UploadDocuments 
+                      packageId={pkg.id}
+                      currentStatus={pkg.status}
+                      currentConfirmation={pkg.purchase_confirmation}
+                      currentTracking={pkg.tracking_info}
+                      onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+                    />
+                  </div>
+                )}
+
+                {/* Payment Receipt Upload Section */}
                 {(pkg.status === 'quote_sent' ||
                   pkg.status === 'quote_accepted' || 
                   pkg.status === 'payment_pending' || 
@@ -276,37 +298,21 @@ const CollapsiblePackageCard = ({
                   pkg.status === 'received_by_traveler' ||
                   pkg.status === 'delivered' ||
                   pkg.status === 'pending_office_confirmation') && (
-                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                  <div className="mb-4">
                     <PaymentReceiptUpload 
                       pkg={pkg}
                       onUploadComplete={() => {}}
                     />
-                    <PackageStatusTimeline 
-                      currentStatus={pkg.status}
-                      deliveryMethod={pkg.delivery_method}
-                    />
                   </div>
                 )}
 
-                {/* Document Upload Section */}
-                {(pkg.status === 'payment_confirmed' || 
-                  pkg.status === 'paid' ||
-                  pkg.status === 'pending_purchase' ||
-                  pkg.status === 'purchased' ||
-                  pkg.status === 'shipped' ||
-                  pkg.status === 'matched' ||
-                  pkg.status === 'in_transit' ||
-                  pkg.status === 'received_by_traveler' ||
-                  pkg.status === 'delivered' ||
-                  pkg.status === 'pending_office_confirmation') && (
-                  <UploadDocuments 
-                    packageId={pkg.id}
+                {/* Package Status Timeline */}
+                <div className="mb-4">
+                  <PackageStatusTimeline 
                     currentStatus={pkg.status}
-                    currentConfirmation={pkg.purchase_confirmation}
-                    currentTracking={pkg.tracking_info}
-                    onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+                    deliveryMethod={pkg.delivery_method}
                   />
-                )}
+                </div>
 
                 {/* Uploaded Documents Registry */}
                 <UploadedDocumentsRegistry 
