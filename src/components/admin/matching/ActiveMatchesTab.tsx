@@ -67,6 +67,17 @@ const ActiveMatchesTab = ({
     const matchesStatus = selectedStatuses.has(pkg.status);
     
     return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    // Move completed packages to bottom
+    const completedStatuses = ['completed', 'delivered_to_office'];
+    const aCompleted = completedStatuses.includes(a.status);
+    const bCompleted = completedStatuses.includes(b.status);
+    
+    if (aCompleted && !bCompleted) return 1;  // a goes after b
+    if (!aCompleted && bCompleted) return -1; // a goes before b
+    
+    // If both have same completion status, sort by creation date (newest first)
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
   const togglePackage = (packageId: string) => {
