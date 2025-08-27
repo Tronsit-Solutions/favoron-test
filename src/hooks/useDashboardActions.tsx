@@ -654,6 +654,33 @@ export const useDashboardActions = (
           });
           updateData.products_data = updatedProductsData;
         }
+      } else {
+        // Single-product case: ensure adminAssignedTip is saved inside products_data
+        const currentPackage = packages.find(pkg => pkg.id === packageId);
+        if (currentPackage) {
+          let updatedProductsData: any[] | undefined;
+
+          if (Array.isArray(currentPackage.products_data) && currentPackage.products_data.length > 0) {
+            if (currentPackage.products_data.length === 1) {
+              const onlyProduct = currentPackage.products_data[0];
+              updatedProductsData = [{ ...onlyProduct, adminAssignedTip: adminTip }];
+            }
+            // If more than one product exists but no per-product tips provided, leave as is
+          } else {
+            // Build products_data from legacy fields
+            updatedProductsData = [{
+              itemDescription: currentPackage.item_description || 'Producto',
+              estimatedPrice: String(currentPackage.estimated_price ?? '0'),
+              itemLink: currentPackage.item_link || undefined,
+              quantity: '1',
+              adminAssignedTip: adminTip
+            }];
+          }
+
+          if (updatedProductsData) {
+            updateData.products_data = updatedProductsData;
+          }
+        }
       }
 
       await updatePackage(packageId, updateData);

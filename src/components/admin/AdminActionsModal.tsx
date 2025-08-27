@@ -186,6 +186,15 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
         quote_expires_at: null,
       };
 
+      // Asegurar que en paquetes de un solo producto el tip quede también dentro de products_data
+      if (adminAssignedTip !== undefined) {
+        const isSingleProduct = Array.isArray(products) && products.length === 1;
+        if (isSingleProduct) {
+          const onlyProduct = { ...products[0], adminAssignedTip };
+          updatePayload.products_data = [onlyProduct];
+        }
+      }
+
       const { error } = await supabase
         .from('packages')
         .update(updatePayload)
