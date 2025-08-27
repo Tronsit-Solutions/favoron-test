@@ -88,7 +88,8 @@ const CollapsiblePackageCard = ({
     pkg.status === 'quote_accepted' || 
     (pkg.status === 'approved' && !pkg.purchase_confirmation) ||
     pkg.status === 'payment_pending' ||
-    pkg.status === 'payment_pending_approval'
+    pkg.status === 'payment_pending_approval' ||
+    pkg.status === 'pending_purchase'
   );
 
   const handleEditDocument = (type: 'purchase_confirmation' | 'tracking_info') => {
