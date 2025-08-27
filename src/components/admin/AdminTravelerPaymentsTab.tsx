@@ -496,14 +496,14 @@ const AdminTravelerPaymentsTab = () => {
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Payment Amount Section */}
-            <div className="text-center p-6 bg-muted/30 rounded-lg border">
+            <div className="text-center p-4 bg-muted/30 rounded-lg border">
               <div className="text-sm text-muted-foreground mb-1">Monto a pagar</div>
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <div className="text-2xl font-bold text-green-600 mb-1">
                 Q{confirmDialog.order?.amount}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}
               </div>
             </div>
@@ -511,14 +511,14 @@ const AdminTravelerPaymentsTab = () => {
             {/* Banking Information Section */}
             {confirmDialog.action === 'complete' && confirmDialog.order && (
               <Card className="bg-blue-50/50 border-blue-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs flex items-center gap-2">
+                    <CreditCard className="h-3 w-3" />
                     Información Bancaria
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3 pt-0">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                <CardContent className="space-y-2 pt-0">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="font-medium text-muted-foreground">Titular:</span>
                       <div className="font-medium">{confirmDialog.order.bank_account_holder}</div>
@@ -533,7 +533,7 @@ const AdminTravelerPaymentsTab = () => {
                     </div>
                     <div>
                       <span className="font-medium text-muted-foreground">Número:</span>
-                      <div className="font-mono text-sm bg-white px-2 py-1 rounded border">
+                      <div className="font-mono text-xs bg-white px-1 py-0.5 rounded border">
                         {confirmDialog.order.bank_account_number}
                       </div>
                     </div>
@@ -542,7 +542,7 @@ const AdminTravelerPaymentsTab = () => {
               </Card>
             )}
 
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-xs text-muted-foreground text-center">
               ¿Estás seguro de que quieres {confirmDialog.action === 'complete' ? 'completar' : 'rechazar'} esta orden de pago?
             </p>
             <div>
