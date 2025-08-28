@@ -90,16 +90,14 @@ export const MatchCard = ({
         <CardContent className="p-4">
           {/* Compact Header */}
           <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 cursor-pointer" onClick={onToggle}>
               <div className="flex items-center space-x-2 mb-1">
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto">
-                    {isExpanded ? 
-                      <ChevronDown className="h-4 w-4" /> : 
-                      <ChevronRight className="h-4 w-4" />
-                    }
-                  </Button>
-                </CollapsibleTrigger>
+                <div className="flex items-center">
+                  {isExpanded ? 
+                    <ChevronDown className="h-4 w-4" /> : 
+                    <ChevronRight className="h-4 w-4" />
+                  }
+                </div>
                 <h4 className="font-medium text-sm truncate">{pkg.item_description}</h4>
                 <MatchStatusBadge status={pkg.status} />
               </div>
