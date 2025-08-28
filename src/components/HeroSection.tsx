@@ -54,11 +54,23 @@ const HeroSection = ({
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
               {isAuthenticated && userName ? (
                 <>
-                  <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
-                    Bienvenido de vuelta {userName},
-                  </span>
-                  <br />
-                  <span className="text-gray-900">que chilero tenerte aquí!</span>
+                  {userRole?.role === 'admin' ? (
+                    <>
+                      <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
+                        ¡Bienvenido de vuelta, Administrador,
+                      </span>
+                      <br />
+                      <span className="text-gray-900">qué chilero tenerte aquí!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
+                        Bienvenido de vuelta {userName},
+                      </span>
+                      <br />
+                      <span className="text-gray-900">que chilero tenerte aquí!</span>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
