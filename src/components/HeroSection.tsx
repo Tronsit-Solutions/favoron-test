@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -91,7 +92,7 @@ const HeroSection = ({
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
       
-      <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-24 text-center">
+      <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-12 sm:pb-20 text-center">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-6">
           {/* Left Column - Title and Buttons */}
@@ -115,6 +116,26 @@ const HeroSection = ({
                 </>
               )}
             </h1>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap items-center gap-6 mb-6 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <span>{totalUsers}+ usuarios activos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <span>4.9/5 rating</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-red-500" />
+                <span>98% entregas efectivas</span>
+              </div>
+            </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 lg:justify-start justify-center">
@@ -171,3 +192,4 @@ const HeroSection = ({
 };
 
 export default HeroSection;
+
