@@ -25,6 +25,7 @@ export const useAdminTips = () => {
       itemLink: p.itemLink ?? null,
       quantity: (p.quantity ?? '1').toString(),
       adminAssignedTip: Number.isFinite(p.adminAssignedTip) ? p.adminAssignedTip : 0,
+      additionalNotes: (p as any).additionalNotes ?? null, // Preserve additional notes
     }));
 
     const { error } = await supabase

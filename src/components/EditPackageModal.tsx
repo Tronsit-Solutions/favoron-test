@@ -94,7 +94,10 @@ const EditPackageModal = ({ isOpen, onClose, onSubmit, packageData }: EditPackag
       item_link: product.itemLink,
       item_description: product.itemDescription,
       estimated_price: parseFloat(product.estimatedPrice),
-      products_data: [product], // Store single product in array format for compatibility
+      products_data: [{
+        ...product,
+        additionalNotes: formData.additionalNotes || null
+      }], // Store single product in array format for compatibility with notes
       package_destination: finalDestination,
       purchase_origin: finalOrigin,
       delivery_method: formData.deliveryMethod || null,

@@ -45,7 +45,8 @@ const ProductTipAssignmentModal = ({
     console.log('🔍 DEBUG Setting products from initialProducts:', initialProducts);
     const mappedProducts = initialProducts.map(p => ({
       ...p,
-      adminAssignedTip: p.adminAssignedTip || 0
+      adminAssignedTip: p.adminAssignedTip || 0,
+      additionalNotes: (p as any).additionalNotes || null // Preserve additional notes
     }));
     setProducts(mappedProducts);
     

@@ -46,13 +46,19 @@ export const useDashboardActions = (
         return sum + (price * quantity);
       }, 0);
       
+      // Add additional notes to each product
+      const productsWithNotes = products.map((product: any) => ({
+        ...product,
+        additionalNotes: packageData.additionalNotes || null
+      }));
+      
       const dbPackageData = {
         item_description: products.length > 1 
           ? `Pedido de ${products.length} productos` 
           : products[0]?.itemDescription || '',
         item_link: products[0]?.itemLink || null,
         estimated_price: totalEstimatedPrice || null,
-        products_data: products, // Store all products in the new field
+        products_data: productsWithNotes, // Store all products with notes in the new field
         delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
@@ -1100,6 +1106,14 @@ export const useDashboardActions = (
       // Prepare update data (remove ID and set status)
       const { id, ...updateData } = editedPackageData;
       updateData.status = needsReapproval ? 'pending_approval' : originalPackage.status;
+      
+      // Add additional notes to products_data if it exists
+      if (updateData.products_data && Array.isArray(updateData.products_data)) {
+        updateData.products_data = updateData.products_data.map((product: any) => ({
+          ...product,
+          additionalNotes: updateData.additional_notes || null
+        }));
+      }
 
       // Update package in Supabase (this automatically updates local state)
       await updatePackage(id, updateData);
