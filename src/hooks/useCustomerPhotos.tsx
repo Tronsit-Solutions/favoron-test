@@ -19,11 +19,62 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  
+  const CACHE_KEY = `customer_photos_cache_${isAdmin ? 'admin' : 'public'}`;
+  const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
-  const fetchPhotos = async (): Promise<void> => {
+  const getCachedPhotos = (): { data: CustomerPhoto[]; timestamp: number } | null => {
     try {
-      console.log('📸 Fetching customer photos');
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const now = Date.now();
+        if (now - parsed.timestamp < CACHE_DURATION) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.warn('Error reading cached photos:', error);
+    }
+    return null;
+  };
+
+  const setCachedPhotos = (data: CustomerPhoto[]) => {
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.warn('Error caching photos:', error);
+    }
+  };
+
+  const invalidateCache = () => {
+    try {
+      sessionStorage.removeItem(CACHE_KEY);
+      // Also clear the opposite cache (admin/public)
+      const oppositeKey = `customer_photos_cache_${isAdmin ? 'public' : 'admin'}`;
+      sessionStorage.removeItem(oppositeKey);
+    } catch (error) {
+      console.warn('Error invalidating photo cache:', error);
+    }
+  };
+
+  const fetchPhotos = async (force = false): Promise<void> => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCachedPhotos();
+      if (cached) {
+        console.log('📸 Using cached customer photos');
+        setPhotos(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
+    try {
+      console.log('📸 Fetching customer photos from database');
       
       let query = supabase
         .from('customer_photos')
@@ -42,8 +93,10 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         throw error;
       }
       
-      console.log(`✅ Customer photos fetched successfully: ${data?.length || 0} photos`);
-      setPhotos((data || []) as CustomerPhoto[]);
+      const photosData = (data || []) as CustomerPhoto[];
+      console.log(`✅ Customer photos fetched successfully: ${photosData.length} photos`);
+      setPhotos(photosData);
+      setCachedPhotos(photosData);
     } catch (fetchError) {
       console.error('❌ Error fetching photos:', fetchError);
       
@@ -90,7 +143,8 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: approveDirectly ? "Foto subida y aprobada" : "Foto subida, pendiente de aprobación",
       });
 
-      fetchPhotos();
+      invalidateCache();
+      fetchPhotos(true);
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast({
@@ -115,7 +169,8 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: `Foto ${status === 'approved' ? 'aprobada' : 'rechazada'}`,
       });
 
-      fetchPhotos();
+      invalidateCache();
+      fetchPhotos(true);
     } catch (error) {
       console.error('Error updating photo status:', error);
       toast({
@@ -152,7 +207,8 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: "Foto eliminada correctamente",
       });
 
-      fetchPhotos();
+      invalidateCache();
+      fetchPhotos(true);
     } catch (error) {
       console.error('Error deleting photo:', error);
       toast({
@@ -172,7 +228,8 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
 
       if (error) throw error;
 
-      fetchPhotos();
+      invalidateCache();
+      fetchPhotos(true);
     } catch (error) {
       console.error('Error updating sort order:', error);
       toast({
@@ -184,6 +241,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
   };
 
   useEffect(() => {
+    // Only fetch once on mount, use cache after that
     fetchPhotos();
   }, [isAdmin]);
 
@@ -194,6 +252,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
     updatePhotoStatus,
     deletePhoto,
     updateSortOrder,
-    refetch: fetchPhotos
+    refetch: (force = false) => fetchPhotos(force),
+    invalidateCache
   };
 };

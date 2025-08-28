@@ -18,13 +18,54 @@ export const usePublicStats = () => {
     total_tips_distributed: 30000
   };
 
+  const CACHE_KEY = 'public_stats_cache';
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
   const [stats, setStats] = useState<PublicStats>(FALLBACK_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
-  const { toast } = useToast();
 
-  const fetchPublicStats = async (): Promise<void> => {
+  const getCachedStats = (): { data: PublicStats; timestamp: number } | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const now = Date.now();
+        if (now - parsed.timestamp < CACHE_DURATION) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.warn('Error reading cached stats:', error);
+    }
+    return null;
+  };
+
+  const setCachedStats = (data: PublicStats) => {
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.warn('Error caching stats:', error);
+    }
+  };
+
+  const fetchPublicStats = async (force = false): Promise<void> => {
+    // Check cache first unless force refresh
+    if (!force) {
+      const cached = getCachedStats();
+      if (cached) {
+        console.log('📊 Using cached public stats');
+        setStats(cached.data);
+        setLoading(false);
+        return;
+      }
+    }
+
     // Prevent duplicate calls
     if (fetching) {
       console.log('🚫 fetchPublicStats already in progress, skipping');
@@ -33,7 +74,7 @@ export const usePublicStats = () => {
 
     try {
       setFetching(true);
-      console.log('📊 Fetching public stats');
+      console.log('📊 Fetching public stats from database');
       
       const { data, error } = await supabase.rpc('get_public_stats');
 
@@ -43,17 +84,21 @@ export const usePublicStats = () => {
 
       if (data && data.length > 0) {
         const newStats = data[0];
-        console.log('✅ Public stats fetched successfully');
-        setStats({
+        const finalStats = {
           total_users: FALLBACK_STATS.total_users + (Number(newStats.total_users) || 0),
           total_trips: FALLBACK_STATS.total_trips + (Number(newStats.total_trips) || 0),
           total_packages_completed: FALLBACK_STATS.total_packages_completed + (Number(newStats.total_packages_completed) || 0),
           total_tips_distributed: FALLBACK_STATS.total_tips_distributed + (Number(newStats.total_tips_distributed) || 0)
-        });
+        };
+        
+        console.log('✅ Public stats fetched successfully');
+        setStats(finalStats);
+        setCachedStats(finalStats);
         setError(null);
       } else {
         console.log('📊 No stats data returned, using fallbacks');
         setStats(FALLBACK_STATS);
+        setCachedStats(FALLBACK_STATS);
       }
       setLoading(false);
     } catch (fetchError) {
@@ -67,18 +112,14 @@ export const usePublicStats = () => {
   };
 
   useEffect(() => {
+    // Only fetch once on mount, use cache after that
     fetchPublicStats();
-
-    // More frequent updates for landing page stats
-    const interval = setInterval(fetchPublicStats, 2 * 60 * 1000); // Every 2 minutes
-    
-    return () => clearInterval(interval);
   }, []);
 
   return {
     stats,
     loading,
     error,
-    refreshStats: () => fetchPublicStats()
+    refreshStats: (force = false) => fetchPublicStats(force)
   };
 };
