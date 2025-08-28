@@ -233,7 +233,7 @@ const AdminDashboard = ({
       }
     };
     
-    const modalId = `package-detail-${pkg.id}`;
+    const modalId = 'package-detail';
     console.log('📦 Opening package modal:', { modalId, packageWithUser });
     openModal(modalId, 'package-detail', packageWithUser);
   };
@@ -252,7 +252,7 @@ const AdminDashboard = ({
       }
     };
     
-    const modalId = `trip-detail-${trip.id}`;
+    const modalId = 'trip-detail';
     console.log('✈️ Opening trip modal:', { modalId, tripWithUser });
     openModal(modalId, 'trip-detail', tripWithUser);
   };
