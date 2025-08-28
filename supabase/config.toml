@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.log-client-error]
 verify_jwt = false
+
+[functions.migrate-avatar-paths]
+verify_jwt = false

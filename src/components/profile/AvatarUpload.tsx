@@ -17,7 +17,7 @@ const AvatarUpload = ({ currentAvatarUrl, userName, onAvatarChange }: AvatarUplo
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(currentAvatarUrl);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -41,17 +41,36 @@ const AvatarUpload = ({ currentAvatarUrl, userName, onAvatarChange }: AvatarUplo
       console.log('User data:', user);
       if (!user) throw new Error('Usuario no autenticado');
 
-      // Create unique filename with user id in folder structure
+      // Get user profile for creating readable slug
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, username')
+        .eq('id', user.id)
+        .single();
+
+      // Create readable slug from username or name
+      let slug = '';
+      if (profile?.username) {
+        slug = profile.username.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      } else if (profile?.first_name || profile?.last_name) {
+        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        slug = fullName.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+      } else {
+        slug = 'usuario';
+      }
+
+      // Add short ID to prevent collisions
+      const shortId = user.id.substring(0, 8);
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${slug}-${shortId}/avatar.${fileExt}`;
       console.log('Upload filename:', fileName);
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage with upsert to replace existing
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true
         });
 
       console.log('Upload result:', { uploadData, uploadError });
