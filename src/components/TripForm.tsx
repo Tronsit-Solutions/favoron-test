@@ -25,6 +25,21 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
+  // Auto-persist form open state to maintain modal across tab switches
+  const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
+    key: 'trip-form-open',
+    initialState: false
+  });
+
+  // Sync modal state with URL/persistence
+  useEffect(() => {
+    if (isOpen && !isFormOpen) {
+      setIsFormOpen(true);
+    } else if (!isOpen && isFormOpen) {
+      setIsFormOpen(false);
+    }
+  }, [isOpen, isFormOpen, setIsFormOpen]);
+
   // Use persisted form state to maintain data across tab switches
   const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
     key: 'trip-form-data',

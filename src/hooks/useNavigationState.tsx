@@ -57,22 +57,9 @@ export const useNavigationState = (defaultTab: string = 'overview') => {
     saveState();
   }, [saveState]);
 
-  // Restore state on mount and when tab becomes visible
+  // Restore state on mount only (no visibility change listener)
   useEffect(() => {
     restoreState();
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        // Tab became active - restore state without refreshing
-        restoreState();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [restoreState]);
 
   const setActiveTabWithSave = useCallback((tab: string) => {

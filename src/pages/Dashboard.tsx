@@ -8,12 +8,19 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Add a small delay to prevent redirects during auth re-validation
+    // Improved auth guard: longer timeout + track if user was previously authenticated
+    const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
+    
     const timer = setTimeout(() => {
-      if (!loading && !user) {
+      if (!loading && !user && !wasAuthenticated) {
         navigate('/auth');
       }
-    }, 500); // Allow 500ms for auth to complete
+    }, 2000); // Extended timeout to 2 seconds for better stability
+
+    // Track authentication state
+    if (user) {
+      sessionStorage.setItem('was_authenticated', 'true');
+    }
 
     return () => clearTimeout(timer);
   }, [user, loading, navigate]);
