@@ -249,7 +249,11 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                     <TableCell>
                       <Avatar className="h-12 w-12">
                         <AvatarImage 
-                          src={(user as any).avatarUrl || (user as any).avatar_url} 
+                          src={
+                            typeof (user as any).avatar_url === 'string' ? (user as any).avatar_url :
+                            typeof (user as any).avatarUrl === 'string' ? (user as any).avatarUrl :
+                            undefined
+                          } 
                           alt={`Foto de ${user.name}`}
                           className="object-cover"
                         />
