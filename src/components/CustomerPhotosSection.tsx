@@ -136,19 +136,12 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   <CarouselContent>
                     {approvedPhotos.map((photo) => (
                       <CarouselItem key={photo.id}>
-                        <div className="relative bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg rounded-3xl p-4 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02]">
-                          <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner relative">
-                            <img
-                              src={photo.image_url}
-                              alt={photo.product_description}
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Subtle gradient overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-60"></div>
-                          </div>
-                          {/* Decorative elements */}
-                          <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-lg"></div>
-                          <div className="absolute bottom-2 left-2 w-2 h-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg"></div>
+                        <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                          <img
+                            src={photo.image_url}
+                            alt={photo.product_description}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       </CarouselItem>
                     ))}
@@ -258,19 +251,12 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 <CarouselContent>
                   {approvedPhotos.slice(0, 10).map((photo) => (
                     <CarouselItem key={photo.id}>
-                      <div className="relative bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg rounded-3xl p-4 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02]">
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner relative">
-                          <img
-                            src={photo.image_url}
-                            alt={photo.product_description}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Subtle gradient overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-60"></div>
-                        </div>
-                        {/* Decorative elements */}
-                        <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-lg"></div>
-                        <div className="absolute bottom-2 left-2 w-2 h-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg"></div>
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                        <img
+                          src={photo.image_url}
+                          alt={photo.product_description}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </CarouselItem>
                   ))}
