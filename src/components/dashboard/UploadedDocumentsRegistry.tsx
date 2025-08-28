@@ -66,7 +66,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
     if (confirmationData.filePath) {
       try {
         const { data, error } = await supabase.storage
-          .from('payment-receipts')
+          .from('purchase-confirmations')
           .createSignedUrl(confirmationData.filePath, 3600);
 
         if (error) {

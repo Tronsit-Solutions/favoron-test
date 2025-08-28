@@ -18,6 +18,7 @@ import {
 import { formatCurrency } from '@/lib/formatters';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentOrderDetailModalProps {
   isOpen: boolean;
@@ -35,6 +36,8 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
   const trip = paymentOrder.trips;
   const traveler = paymentOrder.profiles;
   const historicalPackages = paymentOrder.historical_packages || [];
+
+  const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -107,7 +110,19 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.open(paymentOrder.receipt_url, '_blank')}
+                    onClick={async () => {
+                      const url = paymentOrder.receipt_url as string | undefined;
+                      if (url?.startsWith('http')) {
+                        window.open(url, '_blank');
+                      } else if (url) {
+                        const { data, error } = await supabase.storage
+                          .from('payment-receipts')
+                          .createSignedUrl(url, 3600);
+                        if (!error && data?.signedUrl) {
+                          window.open(data.signedUrl, '_blank');
+                        }
+                      }
+                    }}
                     className="mt-1"
                   >
                     <ExternalLink className="w-4 h-4 mr-1" />
@@ -198,7 +213,7 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Número de Cuenta</p>
-                      <p className="font-medium">{paymentOrder.bank_account_number}</p>
+                      <p className="font-medium">{maskAccount(paymentOrder.bank_account_number)}</p>
                     </div>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -260,9 +261,17 @@ const CollapsibleTravelerPackageCard = ({
                               size="sm"
                               variant="outline"
                               className="h-7 text-xs"
-                              onClick={() => {
-                                const url = `https://dfhoduirmqbarjnspbdh.supabase.co/storage/v1/object/public/purchase-confirmations/${pkg.purchase_confirmation.filePath}`;
-                                openDocumentModal('Comprobante de Compra', url, 'image');
+                              onClick={async () => {
+                                try {
+                                  const { data, error } = await supabase.storage
+                                    .from('purchase-confirmations')
+                                    .createSignedUrl(pkg.purchase_confirmation.filePath, 3600);
+                                  if (!error && data?.signedUrl) {
+                                    openDocumentModal('Comprobante de Compra', data.signedUrl, 'image');
+                                  }
+                                } catch (e) {
+                                  console.error('Error generating signed URL', e);
+                                }
                               }}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
@@ -313,17 +322,28 @@ const CollapsibleTravelerPackageCard = ({
                           <div className="text-xs text-muted-foreground mb-2">
                             Archivo: {pkg.payment_receipt.filename || 'Pago confirmado'}
                           </div>
-                          {pkg.payment_receipt.publicUrl && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs"
-                              onClick={() => openDocumentModal('Comprobante de Pago', pkg.payment_receipt.publicUrl, 'image')}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              Ver Comprobante
-                            </Button>
-                          )}
+                            {pkg.payment_receipt?.filePath && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                onClick={async () => {
+                                  try {
+                                    const { data, error } = await supabase.storage
+                                      .from('payment-receipts')
+                                      .createSignedUrl(pkg.payment_receipt.filePath, 3600);
+                                    if (!error && data?.signedUrl) {
+                                      openDocumentModal('Comprobante de Pago', data.signedUrl, 'image');
+                                    }
+                                  } catch (e) {
+                                    console.error('Error generating signed URL', e);
+                                  }
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Ver Comprobante
+                              </Button>
+                            )}
                         </div>
                       )}
 

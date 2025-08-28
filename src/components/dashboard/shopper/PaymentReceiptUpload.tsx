@@ -64,16 +64,10 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('payment-receipts')
-        .getPublicUrl(filePath);
-
       // Update package with payment receipt info
       const paymentReceiptData = {
         filename: file.name,
         filePath,
-        publicUrl,
         uploadedAt: new Date().toISOString(),
         fileSize: file.size,
         fileType: file.type

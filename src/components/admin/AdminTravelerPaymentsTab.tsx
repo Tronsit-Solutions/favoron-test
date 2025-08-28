@@ -64,6 +64,7 @@ const AdminTravelerPaymentsTab = () => {
   const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
   
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
   const processedOrders = orders.filter(order => order && order.status !== 'pending');
@@ -101,11 +102,8 @@ const AdminTravelerPaymentsTab = () => {
               .upload(fileName, receiptPhoto);
               
             if (!uploadError) {
-              const { data: { publicUrl } } = supabase.storage
-                .from('payment-receipts')
-                .getPublicUrl(fileName);
-                
-              updateData.receipt_url = publicUrl;
+              // Store storage file path (private bucket)
+              updateData.receipt_url = fileName;
               updateData.receipt_filename = receiptPhoto.name;
             } else {
               console.error('Error uploading receipt:', uploadError);
@@ -202,7 +200,7 @@ const AdminTravelerPaymentsTab = () => {
             <div className="space-y-1">
               <div className="font-medium text-sm">{order.bank_account_holder}</div>
               <div className="text-xs text-muted-foreground">{order.bank_name}</div>
-              <div className="text-xs font-mono text-gray-700">{order.bank_account_number}</div>
+              <div className="text-xs font-mono text-gray-700">{maskAccount(order.bank_account_number)}</div>
               <div className="text-xs text-muted-foreground capitalize">{order.bank_account_type}</div>
             </div>
           </TableCell>
@@ -346,7 +344,19 @@ const AdminTravelerPaymentsTab = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.open(order.receipt_url, '_blank')}
+                    onClick={async () => {
+                      const url = order.receipt_url;
+                      if (url?.startsWith('http')) {
+                        window.open(url, '_blank');
+                      } else if (url) {
+                        const { data, error } = await supabase.storage
+                          .from('payment-receipts')
+                          .createSignedUrl(url, 3600);
+                        if (!error && data?.signedUrl) {
+                          window.open(data.signedUrl, '_blank');
+                        }
+                      }
+                    }}
                     className="flex items-center gap-2"
                   >
                     <ExternalLink className="w-4 h-4" />

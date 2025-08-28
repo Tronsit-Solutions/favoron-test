@@ -28,6 +28,7 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
+  const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
 
   const handleViewDetails = (order: any) => {
     setSelectedOrder(order);
@@ -67,17 +68,13 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
 
             if (uploadError) throw uploadError;
 
-            const { data: { publicUrl } } = supabase.storage
-              .from('payment-receipts')
-              .getPublicUrl(fileName);
-
-            // Actualizar la orden con el comprobante y marcar como completada
+            // Actualizar la orden con el comprobante (guardamos filePath) y marcar como completada
             const { error: updateError } = await supabase
               .from('payment_orders')
               .update({
                 status: 'completed',
-                receipt_url: publicUrl,
-                receipt_filename: fileName,
+                receipt_url: fileName,
+                receipt_filename: file.name,
                 completed_at: new Date().toISOString()
               })
               .eq('id', orderId);
@@ -189,7 +186,7 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
             </div>
             <div>
               <span className="text-muted-foreground">Cuenta:</span>
-              <p className="font-medium">{order.profiles?.bank_account_number || order.bank_account_number}</p>
+              <p className="font-medium">{maskAccount(order.profiles?.bank_account_number || order.bank_account_number)}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Titular:</span>
@@ -241,7 +238,19 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => window.open(order.receipt_url, '_blank')}
+                onClick={async () => {
+                  const url = order.receipt_url;
+                  if (url?.startsWith('http')) {
+                    window.open(url, '_blank');
+                  } else if (url) {
+                    const { data, error } = await supabase.storage
+                      .from('payment-receipts')
+                      .createSignedUrl(url, 3600);
+                    if (!error && data?.signedUrl) {
+                      window.open(data.signedUrl, '_blank');
+                    }
+                  }
+                }}
               >
                 Ver comprobante de pago
               </Button>

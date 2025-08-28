@@ -75,7 +75,7 @@ const EditDocumentModal = ({ isOpen, onClose, documentType, pkg, onUpdate }: Edi
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('payment-receipts')
+        .from('purchase-confirmations')
         .upload(filePath, file);
 
       if (uploadError) {
