@@ -96,14 +96,14 @@ export const useOptimizedPackagesData = () => {
       .from('packages')
       .select(`
         *,
-        profiles!packages_user_id_fkey(first_name, last_name, avatar_url),
-        trips!packages_matched_trip_id_fkey(
+        profiles:user_id(first_name, last_name, avatar_url),
+        trips:matched_trip_id(
           id,
           from_city,
           to_city,
           departure_date,
           arrival_date,
-          profiles!trips_user_id_fkey(first_name, last_name, avatar_url)
+          profiles:user_id(first_name, last_name, avatar_url)
         )
       `)
       .order('created_at', { ascending: false });
