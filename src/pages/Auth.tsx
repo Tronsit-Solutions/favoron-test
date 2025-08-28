@@ -88,7 +88,7 @@ const Auth = () => {
         console.log('Existing session check result:', session);
         if (session && !isResettingPassword) {
           console.log('Existing session found, redirecting to home');
-          navigate('/');
+          navigate('/dashboard');
         } else {
           console.log('No existing session, staying on auth page');
         }
@@ -108,9 +108,9 @@ const Auth = () => {
         return;
       }
       if (event === 'SIGNED_IN' && session && !isResettingPassword) {
-        console.log('User signed in, redirecting to home');
+        console.log('User signed in, redirecting to dashboard');
         // User is signed in and not in password reset flow
-        navigate('/');
+        navigate('/dashboard');
       }
     });
 
@@ -272,7 +272,7 @@ const Auth = () => {
       
       if (data.user) {
         // Force page reload for clean state
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }
     } catch (error: any) {
       // Log signin error
