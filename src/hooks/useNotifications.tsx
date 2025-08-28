@@ -153,49 +153,72 @@ export const useNotifications = (userId?: string) => {
 
     fetchNotifications();
 
-    const channel = supabase
-      .channel('notifications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev.slice(0, 19)]);
-          setUnreadCount(prev => prev + 1);
+    let channel: any = null;
 
-          // Show toast for new notifications
-          if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-            });
+    try {
+      channel = supabase
+        .channel('notifications-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            const newNotification = payload.new as Notification;
+            setNotifications(prev => [newNotification, ...prev.slice(0, 19)]);
+            setUnreadCount(prev => prev + 1);
+
+            // Show toast for new notifications
+            if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+              });
+            }
           }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            const updatedNotification = payload.new as Notification;
+            setNotifications(prev =>
+              prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
+            );
+          }
+        );
+
+      // Subscribe with error handling
+      channel.subscribe((status: string, err?: any) => {
+        if (err) {
+          console.warn('Notifications realtime subscription error:', err);
+          // Continue without realtime - will use polling instead
+        } else if (status === 'SUBSCRIBED') {
+          console.log('Notifications realtime subscription active');
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          const updatedNotification = payload.new as Notification;
-          setNotifications(prev =>
-            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
-          );
-        }
-      )
-      .subscribe();
+      });
+
+    } catch (error) {
+      console.warn('Failed to set up notifications realtime subscription:', error);
+      // App will continue to work with polling, just without real-time updates
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Error removing notifications channel:', error);
+        }
+      }
     };
   }, [userId, toast]);
 
