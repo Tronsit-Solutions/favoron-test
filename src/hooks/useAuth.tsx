@@ -152,16 +152,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
+    console.log('🔐 Setting up auth state listener');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('🔐 Auth state changed:', event, 'Session exists:', !!session);
+        
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          console.log('👤 User authenticated:', session.user.id, session.user.email);
           // Load profile immediately for faster auth
           loadProfile(session.user.id);
         } else {
+          console.log('🚪 User signed out or no session');
           setProfile(null);
           setUserRole(null);
           setLoading(false);
@@ -170,18 +176,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // Check for existing session on mount
+    console.log('🔍 Checking for existing session...');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔍 Initial session check result:', !!session);
+      
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        console.log('👤 Found existing session for:', session.user.id, session.user.email);
         loadProfile(session.user.id);
       } else {
+        console.log('🚫 No existing session found');
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🧹 Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
