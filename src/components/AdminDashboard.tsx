@@ -8,9 +8,11 @@ import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
-import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { useAdminRealtimeWithModalProtection } from "@/hooks/useAdminRealtimeWithModalProtection";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useModalProtection } from "@/hooks/useModalProtection";
+import { useModalState } from "@/contexts/ModalStateContext";
 import { MobileTabs } from "@/components/ui/mobile-tabs";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
@@ -65,14 +67,10 @@ const AdminDashboard = ({
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");
   const [showMatchDialog, setShowMatchDialog] = useState(false);
-  const [showPackageDetail, setShowPackageDetail] = useState(false);
-  const [showTripDetail, setShowTripDetail] = useState(false);
-  const [selectedDetailPackage, setSelectedDetailPackage] = useState<any>(null);
-  const [selectedDetailTrip, setSelectedDetailTrip] = useState<any>(null);
-  const [showActionsModal, setShowActionsModal] = useState(false);
-  const [selectedActionsPackage, setSelectedActionsPackage] = useState<any>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { openModal } = useModalState();
+  const { canRefresh } = useModalProtection();
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -221,9 +219,9 @@ const AdminDashboard = ({
       }
     };
     
-    console.log('📦 Final package for modal:', packageWithUser);
-    setSelectedDetailPackage(packageWithUser);
-    setShowPackageDetail(true);
+    const modalId = `package-detail-${pkg.id}`;
+    console.log('📦 Opening package modal:', { modalId, packageWithUser });
+    openModal(modalId, 'package-detail', packageWithUser);
   };
 
   const handleViewTripDetail = (trip: any) => {
@@ -239,8 +237,10 @@ const AdminDashboard = ({
         completedDeliveries: Math.floor(Math.random() * 15)
       }
     };
-    setSelectedDetailTrip(tripWithUser);
-    setShowTripDetail(true);
+    
+    const modalId = `trip-detail-${trip.id}`;
+    console.log('✈️ Opening trip modal:', { modalId, tripWithUser });
+    openModal(modalId, 'trip-detail', tripWithUser);
   };
 
   // Filter trips that are approved and active for matching
@@ -256,15 +256,26 @@ const AdminDashboard = ({
   const { paymentOrders } = usePaymentOrders();
   const pendingTravelerPayments = paymentOrders.filter(order => order.status === 'pending').length;
   
-  // Set up real-time notifications for document uploads
-  useRealtimePackages({
+  // Set up real-time notifications with modal protection
+  useAdminRealtimeWithModalProtection({
     userRole: 'admin',
     onPackageUpdate: (payload) => {
-      // Refresh packages when there's an update
-      if (onRefreshPackages) {
+      // Only refresh if no modals are open
+      if (canRefresh() && onRefreshPackages) {
+        console.log('📦 Admin dashboard refreshing packages');
+        onRefreshPackages();
+      } else {
+        console.log('📱 Admin dashboard skipping refresh due to open modals');
+      }
+    },
+    onTripUpdate: (payload) => {
+      // Refresh trips if needed and no modals are open
+      if (canRefresh() && onRefreshPackages) {
+        console.log('✈️ Admin dashboard refreshing due to trip update');
         onRefreshPackages();
       }
-    }
+    },
+    debounceMs: 2000 // 2 second debounce for admin
   });
   
   // Create tabs array for mobile and desktop tabs
@@ -393,8 +404,8 @@ const AdminDashboard = ({
             trips={trips}
             onViewPackageDetail={handleViewPackageDetail}
             onOpenActionsModal={(pkg) => {
-              setSelectedActionsPackage(pkg);
-              setShowActionsModal(true);
+              const modalId = `admin-actions-${pkg.id}`;
+              openModal(modalId, 'admin-actions', pkg);
             }}
           />
         </TabsContent>
@@ -415,51 +426,41 @@ const AdminDashboard = ({
         onMatch={handleMatch}
       />
 
-      {/* Actions Modal */}
+      {/* Global Modals - using persistent modal system */}
       <AdminActionsModal
-        package={selectedActionsPackage}
+        modalId="admin-actions"
         trips={trips}
-        isOpen={showActionsModal}
-        onClose={() => setShowActionsModal(false)}
-        onRefresh={() => window.location.reload()}
+        onRefresh={() => canRefresh() ? window.location.reload() : console.log('📱 Refresh blocked by open modals')}
       />
 
-      {/* Package Detail Modal */}
       <PackageDetailModal
-        package={selectedDetailPackage}
+        modalId="package-detail"
         trips={trips}
-        isOpen={showPackageDetail}
-        onClose={() => setShowPackageDetail(false)}
         onApprove={(id) => {
-          if (selectedDetailPackage?.status === 'payment_pending_approval') {
+          const pkg = packages.find(p => p.id === id);
+          if (pkg?.status === 'payment_pending_approval') {
             onPaymentApproval(id, 'approve');
           } else {
             onApproveReject('package', id, 'approve');
           }
-          setShowPackageDetail(false);
         }}
         onReject={(id) => {
-          if (selectedDetailPackage?.status === 'payment_pending_approval') {
+          const pkg = packages.find(p => p.id === id);
+          if (pkg?.status === 'payment_pending_approval') {
             onPaymentApproval(id, 'reject');
           } else {
             onApproveReject('package', id, 'reject');
           }
-          setShowPackageDetail(false);
         }}
       />
 
-      {/* Trip Detail Modal */}
       <TripDetailModal
-        trip={selectedDetailTrip}
-        isOpen={showTripDetail}
-        onClose={() => setShowTripDetail(false)}
+        modalId="trip-detail"
         onApprove={(id) => {
           onApproveReject('trip', id, 'approve');
-          setShowTripDetail(false);
         }}
         onReject={(id) => {
           onApproveReject('trip', id, 'reject');
-          setShowTripDetail(false);
         }}
       />
     </div>

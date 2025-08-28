@@ -32,18 +32,20 @@ import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
-// Added: display breakdown of products
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
+import { useModalState } from "@/contexts/ModalStateContext";
 
 interface AdminActionsModalProps {
-  package: any;
+  modalId: string;
   trips: any[];
-  isOpen: boolean;
-  onClose: () => void;
   onRefresh?: () => void;
 }
 
-const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: AdminActionsModalProps) => {
+const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps) => {
+  const { isModalOpen, closeModal, getModalData } = useModalState();
+  const pkg = getModalData(modalId);
+  const isOpen = isModalOpen(modalId);
+  
   const [activeTab, setActiveTab] = useState("status");
   const [isLoading, setIsLoading] = useState(false);
   const [newStatus, setNewStatus] = useState("");
@@ -142,7 +144,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
       });
 
       onRefresh?.();
-      onClose();
+      closeModal(modalId);
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
@@ -219,7 +221,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
       });
 
       onRefresh?.();
-      onClose();
+      closeModal(modalId);
     } catch (error) {
       console.error('Error reassigning trip:', error);
       toast({
@@ -393,7 +395,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
       }
 
       onRefresh?.();
-      onClose();
+      closeModal(modalId);
 
     } catch (error) {
       console.error('Error processing delivery confirmation:', error);
@@ -458,7 +460,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
         products={products}
         packageId={pkg.id}
       />
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -853,7 +855,7 @@ const AdminActionsModal = ({ package: pkg, trips, isOpen, onClose, onRefresh }: 
         </Tabs>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => closeModal(modalId)}>
             <X className="h-4 w-4 mr-2" />
             Cerrar
           </Button>

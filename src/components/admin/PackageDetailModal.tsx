@@ -8,18 +8,21 @@ import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
+import { useModalState } from "@/contexts/ModalStateContext";
 
 interface PackageDetailModalProps {
-  package: any;
+  modalId: string;
   trips: any[];
-  isOpen: boolean;
-  onClose: () => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 }
 
-const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {
-  console.log('PackageDetailModal render:', { pkg, trips, isOpen });
+const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
+  const { isModalOpen, closeModal, getModalData } = useModalState();
+  const pkg = getModalData(modalId);
+  const isOpen = isModalOpen(modalId);
+
+  console.log('PackageDetailModal render:', { pkg, trips, isOpen, modalId });
 
   if (!pkg) {
     console.log('No package provided to PackageDetailModal');
@@ -96,7 +99,7 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">

@@ -7,16 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag } from "lucide-react";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { useModalState } from "@/contexts/ModalStateContext";
 
 interface TripDetailModalProps {
-  trip: any;
-  isOpen: boolean;
-  onClose: () => void;
+  modalId: string;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 }
 
-const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDetailModalProps) => {
+const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps) => {
+  const { isModalOpen, closeModal, getModalData } = useModalState();
+  const trip = getModalData(modalId);
+  const isOpen = isModalOpen(modalId);
+  
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [packages, setPackages] = useState<any[]>([]);
@@ -112,7 +115,7 @@ const TripDetailModal = ({ trip, isOpen, onClose, onApprove, onReject }: TripDet
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
