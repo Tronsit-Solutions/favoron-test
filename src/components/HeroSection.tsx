@@ -27,7 +27,7 @@ const HeroSection = ({
       
       <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
         {/* Trust Indicators - Top Banner */}
-        <div className="flex flex-wrap justify-center items-center gap-6 mb-1 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-3 border border-white/30">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-6 mb-1 text-xs sm:text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-3 border border-white/40 shadow-sm">
                <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <span>{stats.total_users}+ usuarios activos</span>
