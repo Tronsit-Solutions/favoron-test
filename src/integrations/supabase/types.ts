@@ -970,6 +970,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_admin_profile_access: {
+        Args: {
+          _access_type: string
+          _accessed_profile_id: string
+          _reason?: string
+        }
+        Returns: undefined
+      }
       send_assignment_warnings: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -982,6 +990,14 @@ export type Database = {
           _wants_requote?: boolean
         }
         Returns: undefined
+      }
+      validate_banking_info: {
+        Args: {
+          _account_holder: string
+          _account_number: string
+          _bank_name: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
