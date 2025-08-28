@@ -38,7 +38,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
 
   if (loading) {
     return (
-      <section className="py-16 bg-gradient-to-r from-background via-muted/30 to-background">
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="animate-pulse space-y-8">
             <div className="text-center space-y-4">
@@ -58,7 +58,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
   }
 
   return (
-    <section className="py-16 bg-gradient-to-r from-background via-muted/30 to-background">
+    <section className="py-16">
       <div className="container mx-auto px-4">
         {isAdmin ? (
           <>
