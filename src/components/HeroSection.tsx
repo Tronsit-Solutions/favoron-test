@@ -92,7 +92,7 @@ const HeroSection = ({
       
       <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-12 sm:pb-20 text-center">
         {/* Trust Indicators - Top Banner */}
-        <div className="flex flex-wrap justify-center items-center gap-6 mb-8 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-white/30">
+        <div className="flex flex-wrap justify-center items-center gap-6 mb-4 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-white/30">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <span>{totalUsers}+ usuarios activos</span>
