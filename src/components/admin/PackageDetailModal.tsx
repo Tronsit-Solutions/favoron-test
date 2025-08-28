@@ -285,7 +285,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Precio Estimado</p>
-                    <p className="text-sm text-muted-foreground">${pkg.estimated_price || '0'}</p>
+                    <p className="text-sm text-muted-foreground">${(() => { return Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).estimatedPrice) || 0), 0) : (pkg.estimated_price || 0); })()}</p>
                   </div>
                 </div>
                 
