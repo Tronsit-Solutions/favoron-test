@@ -19,7 +19,12 @@ interface PackageDetailModalProps {
 }
 
 const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, onReject }: PackageDetailModalProps) => {
-  if (!pkg) return null;
+  console.log('PackageDetailModal render:', { pkg, trips, isOpen });
+
+  if (!pkg) {
+    console.log('No package provided to PackageDetailModal');
+    return null;
+  }
 
   // Centralized rejection reason translation function
   const translateRejectionReason = (reason: any): string => {
@@ -66,6 +71,8 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
     ? trips.find(trip => trip.id === pkg.matched_trip_id)
     : null;
 
+  console.log('Matched trip found:', matchedTrip);
+
   const getStatusBadge = (status: string) => {
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
@@ -101,7 +108,19 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
+          {/* Debug information */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+            <p><strong>Debug Info:</strong></p>
+            <p>Package ID: {pkg.id}</p>
+            <p>Status: {pkg.status}</p>
+            <p>Item: {pkg.item_description || 'No description'}</p>
+            <p>User ID: {pkg.user_id}</p>
+            <p>Has profile: {pkg.profiles ? 'Yes' : 'No'}</p>
+            <p>Matched Trip ID: {pkg.matched_trip_id || 'None'}</p>
+            <p>Matched Trip Found: {matchedTrip ? 'Yes' : 'No'}</p>
+          </div>
+
           {/* Status */}
           <div className="flex justify-between items-center">
             <span className="font-medium">Estado actual:</span>
@@ -248,285 +267,52 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
             )}
           </div>
 
-          {/* Enhanced Package/Products Information */}
+          {/* Package Information - Simplified for debugging */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between text-lg">
-                <div className="flex items-center space-x-2">
-                  <Package className="h-4 w-4" />
-                  <span>
-                    {pkg.products && pkg.products.length > 0 
-                      ? `Productos Solicitados`
-                      : 'Detalles del Artículo'
-                    }
-                  </span>
-                </div>
-                {pkg.products && pkg.products.length > 0 && (
-                  <Badge variant="outline" className="text-sm">
-                    {pkg.products.length} producto{pkg.products.length !== 1 ? 's' : ''}
-                  </Badge>
-                )}
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <Package className="h-4 w-4" />
+                <span>Detalles del Paquete</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Multiple products display - Enhanced */}
-              {pkg.products && pkg.products.length > 0 ? (
-                <div className="space-y-4">
-                  {/* Products summary header */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium text-blue-800">Total de productos:</p>
-                        <p className="text-blue-700">{pkg.products.length} artículos</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-blue-800">Valor total estimado:</p>
-                        <p className="text-blue-700 text-lg font-bold">
-                          ${pkg.products.reduce((sum: number, p: any) => {
-                            const price = parseFloat(p.estimatedPrice || '0');
-                            const quantity = parseInt(p.quantity || '1');
-                            return sum + (price * quantity);
-                          }, 0).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+              <div>
+                <p className="font-medium text-lg">{pkg.item_description || 'Sin descripción'}</p>
+                <p className="text-muted-foreground">Descripción del artículo solicitado</p>
+              </div>
 
-                  {/* Individual products */}
-                  <div className="space-y-3">
-                    {pkg.products.map((product: any, index: number) => {
-                      const productValue = parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1');
-                      
-                      return (
-                        <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="secondary" className="text-xs">
-                                #{index + 1}
-                              </Badge>
-                              <p className="font-medium text-base">Producto {index + 1}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-muted-foreground">Valor unitario: ${product.estimatedPrice}</p>
-                              <p className="font-medium text-lg">${productValue.toFixed(2)}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div>
-                              <p className="text-sm font-medium text-muted-foreground mb-1">Descripción:</p>
-                              <p className="text-sm bg-white p-2 rounded border">{product.itemDescription}</p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Cantidad:</p>
-                                <p className="text-sm bg-white p-2 rounded border">
-                                  {product.quantity || '1'} unidad{product.quantity !== '1' ? 'es' : ''}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Precio estimado:</p>
-                                <p className="text-sm bg-white p-2 rounded border font-medium">
-                                  ${product.estimatedPrice}
-                                </p>
-                              </div>
-                            </div>
-
-                            {product.adminAssignedTip && (
-                              <div className="bg-green-50 border border-green-200 rounded p-2">
-                                <p className="text-sm font-medium text-green-800">
-                                  Tip asignado por admin: Q{product.adminAssignedTip.toFixed(2)}
-                                </p>
-                              </div>
-                            )}
-
-                            {product.itemLink && (
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Link del producto:</p>
-                                <a 
-                                  href={product.itemLink} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="flex items-center space-x-2 text-primary hover:underline text-sm bg-white p-2 rounded border"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  <span className="truncate">Ver producto en línea</span>
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Admin tip summary for multiple products */}
-                  {pkg.products.some((p: any) => p.adminAssignedTip) && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-green-800">Total Tips Asignados por Admin:</span>
-                        <span className="text-lg font-bold text-green-800">
-                          Q{pkg.products.reduce((sum: number, p: any) => sum + (p.adminAssignedTip || 0), 0).toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="mt-2 text-sm text-green-700">
-                        <p>Desglose por producto:</p>
-                        <ul className="list-disc list-inside mt-1">
-                          {pkg.products.map((p: any, idx: number) => (
-                            p.adminAssignedTip && (
-                              <li key={idx}>
-                                Producto #{idx + 1}: Q{p.adminAssignedTip.toFixed(2)}
-                              </li>
-                            )
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Single product display (backward compatibility)
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="font-medium text-lg">{pkg.item_description}</p>
-                    <p className="text-muted-foreground">Descripción del artículo solicitado</p>
+                    <p className="text-sm font-medium">Precio Estimado</p>
+                    <p className="text-sm text-muted-foreground">${pkg.estimated_price || '0'}</p>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Precio Estimado</p>
-                        <p className="text-sm text-muted-foreground">${pkg.estimated_price}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {pkg.item_link && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Link del Producto:</p>
-                      <a 
-                        href={pkg.item_link}
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2 text-primary hover:underline"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        <span>Ver producto en línea</span>
-                      </a>
-                    </div>
-                  )}
                 </div>
-              )}
-
-              {/* Additional package details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Fecha Límite</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                      {pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada'}
                     </p>
                   </div>
                 </div>
-
-                {pkg.package_destination && (
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Destino</p>
-                      <p className="text-sm text-muted-foreground">{pkg.package_destination}</p>
-                    </div>
-                  </div>
-                )}
-
-                {pkg.purchase_origin && (
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Origen de compra</p>
-                      <p className="text-sm text-muted-foreground">{pkg.purchase_origin}</p>
-                    </div>
-                  </div>
-                )}
-
-                {pkg.delivery_method && (
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Método de entrega en Guatemala</p>
-                      <p className="text-sm text-muted-foreground">
-                        {pkg.delivery_method === 'pickup' ? '🏢 Recojo en zona 14' : '🚚 Envío a domicilio (+Q25)'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {pkg.delivery_method === 'delivery' && pkg.confirmed_delivery_address && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                    <p className="text-sm font-medium text-blue-800 mb-2">📍 Dirección de entrega:</p>
-                    <div className="text-sm text-blue-700 space-y-1">
-                      <p><strong>Dirección:</strong> {pkg.confirmed_delivery_address.streetAddress}</p>
-                      <p><strong>Ciudad/Municipio:</strong> {pkg.confirmed_delivery_address.cityArea}</p>
-                      <p><strong>Teléfono:</strong> {pkg.confirmed_delivery_address.contactNumber}</p>
-                      {pkg.confirmed_delivery_address.hotelAirbnbName && (
-                        <p><strong>Edificio/Condominio:</strong> {pkg.confirmed_delivery_address.hotelAirbnbName}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {pkg.delivery_method === 'delivery' && !pkg.confirmed_delivery_address && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
-                    <p className="text-sm font-medium text-amber-800">⚠️ Dirección de entrega no completada</p>
-                    <p className="text-sm text-amber-700">El cliente seleccionó envío a domicilio pero no completó la información de dirección.</p>
-                  </div>
-                )}
-
-                {/* Información de envío del viajero (guardada permanentemente) */}
-                {pkg.traveler_address && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3">
-                    <p className="text-sm font-medium text-green-800 mb-2">📦 Información de envío del viajero:</p>
-                    <div className="text-sm text-green-700 space-y-1">
-                      <p><strong>Destinatario:</strong> {pkg.traveler_address.recipientName || 'No especificado'}</p>
-                      <p><strong>Dirección:</strong> {pkg.traveler_address.streetAddress}</p>
-                      {pkg.traveler_address.streetAddress2 && (
-                        <p><strong>Dirección 2:</strong> {pkg.traveler_address.streetAddress2}</p>
-                      )}
-                      <p><strong>Ciudad/Área:</strong> {pkg.traveler_address.cityArea}</p>
-                      {pkg.traveler_address.postalCode && (
-                        <p><strong>Código Postal:</strong> {pkg.traveler_address.postalCode}</p>
-                      )}
-                      <p><strong>Teléfono:</strong> {pkg.traveler_address.contactNumber}</p>
-                      {pkg.traveler_address.hotelAirbnbName && pkg.traveler_address.hotelAirbnbName !== '-' && (
-                        <p><strong>Hotel/Airbnb:</strong> {pkg.traveler_address.hotelAirbnbName}</p>
-                      )}
-                      <p><strong>Tipo de alojamiento:</strong> {pkg.traveler_address.accommodationType || 'No especificado'}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Fechas importantes del viaje (guardadas permanentemente) */}
-                {pkg.matched_trip_dates && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                    <p className="text-sm font-medium text-blue-800 mb-2">📅 Fechas importantes del viaje:</p>
-                    <div className="text-sm text-blue-700 space-y-1">
-                      <p><strong>Primer día para recibir paquetes:</strong> {new Date(pkg.matched_trip_dates.first_day_packages).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                      <p><strong>Último día para recibir paquetes:</strong> {new Date(pkg.matched_trip_dates.last_day_packages).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                      <p><strong>Fecha de entrega en Guatemala:</strong> {new Date(pkg.matched_trip_dates.delivery_date).toLocaleDateString('es-GT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {pkg.additional_notes && (
+              {pkg.item_link && (
                 <div>
-                  <p className="text-sm font-medium mb-1">Notas Adicionales:</p>
-                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                    {pkg.additional_notes}
-                  </p>
+                  <p className="text-sm font-medium mb-2">Link del Producto:</p>
+                  <a 
+                    href={pkg.item_link}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Ver producto en línea</span>
+                  </a>
                 </div>
               )}
 
@@ -535,370 +321,6 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
               </div>
             </CardContent>
           </Card>
-
-          {/* Financial Information / Invoice Section */}
-          {pkg.quote && pkg.quote.totalPrice && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-base">
-                  <DollarSign className="h-4 w-4" />
-                  <span>Desglose Financiero</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {/* Total */}
-                  <div className="flex justify-between items-center py-2 border-b bg-muted/20 px-3 rounded">
-                    <span className="font-medium">Total</span>
-                    <span className="font-bold text-lg">Q{parseFloat(pkg.quote.totalPrice).toFixed(2)}</span>
-                  </div>
-                  
-                  {/* Desglose simple */}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Viajero:</span>
-                      <span>Q{parseFloat(pkg.quote.price || 0).toFixed(2)}</span>
-                    </div>
-                    
-                    {pkg.quote.serviceFee && parseFloat(pkg.quote.serviceFee) > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Fee:</span>
-                        <span>Q{parseFloat(pkg.quote.serviceFee).toFixed(2)}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Favorón:</span>
-                      <span>Q{(
-                        parseFloat(pkg.quote.totalPrice) - 
-                        parseFloat(pkg.quote.price || 0) - 
-                        parseFloat(pkg.quote.serviceFee || 0)
-                      ).toFixed(2)}</span>
-                    </div>
-                    
-                    {pkg.delivery_method === 'delivery' && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Envío:</span>
-                        <span>Q25.00</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {pkg.quote.message && (
-                    <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
-                      <strong>Nota:</strong> {pkg.quote.message}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Package Status Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Calendar className="h-4 w-4" />
-                <span>Hitos del Paquete</span>
-              </CardTitle>
-              <CardDescription>
-                Seguimiento completo del estado del paquete
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Package Created */}
-                <div className="flex items-center space-x-4">
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                  <div className="flex-1 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">📦 Paquete creado</p>
-                      <p className="text-xs text-muted-foreground">Solicitud enviada por el shopper</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(pkg.created_at).toLocaleDateString('es-GT')} {new Date(pkg.created_at).toLocaleTimeString('es-GT')}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Package Approved */}
-                {['approved', 'matched', 'quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">✅ Paquete aprobado</p>
-                        <p className="text-xs text-muted-foreground">Aprobado por el administrador</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(pkg.updated_at).toLocaleDateString('es-GT')}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Match Made */}
-                {pkg.matched_trip_id && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">🔗 Match realizado</p>
-                        <p className="text-xs text-muted-foreground">Emparejado con viajero</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {pkg.matched_trip_dates ? new Date(pkg.matched_trip_dates).toLocaleDateString('es-GT') : 'Completado'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Quote Sent */}
-                {['quote_sent', 'payment_pending', 'payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">💬 Cotización enviada</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pkg.quote ? `Q${(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}` : 'Precio por definir'}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {pkg.quote ? 'Completado' : 'Pendiente'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Payment Confirmed */}
-                {['payment_confirmed', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">💳 Pago confirmado</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pkg.payment_receipt ? 'Recibo de pago verificado' : 'Pago procesado'}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Verificado
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* In Transit */}
-                {['in_transit', 'delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">🚚 En tránsito</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pkg.tracking_info ? 'Con información de seguimiento' : 'Producto enviado'}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        En proceso
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Delivered to Office */}
-                {['delivered_to_office', 'received_by_traveler', 'out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">🏢 Entregado en oficina</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pkg.confirmed_delivery_address ? 'Preparado para entrega a domicilio' : 'Esperando recojo del shopper'}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {pkg.office_delivery ? new Date(pkg.office_delivery.timestamp || new Date()).toLocaleDateString('es-GT') : 'Completado'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Out for Delivery */}
-                {['out_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">🚚 En reparto en {pkg.package_destination}</p>
-                        <p className="text-xs text-muted-foreground">Entrega a domicilio en progreso</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        En camino
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Received by Traveler */}
-                {['received_by_traveler', 'completed'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">👤 Recibido por viajero</p>
-                        <p className="text-xs text-muted-foreground">
-                          {pkg.traveler_confirmation ? 'Confirmado por el viajero' : 'Entregado al viajero'}
-                        </p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Confirmado
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Process Completed */}
-                {pkg.status === 'completed' && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">🎉 Proceso completado</p>
-                        <p className="text-xs text-muted-foreground">Paquete entregado exitosamente</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Finalizado
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Current Status (if not completed) */}
-                {!['completed', 'rejected', 'quote_rejected'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-yellow-500 rounded-full flex-shrink-0 animate-pulse"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-yellow-700">
-                          {pkg.status === 'pending_approval' ? '⏳ Pendiente de aprobación' :
-                           pkg.status === 'approved' ? '✅ Aprobado, buscando match' :
-                           pkg.status === 'matched' ? '🔗 Match realizado, preparando cotización' :
-                           pkg.status === 'quote_sent' ? '💬 Cotización enviada' :
-                           pkg.status === 'payment_pending' ? '💳 Esperando pago' :
-                           pkg.status === 'payment_confirmed' ? '✅ Pago confirmado' :
-                           pkg.status === 'in_transit' ? '🚚 En tránsito' :
-                           pkg.status === 'delivered_to_office' ? '🏢 En oficina' :
-                           pkg.status === 'out_for_delivery' ? '🚚 En reparto' :
-                           pkg.status === 'received_by_traveler' ? '👤 Con viajero' :
-                           `Estado: ${pkg.status}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Estado actual del paquete</p>
-                      </div>
-                      <p className="text-xs text-yellow-600">En progreso</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Rejected Status */}
-                {['rejected', 'quote_rejected'].includes(pkg.status) && (
-                  <div className="flex items-center space-x-4">
-                    <div className="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></div>
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-red-700">
-                          ❌ {pkg.status === 'quote_rejected' ? 'Cotización rechazada' : 'Solicitud rechazada'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {translateRejectionReason(pkg.rejection_reason || pkg.rejectionReason)}
-                        </p>
-                      </div>
-                      <p className="text-xs text-red-600">Finalizado</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Receipt Section */}
-          {pkg.payment_receipt && (
-            <PaymentReceiptViewer 
-              paymentReceipt={pkg.payment_receipt} 
-              packageId={pkg.id}
-              quote={pkg.quote}
-              estimatedPrice={pkg.estimated_price}
-            />
-          )}
-
-          {/* Purchase Confirmation Section */}
-          {pkg.purchase_confirmation && (
-            <PurchaseConfirmationViewer
-              purchaseConfirmation={pkg.purchase_confirmation}
-              packageId={pkg.id}
-            />
-          )}
-
-          {/* Tracking Info Section */}
-          {pkg.tracking_info && (
-            <TrackingInfoViewer trackingInfo={pkg.tracking_info} />
-          )}
-
-          {/* Traveler Confirmation Section */}
-          <TravelerConfirmationDisplay pkg={pkg} />
-
-          {/* Rejection Information */}
-          {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejectionReason && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg text-red-700">
-                  <XCircle className="h-4 w-4" />
-                  <span>Información del Rechazo</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm font-medium text-red-800 mb-2">
-                    {pkg.status === 'quote_rejected' ? 'Razón del rechazo de cotización:' : 'Razón del rechazo por el shopper:'}
-                  </p>
-                   <p className="text-sm text-red-700">
-                     {translateRejectionReason(pkg.rejectionReason)}
-                   </p>
-                  <div className="text-xs text-red-600 mt-2">
-                    Rechazado el {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleDateString('es-GT')} a las {new Date(pkg.rejectedAt || pkg.updated_at).toLocaleTimeString('es-GT')}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Show rejection reason if package was rejected */}
-          {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-            <RejectionReasonDisplay 
-              rejectionReason={pkg.rejection_reason}
-              wantsRequote={pkg.wants_requote}
-              additionalComments={pkg.additional_notes}
-              className="mb-4"
-            />
-          )}
-
-          {/* Show rejection debug for any rejected package without structured reason */}
-          {['rejected', 'quote_rejected'].includes(pkg.status) && !pkg.rejection_reason && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-red-700">Debug: Paquete rechazado sin razón estructurada</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Este paquete está marcado como rechazado pero no tiene rejection_reason estructurada.</p>
-                <pre className="text-xs bg-gray-100 p-2 rounded mt-2">
-                  Status: {pkg.status}
-                  Rejection Reason: {pkg.rejection_reason || 'null'}
-                  Wants Requote: {pkg.wants_requote || 'null'}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Action Buttons */}
           {pkg.status === 'pending_approval' && (
@@ -920,28 +342,6 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
               </Button>
             </div>
           )}
-
-          {/* Approve Payment Button */}
-          {pkg.status === 'payment_pending_approval' && pkg.payment_receipt && (
-            <div className="flex space-x-2 pt-4 border-t">
-              <Button 
-                onClick={() => onApprove(pkg.id)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Aprobar Pago y Compartir Dirección
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={() => onReject(pkg.id)}
-                className="flex-1"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Rechazar Pago
-              </Button>
-            </div>
-          )}
-
         </div>
       </DialogContent>
     </Dialog>
