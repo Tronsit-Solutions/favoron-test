@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -91,7 +90,7 @@ const HeroSection = ({
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
       
-      <div className="relative container mx-auto px-4 pt-12 sm:pt-20 pb-16 sm:pb-24 text-center">
+      <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-24 text-center">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
           {/* Left Column - Title and Buttons */}
