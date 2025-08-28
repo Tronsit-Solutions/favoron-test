@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -6,6 +5,7 @@ import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, Extern
 import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityActions";
@@ -14,7 +14,6 @@ import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 import { useAuth } from "@/hooks/useAuth";
 
 interface CollapsibleTravelerPackageCardProps {
@@ -38,6 +37,18 @@ const CollapsibleTravelerPackageCard = ({
 }: CollapsibleTravelerPackageCardProps) => {
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [documentModal, setDocumentModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    url: string;
+    type: 'image' | 'pdf' | 'tracking';
+    data?: any;
+  }>({
+    isOpen: false,
+    title: '',
+    url: '',
+    type: 'image'
+  });
   const isMobile = useIsMobile();
   
   const { user } = useAuth();
@@ -57,6 +68,25 @@ const CollapsibleTravelerPackageCard = ({
     if (onConfirmOfficeDelivery) {
       onConfirmOfficeDelivery(pkg.id);
     }
+  };
+
+  const openDocumentModal = (title: string, url: string, type: 'image' | 'pdf' | 'tracking', data?: any) => {
+    setDocumentModal({
+      isOpen: true,
+      title,
+      url,
+      type,
+      data
+    });
+  };
+
+  const closeDocumentModal = () => {
+    setDocumentModal({
+      isOpen: false,
+      title: '',
+      url: '',
+      type: 'image'
+    });
   };
 
   const getPackageName = () => {
@@ -239,7 +269,7 @@ const CollapsibleTravelerPackageCard = ({
                               className="h-7 text-xs"
                               onClick={() => {
                                 const url = `https://dfhoduirmqbarjnspbdh.supabase.co/storage/v1/object/public/purchase-confirmations/${pkg.purchase_confirmation.filePath}`;
-                                window.open(url, '_blank');
+                                openDocumentModal('Comprobante de Compra', url, 'image');
                               }}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
@@ -267,17 +297,15 @@ const CollapsibleTravelerPackageCard = ({
                                 <span className="ml-1">{pkg.tracking_info.shippingCompany}</span>
                               </div>
                             )}
-                            {pkg.tracking_info.trackingUrl && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs mt-2"
-                                onClick={() => window.open(pkg.tracking_info.trackingUrl, '_blank')}
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                Rastrear Paquete
-                              </Button>
-                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs mt-2"
+                              onClick={() => openDocumentModal('Información de Seguimiento', '', 'tracking', pkg.tracking_info)}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Ver Detalles
+                            </Button>
                           </div>
                         </div>
                       )}
@@ -297,7 +325,7 @@ const CollapsibleTravelerPackageCard = ({
                               size="sm"
                               variant="outline"
                               className="h-7 text-xs"
-                              onClick={() => window.open(pkg.payment_receipt.publicUrl, '_blank')}
+                              onClick={() => openDocumentModal('Comprobante de Pago', pkg.payment_receipt.publicUrl, 'image')}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
                               Ver Comprobante
@@ -341,6 +369,88 @@ const CollapsibleTravelerPackageCard = ({
           </CardContent>
         </CollapsibleContent>
       </Card>
+
+      {/* Document Modal */}
+      <Dialog open={documentModal.isOpen} onOpenChange={closeDocumentModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{documentModal.title}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            {documentModal.type === 'tracking' ? (
+              <div className="w-full max-w-md space-y-4 p-4 mx-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Número de seguimiento:</span>
+                    <span className="text-sm font-mono">
+                      {documentModal.data?.trackingNumber || 'No disponible'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Empresa de envío:</span>
+                    <span className="text-sm">
+                      {documentModal.data?.shippingCompany || 'No especificada'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-start justify-between border-b pb-2">
+                    <span className="text-sm text-muted-foreground">Link de seguimiento:</span>
+                    <div className="text-right">
+                      {documentModal.data?.trackingUrl ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(documentModal.data.trackingUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Abrir seguimiento
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">No proporcionado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {documentModal.data?.notes && (
+                    <div className="border-b pb-2">
+                      <span className="text-sm text-muted-foreground">Notas:</span>
+                      <p className="text-sm mt-1">{documentModal.data.notes}</p>
+                    </div>
+                  )}
+
+                  {documentModal.data?.timestamp && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Fecha de registro:</span>
+                      <span className="text-sm">
+                        {new Date(documentModal.data.timestamp).toLocaleDateString('es-GT')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : documentModal.type === 'image' ? (
+              <div className="flex justify-center">
+                <img 
+                  src={documentModal.url} 
+                  alt={documentModal.title}
+                  className="max-w-full max-h-[70vh] object-contain rounded border"
+                />
+              </div>
+            ) : (
+              <div className="bg-gray-100 p-8 text-center rounded">
+                <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+                <p className="text-gray-700 mb-4">Vista previa de PDF no disponible</p>
+                <Button onClick={() => window.open(documentModal.url, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Abrir en nueva pestaña
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PackageReceiptConfirmation 
         isOpen={showConfirmationModal} 
