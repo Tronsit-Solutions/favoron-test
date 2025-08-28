@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,24 +28,54 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
-  const [products, setProducts] = useState<Product[]>([{
-    itemLink: '',
-    itemDescription: '',
-    estimatedPrice: '',
-    quantity: '1'
-  }]);
-  const [formData, setFormData] = useState({
-    deliveryDeadline: null as Date | null,
-    additionalNotes: '',
-    packageDestination: '',
-    packageDestinationOther: '',
-    purchaseOrigin: '',
-    purchaseOriginOther: '',
-    deliveryMethod: ''
+  // Use persisted form state to maintain data across tab switches
+  const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
+    key: 'package-form-products',
+    initialState: [{
+      itemLink: '',
+      itemDescription: '',
+      estimatedPrice: '',
+      quantity: '1'
+    }] as Product[]
   });
+
+  const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
+    key: 'package-form-data',
+    initialState: {
+      deliveryDeadline: null as Date | null,
+      additionalNotes: '',
+      packageDestination: '',
+      packageDestinationOther: '',
+      purchaseOrigin: '',
+      purchaseOriginOther: '',
+      deliveryMethod: ''
+    }
+  });
+
+  const { state: persistedAddressData, setState: setPersistedAddressData, clearPersistedState: clearAddress } = usePersistedFormState({
+    key: 'package-form-address',
+    initialState: null
+  });
+
+  // Local state for non-critical UI state
+  const [products, setProducts] = useState<Product[]>(persistedProducts);
+  const [formData, setFormData] = useState(persistedFormData);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressData, setAddressData] = useState(null);
+  const [addressData, setAddressData] = useState(persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sync local state with persisted state
+  useEffect(() => {
+    setPersistedProducts(products);
+  }, [products, setPersistedProducts]);
+
+  useEffect(() => {
+    setPersistedFormData(formData);
+  }, [formData, setPersistedFormData]);
+
+  useEffect(() => {
+    setPersistedAddressData(addressData);
+  }, [addressData, setPersistedAddressData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -109,24 +140,32 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       await onSubmit(submitData);
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
-      // Reset form only on success
-      setProducts([{
+      // Reset form and clear persisted data on success
+      const initialProducts = [{
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
         quantity: '1'
-      }]);
-      setFormData({
-        deliveryDeadline: null,
+      }];
+      const initialFormData = {
+        deliveryDeadline: null as Date | null,
         additionalNotes: '',
         packageDestination: '',
         packageDestinationOther: '',
         purchaseOrigin: '',
         purchaseOriginOther: '',
         deliveryMethod: ''
-      });
+      };
+      
+      setProducts(initialProducts);
+      setFormData(initialFormData);
       setShowAddressForm(false);
       setAddressData(null);
+      
+      // Clear persisted states
+      clearProducts();
+      clearFormData();
+      clearAddress();
     } catch (error) {
       console.error('❌ FORM SUBMIT ERROR:', error);
       alert('Error al enviar la solicitud. Por favor intenta de nuevo.');

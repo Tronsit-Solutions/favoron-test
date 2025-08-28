@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,36 +25,57 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
-  const [formData, setFormData] = useState({
-    fromCity: '',
-    fromCityOther: '',
-    fromCountry: '',
-    toCity: '',
-    toCityOther: '',
-    toCountry: 'Guatemala',
-    arrivalDate: null as Date | null,
-    availableSpace: '',
-    deliveryMethod: '',
-    deliveryDate: null as Date | null,
-    additionalInfo: '',
-    packageReceivingAddress: {
-      recipientName: '',
-      accommodationType: '',
-      streetAddress: '',
-      streetAddress2: '',
-      cityArea: '',
-      postalCode: '',
-      hotelAirbnbName: '',
-      contactNumber: ''
-    },
-    firstDayPackages: null as Date | null,
-    lastDayPackages: null as Date | null,
-    messengerPickupLocation: ''
+  // Use persisted form state to maintain data across tab switches
+  const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
+    key: 'trip-form-data',
+    initialState: {
+      fromCity: '',
+      fromCityOther: '',
+      fromCountry: '',
+      toCity: '',
+      toCityOther: '',
+      toCountry: 'Guatemala',
+      arrivalDate: null as Date | null,
+      availableSpace: '',
+      deliveryMethod: '',
+      deliveryDate: null as Date | null,
+      additionalInfo: '',
+      packageReceivingAddress: {
+        recipientName: '',
+        accommodationType: '',
+        streetAddress: '',
+        streetAddress2: '',
+        cityArea: '',
+        postalCode: '',
+        hotelAirbnbName: '',
+        contactNumber: ''
+      },
+      firstDayPackages: null as Date | null,
+      lastDayPackages: null as Date | null,
+      messengerPickupLocation: ''
+    }
   });
+
+  const { state: persistedMessengerData, setState: setPersistedMessengerData, clearPersistedState: clearMessenger } = usePersistedFormState({
+    key: 'trip-form-messenger',
+    initialState: null
+  });
+
+  // Local state
+  const [formData, setFormData] = useState(persistedFormData);
   const [showMessengerForm, setShowMessengerForm] = useState(false);
-  const [messengerData, setMessengerData] = useState(null);
+  const [messengerData, setMessengerData] = useState(persistedMessengerData);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Sync local state with persisted state
+  useEffect(() => {
+    setPersistedFormData(formData);
+  }, [formData, setPersistedFormData]);
+
+  useEffect(() => {
+    setPersistedMessengerData(messengerData);
+  }, [messengerData, setPersistedMessengerData]);
   const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
@@ -93,18 +115,18 @@ const TripForm = ({
     };
     onSubmit(submitData);
 
-    // Reset form
-    setFormData({
+    // Reset form and clear persisted data on success
+    const initialFormData = {
       fromCity: '',
       fromCityOther: '',
       fromCountry: '',
       toCity: '',
       toCityOther: '',
       toCountry: 'Guatemala',
-      arrivalDate: null,
+      arrivalDate: null as Date | null,
       availableSpace: '',
       deliveryMethod: '',
-      deliveryDate: null,
+      deliveryDate: null as Date | null,
       additionalInfo: '',
       packageReceivingAddress: {
         recipientName: '',
@@ -116,14 +138,20 @@ const TripForm = ({
         hotelAirbnbName: '',
         contactNumber: ''
       },
-      firstDayPackages: null,
-      lastDayPackages: null,
+      firstDayPackages: null as Date | null,
+      lastDayPackages: null as Date | null,
       messengerPickupLocation: ''
-    });
+    };
+    
+    setFormData(initialFormData);
     setShowMessengerForm(false);
     setMessengerData(null);
     setAcceptedTerms(false);
     setShowTermsModal(false);
+    
+    // Clear persisted states
+    clearFormData();
+    clearMessenger();
   };
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({

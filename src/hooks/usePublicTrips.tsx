@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTabAwareData } from './useTabAwareData';
 
 export interface PublicTrip {
   id: string;
@@ -17,7 +18,20 @@ export const usePublicTrips = () => {
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Use tab awareness to pause refreshes when tab is inactive
+  const { isTabActive } = useTabAwareData({
+    onTabActive: () => {
+      // When tab becomes active, check if we need to refresh
+      if (lastUpdate && Date.now() - lastUpdate.getTime() > 60000) {
+        console.log('🔄 Tab active - refreshing trips after being away');
+        fetchPublicTrips(true);
+      }
+    },
+    refreshOnReturn: false // We handle this manually above
+  });
 
   const fetchPublicTrips = async (forceRefresh = false): Promise<void> => {
     // Allow forced refresh even if fetching
@@ -68,13 +82,29 @@ export const usePublicTrips = () => {
   useEffect(() => {
     fetchPublicTrips();
 
-    // More frequent updates for better real-time feel
-    const interval = setInterval(() => fetchPublicTrips(), 20 * 1000); // Every 20 seconds
+    // Set up interval with tab awareness
+    const startInterval = () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      
+      intervalRef.current = setInterval(() => {
+        // Only fetch if tab is active to avoid unnecessary requests
+        if (isTabActive) {
+          console.log('🔄 Interval fetch (tab active)');
+          fetchPublicTrips();
+        } else {
+          console.log('⏸️ Skipping fetch - tab inactive');
+        }
+      }, 60 * 1000); // Reduced to every 60 seconds instead of 20
+    };
+
+    startInterval();
     
     return () => {
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
-  }, []);
+  }, [isTabActive]);
 
   return {
     trips,
