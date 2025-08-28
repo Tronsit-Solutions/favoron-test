@@ -300,6 +300,18 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 </div>
               </div>
 
+              {/* Total del Paquete */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Total del Paquete</p>
+                  <p className="text-lg font-bold text-primary">${(() => { 
+                    const qty = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).quantity) || 1), 0) : (pkg.quantity || 1);
+                    const price = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).estimatedPrice) || 0), 0) : (pkg.estimated_price || 0);
+                    return qty * price;
+                  })()}</p>
+                </div>
+              </div>
+
               {pkg.item_link && (
                 <div>
                   <p className="text-sm font-medium mb-2">Link del Producto:</p>
