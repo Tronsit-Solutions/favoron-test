@@ -2,15 +2,20 @@ import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CustomerPhotosSection } from "@/components/CustomerPhotosSection";
+
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
   isAuthenticated?: boolean;
   userName?: string;
+  userRole?: { role: string } | null;
 }
+
 const HeroSection = ({
   onOpenAuth,
   isAuthenticated,
-  userName
+  userName,
+  userRole
 }: HeroSectionProps) => {
   // Historical values as base
   const HISTORICAL_TIPS = 30000;
@@ -22,6 +27,7 @@ const HeroSection = ({
   const [totalUsers, setTotalUsers] = useState(HISTORICAL_USERS);
   const [totalTrips, setTotalTrips] = useState(HISTORICAL_TRIPS);
   const [totalTipsDistributed, setTotalTipsDistributed] = useState(HISTORICAL_TIPS);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -77,6 +83,7 @@ const HeroSection = ({
     // Cleanup del interval
     return () => clearInterval(interval);
   }, []);
+
   return <header className="relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"></div>
@@ -99,7 +106,6 @@ const HeroSection = ({
             <span>100% seguro</span>
           </div>
         </div>
-
 
         {/* Main Headline */}
         <div className="relative">
@@ -124,8 +130,6 @@ const HeroSection = ({
           </h1>
         </div>
 
-        
-        
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           {isAuthenticated ? (
@@ -152,6 +156,11 @@ const HeroSection = ({
           )}
         </div>
 
+        {/* Customer Photos Section */}
+        <div className="mb-12">
+          <CustomerPhotosSection isAdmin={userRole?.role === 'admin'} />
+        </div>
+
         {/* Social Proof */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
@@ -172,4 +181,5 @@ const HeroSection = ({
       </div>
     </header>;
 };
+
 export default HeroSection;

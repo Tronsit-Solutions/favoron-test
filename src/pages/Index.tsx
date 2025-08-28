@@ -1,5 +1,4 @@
 
-
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
@@ -10,7 +9,6 @@ import PlatformDescriptionSection from "@/components/PlatformDescriptionSection"
 import HowItWorksSection from "@/components/HowItWorksSection";
 import BenefitsSection from "@/components/BenefitsSection";
 import CTASection from "@/components/CTASection";
-import { CustomerPhotosSection } from "@/components/CustomerPhotosSection";
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
@@ -31,16 +29,13 @@ const Index = () => {
     );
   }
 
-  // Logged-in users can now see the landing page
-
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar 
         onOpenAuth={openAuth} 
         isAuthenticated={!!(user && profile)} 
         onSignOut={signOut}
-        user={profile} // Pass profile data to show user info
+        user={profile}
         loading={loading}
       />
       <main className="pb-safe">
@@ -48,12 +43,12 @@ const Index = () => {
           onOpenAuth={openAuth} 
           isAuthenticated={!!(user && profile)}
           userName={profile?.first_name}
+          userRole={userRole}
         />
         <PlatformDescriptionSection />
         <TravelsHubSection />
         <HowItWorksSection />
         <BenefitsSection />
-        <CustomerPhotosSection isAdmin={userRole?.role === 'admin'} />
         <CTASection onOpenAuth={openAuth} />
       </main>
     </div>
@@ -61,4 +56,3 @@ const Index = () => {
 };
 
 export default Index;
-
