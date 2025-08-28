@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -91,22 +92,6 @@ const HeroSection = ({
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
       
       <div className="relative container mx-auto px-4 pt-12 sm:pt-20 pb-16 sm:pb-24 text-center">
-        {/* Trust Indicators */}
-        <div className="flex items-center justify-center gap-6 mb-8 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-shopper" />
-            <span>+{totalUsers} usuarios activos</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-warning" />
-            <span>4.8/5 estrellas</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-success" />
-            <span>100% seguro</span>
-          </div>
-        </div>
-
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
           {/* Left Column - Title and Buttons */}
