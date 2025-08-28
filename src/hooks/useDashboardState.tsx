@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-// Disabled optimized data hooks to prevent conflicts with AdminDashboard's consolidated system
-// import { useOptimizedPackagesData } from './useOptimizedPackagesData';
-// import { useOptimizedTripsData } from './useOptimizedTripsData';
-// import { useImprovedTabAwareData } from './useImprovedTabAwareData';
+import { useOptimizedPackagesData } from './useOptimizedPackagesData';
+import { useOptimizedTripsData } from './useOptimizedTripsData';
 import type { Package } from "@/types";
 
 export const useDashboardState = (user: any) => {
@@ -19,23 +17,25 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
-  // Disabled data hooks to prevent conflicts with AdminDashboard's consolidated system
-  // AdminDashboard now manages its own localPackages and localTrips
-  const packages: Package[] = [];
-  const trips: any[] = [];
-  const packagesLoading = false;
-  const tripsLoading = false;
-  
-  // Placeholder functions for compatibility
-  const createPackage = async () => {};
-  const updatePackage = async () => {};
-  const deletePackage = async () => {};
-  const refreshPackages = () => {};
-  const setPackages = () => {};
-  const createTrip = async () => {};
-  const updateTrip = async () => {};
-  const deleteTrip = async () => {};
-  const refreshTrips = () => {};
+  // Re-enabled data hooks for full functionality
+  const {
+    packages,
+    loading: packagesLoading,
+    createPackage,
+    updatePackage,
+    deletePackage,
+    refreshPackages,
+    setPackages
+  } = useOptimizedPackagesData();
+
+  const {
+    trips,
+    loading: tripsLoading,
+    createTrip,
+    updateTrip,
+    deleteTrip,
+    refreshTrips
+  } = useOptimizedTripsData();
   
   const { toast } = useToast();
 

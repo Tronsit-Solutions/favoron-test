@@ -20,12 +20,12 @@ export const useOptimizedTripsData = () => {
       return [];
     }
 
-    // Simplified query for better performance
+    // Simplified query for better performance - use LEFT JOIN to prevent RLS filtering
     const { data, error } = await supabase
       .from('trips')
       .select(`
         *,
-        profiles!inner (
+        profiles (
           id,
           first_name,
           last_name,
