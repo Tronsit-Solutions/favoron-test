@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, useRef, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,6 +57,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Prevent duplicate profile fetches and manage loading lifecycle
+  const fetchingProfileRef = useRef(false);
+  const lastFetchedUserIdRef = useRef<string | null>(null);
 
   const cleanupAuthState = () => {
     // Remove standard auth tokens
@@ -131,39 +135,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Wrapper to avoid duplicate fetches and control loading state
+  const loadProfile = async (userId: string) => {
+    if (fetchingProfileRef.current && lastFetchedUserIdRef.current === userId) {
+      return;
+    }
+    fetchingProfileRef.current = true;
+    lastFetchedUserIdRef.current = userId;
+    setLoading(true);
+    try {
+      await fetchProfile(userId);
+    } finally {
+      fetchingProfileRef.current = false;
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          // Defer profile fetching to avoid deadlocks
+          // Defer profile fetching to prevent deadlocks
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            loadProfile(session.user.id);
           }, 0);
         } else {
           setProfile(null);
           setUserRole(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Check for existing session
+    // Check for existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         setTimeout(() => {
-          fetchProfile(session.user.id);
+          loadProfile(session.user.id);
         }, 0);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
