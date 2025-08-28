@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +19,8 @@ import {
   EyeOff, 
   Heart,
   Users,
-  Package
+  Package,
+  Trash2
 } from 'lucide-react';
 import { useCustomerPhotos } from '@/hooks/useCustomerPhotos';
 import { AdminPhotoModal } from '@/components/AdminPhotoModal';
@@ -35,6 +37,12 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
 
   const approvedPhotos = photos.filter(photo => photo.status === 'approved');
   const pendingPhotos = photos.filter(photo => photo.status === 'pending');
+
+  const handleDeletePhoto = async (photoId: string, imageUrl: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta foto? Esta acción no se puede deshacer.')) {
+      await deletePhoto(photoId, imageUrl);
+    }
+  };
 
   if (loading) {
     return (
@@ -136,12 +144,21 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   <CarouselContent>
                     {approvedPhotos.map((photo) => (
                       <CarouselItem key={photo.id}>
-                        <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
                           <img
                             src={photo.image_url}
                             alt={photo.product_description}
                             className="w-full h-full object-cover"
                           />
+                          {/* Admin Delete Button */}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 h-8 w-8 p-0"
+                            onClick={() => handleDeletePhoto(photo.id, photo.image_url)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </CarouselItem>
                     ))}
