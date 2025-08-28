@@ -22,7 +22,7 @@ import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
 import { useManualRefresh } from "@/hooks/useManualRefresh";
-import { useNavigationTracker } from "@/hooks/useNavigationTracker";
+
 
 import UserManagement from "./admin/UserManagement";
 
@@ -40,8 +40,6 @@ interface DashboardProps {
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   
-  // Track navigation to identify what's causing auto-refreshes
-  useNavigationTracker();
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   
   const {

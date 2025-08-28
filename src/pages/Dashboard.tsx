@@ -8,9 +8,14 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
+    // Add a small delay to prevent redirects during auth re-validation
+    const timer = setTimeout(() => {
+      if (!loading && !user) {
+        navigate('/auth');
+      }
+    }, 500); // Allow 500ms for auth to complete
+
+    return () => clearTimeout(timer);
   }, [user, loading, navigate]);
 
   if (loading) {

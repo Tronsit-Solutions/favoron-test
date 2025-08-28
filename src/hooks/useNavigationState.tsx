@@ -4,18 +4,24 @@ interface NavigationState {
   activeTab: string;
   expandedItems: string[];
   scrollPosition: number;
+  openModals: string[];
+  formStates: Record<string, any>;
 }
 
 export const useNavigationState = (defaultTab: string = 'overview') => {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [openModals, setOpenModals] = useState<string[]>([]);
+  const [formStates, setFormStates] = useState<Record<string, any>>({});
 
-  // Preserve state in sessionStorage
+  // Save state to sessionStorage to persist across tab switches
   const saveState = useCallback(() => {
     const state: NavigationState = {
       activeTab,
       expandedItems,
-      scrollPosition: window.scrollY
+      scrollPosition: window.scrollY,
+      openModals,
+      formStates
     };
     
     try {
@@ -23,7 +29,7 @@ export const useNavigationState = (defaultTab: string = 'overview') => {
     } catch (error) {
       console.warn('Could not save navigation state:', error);
     }
-  }, [activeTab, expandedItems]);
+  }, [activeTab, expandedItems, openModals, formStates]);
 
   // Restore state from sessionStorage
   const restoreState = useCallback(() => {
@@ -33,6 +39,8 @@ export const useNavigationState = (defaultTab: string = 'overview') => {
         const state: NavigationState = JSON.parse(saved);
         setActiveTab(state.activeTab || defaultTab);
         setExpandedItems(state.expandedItems || []);
+        setOpenModals(state.openModals || []);
+        setFormStates(state.formStates || {});
         
         // Restore scroll position after a brief delay
         setTimeout(() => {
@@ -49,15 +57,26 @@ export const useNavigationState = (defaultTab: string = 'overview') => {
     saveState();
   }, [saveState]);
 
-  // Restore state on mount
+  // Restore state on mount and when tab becomes visible
   useEffect(() => {
     restoreState();
-  }, []);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Tab became active - restore state without refreshing
+        restoreState();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [restoreState]);
 
   const setActiveTabWithSave = useCallback((tab: string) => {
     setActiveTab(tab);
-    // Clear expanded items when changing tabs
-    setExpandedItems([]);
   }, []);
 
   const toggleExpandedItem = useCallback((itemId: string) => {
@@ -68,11 +87,45 @@ export const useNavigationState = (defaultTab: string = 'overview') => {
     );
   }, []);
 
+  const openModal = useCallback((modalId: string) => {
+    setOpenModals(prev => [...prev.filter(id => id !== modalId), modalId]);
+  }, []);
+
+  const closeModal = useCallback((modalId: string) => {
+    setOpenModals(prev => prev.filter(id => id !== modalId));
+  }, []);
+
+  const saveFormState = useCallback((formId: string, state: any) => {
+    setFormStates(prev => ({ ...prev, [formId]: state }));
+  }, []);
+
+  const getFormState = useCallback((formId: string) => {
+    return formStates[formId];
+  }, [formStates]);
+
+  const clearState = useCallback(() => {
+    try {
+      sessionStorage.removeItem('favaron_navigation_state');
+      setActiveTab(defaultTab);
+      setExpandedItems([]);
+      setOpenModals([]);
+      setFormStates({});
+    } catch (error) {
+      console.warn('Could not clear navigation state:', error);
+    }
+  }, [defaultTab]);
+
   return {
     activeTab,
     setActiveTab: setActiveTabWithSave,
     expandedItems,
     toggleExpandedItem,
+    openModals,
+    openModal,
+    closeModal,
+    saveFormState,
+    getFormState,
+    clearState,
     saveState,
     restoreState
   };

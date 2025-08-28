@@ -6,7 +6,7 @@ export { useTripsData } from './useTripsData';
 export { useOptimizedPackagesData } from './useOptimizedPackagesData';
 export { useOptimizedTripsData } from './useOptimizedTripsData';
 export { useOptimizedRealtime } from './useOptimizedRealtime';
-export { useTabAwareData } from './useTabAwareData';
+export { useNavigationState } from './useNavigationState';
 export { useNotifications } from './useNotifications';
 export { usePaymentOrders } from './usePaymentOrders';
 export { useRealtimePackages } from './useRealtimePackages';

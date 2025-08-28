@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
@@ -57,6 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Prevent duplicate profile fetches and manage loading lifecycle
   const fetchingProfileRef = useRef(false);
@@ -217,11 +219,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUserRole(null);
       
       // Navigate to auth using React Router (no page reload)
-      setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth';
-        }
-      }, 100);
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
     } finally {
