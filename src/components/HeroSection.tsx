@@ -46,7 +46,7 @@ const HeroSection = ({
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center mb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-6 items-center mb-2">
           {/* Left Column - Title and Buttons */}
           <div className="text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
