@@ -87,12 +87,12 @@ const PendingRequestsTab = ({
       {/* Header with stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">📦 Solicitudes pendientes de Match</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg lg:text-xl font-semibold">📦 Solicitudes pendientes de Match</h3>
+          <p className="text-sm lg:text-base text-muted-foreground">
             {filteredPackages.length} solicitudes (aprobadas y rechazadas) sin viaje asignado
           </p>
         </div>
-        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+        <Badge variant="secondary" className="bg-blue-50 text-blue-700 lg:text-base lg:px-3 lg:py-1">
           {availableTripsCount} viajes disponibles
         </Badge>
       </div>
@@ -172,24 +172,24 @@ const PendingRequestsTab = ({
                   <div className="flex-1 space-y-2 lg:space-y-1 min-w-0">
                     {/* Main info row */}
                     <div className="flex flex-col gap-2 lg:gap-1">
-                      <div>
-                        <div className="mb-1 lg:hidden">
-                          <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
-                        </div>
-                         <h4 className="font-semibold text-sm lg:text-xs leading-tight mb-1 lg:mb-0 text-foreground break-words">
-                           {pkg.item_description || "Sin descripción"}
-                         </h4>
-                          <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 sm:gap-3 lg:gap-2">
-                              <span className="text-xs lg:text-[10px] text-muted-foreground break-words">
-                                🛍️ {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
-                                  ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
-                                  : (pkg as any)?.profiles?.username || 'Sin nombre'}
-                              </span>
-                            <span className="text-xs lg:text-[10px] text-muted-foreground break-words">
-                              📍 {pkg.purchase_origin} → {pkg.package_destination}
-                            </span>
+                       <div>
+                         <div className="mb-1 lg:hidden">
+                           <span className="text-xs text-muted-foreground font-medium">Descripción del producto:</span>
                          </div>
-                      </div>
+                          <h4 className="font-semibold text-sm lg:text-sm leading-tight mb-1 lg:mb-0 text-foreground break-words">
+                            {pkg.item_description || "Sin descripción"}
+                          </h4>
+                           <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 sm:gap-3 lg:gap-2">
+                               <span className="text-xs lg:text-xs text-muted-foreground break-words">
+                                 🛍️ {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
+                                   ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
+                                   : (pkg as any)?.profiles?.username || 'Sin nombre'}
+                               </span>
+                             <span className="text-xs lg:text-xs text-muted-foreground break-words">
+                               📍 {pkg.purchase_origin} → {pkg.package_destination}
+                             </span>
+                          </div>
+                       </div>
                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 lg:hidden">
                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                            <div className="flex items-center gap-2">
@@ -228,91 +228,91 @@ const PendingRequestsTab = ({
                       )}
                     </div>
 
-                    {/* Route info - more compact for desktop */}
-                    <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 lg:gap-1 text-xs lg:text-[10px]">
-                      <span className="bg-blue-50 text-blue-700 px-1 lg:px-1 py-0.5 lg:py-0 rounded text-xs lg:text-[9px] w-fit">
-                        🌎 {pkg.purchase_origin || 'País no especificado'}
-                      </span>
-                      <span className="text-muted-foreground hidden sm:block">→</span>
-                      <span className="bg-green-50 text-green-700 px-1 lg:px-1 py-0.5 lg:py-0 rounded text-xs lg:text-[9px] w-fit">
-                        🏠 {pkg.package_destination || 'Guatemala'}
-                      </span>
-                    </div>
+                     {/* Route info - more compact for desktop */}
+                     <div className="flex flex-col sm:flex-row lg:flex-row sm:items-center lg:items-center gap-1 lg:gap-1 text-xs lg:text-xs">
+                       <span className="bg-blue-50 text-blue-700 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-xs lg:text-sm w-fit">
+                         🌎 {pkg.purchase_origin || 'País no especificado'}
+                       </span>
+                       <span className="text-muted-foreground hidden sm:block">→</span>
+                       <span className="bg-green-50 text-green-700 px-1 lg:px-2 py-0.5 lg:py-1 rounded text-xs lg:text-sm w-fit">
+                         🏠 {pkg.package_destination || 'Guatemala'}
+                       </span>
+                     </div>
 
-                    {/* Deadline - more compact */}
-                    {pkg.delivery_deadline && (
-                      <div className="flex items-center space-x-1 text-xs lg:text-[10px]">
-                        <CalendarDays className="h-3 w-3 lg:h-2 lg:w-2 text-orange-500 flex-shrink-0" />
-                        <span className="text-orange-600 break-words">
-                          Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
-                        </span>
-                      </div>
-                    )}
+                     {/* Deadline - more compact */}
+                     {pkg.delivery_deadline && (
+                       <div className="flex items-center space-x-1 text-xs lg:text-sm">
+                         <CalendarDays className="h-3 w-3 lg:h-4 lg:w-4 text-orange-500 flex-shrink-0" />
+                         <span className="text-orange-600 break-words">
+                           Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                         </span>
+                       </div>
+                     )}
                   </div>
 
                   {/* Actions - Right side for desktop */}
                   <div className="flex flex-row lg:flex-row gap-1 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/50 lg:border-none lg:ml-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => onViewPackageDetail(pkg)}
-                      className="flex-1 lg:flex-none lg:h-6 lg:px-2 text-xs lg:text-[10px]"
-                    >
-                      <Eye className="h-3 w-3 lg:h-2 lg:w-2 lg:mr-0 mr-1" />
-                      <span className="lg:hidden">Ver</span>
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="flex-1 lg:flex-none lg:h-6 lg:w-6 lg:p-0 text-xs lg:text-[10px]"
-                        >
-                          <MoreHorizontal className="h-3 w-3 lg:h-2 lg:w-2 lg:mr-0 mr-1" />
-                          <span className="lg:hidden">Más</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
-                              onSelect={(e) => e.preventDefault()}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Descartar solicitud
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción no se puede deshacer. La solicitud será eliminada permanentemente 
-                                y no se podrá recuperar.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => onDiscardPackage(pkg)}
-                              >
-                                Descartar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button 
-                      size="sm" 
-                      onClick={() => onOpenMatchDialog(pkg)}
-                      disabled={availableTripsCount === 0}
-                      className="bg-primary hover:bg-primary/90 flex-1 lg:flex-none lg:h-6 lg:px-2 text-xs lg:text-[10px]"
-                    >
-                      <Zap className="h-3 w-3 lg:h-2 lg:w-2 mr-1 lg:mr-0.5" />
-                      <span className="lg:text-[9px]">Match</span>
-                    </Button>
+                     <Button 
+                       size="sm" 
+                       variant="outline"
+                       onClick={() => onViewPackageDetail(pkg)}
+                       className="flex-1 lg:flex-none lg:h-8 lg:px-3 text-xs lg:text-sm"
+                     >
+                       <Eye className="h-3 w-3 lg:h-4 lg:w-4 lg:mr-1 mr-1" />
+                       <span className="lg:inline">Ver</span>
+                     </Button>
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           className="flex-1 lg:flex-none lg:h-8 lg:w-8 lg:p-0 text-xs lg:text-sm"
+                         >
+                           <MoreHorizontal className="h-3 w-3 lg:h-4 lg:w-4 lg:mr-0 mr-1" />
+                           <span className="lg:hidden">Más</span>
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="end">
+                         <AlertDialog>
+                           <AlertDialogTrigger asChild>
+                             <DropdownMenuItem 
+                               onSelect={(e) => e.preventDefault()}
+                               className="text-red-600 focus:text-red-600"
+                             >
+                               <Trash2 className="h-4 w-4 mr-2" />
+                               Descartar solicitud
+                             </DropdownMenuItem>
+                           </AlertDialogTrigger>
+                           <AlertDialogContent>
+                             <AlertDialogHeader>
+                               <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                 Esta acción no se puede deshacer. La solicitud será eliminada permanentemente 
+                                 y no se podrá recuperar.
+                               </AlertDialogDescription>
+                             </AlertDialogHeader>
+                             <AlertDialogFooter>
+                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                               <AlertDialogAction 
+                                 className="bg-red-600 hover:bg-red-700"
+                                 onClick={() => onDiscardPackage(pkg)}
+                               >
+                                 Descartar
+                               </AlertDialogAction>
+                             </AlertDialogFooter>
+                           </AlertDialogContent>
+                         </AlertDialog>
+                       </DropdownMenuContent>
+                     </DropdownMenu>
+                     <Button 
+                       size="sm" 
+                       onClick={() => onOpenMatchDialog(pkg)}
+                       disabled={availableTripsCount === 0}
+                       className="bg-primary hover:bg-primary/90 flex-1 lg:flex-none lg:h-8 lg:px-3 text-xs lg:text-sm"
+                     >
+                       <Zap className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-1" />
+                       <span className="lg:text-sm">Match</span>
+                     </Button>
                   </div>
                 </div>
               </CardContent>
