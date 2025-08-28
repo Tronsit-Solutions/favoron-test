@@ -21,26 +21,29 @@ export const usePublicStats = () => {
   const [stats, setStats] = useState<PublicStats>(FALLBACK_STATS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(false);
   const { toast } = useToast();
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const fetchPublicStats = async (retryCount = 0): Promise<void> => {
-    const maxRetries = 3;
-    const baseDelay = 1000;
+  const fetchPublicStats = async (): Promise<void> => {
+    // Prevent duplicate calls
+    if (fetching) {
+      console.log('🚫 fetchPublicStats already in progress, skipping');
+      return;
+    }
 
     try {
-      console.log(`📊 Fetching public stats (attempt ${retryCount + 1}/${maxRetries + 1})`);
+      setFetching(true);
+      console.log('📊 Fetching public stats');
       
       const { data, error } = await supabase.rpc('get_public_stats');
 
       if (error) {
-        throw new Error(`RPC Error: ${error.message}`);
+        throw error;
       }
 
       if (data && data.length > 0) {
         const newStats = data[0];
-        console.log('✅ Public stats fetched successfully:', newStats);
+        console.log('✅ Public stats fetched successfully');
         setStats({
           total_users: FALLBACK_STATS.total_users + (Number(newStats.total_users) || 0),
           total_trips: FALLBACK_STATS.total_trips + (Number(newStats.total_trips) || 0),
@@ -52,45 +55,30 @@ export const usePublicStats = () => {
         console.log('📊 No stats data returned, using fallbacks');
         setStats(FALLBACK_STATS);
       }
+      setLoading(false);
     } catch (fetchError) {
-      console.error(`❌ Error fetching public stats (attempt ${retryCount + 1}):`, fetchError);
-      
-      if (retryCount < maxRetries) {
-        const delayMs = baseDelay * Math.pow(2, retryCount); // Exponential backoff
-        console.log(`🔄 Retrying in ${delayMs}ms...`);
-        await delay(delayMs);
-        return fetchPublicStats(retryCount + 1);
-      } else {
-        setError(fetchError instanceof Error ? fetchError.message : 'Error desconocido');
-        setStats(FALLBACK_STATS);
-        
-        // Only show toast for final failure, not intermediate retries
-        toast({
-          title: "Conectando...",
-          description: "Usando datos locales. Las estadísticas se actualizarán automáticamente.",
-          variant: "default",
-        });
-      }
+      console.error('❌ Error fetching public stats:', fetchError);
+      setError(fetchError instanceof Error ? fetchError.message : 'Error desconocido');
+      setStats(FALLBACK_STATS);
+      setLoading(false);
     } finally {
-      if (retryCount === 0) { // Only set loading false on initial call
-        setLoading(false);
-      }
+      setFetching(false);
     }
   };
 
   useEffect(() => {
     fetchPublicStats();
 
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchPublicStats, 5 * 60 * 1000);
+    // Reduce frequency significantly to prevent overload
+    const interval = setInterval(fetchPublicStats, 5 * 60 * 1000); // Every 5 minutes
     
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Remove dependencies to prevent multiple executions
 
   return {
     stats,
     loading,
     error,
-    refreshStats: () => fetchPublicStats(0)
+    refreshStats: fetchPublicStats
   };
 };

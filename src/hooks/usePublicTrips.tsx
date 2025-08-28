@@ -15,72 +15,65 @@ export interface PublicTrip {
 export const usePublicTrips = () => {
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const { toast } = useToast();
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const fetchPublicTrips = async (retryCount = 0): Promise<void> => {
-    const maxRetries = 3;
-    const baseDelay = 1000;
+  const fetchPublicTrips = async (): Promise<void> => {
+    // Prevent duplicate calls
+    if (fetching) {
+      console.log('🚫 fetchPublicTrips already in progress, skipping');
+      return;
+    }
 
     try {
-      console.log(`✈️ Fetching public trips (attempt ${retryCount + 1}/${maxRetries + 1})`);
+      setFetching(true);
+      console.log('✈️ Fetching public trips');
       
       const { data, error } = await supabase.rpc('get_public_trips');
 
       if (error) {
-        throw new Error(`RPC Error: ${error.message}`);
+        throw error;
       }
 
       console.log('✅ Public trips fetched successfully:', {
-        total: data?.length || 0,
-        trips: (data as PublicTrip[] | null)?.slice(0, 3).map(t => ({ 
-          id: t.id.slice(0, 8), 
-          from: t.from_city, 
-          to: t.to_city, 
-          status: t.status 
-        }))
+        total: data?.length || 0
       });
 
       setTrips((data as PublicTrip[]) || []);
+      setLoading(false);
     } catch (fetchError) {
-      console.error(`❌ Error fetching public trips (attempt ${retryCount + 1}):`, fetchError);
+      console.error('❌ Error fetching public trips:', fetchError);
       
-      if (retryCount < maxRetries) {
-        const delayMs = baseDelay * Math.pow(2, retryCount); // Exponential backoff
-        console.log(`🔄 Retrying in ${delayMs}ms...`);
-        await delay(delayMs);
-        return fetchPublicTrips(retryCount + 1);
-      } else {
-        // Only show toast for final failure
-        toast({
-          title: "Conectando...",
-          description: "Los viajes se actualizarán automáticamente cuando se restablezca la conexión.",
-          variant: "default",
-        });
-      }
+      // Use fallback data on error
+      setTrips([]);
+      setLoading(false);
+      
+      // Only show toast once
+      if (!toast) return;
+      toast({
+        title: "Conectando...",
+        description: "Reintentando conexión automáticamente.",
+        variant: "default",
+      });
     } finally {
-      if (retryCount === 0) { // Only set loading false on initial call
-        setLoading(false);
-      }
+      setFetching(false);
     }
   };
 
   useEffect(() => {
     fetchPublicTrips();
 
-    // Para landing público: evitamos realtime sobre la tabla (respeta RLS y podría incluir campos sensibles).
-    // Usamos un refresco periódico ligero cada 30s.
-    const interval = setInterval(fetchPublicTrips, 30 * 1000);
+    // Reduce frequency to prevent overload
+    const interval = setInterval(fetchPublicTrips, 60 * 1000); // Every 60 seconds
     
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, []); // Remove toast dependency to prevent multiple executions
 
   return {
     trips,
     loading,
-    refreshTrips: () => fetchPublicTrips(0)
+    refreshTrips: fetchPublicTrips
   };
 };
