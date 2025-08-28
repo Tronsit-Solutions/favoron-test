@@ -90,11 +90,11 @@ const AdminOverviewTab = ({
           <CardDescription>Solicitudes con comprobantes de pago que requieren revisión</CardDescription>
         </CardHeader>
         <CardContent>
-          {packages.filter(pkg => pkg.status === 'payment_pending').length === 0 ? (
+          {packages.filter(pkg => pkg.status === 'payment_pending_approval' && pkg.payment_receipt).length === 0 ? (
             <p className="text-muted-foreground">No hay pagos pendientes de confirmación</p>
           ) : (
             <div className="space-y-2">
-              {packages.filter(pkg => pkg.status === 'payment_pending').map(pkg => (
+              {packages.filter(pkg => pkg.status === 'payment_pending_approval' && pkg.payment_receipt).map(pkg => (
                 <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4">
                   <div className="flex-1">
                     <p className="font-medium">{pkg.item_description}</p>
@@ -120,13 +120,15 @@ const AdminOverviewTab = ({
                       <Eye className="h-4 w-4 mr-1" />
                       Ver Detalles
                     </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Confirmar Pago
-                    </Button>
+                    {pkg.payment_receipt && (
+                      <Button 
+                        size="sm" 
+                        onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Confirmar Pago
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
