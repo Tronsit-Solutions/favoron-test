@@ -109,18 +109,6 @@ const PackageDetailModal = ({ package: pkg, trips, isOpen, onClose, onApprove, o
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Debug information */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
-            <p><strong>Debug Info:</strong></p>
-            <p>Package ID: {pkg.id}</p>
-            <p>Status: {pkg.status}</p>
-            <p>Item: {pkg.item_description || 'No description'}</p>
-            <p>User ID: {pkg.user_id}</p>
-            <p>Has profile: {pkg.profiles ? 'Yes' : 'No'}</p>
-            <p>Matched Trip ID: {pkg.matched_trip_id || 'None'}</p>
-            <p>Matched Trip Found: {matchedTrip ? 'Yes' : 'No'}</p>
-          </div>
-
           {/* Status */}
           <div className="flex justify-between items-center">
             <span className="font-medium">Estado actual:</span>
