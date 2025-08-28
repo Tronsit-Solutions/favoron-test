@@ -262,7 +262,8 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const handleDiscardPackage = async (pkg: any) => {
     try {
-      await deletePackage(pkg.id);
+      // Placeholder - AdminDashboard handles package operations
+      console.log('📦 Delete package request - handled by AdminDashboard');
     } catch (error) {
       // Error silently handled
     }
@@ -270,7 +271,8 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const handleArchivePackage = async (pkg: any) => {
     try {
-      await updatePackage(pkg.id, { status: 'archived_by_shopper' });
+      // Placeholder - AdminDashboard handles package operations
+      console.log('📦 Archive package request - handled by AdminDashboard');
     } catch (error) {
       // Error silently handled
     }
@@ -406,18 +408,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                         }}
                        onConfirmAddress={handleAddressConfirmation}
                        onUploadDocument={handleUploadDocument}
-                       onEditPackage={(editedPkg) => updatePackage(editedPkg.id, editedPkg)}
-                       onDeletePackage={(p) => deletePackage(p.id)}
+                        onEditPackage={() => console.log('Edit package - handled by AdminDashboard')}
+                        onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
                        onArchivePackage={handleArchivePackage}
-                       onRequestRequote={async (p) => {
-                         await updatePackage(p.id, {
-                           status: 'approved',
-                           matched_trip_id: null,
-                           quote: null,
-                           quote_expires_at: null,
-                           wants_requote: true,
-                         } as any);
-                       }}
+                        onRequestRequote={() => console.log('Request requote - handled by AdminDashboard')}
                        viewMode="user"
                      />
                 ))}
