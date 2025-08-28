@@ -666,7 +666,7 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="username">Nombre de usuario</Label>
-                  <p className="text-xs text-muted-foreground">Este es tu momento para ser creativo</p>
+                  <p className="text-xs text-muted-foreground">De preferencia escoge un alias que no revele tu nombre completo</p>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
