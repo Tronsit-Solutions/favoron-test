@@ -933,6 +933,25 @@ export type Database = {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
       }
+      get_package_products: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          admin_assigned_tip: number | null
+          created_at: string | null
+          estimated_price: number | null
+          item_description: string | null
+          item_link: string | null
+          line_total: number | null
+          package_destination: string | null
+          package_id: string | null
+          product_index: number | null
+          purchase_origin: string | null
+          quantity: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }[]
+      }
       get_public_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
