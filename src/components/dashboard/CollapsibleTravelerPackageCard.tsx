@@ -211,14 +211,10 @@ const CollapsibleTravelerPackageCard = ({
               {/* Left section with tabs */}
               <div className="lg:col-span-3">
                 <Tabs defaultValue="producto" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 mb-3">
+                  <TabsList className="grid w-full grid-cols-4 mb-3">
                     <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
                       <Package className="h-3.5 w-3.5" />
                       <span className="hidden sm:inline">Producto</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="info" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                      <FileText className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Info</span>
                     </TabsTrigger>
                     <TabsTrigger value="estado" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
                       <Clock className="h-3.5 w-3.5" />
@@ -238,9 +234,6 @@ const CollapsibleTravelerPackageCard = ({
                     <TravelerPackageDetails pkg={pkg} />
                   </TabsContent>
                   
-                  <TabsContent value="info" className="mt-0">
-                    <TravelerPackageInfo pkg={pkg} />
-                  </TabsContent>
                   
                   <TabsContent value="estado" className="mt-0">
                     {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
