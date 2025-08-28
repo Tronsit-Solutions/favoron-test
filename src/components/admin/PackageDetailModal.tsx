@@ -277,7 +277,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">Cantidad</p>
-                    <p className="text-sm text-muted-foreground">{pkg.quantity || 1} artículo{(pkg.quantity || 1) !== 1 ? 's' : ''}</p>
+                    <p className="text-sm text-muted-foreground">{(() => { const qty = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).quantity) || 1), 0) : (pkg.quantity || 1); return `${qty} artículo${qty !== 1 ? 's' : ''}`; })()}</p>
                   </div>
                 </div>
 
