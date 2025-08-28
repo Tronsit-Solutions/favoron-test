@@ -10,6 +10,7 @@ import PlatformDescriptionSection from "@/components/PlatformDescriptionSection"
 import HowItWorksSection from "@/components/HowItWorksSection";
 import BenefitsSection from "@/components/BenefitsSection";
 import CTASection from "@/components/CTASection";
+import { CustomerPhotosSection } from "@/components/CustomerPhotosSection";
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
@@ -52,6 +53,7 @@ const Index = () => {
         <TravelsHubSection />
         <HowItWorksSection />
         <BenefitsSection />
+        <CustomerPhotosSection isAdmin={userRole?.role === 'admin'} />
         <CTASection onOpenAuth={openAuth} />
       </main>
     </div>
