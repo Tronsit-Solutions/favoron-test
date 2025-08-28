@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import EditPackageModal from "@/components/EditPackageModal";
@@ -21,7 +22,7 @@ import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBadge } from "@/components/ui/notification-badge";
-import { Package, UserType, DocumentType } from "@/types";
+import { Package as PackageType, UserType, DocumentType } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,14 +41,14 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface CollapsiblePackageCardProps {
-  pkg: Package;
-  onQuote: (pkg: Package, userType: UserType) => void;
-  onConfirmAddress: (pkg: Package) => void;
+  pkg: PackageType;
+  onQuote: (pkg: PackageType, userType: UserType) => void;
+  onConfirmAddress: (pkg: PackageType) => void;
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
-  onEditPackage?: (packageData: Package) => void;
-  onDeletePackage?: (pkg: Package) => void;
-  onArchivePackage?: (pkg: Package) => void;
-  onRequestRequote?: (pkg: Package) => void;
+  onEditPackage?: (packageData: PackageType) => void;
+  onDeletePackage?: (pkg: PackageType) => void;
+  onArchivePackage?: (pkg: PackageType) => void;
+  onRequestRequote?: (pkg: PackageType) => void;
   viewMode?: 'user';
 }
 
@@ -95,7 +96,7 @@ const CollapsiblePackageCard = ({
     setEditDocumentModal({ isOpen: false, documentType: null });
   };
 
-  const handleEditSubmit = (editedData: Package) => {
+  const handleEditSubmit = (editedData: PackageType) => {
     if (onEditPackage) {
       onEditPackage(editedData);
     }
@@ -288,70 +289,87 @@ const CollapsiblePackageCard = ({
             {/* Main Content Layout - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-0 overflow-hidden">
               
-              {/* Left Column: Control Panel */}
-              <div className="md:col-span-2 space-y-1 sm:space-y-2 px-1 py-0.5 md:p-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
-                
-                {/* Product Information Section */}
-                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <h3 className="text-sm font-medium text-primary">Información del Producto</h3>
-                  </div>
-                  
-                  <div className="max-w-full overflow-hidden">
-                    <ShopperPackageDetails pkg={pkg} />
-                  </div>
-                  
-                  {/* Rejection Reason */}
-                  {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                    <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
-                      <RejectionReasonDisplay 
-                        rejectionReason={pkg.rejection_reason}
-                        wantsRequote={pkg.wants_requote}
-                        additionalComments={pkg.additional_notes}
-                      />
+              {/* Left Column: Horizontal Tabs */}
+              <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
+                <Tabs defaultValue="producto" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
+                    <TabsTrigger 
+                      value="producto" 
+                      className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
+                    >
+                      <Box className="h-4 w-4" />
+                      <span className="hidden sm:inline">Producto</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="estado" 
+                      className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
+                    >
+                      <Activity className="h-4 w-4" />
+                      <span className="hidden sm:inline">Estado</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="documentos" 
+                      className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Docs</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="chat" 
+                      className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Chat</span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="producto" className="mt-0 px-1 py-2 sm:p-2">
+                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
+                      <div className="max-w-full overflow-hidden">
+                        <ShopperPackageDetails pkg={pkg} />
+                      </div>
+                      
+                      {/* Rejection Reason */}
+                      {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
+                        <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
+                          <RejectionReasonDisplay 
+                            rejectionReason={pkg.rejection_reason}
+                            wantsRequote={pkg.wants_requote}
+                            additionalComments={pkg.additional_notes}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                
-                {/* Status & Progress Section */}
-                <div className="bg-card border-2 border-primary/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm w-full max-w-full overflow-hidden min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <h3 className="text-sm font-medium text-primary">Estado y Progreso</h3>
-                  </div>
-                  <div className="w-full max-w-full overflow-x-auto overflow-y-hidden min-w-0">
-                    <PackageStatusTimeline 
-                      currentStatus={pkg.status}
-                      deliveryMethod={pkg.delivery_method}
-                    />
-                  </div>
-                </div>
+                  </TabsContent>
 
-                {/* Uploaded Documents Section */}
-                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Documentos Subidos</h3>
-                  </div>
-                  <div className="max-w-full overflow-hidden">
-                    <UploadedDocumentsRegistry 
-                      pkg={pkg}
-                      onEditDocument={handleEditDocument}
-                    />
-                  </div>
-                </div>
+                  <TabsContent value="estado" className="mt-0 px-1 py-2 sm:p-2">
+                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm w-full max-w-full overflow-hidden min-w-0">
+                      <div className="w-full max-w-full overflow-x-auto overflow-y-hidden min-w-0">
+                        <PackageStatusTimeline 
+                          currentStatus={pkg.status}
+                          deliveryMethod={pkg.delivery_method}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
 
-                {/* Communication Section */}
-                <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Comunicación</h3>
-                  </div>
-                  <PackageTimeline pkg={pkg} />
-                </div>
+                  <TabsContent value="documentos" className="mt-0 px-1 py-2 sm:p-2">
+                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
+                      <div className="max-w-full overflow-hidden">
+                        <UploadedDocumentsRegistry 
+                          pkg={pkg}
+                          onEditDocument={handleEditDocument}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
 
-                {/* Traveler Confirmation */}
+                  <TabsContent value="chat" className="mt-0 px-1 py-2 sm:p-2">
+                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
+                      <PackageTimeline pkg={pkg} />
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
 
               {/* Right Column: Information & Communication */}
