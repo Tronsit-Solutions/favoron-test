@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { CustomerPhotosSection } from "@/components/CustomerPhotosSection";
 import { usePublicStats } from "@/hooks/usePublicStats";
+import { useNavigate } from "react-router-dom";
 
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
@@ -18,6 +19,7 @@ const HeroSection = ({
 }: HeroSectionProps) => {
   // Use consolidated public stats hook
   const { stats } = usePublicStats();
+  const navigate = useNavigate();
 
   return <header className="relative overflow-hidden">
       {/* Background Elements */}
@@ -75,7 +77,7 @@ const HeroSection = ({
                 <Button 
                   size="lg" 
                   variant="default" 
-                  onClick={() => window.location.href = "/dashboard"} 
+                  onClick={() => navigate('/dashboard')} 
                   className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                 >
                   <Users className="h-5 w-5 mr-3" />

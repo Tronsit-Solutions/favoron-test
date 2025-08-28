@@ -261,8 +261,8 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Force page reload for clean state
-        window.location.href = '/dashboard';
+        // Navigate to dashboard without page reload
+        navigate('/dashboard');
       }
     } catch (error: any) {
       // Log signin error
@@ -369,7 +369,7 @@ const Auth = () => {
       
       // Redirect after successful password reset
       setTimeout(() => {
-        window.location.href = '/';
+        navigate('/');
       }, 1000);
 
     } catch (error: any) {

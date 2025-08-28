@@ -216,9 +216,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setProfile(null);
       setUserRole(null);
       
-      // Navigate to auth without forcing page reload
+      // Navigate to auth using React Router (no page reload)
       setTimeout(() => {
-        window.location.href = '/auth';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth';
+        }
       }, 100);
     } catch (error) {
       console.error('Error signing out:', error);

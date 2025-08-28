@@ -25,20 +25,12 @@ export const useOptimizedRealtime = ({
   const isPageVisibleRef = useRef(true);
   const updateQueueRef = useRef<Array<{ type: 'package' | 'trip', payload?: any }>>([]);
 
-  // Handle visibility change to reduce unnecessary updates when tab is not active
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      isPageVisibleRef.current = !document.hidden;
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  // Visibility tracking disabled to prevent auto-refresh on tab changes
+  // isPageVisibleRef always remains true to prevent tab-based auto-refreshes
 
   // Optimized notification handler
   const handleNotification = useCallback((payload: any) => {
-    // Only show notifications when page is visible or for high priority items
-    if (!isPageVisibleRef.current && payload.new?.status !== 'matched') return;
+    // Show notifications regardless of tab visibility to prevent auto-refresh behavior
 
     const { eventType, new: newRecord, old: oldRecord } = payload;
     
