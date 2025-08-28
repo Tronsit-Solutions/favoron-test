@@ -81,10 +81,9 @@ const Auth = () => {
         duration: 6000,
       });
     } else {
-      // Check if user is already logged in (but with a delay to avoid immediate redirect)
+      // Check if user is already logged in and redirect immediately
       console.log('Checking for existing session...');
-      setTimeout(async () => {
-        const { data: { session } } = await supabase.auth.getSession();
+      supabase.auth.getSession().then(({ data: { session } }) => {
         console.log('Existing session check result:', session);
         if (session && !isResettingPassword) {
           console.log('Existing session found, redirecting to home');
@@ -92,7 +91,7 @@ const Auth = () => {
         } else {
           console.log('No existing session, staying on auth page');
         }
-      }, 100);
+      });
     }
 
     // Set up auth state listener for other auth events
@@ -253,16 +252,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Clean up existing state
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-
+      // Direct sign in - skipping pre-cleanup and global sign-out for speed
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
