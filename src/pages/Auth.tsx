@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -51,6 +51,7 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
 
   useEffect(() => {
     console.log('Auth component mounted, location.state:', location.state);
@@ -118,6 +119,7 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
@@ -201,6 +203,12 @@ const Auth = () => {
       setAvatarFile(null);
       
     } catch (error: any) {
+      const details = JSON.stringify(
+        { name: error?.name, message: error?.message, status: error?.status, code: error?.code },
+        null,
+        2
+      );
+      setAuthError({ title: 'Error al crear cuenta', message: error?.message, details });
       // Log signup error
       logAuthError(
         'auth_signup',

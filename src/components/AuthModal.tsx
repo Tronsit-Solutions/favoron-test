@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { logAuthError, getEmailDomain } from "@/lib/authErrorLogger";
-
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,11 +29,22 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
     phone: '',
     confirmPassword: ''
   });
+  
+  const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     
     if (mode === 'register') {
+      if (formData.password.length < 6) {
+        toast({
+          title: "Error",
+          description: "La contraseña debe tener al menos 6 caracteres",
+          variant: "destructive"
+        });
+        return;
+      }
       if (formData.password !== formData.confirmPassword) {
         toast({
           title: "Error",
@@ -94,6 +105,16 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
       }
     } catch (error: any) {
       console.error('Auth error:', error);
+      const details = JSON.stringify(
+        { name: error?.name, message: error?.message, status: error?.status, code: error?.code },
+        null,
+        2
+      );
+      setAuthError({
+        title: mode === 'login' ? 'Error al iniciar sesión' : 'Error al registrarse',
+        message: error?.message || 'Error en la autenticación',
+        details,
+      });
       
       // Log auth error
       logAuthError(
@@ -109,9 +130,9 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
       );
 
       toast({
-        title: "Error",
-        description: error.message || "Error en la autenticación",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Error en la autenticación',
+        variant: 'destructive'
       });
     }
 
@@ -134,6 +155,12 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
       // Don't close modal here - user will be redirected
     } catch (error: any) {
       console.error('Google auth error:', error);
+      const details = JSON.stringify(
+        { name: error?.name, message: error?.message, status: error?.status, code: error?.code },
+        null,
+        2
+      );
+      setAuthError({ title: 'Error con Google', message: 'Error al iniciar sesión con Google', details });
       
       // Log OAuth error
       logAuthError(
@@ -160,6 +187,15 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleCopyDetails = async () => {
+    if (authError?.details) {
+      try {
+        await navigator.clipboard.writeText(authError.details);
+        toast({ title: 'Copiado', description: 'Detalles copiados al portapapeles' });
+      } catch {}
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -174,6 +210,18 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
             }
           </DialogDescription>
         </DialogHeader>
+
+        {authError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>{authError.title}</AlertTitle>
+            <AlertDescription className="whitespace-pre-wrap">{authError.message}</AlertDescription>
+            <div className="mt-2 flex justify-end">
+              <Button type="button" variant="outline" size="sm" onClick={handleCopyDetails}>
+                Copiar detalles
+              </Button>
+            </div>
+          </Alert>
+        )}
 
         {/* Google Sign In Button */}
         <Button 
