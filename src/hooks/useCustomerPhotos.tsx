@@ -109,34 +109,63 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
 
   const uploadPhoto = async (file: File, customerName: string, productDescription: string, approveDirectly: boolean = false) => {
     try {
+      console.log('🔐 Starting photo upload - Admin mode:', isAdmin, 'Approve directly:', approveDirectly);
+      
+      // Check authentication
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user:', user?.id);
+      
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
+
+      console.log('📤 Uploading file to storage:', filePath);
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('customer-photos')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('❌ Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('✅ File uploaded to storage successfully');
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('customer-photos')
         .getPublicUrl(filePath);
 
+      console.log('🔗 Generated public URL:', publicUrl);
+
       // Create database record
+      const insertData = {
+        image_url: publicUrl,
+        customer_name: customerName || null,
+        product_description: productDescription,
+        status: approveDirectly ? 'approved' : 'pending',
+        sort_order: 0,
+        uploaded_by: user.id
+      };
+
+      console.log('💾 Inserting record to database:', insertData);
+
       const { error: dbError } = await supabase
         .from('customer_photos')
-        .insert({
-          image_url: publicUrl,
-          customer_name: customerName || null,
-          product_description: productDescription,
-          status: approveDirectly ? 'approved' : 'pending',
-          sort_order: 0
-        });
+        .insert(insertData);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('❌ Database insert error:', dbError);
+        throw dbError;
+      }
+
+      console.log('✅ Database record created successfully');
 
       toast({
         title: "¡Éxito!",
@@ -146,10 +175,10 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
       invalidateCache();
       fetchPhotos(true);
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      console.error('💥 Error uploading photo:', error);
       toast({
         title: "Error",
-        description: "No se pudo subir la foto",
+        description: error instanceof Error ? error.message : "No se pudo subir la foto",
         variant: "destructive",
       });
     }
@@ -157,12 +186,27 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
 
   const updatePhotoStatus = async (photoId: string, status: 'approved' | 'rejected') => {
     try {
+      console.log('🔄 Updating photo status - Photo ID:', photoId, 'Status:', status);
+      
+      // Check authentication
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user for status update:', user?.id);
+      
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const { error } = await supabase
         .from('customer_photos')
         .update({ status })
         .eq('id', photoId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Status update error:', error);
+        throw error;
+      }
+
+      console.log('✅ Photo status updated successfully');
 
       toast({
         title: "¡Actualizado!",
@@ -172,10 +216,10 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
       invalidateCache();
       fetchPhotos(true);
     } catch (error) {
-      console.error('Error updating photo status:', error);
+      console.error('💥 Error updating photo status:', error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el estado",
+        description: error instanceof Error ? error.message : "No se pudo actualizar el estado",
         variant: "destructive",
       });
     }
@@ -183,24 +227,47 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
 
   const deletePhoto = async (photoId: string, imageUrl: string) => {
     try {
+      console.log('🗑️ Starting photo deletion - Photo ID:', photoId);
+      
+      // Check authentication
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user for deletion:', user?.id);
+      
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
       // Extract file path from URL
       const urlParts = imageUrl.split('/');
       const filePath = urlParts[urlParts.length - 1];
+
+      console.log('🗂️ Deleting file from storage:', filePath);
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('customer-photos')
         .remove([filePath]);
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('❌ Storage deletion error:', storageError);
+        throw storageError;
+      }
+
+      console.log('✅ File deleted from storage');
 
       // Delete from database
+      console.log('💾 Deleting record from database');
       const { error: dbError } = await supabase
         .from('customer_photos')
         .delete()
         .eq('id', photoId);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('❌ Database deletion error:', dbError);
+        throw dbError;
+      }
+
+      console.log('✅ Database record deleted successfully');
 
       toast({
         title: "¡Eliminado!",
@@ -210,10 +277,10 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
       invalidateCache();
       fetchPhotos(true);
     } catch (error) {
-      console.error('Error deleting photo:', error);
+      console.error('💥 Error deleting photo:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la foto",
+        description: error instanceof Error ? error.message : "No se pudo eliminar la foto",
         variant: "destructive",
       });
     }
