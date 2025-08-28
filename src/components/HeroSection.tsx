@@ -25,9 +25,9 @@ const HeroSection = ({
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
       
-      <div className="relative container mx-auto px-4 pt-4 sm:pt-6 pb-12 sm:pb-20 text-center">
+      <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
         {/* Trust Indicators - Top Banner */}
-        <div className="flex flex-wrap justify-center items-center gap-6 mb-2 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-white/30">
+        <div className="flex flex-wrap justify-center items-center gap-6 mb-1 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-3 border border-white/30">
                <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <span>{stats.total_users}+ usuarios activos</span>
@@ -47,10 +47,10 @@ const HeroSection = ({
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center mb-2">
           {/* Left Column - Title and Buttons */}
           <div className="text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-3 leading-tight">
               {isAuthenticated && userName ? (
                 <>
                   <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
