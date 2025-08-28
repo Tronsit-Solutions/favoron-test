@@ -272,7 +272,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 <p className="text-muted-foreground">Descripción del artículo solicitado</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Cantidad</p>
+                    <p className="text-sm text-muted-foreground">{pkg.quantity || 1} artículo{(pkg.quantity || 1) !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+
                 <div className="flex items-center space-x-2">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <div>
