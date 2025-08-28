@@ -95,6 +95,20 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     }
   };
 
+  const getUserInitials = (user: any) => {
+    const firstName = user.name?.split(' ')[0] || user.first_name || '';
+    const lastName = user.name?.split(' ')[1] || user.last_name || '';
+    
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    } else if (firstName) {
+      return firstName.substring(0, 2).toUpperCase();
+    } else if (user.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -209,7 +223,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">Foto</TableHead>
+                <TableHead className="w-20">Foto</TableHead>
                 <TableHead>Usuario</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>WhatsApp</TableHead>
@@ -233,14 +247,15 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                  users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <Avatar className="h-10 w-10">
-                        {user.avatarUrl ? (
-                          <AvatarImage src={user.avatarUrl} alt={`Foto de ${user.name}`} />
-                        ) : (
-                          <AvatarFallback>
-                            <UserIcon className="h-5 w-5" />
-                          </AvatarFallback>
-                        )}
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage 
+                          src={(user as any).avatarUrl || (user as any).avatar_url} 
+                          alt={`Foto de ${user.name}`}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {getUserInitials(user)}
+                        </AvatarFallback>
                       </Avatar>
                     </TableCell>
                     <TableCell>

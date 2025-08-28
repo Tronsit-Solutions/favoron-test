@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 // Extended User type for management purposes that includes the Supabase profile UUID
 interface UserWithProfileId extends User {
   profileId?: string;
+  avatarUrl?: string;
+  avatar_url?: string;
 }
 
 export const useUserManagement = () => {
@@ -47,7 +50,8 @@ export const useUserManagement = () => {
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
           email: profile.email || 'Email no disponible',
           username: profile.username || undefined,
-          avatarUrl: undefined, // Not included for security
+          avatarUrl: profile.avatar_url, // Include avatar URL from profiles
+          avatar_url: profile.avatar_url, // Also include in snake_case for compatibility
           role,
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
