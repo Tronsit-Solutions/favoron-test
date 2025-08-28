@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { 
   Plus, 
   Check, 
   X, 
@@ -15,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useCustomerPhotos } from '@/hooks/useCustomerPhotos';
 import { AdminPhotoModal } from '@/components/AdminPhotoModal';
+import Autoplay from "embla-carousel-autoplay";
 
 interface CustomerPhotosSectionProps {
   isAdmin?: boolean;
@@ -37,11 +45,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
               <div className="h-8 bg-muted rounded w-64 mx-auto"></div>
               <div className="h-4 bg-muted rounded w-96 mx-auto"></div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-square bg-muted rounded-lg"></div>
-              ))}
-            </div>
+            <div className="aspect-[4/3] bg-muted rounded-lg max-w-md mx-auto"></div>
           </div>
         </div>
       </section>
@@ -114,48 +118,66 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
               </div>
             </div>
 
-            {/* Approved Photos Grid */}
+            {/* Approved Photos Carousel */}
             {approvedPhotos.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                {approvedPhotos.map((photo) => (
-                  <Card key={photo.id} className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                    <CardContent className="p-0 relative">
-                      <div className="aspect-square overflow-hidden">
-                        <img
-                          src={photo.image_url}
-                          alt={photo.product_description}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                      </div>
-                      
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                          <h3 className="font-semibold text-sm mb-1">
-                            {photo.customer_name || 'Cliente Favorón'}
-                          </h3>
-                          <p className="text-xs opacity-90 line-clamp-2">
-                            {photo.product_description}
-                          </p>
-                        </div>
-                      </div>
+              <div className="mb-8 max-w-md mx-auto">
+                <Carousel
+                  plugins={[
+                    Autoplay({
+                      delay: 4000,
+                    }),
+                  ]}
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                >
+                  <CarouselContent>
+                    {approvedPhotos.map((photo) => (
+                      <CarouselItem key={photo.id}>
+                        <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                          <CardContent className="p-0 relative">
+                            <div className="aspect-[4/3] overflow-hidden">
+                              <img
+                                src={photo.image_url}
+                                alt={photo.product_description}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                              />
+                            </div>
+                            
+                            {/* Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                <h3 className="font-semibold text-sm mb-1">
+                                  {photo.customer_name || 'Cliente Favorón'}
+                                </h3>
+                                <p className="text-xs opacity-90 line-clamp-2">
+                                  {photo.product_description}
+                                </p>
+                              </div>
+                            </div>
 
-                      {/* Admin controls overlay */}
-                      {showAdminPanel && (
-                        <div className="absolute top-2 right-2 flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deletePhoto(photo.id, photo.image_url)}
-                            className="h-8 w-8 p-0 bg-destructive/80 hover:bg-destructive"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+                            {/* Admin controls overlay */}
+                            {showAdminPanel && (
+                              <div className="absolute top-2 right-2 flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deletePhoto(photo.id, photo.image_url)}
+                                  className="h-8 w-8 p-0 bg-destructive/80 hover:bg-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
               </div>
             )}
 
@@ -241,23 +263,36 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
             />
           </>
         ) : (
-          /* Simple photo frame for non-admin users */
+          /* Simple photo carousel for non-admin users */
           approvedPhotos.length > 0 && (
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {approvedPhotos.slice(0, 10).map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="aspect-square rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
-                  >
-                    <img
-                      src={photo.image_url}
-                      alt={photo.product_description}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="max-w-md mx-auto">
+              <Carousel
+                plugins={[
+                  Autoplay({
+                    delay: 4000,
+                  }),
+                ]}
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+              >
+                <CarouselContent>
+                  {approvedPhotos.slice(0, 10).map((photo) => (
+                    <CarouselItem key={photo.id}>
+                      <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-white/50">
+                        <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md">
+                          <img
+                            src={photo.image_url}
+                            alt={photo.product_description}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
           )
         )}
