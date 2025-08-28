@@ -140,6 +140,27 @@ export const useTripsData = () => {
 
   useEffect(() => {
     fetchTrips();
+
+    // Set up real-time subscription for trips
+    const channel = supabase
+      .channel('trips-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trips'
+        },
+        (payload) => {
+          console.log('🔄 Trip real-time update received', payload);
+          fetchTrips();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

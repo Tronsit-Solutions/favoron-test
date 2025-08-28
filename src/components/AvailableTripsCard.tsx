@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Calendar, ArrowRight } from "lucide-react";
+import { Plane, Calendar, ArrowRight, RefreshCw } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
 
 interface AvailableTripsCardProps {
@@ -9,7 +9,7 @@ interface AvailableTripsCardProps {
 }
 
 const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
-  const { trips, loading } = usePublicTrips();
+  const { trips, loading, fetching, lastUpdate, refreshTrips } = usePublicTrips();
 
   const tripsThisWeek = trips.filter(trip => {
     const arrivalDate = new Date(trip.arrival_date);
@@ -44,10 +44,26 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
   return (
     <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <span className="text-lg">🌍</span>
-          Hub de Viajes
+        <CardTitle className="flex items-center justify-between text-slate-800">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🌍</span>
+            Hub de Viajes
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshTrips}
+            disabled={fetching}
+            className="h-8 w-8 p-0 text-slate-600 hover:text-slate-800"
+          >
+            <RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin' : ''}`} />
+          </Button>
         </CardTitle>
+        {lastUpdate && (
+          <p className="text-xs text-slate-600">
+            Actualizado: {lastUpdate.toLocaleTimeString()}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">

@@ -69,16 +69,16 @@ export const usePublicStats = () => {
   useEffect(() => {
     fetchPublicStats();
 
-    // Reduce frequency significantly to prevent overload
-    const interval = setInterval(fetchPublicStats, 5 * 60 * 1000); // Every 5 minutes
+    // More frequent updates for landing page stats
+    const interval = setInterval(fetchPublicStats, 2 * 60 * 1000); // Every 2 minutes
     
     return () => clearInterval(interval);
-  }, []); // Remove dependencies to prevent multiple executions
+  }, []);
 
   return {
     stats,
     loading,
     error,
-    refreshStats: fetchPublicStats
+    refreshStats: () => fetchPublicStats()
   };
 };

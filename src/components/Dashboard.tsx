@@ -48,6 +48,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     setShowPackageForm,
     showTripForm,
     setShowTripForm,
+    packagesLoading,
+    tripsLoading,
     showAddressConfirmation,
     setShowAddressConfirmation,
     showQuoteDialog,
@@ -182,6 +184,11 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
           onGoHome={() => setShowProfile(false)}
+          onRefresh={() => {
+            refreshPackages();
+            refreshTrips();
+          }}
+          isRefreshing={packagesLoading || tripsLoading}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -204,6 +211,11 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
           onGoHome={() => setShowUserManagement(false)}
+          onRefresh={() => {
+            refreshPackages();
+            refreshTrips();
+          }}
+          isRefreshing={packagesLoading || tripsLoading}
         />
         <div className="container mx-auto px-4 py-8">
           <UserManagement 
@@ -247,6 +259,11 @@ const Dashboard = ({ user }: DashboardProps) => {
         onShowProfile={() => setShowProfile(true)}
         onLogout={signOut}
         onShowUserManagement={() => setShowUserManagement(true)}
+        onRefresh={() => {
+          refreshPackages();
+          refreshTrips();
+        }}
+        isRefreshing={packagesLoading || tripsLoading}
       />
 
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">

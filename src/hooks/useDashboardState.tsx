@@ -18,8 +18,8 @@ export const useDashboardState = (user: any) => {
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
   // Use real data hooks
-  const { packages, createPackage, updatePackage, deletePackage, refreshPackages } = usePackagesData();
-  const { trips, createTrip, updateTrip, deleteTrip, refreshTrips } = useTripsData();
+  const { packages, loading: packagesLoading, createPackage, updatePackage, deletePackage, refreshPackages } = usePackagesData();
+  const { trips, loading: tripsLoading, createTrip, updateTrip, deleteTrip, refreshTrips } = useTripsData();
   const { toast } = useToast();
 
   return {
@@ -47,6 +47,8 @@ export const useDashboardState = (user: any) => {
     setQuoteUserType,
     packages,
     trips,
+    packagesLoading,
+    tripsLoading,
     // Database operations
     createPackage,
     updatePackage,
