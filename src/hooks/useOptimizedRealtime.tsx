@@ -2,6 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useModalProtection } from '@/hooks/useModalProtection';
 import type { Package } from '@/hooks/useOptimizedPackagesData';
 
 interface UseOptimizedRealtimeProps {
@@ -19,8 +20,10 @@ export const useOptimizedRealtime = ({
 }: UseOptimizedRealtimeProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { shouldPreventRefresh } = useModalProtection();
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const isPageVisibleRef = useRef(true);
+  const updateQueueRef = useRef<Array<{ type: 'package' | 'trip', payload?: any }>>([]);
 
   // Handle visibility change to reduce unnecessary updates when tab is not active
   useEffect(() => {
@@ -68,13 +71,41 @@ export const useOptimizedRealtime = ({
     }
   }, [toast, user?.id, userRole]);
 
-  // Debounced callback execution
+  // Process queued updates when modals are closed
+  const processUpdateQueue = useCallback(() => {
+    if (updateQueueRef.current.length === 0) return;
+    
+    const queuedUpdates = [...updateQueueRef.current];
+    updateQueueRef.current = [];
+    
+    queuedUpdates.forEach(({ type, payload }) => {
+      if (type === 'package' && onPackageUpdate && payload?.new) {
+        const updatedPackages = packages.map(pkg => 
+          pkg.id === payload.new.id ? { ...pkg, ...payload.new } : pkg
+        );
+        if (!packages.find(pkg => pkg.id === payload.new.id)) {
+          updatedPackages.push(payload.new);
+        }
+        onPackageUpdate(updatedPackages);
+      } else if (type === 'trip' && onTripUpdate) {
+        onTripUpdate();
+      }
+    });
+  }, [onPackageUpdate, onTripUpdate, packages]);
+
+  // Debounced callback execution with modal protection
   const debouncedCallback = useCallback((updateType: 'package' | 'trip', payload?: any) => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
+      // If modals are open, queue the update instead of applying it immediately
+      if (shouldPreventRefresh()) {
+        updateQueueRef.current.push({ type: updateType, payload });
+        return;
+      }
+
       if (updateType === 'package' && onPackageUpdate) {
         // Instead of refetching all data, update the specific package
         if (payload?.new) {
@@ -91,7 +122,18 @@ export const useOptimizedRealtime = ({
         onTripUpdate();
       }
     }, 500); // 500ms debounce
-  }, [onPackageUpdate, onTripUpdate, packages]);
+  }, [onPackageUpdate, onTripUpdate, packages, shouldPreventRefresh]);
+
+  // Expose function to process queued updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!shouldPreventRefresh()) {
+        processUpdateQueue();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [processUpdateQueue, shouldPreventRefresh]);
 
   useEffect(() => {
     if (!user) return;

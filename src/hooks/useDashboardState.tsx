@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizedPackagesData } from './useOptimizedPackagesData';
 import { useOptimizedTripsData } from './useOptimizedTripsData';
+import { useImprovedTabAwareData } from './useImprovedTabAwareData';
 import type { Package } from "@/types";
 
 export const useDashboardState = (user: any) => {
@@ -21,6 +22,16 @@ export const useDashboardState = (user: any) => {
   const { packages, loading: packagesLoading, createPackage, updatePackage, deletePackage, refreshPackages, setPackages } = useOptimizedPackagesData();
   const { trips, loading: tripsLoading, createTrip, updateTrip, deleteTrip, refreshTrips } = useOptimizedTripsData();
   const { toast } = useToast();
+
+  // Improved tab awareness without aggressive auto-refresh
+  useImprovedTabAwareData({
+    refreshThreshold: 5 * 60 * 1000, // 5 minutes
+    enableAutoRefresh: false, // Disabled to prevent modal interruption
+    onTabActive: () => {
+      // Only refresh if user explicitly requests it
+      console.log('Tab became active - data refresh available');
+    }
+  });
 
   return {
     currentUser,
