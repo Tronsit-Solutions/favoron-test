@@ -26,6 +26,8 @@ import { useUserManagement } from "@/hooks/useUserManagement";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Search, Users, Eye, Filter, User as UserIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UserManagementProps {
   packages: Package[];
@@ -42,11 +44,14 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     setRoleFilter,
     statusFilter,
     setStatusFilter,
-    updateUser
+    updateUser,
+    refreshUsers
   } = useUserManagement();
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDetail, setShowUserDetail] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const { toast } = useToast();
 
   const getRoleLabel = (role: string) => {
     const roleLabels = {
@@ -109,20 +114,57 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     return 'U';
   };
 
+  const runMigration = async (dryRun: boolean) => {
+    try {
+      setMigrating(true);
+      toast({
+        title: dryRun ? 'Simulando migración de avatares' : 'Migrando avatares',
+        description: dryRun ? 'Ejecutando DRY RUN...' : 'Ejecutando migración en vivo...',
+      });
+      const { data, error } = await supabase.functions.invoke('migrate-avatar-paths', {
+        body: { dryRun, batchSize: 25 },
+      });
+      if (error) {
+        throw error;
+      }
+      toast({
+        title: 'Proceso completado',
+        description: `Migrados: ${data?.migrated ?? 0} • Errores: ${data?.errors?.length ?? 0}`,
+      });
+      try { (refreshUsers as any)?.(); } catch {}
+    } catch (e: any) {
+      toast({
+        title: 'Error en migración',
+        description: e?.message || 'No se pudo ejecutar la migración',
+        variant: 'destructive',
+      });
+    } finally {
+      setMigrating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
-            <Users className="h-8 w-8" />
-            Control de Usuarios
-          </h2>
-          <p className="text-muted-foreground">
-            Gestiona todos los usuarios registrados en la plataforma
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold flex items-center gap-2">
+              <Users className="h-8 w-8" />
+              Control de Usuarios
+            </h2>
+            <p className="text-muted-foreground">
+              Gestiona todos los usuarios registrados en la plataforma
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => runMigration(true)} disabled={migrating}>
+              Dry run
+            </Button>
+            <Button variant="default" size="sm" onClick={() => runMigration(false)} disabled={migrating}>
+              Migrar avatares
+            </Button>
+          </div>
         </div>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">

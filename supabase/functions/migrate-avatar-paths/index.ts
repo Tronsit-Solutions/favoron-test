@@ -50,15 +50,48 @@ Deno.serve(async (req) => {
   try {
     console.log('🚀 Starting avatar migration process...');
     
-    // Verify authorization token
-    const authHeader = req.headers.get('authorization');
-    const migrationToken = Deno.env.get('MIGRATION_AVATAR_TOKEN');
-    
-    if (!authHeader || !authHeader.includes(migrationToken || '')) {
-      console.error('❌ Unauthorized migration attempt');
+    // Authenticate via JWT and require admin role
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || '';
+
+    // Create a user-scoped client to read the current user and roles
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    if (userError || !user) {
+      console.error('❌ Unauthorized: missing or invalid JWT', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Ensure caller is an admin
+    const { data: adminCheck, error: roleError } = await supabaseUser
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .limit(1);
+
+    if (roleError) {
+      console.error('❌ Error checking admin role:', roleError);
+      return new Response(
+        JSON.stringify({ error: 'Role check failed' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!adminCheck || adminCheck.length === 0) {
+      console.error('❌ Forbidden: user is not an admin');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -68,10 +101,7 @@ Deno.serve(async (req) => {
 
     console.log(`📋 Migration mode: ${dryRun ? 'DRY RUN' : 'LIVE'}, batch size: ${batchSize}`);
 
-    // Initialize Supabase client with service role
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+    // Initialize Supabase client with service role (admin operations)
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,

@@ -16,4 +16,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.migrate-avatar-paths]
-verify_jwt = false
+verify_jwt = true
