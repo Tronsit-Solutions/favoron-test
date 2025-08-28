@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -92,7 +93,7 @@ const HeroSection = ({
       
       <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-16 sm:pb-24 text-center">
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-6">
           {/* Left Column - Title and Buttons */}
           <div className="text-left">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
