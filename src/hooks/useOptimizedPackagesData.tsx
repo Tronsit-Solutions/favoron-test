@@ -245,10 +245,10 @@ export const useOptimizedPackagesData = () => {
           // Clear previous timeout
           clearTimeout(timeoutId);
           
-          // Debounce to prevent multiple rapid calls
+          // Reduced debounce for faster updates
           timeoutId = setTimeout(() => {
             fetchPackages();
-          }, 500);
+          }, 100);
         }
       )
       .subscribe();

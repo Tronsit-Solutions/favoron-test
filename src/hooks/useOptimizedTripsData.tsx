@@ -1,58 +1,62 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { useCachedData } from './useCachedData';
 
 export type Trip = Tables<'trips'>;
 export type TripInsert = TablesInsert<'trips'>;
 export type TripUpdate = TablesUpdate<'trips'>;
 
-export const useTripsData = () => {
+export const useOptimizedTripsData = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchTrips = async () => {
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setTrips([]);
-        return;
-      }
-
-      // Skip admin check - let RLS handle permissions for speed
-
-      // Optimized query - only essential fields for performance
-      const { data, error } = await supabase
-        .from('trips')
-        .select(`
-          *,
-          profiles!inner (
-            id,
-            first_name,
-            last_name,
-            username,
-            avatar_url
-          )
-        `)
-        .order('departure_date', { ascending: true });
-
-      if (error) throw error;
-      setTrips(data || []);
-    } catch (error: any) {
-      console.error('Error fetching trips:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los viajes",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  // Cached fetch function for trips
+  const fetchTripsOptimized = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return [];
     }
-  };
 
-  const createTrip = async (tripData: TripInsert) => {
+    // Simplified query for better performance
+    const { data, error } = await supabase
+      .from('trips')
+      .select(`
+        *,
+        profiles!inner (
+          id,
+          first_name,
+          last_name,
+          avatar_url
+        )
+      `)
+      .order('departure_date', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }, []);
+
+  // Use cached data with 30-second TTL
+  const {
+    data: cachedTrips,
+    loading: cacheLoading,
+    refresh: refreshCache
+  } = useCachedData(fetchTripsOptimized, {
+    key: 'trips-optimized',
+    ttl: 30000 // 30 seconds
+  });
+
+  // Update local state when cache changes
+  useEffect(() => {
+    if (cachedTrips) {
+      setTrips(cachedTrips);
+    }
+    setLoading(cacheLoading);
+  }, [cachedTrips, cacheLoading]);
+
+  const createTrip = useCallback(async (tripData: TripInsert) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
@@ -68,11 +72,16 @@ export const useTripsData = () => {
 
       if (error) throw error;
       
+      // Optimistic update
       setTrips(prev => [data, ...prev]);
+      
       toast({
         title: "¡Éxito!",
         description: "Viaje creado correctamente",
       });
+      
+      // Refresh cache
+      refreshCache();
       
       return data;
     } catch (error: any) {
@@ -84,9 +93,9 @@ export const useTripsData = () => {
       });
       throw error;
     }
-  };
+  }, [toast, refreshCache]);
 
-  const updateTrip = async (id: string, updates: TripUpdate) => {
+  const updateTrip = useCallback(async (id: string, updates: TripUpdate) => {
     try {
       const { data, error } = await supabase
         .from('trips')
@@ -97,9 +106,13 @@ export const useTripsData = () => {
 
       if (error) throw error;
       
+      // Optimistic update
       setTrips(prev => prev.map(trip => 
         trip.id === id ? { ...trip, ...data } : trip
       ));
+      
+      // Refresh cache
+      refreshCache();
       
       return data;
     } catch (error: any) {
@@ -111,9 +124,9 @@ export const useTripsData = () => {
       });
       throw error;
     }
-  };
+  }, [toast, refreshCache]);
 
-  const deleteTrip = async (id: string) => {
+  const deleteTrip = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('trips')
@@ -122,11 +135,16 @@ export const useTripsData = () => {
 
       if (error) throw error;
       
+      // Optimistic update
       setTrips(prev => prev.filter(trip => trip.id !== id));
+      
       toast({
         title: "Éxito",
         description: "Viaje eliminado correctamente",
       });
+      
+      // Refresh cache
+      refreshCache();
     } catch (error: any) {
       console.error('Error deleting trip:', error);
       toast({
@@ -136,18 +154,17 @@ export const useTripsData = () => {
       });
       throw error;
     }
-  };
+  }, [toast, refreshCache]);
 
-  useEffect(() => {
-    fetchTrips();
-  }, []);
-
-  return {
+  // Memoized return value
+  const returnValue = useMemo(() => ({
     trips,
     loading,
     createTrip,
     updateTrip,
     deleteTrip,
-    refreshTrips: fetchTrips
-  };
+    refreshTrips: refreshCache
+  }), [trips, loading, createTrip, updateTrip, deleteTrip, refreshCache]);
+
+  return returnValue;
 };

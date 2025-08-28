@@ -159,10 +159,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Defer profile fetching to prevent deadlocks
-          setTimeout(() => {
-            loadProfile(session.user.id);
-          }, 0);
+          // Load profile immediately for faster auth
+          loadProfile(session.user.id);
         } else {
           setProfile(null);
           setUserRole(null);
@@ -177,9 +175,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        setTimeout(() => {
-          loadProfile(session.user.id);
-        }, 0);
+        loadProfile(session.user.id);
       } else {
         setLoading(false);
       }

@@ -93,10 +93,8 @@ export const usePackagesData = () => {
         description: "Paquete creado correctamente",
       });
       
-      // Force refresh packages to ensure we get the latest data
-      setTimeout(() => {
-        fetchPackages();
-      }, 300);
+      // Immediate optimistic update instead of setTimeout
+      fetchPackages();
       
       return data;
     } catch (error: any) {
@@ -194,10 +192,8 @@ export const usePackagesData = () => {
           table: 'packages'
         },
         (payload) => {
-          // Debounce refetch para evitar múltiples calls simultáneos
-          setTimeout(() => {
-            fetchPackages();
-          }, 300);
+          // Immediate refetch for real-time updates
+          fetchPackages();
         }
       )
       .subscribe();
