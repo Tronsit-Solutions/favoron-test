@@ -312,40 +312,7 @@ const CollapsibleTravelerPackageCard = ({
                         </div>
                       )}
 
-                      {/* Comprobante de Pago */}
-                      {pkg.payment_receipt && (
-                        <div className="bg-card border rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CreditCard className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-sm">Comprobante de Pago</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground mb-2">
-                            Archivo: {pkg.payment_receipt.filename || 'Pago confirmado'}
-                          </div>
-                            {pkg.payment_receipt?.filePath && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs"
-                                onClick={async () => {
-                                  try {
-                                    const { data, error } = await supabase.storage
-                                      .from('payment-receipts')
-                                      .createSignedUrl(pkg.payment_receipt.filePath, 3600);
-                                    if (!error && data?.signedUrl) {
-                                      openDocumentModal('Comprobante de Pago', data.signedUrl, 'image');
-                                    }
-                                  } catch (e) {
-                                    console.error('Error generating signed URL', e);
-                                  }
-                                }}
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                Ver Comprobante
-                              </Button>
-                            )}
-                        </div>
-                      )}
+                      {/* Comprobante de Pago - Solo visible para admins, NO para viajeros */}
 
                       {/* Estado cuando no hay documentos */}
                       {!pkg.purchase_confirmation && !pkg.tracking_info?.trackingNumber && !pkg.payment_receipt && (
