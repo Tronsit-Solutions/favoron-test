@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { usePackagesData } from './usePackagesData';
-import { useTripsData } from './useTripsData';
+import { useOptimizedPackagesData } from './useOptimizedPackagesData';
+import { useOptimizedTripsData } from './useOptimizedTripsData';
 import type { Package } from "@/types";
 
 export const useDashboardState = (user: any) => {
@@ -17,9 +17,9 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
-  // Use real data hooks
-  const { packages, loading: packagesLoading, createPackage, updatePackage, deletePackage, refreshPackages } = usePackagesData();
-  const { trips, loading: tripsLoading, createTrip, updateTrip, deleteTrip, refreshTrips } = useTripsData();
+  // Use optimized data hooks with caching
+  const { packages, loading: packagesLoading, createPackage, updatePackage, deletePackage, refreshPackages, setPackages } = useOptimizedPackagesData();
+  const { trips, loading: tripsLoading, createTrip, updateTrip, deleteTrip, refreshTrips } = useOptimizedTripsData();
   const { toast } = useToast();
 
   return {
@@ -58,6 +58,7 @@ export const useDashboardState = (user: any) => {
     updateTrip,
     deleteTrip,
     refreshTrips,
+    setPackages,
     toast
   };
 };

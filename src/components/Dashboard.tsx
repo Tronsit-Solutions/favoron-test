@@ -20,7 +20,8 @@ import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
-import { useRealtimePackages } from "@/hooks/useRealtimePackages";
+import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
+import { useTabAwareData } from "@/hooks/useTabAwareData";
 
 import UserManagement from "./admin/UserManagement";
 
@@ -72,7 +73,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     refreshPackages,
     createTrip,
     updateTrip,
-    refreshTrips
+    refreshTrips,
+    setPackages
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -117,8 +119,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     updatePackage,
     updateTrip,
     setActiveTab, // Add setActiveTab here
-    refreshPackages, // Add refreshPackages function
-    refreshTrips // Add refreshTrips function
+    async () => { await refreshPackages(); }, // Add refreshPackages function wrapped
+    async () => { await refreshTrips(); } // Add refreshTrips function wrapped
   );
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
@@ -135,12 +137,33 @@ const Dashboard = ({ user }: DashboardProps) => {
     userTrips.some(trip => trip.id === pkg.matched_trip_id)
   );
 
-  // Set up real-time notifications based on user context
-  useRealtimePackages({
-    onPackageUpdate: () => {
-      refreshPackages();
+  // Tab awareness for intelligent refreshing
+  useTabAwareData({
+    onTabActive: () => {
+      // Only refresh if data is older than 2 minutes
+      const shouldRefresh = Date.now() - (packages[0]?.updated_at ? new Date(packages[0].updated_at).getTime() : 0) > 120000;
+      if (shouldRefresh) {
+        refreshPackages();
+      }
     },
-    userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper')
+    refreshOnReturn: true,
+    refreshThreshold: 120000 // 2 minutes
+  });
+
+  // Optimized real-time updates with minimal refetching
+  useOptimizedRealtime({
+    onPackageUpdate: (updatedPackages) => {
+      // Use optimistic updates instead of full refresh
+      if (updatedPackages.length > 0) {
+        setPackages(updatedPackages);
+      }
+    },
+    onTripUpdate: () => {
+      // Only refresh trips data, not packages
+      refreshTrips();
+    },
+    userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
+    packages
   });
 
   const handleUpdateUser = async (userData: any) => {

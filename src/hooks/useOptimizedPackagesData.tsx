@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useCachedData } from '@/hooks/useCachedData';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export type Package = Tables<'packages'>;
@@ -8,9 +10,10 @@ export type PackageInsert = TablesInsert<'packages'>;
 export type PackageUpdate = TablesUpdate<'packages'>;
 
 export const useOptimizedPackagesData = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   // Memoized query for basic package data
   const fetchBasicPackages = useCallback(async () => {
@@ -85,41 +88,58 @@ export const useOptimizedPackagesData = () => {
     }, {} as Record<string, any>);
   }, []);
 
-  const fetchPackages = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // First get basic package data
-      const basicPackages = await fetchBasicPackages();
-      
-      // Extract unique user IDs and trip IDs for separate queries
-      const userIds = [...new Set(basicPackages.map(pkg => pkg.user_id).filter(Boolean))];
-      const tripIds = [...new Set(basicPackages.map(pkg => pkg.matched_trip_id).filter(Boolean))];
-      
-      // Fetch related data in parallel
-      const [profilesData, tripsData] = await Promise.all([
-        fetchProfileData(userIds),
-        fetchTripData(tripIds)
-      ]);
-      
-      // Combine data
-      const enrichedPackages = basicPackages.map(pkg => ({
-        ...pkg,
-        profiles: profilesData[pkg.user_id] || null,
-        trips: pkg.matched_trip_id ? tripsData[pkg.matched_trip_id] || null : null
-      }));
-      
-      setPackages(enrichedPackages);
-    } catch (error: any) {
+  // Optimized fetch function using cached data
+  const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
+    if (!user) return [];
+    
+    const { data, error } = await supabase
+      .from('packages')
+      .select(`
+        *,
+        profiles!packages_user_id_fkey(first_name, last_name, avatar_url),
+        trips!packages_matched_trip_id_fkey(
+          id,
+          from_city,
+          to_city,
+          departure_date,
+          arrival_date,
+          profiles!trips_user_id_fkey(first_name, last_name, avatar_url)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching packages:', error);
       toast({
         title: "Error",
         description: "No se pudieron cargar los paquetes",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      throw error;
     }
-  }, [fetchBasicPackages, fetchProfileData, fetchTripData, toast]);
+
+    return data || [];
+  }, [user, toast]);
+
+  // Use cached data with 30-second TTL
+  const { 
+    data: cachedPackages, 
+    loading: cacheLoading, 
+    error, 
+    refresh: refreshCache,
+    invalidate: invalidateCache 
+  } = useCachedData(fetchPackagesOptimized, {
+    key: `packages-${user?.id}`,
+    ttl: 30000 // 30 seconds
+  });
+
+  // Sync local state with cached data
+  useEffect(() => {
+    if (cachedPackages) {
+      setPackages(cachedPackages);
+    }
+    setLoading(cacheLoading);
+  }, [cachedPackages, cacheLoading]);
 
   const createPackage = useCallback(async (packageData: PackageInsert) => {
     try {
@@ -226,38 +246,7 @@ export const useOptimizedPackagesData = () => {
   // Memoized packages for performance
   const memoizedPackages = useMemo(() => packages, [packages]);
 
-  useEffect(() => {
-    fetchPackages();
-
-    // Optimized real-time subscription with debouncing
-    let timeoutId: NodeJS.Timeout;
-    
-    const channel = supabase
-      .channel('packages-optimized')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'packages'
-        },
-        () => {
-          // Clear previous timeout
-          clearTimeout(timeoutId);
-          
-          // Reduced debounce for faster updates
-          timeoutId = setTimeout(() => {
-            fetchPackages();
-          }, 100);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      clearTimeout(timeoutId);
-      supabase.removeChannel(channel);
-    };
-  }, [fetchPackages]);
+  // No useEffect for auto-fetching - we use cached data instead
 
   return {
     packages: memoizedPackages,
@@ -265,6 +254,8 @@ export const useOptimizedPackagesData = () => {
     createPackage,
     updatePackage,
     deletePackage,
-    refreshPackages: fetchPackages
+    refreshPackages: refreshCache,
+    setPackages,
+    invalidateCache
   };
 };
