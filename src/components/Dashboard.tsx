@@ -41,7 +41,29 @@ interface DashboardProps {
 
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
-  const { getUrlParam, navigateToForm, navigateBack } = useUrlState();
+  
+  // Only use URL state in the dashboard context, fallback to regular functions if not available
+  let navigateToForm: (formType: 'package' | 'trip') => void;
+  let navigateBack: () => void;
+  
+  try {
+    const urlState = useUrlState();
+    navigateToForm = urlState.navigateToForm;
+    navigateBack = urlState.navigateBack;
+  } catch {
+    // Fallback if useUrlState fails (not in proper router context)
+    navigateToForm = (formType: 'package' | 'trip') => {
+      if (formType === 'package') {
+        setShowPackageForm(true);
+      } else {
+        setShowTripForm(true);
+      }
+    };
+    navigateBack = () => {
+      setShowPackageForm(false);
+      setShowTripForm(false);
+    };
+  }
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   
