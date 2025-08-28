@@ -136,43 +136,20 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   <CarouselContent>
                     {approvedPhotos.map((photo) => (
                       <CarouselItem key={photo.id}>
-                        <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                          <CardContent className="p-0 relative">
-                            <div className="aspect-[4/3] overflow-hidden">
-                              <img
-                                src={photo.image_url}
-                                alt={photo.product_description}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                              />
-                            </div>
-                            
-                            {/* Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                <h3 className="font-semibold text-sm mb-1">
-                                  {photo.customer_name || 'Cliente Favorón'}
-                                </h3>
-                                <p className="text-xs opacity-90 line-clamp-2">
-                                  {photo.product_description}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Admin controls overlay */}
-                            {showAdminPanel && (
-                              <div className="absolute top-2 right-2 flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => deletePhoto(photo.id, photo.image_url)}
-                                  className="h-8 w-8 p-0 bg-destructive/80 hover:bg-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
+                        <div className="relative bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg rounded-3xl p-4 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02]">
+                          <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner relative">
+                            <img
+                              src={photo.image_url}
+                              alt={photo.product_description}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Subtle gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-60"></div>
+                          </div>
+                          {/* Decorative elements */}
+                          <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-lg"></div>
+                          <div className="absolute bottom-2 left-2 w-2 h-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg"></div>
+                        </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
@@ -281,14 +258,19 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 <CarouselContent>
                   {approvedPhotos.slice(0, 10).map((photo) => (
                     <CarouselItem key={photo.id}>
-                      <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-white/50">
-                        <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md">
+                      <div className="relative bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg rounded-3xl p-4 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-500 transform hover:scale-[1.02]">
+                        <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner relative">
                           <img
                             src={photo.image_url}
                             alt={photo.product_description}
                             className="w-full h-full object-cover"
                           />
+                          {/* Subtle gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-60"></div>
                         </div>
+                        {/* Decorative elements */}
+                        <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full shadow-lg"></div>
+                        <div className="absolute bottom-2 left-2 w-2 h-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg"></div>
                       </div>
                     </CarouselItem>
                   ))}
