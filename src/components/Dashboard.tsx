@@ -150,21 +150,22 @@ const Dashboard = ({ user }: DashboardProps) => {
     refreshThreshold: 120000 // 2 minutes
   });
 
-  // Optimized real-time updates with minimal refetching
-  useOptimizedRealtime({
-    onPackageUpdate: (updatedPackages) => {
-      // Use optimistic updates instead of full refresh
-      if (updatedPackages.length > 0) {
-        setPackages(updatedPackages);
-      }
-    },
-    onTripUpdate: () => {
-      // Only refresh trips data, not packages
-      refreshTrips();
-    },
-    userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
-    packages
-  });
+  // Disabled real-time updates to prevent modal refresh issues
+  // Real-time updates are now handled by AdminDashboard's consolidated system
+  // useOptimizedRealtime({
+  //   onPackageUpdate: (updatedPackages) => {
+  //     // Use optimistic updates instead of full refresh
+  //     if (updatedPackages.length > 0) {
+  //       setPackages(updatedPackages);
+  //     }
+  //   },
+  //   onTripUpdate: () => {
+  //     // Only refresh trips data, not packages
+  //     refreshTrips();
+  //   },
+  //   userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
+  //   packages
+  // });
 
   const handleUpdateUser = async (userData: any) => {
     try {

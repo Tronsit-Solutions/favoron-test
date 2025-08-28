@@ -23,15 +23,15 @@ export const useDashboardState = (user: any) => {
   const { trips, loading: tripsLoading, createTrip, updateTrip, deleteTrip, refreshTrips } = useOptimizedTripsData();
   const { toast } = useToast();
 
-  // Improved tab awareness without aggressive auto-refresh
-  useImprovedTabAwareData({
-    refreshThreshold: 5 * 60 * 1000, // 5 minutes
-    enableAutoRefresh: false, // Disabled to prevent modal interruption
-    onTabActive: () => {
-      // Only refresh if user explicitly requests it
-      console.log('Tab became active - data refresh available');
-    }
-  });
+  // Completely disabled tab awareness to prevent any automatic refreshes
+  // useImprovedTabAwareData({
+  //   refreshThreshold: 5 * 60 * 1000, // 5 minutes
+  //   enableAutoRefresh: false, // Disabled to prevent modal interruption
+  //   onTabActive: () => {
+  //     // Only refresh if user explicitly requests it
+  //     console.log('Tab became active - data refresh available');
+  //   }
+  // });
 
   return {
     currentUser,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getStatusLabel } from "@/lib/formatters";
@@ -8,7 +8,7 @@ import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { usePendingActions } from "@/hooks/usePendingActions";
-import { useAdminRealtimeWithModalProtection } from "@/hooks/useAdminRealtimeWithModalProtection";
+import { useConsolidatedRealtimeAdmin } from "@/hooks/useConsolidatedRealtimeAdmin";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useModalProtection } from "@/hooks/useModalProtection";
@@ -67,10 +67,23 @@ const AdminDashboard = ({
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");
   const [showMatchDialog, setShowMatchDialog] = useState(false);
+  const [localPackages, setLocalPackages] = useState(packages);
+  const [localTrips, setLocalTrips] = useState(trips);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
-  const { canRefresh } = useModalProtection();
+  const { canRefresh, hasOpenModals } = useModalProtection();
+
+  // Sync props to local state only when no modals are open
+  useEffect(() => {
+    if (canRefresh()) {
+      console.log('🔄 Syncing props to local state (no modals open)');
+      setLocalPackages(packages);
+      setLocalTrips(trips);
+    } else {
+      console.log('📱 Blocking props sync - modals are open');
+    }
+  }, [packages, trips, canRefresh]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -243,12 +256,12 @@ const AdminDashboard = ({
     openModal(modalId, 'trip-detail', tripWithUser);
   };
 
-  // Filter trips that are approved and active for matching
-  const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
-  const approvedPackages = packages.filter(p => p.status === 'approved');
+  // Use local state for all filtering to prevent props refreshes from affecting UI
+  const availableTrips = localTrips.filter(trip => ['approved', 'active'].includes(trip.status));
+  const approvedPackages = localPackages.filter(p => p.status === 'approved');
 
-  // Use centralized pending actions hook for consistent notification badges
-  const pendingActions = usePendingActions(packages, trips, currentUser);
+  // Use local state for consistent notification badges
+  const pendingActions = usePendingActions(localPackages, localTrips, currentUser);
   const { paymentsToConfirm, approvalsNeeded, packageApprovalsNeeded, tripApprovalsNeeded, unmatchedPackages } = pendingActions;
   const matchingTotal = paymentsToConfirm + unmatchedPackages;
   
@@ -256,26 +269,20 @@ const AdminDashboard = ({
   const { paymentOrders } = usePaymentOrders();
   const pendingTravelerPayments = paymentOrders.filter(order => order.status === 'pending').length;
   
-  // Set up real-time notifications with modal protection
-  useAdminRealtimeWithModalProtection({
+  // Setup consolidated real-time with complete modal protection
+  const { isRealtimePaused, queuedUpdates } = useConsolidatedRealtimeAdmin({
+    onPackageUpdate: (updatedPackages) => {
+      console.log('📦 Admin: Applying incremental package updates');
+      setLocalPackages(updatedPackages);
+    },
+    onTripUpdate: (updatedTrips) => {
+      console.log('✈️ Admin: Applying incremental trip updates');
+      setLocalTrips(updatedTrips);
+    },
+    packages: localPackages,
+    trips: localTrips,
     userRole: 'admin',
-    onPackageUpdate: (payload) => {
-      // Only refresh if no modals are open
-      if (canRefresh() && onRefreshPackages) {
-        console.log('📦 Admin dashboard refreshing packages');
-        onRefreshPackages();
-      } else {
-        console.log('📱 Admin dashboard skipping refresh due to open modals');
-      }
-    },
-    onTripUpdate: (payload) => {
-      // Refresh trips if needed and no modals are open
-      if (canRefresh() && onRefreshPackages) {
-        console.log('✈️ Admin dashboard refreshing due to trip update');
-        onRefreshPackages();
-      }
-    },
-    debounceMs: 2000 // 2 second debounce for admin
+    enabled: true
   });
   
   // Create tabs array for mobile and desktop tabs
@@ -293,7 +300,7 @@ const AdminDashboard = ({
     {
       value: "matching",
       label: "Gestión",
-      badge: (matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + packages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
+      badge: (matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
     },
     {
       value: "traveler-payments",
@@ -303,7 +310,7 @@ const AdminDashboard = ({
     {
       value: "support",
       label: "🔍 Soporte",
-      badge: packages.filter(p => p.incident_flag).length > 0 ? <NotificationBadge count={packages.filter(p => p.incident_flag).length} /> : undefined
+      badge: localPackages.filter(p => p.incident_flag).length > 0 ? <NotificationBadge count={localPackages.filter(p => p.incident_flag).length} /> : undefined
     },
     {
       value: "financial",
@@ -327,7 +334,7 @@ const AdminDashboard = ({
         </div>
       </div>
 
-      <AdminStatsOverview packages={packages} trips={trips} />
+      <AdminStatsOverview packages={localPackages} trips={localTrips} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         {isMobile ? (
@@ -353,8 +360,8 @@ const AdminDashboard = ({
 
         <TabsContent value="overview" className="space-y-4">
           <AdminOverviewTab 
-            packages={packages}
-            trips={trips}
+            packages={localPackages}
+            trips={localTrips}
             onViewPackageDetail={handleViewPackageDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
             onUpdateStatus={onUpdateStatus}
@@ -363,8 +370,8 @@ const AdminDashboard = ({
 
         <TabsContent value="approvals" className="space-y-4">
           <AdminApprovalsTab 
-            packages={packages}
-            trips={trips}
+            packages={localPackages}
+            trips={localTrips}
             onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onApproveReject={onApproveReject}
@@ -373,13 +380,13 @@ const AdminDashboard = ({
         </TabsContent>
 
         <TabsContent value="financial" className="space-y-4">
-          <FinancialDashboard packages={packages} />
+          <FinancialDashboard packages={localPackages} />
         </TabsContent>
 
         <TabsContent value="matching" className="space-y-4">
           <AdminMatchingTab 
-            packages={packages}
-            trips={trips}
+            packages={localPackages}
+            trips={localTrips}
             onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
@@ -400,8 +407,8 @@ const AdminDashboard = ({
 
         <TabsContent value="support" className="space-y-4">
           <AdminSupportTab 
-            packages={packages}
-            trips={trips}
+            packages={localPackages}
+            trips={localTrips}
             onViewPackageDetail={handleViewPackageDetail}
             onOpenActionsModal={(pkg) => {
               const modalId = `admin-actions-${pkg.id}`;
@@ -429,15 +436,15 @@ const AdminDashboard = ({
       {/* Global Modals - using persistent modal system */}
       <AdminActionsModal
         modalId="admin-actions"
-        trips={trips}
+        trips={localTrips}
         onRefresh={() => canRefresh() ? window.location.reload() : console.log('📱 Refresh blocked by open modals')}
       />
 
       <PackageDetailModal
         modalId="package-detail"
-        trips={trips}
+        trips={localTrips}
         onApprove={(id) => {
-          const pkg = packages.find(p => p.id === id);
+          const pkg = localPackages.find(p => p.id === id);
           if (pkg?.status === 'payment_pending_approval') {
             onPaymentApproval(id, 'approve');
           } else {
@@ -445,7 +452,7 @@ const AdminDashboard = ({
           }
         }}
         onReject={(id) => {
-          const pkg = packages.find(p => p.id === id);
+          const pkg = localPackages.find(p => p.id === id);
           if (pkg?.status === 'payment_pending_approval') {
             onPaymentApproval(id, 'reject');
           } else {
