@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock } from "lucide-react";
 import { NotificationBadge } from "@/components/ui/notification-badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityActions";
@@ -175,33 +176,67 @@ const CollapsibleTravelerPackageCard = ({
               onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
             />
 
-            <div className={isMobile ? "space-y-3" : "grid gap-3 lg:grid-cols-2"}>
-              <div className="space-y-2">
-                {/* Traveler Package Timeline - Show for relevant statuses */}
-                {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
-                  <div className="bg-muted/30 rounded-lg p-2">
-                    <TravelerPackageTimeline currentStatus={pkg.status} />
-                  </div>
-                )}
-
-                {/* Package details and info */}
-                <TravelerPackageDetails pkg={pkg} />
-                <TravelerPackageInfo pkg={pkg} />
-                
-                {/* Show traveler's own confirmation photo */}
+            <div className="grid gap-4 lg:grid-cols-5">
+              {/* Left section with tabs */}
+              <div className="lg:col-span-3">
+                <Tabs defaultValue="producto" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 mb-3">
+                    <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                      <Package className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Producto</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="estado" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Estado</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="docs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                      <FileText className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Docs</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Chat</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="producto" className="mt-0 space-y-3">
+                    <TravelerPackageDetails pkg={pkg} />
+                    <TravelerPackageInfo pkg={pkg} />
+                  </TabsContent>
+                  
+                  <TabsContent value="estado" className="mt-0">
+                    {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                      <div className="bg-muted/30 rounded-lg p-3">
+                        <TravelerPackageTimeline currentStatus={pkg.status} />
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="docs" className="mt-0">
+                    <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
+                      Los documentos se mostrarán aquí cuando estén disponibles.
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="chat" className="mt-0">
+                    {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) ? (
+                      <PackageTimeline pkg={pkg} />
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
+                        El chat estará disponible una vez que se acepte la cotización.
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+              
+              {/* Right section */}
+              <div className="lg:col-span-2 space-y-3">
+                {/* Traveler Confirmation Display */}
                 <TravelerConfirmationDisplay 
                   pkg={pkg} 
                   onConfirmReceived={handleConfirmReceived}
                 />
-              </div>
-
-              <div className="space-y-2">
-                {/* Package Chat Timeline - Show from quote_accepted onward */}
-                {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) && (
-                  <div className="mt-3">
-                    <PackageTimeline pkg={pkg} />
-                  </div>
-                )}
               </div>
             </div>
           </CardContent>
