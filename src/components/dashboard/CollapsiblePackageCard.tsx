@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -18,7 +18,6 @@ import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstruc
 import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
-import AdditionalDocumentsUpload from "@/components/dashboard/AdditionalDocumentsUpload";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -79,15 +78,6 @@ const CollapsiblePackageCard = ({
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
 
-  const handleAdditionalDocumentUpload = (documentData: any) => {
-    // Update the package with additional documents
-    if (onEditPackage) {
-      onEditPackage({
-        ...pkg,
-        ...documentData
-      });
-    }
-  };
 
   const needsAction = viewMode === 'user' && (
     pkg.status === 'quote_sent' || 
@@ -302,7 +292,7 @@ const CollapsiblePackageCard = ({
               {/* Left Column: Horizontal Tabs */}
               <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
                 <Tabs defaultValue="producto" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
+                  <TabsList className="grid w-full grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
                     <TabsTrigger 
                       value="producto" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
@@ -323,13 +313,6 @@ const CollapsiblePackageCard = ({
                     >
                       <FileText className="h-4 w-4" />
                       <span className="hidden sm:inline">Docs</span>
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="adicionales" 
-                      className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
-                    >
-                      <Clock className="h-4 w-4" />
-                      <span className="hidden sm:inline">Extras</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="chat" 
@@ -376,17 +359,6 @@ const CollapsiblePackageCard = ({
                         <UploadedDocumentsRegistry 
                           pkg={pkg}
                           onEditDocument={handleEditDocument}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="adicionales" className="mt-0 px-1 py-2 sm:p-2">
-                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
-                      <div className="max-w-full overflow-hidden">
-                        <AdditionalDocumentsUpload 
-                          pkg={pkg}
-                          onUploadComplete={handleAdditionalDocumentUpload}
                         />
                       </div>
                     </div>
