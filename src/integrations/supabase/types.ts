@@ -113,6 +113,42 @@ export type Database = {
           },
         ]
       }
+      customer_photos: {
+        Row: {
+          created_at: string
+          customer_name: string | null
+          id: string
+          image_url: string
+          product_description: string
+          sort_order: number | null
+          status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          image_url: string
+          product_description: string
+          sort_order?: number | null
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          image_url?: string
+          product_description?: string
+          sort_order?: number | null
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       favoron_bank_accounts: {
         Row: {
           account_holder: string
