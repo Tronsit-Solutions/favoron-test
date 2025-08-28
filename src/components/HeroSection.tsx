@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
+  isAuthenticated?: boolean;
+  userName?: string;
 }
 const HeroSection = ({
-  onOpenAuth
+  onOpenAuth,
+  isAuthenticated,
+  userName
 }: HeroSectionProps) => {
   // Historical values as base
   const HISTORICAL_TIPS = 30000;
@@ -100,27 +104,52 @@ const HeroSection = ({
         {/* Main Headline */}
         <div className="relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
-              Conectamos compradores
-            </span>
-            <br />
-            <span className="text-gray-900">con viajeros</span>
+            {isAuthenticated && userName ? (
+              <>
+                <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
+                  ¡Bienvenido de vuelta,
+                </span>
+                <br />
+                <span className="text-gray-900">{userName}!</span>
+              </>
+            ) : (
+              <>
+                <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
+                  Conectamos compradores
+                </span>
+                <br />
+                <span className="text-gray-900">con viajeros</span>
+              </>
+            )}
           </h1>
-          
         </div>
 
         
         
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            <Package className="h-5 w-5 mr-3" />
-            Solicitar Paquete
-          </Button>
-          <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-            <Plane className="h-5 w-5 mr-3" />
-            Registrar Viaje
-          </Button>
+          {isAuthenticated ? (
+            <Button 
+              size="lg" 
+              variant="default" 
+              onClick={() => window.location.href = "/dashboard"} 
+              className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            >
+              <Users className="h-5 w-5 mr-3" />
+              Ir a mi Dashboard
+            </Button>
+          ) : (
+            <>
+              <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                <Package className="h-5 w-5 mr-3" />
+                Solicitar Paquete
+              </Button>
+              <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                <Plane className="h-5 w-5 mr-3" />
+                Registrar Viaje
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Social Proof */}

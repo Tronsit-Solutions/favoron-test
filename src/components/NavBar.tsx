@@ -94,7 +94,7 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/" className="w-full">
+                    <Link to="/dashboard" className="w-full">
                       <User className="h-4 w-4 mr-2" />
                       Ir al Dashboard
                     </Link>

@@ -30,35 +30,7 @@ const Index = () => {
     );
   }
 
-  if (user && profile) {
-    // Create user object compatible with existing Dashboard component
-    const userData = {
-      id: user.id,
-      name: `${profile.first_name} ${profile.last_name}`.trim(),
-      firstName: profile.first_name,
-      lastName: profile.last_name,
-      email: user.email,
-      phone: profile.phone_number,
-      role: userRole?.role || 'user', // Fallback to 'user' if role not loaded
-      trustLevel: profile.trust_level,
-      avatar_url: profile.avatar_url,
-      joinedAt: profile.created_at,
-      // Banking information - map from database fields to component expected fields
-      bankAccountHolder: profile.bank_account_holder,
-      bankName: profile.bank_name,
-      bankAccountType: profile.bank_account_type,
-      bankAccountNumber: profile.bank_account_number,
-      bankSwiftCode: profile.bank_swift_code,
-      stats: {
-        packagesRequested: 0,
-        packagesCompleted: 0,
-        totalTips: 0,
-        packagesDelivered: 0
-      }
-    };
-    
-    return <Dashboard user={userData} />;
-  }
+  // Logged-in users can now see the landing page
 
   
   return (
@@ -71,7 +43,11 @@ const Index = () => {
         loading={loading}
       />
       <main className="pb-safe">
-        <HeroSection onOpenAuth={openAuth} />
+        <HeroSection 
+          onOpenAuth={openAuth} 
+          isAuthenticated={!!(user && profile)}
+          userName={profile?.first_name}
+        />
         <PlatformDescriptionSection />
         <TravelsHubSection />
         <HowItWorksSection />
