@@ -107,58 +107,61 @@ const HeroSection = ({
           </div>
         </div>
 
-        {/* Main Headline */}
-        <div className="relative">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            {isAuthenticated && userName ? (
-              <>
-                <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
-                  Bienvenido de vuelta {userName},
-                </span>
-                <br />
-                <span className="text-gray-900">que chilero tenerte aquí!</span>
-              </>
-            ) : (
-              <>
-                <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
-                  Conectamos compradores
-                </span>
-                <br />
-                <span className="text-gray-900">con viajeros</span>
-              </>
-            )}
-          </h1>
-        </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-12">
+          {/* Left Column - Title and Buttons */}
+          <div className="text-left">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              {isAuthenticated && userName ? (
+                <>
+                  <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
+                    Bienvenido de vuelta {userName},
+                  </span>
+                  <br />
+                  <span className="text-gray-900">que chilero tenerte aquí!</span>
+                </>
+              ) : (
+                <>
+                  <span className="bg-gradient-to-r from-traveler via-shopper to-primary bg-clip-text text-transparent">
+                    Conectamos compradores
+                  </span>
+                  <br />
+                  <span className="text-gray-900">con viajeros</span>
+                </>
+              )}
+            </h1>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          {isAuthenticated ? (
-            <Button 
-              size="lg" 
-              variant="default" 
-              onClick={() => window.location.href = "/dashboard"} 
-              className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-            >
-              <Users className="h-5 w-5 mr-3" />
-              Ir a mi Dashboard
-            </Button>
-          ) : (
-            <>
-              <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                <Package className="h-5 w-5 mr-3" />
-                Solicitar Paquete
-              </Button>
-              <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                <Plane className="h-5 w-5 mr-3" />
-                Registrar Viaje
-              </Button>
-            </>
-          )}
-        </div>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 lg:justify-start justify-center">
+              {isAuthenticated ? (
+                <Button 
+                  size="lg" 
+                  variant="default" 
+                  onClick={() => window.location.href = "/dashboard"} 
+                  className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                >
+                  <Users className="h-5 w-5 mr-3" />
+                  Ir a mi Dashboard
+                </Button>
+              ) : (
+                <>
+                  <Button size="lg" variant="shopper" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    <Package className="h-5 w-5 mr-3" />
+                    Solicitar Paquete
+                  </Button>
+                  <Button size="lg" variant="traveler" onClick={() => onOpenAuth("register")} className="text-base sm:text-lg px-8 py-4 w-64 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                    <Plane className="h-5 w-5 mr-3" />
+                    Registrar Viaje
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
 
-        {/* Customer Photos Section */}
-        <div className="mb-12">
-          <CustomerPhotosSection isAdmin={userRole?.role === 'admin'} />
+          {/* Right Column - Customer Photos */}
+          <div className="flex justify-center lg:justify-end">
+            <CustomerPhotosSection isAdmin={userRole?.role === 'admin'} />
+          </div>
         </div>
 
         {/* Social Proof */}
