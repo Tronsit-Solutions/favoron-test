@@ -5,6 +5,7 @@ import { Suspense, lazy } from "react";
 import Dashboard from "@/components/Dashboard";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
+import Footer from "@/components/Footer";
 
 // Lazy load heavy components to speed up initial load
 const TravelsHubSection = lazy(() => import("@/components/TravelsHubSection"));
@@ -70,6 +71,8 @@ const Index = () => {
           <CTASection onOpenAuth={openAuth} />
         </Suspense>
       </main>
+      
+      <Footer />
     </div>
   );
 };
