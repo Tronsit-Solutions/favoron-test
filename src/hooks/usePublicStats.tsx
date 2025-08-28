@@ -10,43 +10,71 @@ export interface PublicStats {
 }
 
 export const usePublicStats = () => {
-  const [stats, setStats] = useState<PublicStats>({
-    total_users: 0,
-    total_trips: 0,
-    total_packages_completed: 0,
-    total_tips_distributed: 0
-  });
+  // Historical values as fallbacks
+  const FALLBACK_STATS = {
+    total_users: 188,
+    total_trips: 110,
+    total_packages_completed: 202,
+    total_tips_distributed: 30000
+  };
+
+  const [stats, setStats] = useState<PublicStats>(FALLBACK_STATS);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchPublicStats = async () => {
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchPublicStats = async (retryCount = 0): Promise<void> => {
+    const maxRetries = 3;
+    const baseDelay = 1000;
+
     try {
-      setLoading(true);
+      console.log(`📊 Fetching public stats (attempt ${retryCount + 1}/${maxRetries + 1})`);
       
       const { data, error } = await supabase.rpc('get_public_stats');
 
       if (error) {
-        console.error('Error fetching public stats:', error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar las estadísticas",
-          variant: "destructive",
-        });
-        return;
+        throw new Error(`RPC Error: ${error.message}`);
       }
 
       if (data && data.length > 0) {
-        setStats(data[0]);
+        const newStats = data[0];
+        console.log('✅ Public stats fetched successfully:', newStats);
+        setStats({
+          total_users: FALLBACK_STATS.total_users + (Number(newStats.total_users) || 0),
+          total_trips: FALLBACK_STATS.total_trips + (Number(newStats.total_trips) || 0),
+          total_packages_completed: FALLBACK_STATS.total_packages_completed + (Number(newStats.total_packages_completed) || 0),
+          total_tips_distributed: FALLBACK_STATS.total_tips_distributed + (Number(newStats.total_tips_distributed) || 0)
+        });
+        setError(null);
+      } else {
+        console.log('📊 No stats data returned, using fallbacks');
+        setStats(FALLBACK_STATS);
       }
-    } catch (error) {
-      console.error('Error fetching public stats:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las estadísticas",
-        variant: "destructive",
-      });
+    } catch (fetchError) {
+      console.error(`❌ Error fetching public stats (attempt ${retryCount + 1}):`, fetchError);
+      
+      if (retryCount < maxRetries) {
+        const delayMs = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+        console.log(`🔄 Retrying in ${delayMs}ms...`);
+        await delay(delayMs);
+        return fetchPublicStats(retryCount + 1);
+      } else {
+        setError(fetchError instanceof Error ? fetchError.message : 'Error desconocido');
+        setStats(FALLBACK_STATS);
+        
+        // Only show toast for final failure, not intermediate retries
+        toast({
+          title: "Conectando...",
+          description: "Usando datos locales. Las estadísticas se actualizarán automáticamente.",
+          variant: "default",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (retryCount === 0) { // Only set loading false on initial call
+        setLoading(false);
+      }
     }
   };
 
@@ -62,6 +90,7 @@ export const usePublicStats = () => {
   return {
     stats,
     loading,
-    refreshStats: fetchPublicStats
+    error,
+    refreshStats: () => fetchPublicStats(0)
   };
 };

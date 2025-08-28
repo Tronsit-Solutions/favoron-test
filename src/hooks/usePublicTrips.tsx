@@ -17,44 +17,52 @@ export const usePublicTrips = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchPublicTrips = async () => {
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchPublicTrips = async (retryCount = 0): Promise<void> => {
+    const maxRetries = 3;
+    const baseDelay = 1000;
+
     try {
-      setLoading(true);
+      console.log(`✈️ Fetching public trips (attempt ${retryCount + 1}/${maxRetries + 1})`);
       
-      // Fetch solo campos públicos via función segura que evita exponer datos sensibles
       const { data, error } = await supabase.rpc('get_public_trips');
 
       if (error) {
-        console.error('Error fetching public trips (RPC):', error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los viajes disponibles",
-          variant: "destructive",
-        });
-        return;
+        throw new Error(`RPC Error: ${error.message}`);
       }
 
-      console.log('📈 Public trips fetched (RPC):', {
+      console.log('✅ Public trips fetched successfully:', {
         total: data?.length || 0,
-        trips: (data as PublicTrip[] | null)?.map(t => ({ 
+        trips: (data as PublicTrip[] | null)?.slice(0, 3).map(t => ({ 
           id: t.id.slice(0, 8), 
           from: t.from_city, 
           to: t.to_city, 
-          arrival: t.arrival_date,
           status: t.status 
         }))
       });
 
       setTrips((data as PublicTrip[]) || []);
-    } catch (error) {
-      console.error('Error fetching public trips (RPC):', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los viajes disponibles",
-        variant: "destructive",
-      });
+    } catch (fetchError) {
+      console.error(`❌ Error fetching public trips (attempt ${retryCount + 1}):`, fetchError);
+      
+      if (retryCount < maxRetries) {
+        const delayMs = baseDelay * Math.pow(2, retryCount); // Exponential backoff
+        console.log(`🔄 Retrying in ${delayMs}ms...`);
+        await delay(delayMs);
+        return fetchPublicTrips(retryCount + 1);
+      } else {
+        // Only show toast for final failure
+        toast({
+          title: "Conectando...",
+          description: "Los viajes se actualizarán automáticamente cuando se restablezca la conexión.",
+          variant: "default",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (retryCount === 0) { // Only set loading false on initial call
+        setLoading(false);
+      }
     }
   };
 
@@ -73,6 +81,6 @@ export const usePublicTrips = () => {
   return {
     trips,
     loading,
-    refreshTrips: fetchPublicTrips
+    refreshTrips: () => fetchPublicTrips(0)
   };
 };

@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Heart, Star, Users } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { CustomerPhotosSection } from "@/components/CustomerPhotosSection";
+import { usePublicStats } from "@/hooks/usePublicStats";
 
 interface HeroSectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
@@ -17,72 +16,8 @@ const HeroSection = ({
   userName,
   userRole
 }: HeroSectionProps) => {
-  // Historical values as base
-  const HISTORICAL_TIPS = 30000;
-  const HISTORICAL_PACKAGES = 202;
-  const HISTORICAL_TRIPS = 110;
-  const HISTORICAL_USERS = 188;
-  
-  const [completedPackages, setCompletedPackages] = useState(HISTORICAL_PACKAGES);
-  const [totalUsers, setTotalUsers] = useState(HISTORICAL_USERS);
-  const [totalTrips, setTotalTrips] = useState(HISTORICAL_TRIPS);
-  const [totalTipsDistributed, setTotalTipsDistributed] = useState(HISTORICAL_TIPS);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        console.log('Fetching app stats using new function...');
-
-        // Usar la nueva función que bypassa RLS
-        const {
-          data: statsData,
-          error: statsError
-        } = await supabase.rpc('get_public_stats');
-        console.log('Stats function result:', {
-          data: statsData,
-          error: statsError
-        });
-        if (statsError) {
-          console.error('Stats function error:', statsError);
-          // Fallbacks with historical values
-          setTotalUsers(HISTORICAL_USERS);
-          setCompletedPackages(HISTORICAL_PACKAGES);
-          setTotalTrips(HISTORICAL_TRIPS);
-          setTotalTipsDistributed(HISTORICAL_TIPS);
-        } else if (statsData && statsData.length > 0) {
-          const stats = statsData[0];
-          console.log('Setting stats from function:', stats);
-          setCompletedPackages(HISTORICAL_PACKAGES + (Number(stats.total_packages_completed) || 0));
-          setTotalUsers(HISTORICAL_USERS + (Number(stats.total_users) || 0));
-          setTotalTrips(HISTORICAL_TRIPS + (Number(stats.total_trips) || 0));
-          setTotalTipsDistributed(HISTORICAL_TIPS + (Number(stats.total_tips_distributed) || 0));
-        } else {
-          // Fallbacks with historical values
-          setTotalUsers(HISTORICAL_USERS);
-          setCompletedPackages(HISTORICAL_PACKAGES);
-          setTotalTrips(HISTORICAL_TRIPS);
-          setTotalTipsDistributed(HISTORICAL_TIPS);
-        }
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        setTotalUsers(HISTORICAL_USERS);
-        setCompletedPackages(HISTORICAL_PACKAGES);
-        setTotalTrips(HISTORICAL_TRIPS);
-        setTotalTipsDistributed(HISTORICAL_TIPS);
-      }
-    };
-
-    // Fetch inicial
-    fetchStats();
-
-    // Actualizar cada 5 minutos en lugar de 30 segundos para reducir carga
-    const interval = setInterval(() => {
-      fetchStats();
-    }, 300000); // 5 minutos
-
-    // Cleanup del interval
-    return () => clearInterval(interval);
-  }, []);
+  // Use consolidated public stats hook
+  const { stats } = usePublicStats();
 
   return <header className="relative overflow-hidden">
       {/* Background Elements */}
@@ -93,9 +28,9 @@ const HeroSection = ({
       <div className="relative container mx-auto px-4 pt-8 sm:pt-12 pb-12 sm:pb-20 text-center">
         {/* Trust Indicators - Top Banner */}
         <div className="flex flex-wrap justify-center items-center gap-6 mb-4 text-sm text-gray-600 bg-white/50 backdrop-blur-sm rounded-lg p-4 border border-white/30">
-          <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            <span>{totalUsers}+ usuarios activos</span>
+            <span>{stats.total_users}+ usuarios activos</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex">
@@ -171,16 +106,16 @@ const HeroSection = ({
         {/* Social Proof */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-shopper mb-2">{completedPackages}+</div>
+            <div className="text-2xl font-bold text-shopper mb-2">{stats.total_packages_completed}+</div>
             <div className="text-gray-600">Paquetes entregados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-traveler mb-2">{totalTrips}+</div>
+            <div className="text-2xl font-bold text-traveler mb-2">{stats.total_trips}+</div>
             <div className="text-gray-600">Viajes registrados</div>
           </div>
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
             <div className="text-2xl font-bold text-success mb-2">
-              Q{totalTipsDistributed > 0 ? totalTipsDistributed.toLocaleString('es-GT') : '0'}
+              Q{stats.total_tips_distributed > 0 ? stats.total_tips_distributed.toLocaleString('es-GT') : '0'}
             </div>
             <div className="text-gray-600">Tips ganados</div>
           </div>
