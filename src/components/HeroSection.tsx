@@ -27,22 +27,25 @@ const HeroSection = ({
       
       <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
         {/* Trust Indicators - Top Banner */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-6 mb-1 text-xs sm:text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-3 border border-white/40 shadow-sm">
-               <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
-            <span>{stats.total_users}+ usuarios activos</span>
+        <div className="flex flex-row sm:flex-wrap justify-center items-center gap-2 sm:gap-6 mb-1 text-xs sm:text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-xl p-3 sm:p-3 border border-white/40 shadow-sm">
+               <div className="flex items-center gap-1 sm:gap-2">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+            <span className="hidden sm:inline">{stats.total_users}+ usuarios activos</span>
+            <span className="sm:hidden">{stats.total_users}+</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span>4.9/5 rating</span>
+            <span className="hidden sm:inline">4.9/5 rating</span>
+            <span className="sm:hidden">4.9/5</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-red-500" />
-            <span>98% entregas efectivas</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+            <span className="hidden sm:inline">98% entregas efectivas</span>
+            <span className="sm:hidden">98%</span>
           </div>
         </div>
 
