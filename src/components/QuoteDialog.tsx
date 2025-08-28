@@ -30,6 +30,7 @@ interface QuoteDialogProps {
     admin_assigned_tip?: string;
     status?: string;
     traveler_address?: any;
+    additional_notes?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -347,6 +348,12 @@ const QuoteDialog = ({
                     <ExternalLink className="h-4 w-4" />
                     Ver producto
                   </a>
+                </div>
+              )}
+              {packageDetails.additional_notes && (
+                <div className="bg-background/80 rounded-lg p-2">
+                  <p className="font-medium text-foreground mb-1"><strong>Notas adicionales:</strong></p>
+                  <p className="text-muted-foreground leading-relaxed">{packageDetails.additional_notes}</p>
                 </div>
               )}
             </div>
