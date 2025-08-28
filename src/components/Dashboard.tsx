@@ -21,7 +21,7 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
-import { useTabAwareData } from "@/hooks/useTabAwareData";
+import { useManualRefresh } from "@/hooks/useManualRefresh";
 
 import UserManagement from "./admin/UserManagement";
 
@@ -125,6 +125,14 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
 
+  // Manual refresh system - no more automatic refreshes
+  const { refresh: manualRefresh, isRefreshing } = useManualRefresh({
+    onRefresh: async () => {
+      await Promise.all([refreshPackages(), refreshTrips()]);
+    },
+    showSuccessToast: true,
+    refreshThreshold: 3000 // 3 seconds between refreshes
+  });
 
   const isAdmin = currentUser.role === 'admin';
   
@@ -137,18 +145,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     userTrips.some(trip => trip.id === pkg.matched_trip_id)
   );
 
-  // Tab awareness for intelligent refreshing
-  useTabAwareData({
-    onTabActive: () => {
-      // Only refresh if data is older than 2 minutes
-      const shouldRefresh = Date.now() - (packages[0]?.updated_at ? new Date(packages[0].updated_at).getTime() : 0) > 120000;
-      if (shouldRefresh) {
-        refreshPackages();
-      }
-    },
-    refreshOnReturn: true,
-    refreshThreshold: 120000 // 2 minutes
-  });
+  // Tab awareness DISABLED - no more automatic refreshes
+  // Users can manually refresh using the refresh button when needed
 
   // Disabled real-time updates to prevent modal refresh issues
   // Real-time updates are now handled by AdminDashboard's consolidated system
@@ -208,11 +206,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
           onGoHome={() => setShowProfile(false)}
-          onRefresh={() => {
-            refreshPackages();
-            refreshTrips();
-          }}
-          isRefreshing={packagesLoading || tripsLoading}
+          onRefresh={manualRefresh}
+          isRefreshing={isRefreshing}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -235,11 +230,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
           onGoHome={() => setShowUserManagement(false)}
-          onRefresh={() => {
-            refreshPackages();
-            refreshTrips();
-          }}
-          isRefreshing={packagesLoading || tripsLoading}
+          onRefresh={manualRefresh}
+          isRefreshing={isRefreshing}
         />
         <div className="container mx-auto px-4 py-8">
           <UserManagement 
@@ -285,11 +277,8 @@ const Dashboard = ({ user }: DashboardProps) => {
         onShowProfile={() => setShowProfile(true)}
         onLogout={signOut}
         onShowUserManagement={() => setShowUserManagement(true)}
-        onRefresh={() => {
-          refreshPackages();
-          refreshTrips();
-        }}
-        isRefreshing={packagesLoading || tripsLoading}
+        onRefresh={manualRefresh}
+        isRefreshing={isRefreshing}
       />
 
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">

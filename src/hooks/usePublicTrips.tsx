@@ -21,17 +21,7 @@ export const usePublicTrips = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  // Use tab awareness to pause refreshes when tab is inactive
-  const { isTabActive } = useTabAwareData({
-    onTabActive: () => {
-      // When tab becomes active, check if we need to refresh
-      if (lastUpdate && Date.now() - lastUpdate.getTime() > 60000) {
-        console.log('🔄 Tab active - refreshing trips after being away');
-        fetchPublicTrips(true);
-      }
-    },
-    refreshOnReturn: false // We handle this manually above
-  });
+  // Tab awareness DISABLED - no automatic refreshes on tab return
 
   const fetchPublicTrips = async (forceRefresh = false): Promise<void> => {
     // Allow forced refresh even if fetching
@@ -82,29 +72,15 @@ export const usePublicTrips = () => {
   useEffect(() => {
     fetchPublicTrips();
 
-    // Set up interval with tab awareness
-    const startInterval = () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      
-      intervalRef.current = setInterval(() => {
-        // Only fetch if tab is active to avoid unnecessary requests
-        if (isTabActive) {
-          console.log('🔄 Interval fetch (tab active)');
-          fetchPublicTrips();
-        } else {
-          console.log('⏸️ Skipping fetch - tab inactive');
-        }
-      }, 60 * 1000); // Reduced to every 60 seconds instead of 20
-    };
-
-    startInterval();
+    // DISABLED: No more automatic interval refreshing
+    // Users can manually refresh data using refresh buttons when needed
     
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isTabActive]);
+  }, []);
 
   return {
     trips,
