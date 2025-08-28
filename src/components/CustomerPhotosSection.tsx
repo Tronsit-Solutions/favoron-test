@@ -62,6 +62,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
       <div className="container mx-auto px-4">
         {isAdmin ? (
           <>
+            {/* Admin view with full functionality */}
             <div className="text-center mb-12 space-y-4">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Heart className="h-5 w-5 text-destructive" />
@@ -120,7 +121,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
 
             {/* Approved Photos Carousel */}
             {approvedPhotos.length > 0 && (
-              <div className="mb-8 max-w-md mx-auto">
+              <div className="mb-8 max-w-2xl mx-auto">
                 <Carousel
                   plugins={[
                     Autoplay({
@@ -265,7 +266,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
         ) : (
           /* Simple photo carousel for non-admin users */
           approvedPhotos.length > 0 && (
-            <div className="max-w-md mx-auto">
+            <div className="max-w-2xl mx-auto">
               <Carousel
                 plugins={[
                   Autoplay({
@@ -292,6 +293,8 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                     </CarouselItem>
                   ))}
                 </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
               </Carousel>
             </div>
           )
