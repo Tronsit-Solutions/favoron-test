@@ -211,8 +211,8 @@ const AdminSupportTab = ({
         });
       }
 
-      // Trigger a refresh (this would normally come from a real-time update)
-      window.location.reload();
+      // Update will come from real-time subscription
+      console.log('✅ Package marked as incident - real-time will update UI');
     } catch (error) {
       console.error('Error marking as incident:', error);
     }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,8 +32,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   };
 
   // Fetch package counts for this trip
-  useEffect(() => {
-    const fetchPackageCounts = async () => {
+  const fetchPackageCounts = useCallback(async () => {
       try {
         const { data, error } = await supabase
           .from('packages')
@@ -51,12 +50,14 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
         console.error('Error fetching package counts:', error);
         setPackageCounts({ total: 0, completed: 0 });
       }
-    };
+    }, [trip.id]);
+
+  useEffect(() => {
 
     if (trip.id) {
       fetchPackageCounts();
     }
-  }, [trip.id]);
+  }, [trip.id, fetchPackageCounts]);
 
   const handleCreateAccumulator = async () => {
     try {
@@ -64,8 +65,9 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       const result = await createOrUpdateTripPaymentAccumulator(trip.id, userProfile.id);
       
       if (result.success) {
-        // Force component re-render by updating a key prop or using a callback
-        window.location.reload();
+        // Trigger a soft refresh by calling fetchPackageCounts again
+        fetchPackageCounts();
+        console.log('✅ Accumulator created - refreshing data');
       } else {
         console.error('Failed to create accumulator:', result.error);
       }

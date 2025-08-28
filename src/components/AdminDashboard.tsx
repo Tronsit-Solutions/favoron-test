@@ -270,7 +270,7 @@ const AdminDashboard = ({
   const pendingTravelerPayments = paymentOrders.filter(order => order.status === 'pending').length;
   
   // Setup consolidated real-time with complete modal protection
-  const { isRealtimePaused, queuedUpdates } = useConsolidatedRealtimeAdmin({
+  const { isRealtimePaused, queuedUpdates, processQueuedUpdates } = useConsolidatedRealtimeAdmin({
     onPackageUpdate: (updatedPackages) => {
       console.log('📦 Admin: Applying incremental package updates');
       setLocalPackages(updatedPackages);
@@ -437,7 +437,15 @@ const AdminDashboard = ({
       <AdminActionsModal
         modalId="admin-actions"
         trips={localTrips}
-        onRefresh={() => canRefresh() ? window.location.reload() : console.log('📱 Refresh blocked by open modals')}
+        onRefresh={() => {
+          console.log('🔄 AdminActionsModal refresh requested - using incremental update');
+          if (canRefresh()) {
+            // Use incremental refresh instead of window.location.reload()
+            processQueuedUpdates();
+          } else {
+            console.log('📱 Refresh blocked by open modals - will process when modals close');
+          }
+        }}
       />
 
       <PackageDetailModal

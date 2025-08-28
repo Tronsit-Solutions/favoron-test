@@ -17,8 +17,9 @@ interface AuthModalProps {
   onAuth: (userData: any) => void;
 }
 
-const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
+const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProps) => {
   const { toast } = useToast();
+  const [mode, setMode] = useState(initialMode);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -335,7 +336,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
               <button 
                 type="button" 
                 className="text-primary hover:underline font-medium"
-                onClick={() => window.location.reload()}
+                onClick={() => setMode('register')}
               >
                 Regístrate aquí
               </button>
@@ -346,7 +347,7 @@ const AuthModal = ({ isOpen, onClose, mode, onAuth }: AuthModalProps) => {
               <button 
                 type="button" 
                 className="text-primary hover:underline font-medium"
-                onClick={() => window.location.reload()}
+                onClick={() => setMode('login')}
               >
                 Inicia sesión
               </button>
