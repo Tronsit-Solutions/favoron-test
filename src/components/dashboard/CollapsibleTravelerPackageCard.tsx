@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
@@ -213,8 +214,99 @@ const CollapsibleTravelerPackageCard = ({
                   </TabsContent>
                   
                   <TabsContent value="docs" className="mt-0">
-                    <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                      Los documentos se mostrarán aquí cuando estén disponibles.
+                    <div className="space-y-3">
+                      {/* Comprobante de Compra */}
+                      {pkg.purchase_confirmation && (
+                        <div className="bg-card border rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">Comprobante de Compra</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mb-2">
+                            Archivo: {pkg.purchase_confirmation.filename || 'Comprobante subido'}
+                          </div>
+                          {pkg.purchase_confirmation.filePath && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                const url = `https://dfhoduirmqbarjnspbdh.supabase.co/storage/v1/object/public/purchase-confirmations/${pkg.purchase_confirmation.filePath}`;
+                                window.open(url, '_blank');
+                              }}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Ver Documento
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Información de Seguimiento */}
+                      {pkg.tracking_info && pkg.tracking_info.trackingNumber && (
+                        <div className="bg-card border rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Package className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">Información de Seguimiento</span>
+                          </div>
+                          <div className="space-y-1 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">Número de seguimiento:</span>
+                              <span className="ml-1 font-mono">{pkg.tracking_info.trackingNumber}</span>
+                            </div>
+                            {pkg.tracking_info.shippingCompany && (
+                              <div>
+                                <span className="text-muted-foreground">Empresa:</span>
+                                <span className="ml-1">{pkg.tracking_info.shippingCompany}</span>
+                              </div>
+                            )}
+                            {pkg.tracking_info.trackingUrl && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs mt-2"
+                                onClick={() => window.open(pkg.tracking_info.trackingUrl, '_blank')}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Rastrear Paquete
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Comprobante de Pago */}
+                      {pkg.payment_receipt && (
+                        <div className="bg-card border rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">Comprobante de Pago</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mb-2">
+                            Archivo: {pkg.payment_receipt.filename || 'Pago confirmado'}
+                          </div>
+                          {pkg.payment_receipt.publicUrl && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => window.open(pkg.payment_receipt.publicUrl, '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Ver Comprobante
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Estado cuando no hay documentos */}
+                      {!pkg.purchase_confirmation && !pkg.tracking_info?.trackingNumber && !pkg.payment_receipt && (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">
+                          <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                          <p>No hay documentos disponibles aún.</p>
+                          <p className="text-xs mt-1">Los documentos aparecerán aquí cuando el shopper los suba.</p>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                   
