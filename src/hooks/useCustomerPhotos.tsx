@@ -19,14 +19,11 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  
 
-  const fetchPhotos = async (retryCount = 0): Promise<void> => {
-    const maxRetries = 3;
-    const baseDelay = 1000;
-
+  const fetchPhotos = async (): Promise<void> => {
     try {
-      console.log(`📸 Fetching customer photos (attempt ${retryCount + 1}/${maxRetries + 1})`);
+      console.log('📸 Fetching customer photos');
       
       let query = supabase
         .from('customer_photos')
@@ -42,31 +39,18 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
       const { data, error } = await query;
 
       if (error) {
-        throw new Error(`Query Error: ${error.message}`);
+        throw error;
       }
       
       console.log(`✅ Customer photos fetched successfully: ${data?.length || 0} photos`);
       setPhotos((data || []) as CustomerPhoto[]);
     } catch (fetchError) {
-      console.error(`❌ Error fetching photos (attempt ${retryCount + 1}):`, fetchError);
+      console.error('❌ Error fetching photos:', fetchError);
       
-      if (retryCount < maxRetries) {
-        const delayMs = baseDelay * Math.pow(2, retryCount); // Exponential backoff
-        console.log(`🔄 Retrying in ${delayMs}ms...`);
-        await delay(delayMs);
-        return fetchPhotos(retryCount + 1);
-      } else {
-        // Only show toast for final failure
-        toast({
-          title: "Conectando...",
-          description: "Las fotos se actualizarán automáticamente cuando se restablezca la conexión.",
-          variant: "default",
-        });
-      }
+      // Use empty array on error to prevent blocking
+      setPhotos([]);
     } finally {
-      if (retryCount === 0) { // Only set loading false on initial call
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -106,7 +90,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: approveDirectly ? "Foto subida y aprobada" : "Foto subida, pendiente de aprobación",
       });
 
-      fetchPhotos(0);
+      fetchPhotos();
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast({
@@ -131,7 +115,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: `Foto ${status === 'approved' ? 'aprobada' : 'rechazada'}`,
       });
 
-      fetchPhotos(0);
+      fetchPhotos();
     } catch (error) {
       console.error('Error updating photo status:', error);
       toast({
@@ -168,7 +152,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         description: "Foto eliminada correctamente",
       });
 
-      fetchPhotos(0);
+      fetchPhotos();
     } catch (error) {
       console.error('Error deleting photo:', error);
       toast({
@@ -188,7 +172,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
 
       if (error) throw error;
 
-      fetchPhotos(0);
+      fetchPhotos();
     } catch (error) {
       console.error('Error updating sort order:', error);
       toast({
@@ -200,7 +184,7 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
   };
 
   useEffect(() => {
-    fetchPhotos(0);
+    fetchPhotos();
   }, [isAdmin]);
 
   return {
@@ -210,6 +194,6 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
     updatePhotoStatus,
     deletePhoto,
     updateSortOrder,
-    refetch: () => fetchPhotos(0)
+    refetch: fetchPhotos
   };
 };

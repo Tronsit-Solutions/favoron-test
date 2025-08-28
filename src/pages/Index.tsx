@@ -1,14 +1,17 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import Dashboard from "@/components/Dashboard";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
-import TravelsHubSection from "@/components/TravelsHubSection";
-import PlatformDescriptionSection from "@/components/PlatformDescriptionSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import BenefitsSection from "@/components/BenefitsSection";
-import CTASection from "@/components/CTASection";
+
+// Lazy load heavy components to speed up initial load
+const TravelsHubSection = lazy(() => import("@/components/TravelsHubSection"));
+const PlatformDescriptionSection = lazy(() => import("@/components/PlatformDescriptionSection"));
+const HowItWorksSection = lazy(() => import("@/components/HowItWorksSection"));
+const BenefitsSection = lazy(() => import("@/components/BenefitsSection"));
+const CTASection = lazy(() => import("@/components/CTASection"));
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
@@ -45,11 +48,27 @@ const Index = () => {
           userName={profile?.first_name}
           userRole={userRole}
         />
-        <PlatformDescriptionSection />
-        <TravelsHubSection />
-        <HowItWorksSection />
-        <BenefitsSection />
-        <CTASection onOpenAuth={openAuth} />
+        
+        {/* Lazy load remaining sections with loading fallbacks */}
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <PlatformDescriptionSection />
+        </Suspense>
+        
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <TravelsHubSection />
+        </Suspense>
+        
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <HowItWorksSection />
+        </Suspense>
+        
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <BenefitsSection />
+        </Suspense>
+        
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <CTASection onOpenAuth={openAuth} />
+        </Suspense>
       </main>
     </div>
   );

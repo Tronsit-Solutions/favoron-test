@@ -33,6 +33,8 @@ interface CustomerPhotosSectionProps {
 export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSectionProps) => {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Standard loading - no defer for now to fix TypeScript error
   const { photos, loading, uploadPhoto, updatePhotoStatus, deletePhoto } = useCustomerPhotos(isAdmin);
 
   const approvedPhotos = photos.filter(photo => photo.status === 'approved');
