@@ -223,6 +223,12 @@ const QuoteDialog = ({
                             <p className="text-sm font-medium text-foreground mb-2">
                               Producto {index + 1}: {product.itemDescription}
                             </p>
+                            {packageDetails.additional_notes && (
+                              <div className="mb-2 p-2 bg-background/60 rounded border-l-2 border-blue-300">
+                                <p className="text-xs font-medium text-foreground mb-1">Notas adicionales del shopper:</p>
+                                <p className="text-xs text-muted-foreground italic">{packageDetails.additional_notes}</p>
+                              </div>
+                            )}
                             <div className="flex justify-between items-center">
                               <div className="text-sm text-muted-foreground space-y-1">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
