@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, Upload } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -328,7 +328,7 @@ const CollapsiblePackageCard = ({
                       value="adicionales" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
                     >
-                      <Upload className="h-4 w-4" />
+                      <Clock className="h-4 w-4" />
                       <span className="hidden sm:inline">Extras</span>
                     </TabsTrigger>
                     <TabsTrigger 
