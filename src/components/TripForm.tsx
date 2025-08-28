@@ -129,6 +129,9 @@ const TripForm = ({
       messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
     };
     onSubmit(submitData);
+    
+    // Close modal after successful submission
+    onClose();
 
     // Reset form and clear persisted data on success
     const initialFormData = {
