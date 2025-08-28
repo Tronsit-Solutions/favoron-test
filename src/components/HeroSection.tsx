@@ -107,10 +107,10 @@ const HeroSection = ({
             {isAuthenticated && userName ? (
               <>
                 <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
-                  ¡Bienvenido de vuelta,
+                  Bienvenido de vuelta {userName},
                 </span>
                 <br />
-                <span className="text-gray-900">{userName}!</span>
+                <span className="text-gray-900">que chilero tenerte aquí!</span>
               </>
             ) : (
               <>
