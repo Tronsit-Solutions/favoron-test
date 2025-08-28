@@ -182,9 +182,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       clearFormData();
       clearAddress();
       
-      // Close modal and force refresh
+      // Close modal
       onClose();
-      window.location.reload();
     } catch (error) {
       console.error('❌ FORM SUBMIT ERROR:', error);
       alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
