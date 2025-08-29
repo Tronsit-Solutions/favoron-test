@@ -1,8 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users, Home, FileText, Shield, RefreshCw } from "lucide-react";
-import RefreshButton from "./RefreshButton";
+import { LogOut, User, Plane, Users, Home, FileText, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -19,11 +18,9 @@ interface DashboardHeaderProps {
   onLogout: () => void;
   onShowUserManagement?: () => void;
   onGoHome?: () => void;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
 }
 
-const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome, onRefresh, isRefreshing }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome }: DashboardHeaderProps) => {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -67,13 +64,6 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
           >
             <Home className="h-4 w-4" />
           </Button>
-          {onRefresh && (
-            <RefreshButton 
-              onRefresh={onRefresh} 
-              isRefreshing={isRefreshing}
-              className="text-slate-600 hover:text-slate-800"
-            />
-          )}
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (

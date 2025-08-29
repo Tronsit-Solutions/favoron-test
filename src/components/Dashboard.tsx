@@ -23,7 +23,7 @@ import { useUrlState } from "@/hooks/useUrlState";
 import { Routes, Route } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
-import { useManualRefresh } from "@/hooks/useManualRefresh";
+
 
 
 import UserManagement from "./admin/UserManagement";
@@ -152,14 +152,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
 
-  // Manual refresh system - no more automatic refreshes
-  const { refresh: manualRefresh, isRefreshing } = useManualRefresh({
-    onRefresh: async () => {
-      await Promise.all([refreshPackages(), refreshTrips()]);
-    },
-    showSuccessToast: true,
-    refreshThreshold: 3000 // 3 seconds between refreshes
-  });
+  // Real-time updates are now active, no manual refresh needed
 
   const isAdmin = currentUser.role === 'admin';
   
@@ -172,25 +165,21 @@ const Dashboard = ({ user }: DashboardProps) => {
     userTrips.some(trip => trip.id === pkg.matched_trip_id)
   );
 
-  // Tab awareness DISABLED - no more automatic refreshes
-  // Users can manually refresh using the refresh button when needed
-
-  // Disabled real-time updates to prevent modal refresh issues
-  // Real-time updates are now handled by AdminDashboard's consolidated system
-  // useOptimizedRealtime({
-  //   onPackageUpdate: (updatedPackages) => {
-  //     // Use optimistic updates instead of full refresh
-  //     if (updatedPackages.length > 0) {
-  //       setPackages(updatedPackages);
-  //     }
-  //   },
-  //   onTripUpdate: () => {
-  //     // Only refresh trips data, not packages
-  //     refreshTrips();
-  //   },
-  //   userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
-  //   packages
-  // });
+  // Real-time updates with modal protection enabled
+  useOptimizedRealtime({
+    onPackageUpdate: (updatedPackages) => {
+      // Use optimistic updates instead of full refresh
+      if (updatedPackages.length > 0) {
+        setPackages(updatedPackages);
+      }
+    },
+    onTripUpdate: () => {
+      // Only refresh trips data, not packages
+      refreshTrips();
+    },
+    userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
+    packages
+  });
 
   const handleUpdateUser = async (userData: any) => {
     try {
@@ -233,8 +222,6 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
           onGoHome={() => setShowProfile(false)}
-          onRefresh={manualRefresh}
-          isRefreshing={isRefreshing}
         />
         <div className="container mx-auto px-4 py-8">
           <UserProfile 
@@ -257,8 +244,6 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
           onGoHome={() => setShowUserManagement(false)}
-          onRefresh={manualRefresh}
-          isRefreshing={isRefreshing}
         />
         <div className="container mx-auto px-4 py-8">
           <UserManagement 
@@ -304,8 +289,6 @@ const Dashboard = ({ user }: DashboardProps) => {
         onShowProfile={() => setShowProfile(true)}
         onLogout={signOut}
         onShowUserManagement={() => setShowUserManagement(true)}
-        onRefresh={manualRefresh}
-        isRefreshing={isRefreshing}
       />
 
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
