@@ -7,13 +7,37 @@ import { getStatusInfo } from "./MatchStatusBadge";
 interface MatchChatModalProps {
   selectedPackage: any;
   trips: any[];
+  modalDataCache?: { selectedPackage: any; matchedTrip: any } | null;
   onClose: () => void;
 }
 
-export const MatchChatModal = ({ selectedPackage, trips, onClose }: MatchChatModalProps) => {
+export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose }: MatchChatModalProps) => {
   if (!selectedPackage) return null;
 
   const statusInfo = getStatusInfo(selectedPackage.status);
+  
+  // Smart traveler lookup with cache fallback
+  const findTravelerInfo = () => {
+    if (!selectedPackage.matched_trip_id) return null;
+    
+    // Try current trips first
+    const currentTrip = trips.find(t => t.id === selectedPackage.matched_trip_id);
+    if (currentTrip) {
+      console.log('✅ Found traveler info in current trips:', currentTrip.user_id);
+      return currentTrip.user_id;
+    }
+    
+    // Fallback to cached data
+    if (modalDataCache?.matchedTrip?.id === selectedPackage.matched_trip_id) {
+      console.log('🔄 Using cached traveler info:', modalDataCache.matchedTrip.user_id);
+      return modalDataCache.matchedTrip.user_id;
+    }
+    
+    console.log('❌ No traveler info found - trip may be temporarily unavailable');
+    return 'Cargando...';
+  };
+  
+  const travelerInfo = findTravelerInfo();
 
   return (
     <Dialog open={!!selectedPackage} onOpenChange={onClose}>
@@ -33,7 +57,7 @@ export const MatchChatModal = ({ selectedPackage, trips, onClose }: MatchChatMod
                 <p className="text-xs text-muted-foreground">
                   Shopper: {selectedPackage.user_id} | 
                   {selectedPackage.matched_trip_id && (
-                    <span> Viajero: {trips.find(t => t.id === selectedPackage.matched_trip_id)?.user_id}</span>
+                    <span> Viajero: {travelerInfo}</span>
                   )}
                 </p>
               </div>

@@ -23,6 +23,7 @@ import { getStatusInfo } from "./MatchStatusBadge";
 interface ActiveMatchesTabProps {
   packages: any[];
   trips: any[];
+  modalDataCache?: { selectedPackage: any; matchedTrip: any } | null;
   onViewPackageDetail: (pkg: any) => void;
   onConfirmOfficeReception: (packageId: string) => void;
   onConfirmDeliveryComplete: (packageId: string) => void;
@@ -34,6 +35,7 @@ interface ActiveMatchesTabProps {
 const ActiveMatchesTab = ({ 
   packages, 
   trips, 
+  modalDataCache,
   onViewPackageDetail,
   onConfirmOfficeReception,
   onConfirmDeliveryComplete,
@@ -233,7 +235,12 @@ const ActiveMatchesTab = ({
                 isExpanded={expandedPackages.has(pkg.id)}
                 onToggle={() => togglePackage(pkg.id)}
                 onViewDetail={() => onViewPackageDetail(pkg)}
-                onOpenChat={() => setSelectedChatPackage(pkg)}
+                onOpenChat={() => {
+                  // Cache modal data when opening chat
+                  const matchedTrip = trips.find(t => t.id === pkg.matched_trip_id);
+                  console.log('💾 Caching chat modal data:', { package: pkg.id, trip: matchedTrip?.id });
+                  setSelectedChatPackage(pkg);
+                }}
                 onConfirmOfficeReception={() => onConfirmOfficeReception(pkg.id)}
                 onConfirmDeliveryComplete={() => onConfirmDeliveryComplete(pkg.id)}
                 onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
@@ -248,6 +255,7 @@ const ActiveMatchesTab = ({
       <MatchChatModal
         selectedPackage={selectedChatPackage}
         trips={trips}
+        modalDataCache={modalDataCache}
         onClose={() => setSelectedChatPackage(null)}
       />
     </div>

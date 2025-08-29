@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AdminMatchingTabProps {
   packages: any[];
   trips: any[];
+  modalDataCache?: { selectedPackage: any; matchedTrip: any } | null;
   onViewPackageDetail: (pkg: any) => void;
   onViewTripDetail: (trip: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
@@ -31,6 +32,7 @@ interface AdminMatchingTabProps {
 const AdminMatchingTab = ({ 
   packages, 
   trips, 
+  modalDataCache,
   onViewPackageDetail, 
   onViewTripDetail, 
   onOpenMatchDialog, 
@@ -226,6 +228,7 @@ const AdminMatchingTab = ({
           <ActiveMatchesTab
             packages={packages}
             trips={trips}
+            modalDataCache={modalDataCache}
             onViewPackageDetail={onViewPackageDetail}
             onConfirmOfficeReception={onConfirmOfficeReception}
             onConfirmDeliveryComplete={onConfirmDeliveryComplete}

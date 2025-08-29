@@ -70,21 +70,56 @@ const AdminDashboard = ({
   const [showMatchDialog, setShowMatchDialog] = useState(false);
   const [localPackages, setLocalPackages] = useState(packages);
   const [localTrips, setLocalTrips] = useState(trips);
+  const [modalDataCache, setModalDataCache] = useState<{ selectedPackage: any; matchedTrip: any } | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
   const { canRefresh, hasOpenModals } = useModalProtection();
 
-  // Sync props to local state only when no modals are open
+  // Smart sync: Only update with valid, non-empty data or when modals are closed
   useEffect(() => {
-    if (canRefresh()) {
-      console.log('🔄 Syncing props to local state (no modals open)');
+    const shouldSyncPackages = packages.length > 0 && (
+      canRefresh() || 
+      localPackages.length === 0 || 
+      packages.length > localPackages.length
+    );
+    
+    const shouldSyncTrips = trips.length > 0 && (
+      canRefresh() || 
+      localTrips.length === 0 || 
+      trips.length > localTrips.length
+    );
+
+    if (shouldSyncPackages) {
+      console.log('🔄 Smart sync - updating packages:', { 
+        incoming: packages.length, 
+        current: localPackages.length, 
+        canRefresh: canRefresh() 
+      });
       setLocalPackages(packages);
+    } else {
+      console.log('🚫 Skipping package sync - keeping current data:', { 
+        incoming: packages.length, 
+        current: localPackages.length,
+        reason: packages.length === 0 ? 'empty incoming' : 'modals open'
+      });
+    }
+
+    if (shouldSyncTrips) {
+      console.log('🔄 Smart sync - updating trips:', { 
+        incoming: trips.length, 
+        current: localTrips.length, 
+        canRefresh: canRefresh() 
+      });
       setLocalTrips(trips);
     } else {
-      console.log('📱 Blocking props sync - modals are open');
+      console.log('🚫 Skipping trips sync - keeping current data:', { 
+        incoming: trips.length, 
+        current: localTrips.length,
+        reason: trips.length === 0 ? 'empty incoming' : 'modals open'
+      });
     }
-  }, [packages, trips, canRefresh]);
+  }, [packages, trips, canRefresh, localPackages.length, localTrips.length]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -135,6 +170,10 @@ const AdminDashboard = ({
   };
 
   const handleOpenMatchDialog = (pkg: any) => {
+    // Cache modal data when opening
+    const matchedTrip = pkg.matched_trip_id ? localTrips.find(t => t.id === pkg.matched_trip_id) : null;
+    console.log('💾 Caching modal data:', { package: pkg.id, trip: matchedTrip?.id });
+    setModalDataCache({ selectedPackage: pkg, matchedTrip });
     setSelectedPackage(pkg);
     setShowMatchDialog(true);
   };
@@ -388,6 +427,7 @@ const AdminDashboard = ({
           <AdminMatchingTab 
             packages={localPackages}
             trips={localTrips}
+            modalDataCache={modalDataCache}
             onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
