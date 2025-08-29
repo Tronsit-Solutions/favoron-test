@@ -15,6 +15,7 @@ import {
   ChevronRight 
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
+import QuoteCountdown from "../../dashboard/QuoteCountdown";
 
 interface MatchCardProps {
   pkg: any;
@@ -46,6 +47,10 @@ export const MatchCard = ({
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation' && !!pkg.office_delivery?.traveler_declaration;
   const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
+
+  // Check if we should show timers
+  const showQuoteTimer = pkg.status === 'quote_sent' && pkg.quote_expires_at;
+  const showAssignmentTimer = pkg.status === 'matched' && pkg.matched_assignment_expires_at;
 
   const getStatusDescription = () => {
     switch (pkg.status) {
@@ -138,6 +143,35 @@ export const MatchCard = ({
             </div>
           </div>
 
+          {/* Timer Section - Show before detailed information */}
+          {(showQuoteTimer || showAssignmentTimer) && (
+            <div className="mt-3 mb-3">
+              {showQuoteTimer && (
+                <div className="mb-2">
+                  <div className="text-xs font-medium text-orange-700 mb-2">
+                    ⏰ Tiempo para que el shopper complete el pago:
+                  </div>
+                  <QuoteCountdown 
+                    expiresAt={pkg.quote_expires_at} 
+                    compact={true}
+                  />
+                </div>
+              )}
+              
+              {showAssignmentTimer && (
+                <div className="mb-2">
+                  <div className="text-xs font-medium text-blue-700 mb-2">
+                    ⏰ Tiempo para que el viajero acepte el tip asignado:
+                  </div>
+                  <QuoteCountdown 
+                    expiresAt={pkg.matched_assignment_expires_at} 
+                    compact={true}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Detailed Information */}
           <CollapsibleContent className="space-y-3 mt-4">
             {/* Current Status */}
@@ -205,6 +239,40 @@ export const MatchCard = ({
                 </div>
               </div>
             </div>
+
+            {/* Show full timer details in expanded view */}
+            {isExpanded && (showQuoteTimer || showAssignmentTimer) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2 mb-2">
+                  <CalendarDays className="h-3 w-3 text-yellow-600" />
+                  <span className="text-xs font-medium text-yellow-800">Timers Activos</span>
+                </div>
+                
+                {showQuoteTimer && (
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-yellow-700 mb-2">
+                      Cotización expira: {new Date(pkg.quote_expires_at).toLocaleString('es-GT')}
+                    </p>
+                    <QuoteCountdown 
+                      expiresAt={pkg.quote_expires_at}
+                      compact={false}
+                    />
+                  </div>
+                )}
+                
+                {showAssignmentTimer && (
+                  <div>
+                    <p className="text-xs font-medium text-yellow-700 mb-2">
+                      Asignación expira: {new Date(pkg.matched_assignment_expires_at).toLocaleString('es-GT')}
+                    </p>
+                    <QuoteCountdown 
+                      expiresAt={pkg.matched_assignment_expires_at}
+                      compact={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Match Info */}
             {matchedTrip && !['rejected', 'quote_rejected'].includes(pkg.status) && (
