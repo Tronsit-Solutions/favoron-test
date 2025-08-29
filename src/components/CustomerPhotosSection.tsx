@@ -277,12 +277,25 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 <CarouselContent>
                   {approvedPhotos.slice(0, 10).map((photo) => (
                     <CarouselItem key={photo.id}>
-                      <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg group">
                         <img
                           src={photo.image_url}
                           alt={photo.product_description}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
+                        {/* Semi-transparent overlay with gradient */}
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 pt-8">
+                          <div className="text-white">
+                            <h3 className="text-sm md:text-base font-semibold mb-1 drop-shadow-sm">
+                              {photo.product_description}
+                            </h3>
+                            {photo.customer_name && (
+                              <p className="text-xs md:text-sm text-white/90 drop-shadow-sm">
+                                Cliente: {photo.customer_name}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
