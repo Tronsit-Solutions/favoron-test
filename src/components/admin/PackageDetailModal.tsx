@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -407,7 +408,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                         Confirmación del Viajero
                       </h4>
                       <TravelerConfirmationDisplay 
-                        confirmation={pkg.traveler_confirmation}
+                        pkg={pkg}
                         className="w-full"
                       />
                     </div>
@@ -455,8 +456,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 {pkg.rejection_reason && (
                   <div className="mt-4 pt-4 border-t">
                     <RejectionReasonDisplay 
-                      rejectionReason={pkg.rejection_reason}
-                      translateReason={translateRejectionReason}
+                      rejectionReason={typeof pkg.rejection_reason === 'string' ? pkg.rejection_reason : pkg.rejection_reason?.value}
+                      wantsRequote={pkg.rejection_reason?.wantsRequote}
+                      additionalComments={pkg.rejection_reason?.additionalComments}
                     />
                   </div>
                 )}
