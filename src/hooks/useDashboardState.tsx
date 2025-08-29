@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizedPackagesData } from './useOptimizedPackagesData';
 import { useOptimizedTripsData } from './useOptimizedTripsData';
 import type { Package } from "@/types";
+import { useSearchParams } from "react-router-dom";
 
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Read initial tab from URL, fallback to "overview"
+  const getInitialTab = () => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = ['overview', 'packages', 'trips', 'admin'];
+    return validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'overview';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [showTripForm, setShowTripForm] = useState(false);
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
@@ -39,6 +49,27 @@ export const useDashboardState = (user: any) => {
   
   const { toast } = useToast();
 
+  // Sync tab state with URL
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = ['overview', 'packages', 'trips', 'admin'];
+    if (validTabs.includes(tabFromUrl || '') && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams, activeTab]);
+
+  // Update URL when tab changes
+  const handleSetActiveTab = (tab: string) => {
+    setActiveTab(tab);
+    const newParams = new URLSearchParams(searchParams);
+    if (tab === 'overview') {
+      newParams.delete('tab'); // Clean URL for overview
+    } else {
+      newParams.set('tab', tab);
+    }
+    setSearchParams(newParams, { replace: true });
+  };
+
   // Completely disabled tab awareness to prevent any automatic refreshes
   // useImprovedTabAwareData({
   //   refreshThreshold: 5 * 60 * 1000, // 5 minutes
@@ -53,7 +84,7 @@ export const useDashboardState = (user: any) => {
     currentUser,
     setCurrentUser,
     activeTab,
-    setActiveTab,
+    setActiveTab: handleSetActiveTab,
     showPackageForm,
     setShowPackageForm,
     showTripForm,

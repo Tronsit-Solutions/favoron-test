@@ -51,7 +51,8 @@ useEffect(() => {
   return () => { cancelled = true; clearTimeout(timer); };
 }, [user, loading, navigate, hasOpenModals, location]);
 
-  if (loading) {
+  // Only show loading spinner if we're genuinely loading (not just transient states)
+  if (loading && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -62,6 +63,7 @@ useEffect(() => {
     );
   }
 
+  // Don't render if no user/profile, but avoid unmounting during transient loading
   if (!user || !profile) {
     return null; // Will redirect to auth
   }
