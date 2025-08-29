@@ -10,6 +10,7 @@ import TrackingInfoViewer from "./TrackingInfoViewer";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PackageDetailModalProps {
   modalId: string;
@@ -20,8 +21,18 @@ interface PackageDetailModalProps {
 
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
   const { isModalOpen, closeModal, getModalData } = useModalState();
+  const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
+
+  // Security: Only allow admin access
+  if (!user || userRole?.role !== 'admin') {
+    console.warn('🔒 Unauthorized access to PackageDetailModal:', { 
+      userId: user?.id, 
+      role: userRole?.role 
+    });
+    return null;
+  }
 
   console.log('PackageDetailModal render:', { pkg, trips, isOpen, modalId });
 

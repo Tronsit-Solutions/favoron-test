@@ -53,10 +53,19 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [selectedTripId, setSelectedTripId] = useState(pkg?.matched_trip_id || "");
   const [adminNotes, setAdminNotes] = useState("");
   const [showProductTipModal, setShowProductTipModal] = useState(false);
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
   const { getStatusBadge } = useStatusHelpers();
+
+  // Security: Only allow admin access
+  if (!user || userRole?.role !== 'admin') {
+    console.warn('🔒 Unauthorized access to AdminActionsModal:', { 
+      userId: user?.id, 
+      role: userRole?.role 
+    });
+    return null;
+  }
 
   if (!pkg) return null;
 

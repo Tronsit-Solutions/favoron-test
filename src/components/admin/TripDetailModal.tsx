@@ -8,6 +8,7 @@ import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TripDetailModalProps {
   modalId: string;
@@ -17,6 +18,7 @@ interface TripDetailModalProps {
 
 const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps) => {
   const { isModalOpen, closeModal, getModalData } = useModalState();
+  const { user, userRole } = useAuth();
   const trip = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
   
@@ -25,6 +27,15 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   const [packages, setPackages] = useState<any[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
+
+  // Security: Only allow admin access
+  if (!user || userRole?.role !== 'admin') {
+    console.warn('🔒 Unauthorized access to TripDetailModal:', { 
+      userId: user?.id, 
+      role: userRole?.role 
+    });
+    return null;
+  }
 
   // Fetch user profile data using admin function
   useEffect(() => {
