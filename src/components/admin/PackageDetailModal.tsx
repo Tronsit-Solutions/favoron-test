@@ -481,8 +481,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Tarifa de Servicio</p>
-                      <p className="text-sm text-muted-foreground">Q{pkg.quote.serviceFee || 0}</p>
+                      <p className="text-sm font-medium">Tarifa de Favoron (15%)</p>
+                      <p className="text-sm text-muted-foreground">Q{((pkg.quote.totalPrice || 0) * 0.15).toFixed(2)}</p>
                     </div>
                   </div>
 
