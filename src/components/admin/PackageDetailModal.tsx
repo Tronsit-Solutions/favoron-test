@@ -35,6 +35,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   }
 
   console.log('PackageDetailModal render:', { pkg, trips, isOpen, modalId });
+  console.log('🛒 Shopper profile data:', pkg?.profiles);
 
   if (!pkg) {
     console.log('No package provided to PackageDetailModal');
@@ -87,6 +88,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     : null;
 
   console.log('Matched trip found:', matchedTrip);
+  console.log('✈️ Traveler profile data:', matchedTrip?.profiles);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -174,7 +176,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <div>
                       <p className="text-sm font-medium">Email</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.profiles?.email || 'Sin email'}
+                        {pkg.profiles?.email || 'Sin email registrado'}
                       </p>
                     </div>
                   </div>
@@ -184,7 +186,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <div>
                       <p className="text-sm font-medium">Teléfono</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.profiles?.phone_number || 'Sin teléfono'}
+                        {pkg.profiles?.phone_number || 'Sin teléfono registrado'}
                       </p>
                     </div>
                   </div>
@@ -238,7 +240,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       <div>
                         <p className="text-sm font-medium">Email</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.profiles?.email || 'Sin email'}
+                          {matchedTrip.profiles?.email || 'Sin email registrado'}
                         </p>
                       </div>
                     </div>
@@ -248,7 +250,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       <div>
                         <p className="text-sm font-medium">Teléfono</p>
                         <p className="text-sm text-muted-foreground">
-                          {matchedTrip.profiles?.phone_number || 'Sin teléfono'}
+                          {matchedTrip.profiles?.phone_number || 'Sin teléfono registrado'}
                         </p>
                       </div>
                     </div>
