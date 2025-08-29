@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry, getNetworkInfo } from '@/lib/supabaseWithRetry';
 
 interface AuthErrorContext {
   provider?: string;
@@ -7,6 +8,10 @@ interface AuthErrorContext {
   supabaseErrorMsg?: string;
   redirectUrl?: string;
   userAgent?: string;
+  networkType?: string;
+  isSlowConnection?: boolean;
+  isSafari?: boolean;
+  retryAttempt?: number;
 }
 
 export const logAuthError = async (
@@ -16,6 +21,8 @@ export const logAuthError = async (
   context?: AuthErrorContext
 ) => {
   try {
+    const networkInfo = getNetworkInfo();
+    
     // Get current route
     const route = window.location.pathname;
     
@@ -28,50 +35,49 @@ export const logAuthError = async (
       userAgent,
       timestamp: new Date().toISOString(),
       url: window.location.href,
-      referrer: document.referrer
+      referrer: document.referrer,
+      networkOnline: networkInfo.online,
+      networkConnection: networkInfo.connection?.effectiveType || 'unknown',
+      isSafari: networkInfo.isSafari,
+      isMobile: networkInfo.isMobile,
     };
 
-    // Send to our edge function
-    const response = await fetch('https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/log-client-error', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        type,
-        severity,
-        route,
-        url: window.location.href,
-        referrer: document.referrer,
-        context: safeContext,
-        browser: {
-          userAgent,
-          language: navigator.language,
-          platform: navigator.platform
-        }
-      })
-    });
+    // Try to send to edge function with retry
+    await withRetry(async () => {
+      const { error } = await supabase.functions.invoke('log-client-error', {
+        body: {
+          type: 'auth_error',
+          data: {
+            type,
+            message,
+            severity,
+            route,
+            context: safeContext,
+          },
+        },
+      });
 
-    if (!response.ok) {
-      console.warn('Failed to log auth error:', response.status);
-    }
+      if (error) {
+        throw error;
+      }
+    }, 'log-auth-error', { maxRetries: 2 });
+
   } catch (error) {
     console.warn('Auth error logging failed:', error);
     // Don't throw - this shouldn't break the auth flow
   }
 };
 
-export const getEmailDomain = (email: string): string => {
+export function getEmailDomain(email: string): string {
   try {
     return email.split('@')[1] || 'unknown';
   } catch {
     return 'unknown';
   }
-};
+}
 
-export const detectAuthErrorFromUrl = () => {
-  // Check for OAuth errors in URL params
+export function detectAuthErrorFromUrl(): void {
+  // Check for OAuth errors in URL params or hash
   const urlParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   
@@ -79,17 +85,9 @@ export const detectAuthErrorFromUrl = () => {
   const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
   
   if (error) {
-    logAuthError(
-      'auth_oauth',
-      `OAuth error: ${error}`,
-      'error',
-      {
-        supabaseErrorCode: error,
-        supabaseErrorMsg: errorDescription || undefined,
-        redirectUrl: window.location.href
-      }
-    );
+    logAuthError('auth_oauth', error, 'error', {
+      provider: 'oauth',
+      supabaseErrorMsg: errorDescription || 'OAuth error'
+    });
   }
-  
-  return { error, errorDescription };
-};
+}

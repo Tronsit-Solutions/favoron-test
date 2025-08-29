@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Plane, Mail, Lock, User, Phone, ArrowLeft, Eye, EyeOff, CreditCard, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
+import { supabaseWithRetry } from '@/lib/supabaseWithRetry';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { logAuthError, getEmailDomain, detectAuthErrorFromUrl } from '@/lib/authErrorLogger';
 
 const PRODUCTION_ORIGIN = 'https://83029cdd-4a24-4c8c-80e4-b84bf2312db5.lovableproject.com';
@@ -51,6 +53,7 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const networkStatus = useNetworkStatus();
   const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
 
   useEffect(() => {
@@ -130,11 +133,21 @@ const Auth = () => {
       });
       return;
     }
+
+    // Check network status
+    if (!networkStatus.isOnline) {
+      setAuthError({
+        title: 'Error de conexión',
+        message: 'No hay conexión a internet. Verifica tu conexión y vuelve a intentar.',
+        details: 'Network offline'
+      });
+      return;
+    }
     
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseWithRetry.auth.signUp({
         email,
         password,
         options: {
@@ -222,13 +235,23 @@ const Auth = () => {
         }
       );
 
-      toast({
-        title: "Error al crear cuenta",
-        description: error.message === "over_email_send_rate_limit" 
-          ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
-          : error.message,
-        variant: "destructive",
-      });
+      // Provide better error messages based on error type
+      if (error.message?.toLowerCase().includes('load failed') || 
+          error.message?.toLowerCase().includes('failed to fetch')) {
+        setAuthError({
+          title: 'Error de conexión',
+          message: 'Error de conexión. Verifica tu internet y vuelve a intentar.',
+          details: error.message
+        });
+      } else {
+        toast({
+          title: "Error al crear cuenta",
+          description: error.message === "over_email_send_rate_limit" 
+            ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
+            : error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -259,9 +282,20 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Check network status
+    if (!networkStatus.isOnline) {
+      setAuthError({
+        title: 'Error de conexión',
+        message: 'No hay conexión a internet. Verifica tu conexión y vuelve a intentar.',
+        details: 'Network offline'
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       // Direct sign in - skipping pre-cleanup and global sign-out for speed
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseWithRetry.auth.signInWithPassword({
         email,
         password,
       });
@@ -285,13 +319,23 @@ const Auth = () => {
         }
       );
 
-      toast({
-        title: "Error",
-        description: error.message === "Invalid login credentials" 
-          ? "Email o contraseña incorrectos" 
-          : error.message,
-        variant: "destructive",
-      });
+      // Provide better error messages based on error type
+      if (error.message?.toLowerCase().includes('load failed') || 
+          error.message?.toLowerCase().includes('failed to fetch')) {
+        setAuthError({
+          title: 'Error de conexión',
+          message: 'Error de conexión. Verifica tu internet y vuelve a intentar.',
+          details: error.message
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message === "Invalid login credentials" 
+            ? "Email o contraseña incorrectos" 
+            : error.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -391,6 +435,10 @@ const Auth = () => {
     }
   };
 
+  const handleAvatarUpload = (file: File | null) => {
+    setAvatarFile(file);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -418,6 +466,24 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Network status alert */}
+          {!networkStatus.isOnline && (
+            <Alert className="mb-4" variant="destructive">
+              <AlertTitle>Sin conexión</AlertTitle>
+              <AlertDescription>
+                No hay conexión a internet. Verifica tu conexión para continuar.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Auth error alert */}
+          {authError && (
+            <Alert className="mb-4" variant="destructive">
+              <AlertTitle>{authError.title}</AlertTitle>
+              <AlertDescription>{authError.message}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Password Reset Form */}
           {isResettingPassword ? (
             <div className="space-y-4">
@@ -512,202 +578,47 @@ const Auth = () => {
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signin-password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="Tu contraseña"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       required
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                <Button type="submit" className="w-full" disabled={loading || !networkStatus.isOnline}>
+                  {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                 </Button>
                 
                 <div className="text-center">
-                  <Button
+                  <button
                     type="button"
-                    variant="link"
-                    className="text-sm text-muted-foreground hover:text-primary"
+                    className="text-sm text-muted-foreground hover:text-foreground"
                     onClick={() => setShowForgotPassword(true)}
                   >
                     ¿Olvidaste tu contraseña?
-                  </Button>
+                  </button>
                 </div>
               </form>
-              
-              {/* Forgot Password Modal */}
-              {showForgotPassword && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                  <Card className="w-full max-w-sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Restablecer contraseña</CardTitle>
-                      <CardDescription>
-                        Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleForgotPassword} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="forgot-email">Email</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="forgot-email"
-                              type="email"
-                              placeholder="tu@email.com"
-                              value={forgotPasswordEmail}
-                              onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                              className="pl-10"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setShowForgotPassword(false);
-                              setForgotPasswordEmail('');
-                            }}
-                            disabled={loading}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button type="submit" className="flex-1" disabled={loading}>
-                            {loading ? 'Enviando...' : 'Enviar'}
-                          </Button>
-                        </div>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
             </TabsContent>
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                {/* Avatar Upload */}
-                <div className="flex justify-center">
-                  <AvatarUploadPreview 
-                    onFileSelect={setAvatarFile}
-                    selectedFile={avatarFile}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first-name">Nombre</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="first-name"
-                        type="text"
-                        placeholder="Tu nombre"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="last-name">Apellido</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="last-name"
-                        type="text"
-                        placeholder="Tu apellido"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">WhatsApp</Label>
-                  <div className="grid grid-cols-5 gap-2">
-                    <div className="col-span-2">
-                      <Input
-                        id="country-code"
-                        type="text"
-                        placeholder="+502"
-                        value={countryCode}
-                        onChange={(e) => setCountryCode(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="col-span-3 relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="1234 5678"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="username">Nombre de usuario</Label>
-                  <p className="text-xs text-muted-foreground">De preferencia escoge un alias que no revele tu nombre completo</p>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="username"
-                      type="text"
-                      placeholder="tu_usuario"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="document-type">Tipo de documento</Label>
-                  <Select value={documentType} onValueChange={setDocumentType} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tipo de documento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DPI">DPI</SelectItem>
-                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="document-number">Número de documento</Label>
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="document-number"
-                      type="text"
-                      placeholder="Número del documento"
-                      value={documentNumber}
-                      onChange={(e) => setDocumentNumber(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <div className="relative">
@@ -723,69 +634,191 @@ const Auth = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Contraseña</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 6 caracteres"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Tu contraseña"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10"
                       required
-                      minLength={6}
                     />
-                    <button
+                    <Button
                       type="button"
-                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowPassword(!showPassword)}
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                  <Label htmlFor="confirm-password">Confirmar contraseña</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
+                      type="password"
                       placeholder="Confirma tu contraseña"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10"
+                      className="pl-10"
                       required
                       minLength={6}
                     />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+                <div className="space-y-2">
+                  <Label htmlFor="first-name">Nombre</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="first-name"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="last-name">Apellido</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="last-name"
+                      type="text"
+                      placeholder="Tu apellido"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone-number">Número de teléfono</Label>
+                  <div className="flex rounded-md shadow-sm">
+                    <Select onValueChange={setCountryCode}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="+502" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="+502">+502 (Guatemala)</SelectItem>
+                        {/* Add more country codes as needed */}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      placeholder="12345678"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nombre de usuario</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="Tu nombre de usuario"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="document-type">Tipo de documento</Label>
+                  <Select onValueChange={setDocumentType}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="DPI" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DPI">DPI (Guatemala)</SelectItem>
+                      {/* Add more document types as needed */}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="document-number">Número de documento</Label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="document-number"
+                      type="text"
+                      placeholder="Tu número de documento"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Avatar (Opcional)</Label>
+                  <AvatarUploadPreview onFileSelect={handleAvatarUpload} />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading || !networkStatus.isOnline}>
+                  {loading ? "Creando cuenta..." : "Crear Cuenta"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
+          )}
+
+          {/* Forgot Password Modal */}
+          {showForgotPassword && (
+            <div className="mt-4 p-4 border rounded-lg">
+              <h3 className="font-semibold mb-2">Restablecer contraseña</h3>
+              <form onSubmit={handleForgotPassword} className="space-y-3">
+                <Input
+                  type="email"
+                  placeholder="Ingresa tu email"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  required
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading ? "Enviando..." : "Enviar"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           )}
         </CardContent>
       </Card>

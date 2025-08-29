@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, createContext, useContext, ReactNode } fro
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/lib/supabaseWithRetry';
 
 interface Profile {
   id: string;
