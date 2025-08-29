@@ -118,6 +118,7 @@ export const useOptimizedPackagesData = () => {
             to_city,
             departure_date,
             arrival_date,
+            delivery_date,
             profiles:user_id(
               id,
               first_name,
