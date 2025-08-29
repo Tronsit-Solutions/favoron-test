@@ -18,6 +18,8 @@ interface PackageRequestFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (packageData: any) => void;
+  editMode?: boolean;
+  initialData?: any;
 }
 
 interface Product {
@@ -27,23 +29,55 @@ interface Product {
   quantity: string;
 }
 
-const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormProps) => {
-  // Auto-persist form open state to maintain modal across tab switches
-  const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
-    key: 'package-form-open',
-    initialState: false
-  });
-
-  // Sync modal state with URL/persistence
-  useEffect(() => {
-    if (isOpen && !isFormOpen) {
-      setIsFormOpen(true);
-    } else if (!isOpen && isFormOpen) {
-      setIsFormOpen(false);
+const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
+  // Initialize data based on mode
+  const getInitialProducts = () => {
+    if (editMode && initialData?.products_data) {
+      // Handle both old format (single product) and new format (array)
+      if (Array.isArray(initialData.products_data)) {
+        return initialData.products_data;
+      } else {
+        // Legacy format - single product object
+        return [{
+          itemLink: initialData.item_link || '',
+          itemDescription: initialData.item_description || '',
+          estimatedPrice: initialData.estimated_price || '',
+          quantity: '1'
+        }];
+      }
     }
-  }, [isOpen, isFormOpen, setIsFormOpen]);
+    return [{
+      itemLink: '',
+      itemDescription: '',
+      estimatedPrice: '',
+      quantity: '1'
+    }];
+  };
 
-  // Use persisted form state to maintain data across tab switches
+  const getInitialFormData = () => {
+    if (editMode && initialData) {
+      return {
+        deliveryDeadline: initialData.delivery_deadline ? new Date(initialData.delivery_deadline) : null,
+        additionalNotes: initialData.additional_notes || '',
+        packageDestination: initialData.package_destination || '',
+        packageDestinationOther: '',
+        purchaseOrigin: initialData.purchase_origin || '',
+        purchaseOriginOther: '',
+        deliveryMethod: initialData.delivery_method || ''
+      };
+    }
+    return {
+      deliveryDeadline: null as Date | null,
+      additionalNotes: '',
+      packageDestination: '',
+      packageDestinationOther: '',
+      purchaseOrigin: '',
+      purchaseOriginOther: '',
+      deliveryMethod: ''
+    };
+  };
+
+  // Only use persisted state in create mode
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
@@ -73,24 +107,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
   });
 
   // Local state for non-critical UI state
-  const [products, setProducts] = useState<Product[]>(persistedProducts);
-  const [formData, setFormData] = useState(persistedFormData);
+  const [products, setProducts] = useState<Product[]>(editMode ? getInitialProducts() : persistedProducts);
+  const [formData, setFormData] = useState(editMode ? getInitialFormData() : persistedFormData);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressData, setAddressData] = useState(persistedAddressData);
+  const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync local state with persisted state
+  // Sync local state with persisted state (only in create mode)
   useEffect(() => {
-    setPersistedProducts(products);
-  }, [products, setPersistedProducts]);
+    if (!editMode) {
+      setPersistedProducts(products);
+    }
+  }, [products, setPersistedProducts, editMode]);
 
   useEffect(() => {
-    setPersistedFormData(formData);
-  }, [formData, setPersistedFormData]);
+    if (!editMode) {
+      setPersistedFormData(formData);
+    }
+  }, [formData, setPersistedFormData, editMode]);
 
   useEffect(() => {
-    setPersistedAddressData(addressData);
-  }, [addressData, setPersistedAddressData]);
+    if (!editMode) {
+      setPersistedAddressData(addressData);
+    }
+  }, [addressData, setPersistedAddressData, editMode]);
 
   const destinationCities = [
     'Guatemala City',
@@ -155,32 +195,34 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
       await onSubmit(submitData);
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
-      // Reset form and clear persisted data on success
-      const initialProducts = [{
-        itemLink: '',
-        itemDescription: '',
-        estimatedPrice: '',
-        quantity: '1'
-      }];
-      const initialFormData = {
-        deliveryDeadline: null as Date | null,
-        additionalNotes: '',
-        packageDestination: '',
-        packageDestinationOther: '',
-        purchaseOrigin: '',
-        purchaseOriginOther: '',
-        deliveryMethod: ''
-      };
-      
-      setProducts(initialProducts);
-      setFormData(initialFormData);
-      setShowAddressForm(false);
-      setAddressData(null);
-      
-      // Clear persisted states
-      clearProducts();
-      clearFormData();
-      clearAddress();
+      // Reset form and clear persisted data on success (only in create mode)
+      if (!editMode) {
+        const initialProducts = [{
+          itemLink: '',
+          itemDescription: '',
+          estimatedPrice: '',
+          quantity: '1'
+        }];
+        const initialFormData = {
+          deliveryDeadline: null as Date | null,
+          additionalNotes: '',
+          packageDestination: '',
+          packageDestinationOther: '',
+          purchaseOrigin: '',
+          purchaseOriginOther: '',
+          deliveryMethod: ''
+        };
+        
+        setProducts(initialProducts);
+        setFormData(initialFormData);
+        setShowAddressForm(false);
+        setAddressData(null);
+        
+        // Clear persisted states
+        clearProducts();
+        clearFormData();
+        clearAddress();
+      }
       
       // Close modal
       onClose();
@@ -255,10 +297,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
-            <span>Nueva Solicitud de Paquete</span>
+            <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
           </DialogTitle>
           <DialogDescription>
-            Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.
+            {editMode 
+              ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
+              : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -560,7 +605,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit }: PackageRequestFormPro
               Cancelar
             </Button>
             <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
-              {isSubmitting ? 'Enviando...' : 'Enviar Solicitud'}
+              {isSubmitting 
+                ? (editMode ? 'Guardando...' : 'Enviando...') 
+                : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
+              }
             </Button>
           </div>
         </form>

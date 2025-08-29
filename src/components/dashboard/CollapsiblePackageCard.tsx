@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Act
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
-import EditPackageModal from "@/components/EditPackageModal";
+import PackageRequestForm from "@/components/PackageRequestForm";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
@@ -529,11 +529,12 @@ const CollapsiblePackageCard = ({
       </Card>
       
       {/* Edit Modal */}
-      <EditPackageModal
+      <PackageRequestForm
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSubmit={handleEditSubmit}
-        packageData={pkg}
+        editMode={true}
+        initialData={pkg}
       />
 
       <EditDocumentModal
