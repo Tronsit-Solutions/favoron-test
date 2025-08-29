@@ -126,6 +126,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
 
   console.log('Matched trip found:', matchedTrip);
   console.log('✈️ Traveler profile data:', travelerProfile);
+  console.log('📅 Delivery date from trips:', matchedTrip?.delivery_date);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
