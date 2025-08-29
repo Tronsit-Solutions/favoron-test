@@ -4,6 +4,7 @@ import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
 import QuoteCountdown from "../QuoteCountdown";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client"; // Nuevo: para actualizar en DB
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
@@ -30,7 +31,6 @@ const ShopperPackagePriorityActions = ({
     });
     onRefresh?.();
   };
-  // Always show instructions for all statuses
 
   // Debug logging to see why countdown might not appear
   console.log('🕒 QuoteCountdown Debug:', {
@@ -57,6 +57,42 @@ const ShopperPackagePriorityActions = ({
     'completed',
     'received_by_traveler'
   ];
+
+  // Nuevo: acción directa para solicitar re-cotización
+  const handleRequestRequoteClick = async () => {
+    console.log('🔁 Requesting re-quote for package:', pkg.id);
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .update({ status: 'approved', wants_requote: true })
+        .eq('id', pkg.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Supabase update error:', error);
+        throw error;
+      }
+
+      console.log('✅ Re-quote requested. Updated package:', data);
+      toast({
+        title: "Solicitud enviada",
+        description: "Tu pedido volvió a 'aprobado' y se solicitará una nueva cotización.",
+      });
+
+      // Notificar al padre si necesita reaccionar
+      onRequestRequote?.(pkg);
+      // Refrescar datos
+      onRefresh?.();
+    } catch (err: any) {
+      console.error('❌ Error requesting re-quote:', err);
+      toast({
+        title: "Error",
+        description: "No se pudo solicitar la re-cotización. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getActionConfig = () => {
     switch (pkg.status) {
@@ -234,7 +270,7 @@ const ShopperPackagePriorityActions = ({
             {/* Only show re-quote options for early states, not advanced processing states */}
             {(isQuoteExpired || pkg.status === 'quote_expired') && !advancedStates.includes(pkg.status) && (
               <div className="flex flex-wrap gap-2 mt-3">
-                <Button size="sm" onClick={() => (onRequestRequote ? onRequestRequote(pkg) : onQuote(pkg, 'user'))}>
+                <Button size="sm" onClick={handleRequestRequoteClick}>
                   Solicitar re-cotización
                 </Button>
                 {onDeletePackage && (
