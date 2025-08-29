@@ -316,17 +316,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 <Badge variant="outline">{detailedProducts.length} producto{detailedProducts.length !== 1 ? 's' : ''}</Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               
               {/* Individual Product Details */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-base">Productos Solicitados:</h4>
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Productos Solicitados:</h4>
                 {detailedProducts.map((product) => (
                   <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
+                    <CardContent className="p-3">
+                      <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-1">
                             <Badge variant="outline" className="text-xs">
                               Producto #{product.id}
                             </Badge>
@@ -334,15 +334,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                               Cantidad: {product.quantity}
                             </Badge>
                           </div>
-                          <h5 className="font-medium text-sm mb-2">{product.description}</h5>
+                          <h5 className="font-medium text-sm mb-1">{product.description}</h5>
                         </div>
-                        <div className="text-right ml-4">
-                          <p className="text-lg font-bold text-primary">${product.price.toFixed(2)}</p>
+                        <div className="text-right ml-3">
+                          <p className="text-base font-bold text-primary">${product.price.toFixed(2)}</p>
                           <p className="text-xs text-muted-foreground">c/u</p>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                         <div>
                           <p className="font-medium text-muted-foreground">Precio Unitario</p>
                           <p className="font-medium">${product.price.toFixed(2)}</p>
@@ -364,12 +364,12 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </div>
                       
                       {product.link && (
-                        <div className="mt-3 pt-3 border-t">
+                        <div className="mt-2 pt-2 border-t">
                           <a 
                             href={product.link}
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-primary hover:underline text-sm"
+                            className="inline-flex items-center space-x-2 text-primary hover:underline text-xs"
                           >
                             <ExternalLink className="h-3 w-3" />
                             <span>Ver producto en línea</span>
@@ -382,27 +382,27 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
               </div>
 
               {/* Order Summary */}
-              <div className="border-t pt-4">
-                <h4 className="font-medium text-base mb-3">Resumen del Pedido:</h4>
-                <div className="bg-primary/5 rounded-lg p-4 space-y-3">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="border-t pt-3">
+                <h4 className="font-medium text-sm mb-2">Resumen del Pedido:</h4>
+                <div className="bg-primary/5 rounded-lg p-3 space-y-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground">Total Productos</p>
-                      <p className="text-lg font-bold">{detailedProducts.reduce((sum, p) => sum + p.quantity, 0)}</p>
+                      <p className="text-base font-bold">{detailedProducts.reduce((sum, p) => sum + p.quantity, 0)}</p>
                     </div>
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground">Valor Total</p>
-                      <p className="text-lg font-bold text-primary">${totalOrderValue.toFixed(2)}</p>
+                      <p className="text-base font-bold text-primary">${totalOrderValue.toFixed(2)}</p>
                     </div>
                     {totalAdminTips > 0 && (
                       <div className="text-center">
                         <p className="font-medium text-muted-foreground">Tips Asignados</p>
-                        <p className="text-lg font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+                        <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
                       </div>
                     )}
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground">Fecha Límite</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-xs font-medium">
                         {pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada'}
                       </p>
                     </div>
