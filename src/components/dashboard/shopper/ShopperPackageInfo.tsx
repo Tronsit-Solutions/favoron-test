@@ -45,8 +45,8 @@ const ShopperPackageInfo = ({
   //   return <ShippingInstructions pkg={pkg} />;
   // };
   const renderPaymentUpload = () => {
-    console.log('renderPaymentUpload check for package:', pkg.item_description, 'status:', pkg.status, 'shouldRender:', ['quote_sent', 'payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status));
-    if (!['quote_sent', 'payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
+    console.log('renderPaymentUpload check for package:', pkg.item_description, 'status:', pkg.status, 'shouldRender:', ['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status));
+    if (!['payment_pending', 'quote_accepted', 'awaiting_payment'].includes(pkg.status)) return null;
     console.log('Rendering PaymentReceiptUpload for package:', pkg.item_description);
     return <div className="mt-2">
         <PaymentReceiptUpload pkg={pkg} onUploadComplete={updatedPkg => {
