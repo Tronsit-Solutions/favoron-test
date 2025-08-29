@@ -50,9 +50,9 @@ const ProductTipAssignmentModal = ({
     }));
     setProducts(mappedProducts);
     
-    // Initialize tipValues with existing tips or '0'
+    // Initialize tipValues with existing tips or empty string
     const initialTipValues = mappedProducts.map(p => 
-      p.adminAssignedTip && p.adminAssignedTip > 0 ? p.adminAssignedTip.toString() : '0'
+      p.adminAssignedTip && p.adminAssignedTip > 0 ? p.adminAssignedTip.toString() : ''
     );
     setTipValues(initialTipValues);
     console.log('🔍 DEBUG Initialized products:', mappedProducts);
@@ -68,9 +68,20 @@ const ProductTipAssignmentModal = ({
   };
 
   const updateTipValue = (index: number, value: string) => {
+    // Clean the input: remove leading zeros and ensure valid decimal format
+    let cleanValue = value;
+    if (cleanValue && !isNaN(Number(cleanValue))) {
+      // Remove leading zeros but keep decimal places
+      cleanValue = parseFloat(cleanValue).toString();
+      // If it's a whole number and user is still typing, keep the raw input
+      if (value.includes('.') && !cleanValue.includes('.')) {
+        cleanValue = value;
+      }
+    }
+    
     setTipValues(prev => {
       const newTipValues = [...prev];
-      newTipValues[index] = value;
+      newTipValues[index] = cleanValue;
       return newTipValues;
     });
   };
@@ -229,7 +240,7 @@ const ProductTipAssignmentModal = ({
                             type="number"
                             min="0"
                             step="0.01"
-                            value={tipValues[index] || '0'}
+                            value={tipValues[index] || ''}
                             onChange={(e) => updateTipValue(index, e.target.value)}
                             placeholder="0.00"
                             className="h-8 text-xs pl-6 font-mono"
