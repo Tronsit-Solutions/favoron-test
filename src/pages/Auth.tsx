@@ -782,7 +782,10 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label>Avatar (Opcional)</Label>
-                  <AvatarUploadPreview onFileSelect={handleAvatarUpload} />
+                  <AvatarUploadPreview 
+                    selectedFile={avatarFile}
+                    onFileSelect={handleAvatarUpload} 
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading || !networkStatus.isOnline}>
                   {loading ? "Creando cuenta..." : "Crear Cuenta"}
