@@ -335,6 +335,22 @@ const CollapsiblePackageCard = ({
 
                   <TabsContent value="producto" className="mt-0 px-1 py-2 sm:p-2">
                     <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Detalles del Producto</h4>
+                        {canEdit && onEditPackage && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowEditModal(true);
+                            }}
+                            className="h-7 w-7 p-0 hover:bg-muted"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                       <div className="max-w-full overflow-hidden">
                         <ShopperPackageDetails pkg={pkg} />
                       </div>
