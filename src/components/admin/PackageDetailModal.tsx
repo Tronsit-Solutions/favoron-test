@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -118,9 +117,39 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const hasTravelerConfirmation = pkg.traveler_confirmation && pkg.traveler_confirmation.confirmed_at;
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo || hasTravelerConfirmation;
 
+  // Enhanced product information processing
+  const getDetailedProductInfo = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      return pkg.products_data.map((product: any, index: number) => ({
+        id: index + 1,
+        description: product.itemDescription || 'Sin descripción',
+        price: parseFloat(product.estimatedPrice || '0'),
+        quantity: parseInt(product.quantity || '1'),
+        link: product.itemLink,
+        adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
+        subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
+      }));
+    } else {
+      // Legacy single product format
+      return [{
+        id: 1,
+        description: pkg.item_description || 'Sin descripción',
+        price: parseFloat(pkg.estimated_price?.toString() || '0'),
+        quantity: 1,
+        link: pkg.item_link,
+        adminTip: pkg.admin_assigned_tip ? parseFloat(pkg.admin_assigned_tip.toString()) : 0,
+        subtotal: parseFloat(pkg.estimated_price?.toString() || '0')
+      }];
+    }
+  };
+
+  const detailedProducts = getDetailedProductInfo();
+  const totalOrderValue = detailedProducts.reduce((sum, product) => sum + product.subtotal, 0);
+  const totalAdminTips = detailedProducts.reduce((sum, product) => sum + product.adminTip, 0);
+
   return (
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5" />
@@ -278,74 +307,108 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             )}
           </div>
 
-          {/* Package Information */}
+          {/* Enhanced Package Information with Detailed Products */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-lg">
                 <Package className="h-4 w-4" />
-                <span>Detalles del Paquete</span>
+                <span>Detalles Completos del Pedido</span>
+                <Badge variant="outline">{detailedProducts.length} producto{detailedProducts.length !== 1 ? 's' : ''}</Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="font-medium text-lg">{pkg.item_description || 'Sin descripción'}</p>
-                <p className="text-muted-foreground">Descripción del artículo solicitado</p>
+            <CardContent className="space-y-6">
+              
+              {/* Individual Product Details */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-base">Productos Solicitados:</h4>
+                {detailedProducts.map((product) => (
+                  <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs">
+                              Producto #{product.id}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              Cantidad: {product.quantity}
+                            </Badge>
+                          </div>
+                          <h5 className="font-medium text-sm mb-2">{product.description}</h5>
+                        </div>
+                        <div className="text-right ml-4">
+                          <p className="text-lg font-bold text-primary">${product.price.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">c/u</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Precio Unitario</p>
+                          <p className="font-medium">${product.price.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Cantidad</p>
+                          <p className="font-medium">{product.quantity} unidad{product.quantity !== 1 ? 'es' : ''}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-muted-foreground">Subtotal</p>
+                          <p className="font-bold text-primary">${product.subtotal.toFixed(2)}</p>
+                        </div>
+                        {product.adminTip > 0 && (
+                          <div>
+                            <p className="font-medium text-muted-foreground">Tip Asignado</p>
+                            <p className="font-bold text-green-600">Q{product.adminTip.toFixed(2)}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {product.link && (
+                        <div className="mt-3 pt-3 border-t">
+                          <a 
+                            href={product.link}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-2 text-primary hover:underline text-sm"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            <span>Ver producto en línea</span>
+                          </a>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Cantidad</p>
-                    <p className="text-sm text-muted-foreground">{(() => { const qty = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).quantity) || 1), 0) : (pkg.quantity || 1); return `${qty} artículo${qty !== 1 ? 's' : ''}`; })()}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Precio Estimado</p>
-                    <p className="text-sm text-muted-foreground">${(() => { return Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).estimatedPrice) || 0), 0) : (pkg.estimated_price || 0); })()}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Fecha Límite</p>
-                    <p className="text-sm text-muted-foreground">
-                      {pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Total del Paquete */}
+              {/* Order Summary */}
               <div className="border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Total del Paquete</p>
-                  <p className="text-lg font-bold text-primary">${(() => { 
-                    const qty = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).quantity) || 1), 0) : (pkg.quantity || 1);
-                    const price = Array.isArray(pkg.products_data) ? (pkg.products_data as any[]).reduce((sum, p) => sum + (Number((p as any).estimatedPrice) || 0), 0) : (pkg.estimated_price || 0);
-                    return qty * price;
-                  })()}</p>
+                <h4 className="font-medium text-base mb-3">Resumen del Pedido:</h4>
+                <div className="bg-primary/5 rounded-lg p-4 space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="text-center">
+                      <p className="font-medium text-muted-foreground">Total Productos</p>
+                      <p className="text-lg font-bold">{detailedProducts.reduce((sum, p) => sum + p.quantity, 0)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-medium text-muted-foreground">Valor Total</p>
+                      <p className="text-lg font-bold text-primary">${totalOrderValue.toFixed(2)}</p>
+                    </div>
+                    {totalAdminTips > 0 && (
+                      <div className="text-center">
+                        <p className="font-medium text-muted-foreground">Tips Asignados</p>
+                        <p className="text-lg font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <p className="font-medium text-muted-foreground">Fecha Límite</p>
+                      <p className="text-sm font-medium">
+                        {pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {pkg.item_link && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Link del Producto:</p>
-                  <a 
-                    href={pkg.item_link}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-2 text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Ver producto en línea</span>
-                  </a>
-                </div>
-              )}
 
               <div className="text-xs text-muted-foreground">
                 Solicitud creada el {new Date(pkg.created_at).toLocaleDateString('es-GT')} a las {new Date(pkg.created_at).toLocaleTimeString('es-GT')}
