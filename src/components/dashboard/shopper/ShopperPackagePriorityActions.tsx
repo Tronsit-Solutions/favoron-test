@@ -38,7 +38,8 @@ const ShopperPackagePriorityActions = ({
     status: pkg.status,
     quote_expires_at: pkg.quote_expires_at,
     hasQuoteExpiresAt: !!pkg.quote_expires_at,
-    isQuoteExpired: pkg.quote_expires_at ? new Date(pkg.quote_expires_at) <= new Date() : 'N/A'
+    isQuoteExpired: pkg.quote_expires_at ? new Date(pkg.quote_expires_at) <= new Date() : 'N/A',
+    wants_requote: pkg.wants_requote
   });
 
   const isQuoteExpired = !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date());
@@ -233,6 +234,11 @@ const ShopperPackagePriorityActions = ({
   const config = getActionConfig();
   if (!config) return null;
 
+  // Si el usuario ya pidió re-cotización, no mostrar la caja
+  if (pkg.wants_requote) {
+    return null;
+  }
+
   const IconComponent = config.icon;
 
   return (
@@ -294,6 +300,5 @@ const ShopperPackagePriorityActions = ({
     </div>
   );
 };
-
 
 export default ShopperPackagePriorityActions;
