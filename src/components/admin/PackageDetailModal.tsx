@@ -41,6 +41,33 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return null;
   }
 
+  // Safe date formatting function
+  const formatSafeDate = (dateValue: any): string => {
+    if (!dateValue) return 'No especificada';
+    
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'Fecha inválida';
+      return date.toLocaleDateString('es-GT');
+    } catch (error) {
+      console.error('Error formatting date:', error, dateValue);
+      return 'Error en fecha';
+    }
+  };
+
+  const formatSafeDateTime = (dateValue: any): string => {
+    if (!dateValue) return 'No especificada';
+    
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'Fecha inválida';
+      return `${date.toLocaleDateString('es-GT')} a las ${date.toLocaleTimeString('es-GT')}`;
+    } catch (error) {
+      console.error('Error formatting datetime:', error, dateValue);
+      return 'Error en fecha';
+    }
+  };
+
   // Handle approve action with modal closure
   const handleApprove = async (id: string) => {
     await onApprove(id);
@@ -309,8 +336,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
                       <div className="text-sm text-blue-700 space-y-1">
                         <p><strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                        <p><strong>Llegada:</strong> {new Date(matchedTrip.arrival_date).toLocaleDateString('es-GT')}</p>
-                        <p><strong>Entrega:</strong> {new Date(matchedTrip.delivery_date).toLocaleDateString('es-GT')}</p>
+                        <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip.arrival_date)}</p>
+                        <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip.delivery_date)}</p>
                       </div>
                     </div>
                   </div>
@@ -415,7 +442,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground">Fecha Límite</p>
                       <p className="text-xs font-medium">
-                        {pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada'}
+                        {formatSafeDate(pkg.delivery_deadline)}
                       </p>
                     </div>
                   </div>
@@ -423,7 +450,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
               </div>
 
               <div className="text-xs text-muted-foreground">
-                Solicitud creada el {new Date(pkg.created_at).toLocaleDateString('es-GT')} a las {new Date(pkg.created_at).toLocaleTimeString('es-GT')}
+                Solicitud creada el {formatSafeDateTime(pkg.created_at)}
               </div>
             </CardContent>
           </Card>
@@ -480,7 +507,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   <div className="border-t pt-4">
                     <p className="text-sm font-medium mb-1">Expiración de la Cotización:</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(pkg.quote_expires_at).toLocaleDateString('es-GT')} a las {new Date(pkg.quote_expires_at).toLocaleTimeString('es-GT')}
+                      {formatSafeDateTime(pkg.quote_expires_at)}
                     </p>
                   </div>
                 )}
@@ -587,8 +614,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                         <div>
                           <p className="text-sm font-medium text-blue-800">Declaración del Viajero:</p>
                           <p className="text-sm text-blue-700">
-                            Confirmado el {new Date(pkg.office_delivery.traveler_declaration.delivered_at).toLocaleDateString('es-GT')} 
-                            a las {new Date(pkg.office_delivery.traveler_declaration.delivered_at).toLocaleTimeString('es-GT')}
+                            Confirmado el {formatSafeDateTime(pkg.office_delivery.traveler_declaration.delivered_at)}
                           </p>
                           {pkg.office_delivery.traveler_declaration.notes && (
                             <p className="text-sm text-blue-700 mt-1">
@@ -602,8 +628,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                         <div>
                           <p className="text-sm font-medium text-green-800">Confirmación Administrativa:</p>
                           <p className="text-sm text-green-700">
-                            Confirmado el {new Date(pkg.office_delivery.admin_confirmation.confirmed_at).toLocaleDateString('es-GT')} 
-                            a las {new Date(pkg.office_delivery.admin_confirmation.confirmed_at).toLocaleTimeString('es-GT')}
+                            Confirmado el {formatSafeDateTime(pkg.office_delivery.admin_confirmation.confirmed_at)}
                           </p>
                         </div>
                       )}
