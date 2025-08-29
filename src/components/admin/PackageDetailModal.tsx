@@ -82,13 +82,12 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return translations[reasonText] || reasonText;
   };
 
-  // Find the matched trip if this package is matched
-  const matchedTrip = pkg.matched_trip_id 
-    ? trips.find(trip => trip.id === pkg.matched_trip_id)
-    : null;
+  // Get traveler information from package.trips.profiles (already contains the correct data)
+  const matchedTrip = pkg.trips || null;
+  const travelerProfile = matchedTrip?.profiles || null;
 
   console.log('Matched trip found:', matchedTrip);
-  console.log('✈️ Traveler profile data:', matchedTrip?.profiles);
+  console.log('✈️ Traveler profile data:', travelerProfile);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
