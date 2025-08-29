@@ -471,26 +471,16 @@ const CollapsiblePackageCard = ({
                   )}
 
                   {/* Payment Receipt Upload */}
-                  {(pkg.status === 'quote_sent' ||
-                    pkg.status === 'quote_accepted' || 
-                    pkg.status === 'payment_pending' || 
-                    pkg.status === 'payment_confirmed' ||
-                    pkg.status === 'paid' ||
-                    pkg.status === 'pending_purchase' ||
-                    pkg.status === 'purchased' ||
-                    pkg.status === 'shipped' ||
-                    pkg.status === 'matched' ||
-                    pkg.status === 'in_transit' ||
-                    pkg.status === 'received_by_traveler' ||
-                    pkg.status === 'delivered' ||
-                    pkg.status === 'pending_office_confirmation') && (
-                    <div className="mb-4">
-                      <PaymentReceiptUpload 
-                        pkg={pkg}
-                        onUploadComplete={() => {}}
-                      />
-                    </div>
-                  )}
+                  {(pkg.status === 'payment_pending' || 
+                     pkg.status === 'quote_accepted' || 
+                     pkg.status === 'awaiting_payment') && (
+                     <div className="mb-4">
+                       <PaymentReceiptUpload 
+                         pkg={pkg}
+                         onUploadComplete={() => {}}
+                       />
+                     </div>
+                   )}
 
                   {/* Document Upload */}
                   {(pkg.status === 'payment_confirmed' || 
