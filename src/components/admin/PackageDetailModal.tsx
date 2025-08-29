@@ -371,7 +371,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Propina del Viajero</p>
-                      <p className="text-sm text-muted-foreground">${pkg.quote.price || 0}</p>
+                      <p className="text-sm text-muted-foreground">Q{pkg.quote.price || 0}</p>
                     </div>
                   </div>
 
@@ -379,7 +379,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Tarifa de Servicio</p>
-                      <p className="text-sm text-muted-foreground">${pkg.quote.serviceFee || 0}</p>
+                      <p className="text-sm text-muted-foreground">Q{pkg.quote.serviceFee || 0}</p>
                     </div>
                   </div>
 
@@ -387,7 +387,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <DollarSign className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
-                      <p className="text-lg font-bold text-primary">${pkg.quote.totalPrice || 0}</p>
+                      <p className="text-lg font-bold text-primary">Q{pkg.quote.totalPrice || 0}</p>
                     </div>
                   </div>
                 </div>
