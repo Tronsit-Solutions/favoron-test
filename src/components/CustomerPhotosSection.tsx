@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +16,6 @@ import {
   Settings, 
   Eye, 
   EyeOff, 
-  Heart,
-  Users,
   Package,
   Trash2
 } from 'lucide-react';
@@ -48,14 +45,20 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
 
   if (loading) {
     return (
-      <section className="py-16">
+      <section className="py-8">
         <div className="container mx-auto px-4">
-          <div className="animate-pulse space-y-8">
-            <div className="text-center space-y-4">
-              <div className="h-8 bg-muted rounded w-64 mx-auto"></div>
-              <div className="h-4 bg-muted rounded w-96 mx-auto"></div>
+          <div className="animate-pulse space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 bg-muted rounded-lg"></div>
+                <div className="space-y-2">
+                  <div className="h-5 bg-muted rounded w-32"></div>
+                  <div className="h-3 bg-muted rounded w-24"></div>
+                </div>
+              </div>
+              <div className="h-8 bg-muted rounded w-20"></div>
             </div>
-            <div className="aspect-[4/3] bg-muted rounded-lg max-w-md mx-auto"></div>
+            <div className="aspect-[4/3] bg-muted rounded-lg max-w-xl mx-auto"></div>
           </div>
         </div>
       </section>
@@ -68,70 +71,129 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
   }
 
   return (
-    <section className="py-16">
+    <section className="py-8">
       <div className="container mx-auto px-4">
         {isAdmin ? (
           <>
-            {/* Admin view with full functionality */}
-            <div className="text-center mb-12 space-y-4">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Heart className="h-5 w-5 text-destructive" />
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Nuestros Clientes Felices
-                </span>
-                <Heart className="h-5 w-5 text-destructive" />
-              </div>
-              
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Favorones Reales
-              </h2>
-              
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Mira lo que nuestros clientes han logrado traer con la ayuda de nuestros viajeros
-              </p>
-
-              {/* Stats */}
-              <div className="flex flex-wrap justify-center gap-6 mt-8">
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur px-4 py-2 rounded-full border">
-                  <Package className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">{approvedPhotos.length} Favorones Compartidos</span>
+            {/* Compact Admin Dashboard */}
+            <div className="mb-6">
+              {/* Compact Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+                    <Package className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold">Fotos de Clientes</h2>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span>{approvedPhotos.length} Aprobadas</span>
+                      {pendingPhotos.length > 0 && (
+                        <Badge variant="secondary" className="h-5 text-xs">
+                          {pendingPhotos.length} Pendientes
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur px-4 py-2 rounded-full border">
-                  <Users className="h-4 w-4 text-secondary" />
-                  <span className="text-sm font-medium">Clientes Satisfechos</span>
+
+                {/* Action Controls */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setIsModalOpen(true)}
+                    className="h-8"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Agregar
+                  </Button>
+                  
+                  {pendingPhotos.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowAdminPanel(!showAdminPanel)}
+                      className="h-8"
+                    >
+                      {showAdminPanel ? <EyeOff className="h-3 w-3 mr-1" /> : <Settings className="h-3 w-3 mr-1" />}
+                      {showAdminPanel ? 'Ocultar' : 'Gestionar'}
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              {/* Admin Controls */}
-              <div className="flex flex-wrap justify-center gap-4 mt-6">
-                <Button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-gradient-to-r from-primary via-secondary to-accent hover:from-primary/90 hover:via-secondary/90 hover:to-accent/90"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Foto
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAdminPanel(!showAdminPanel)}
-                >
-                  {showAdminPanel ? <EyeOff className="h-4 w-4 mr-2" /> : <Settings className="h-4 w-4 mr-2" />}
-                  {showAdminPanel ? 'Ocultar Panel Admin' : 'Mostrar Panel Admin'}
-                </Button>
-
-                {pendingPhotos.length > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    {pendingPhotos.length} Pendientes
-                  </Badge>
-                )}
-              </div>
+              {/* Pending Photos - Always Show if Exist */}
+              {pendingPhotos.length > 0 && (
+                <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                        {pendingPhotos.length} foto{pendingPhotos.length !== 1 ? 's' : ''} esperando aprobación
+                      </span>
+                    </div>
+                    {!showAdminPanel && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => setShowAdminPanel(true)}
+                        className="h-6 text-xs text-amber-700 dark:text-amber-300"
+                      >
+                        Revisar →
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {showAdminPanel && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {pendingPhotos.map((photo) => (
+                        <Card key={photo.id} className="overflow-hidden">
+                          <CardContent className="p-0">
+                            <div className="aspect-square overflow-hidden">
+                              <img
+                                src={photo.image_url}
+                                alt={photo.product_description}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            
+                            <div className="p-2 space-y-2">
+                              <div className="text-xs">
+                                <p className="font-medium truncate">{photo.customer_name || 'Anónimo'}</p>
+                                <p className="text-muted-foreground line-clamp-1">
+                                  {photo.product_description}
+                                </p>
+                              </div>
+                              
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => updatePhotoStatus(photo.id, 'approved')}
+                                  className="flex-1 h-6 text-xs bg-green-600 hover:bg-green-700"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => updatePhotoStatus(photo.id, 'rejected')}
+                                  className="flex-1 h-6 text-xs"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Approved Photos Carousel */}
+            {/* Compact Approved Photos Carousel */}
             {approvedPhotos.length > 0 && (
-              <div className="mb-8 max-w-2xl mx-auto">
+              <div className="mb-6 max-w-xl mx-auto">
                 <Carousel
                   plugins={[
                     Autoplay({
@@ -146,90 +208,35 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   <CarouselContent>
                     {approvedPhotos.map((photo) => (
                       <CarouselItem key={photo.id}>
-                        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                        <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-md">
                           <img
                             src={photo.image_url}
                             alt={photo.product_description}
                             className="w-full h-full object-cover"
                           />
-                          {/* Admin Delete Button */}
+                          {/* Small Delete Button */}
                           <Button
                             variant="destructive"
                             size="sm"
-                            className="absolute top-2 right-2 h-8 w-8 p-0"
+                            className="absolute top-2 right-2 h-6 w-6 p-0 opacity-80 hover:opacity-100"
                             onClick={() => handleDeletePhoto(photo.id, photo.image_url)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
+                  <CarouselPrevious className="h-8 w-8" />
+                  <CarouselNext className="h-8 w-8" />
                 </Carousel>
-              </div>
-            )}
-
-            {/* Admin Panel for Pending Photos */}
-            {showAdminPanel && pendingPhotos.length > 0 && (
-              <div className="bg-muted/50 backdrop-blur rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  Fotos Pendientes de Aprobación
-                </h3>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {pendingPhotos.map((photo) => (
-                    <Card key={photo.id} className="group overflow-hidden">
-                      <CardContent className="p-0 relative">
-                        <div className="aspect-square overflow-hidden">
-                          <img
-                            src={photo.image_url}
-                            alt={photo.product_description}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        
-                        <div className="p-3 space-y-2">
-                          <div className="text-sm">
-                            <p className="font-medium">{photo.customer_name || 'Anónimo'}</p>
-                            <p className="text-muted-foreground text-xs line-clamp-2">
-                              {photo.product_description}
-                            </p>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => updatePhotoStatus(photo.id, 'approved')}
-                              className="flex-1 h-8 bg-success hover:bg-success/90"
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Aprobar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => updatePhotoStatus(photo.id, 'rejected')}
-                              className="flex-1 h-8"
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              Rechazar
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
               </div>
             )}
 
             {/* Admin Empty State */}
             {approvedPhotos.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                 <h3 className="text-lg font-medium text-muted-foreground mb-2">
                   No hay fotos de clientes aún
                 </h3>
@@ -238,7 +245,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 </p>
                 <Button
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-gradient-to-r from-primary via-secondary to-accent hover:from-primary/90 hover:via-secondary/90 hover:to-accent/90"
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar Primera Foto
