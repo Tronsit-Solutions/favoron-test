@@ -407,7 +407,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                         }}
                        onConfirmAddress={handleAddressConfirmation}
                        onUploadDocument={handleUploadDocument}
-                        onEditPackage={() => console.log('Edit package - handled by AdminDashboard')}
+                        onEditPackage={handleEditPackage}
                         onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
                        onArchivePackage={handleArchivePackage}
                         onRequestRequote={() => console.log('Request requote - handled by AdminDashboard')}

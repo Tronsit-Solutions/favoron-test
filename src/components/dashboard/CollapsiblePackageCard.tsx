@@ -96,9 +96,29 @@ const CollapsiblePackageCard = ({
     setEditDocumentModal({ isOpen: false, documentType: null });
   };
 
-  const handleEditSubmit = (editedData: PackageType) => {
+  const handleEditSubmit = (editedData: any) => {
     if (onEditPackage) {
-      onEditPackage(editedData);
+      // Transform editedData from PackageRequestForm format to database update format
+      const updateData: Partial<PackageType> = {
+        package_destination: editedData.destination,
+        purchase_origin: editedData.origin,
+        delivery_method: editedData.deliveryMethod,
+        delivery_deadline: editedData.deliveryDeadline instanceof Date 
+          ? editedData.deliveryDeadline.toISOString() 
+          : editedData.deliveryDeadline,
+        additional_notes: editedData.notes || null,
+        confirmed_delivery_address: editedData.address || null,
+        // Transform products array to products_data format
+        products_data: editedData.products?.map((product: any) => ({
+          itemDescription: product.itemDescription,
+          itemLink: product.itemLink,
+          estimatedPrice: product.estimatedPrice?.toString(),
+          quantity: product.quantity?.toString()
+        })) || null
+      };
+      
+      // Call onEditPackage with the package ID and update data
+      onEditPackage({ ...pkg, ...updateData } as PackageType);
     }
     setShowEditModal(false);
   };
