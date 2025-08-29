@@ -118,7 +118,7 @@ const CollapsiblePackageCard = ({
       };
       
       // Call onEditPackage with the package ID and update data
-      onEditPackage({ ...pkg, ...updateData } as PackageType);
+      onEditPackage({ id: pkg.id, ...updateData } as any);
     }
     setShowEditModal(false);
   };
