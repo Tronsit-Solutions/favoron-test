@@ -2,9 +2,9 @@ import type { Package } from '@/types';
 
 // Package permission utilities
 export const canEditPackage = (pkg: Package, userId: string): boolean => {
-  // Only the shopper can edit, and only if package is pending or in admin review
+  // Shopper can edit only in early stages: pending_approval or approved
   return pkg.user_id === userId && 
-         ['pending', 'admin_review'].includes(pkg.status);
+         ['pending_approval', 'approved'].includes(pkg.status);
 };
 
 export const canCancelPackage = (pkg: Package, userId: string): boolean => {
