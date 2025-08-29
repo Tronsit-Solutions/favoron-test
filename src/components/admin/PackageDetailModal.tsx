@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -98,9 +98,16 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  // Check which documents exist
+  const hasPaymentReceipt = pkg.payment_receipt && (pkg.payment_receipt.receipt_url || pkg.payment_receipt.filePath);
+  const hasPurchaseConfirmation = pkg.purchase_confirmation && (pkg.purchase_confirmation.receipt_url || pkg.purchase_confirmation.filePath || pkg.purchase_confirmation.filename);
+  const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
+  const hasTravelerConfirmation = pkg.traveler_confirmation && pkg.traveler_confirmation.confirmed_at;
+  const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo || hasTravelerConfirmation;
+
   return (
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5" />
@@ -258,7 +265,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             )}
           </div>
 
-          {/* Package Information - Simplified for debugging */}
+          {/* Package Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-lg">
@@ -332,6 +339,130 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
               </div>
             </CardContent>
           </Card>
+
+          {/* Documents Section */}
+          {hasAnyDocuments && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <FileText className="h-4 w-4" />
+                  <span>Documentos Subidos</span>
+                </CardTitle>
+                <CardDescription>
+                  Todos los documentos relacionados con este paquete
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Payment Receipt */}
+                  {hasPaymentReceipt && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Receipt className="h-4 w-4" />
+                        Comprobante de Pago
+                      </h4>
+                      <PaymentReceiptViewer 
+                        paymentReceipt={pkg.payment_receipt}
+                        packageId={pkg.id}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Purchase Confirmation */}
+                  {hasPurchaseConfirmation && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Comprobante de Compra
+                      </h4>
+                      <PurchaseConfirmationViewer 
+                        purchaseConfirmation={pkg.purchase_confirmation}
+                        packageId={pkg.id}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Tracking Information */}
+                  {hasTrackingInfo && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Truck className="h-4 w-4" />
+                        Información de Seguimiento
+                      </h4>
+                      <TrackingInfoViewer 
+                        trackingInfo={pkg.tracking_info}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Traveler Confirmation */}
+                  {hasTravelerConfirmation && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Confirmación del Viajero
+                      </h4>
+                      <TravelerConfirmationDisplay 
+                        confirmation={pkg.traveler_confirmation}
+                        className="w-full"
+                      />
+                    </div>
+                  )}
+
+                </div>
+
+                {/* Office Delivery Information */}
+                {pkg.office_delivery && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="font-medium text-sm flex items-center gap-2 mb-3">
+                      <Package className="h-4 w-4" />
+                      Información de Entrega en Oficina
+                    </h4>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                      {pkg.office_delivery.traveler_declaration && (
+                        <div>
+                          <p className="text-sm font-medium text-blue-800">Declaración del Viajero:</p>
+                          <p className="text-sm text-blue-700">
+                            Confirmado el {new Date(pkg.office_delivery.traveler_declaration.delivered_at).toLocaleDateString('es-GT')} 
+                            a las {new Date(pkg.office_delivery.traveler_declaration.delivered_at).toLocaleTimeString('es-GT')}
+                          </p>
+                          {pkg.office_delivery.traveler_declaration.notes && (
+                            <p className="text-sm text-blue-700 mt-1">
+                              <strong>Notas:</strong> {pkg.office_delivery.traveler_declaration.notes}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {pkg.office_delivery.admin_confirmation && (
+                        <div>
+                          <p className="text-sm font-medium text-green-800">Confirmación Administrativa:</p>
+                          <p className="text-sm text-green-700">
+                            Confirmado el {new Date(pkg.office_delivery.admin_confirmation.confirmed_at).toLocaleDateString('es-GT')} 
+                            a las {new Date(pkg.office_delivery.admin_confirmation.confirmed_at).toLocaleTimeString('es-GT')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejection Reason */}
+                {pkg.rejection_reason && (
+                  <div className="mt-4 pt-4 border-t">
+                    <RejectionReasonDisplay 
+                      rejectionReason={pkg.rejection_reason}
+                      translateReason={translateRejectionReason}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Action Buttons */}
           {pkg.status === 'pending_approval' && (
