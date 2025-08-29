@@ -2,28 +2,53 @@ import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useModalProtection } from "@/hooks/useModalProtection";
+import { supabase } from "@/integrations/supabase/client";
 
 const DashboardPage = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
+  const { hasOpenModals } = useModalProtection();
+useEffect(() => {
+  // Robust auth guard with modal and visibility protection
+  const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
+  let cancelled = false;
 
-  useEffect(() => {
-    // Improved auth guard: longer timeout + track if user was previously authenticated
-    const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
-    
-    const timer = setTimeout(() => {
-      if (!loading && !user && !wasAuthenticated) {
-        navigate('/auth');
-      }
-    }, 2000); // Extended timeout to 2 seconds for better stability
+  const delay = (typeof hasOpenModals === 'function' && hasOpenModals()) ? 30000 : 10000; // 30s if modal open, else 10s
 
-    // Track authentication state
+  const checkAndMaybeRedirect = async () => {
+    if (cancelled) return;
+
+    // If authenticated, persist flag and stop
     if (user) {
-      sessionStorage.setItem('was_authenticated', 'true');
+      try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
+      return;
     }
 
-    return () => clearTimeout(timer);
-  }, [user, loading, navigate]);
+    // Avoid redirecting while loading, hidden tab, or offline
+    if (loading || document.hidden || !navigator.onLine) return;
+
+    // If previously authenticated, be conservative (transient null user)
+    if (wasAuthenticated) return;
+
+    // Final verification with Supabase to avoid race conditions
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
+        return;
+      }
+    } catch {
+      // If getSession fails, do not be aggressive
+      return;
+    }
+
+    if (!cancelled) navigate('/auth');
+  };
+
+  const timer = setTimeout(checkAndMaybeRedirect, delay);
+  return () => { cancelled = true; clearTimeout(timer); };
+}, [user, loading, navigate, hasOpenModals]);
 
   if (loading) {
     return (
