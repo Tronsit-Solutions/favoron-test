@@ -80,7 +80,7 @@ const AdminDashboard = ({
   const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[] } | null>(null);
   const modalStateRef = useRef(false);
 
-  // Simplified snapshot synchronization
+  // Improved snapshot synchronization to prevent emptying
   useEffect(() => {
     const hasModalsOpen = hasOpenModals();
     
@@ -109,19 +109,19 @@ const AdminDashboard = ({
       }
     }
 
-    // Normal update logic
+    // Prevent emptying during refresh - only update if new data is meaningful
     if (!hasModalsOpen) {
-      // No modals open - apply updates directly
-      if (packages.length > 0) {
-        console.log('🔄 Direct update - packages:', packages.length);
+      // No modals open - apply updates directly but protect against emptying
+      if (packages.length > 0 || localPackages.length === 0) {
+        console.log('🔄 Direct update - packages:', packages.length, 'local:', localPackages.length);
         setLocalPackages(packages);
       }
-      if (trips.length > 0) {
-        console.log('🔄 Direct update - trips:', trips.length);
+      if (trips.length > 0 || localTrips.length === 0) {
+        console.log('🔄 Direct update - trips:', trips.length, 'local:', localTrips.length);
         setLocalTrips(trips);
       }
     } else {
-      // Modals open - save to pending snapshot
+      // Modals open - save to pending snapshot only if data is meaningful
       if (packages.length > 0 || trips.length > 0) {
         console.log('💾 Modals open - saving to pending snapshot:', {
           packages: packages.length,
@@ -130,7 +130,7 @@ const AdminDashboard = ({
         pendingSnapshotRef.current = { packages, trips };
       }
     }
-  }, [packages, trips, hasOpenModals]);
+  }, [packages, trips, hasOpenModals, localPackages.length, localTrips.length]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {

@@ -147,20 +147,21 @@ export const useAdminData = (): AdminData => {
   }, [toast]);
 
   const refreshData = useCallback(async () => {
-    // Mejorar condición para permitir carga incluso con auth temporal
-    const shouldSkip = authLoading || (!isAdmin && !wasAdmin) || !user;
+    // Condición menos restrictiva para permitir carga durante estados temporales
+    const shouldSkip = !user || (authLoading && !wasAdmin);
     
     if (shouldSkip) {
       console.log('⏭️ Admin: Skipping refresh', { 
         authLoading, 
         isAdmin, 
         wasAdmin, 
-        hasUser: !!user 
+        hasUser: !!user,
+        reason: !user ? 'no_user' : 'loading_and_not_was_admin'
       });
       return;
     }
 
-    console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin });
+    console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin, authLoading });
     setLoading(true);
     setError(null);
 
@@ -205,11 +206,12 @@ export const useAdminData = (): AdminData => {
     });
 
     // Cargar datos si es admin actual o era admin anteriormente (durante refresh)
-    if (!authLoading && (isAdmin || wasAdmin) && user) {
+    if ((isAdmin || wasAdmin) && user) {
       console.log('🚀 Admin: Starting initial data load...');
       refreshData();
-    } else if (!authLoading && !isAdmin && !wasAdmin) {
-      console.log('⚠️ Admin: User is not admin, clearing data');
+    } else if (!authLoading && !isAdmin && !wasAdmin && userRole) {
+      // Solo limpiar datos cuando estemos seguros de que no es admin
+      console.log('⚠️ Admin: User is definitively not admin, clearing data');
       setPackages([]);
       setTrips([]);
       setLoading(false);

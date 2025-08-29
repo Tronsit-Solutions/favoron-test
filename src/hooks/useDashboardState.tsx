@@ -65,8 +65,8 @@ export const useDashboardState = (user: any) => {
   const regularPackagesData = useOptimizedPackagesData();
   const regularTripsData = useOptimizedTripsData();
 
-  // Choose data source based on context - mejorar lógica para manejar estados temporales
-  const shouldUseAdminData = isAdminTab && (isAdmin || wasAdminUser);
+  // Choose data source based on context - más tolerante durante estados de transición
+  const shouldUseAdminData = isAdminTab && (isAdmin || wasAdminUser || (!userRole && wasAdminUser));
   
   const {
     packages,
