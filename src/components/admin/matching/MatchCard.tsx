@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -121,8 +120,29 @@ export const MatchCard = ({
               </div>
             </div>
             
-            {/* Quick Actions */}
+            {/* Quick Actions with micro timers */}
             <div className="flex items-center space-x-1 ml-4">
+              {/* Micro timers next to buttons */}
+              {showQuoteTimer && (
+                <div className="flex flex-col items-end space-y-1">
+                  <span className="text-xs text-orange-700 font-medium">Pago</span>
+                  <QuoteCountdown 
+                    expiresAt={pkg.quote_expires_at} 
+                    micro={true}
+                  />
+                </div>
+              )}
+              
+              {showAssignmentTimer && (
+                <div className="flex flex-col items-end space-y-1">
+                  <span className="text-xs text-blue-700 font-medium">Aceptar</span>
+                  <QuoteCountdown 
+                    expiresAt={pkg.matched_assignment_expires_at} 
+                    micro={true}
+                  />
+                </div>
+              )}
+
               <Button size="sm" variant="outline" onClick={onViewDetail} className="px-2">
                 <Eye className="h-3 w-3" />
               </Button>
@@ -142,35 +162,6 @@ export const MatchCard = ({
               )}
             </div>
           </div>
-
-          {/* Timer Section - Show before detailed information */}
-          {(showQuoteTimer || showAssignmentTimer) && (
-            <div className="mt-3 mb-3">
-              {showQuoteTimer && (
-                <div className="mb-2">
-                  <div className="text-xs font-medium text-orange-700 mb-2">
-                    ⏰ Tiempo para que el shopper complete el pago:
-                  </div>
-                  <QuoteCountdown 
-                    expiresAt={pkg.quote_expires_at} 
-                    compact={true}
-                  />
-                </div>
-              )}
-              
-              {showAssignmentTimer && (
-                <div className="mb-2">
-                  <div className="text-xs font-medium text-blue-700 mb-2">
-                    ⏰ Tiempo para que el viajero acepte el tip asignado:
-                  </div>
-                  <QuoteCountdown 
-                    expiresAt={pkg.matched_assignment_expires_at} 
-                    compact={true}
-                  />
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Detailed Information */}
           <CollapsibleContent className="space-y-3 mt-4">

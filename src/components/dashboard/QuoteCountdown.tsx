@@ -1,5 +1,3 @@
-
-
 import { formatDateTime } from "@/utils/dateHelpers";
 import StatusAlert from "@/components/ui/status-alert";
 import { useCountdown } from "@/hooks/useCountdown";
@@ -9,12 +7,22 @@ interface QuoteCountdownProps {
   expiresAt: string | Date;
   onExpire?: () => void;
   compact?: boolean;
+  micro?: boolean; // New ultra-compact version
 }
 
-const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdownProps) => {
+const QuoteCountdown = ({ expiresAt, onExpire, compact = false, micro = false }: QuoteCountdownProps) => {
   const timeLeft = useCountdown({ expiresAt, onExpire });
 
   if (timeLeft.isExpired) {
+    if (micro) {
+      return (
+        <div className="flex items-center gap-1 text-xs text-destructive bg-red-50 px-2 py-1 rounded">
+          <AlertTriangle className="h-3 w-3" />
+          <span>Expirado</span>
+        </div>
+      );
+    }
+    
     if (compact) {
       return (
         <div className="flex items-center gap-2">
@@ -36,6 +44,18 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdown
   }
 
   const isUrgent = timeLeft.hours < 3;
+
+  if (micro) {
+    return (
+      <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded font-mono ${
+        isUrgent ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+      }`}>
+        <Clock className="h-3 w-3" />
+        <span>{String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}</span>
+      </div>
+    );
+  }
+
   const variant = isUrgent ? "warning" : "info";
 
   if (compact) {
@@ -101,4 +121,3 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false }: QuoteCountdown
 };
 
 export default QuoteCountdown;
-
