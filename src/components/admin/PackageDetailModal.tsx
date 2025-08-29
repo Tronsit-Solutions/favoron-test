@@ -353,6 +353,78 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             </CardContent>
           </Card>
 
+          {/* Quote Information */}
+          {pkg.quote && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <DollarSign className="h-4 w-4" />
+                  <span>Cotización Enviada al Shopper</span>
+                </CardTitle>
+                <CardDescription>
+                  Detalles de la cotización que recibió el cliente
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Propina del Viajero</p>
+                      <p className="text-sm text-muted-foreground">${pkg.quote.price || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Tarifa de Servicio</p>
+                      <p className="text-sm text-muted-foreground">${pkg.quote.serviceFee || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">Total a Pagar</p>
+                      <p className="text-lg font-bold text-primary">${pkg.quote.totalPrice || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {pkg.quote.message && (
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium mb-2">Mensaje del Viajero:</p>
+                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                      {pkg.quote.message}
+                    </p>
+                  </div>
+                )}
+
+                {pkg.quote_expires_at && (
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium mb-1">Expiración de la Cotización:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(pkg.quote_expires_at).toLocaleDateString('es-GT')} a las {new Date(pkg.quote_expires_at).toLocaleTimeString('es-GT')}
+                    </p>
+                  </div>
+                )}
+
+                <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                  <p className="font-medium text-blue-800 mb-1">Estado de la Cotización:</p>
+                  <p className="text-blue-700">
+                    {pkg.status === 'quote_sent' && 'Enviada - Esperando respuesta del shopper'}
+                    {pkg.status === 'payment_pending' && 'Aceptada - Pago pendiente'}
+                    {pkg.status === 'pending_purchase' && 'Pagada - Compra pendiente'}
+                    {pkg.status === 'quote_rejected' && 'Rechazada por el shopper'}
+                    {pkg.status === 'quote_expired' && 'Expirada'}
+                    {!['quote_sent', 'payment_pending', 'pending_purchase', 'quote_rejected', 'quote_expired'].includes(pkg.status) && 'Cotización enviada'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Documents Section */}
           {hasAnyDocuments && (
             <Card>
