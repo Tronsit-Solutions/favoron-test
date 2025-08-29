@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Clock, CreditCard, Package2 } from "lucide-react";
 import { Package } from "@/types";
 import QuoteCountdown from "../QuoteCountdown";
@@ -231,13 +232,29 @@ const ShopperPackagePriorityActions = ({
     }
   };
 
+  // Si el usuario ya pidió re-cotización y el pedido está aprobado, mostrar mensaje específico
+  if (pkg.wants_requote && pkg.status === 'approved') {
+    return (
+      <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+            <div className="space-y-2 flex-1">
+              <h4 className="font-medium text-emerald-900 dark:text-emerald-100">
+                ✅ Re-cotización solicitada
+              </h4>
+              <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                Tu pedido está nuevamente aprobado y pendiente de asignarse a un viajero disponible.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const config = getActionConfig();
   if (!config) return null;
-
-  // Si el usuario ya pidió re-cotización, no mostrar la caja
-  if (pkg.wants_requote) {
-    return null;
-  }
 
   const IconComponent = config.icon;
 
