@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getStatusLabel } from "@/lib/formatters";
@@ -74,52 +74,63 @@ const AdminDashboard = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
-  const { canRefresh, hasOpenModals } = useModalProtection();
+  const { hasOpenModals } = useModalProtection();
+  
+  // Snapshot mechanism for modal protection
+  const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[] } | null>(null);
+  const modalStateRef = useRef(false);
 
-  // Smart sync: Only update with valid, non-empty data or when modals are closed
+  // Simplified snapshot synchronization
   useEffect(() => {
-    const shouldSyncPackages = packages.length > 0 && (
-      canRefresh() || 
-      localPackages.length === 0 || 
-      packages.length > localPackages.length
-    );
+    const hasModalsOpen = hasOpenModals();
     
-    const shouldSyncTrips = trips.length > 0 && (
-      canRefresh() || 
-      localTrips.length === 0 || 
-      trips.length > localTrips.length
-    );
-
-    if (shouldSyncPackages) {
-      console.log('🔄 Smart sync - updating packages:', { 
-        incoming: packages.length, 
-        current: localPackages.length, 
-        canRefresh: canRefresh() 
-      });
-      setLocalPackages(packages);
-    } else {
-      console.log('🚫 Skipping package sync - keeping current data:', { 
-        incoming: packages.length, 
-        current: localPackages.length,
-        reason: packages.length === 0 ? 'empty incoming' : 'modals open'
-      });
+    // Detect modal state changes
+    if (modalStateRef.current !== hasModalsOpen) {
+      modalStateRef.current = hasModalsOpen;
+      
+      if (!hasModalsOpen && pendingSnapshotRef.current) {
+        // Modal closed - apply pending snapshot
+        console.log('🔓 Modals closed - applying pending snapshot:', {
+          pendingPackages: pendingSnapshotRef.current.packages.length,
+          pendingTrips: pendingSnapshotRef.current.trips.length
+        });
+        
+        setLocalPackages(pendingSnapshotRef.current.packages);
+        setLocalTrips(pendingSnapshotRef.current.trips);
+        pendingSnapshotRef.current = null;
+        
+        // Process any queued realtime updates after a short delay
+        setTimeout(() => {
+          console.log('⏰ Processing queued updates after snapshot flush');
+          processQueuedUpdates();
+        }, 200);
+        
+        return;
+      }
     }
 
-    if (shouldSyncTrips) {
-      console.log('🔄 Smart sync - updating trips:', { 
-        incoming: trips.length, 
-        current: localTrips.length, 
-        canRefresh: canRefresh() 
-      });
-      setLocalTrips(trips);
+    // Normal update logic
+    if (!hasModalsOpen) {
+      // No modals open - apply updates directly
+      if (packages.length > 0) {
+        console.log('🔄 Direct update - packages:', packages.length);
+        setLocalPackages(packages);
+      }
+      if (trips.length > 0) {
+        console.log('🔄 Direct update - trips:', trips.length);
+        setLocalTrips(trips);
+      }
     } else {
-      console.log('🚫 Skipping trips sync - keeping current data:', { 
-        incoming: trips.length, 
-        current: localTrips.length,
-        reason: trips.length === 0 ? 'empty incoming' : 'modals open'
-      });
+      // Modals open - save to pending snapshot
+      if (packages.length > 0 || trips.length > 0) {
+        console.log('💾 Modals open - saving to pending snapshot:', {
+          packages: packages.length,
+          trips: trips.length
+        });
+        pendingSnapshotRef.current = { packages, trips };
+      }
     }
-  }, [packages, trips, canRefresh, localPackages.length, localTrips.length]);
+  }, [packages, trips, hasOpenModals]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -480,7 +491,7 @@ const AdminDashboard = ({
         trips={localTrips}
         onRefresh={() => {
           console.log('🔄 AdminActionsModal refresh requested - using incremental update');
-          if (canRefresh()) {
+          if (!hasOpenModals()) {
             // Use incremental refresh instead of window.location.reload()
             processQueuedUpdates();
           } else {
