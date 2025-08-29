@@ -41,6 +41,18 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return null;
   }
 
+  // Handle approve action with modal closure
+  const handleApprove = async (id: string) => {
+    await onApprove(id);
+    closeModal(modalId);
+  };
+
+  // Handle reject action with modal closure
+  const handleReject = async (id: string) => {
+    await onReject(id);
+    closeModal(modalId);
+  };
+
   // Centralized rejection reason translation function
   const translateRejectionReason = (reason: any): string => {
     if (!reason) return 'Razón no especificada';
@@ -617,7 +629,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
           {pkg.status === 'pending_approval' && (
             <div className="flex space-x-2 pt-4 border-t">
               <Button 
-                onClick={() => onApprove(pkg.id)}
+                onClick={() => handleApprove(pkg.id)}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -625,7 +637,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
               </Button>
               <Button 
                 variant="destructive"
-                onClick={() => onReject(pkg.id)}
+                onClick={() => handleReject(pkg.id)}
                 className="flex-1"
               >
                 <XCircle className="h-4 w-4 mr-2" />
