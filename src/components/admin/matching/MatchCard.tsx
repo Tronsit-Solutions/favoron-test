@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,8 +48,8 @@ export const MatchCard = ({
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation' && !!pkg.office_delivery?.traveler_declaration;
   const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
 
-  // Check if we should show timers
-  const showQuoteTimer = pkg.status === 'quote_sent' && pkg.quote_expires_at;
+  // Check if we should show timers - including payment_pending
+  const showQuoteTimer = (['quote_sent', 'payment_pending'].includes(pkg.status)) && pkg.quote_expires_at;
   const showAssignmentTimer = pkg.status === 'matched' && pkg.matched_assignment_expires_at;
 
   const getStatusDescription = () => {
