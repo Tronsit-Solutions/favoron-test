@@ -117,7 +117,9 @@ const CollapsiblePackageCard = ({
   };
 
   // Determine if package actions dropdown should be shown
+  const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
   const canShowPackageActions = viewMode === 'user' && (
+    (canEdit && onEditPackage) ||
     (onDeletePackage && [
       'pending_approval',
       'approved', 
@@ -148,17 +150,9 @@ const CollapsiblePackageCard = ({
   ].includes(pkg.status);
 
   const renderActionButtons = () => {
-    const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
-    
     return (
       <div className="flex flex-wrap gap-2 w-full">
-        {viewMode === 'user' && canEdit && onEditPackage && (
-          <Button size="sm" variant="outline" onClick={() => setShowEditModal(true)} className="flex-1 sm:flex-none min-w-0">
-            <Edit className="h-4 w-4 mr-1 flex-shrink-0" />
-            <span className="truncate">Editar</span>
-          </Button>
-        )}
-        
+        {/* Action buttons moved to dropdown menu */}
       </div>
     );
   };
@@ -239,6 +233,18 @@ const CollapsiblePackageCard = ({
                       className="bg-background border shadow-md z-50"
                       onClick={(e) => e.stopPropagation()}
                     >
+                      {canEdit && onEditPackage && (
+                        <DropdownMenuItem
+                          className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEditModal(true);
+                          }}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                      )}
                       {isArchivable ? (
                         <>
                           <DropdownMenuItem
@@ -265,16 +271,20 @@ const CollapsiblePackageCard = ({
                           )}
                         </>
                       ) : (
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Descartar pedido
-                        </DropdownMenuItem>
+                        <>
+                          {onDeletePackage && (
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteDialog(true);
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Descartar pedido
+                            </DropdownMenuItem>
+                          )}
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
