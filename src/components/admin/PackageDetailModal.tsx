@@ -342,7 +342,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-1 text-xs">
                         <div>
                           <p className="font-medium text-muted-foreground">Precio Unitario</p>
                           <p className="font-medium">${product.price.toFixed(2)}</p>
@@ -361,21 +361,21 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                             <p className="font-bold text-green-600">Q{product.adminTip.toFixed(2)}</p>
                           </div>
                         )}
+                        {product.link && (
+                          <div>
+                            <p className="font-medium text-muted-foreground">Link</p>
+                            <a 
+                              href={product.link}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-primary hover:underline text-xs"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              <span>Ver producto</span>
+                            </a>
+                          </div>
+                        )}
                       </div>
-                      
-                      {product.link && (
-                        <div className="mt-1 pt-1 border-t">
-                          <a 
-                            href={product.link}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-primary hover:underline text-xs"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            <span>Ver producto en línea</span>
-                          </a>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
