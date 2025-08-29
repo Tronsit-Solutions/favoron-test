@@ -319,14 +319,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             <CardContent className="space-y-4">
               
               {/* Individual Product Details */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <h4 className="font-medium text-sm">Productos Solicitados:</h4>
                 {detailedProducts.map((product) => (
                   <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
-                    <CardContent className="p-3">
-                      <div className="flex justify-between items-start mb-2">
+                    <CardContent className="p-2">
+                      <div className="flex justify-between items-start mb-1">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-1 mb-1">
                             <Badge variant="outline" className="text-xs">
                               Producto #{product.id}
                             </Badge>
@@ -334,7 +334,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                               Cantidad: {product.quantity}
                             </Badge>
                           </div>
-                          <h5 className="font-medium text-sm mb-1">{product.description}</h5>
+                          <h5 className="font-medium text-sm">{product.description}</h5>
                         </div>
                         <div className="text-right ml-3">
                           <p className="text-base font-bold text-primary">${product.price.toFixed(2)}</p>
@@ -342,7 +342,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 text-xs">
                         <div>
                           <p className="font-medium text-muted-foreground">Precio Unitario</p>
                           <p className="font-medium">${product.price.toFixed(2)}</p>
@@ -364,7 +364,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </div>
                       
                       {product.link && (
-                        <div className="mt-2 pt-2 border-t">
+                        <div className="mt-1 pt-1 border-t">
                           <a 
                             href={product.link}
                             target="_blank" 
