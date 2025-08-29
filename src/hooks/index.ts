@@ -5,6 +5,7 @@ export { usePackagesData } from './usePackagesData';
 export { useTripsData } from './useTripsData';
 export { useOptimizedPackagesData } from './useOptimizedPackagesData';
 export { useOptimizedTripsData } from './useOptimizedTripsData';
+export { useAdminData } from './useAdminData';
 export { useOptimizedRealtime } from './useOptimizedRealtime';
 export { useNavigationState } from './useNavigationState';
 export { useNotifications } from './useNotifications';

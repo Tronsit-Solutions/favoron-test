@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { useCachedData } from '@/hooks/useCachedData';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
@@ -11,11 +10,8 @@ export type PackageUpdate = TablesUpdate<'packages'>;
 
 export const useOptimizedPackagesData = () => {
   const { toast } = useToast();
-  const { user, userRole, loading: authLoading } = useAuth();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const isAdmin = userRole?.role === 'admin';
 
   // Memoized query for basic package data
   const fetchBasicPackages = useCallback(async () => {
@@ -92,19 +88,15 @@ export const useOptimizedPackagesData = () => {
 
   // Optimized fetch function using cached data
   const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
-    // Don't fetch if auth is still loading
-    if (authLoading) {
-      console.log('📦 Auth still loading, skipping fetch');
+    // Get current user directly from supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('📦 No user available, returning empty');
       return [];
     }
 
-    // For non-admin users, require user to be available
-    if (!isAdmin && !user) {
-      console.log('📦 No user available for non-admin, returning empty');
-      return [];
-    }
-
-    console.log('📦 Fetching packages', { isAdmin, user: !!user });
+    console.log('📦 Fetching packages for user:', user.id);
     
     try {
       const { data, error } = await supabase
@@ -155,7 +147,7 @@ export const useOptimizedPackagesData = () => {
       console.error('📦 Package fetch failed:', error);
       return [];
     }
-  }, [user, isAdmin, authLoading, toast]);
+  }, [toast]);
 
   // Use cached data with 30-second TTL
   const { 
@@ -165,9 +157,8 @@ export const useOptimizedPackagesData = () => {
     refresh: refreshCache,
     invalidate: invalidateCache 
   } = useCachedData(fetchPackagesOptimized, {
-    key: isAdmin ? 'packages-admin' : `packages-${user?.id}`,
-    ttl: 30000, // 30 seconds
-    enabled: !authLoading // Only enable when auth is ready
+    key: `packages-optimized`,
+    ttl: 30000 // 30 seconds
   });
 
   // Sync local state with cached data

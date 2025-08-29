@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useCachedData } from './useCachedData';
 
@@ -13,25 +12,18 @@ export const useOptimizedTripsData = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user, userRole, loading: authLoading } = useAuth();
-
-  const isAdmin = userRole?.role === 'admin';
 
   // Cached fetch function for trips
   const fetchTripsOptimized = useCallback(async () => {
-    // Don't fetch if auth is still loading
-    if (authLoading) {
-      console.log('✈️ Auth still loading, skipping fetch');
+    // Get current user directly from supabase auth
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('✈️ No user available, returning empty');
       return [];
     }
 
-    // For non-admin users, require user to be available
-    if (!isAdmin && !user) {
-      console.log('✈️ No user available for non-admin, returning empty');
-      return [];
-    }
-
-    console.log('✈️ Fetching trips', { isAdmin, user: !!user });
+    console.log('✈️ Fetching trips for user:', user.id);
 
     try {
       const { data, error } = await supabase
@@ -58,7 +50,7 @@ export const useOptimizedTripsData = () => {
       console.error('✈️ Trip fetch failed:', error);
       return [];
     }
-  }, [user, isAdmin, authLoading]);
+  }, []);
 
   // Use cached data with 30-second TTL
   const {
@@ -66,9 +58,8 @@ export const useOptimizedTripsData = () => {
     loading: cacheLoading,
     refresh: refreshCache
   } = useCachedData(fetchTripsOptimized, {
-    key: isAdmin ? 'trips-admin' : `trips-${user?.id}`,
-    ttl: 30000, // 30 seconds
-    enabled: !authLoading // Only enable when auth is ready
+    key: 'trips-optimized',
+    ttl: 30000 // 30 seconds
   });
 
   // Update local state when cache changes
