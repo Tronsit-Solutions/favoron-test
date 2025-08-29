@@ -130,7 +130,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleConfirmShopperReceived
   } = useDashboardActions(
     packages,
-    () => {},
+    setPackages,
     trips,
     () => {},
     currentUser,

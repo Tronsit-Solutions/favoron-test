@@ -70,7 +70,16 @@ export const useDashboardActions = (
       
       console.log('💾 Database Package Data:', dbPackageData);
 
-      await createPackage(dbPackageData);
+      // Create the package and get the result
+      const newPackage = await createPackage(dbPackageData);
+      console.log('✅ Package created successfully:', newPackage);
+      
+      // Force refresh of packages to show the new one immediately
+      if (refreshPackages) {
+        console.log('🔄 Force refreshing packages to show new package');
+        await refreshPackages();
+      }
+      
       setShowPackageForm(false);
       
       // Navigate to admin tab if user is admin to see the new package

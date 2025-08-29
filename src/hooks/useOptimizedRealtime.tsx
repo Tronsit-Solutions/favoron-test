@@ -72,11 +72,14 @@ export const useOptimizedRealtime = ({
     
     queuedUpdates.forEach(({ type, payload }) => {
       if (type === 'package' && onPackageUpdate && payload?.new) {
-        const updatedPackages = packages.map(pkg => 
-          pkg.id === payload.new.id ? { ...pkg, ...payload.new } : pkg
-        );
-        if (!packages.find(pkg => pkg.id === payload.new.id)) {
-          updatedPackages.push(payload.new);
+        console.log('🔄 Processing queued package update:', payload.new.id);
+        const updatedPackages = [...packages];
+        const existingIndex = packages.findIndex(pkg => pkg.id === payload.new.id);
+        
+        if (existingIndex >= 0) {
+          updatedPackages[existingIndex] = { ...updatedPackages[existingIndex], ...payload.new };
+        } else {
+          updatedPackages.unshift(payload.new);
         }
         onPackageUpdate(updatedPackages);
       } else if (type === 'trip' && onTripUpdate) {
@@ -101,19 +104,24 @@ export const useOptimizedRealtime = ({
       if (updateType === 'package' && onPackageUpdate) {
         // Instead of refetching all data, update the specific package
         if (payload?.new) {
-          const updatedPackages = packages.map(pkg => 
-            pkg.id === payload.new.id ? { ...pkg, ...payload.new } : pkg
-          );
-          // Add new packages if they don't exist
-          if (!packages.find(pkg => pkg.id === payload.new.id)) {
-            updatedPackages.push(payload.new);
+          console.log('🔄 Real-time package update received:', payload.new.id);
+          const updatedPackages = [...packages];
+          const existingIndex = packages.findIndex(pkg => pkg.id === payload.new.id);
+          
+          if (existingIndex >= 0) {
+            // Update existing package
+            updatedPackages[existingIndex] = { ...updatedPackages[existingIndex], ...payload.new };
+          } else {
+            // Add new package at the beginning (most recent first)
+            updatedPackages.unshift(payload.new);
           }
+          console.log('✅ Updating packages list with new data');
           onPackageUpdate(updatedPackages);
         }
       } else if (updateType === 'trip' && onTripUpdate) {
         onTripUpdate();
       }
-    }, 500); // 500ms debounce
+    }, 150); // Reduced debounce for faster updates
   }, [onPackageUpdate, onTripUpdate, packages, shouldPreventRefresh]);
 
   // Expose function to process queued updates
