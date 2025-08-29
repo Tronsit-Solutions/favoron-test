@@ -1,6 +1,6 @@
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useModalProtection } from "@/hooks/useModalProtection";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 const DashboardPage = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasOpenModals } = useModalProtection();
 useEffect(() => {
   // Robust auth guard with modal and visibility protection
@@ -43,12 +44,12 @@ useEffect(() => {
       return;
     }
 
-    if (!cancelled) navigate('/auth');
+    if (!cancelled) navigate('/auth', { state: { from: location } });
   };
 
   const timer = setTimeout(checkAndMaybeRedirect, delay);
   return () => { cancelled = true; clearTimeout(timer); };
-}, [user, loading, navigate, hasOpenModals]);
+}, [user, loading, navigate, hasOpenModals, location]);
 
   if (loading) {
     return (

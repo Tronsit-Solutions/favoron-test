@@ -85,13 +85,21 @@ const Auth = () => {
         duration: 6000,
       });
     } else {
-      // Check if user is already logged in and redirect immediately
+      // Check if user is already logged in and redirect appropriately
       console.log('Checking for existing session...');
       supabase.auth.getSession().then(({ data: { session } }) => {
         console.log('Existing session check result:', session);
         if (session && !isResettingPassword) {
-          console.log('Existing session found, redirecting to home');
-          navigate('/dashboard');
+          const from = (location.state as any)?.from;
+          console.log('Existing session found. From state:', from);
+          if (from?.pathname) {
+            const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
+            console.log('Redirecting back to previous location:', target);
+            navigate(target, { replace: true });
+          } else {
+            console.log('No previous location. Redirecting to /dashboard');
+            navigate('/dashboard', { replace: true });
+          }
         } else {
           console.log('No existing session, staying on auth page');
         }
@@ -111,9 +119,15 @@ const Auth = () => {
         return;
       }
       if (event === 'SIGNED_IN' && session && !isResettingPassword) {
-        console.log('User signed in, redirecting to dashboard');
-        // User is signed in and not in password reset flow
-        navigate('/dashboard');
+        const from = (location.state as any)?.from;
+        if (from?.pathname) {
+          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
+          console.log('SIGNED_IN: redirecting back to previous location:', target);
+          navigate(target, { replace: true });
+        } else {
+          console.log('SIGNED_IN: redirecting to /dashboard');
+          navigate('/dashboard', { replace: true });
+        }
       }
     });
 
@@ -303,8 +317,14 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Navigate to dashboard without page reload
-        navigate('/dashboard');
+        // Navigate back to intended page if available
+        const from = (location.state as any)?.from;
+        if (from?.pathname) {
+          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
+          navigate(target, { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (error: any) {
       // Log signin error
