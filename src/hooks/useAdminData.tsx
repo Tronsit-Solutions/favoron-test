@@ -23,9 +23,34 @@ export const useAdminData = (): AdminData => {
   const { toast } = useToast();
   const { user, userRole, loading: authLoading } = useAuth();
 
+  // Persistir estado admin para evitar pérdida temporal durante refresh
+  const [wasAdmin, setWasAdmin] = useState(() => {
+    try {
+      return localStorage.getItem('temp_admin_state') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const isAdmin = useMemo(() => {
-    return userRole?.role === 'admin';
-  }, [userRole]);
+    const currentlyAdmin = userRole?.role === 'admin';
+    
+    // Persistir estado admin
+    if (currentlyAdmin) {
+      setWasAdmin(true);
+      try {
+        localStorage.setItem('temp_admin_state', 'true');
+      } catch {}
+    } else if (!authLoading && userRole) {
+      // Solo limpiar si auth terminó de cargar y tenemos un rol definitivo
+      setWasAdmin(false);
+      try {
+        localStorage.removeItem('temp_admin_state');
+      } catch {}
+    }
+    
+    return currentlyAdmin;
+  }, [userRole, authLoading]);
 
   const fetchAdminPackages = useCallback(async () => {
     try {
@@ -122,12 +147,20 @@ export const useAdminData = (): AdminData => {
   }, [toast]);
 
   const refreshData = useCallback(async () => {
-    if (!isAdmin || authLoading) {
-      console.log('⏭️ Admin: Skipping refresh - not admin or auth loading');
+    // Mejorar condición para permitir carga incluso con auth temporal
+    const shouldSkip = authLoading || (!isAdmin && !wasAdmin) || !user;
+    
+    if (shouldSkip) {
+      console.log('⏭️ Admin: Skipping refresh', { 
+        authLoading, 
+        isAdmin, 
+        wasAdmin, 
+        hasUser: !!user 
+      });
       return;
     }
 
-    console.log('🔄 Admin: Starting data refresh...');
+    console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin });
     setLoading(true);
     setError(null);
 
@@ -148,42 +181,60 @@ export const useAdminData = (): AdminData => {
     } catch (error: any) {
       console.error('❌ Admin: Data refresh failed:', error);
       setError(error.message);
+      
+      // Retry en caso de error temporal
+      if (!authLoading && (isAdmin || wasAdmin)) {
+        console.log('🔄 Admin: Scheduling retry in 2 seconds...');
+        setTimeout(() => {
+          refreshData();
+        }, 2000);
+      }
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, authLoading, fetchAdminPackages, fetchAdminTrips]);
+  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchAdminTrips]);
 
   // Initial data load when admin is authenticated
   useEffect(() => {
     console.log('🔍 Admin: Effect triggered', {
       isAdmin,
+      wasAdmin,
       authLoading,
       user: !!user,
       userRole: userRole?.role
     });
 
-    if (!authLoading && isAdmin && user) {
+    // Cargar datos si es admin actual o era admin anteriormente (durante refresh)
+    if (!authLoading && (isAdmin || wasAdmin) && user) {
       console.log('🚀 Admin: Starting initial data load...');
       refreshData();
-    } else if (!authLoading && !isAdmin) {
+    } else if (!authLoading && !isAdmin && !wasAdmin) {
       console.log('⚠️ Admin: User is not admin, clearing data');
       setPackages([]);
       setTrips([]);
       setLoading(false);
     }
-  }, [isAdmin, authLoading, user, refreshData]);
+  }, [isAdmin, wasAdmin, authLoading, user, refreshData]);
 
-  // Additional safety net - retry if data is empty but should have data
+  // Enhanced safety net - retry with better conditions
   useEffect(() => {
-    if (!loading && isAdmin && packages.length === 0 && trips.length === 0 && !error) {
-      console.log('🔄 Admin: Data appears empty, retrying in 1 second...');
+    const shouldRetry = !loading && 
+                       !authLoading && 
+                       (isAdmin || wasAdmin) && 
+                       user &&
+                       packages.length === 0 && 
+                       trips.length === 0 && 
+                       !error;
+
+    if (shouldRetry) {
+      console.log('🔄 Admin: Data appears empty, retrying with enhanced conditions...');
       const retryTimer = setTimeout(() => {
         refreshData();
-      }, 1000);
+      }, 1500); // Slightly longer delay
       
       return () => clearTimeout(retryTimer);
     }
-  }, [loading, isAdmin, packages.length, trips.length, error, refreshData]);
+  }, [loading, authLoading, isAdmin, wasAdmin, user, packages.length, trips.length, error, refreshData]);
 
   const memoizedResult = useMemo(() => ({
     packages,

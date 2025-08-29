@@ -31,7 +31,33 @@ export const useDashboardState = (user: any) => {
   // Check if user is admin to decide which data hooks to use
   const isAdminTab = activeTab === 'admin';
   const userRole = user?.userRole?.role;
+  
+  // Mejorar detección de admin con persistencia temporal
+  const [wasAdminUser, setWasAdminUser] = useState(() => {
+    try {
+      return localStorage.getItem('temp_admin_user_state') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const isAdmin = userRole === 'admin';
+  
+  // Persistir estado de admin user para evitar pérdida durante refresh
+  useEffect(() => {
+    if (isAdmin) {
+      setWasAdminUser(true);
+      try {
+        localStorage.setItem('temp_admin_user_state', 'true');
+      } catch {}
+    } else if (userRole && userRole !== 'admin') {
+      // Solo limpiar si tenemos un rol definitivo y no es admin
+      setWasAdminUser(false);
+      try {
+        localStorage.removeItem('temp_admin_user_state');
+      } catch {}
+    }
+  }, [isAdmin, userRole]);
 
   // Use admin-specific hook for admin tab, otherwise use regular hooks
   const adminData = useAdminData();
@@ -39,7 +65,9 @@ export const useDashboardState = (user: any) => {
   const regularPackagesData = useOptimizedPackagesData();
   const regularTripsData = useOptimizedTripsData();
 
-  // Choose data source based on context
+  // Choose data source based on context - mejorar lógica para manejar estados temporales
+  const shouldUseAdminData = isAdminTab && (isAdmin || wasAdminUser);
+  
   const {
     packages,
     loading: packagesLoading,
@@ -48,7 +76,7 @@ export const useDashboardState = (user: any) => {
     deletePackage,
     refreshPackages,
     setPackages
-  } = isAdminTab && isAdmin ? {
+  } = shouldUseAdminData ? {
     packages: adminData.packages,
     loading: adminData.loading,
     createPackage: regularPackagesData.createPackage,
@@ -65,7 +93,7 @@ export const useDashboardState = (user: any) => {
     updateTrip,
     deleteTrip,
     refreshTrips
-  } = isAdminTab && isAdmin ? {
+  } = shouldUseAdminData ? {
     trips: adminData.trips,
     loading: adminData.loading,
     createTrip: regularTripsData.createTrip,
