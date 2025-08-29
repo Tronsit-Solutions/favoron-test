@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizedPackagesData } from './useOptimizedPackagesData';
 import { useOptimizedTripsData } from './useOptimizedTripsData';
+import { useAdminData } from './useAdminData';
 import type { Package } from "@/types";
 import { useSearchParams } from "react-router-dom";
 
@@ -27,7 +28,18 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   
-  // Re-enabled data hooks for full functionality
+  // Check if user is admin to decide which data hooks to use
+  const isAdminTab = activeTab === 'admin';
+  const userRole = user?.userRole?.role;
+  const isAdmin = userRole === 'admin';
+
+  // Use admin-specific hook for admin tab, otherwise use regular hooks
+  const adminData = useAdminData();
+  
+  const regularPackagesData = useOptimizedPackagesData();
+  const regularTripsData = useOptimizedTripsData();
+
+  // Choose data source based on context
   const {
     packages,
     loading: packagesLoading,
@@ -36,7 +48,15 @@ export const useDashboardState = (user: any) => {
     deletePackage,
     refreshPackages,
     setPackages
-  } = useOptimizedPackagesData();
+  } = isAdminTab && isAdmin ? {
+    packages: adminData.packages,
+    loading: adminData.loading,
+    createPackage: regularPackagesData.createPackage,
+    updatePackage: regularPackagesData.updatePackage,
+    deletePackage: regularPackagesData.deletePackage,
+    refreshPackages: adminData.refreshData,
+    setPackages: () => {} // Admin data is read-only
+  } : regularPackagesData;
 
   const {
     trips,
@@ -45,7 +65,14 @@ export const useDashboardState = (user: any) => {
     updateTrip,
     deleteTrip,
     refreshTrips
-  } = useOptimizedTripsData();
+  } = isAdminTab && isAdmin ? {
+    trips: adminData.trips,
+    loading: adminData.loading,
+    createTrip: regularTripsData.createTrip,
+    updateTrip: regularTripsData.updateTrip,
+    deleteTrip: regularTripsData.deleteTrip,
+    refreshTrips: adminData.refreshData
+  } : regularTripsData;
   
   const { toast } = useToast();
 

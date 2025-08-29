@@ -11,9 +11,11 @@ export type PackageUpdate = TablesUpdate<'packages'>;
 
 export const useOptimizedPackagesData = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, userRole, loading: authLoading } = useAuth();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isAdmin = userRole?.role === 'admin';
 
   // Memoized query for basic package data
   const fetchBasicPackages = useCallback(async () => {
@@ -90,27 +92,25 @@ export const useOptimizedPackagesData = () => {
 
   // Optimized fetch function using cached data
   const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
-    if (!user) return [];
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      console.log('📦 Auth still loading, skipping fetch');
+      return [];
+    }
+
+    // For non-admin users, require user to be available
+    if (!isAdmin && !user) {
+      console.log('📦 No user available for non-admin, returning empty');
+      return [];
+    }
+
+    console.log('📦 Fetching packages', { isAdmin, user: !!user });
     
-    const { data, error } = await supabase
-      .from('packages')
-      .select(`
-        *,
-        profiles:user_id(
-          id,
-          first_name,
-          last_name,
-          username,
-          email,
-          phone_number,
-          avatar_url
-        ),
-        trips:matched_trip_id(
-          id,
-          from_city,
-          to_city,
-          departure_date,
-          arrival_date,
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select(`
+          *,
           profiles:user_id(
             id,
             first_name,
@@ -119,23 +119,43 @@ export const useOptimizedPackagesData = () => {
             email,
             phone_number,
             avatar_url
+          ),
+          trips:matched_trip_id(
+            id,
+            from_city,
+            to_city,
+            departure_date,
+            arrival_date,
+            profiles:user_id(
+              id,
+              first_name,
+              last_name,
+              username,
+              email,
+              phone_number,
+              avatar_url
+            )
           )
-        )
-      `)
-      .order('created_at', { ascending: false });
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching packages:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los paquetes",
-        variant: "destructive",
-      });
-      throw error;
+      if (error) {
+        console.error('Error fetching packages:', error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los paquetes",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      console.log('📦 Fetched packages successfully:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('📦 Package fetch failed:', error);
+      return [];
     }
-
-    return data || [];
-  }, [user, toast]);
+  }, [user, isAdmin, authLoading, toast]);
 
   // Use cached data with 30-second TTL
   const { 
@@ -145,8 +165,9 @@ export const useOptimizedPackagesData = () => {
     refresh: refreshCache,
     invalidate: invalidateCache 
   } = useCachedData(fetchPackagesOptimized, {
-    key: `packages-${user?.id}`,
-    ttl: 30000 // 30 seconds
+    key: isAdmin ? 'packages-admin' : `packages-${user?.id}`,
+    ttl: 30000, // 30 seconds
+    enabled: !authLoading // Only enable when auth is ready
   });
 
   // Sync local state with cached data

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useCachedData } from './useCachedData';
 
@@ -12,31 +13,52 @@ export const useOptimizedTripsData = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, userRole, loading: authLoading } = useAuth();
+
+  const isAdmin = userRole?.role === 'admin';
 
   // Cached fetch function for trips
   const fetchTripsOptimized = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      console.log('✈️ Auth still loading, skipping fetch');
       return [];
     }
 
-    // Simplified query for better performance - use LEFT JOIN to prevent RLS filtering
-    const { data, error } = await supabase
-      .from('trips')
-      .select(`
-        *,
-        profiles (
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
-      .order('departure_date', { ascending: true });
+    // For non-admin users, require user to be available
+    if (!isAdmin && !user) {
+      console.log('✈️ No user available for non-admin, returning empty');
+      return [];
+    }
 
-    if (error) throw error;
-    return data || [];
-  }, []);
+    console.log('✈️ Fetching trips', { isAdmin, user: !!user });
+
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .select(`
+          *,
+          profiles (
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .order('departure_date', { ascending: true });
+
+      if (error) {
+        console.error('✈️ Error fetching trips:', error);
+        throw error;
+      }
+
+      console.log('✈️ Fetched trips successfully:', data?.length || 0);
+      return data || [];
+    } catch (error) {
+      console.error('✈️ Trip fetch failed:', error);
+      return [];
+    }
+  }, [user, isAdmin, authLoading]);
 
   // Use cached data with 30-second TTL
   const {
@@ -44,8 +66,9 @@ export const useOptimizedTripsData = () => {
     loading: cacheLoading,
     refresh: refreshCache
   } = useCachedData(fetchTripsOptimized, {
-    key: 'trips-optimized',
-    ttl: 30000 // 30 seconds
+    key: isAdmin ? 'trips-admin' : `trips-${user?.id}`,
+    ttl: 30000, // 30 seconds
+    enabled: !authLoading // Only enable when auth is ready
   });
 
   // Update local state when cache changes

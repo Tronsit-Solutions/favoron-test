@@ -9,19 +9,26 @@ interface CacheEntry<T> {
 interface UseCachedDataOptions {
   ttl?: number; // Time to live in milliseconds (default: 30 seconds)
   key: string;
+  enabled?: boolean; // Whether the hook should be active
 }
 
 export const useCachedData = <T,>(
   fetchFn: () => Promise<T>,
   options: UseCachedDataOptions
 ) => {
-  const { ttl = 30000, key } = options;
+  const { ttl = 30000, key, enabled = true } = options;
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const cacheRef = useRef<Map<string, CacheEntry<T>>>(new Map());
 
   const fetchData = async (forceRefresh = false) => {
+    if (!enabled && !forceRefresh) {
+      console.log(`⏭️ Cache disabled for key: ${key}`);
+      setLoading(false);
+      return null;
+    }
+
     const cache = cacheRef.current;
     const cachedEntry = cache.get(key);
     const now = Date.now();
@@ -62,8 +69,12 @@ export const useCachedData = <T,>(
   const refreshData = () => fetchData(true);
 
   useEffect(() => {
-    fetchData();
-  }, [key]);
+    if (enabled) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [key, enabled]);
 
   return {
     data,
