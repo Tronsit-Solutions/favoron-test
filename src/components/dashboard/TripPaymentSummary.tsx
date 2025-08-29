@@ -108,7 +108,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     );
   }
 
-  const isAllPackagesDelivered = tripPayment.delivered_packages_count === tripPayment.total_packages_count;
+  const isAllPackagesDelivered = tripPayment.all_packages_delivered || (tripPayment.delivered_packages_count === tripPayment.total_packages_count);
   const hasAccumulatedAmount = tripPayment.accumulated_amount > 0;
 
   return (

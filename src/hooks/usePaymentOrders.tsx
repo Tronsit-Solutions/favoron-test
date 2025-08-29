@@ -63,45 +63,66 @@ export const usePaymentOrders = () => {
 
   const createPaymentOrder = async (orderData: PaymentOrderInsert) => {
     try {
-      const { data, error } = await supabase
-        .from('payment_orders')
-        .insert(orderData)
-        .select()
-        .single();
+      // Usar RPC en lugar de inserción directa
+      const { data: paymentOrderId, error } = await supabase
+        .rpc('create_payment_order_with_snapshot', {
+          _traveler_id: orderData.traveler_id,
+          _trip_id: orderData.trip_id,
+          _amount: orderData.amount,
+          _bank_name: orderData.bank_name,
+          _bank_account_holder: orderData.bank_account_holder,
+          _bank_account_number: orderData.bank_account_number,
+          _bank_account_type: orderData.bank_account_type
+        });
 
       if (error) throw error;
       
-      setPaymentOrders(prev => [data, ...prev]);
-      
-      // Crear notificación para el admin
-      const { data: adminData } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'admin')
-        .limit(1)
+      // Fetch the created order
+      const { data: createdOrder, error: fetchError } = await supabase
+        .from('payment_orders')
+        .select(`
+          *,
+          trips (
+            id,
+            from_city,
+            to_city,
+            departure_date,
+            arrival_date,
+            user_id,
+            packages:packages!matched_trip_id (
+              id,
+              item_description,
+              estimated_price,
+              status,
+              quote
+            )
+          ),
+          profiles!traveler_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            username,
+            bank_account_holder,
+            bank_name,
+            bank_account_type,
+            bank_account_number,
+            bank_swift_code
+          )
+        `)
+        .eq('id', paymentOrderId)
         .single();
 
-      if (adminData?.user_id) {
-        await supabase.rpc('create_notification', {
-          _user_id: adminData.user_id,
-          _title: 'Nueva orden de pago',
-          _message: `El viajero ${orderData.bank_account_holder} ha confirmado la entrega de paquetes`,
-          _type: 'payment_order',
-          _priority: 'high',
-          _metadata: {
-            payment_order_id: data.id,
-            traveler_id: orderData.traveler_id,
-            amount: orderData.amount
-          }
-        });
-      }
+      if (fetchError) throw fetchError;
+      
+      setPaymentOrders(prev => [createdOrder, ...prev]);
       
       toast({
         title: "¡Éxito!",
         description: "Orden de pago creada correctamente",
       });
       
-      return data;
+      return createdOrder;
     } catch (error: any) {
       console.error('Error creating payment order:', error);
       toast({

@@ -162,7 +162,8 @@ const AdminTravelerPaymentsTab = () => {
 
   const CompactOrderRow = ({ order }: { order: any }) => {
     const isExpanded = expandedRows.has(order.id);
-    const packages = (order as any).trips?.packages?.filter((pkg: any) => 
+    // Usar historical_packages por defecto, fallback a live packages
+    const packages = order.historical_packages || (order as any).trips?.packages?.filter((pkg: any) => 
       ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)
     ) || [];
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0);
@@ -258,12 +259,12 @@ const AdminTravelerPaymentsTab = () => {
                     Detalle de Compensaciones
                   </h4>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {packages.map((pkg: any) => (
-                      <div key={pkg.id} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                    {packages.map((pkg: any, index: number) => (
+                      <div key={pkg.package_id || pkg.id || index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
                         <div className="flex-1">
                           <div className="text-sm font-medium">{pkg.item_description}</div>
                           <div className="text-xs text-muted-foreground">
-                            {pkg.id.slice(0, 8)}... • {pkg.status.replace(/_/g, ' ')}
+                            {(pkg.package_id || pkg.id || '').toString().slice(0, 8)}... • {(pkg.status || '').replace(/_/g, ' ')}
                           </div>
                         </div>
                         <div className="text-sm font-semibold text-green-600">

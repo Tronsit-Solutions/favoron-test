@@ -9,6 +9,7 @@ export interface TripPaymentAccumulator {
   accumulated_amount: number;
   delivered_packages_count: number;
   total_packages_count: number;
+  all_packages_delivered: boolean;
   payment_order_created: boolean;
   payment_status?: string; // Agregar campo opcional para el status del pago
   created_at: string;
@@ -94,7 +95,7 @@ export const useTripPayments = (tripId?: string) => {
 
       if (profileError) throw profileError;
 
-      // Use the new function that captures package snapshots
+      // Usar RPC que captura snapshots y maneja notificaciones automáticamente
       const { data: paymentOrderId, error: paymentError } = await supabase
         .rpc('create_payment_order_with_snapshot', {
           _traveler_id: user.id,
@@ -108,32 +109,7 @@ export const useTripPayments = (tripId?: string) => {
 
       if (paymentError) throw paymentError;
 
-      // Marcar como orden creada
-      const { error: updateError } = await supabase
-        .from('trip_payment_accumulator')
-        .update({ payment_order_created: true })
-        .eq('id', tripPayment.id);
-
-      if (updateError) throw updateError;
-
-      // Crear notificación para el admin - buscar admin real
-      const { data: adminData } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'admin')
-        .limit(1)
-        .single();
-
-      if (adminData?.user_id) {
-        await supabase.from('notifications').insert({
-          user_id: adminData.user_id,
-          title: 'Nueva orden de pago pendiente',
-          message: `Viajero solicita pago por viaje - Monto: Q${tripPayment.accumulated_amount}`,
-          type: 'payment_request',
-          priority: 'high'
-        });
-      }
-
+      // Actualizar estado local
       setTripPayment(prev => prev ? { ...prev, payment_order_created: true } : null);
 
       toast({
