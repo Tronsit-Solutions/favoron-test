@@ -10,11 +10,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Combobox } from "@/components/ui/combobox";
 import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
+import { COUNTRIES } from "@/lib/countries";
 interface TripFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -244,19 +246,14 @@ const TripForm = ({
 
             <div className="space-y-2">
               <Label htmlFor="fromCountry">País de origen *</Label>
-              <Select value={formData.fromCountry} onValueChange={value => handleInputChange('fromCountry', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el país de origen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map(country => <SelectItem key={country} value={country}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{country}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Combobox
+                options={COUNTRIES}
+                value={formData.fromCountry}
+                onValueChange={value => handleInputChange('fromCountry', value)}
+                placeholder="Selecciona el país de origen"
+                searchPlaceholder="Buscar país..."
+                emptyMessage="No se encontraron países"
+              />
             </div>
 
             <div className="space-y-2">
