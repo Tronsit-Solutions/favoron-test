@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -245,27 +244,19 @@ const AdminMatchDialog = ({
                     <Badge variant="outline" className="border-gray-300 text-xs">
                       🎯 {selectedPackage.package_destination || 'Guatemala'}
                     </Badge>
+                    {selectedPackage.delivery_deadline && (
+                      <Badge variant="outline" className="border-red-300 text-red-700 text-xs">
+                        ⏰ Límite: {new Date(selectedPackage.delivery_deadline).toLocaleDateString('es-GT', { 
+                          day: 'numeric', 
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Additional Package Information */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    {/* Delivery Deadline */}
-                    {selectedPackage.delivery_deadline && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <div>
-                          <span className="text-xs text-blue-700 font-medium">LÍMITE ENTREGA:</span>
-                          <span className="text-xs text-blue-900 ml-1">
-                            {new Date(selectedPackage.delivery_deadline).toLocaleDateString('es-GT', { 
-                              day: 'numeric', 
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
                     {/* Additional Notes */}
                     {selectedPackage.additional_notes && (
                       <div className="flex items-center gap-2">
