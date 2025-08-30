@@ -11,7 +11,7 @@ const PlatformDescriptionSection = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            ¿Qué es <span className="bg-gradient-to-r from-traveler to-shopper bg-clip-text text-transparent">Favoron</span>?
+            ¿Qué es <span className="bg-gradient-to-r from-traveler to-shopper bg-clip-text text-transparent">Favorón</span>?
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-traveler to-shopper mx-auto rounded-full"></div>
         </div>
