@@ -466,7 +466,7 @@ const AdminMatchDialog = ({
                                    <div className="flex items-center space-x-2 min-w-fit">
                                      <DollarSign className="h-4 w-4 text-green-600" />
                                      <div>
-                                       <p className="text-xs text-green-600 font-medium">VALOR TOTAL</p>
+                                       <p className="text-xs text-green-600 font-medium">Maleta</p>
                                        <p className="text-sm font-medium text-green-700">
                                          ${total.toFixed(2)}
                                        </p>
