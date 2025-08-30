@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -342,6 +343,9 @@ const AdminMatchDialog = ({
                             >
                               Ver producto
                             </a>
+                            <p className="text-xs text-blue-700 mt-1">
+                              Cantidad: {getTotalQuantity()} unidad{getTotalQuantity() !== 1 ? 'es' : ''}
+                            </p>
                           </div>
                         </div>
                       )}
