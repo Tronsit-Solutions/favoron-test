@@ -43,7 +43,7 @@ export const TripCard = ({
                 {packagesTotal !== undefined && packagesTotal > 0 && (
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                      💰 Total: {formatPrice(packagesTotal)}
+                      💰 Total: ${packagesTotal.toFixed(2)}
                     </Badge>
                   </div>
                 )}
