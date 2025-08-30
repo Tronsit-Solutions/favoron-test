@@ -1,13 +1,17 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Eye, CalendarDays, Plane } from "lucide-react";
+import { formatPrice } from "@/lib/formatters";
 interface TripCardProps {
   trip: any;
+  packagesTotal?: number;
   onViewTripDetail: (trip: any) => void;
 }
 export const TripCard = ({
   trip,
+  packagesTotal,
   onViewTripDetail
 }: TripCardProps) => {
   console.log("TripCard trip data:", trip);
@@ -26,7 +30,7 @@ export const TripCard = ({
                     {trip.from_city} → {trip.to_city}
                   </h4>
                 </div>
-                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-2">
                   <span>👤 Viajero: {
                     trip.profiles 
                       ? `${trip.profiles.first_name || ''} ${trip.profiles.last_name || ''}`.trim() || trip.profiles.username || trip.profiles.email || 'Sin perfil'
@@ -34,6 +38,15 @@ export const TripCard = ({
                   }</span>
                   <span>📋 Estado: {trip.status}</span>
                 </div>
+                
+                {/* Packages total badge */}
+                {packagesTotal !== undefined && packagesTotal > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                      💰 Total: {formatPrice(packagesTotal)}
+                    </Badge>
+                  </div>
+                )}
               </div>
             </div>
 

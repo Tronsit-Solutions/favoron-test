@@ -220,6 +220,7 @@ const AdminMatchingTab = ({
         <TabsContent value="trips" className="mt-6">
           <AvailableTripsTab
             trips={trips}
+            packages={packages}
             onViewTripDetail={onViewTripDetail}
           />
         </TabsContent>

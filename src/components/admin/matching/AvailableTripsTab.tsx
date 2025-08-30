@@ -6,12 +6,38 @@ import { EmptyTripsState } from "./EmptyTripsState";
 
 interface AvailableTripsTabProps {
   trips: any[];
+  packages: any[];
   onViewTripDetail: (trip: any) => void;
 }
 
-const AvailableTripsTab = ({ trips, onViewTripDetail }: AvailableTripsTabProps) => {
+const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTripsTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [originFilter, setOriginFilter] = useState("all");
+
+  // Function to calculate total value of packages for a specific trip
+  const calculateTripPackagesTotal = (tripId: string) => {
+    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'in_transit', 'delivered_to_office', 'completed'];
+    
+    const tripPackages = packages.filter(pkg => 
+      pkg.matched_trip_id === tripId && 
+      validStatuses.includes(pkg.status)
+    );
+
+    return tripPackages.reduce((total, pkg) => {
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        // Sum all products: quantity * estimatedPrice
+        const productsTotal = pkg.products_data.reduce((productSum, product) => {
+          const price = parseFloat(product.estimatedPrice || '0');
+          const quantity = parseInt(product.quantity || '1');
+          return productSum + (price * quantity);
+        }, 0);
+        return total + productsTotal;
+      } else {
+        // Fallback to estimated_price
+        return total + parseFloat(pkg.estimated_price || '0');
+      }
+    }, 0);
+  };
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
@@ -68,6 +94,7 @@ const AvailableTripsTab = ({ trips, onViewTripDetail }: AvailableTripsTabProps) 
             <TripCard
               key={trip.id}
               trip={trip}
+              packagesTotal={calculateTripPackagesTotal(trip.id)}
               onViewTripDetail={onViewTripDetail}
             />
           ))
