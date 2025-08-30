@@ -314,13 +314,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               {products.length < 5 && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="shopper"
                   size="sm"
                   onClick={addProduct}
-                  className="flex items-center space-x-1"
+                  className="flex items-center space-x-1 font-semibold shadow-sm"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Agregar producto</span>
+                  <span>+ Agregar otro producto</span>
                 </Button>
               )}
             </div>
