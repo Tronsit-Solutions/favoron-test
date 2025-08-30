@@ -7,10 +7,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.test-notification]
-verify_jwt = false
+verify_jwt = true
 
 [functions.test-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.log-client-error]
 verify_jwt = false

@@ -160,11 +160,18 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
 
   const downloadFile = async (filePath: string, fileName: string) => {
     try {
+      // If we received a full URL, open it directly (backwards compatible)
+      if (/^https?:\/\//i.test(filePath)) {
+        window.open(filePath, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // Otherwise, treat as a storage path and create a signed URL
       const { data, error } = await supabase.storage
         .from('package-chat-files')
         .createSignedUrl(filePath, 3600); // 1 hour expiry
 
-      if (error) {
+      if (error || !data?.signedUrl) {
         console.error('Error creating signed URL:', error);
         toast({
           title: "Error",
@@ -174,13 +181,8 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return;
       }
 
-      // Create a temporary link to download the file
-      const link = document.createElement('a');
-      link.href = data.signedUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Open the signed URL in a new tab safely
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error downloading file:', error);
     }

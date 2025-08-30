@@ -24,7 +24,7 @@ export const FileAttachment = ({ fileUrl, fileName, fileType, onDownload }: File
           alt={fileName || 'Imagen'} 
           className="w-full max-h-48 rounded-lg object-cover border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
           loading="lazy"
-          onClick={() => window.open(fileUrl, '_blank')}
+          onClick={() => window.open(fileUrl, '_blank', 'noopener,noreferrer')}
         />
         {/* Overlay with download button */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
