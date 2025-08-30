@@ -47,7 +47,6 @@ const TripForm = ({
     key: 'trip-form-data',
     initialState: {
       fromCity: '',
-      fromCityOther: '',
       fromCountry: '',
       toCity: '',
       toCityOther: '',
@@ -93,7 +92,7 @@ const TripForm = ({
   useEffect(() => {
     setPersistedMessengerData(messengerData);
   }, [messengerData, setPersistedMessengerData]);
-  const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
+  
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
   const accommodationTypes = [{
@@ -108,7 +107,7 @@ const TripForm = ({
   }];
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
+    const finalFromCity = formData.fromCity;
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
     if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.recipientName || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
       alert('Por favor completa todos los campos obligatorios');
@@ -138,7 +137,6 @@ const TripForm = ({
     // Reset form and clear persisted data on success
     const initialFormData = {
       fromCity: '',
-      fromCityOther: '',
       fromCountry: '',
       toCity: '',
       toCityOther: '',
@@ -212,9 +210,6 @@ const TripForm = ({
 
   // Helper function to get the current origin city for display
   const getDisplayFromCity = () => {
-    if (formData.fromCity === 'Otra ciudad') {
-      return formData.fromCityOther || 'destino';
-    }
     if (formData.fromCity) {
       // Clean up city text by removing state/country abbreviations
       return formData.fromCity.split(',')[0];
@@ -266,20 +261,14 @@ const TripForm = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="fromCity">Ciudad de origen *</Label>
-                  <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona la ciudad de origen" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {popularCities.map(city => <SelectItem key={city} value={city}>
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{city}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
+                  <Input 
+                    id="fromCity"
+                    type="text" 
+                    placeholder="Escribe tu ciudad de origen" 
+                    value={formData.fromCity} 
+                    onChange={e => handleInputChange('fromCity', e.target.value)} 
+                    required 
+                  />
                 </div>
               </div>
             </div>
@@ -524,7 +513,7 @@ const TripForm = ({
               <div className="text-sm text-traveler">
                 <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• Los compradores enviarán paquetes a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity || 'tu ciudad de origen'}</li>
+                  <li>• Los compradores enviarán paquetes a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
                   <li>• Podrás cotizar el precio por traer cada paquete</li>
                   <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
                   <li>• Nosotros coordinamos la entrega final al comprador</li>
