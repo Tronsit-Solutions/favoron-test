@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,29 +218,69 @@ const AdminMatchDialog = ({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Expandable Package Summary */}
+          {/* Package Summary */}
           {selectedPackage && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
-                   <span className="font-medium text-gray-900 text-sm">
-                     {selectedPackage.item_description}
-                   </span>
-                   <div className="flex flex-wrap gap-2">
-                     <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                       ${selectedPackage.estimated_price}
-                     </Badge>
-                     <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
-                       Cantidad: {getTotalQuantity()}
-                     </Badge>
-                     <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
-                       📍 {selectedPackage.purchase_origin || 'No especificado'}
-                     </Badge>
-                     <Badge variant="outline" className="border-gray-300 text-xs">
-                       🎯 {selectedPackage.package_destination || 'Guatemala'}
-                     </Badge>
-                    </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-2 sm:mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                <div className="flex flex-col gap-3 flex-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
+                    <span className="font-medium text-gray-900 text-sm">
+                      {selectedPackage.item_description}
+                    </span>
+                  </div>
+                  
+                  {/* Package Details Row */}
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                      ${selectedPackage.estimated_price}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                      Cantidad: {getTotalQuantity()}
+                    </Badge>
+                    <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
+                      📍 {selectedPackage.purchase_origin || 'No especificado'}
+                    </Badge>
+                    <Badge variant="outline" className="border-gray-300 text-xs">
+                      🎯 {selectedPackage.package_destination || 'Guatemala'}
+                    </Badge>
+                  </div>
+
+                  {/* Additional Package Information */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    {/* Delivery Deadline */}
+                    {selectedPackage.delivery_deadline && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <span className="text-xs text-blue-700 font-medium">LÍMITE ENTREGA:</span>
+                          <span className="text-xs text-blue-900 ml-1">
+                            {new Date(selectedPackage.delivery_deadline).toLocaleDateString('es-GT', { 
+                              day: 'numeric', 
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Additional Notes */}
+                    {selectedPackage.additional_notes && (
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <span className="text-xs text-blue-700 font-medium">COMENTARIOS:</span>
+                          <span className="text-xs text-blue-900 ml-1">
+                            {selectedPackage.additional_notes.length > 30 
+                              ? selectedPackage.additional_notes.substring(0, 30) + '...'
+                              : selectedPackage.additional_notes
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                  
                 {/* Expand Button */}
