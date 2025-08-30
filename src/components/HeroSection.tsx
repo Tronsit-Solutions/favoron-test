@@ -68,7 +68,7 @@ const HeroSection = ({
                         Bienvenido de vuelta {userName},
                       </span>
                       <br />
-                      <span className="text-gray-900">que chilero tenerte aquí!</span>
+                      <span className="text-gray-900">¡qué chilero tenerte aquí!</span>
                     </>
                   )}
                 </>
