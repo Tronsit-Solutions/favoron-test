@@ -31,6 +31,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
   );
   
+  // Verificar si hay al menos 1 paquete entregado
+  const hasDeliveredPackages = packages.some(pkg => 
+    ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
+  );
+  
   const canConfirmDelivery = trip.status === 'active' && allPackagesCompleted;
 
   const handleEditSubmit = (editedData: any) => {
@@ -72,50 +77,52 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-            </span>
-            
-            <div className="flex gap-2">
-              {/* Edit button for early stage trips */}
-              {canEdit && onEditTrip && (
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowEditModal(true)}
-                  className="h-6 px-2"
-                >
-                  <Edit className="h-3 w-3 mr-1" />
-                  <span className="text-xs">Editar</span>
-                </Button>
-              )}
+      {hasDeliveredPackages && (
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+              </span>
               
-              {/* Delivery confirmation button */}
-              {canConfirmDelivery && travelerProfile && (
-                <Button 
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowDeliveryModal(true)}
-                  className="h-6 px-2 bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  <span className="text-xs">Confirmar entrega</span>
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {/* Edit button for early stage trips */}
+                {canEdit && onEditTrip && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowEditModal(true)}
+                    className="h-6 px-2"
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Editar</span>
+                  </Button>
+                )}
+                
+                {/* Delivery confirmation button */}
+                {canConfirmDelivery && travelerProfile && (
+                  <Button 
+                    size="sm"
+                    variant="default"
+                    onClick={() => setShowDeliveryModal(true)}
+                    className="h-6 px-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Confirmar entrega</span>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
-          {currentUser?.id === trip.user_id && (
-            <div className="mt-4">
-              <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
-            </div>
-          )}
-        </div>
-      </CardContent>
+            {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
+            {currentUser?.id === trip.user_id && (
+              <div className="mt-4">
+                <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      )}
     </Card>
 
     {/* Edit Modal */}
