@@ -463,9 +463,8 @@ const AdminMatchDialog = ({
                                {(() => {
                                  const total = calculateTripPackagesTotal(trip.id);
                                  return total > 0 ? (
-                                   <div className="flex items-center space-x-2 min-w-fit">
-                                     <DollarSign className="h-4 w-4 text-green-600" />
-                                     <div>
+                                    <div className="flex items-center space-x-2 min-w-fit">
+                                      <div>
                                        <p className="text-xs text-green-600 font-medium">Maleta</p>
                                        <p className="text-sm font-medium text-green-700">
                                          ${total.toFixed(2)}
