@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
@@ -236,7 +236,7 @@ const TripForm = ({
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 🟦 1. Información básica del viaje */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
               <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
                 <span className="text-xs text-primary-foreground font-bold">1</span>
@@ -244,52 +244,70 @@ const TripForm = ({
               <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fromCountry">País de origen *</Label>
-              <Combobox
-                options={COUNTRIES}
-                value={formData.fromCountry}
-                onValueChange={value => handleInputChange('fromCountry', value)}
-                placeholder="Selecciona el país de origen"
-                searchPlaceholder="Buscar país..."
-                emptyMessage="No se encontraron países"
-              />
+            {/* Sección ORIGEN */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-primary">
+                <MapPin className="h-4 w-4" />
+                <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fromCountry">País de origen *</Label>
+                  <Combobox
+                    options={COUNTRIES}
+                    value={formData.fromCountry}
+                    onValueChange={value => handleInputChange('fromCountry', value)}
+                    placeholder="Selecciona el país de origen"
+                    searchPlaceholder="Buscar país..."
+                    emptyMessage="No se encontraron países"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fromCity">Ciudad de origen *</Label>
+                  <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la ciudad de origen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {popularCities.map(city => <SelectItem key={city} value={city}>
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{city}</span>
+                          </div>
+                        </SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fromCity">Ciudad de origen *</Label>
-              <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona la ciudad de origen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {popularCities.map(city => <SelectItem key={city} value={city}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{city}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="toCity">Ciudad de destino *</Label>
-              <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona la ciudad de destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  {guatemalanCities.map(city => <SelectItem key={city} value={city}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{city}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+            {/* Sección DESTINO */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-primary">
+                <Target className="h-4 w-4" />
+                <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO</h4>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="toCity">Ciudad de destino *</Label>
+                <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona la ciudad de destino" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {guatemalanCities.map(city => <SelectItem key={city} value={city}>
+                        <div className="flex items-center space-x-2">
+                          <Target className="h-4 w-4" />
+                          <span>{city}</span>
+                        </div>
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+              </div>
             </div>
 
             <div className="space-y-2">
