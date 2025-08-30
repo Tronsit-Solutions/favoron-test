@@ -475,15 +475,16 @@ const AdminDashboard = ({
 
       </Tabs>
 
-      <AdminMatchDialog 
-        showMatchDialog={showMatchDialog}
-        setShowMatchDialog={setShowMatchDialog}
-        selectedPackage={selectedPackage}
-        matchingTrip={matchingTrip}
-        setMatchingTrip={setMatchingTrip}
-        availableTrips={availableTrips}
-        onMatch={handleMatch}
-      />
+        <AdminMatchDialog
+          showMatchDialog={showMatchDialog}
+          setShowMatchDialog={setShowMatchDialog}
+          selectedPackage={selectedPackage}
+          matchingTrip={matchingTrip}
+          setMatchingTrip={setMatchingTrip}
+          availableTrips={availableTrips}
+          packages={localPackages}
+          onMatch={handleMatch}
+        />
 
       {/* Global Modals - using persistent modal system */}
       <AdminActionsModal

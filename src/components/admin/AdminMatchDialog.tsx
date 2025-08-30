@@ -18,6 +18,7 @@ interface AdminMatchDialogProps {
   matchingTrip: string;
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
+  packages: any[];
   onMatch: (adminTip?: number, productsWithTips?: any[]) => void;
 }
 
@@ -27,7 +28,8 @@ const AdminMatchDialog = ({
   selectedPackage, 
   matchingTrip, 
   setMatchingTrip, 
-  availableTrips, 
+  availableTrips,
+  packages, 
   onMatch 
 }: AdminMatchDialogProps) => {
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
@@ -40,6 +42,32 @@ const AdminMatchDialog = ({
   const [adminTip, setAdminTip] = useState<string>('');
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
+
+  // Function to calculate total value of packages for a specific trip
+  const calculateTripPackagesTotal = (tripId: string) => {
+    // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
+    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
+    
+    const tripPackages = packages.filter(pkg => 
+      pkg.matched_trip_id === tripId && 
+      validStatuses.includes(pkg.status)
+    );
+
+    return tripPackages.reduce((total, pkg) => {
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        // Sum all products: quantity * estimatedPrice
+        const productsTotal = pkg.products_data.reduce((productSum, product) => {
+          const price = parseFloat(product.estimatedPrice || '0');
+          const quantity = parseInt(product.quantity || '1');
+          return productSum + (price * quantity);
+        }, 0);
+        return total + productsTotal;
+      } else {
+        // Fallback to estimated_price
+        return total + parseFloat(pkg.estimated_price || '0');
+      }
+    }, 0);
+  };
 
   // Filter trips to exclude those with past arrival dates
   const today = new Date();
@@ -417,19 +445,35 @@ const AdminMatchDialog = ({
                                  </div>
                               </div>
 
-                              {/* Reception Window */}
-                              <div className="flex items-center space-x-2 min-w-fit">
-                                <Package className="h-4 w-4 text-gray-400" />
-                                <div>
-                                  <p className="text-xs text-gray-500 font-medium">VENTANA RECEPCIÓN</p>
-                                  <p className="text-sm font-medium text-gray-700">
-                                    {trip.first_day_packages && trip.last_day_packages ? 
-                                      `${new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}` 
-                                      : 'Por confirmar'
-                                    }
-                                  </p>
-                                </div>
-                              </div>
+                               {/* Reception Window */}
+                               <div className="flex items-center space-x-2 min-w-fit">
+                                 <Package className="h-4 w-4 text-gray-400" />
+                                 <div>
+                                   <p className="text-xs text-gray-500 font-medium">VENTANA RECEPCIÓN</p>
+                                   <p className="text-sm font-medium text-gray-700">
+                                     {trip.first_day_packages && trip.last_day_packages ? 
+                                       `${new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}` 
+                                       : 'Por confirmar'
+                                     }
+                                   </p>
+                                 </div>
+                               </div>
+
+                               {/* Total Value Container */}
+                               {(() => {
+                                 const total = calculateTripPackagesTotal(trip.id);
+                                 return total > 0 ? (
+                                   <div className="flex items-center space-x-2 min-w-fit">
+                                     <DollarSign className="h-4 w-4 text-green-600" />
+                                     <div>
+                                       <p className="text-xs text-green-600 font-medium">VALOR TOTAL</p>
+                                       <p className="text-sm font-medium text-green-700">
+                                         ${total.toFixed(2)}
+                                       </p>
+                                     </div>
+                                   </div>
+                                 ) : null;
+                               })()}
                             </div>
 
                             {/* Right side - Dates and Badges */}
