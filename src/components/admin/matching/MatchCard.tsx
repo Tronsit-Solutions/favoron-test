@@ -83,10 +83,10 @@ export const MatchCard = ({
   };
 
   const getTravelerName = () => {
-    if (matchedTrip?.profiles?.first_name || matchedTrip?.profiles?.last_name) {
-      return `${matchedTrip.profiles.first_name || ''} ${matchedTrip.profiles.last_name || ''}`.trim();
+    if (matchedTrip?.public_profiles?.first_name || matchedTrip?.public_profiles?.last_name) {
+      return `${matchedTrip.public_profiles.first_name || ''} ${matchedTrip.public_profiles.last_name || ''}`.trim();
     }
-    return matchedTrip?.profiles?.username || `Usuario ${matchedTrip?.user_id || 'N/A'}`;
+    return matchedTrip?.public_profiles?.username || `Usuario ${matchedTrip?.user_id || 'N/A'}`;
   };
 
   return (
