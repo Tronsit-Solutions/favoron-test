@@ -193,6 +193,17 @@ const AdminMatchDialog = ({
     }
   };
 
+  // Helper function to get total quantity
+  const getTotalQuantity = () => {
+    if (selectedPackage?.products_data && Array.isArray(selectedPackage.products_data)) {
+      return selectedPackage.products_data.reduce((total, product) => {
+        const quantity = parseInt(product.quantity || product.qty || '1');
+        return total + quantity;
+      }, 0);
+    }
+    return 1; // Default quantity for single product
+  };
+
   return (
     <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
       <DialogContent className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4">
@@ -219,6 +230,9 @@ const AdminMatchDialog = ({
                    <div className="flex flex-wrap gap-2">
                      <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
                        ${selectedPackage.estimated_price}
+                     </Badge>
+                     <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                       Cantidad: {getTotalQuantity()}
                      </Badge>
                      <Badge variant="outline" className="border-orange-300 text-orange-700 text-xs">
                        📍 {selectedPackage.purchase_origin || 'No especificado'}
