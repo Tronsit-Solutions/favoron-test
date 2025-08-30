@@ -118,12 +118,22 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
-      // Get public URL for the uploaded file
-      const { data: urlData } = supabase.storage
+      // Create signed URL for secure storage  
+      const { data: signedData, error: signError } = await supabase.storage
         .from('package-chat-files')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 86400); // 24 hour expiry for message files
 
-      // Create message record
+      if (signError || !signedData?.signedUrl) {
+        console.error('Error creating signed URL:', signError);
+        toast({
+          title: "Error",
+          description: "No se pudo procesar el archivo",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Create message record with signed URL
       const { error: messageError } = await supabase
         .from('package_messages')
         .insert({
@@ -131,7 +141,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
           user_id: user.id,
           message_type: 'file_upload',
           content: description || `Archivo subido: ${file.name}`,
-          file_url: urlData.publicUrl,
+          file_url: signedData.signedUrl,
           file_name: file.name,
           file_type: file.type,
         });

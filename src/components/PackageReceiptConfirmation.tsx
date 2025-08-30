@@ -98,12 +98,23 @@ const PackageReceiptConfirmation = ({
           return;
         }
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
+        // Create signed URL for secure access
+        const { data: signedData, error: signError } = await supabase.storage
           .from('traveler-confirmations')
-          .getPublicUrl(filePath);
+          .createSignedUrl(filePath, 3600); // 1 hour expiry
 
-        photoUrl = urlData.publicUrl;
+        if (signError || !signedData?.signedUrl) {
+          console.error('Error creating signed URL:', signError);
+          toast({
+            title: "Error al obtener URL",
+            description: "No se pudo procesar la imagen",
+            variant: "destructive",
+          });
+          setUploading(false);
+          return;
+        }
+
+        photoUrl = signedData.signedUrl;
       }
 
       // Call onConfirm with the photo URL

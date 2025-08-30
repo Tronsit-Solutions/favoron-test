@@ -9,6 +9,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Security function to validate origin
+const isValidOrigin = (req: Request): boolean => {
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
+  
+  // Allow calls from our Supabase domain or from database functions (no origin)
+  if (!origin && !referer) {
+    // Internal database function call
+    return true;
+  }
+  
+  // Allow our production and staging domains
+  const allowedOrigins = [
+    'https://dfhoduirmqbarjnspbdh.supabase.co',
+    'https://favoron.lovable.app',
+    'https://favoron.app',
+  ];
+  
+  return origin ? allowedOrigins.some(allowed => origin.includes(allowed)) : false;
+};
+
 // Create Supabase client for this function with service role key
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -107,6 +128,15 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate origin for security (except for internal DB calls)
+    if (!isValidOrigin(req)) {
+      console.log('❌ Invalid origin detected');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized origin' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { user_id, title, message, type, priority, action_url, metadata }: EmailNotificationRequest = await req.json();
 
     console.log('=== EMAIL NOTIFICATION REQUEST ===');

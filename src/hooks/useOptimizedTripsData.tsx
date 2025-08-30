@@ -30,7 +30,7 @@ export const useOptimizedTripsData = () => {
         .from('trips')
         .select(`
           *,
-          profiles (
+          public_profiles!trips_user_id_fkey (
             id,
             first_name,
             last_name,
