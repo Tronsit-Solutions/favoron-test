@@ -65,10 +65,10 @@ const HeroSection = ({
                   ) : (
                     <>
                       <span className="bg-gradient-to-r from-success via-primary to-shopper bg-clip-text text-transparent">
-                        Bienvenido de vuelta {userName},
+                        ¡Bienvenido de vuelta, {userName}!
                       </span>
                       <br />
-                      <span className="text-gray-900">¡qué chilero tenerte aquí!</span>
+                      <span className="text-gray-900">Qué chilero tenerte por aquí.</span>
                     </>
                   )}
                 </>
