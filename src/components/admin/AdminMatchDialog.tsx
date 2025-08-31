@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getStatusLabel } from "@/lib/formatters";
+import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 
@@ -753,6 +753,9 @@ const AdminMatchDialog = ({
                               <p className="font-medium text-sm">{pkg.item_description}</p>
                               <p className="text-xs text-muted-foreground">
                                 De: {pkg.purchase_origin} → Para: {pkg.package_destination}
+                              </p>
+                              <p className="text-xs text-blue-600 font-medium">
+                                Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
                               </p>
                             </div>
                             <div className="text-right">
