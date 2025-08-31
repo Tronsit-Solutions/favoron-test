@@ -38,7 +38,7 @@ const AdminOverviewTab = ({
                   <div className="flex-1">
                     <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimated_price} • Usuario: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
+                      Precio: ${pkg.estimated_price} • Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
                     </p>
                     <p className="text-xs text-blue-600 mt-1">
                       📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
@@ -99,7 +99,7 @@ const AdminOverviewTab = ({
                   <div className="flex-1">
                     <p className="font-medium">{pkg.item_description}</p>
                     <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimated_price} • Usuario: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
+                      Precio: ${pkg.estimated_price} • Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
