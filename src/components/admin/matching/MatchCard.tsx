@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MatchCardProps {
   pkg: any;
@@ -42,6 +43,7 @@ export const MatchCard = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived
 }: MatchCardProps) => {
+  const isMobile = useIsMobile();
   const statusInfo = getStatusInfo(pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
@@ -93,38 +95,81 @@ export const MatchCard = ({
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
         <CardContent className="p-4">
-          {/* Compact Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0 cursor-pointer" onClick={onToggle}>
-              <div className="flex items-center space-x-2 mb-1">
+          {/* Header */}
+          <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
+            <div className={`cursor-pointer ${isMobile ? "space-y-2" : "flex-1 min-w-0"}`} onClick={onToggle}>
+              <div className={`flex items-center ${isMobile ? "space-x-2" : "space-x-2 mb-1"}`}>
                 <div className="flex items-center">
                   {isExpanded ? 
                     <ChevronDown className="h-4 w-4" /> : 
                     <ChevronRight className="h-4 w-4" />
                   }
                 </div>
-                <h4 className="font-medium text-sm truncate">{pkg.item_description}</h4>
+                <h4 className={`font-medium truncate ${isMobile ? "text-base" : "text-sm"}`}>{pkg.item_description}</h4>
                 <MatchStatusBadge status={pkg.status} />
               </div>
               
-              <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                <span>
-                  🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name} 
+              {/* Mobile: Stack info vertically */}
+              {isMobile ? (
+                <div className="space-y-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <span>🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}</span>
+                  </div>
                   {matchedTrip && (
-                    <>
-                      {' '} 🤝 {getTravelerName()} ✈️
-                    </>
+                    <div className="flex items-center space-x-2">
+                      <span>🤝 {getTravelerName()} ✈️</span>
+                    </div>
                   )}
-                </span>
-                <span className="font-medium text-primary">${pkg.estimated_price}</span>
-                <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-primary text-base">${pkg.estimated_price}</span>
+                    <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                  <span>
+                    🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name} 
+                    {matchedTrip && (
+                      <>
+                        {' '} 🤝 {getTravelerName()} ✈️
+                      </>
+                    )}
+                  </span>
+                  <span className="font-medium text-primary">${pkg.estimated_price}</span>
+                  <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
+                </div>
+              )}
             </div>
             
-            {/* Quick Actions with micro timers */}
-            <div className="flex items-center space-x-1 ml-4">
-              {/* Micro timers next to buttons */}
-              {showQuoteTimer && (
+            {/* Timers in mobile - expanded view */}
+            {isMobile && (showQuoteTimer || showAssignmentTimer) && (
+              <div className="space-y-2">
+                {showQuoteTimer && (
+                  <div className="bg-orange-50 border border-orange-200 rounded p-2">
+                    <span className="text-sm text-orange-700 font-medium block mb-1">Tiempo para pago</span>
+                    <QuoteCountdown 
+                      expiresAt={pkg.quote_expires_at} 
+                      compact={false}
+                    />
+                  </div>
+                )}
+                
+                {showAssignmentTimer && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                    <span className="text-sm text-blue-700 font-medium block mb-1">Tiempo para aceptar</span>
+                    <QuoteCountdown 
+                      expiresAt={pkg.matched_assignment_expires_at} 
+                      compact={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Quick Actions */}
+            <div className={isMobile ? "space-y-2" : "flex items-center space-x-1 ml-4"}>
+              {/* Desktop: Micro timers next to buttons */}
+              {!isMobile && showQuoteTimer && (
                 <div className="flex flex-col items-end space-y-1">
                   <span className="text-xs text-orange-700 font-medium">Pago</span>
                   <QuoteCountdown 
@@ -134,7 +179,7 @@ export const MatchCard = ({
                 </div>
               )}
               
-              {showAssignmentTimer && (
+              {!isMobile && showAssignmentTimer && (
                 <div className="flex flex-col items-end space-y-1">
                   <span className="text-xs text-blue-700 font-medium">Aceptar</span>
                   <QuoteCountdown 
@@ -144,22 +189,62 @@ export const MatchCard = ({
                 </div>
               )}
 
-              <Button size="sm" variant="outline" onClick={onViewDetail} className="px-2">
-                <Eye className="h-3 w-3" />
-              </Button>
-              <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2">
-                <MessageCircle className="h-3 w-3" />
-              </Button>
-              
-              {showCompleteButton && (
-                <Button 
-                  size="sm" 
-                  onClick={onConfirmDeliveryComplete}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium"
-                  title="Confirmar entrega completada"
-                >
-                  COMPLETAR
-                </Button>
+              {/* Mobile: Large buttons in rows */}
+              {isMobile ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onViewDetail} 
+                      className="min-h-[44px] text-sm"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalles
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onOpenChat} 
+                      className="min-h-[44px] text-sm"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Chat
+                    </Button>
+                  </div>
+                  
+                  {showCompleteButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmDeliveryComplete}
+                      className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
+                      title="Confirmar entrega completada"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      COMPLETAR ENTREGA
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Button size="sm" variant="outline" onClick={onViewDetail} className="px-2">
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2">
+                    <MessageCircle className="h-3 w-3" />
+                  </Button>
+                  
+                  {showCompleteButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmDeliveryComplete}
+                      className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium"
+                      title="Confirmar entrega completada"
+                    >
+                      COMPLETAR
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -326,55 +411,127 @@ export const MatchCard = ({
             </div>
 
             {/* Additional Actions */}
-            <div className="flex space-x-2 pt-2 border-t">
-              <Button size="sm" variant="outline" onClick={onViewDetail} className="flex-1">
-                <Eye className="h-4 w-4 mr-1" />
-                Ver Detalles
-              </Button>
+            <div className={`pt-2 border-t ${isMobile ? "space-y-2" : "flex space-x-2"}`}>
+              {isMobile ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onViewDetail} 
+                      className="min-h-[44px] text-sm"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Ver Detalles
+                    </Button>
 
-              <Button size="sm" variant="outline" onClick={onOpenChat} className="flex-1">
-                <MessageCircle className="h-4 w-4 mr-1" />
-                Ver Chat
-              </Button>
-              
-              {showOfficeReceptionButton && (
-                <Button size="sm" onClick={onConfirmOfficeReception} className="flex-1">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Confirmar recepción
-                </Button>
-              )}
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={onOpenChat} 
+                      className="min-h-[44px] text-sm"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-1" />
+                      Ver Chat
+                    </Button>
+                  </div>
+                  
+                  {showOfficeReceptionButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmOfficeReception} 
+                      className="w-full min-h-[44px] text-sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Confirmar recepción
+                    </Button>
+                  )}
 
-              {showAdminOfficeConfirmButton && (
-                <Button 
-                  size="sm" 
-                  onClick={onAdminConfirmOfficeDelivery} 
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Confirmar recepción en oficina
-                </Button>
-              )}
+                  {showAdminOfficeConfirmButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onAdminConfirmOfficeDelivery} 
+                      className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Confirmar recepción en oficina
+                    </Button>
+                  )}
 
-              {showShopperReceivedButton && (
-                <Button 
-                  size="sm" 
-                  onClick={onConfirmShopperReceived} 
-                  className="flex-1 bg-green-700 hover:bg-green-800"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {getShopperReceivedButtonText()}
-                </Button>
-              )}
+                  {showShopperReceivedButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmShopperReceived} 
+                      className="w-full min-h-[44px] bg-green-700 hover:bg-green-800 text-sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {getShopperReceivedButtonText()}
+                    </Button>
+                  )}
 
-              {showCompleteButton && (
-                <Button 
-                  size="sm" 
-                  onClick={onConfirmDeliveryComplete}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  {getCompleteButtonText()}
-                </Button>
+                  {showCompleteButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmDeliveryComplete}
+                      className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {getCompleteButtonText()}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Button size="sm" variant="outline" onClick={onViewDetail} className="flex-1">
+                    <Eye className="h-4 w-4 mr-1" />
+                    Ver Detalles
+                  </Button>
+
+                  <Button size="sm" variant="outline" onClick={onOpenChat} className="flex-1">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    Ver Chat
+                  </Button>
+                  
+                  {showOfficeReceptionButton && (
+                    <Button size="sm" onClick={onConfirmOfficeReception} className="flex-1">
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Confirmar recepción
+                    </Button>
+                  )}
+
+                  {showAdminOfficeConfirmButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onAdminConfirmOfficeDelivery} 
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Confirmar recepción en oficina
+                    </Button>
+                  )}
+
+                  {showShopperReceivedButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmShopperReceived} 
+                      className="flex-1 bg-green-700 hover:bg-green-800"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {getShopperReceivedButtonText()}
+                    </Button>
+                  )}
+
+                  {showCompleteButton && (
+                    <Button 
+                      size="sm" 
+                      onClick={onConfirmDeliveryComplete}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {getCompleteButtonText()}
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </CollapsibleContent>
