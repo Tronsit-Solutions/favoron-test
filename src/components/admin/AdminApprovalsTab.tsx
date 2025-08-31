@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,6 +85,64 @@ const AdminApprovalsTab = ({
     }))
   });
 
+  // Helper function to get traveler display name
+  const getTravelerDisplayName = (trip: any) => {
+    console.log('🔍 Getting traveler name for trip:', trip.id, {
+      profiles: trip.profiles,
+      user_id: trip.user_id,
+      hasProfiles: !!trip.profiles
+    });
+    
+    if (trip.profiles) {
+      const fullName = formatFullName(trip.profiles.first_name, trip.profiles.last_name);
+      if (fullName && fullName !== 'Usuario') {
+        console.log('✅ Using full name:', fullName);
+        return fullName;
+      }
+      if (trip.profiles.username) {
+        console.log('✅ Using username:', trip.profiles.username);
+        return trip.profiles.username;
+      }
+      if (trip.profiles.email) {
+        console.log('✅ Using email:', trip.profiles.email);
+        return trip.profiles.email;
+      }
+    }
+    
+    const fallback = `Usuario ${trip.user_id.slice(0, 8)}...`;
+    console.log('⚠️ Using fallback:', fallback);
+    return fallback;
+  };
+
+  // Helper function to get shopper display name
+  const getShopperDisplayName = (pkg: any) => {
+    console.log('🔍 Getting shopper name for package:', pkg.id, {
+      profiles: pkg.profiles,
+      user_id: pkg.user_id,
+      hasProfiles: !!pkg.profiles
+    });
+    
+    if (pkg.profiles) {
+      const fullName = formatFullName(pkg.profiles.first_name, pkg.profiles.last_name);
+      if (fullName && fullName !== 'Usuario') {
+        console.log('✅ Using full name:', fullName);
+        return fullName;
+      }
+      if (pkg.profiles.username) {
+        console.log('✅ Using username:', pkg.profiles.username);
+        return pkg.profiles.username;
+      }
+      if (pkg.profiles.email) {
+        console.log('✅ Using email:', pkg.profiles.email);
+        return pkg.profiles.email;
+      }
+    }
+    
+    const fallback = `Usuario ${pkg.user_id.slice(0, 8)}...`;
+    console.log('⚠️ Using fallback:', fallback);
+    return fallback;
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -148,16 +207,14 @@ const AdminApprovalsTab = ({
                           <h4 className="font-medium text-sm sm:text-base break-words">
                             {pkg.item_description}
                           </h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                            Precio estimado: ${pkg.estimated_price || 0} • Usuario: {getShopperDisplayName(pkg)}
+                          </p>
+                          {pkg.profiles && (
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
-                                formatFullName((pkg as any).profiles.first_name, (pkg as any).profiles.last_name) || (pkg as any).profiles.username || `Usuario ${pkg.user_id.slice(0, 8)}...`
-                                : `Usuario ${pkg.user_id.slice(0, 8)}...`}
+                              Email: {pkg.profiles.email || 'Sin email'} • Tel: {pkg.profiles.phone_number || 'Sin teléfono'}
                             </p>
-                            {(pkg as any).profiles && (
-                              <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                                Email: {(pkg as any).profiles.email || 'Sin email'} • Tel: {(pkg as any).profiles.phone_number || 'Sin teléfono'}
-                              </p>
-                            )}
+                          )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
                            </p>
@@ -249,13 +306,11 @@ const AdminApprovalsTab = ({
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                            Viajero: {(trip as any).profiles ? 
-                              formatFullName((trip as any).profiles.first_name, (trip as any).profiles.last_name) || (trip as any).profiles.username || `Usuario ${trip.user_id.slice(0, 8)}...`
-                              : `Usuario ${trip.user_id.slice(0, 8)}...`}
+                            Viajero: {getTravelerDisplayName(trip)}
                           </p>
-                          {(trip as any).profiles && (
+                          {trip.profiles && (
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Email: {(trip as any).profiles.email || 'Sin email'} • Tel: {(trip as any).profiles.phone_number || 'Sin teléfono'}
+                              Email: {trip.profiles.email || 'Sin email'} • Tel: {trip.profiles.phone_number || 'Sin teléfono'}
                             </p>
                           )}
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
