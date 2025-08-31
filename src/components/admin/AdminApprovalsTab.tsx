@@ -311,6 +311,9 @@ const AdminApprovalsTab = ({
                             </p>
                           )}
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                            Viajero: {getTravelerDisplayName(trip)}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
