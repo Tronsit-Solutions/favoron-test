@@ -29,7 +29,7 @@ const AdminApprovalsTab = ({
   const pendingTrips = trips.filter(t => t.status === 'pending_approval');
 
   // Debug: Log the packages data with MORE detail
-  console.log('🔍 AdminApprovalsTab Debug - DETAILED:', {
+  console.log('🔍 AdminApprovalsTab Debug - PACKAGES:', {
     totalPackages: packages.length,
     pendingPackages: pendingPackages.length,
     allPackagesWithStatus: packages.map(p => ({ 
@@ -45,6 +45,42 @@ const AdminApprovalsTab = ({
       status: p.status,
       user_id: p.user_id,
       created_at: p.created_at 
+    }))
+  });
+
+  // Debug: Log the trips data with DETAILED structure
+  console.log('🔍 AdminApprovalsTab Debug - TRIPS:', {
+    totalTrips: trips.length,
+    pendingTrips: pendingTrips.length,
+    allTripsWithProfiles: trips.map(t => ({ 
+      id: t.id, 
+      from_city: t.from_city,
+      to_city: t.to_city,
+      status: t.status,
+      user_id: t.user_id,
+      profiles: t.profiles,
+      hasProfiles: !!(t as any).profiles,
+      profilesStructure: (t as any).profiles ? {
+        first_name: (t as any).profiles.first_name,
+        last_name: (t as any).profiles.last_name,
+        username: (t as any).profiles.username,
+        email: (t as any).profiles.email,
+        phone_number: (t as any).profiles.phone_number
+      } : null,
+      created_at: t.created_at 
+    })),
+    pendingTripDetails: pendingTrips.map(t => ({ 
+      id: t.id, 
+      from_city: t.from_city,
+      to_city: t.to_city,
+      status: t.status,
+      user_id: t.user_id,
+      profiles: t.profiles,
+      hasProfiles: !!(t as any).profiles,
+      profilesData: (t as any).profiles,
+      formatFullNameResult: (t as any).profiles ? 
+        formatFullName((t as any).profiles.first_name, (t as any).profiles.last_name) : 'NO_PROFILES',
+      created_at: t.created_at 
     }))
   });
 
