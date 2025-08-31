@@ -212,11 +212,16 @@ const AdminApprovalsTab = ({
                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                            Viajero: {(trip as any).profiles ? 
+                              formatFullName((trip as any).profiles.first_name, (trip as any).profiles.last_name) || (trip as any).profiles.username || `Usuario ${trip.user_id.slice(0, 8)}...`
+                              : `Usuario ${trip.user_id.slice(0, 8)}...`}
+                          </p>
+                          {(trip as any).profiles && (
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Viajero: {(trip as any).profiles ? 
-                                formatFullName((trip as any).profiles.first_name, (trip as any).profiles.last_name) || (trip as any).profiles.username || `Usuario ${trip.user_id.slice(0, 8)}...`
-                                : `Usuario ${trip.user_id.slice(0, 8)}...`}
+                              Email: {(trip as any).profiles.email || 'Sin email'} • Tel: {(trip as any).profiles.phone_number || 'Sin teléfono'}
                             </p>
+                          )}
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                           </p>
