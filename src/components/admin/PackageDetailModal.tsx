@@ -452,24 +452,48 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
 
               {/* Confirmed Delivery Address */}
               {pkg.confirmed_delivery_address && pkg.delivery_method === 'delivery' && (
-                <div className="border-t pt-3">
-                  <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
-                    <Home className="h-4 w-4" />
-                    <span>Dirección de Entrega Confirmada:</span>
-                  </h4>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1 text-sm">
-                    <div className="flex items-start space-x-2">
-                      <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium">{pkg.confirmed_delivery_address.streetAddress}</p>
-                        <p className="text-muted-foreground">{pkg.confirmed_delivery_address.cityArea}</p>
+                <div className="border-t pt-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
+                      <Home className="h-4 w-4 text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-base text-foreground">Dirección de Entrega Confirmada</h4>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex items-center justify-center w-6 h-6 bg-primary/15 rounded-full mt-0.5 flex-shrink-0">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                          <p className="font-semibold text-foreground text-sm leading-relaxed">
+                            {pkg.confirmed_delivery_address.streetAddress}
+                          </p>
+                          <p className="text-muted-foreground text-sm mt-1">
+                            {pkg.confirmed_delivery_address.cityArea}
+                          </p>
+                        </div>
+                        
                         {pkg.confirmed_delivery_address.hotelAirbnbName && (
-                          <p className="font-medium text-blue-700">📍 {pkg.confirmed_delivery_address.hotelAirbnbName}</p>
+                          <div className="bg-secondary/50 rounded-lg p-3 border border-secondary/20">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                              <p className="font-medium text-secondary-foreground text-sm">
+                                {pkg.confirmed_delivery_address.hotelAirbnbName}
+                              </p>
+                            </div>
+                          </div>
                         )}
-                        <p className="flex items-center mt-1">
-                          <span className="mr-1">📞</span>
-                          {pkg.confirmed_delivery_address.contactNumber}
-                        </p>
+                        
+                        <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-4 w-4 text-primary" />
+                            <p className="font-medium text-foreground text-sm">
+                              {pkg.confirmed_delivery_address.contactNumber}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
