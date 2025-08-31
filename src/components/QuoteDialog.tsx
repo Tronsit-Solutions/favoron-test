@@ -14,6 +14,7 @@ import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
+import { formatCurrency } from "@/lib/formatters";
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -324,20 +325,9 @@ const QuoteDialog = ({
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="text-sm text-green-700 space-y-1">
                   <div className="mt-2 pt-2 border-t border-green-300">
-                    {(() => {
-                  const baseTotal = parseFloat(existingQuote.totalPrice || 0);
-                  const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
-                  const finalTotal = baseTotal + deliveryFee;
-                  return <>
-                          {deliveryFee > 0 && <div className="text-xs space-y-1 mb-2">
-                              <p><strong>Cotización del viajero, fee Favorón y seguro:</strong> Q{baseTotal.toFixed(2)}</p>
-                              <p><strong>Envío a domicilio:</strong> Q{deliveryFee.toFixed(2)}</p>
-                            </div>}
-                          <p className="font-medium text-lg">
-                            <strong>Total a pagar:</strong> Q{finalTotal.toFixed(2)}
-                          </p>
-                        </>;
-                })()}
+                     <p className="font-medium text-lg">
+                       <strong>Total a pagar:</strong> {formatCurrency(parseFloat(existingQuote.totalPrice || '0'))}
+                     </p>
                     <p className="text-xs text-green-600 mt-1">
                       Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
                       {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
