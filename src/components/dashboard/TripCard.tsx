@@ -6,6 +6,8 @@ import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
 import { TripDetailModal } from "./TripDetailModal";
+import { TripDate } from "./TripDate";
+import { ReceptionWindow } from "./ReceptionWindow";
 
 interface TripCardProps {
   trip: any;
@@ -57,9 +59,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <CardTitle className="text-lg">{trip.from_city} → {trip.to_city}</CardTitle>
-            <CardDescription>
-              Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
-              Recepción: {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
+            <CardDescription className="flex items-center gap-2">
+              <TripDate arrivalDate={trip.arrival_date} />
+              <span>•</span>
+              <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
