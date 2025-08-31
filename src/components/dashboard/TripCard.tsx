@@ -1,5 +1,3 @@
-
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Phone, Edit, CheckCircle, MoreHorizontal } from "lucide-react";
@@ -60,8 +58,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           <div className="flex-1">
             <CardTitle className="text-lg">{trip.from_city} → {trip.to_city}</CardTitle>
             <CardDescription>
-              Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
-              Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
+              Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
+              Recepción: {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -158,4 +156,3 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 };
 
 export default TripCard;
-
