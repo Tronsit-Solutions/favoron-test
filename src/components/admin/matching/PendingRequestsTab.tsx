@@ -5,8 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Zap, Eye, CalendarDays, Trash2, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Zap, Eye, CalendarDays, Trash2 } from "lucide-react";
+
 import RejectionTooltip from "@/components/admin/RejectionTooltip";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { usePackageHistory } from "@/hooks/usePackageHistory";
@@ -151,122 +151,105 @@ const PendingRequestsTab = ({
       {/* Requests List */}
       <div className="space-y-3">
         {filteredPackages.length === 0 ? (
-          <Card>
-            <CardContent className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <div className="text-4xl mb-2">📭</div>
-                <p className="text-muted-foreground">
-                  {searchTerm || destinationFilter !== "all" || statusFilter !== "all" 
-                    ? "No se encontraron solicitudes con los filtros aplicados"
-                    : "No hay solicitudes pendientes de Match"
-                  }
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-center py-8 border rounded-lg">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📭</div>
+              <p className="text-muted-foreground">
+                {searchTerm || destinationFilter !== "all" || statusFilter !== "all" 
+                  ? "No se encontraron solicitudes con los filtros aplicados"
+                  : "No hay solicitudes pendientes de Match"
+                }
+              </p>
+            </div>
+          </div>
         ) : (
           filteredPackages.map(pkg => (
-            <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h4 className="font-medium text-sm truncate">{pkg.item_description || "Sin descripción"}</h4>
-                      {getStatusBadge(pkg.status, { 
-                        packageDestination: pkg.package_destination,
-                        rejectionReason: pkg.rejection_reason 
-                      })}
-                      <PackageHistoryIndicator package={pkg} />
-                    </div>
-                    <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-2">
-                      <span className="flex items-center space-x-1">
-                        <span>🛍️</span>
-                        <span>
-                          {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
-                            ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
-                            : (pkg as any)?.profiles?.username || 'Sin nombre'}
-                        </span>
-                      </span>
-                      <span>📍 {pkg.purchase_origin} → {pkg.package_destination}</span>
-                      {pkg.delivery_deadline && (
-                        <span className="flex items-center space-x-1 text-orange-600">
-                          <CalendarDays className="h-3 w-3" />
-                          <span>Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
-                        </span>
-                      )}
-                    </div>
-                    {pkg.rejection_reason && pkg.wants_requote && (
-                      <div className="mb-2">
-                        <RejectionTooltip
-                          adminAssignedTip={pkg.admin_assigned_tip}
-                          rejectionReason={pkg.rejection_reason}
-                          wantsRequote={pkg.wants_requote}
-                          additionalNotes={pkg.additional_notes}
-                        />
-                      </div>
-                    )}
+            <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4 hover:shadow-md transition-shadow">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium">{pkg.item_description || "Sin descripción"}</p>
+                  {getStatusBadge(pkg.status, { 
+                    packageDestination: pkg.package_destination,
+                    rejectionReason: pkg.rejection_reason 
+                  })}
+                  <PackageHistoryIndicator package={pkg} />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Precio: ${pkg.estimated_price || 'No cotizado'} • Usuario: {(pkg as any)?.profiles?.first_name && (pkg as any)?.profiles?.last_name 
+                    ? `${(pkg as any).profiles.first_name} ${(pkg as any).profiles.last_name}` 
+                    : (pkg as any)?.profiles?.username || 'Sin nombre'}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                  {pkg.delivery_deadline && (
+                    <span className="text-orange-600 ml-2">
+                      • Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                    </span>
+                  )}
+                </p>
+                {pkg.rejection_reason && pkg.wants_requote && (
+                  <div className="mt-2">
+                    <RejectionTooltip
+                      adminAssignedTip={pkg.admin_assigned_tip}
+                      rejectionReason={pkg.rejection_reason}
+                      wantsRequote={pkg.wants_requote}
+                      additionalNotes={pkg.additional_notes}
+                    />
                   </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
+                )}
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0 w-full sm:w-auto">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => onViewPackageDetail(pkg)}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  Ver Detalles
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => onViewPackageDetail(pkg)}
+                      className="text-red-600 hover:text-red-600"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Descartar
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
-                              onSelect={(e) => e.preventDefault()}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Descartar solicitud
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción no se puede deshacer. La solicitud será eliminada permanentemente 
-                                y no se podrá recuperar.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                className="bg-red-600 hover:bg-red-700"
-                                onClick={() => onDiscardPackage(pkg)}
-                              >
-                                Descartar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button 
-                      size="sm" 
-                      onClick={() => onOpenMatchDialog(pkg)}
-                      disabled={availableTripsCount === 0}
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      <Zap className="h-4 w-4 mr-1" />
-                      Match
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. La solicitud será eliminada permanentemente 
+                        y no se podrá recuperar.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={() => onDiscardPackage(pkg)}
+                      >
+                        Descartar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <Button 
+                  size="sm" 
+                  onClick={() => onOpenMatchDialog(pkg)}
+                  disabled={availableTripsCount === 0}
+                >
+                  <Zap className="h-4 w-4 mr-1" />
+                  Hacer Match
+                </Button>
+              </div>
+            </div>
           ))
         )}
       </div>
