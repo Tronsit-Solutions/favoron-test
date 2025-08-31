@@ -60,13 +60,11 @@ export const useAdminData = (): AdminData => {
         .from('packages')
         .select(`
           *,
-          profiles:user_id(
+          public_profiles:user_id(
             id,
             first_name,
             last_name,
             username,
-            email,
-            phone_number,
             avatar_url
           ),
           trips:matched_trip_id(
@@ -76,13 +74,11 @@ export const useAdminData = (): AdminData => {
             departure_date,
             arrival_date,
             delivery_date,
-            profiles:user_id(
+            public_profiles:user_id(
               id,
               first_name,
               last_name,
               username,
-              email,
-              phone_number,
               avatar_url
             )
           )
@@ -116,13 +112,11 @@ export const useAdminData = (): AdminData => {
         .from('trips')
         .select(`
           *,
-          profiles:user_id(
+          public_profiles:user_id(
             id,
             first_name,
             last_name,
             username,
-            email,
-            phone_number,
             avatar_url
           )
         `)

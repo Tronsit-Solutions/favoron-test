@@ -112,13 +112,13 @@ const AdminApprovalsTab = ({
                             {pkg.item_description}
                           </h4>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
-                                (pkg as any).profiles.username || `${(pkg as any).profiles.first_name || ''} ${(pkg as any).profiles.last_name || ''}`.trim() || (pkg as any).profiles.email || pkg.user_id
-                                : pkg.user_id}
+                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).public_profiles ? 
+                                (pkg as any).public_profiles.username || `${(pkg as any).public_profiles.first_name || ''} ${(pkg as any).public_profiles.last_name || ''}`.trim() || 'Usuario sin nombre'
+                                : 'Sin perfil'}
                             </p>
-                            {(pkg as any).profiles && (
+                            {(pkg as any).public_profiles && (
                               <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                                Email: {(pkg as any).profiles.email || 'Sin email'} • Tel: {(pkg as any).profiles.phone_number || 'Sin teléfono'}
+                                Email: {(pkg as any).public_profiles.email || 'Sin email'} • Tel: {(pkg as any).public_profiles.phone_number || 'Sin teléfono'}
                               </p>
                             )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
@@ -212,8 +212,8 @@ const AdminApprovalsTab = ({
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Viajero: {(trip as any).profiles ? 
-                                `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || 'Usuario sin nombre'
+                              Viajero: {(trip as any).public_profiles ? 
+                                `${(trip as any).public_profiles.first_name || ''} ${(trip as any).public_profiles.last_name || ''}`.trim() || (trip as any).public_profiles.username || 'Usuario sin nombre'
                                 : 'Sin perfil'}
                             </p>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
