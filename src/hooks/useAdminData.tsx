@@ -119,7 +119,9 @@ export const useAdminData = (): AdminData => {
             first_name,
             last_name,
             username,
-            avatar_url
+            avatar_url,
+            email,
+            phone_number
           )
         `)
         .order('departure_date', { ascending: true });
