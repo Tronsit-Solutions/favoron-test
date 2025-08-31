@@ -1,15 +1,33 @@
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useModalProtection } from "@/hooks/useModalProtection";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const DashboardPage = () => {
   const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { hasOpenModals } = useModalProtection();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Get current user info on mount
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    getCurrentUser();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = 'https://favoron.app';
+  };
 useEffect(() => {
   // Robust auth guard with modal and visibility protection
   const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
@@ -44,7 +62,7 @@ useEffect(() => {
       return;
     }
 
-    if (!cancelled) navigate('/auth', { state: { from: location } });
+    if (!cancelled) window.location.href = 'https://favoron.app';
   };
 
   const timer = setTimeout(checkAndMaybeRedirect, delay);
@@ -93,7 +111,36 @@ useEffect(() => {
     }
   };
   
-  return <Dashboard user={userData} />;
+  return (
+    <div className="min-h-screen bg-background">
+      {/* User info and sign out header */}
+      <div className="bg-card border-b px-6 py-4">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={currentUser?.user_metadata?.avatar_url || userData.avatar_url} />
+              <AvatarFallback>
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{currentUser?.email}</p>
+              <p className="text-sm text-muted-foreground">
+                {userData.firstName} {userData.lastName}
+              </p>
+            </div>
+          </div>
+          <Button onClick={handleSignOut} variant="outline" size="sm">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign out
+          </Button>
+        </div>
+      </div>
+      
+      {/* Dashboard content */}
+      <Dashboard user={userData} />
+    </div>
+  );
 };
 
 export default DashboardPage;

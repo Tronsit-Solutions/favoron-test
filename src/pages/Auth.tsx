@@ -120,15 +120,8 @@ const Auth = () => {
         return;
       }
       if (event === 'SIGNED_IN' && session && !isResettingPassword) {
-        const from = (location.state as any)?.from;
-        if (from?.pathname) {
-          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
-          console.log('SIGNED_IN: redirecting back to previous location:', target);
-          navigate(target, { replace: true });
-        } else {
-          console.log('SIGNED_IN: redirecting to /dashboard');
-          navigate('/dashboard', { replace: true });
-        }
+        // Always redirect to favoron.app dashboard after successful login
+        window.location.href = 'https://favoron.app/dashboard';
       }
     });
 
@@ -166,7 +159,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${getSafeOrigin()}/`,
+          emailRedirectTo: 'https://favoron.app/',
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -318,14 +311,8 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Navigate back to intended page if available
-        const from = (location.state as any)?.from;
-        if (from?.pathname) {
-          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
-          navigate(target, { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
+        // Always redirect to favoron.app dashboard after successful login
+        window.location.href = 'https://favoron.app/dashboard';
       }
     } catch (error: any) {
       // Log signin error
@@ -368,7 +355,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${getSafeOrigin()}/auth`,
+        redirectTo: 'https://favoron.app/auth',
       });
 
       if (error) throw error;
@@ -459,12 +446,10 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     try {
-      const redirectUrl = `${getSafeOrigin()}/dashboard`;
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl
+          redirectTo: 'https://favoron.app/dashboard'
         }
       });
 
@@ -489,7 +474,7 @@ const Auth = () => {
           provider: 'google',
           supabaseErrorCode: error.name || error.code,
           supabaseErrorMsg: error.message,
-          redirectUrl: getSafeOrigin()
+          redirectUrl: 'https://favoron.app'
         }
       );
 
