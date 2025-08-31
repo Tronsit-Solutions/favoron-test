@@ -490,7 +490,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     <DollarSign className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
-                      <p className="text-lg font-bold text-primary">Q{pkg.quote.totalPrice || 0}</p>
+                      <p className="text-lg font-bold text-primary">Q{parseFloat(pkg.quote.totalPrice || '0').toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
