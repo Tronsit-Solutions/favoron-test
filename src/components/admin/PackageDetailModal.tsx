@@ -451,7 +451,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
               </div>
 
               {/* Confirmed Delivery Address */}
-              {pkg.confirmed_delivery_address && pkg.delivery_method === 'home_delivery' && (
+              {pkg.confirmed_delivery_address && pkg.delivery_method === 'delivery' && (
                 <div className="border-t pt-3">
                   <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
                     <Home className="h-4 w-4" />
