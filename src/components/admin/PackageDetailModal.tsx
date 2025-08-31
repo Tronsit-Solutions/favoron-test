@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -449,6 +449,32 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   </div>
                 </div>
               </div>
+
+              {/* Confirmed Delivery Address */}
+              {pkg.confirmed_delivery_address && pkg.delivery_method === 'home_delivery' && (
+                <div className="border-t pt-3">
+                  <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
+                    <Home className="h-4 w-4" />
+                    <span>Dirección de Entrega Confirmada:</span>
+                  </h4>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1 text-sm">
+                    <div className="flex items-start space-x-2">
+                      <MapPin className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{pkg.confirmed_delivery_address.streetAddress}</p>
+                        <p className="text-muted-foreground">{pkg.confirmed_delivery_address.cityArea}</p>
+                        {pkg.confirmed_delivery_address.hotelAirbnbName && (
+                          <p className="font-medium text-blue-700">📍 {pkg.confirmed_delivery_address.hotelAirbnbName}</p>
+                        )}
+                        <p className="flex items-center mt-1">
+                          <span className="mr-1">📞</span>
+                          {pkg.confirmed_delivery_address.contactNumber}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="text-xs text-muted-foreground">
                 Solicitud creada el {formatSafeDateTime(pkg.created_at)}
