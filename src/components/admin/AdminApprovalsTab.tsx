@@ -109,8 +109,9 @@ const AdminApprovalsTab = ({
       }
     }
     
-    console.log('⚠️ No profile data available, showing generic label');
-    return 'Viajero sin perfil';
+    const fallback = `Usuario ${String(trip.user_id || '').slice(0, 8)}...`;
+    console.log('⚠️ No profile data available, using fallback:', fallback);
+    return fallback;
   };
 
   // Helper function to get shopper display name

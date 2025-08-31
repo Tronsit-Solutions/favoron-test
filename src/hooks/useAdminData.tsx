@@ -131,8 +131,39 @@ export const useAdminData = (): AdminData => {
         throw error;
       }
 
-      console.log('✅ Admin: Fetched trips:', data?.length || 0);
-      return data || [];
+      let tripsResult: any[] = data || [];
+      console.log('✅ Admin: Fetched trips:', tripsResult.length);
+
+      // If embedded profiles are missing (likely no FK), fetch profiles in bulk and merge
+      const missingProfileUserIds = Array.from(
+        new Set(
+          tripsResult
+            .filter((t) => !t?.profiles)
+            .map((t) => t.user_id)
+            .filter(Boolean)
+        )
+      );
+
+      if (missingProfileUserIds.length > 0) {
+        console.log('ℹ️ Admin: Fetching missing traveler profiles for trips:', missingProfileUserIds.length);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, avatar_url, email, phone_number')
+          .in('id', missingProfileUserIds);
+        
+        if (profilesError) {
+          console.warn('⚠️ Admin: Could not fetch traveler profiles:', profilesError);
+        } else if (profilesData) {
+          const profilesMap = new Map(profilesData.map((p: any) => [p.id, p]));
+          tripsResult = tripsResult.map((t) => ({
+            ...t,
+            profiles: t.profiles ?? profilesMap.get(t.user_id) ?? null,
+          }));
+          console.log('✅ Admin: Merged traveler profiles into trips');
+        }
+      }
+
+      return tripsResult;
     } catch (error: any) {
       console.error('❌ Admin: Trip fetch failed:', error);
       setError(`Error cargando viajes: ${error.message}`);
