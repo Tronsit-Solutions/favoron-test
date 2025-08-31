@@ -107,6 +107,8 @@ export const useDashboardActions = (
 
   const handleTripSubmit = async (tripData: any) => {
     try {
+      console.log('🚀 Starting trip submission with data:', tripData);
+      
       if (!createTrip) {
         console.error('createTrip function not available');
         return;
@@ -114,6 +116,12 @@ export const useDashboardActions = (
 
       // Validate required date fields
       if (!tripData.arrivalDate || !tripData.firstDayPackages || !tripData.lastDayPackages || !tripData.deliveryDate) {
+        console.error('❌ Missing required dates:', {
+          arrivalDate: tripData.arrivalDate,
+          firstDayPackages: tripData.firstDayPackages,
+          lastDayPackages: tripData.lastDayPackages,
+          deliveryDate: tripData.deliveryDate
+        });
         throw new Error('Faltan fechas requeridas para el viaje');
       }
 
@@ -134,6 +142,8 @@ export const useDashboardActions = (
         status: 'pending_approval'
       };
 
+      console.log('📊 Transformed data for database:', dbTripData);
+
       await createTrip(dbTripData);
       setShowTripForm(false);
       toast({
@@ -141,7 +151,7 @@ export const useDashboardActions = (
         description: "Tu viaje ha sido registrado exitosamente. Está en revisión.",
       });
     } catch (error) {
-      console.error('Error creating trip:', error);
+      console.error('❌ Error creating trip:', error);
       toast({
         title: "Error",
         description: "No se pudo registrar el viaje. Inténtalo de nuevo.",
