@@ -118,7 +118,8 @@ const QuoteDialog = ({
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
-      const totalWithFee = basePrice * 1.4;
+      const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
+      const totalWithFee = basePrice * 1.4 + deliveryFee;
       onSubmit({
         price: basePrice,
         serviceFee: 0,
@@ -128,8 +129,9 @@ const QuoteDialog = ({
       });
     } else {
       const basePrice = parseFloat(price);
-      // Add 40% Favorón fee automatically
-      const totalWithFee = basePrice * 1.4;
+      // Add 40% Favorón fee automatically + Q25 delivery if applicable
+      const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
+      const totalWithFee = basePrice * 1.4 + deliveryFee;
       onSubmit({
         price: basePrice,
         serviceFee: 0,
