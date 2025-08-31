@@ -4,18 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, CalendarDays, Plane } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
+
 interface TripCardProps {
   trip: any;
   packagesTotal?: number;
   onViewTripDetail: (trip: any) => void;
 }
+
 export const TripCard = ({
   trip,
   packagesTotal,
   onViewTripDetail
 }: TripCardProps) => {
   console.log("TripCard trip data:", trip);
-  console.log("TripCard profiles data:", trip.profiles);
+  console.log("TripCard profiles data:", trip.public_profiles);
   
   return <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-4">
@@ -32,8 +34,8 @@ export const TripCard = ({
                 </div>
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-2">
                   <span>👤 Viajero: {
-                    trip.profiles 
-                      ? `${trip.profiles.first_name || ''} ${trip.profiles.last_name || ''}`.trim() || trip.profiles.username || trip.profiles.email || 'Sin perfil'
+                    trip.public_profiles 
+                      ? `${trip.public_profiles.first_name || ''} ${trip.public_profiles.last_name || ''}`.trim() || trip.public_profiles.username || 'Usuario sin nombre'
                       : 'Sin perfil'
                   }</span>
                   <span>📋 Estado: {trip.status}</span>
