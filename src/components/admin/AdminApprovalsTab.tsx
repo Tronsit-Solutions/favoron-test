@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { formatFullName } from "@/lib/formatters";
 
 interface AdminApprovalsTabProps {
   packages: any[];
@@ -112,13 +113,13 @@ const AdminApprovalsTab = ({
                             {pkg.item_description}
                           </h4>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).public_profiles ? 
-                                (pkg as any).public_profiles.username || `${(pkg as any).public_profiles.first_name || ''} ${(pkg as any).public_profiles.last_name || ''}`.trim() || 'Usuario sin nombre'
-                                : 'Sin perfil'}
+                              Precio estimado: ${pkg.estimated_price || 0} • Usuario: {(pkg as any).profiles ? 
+                                formatFullName((pkg as any).profiles.first_name, (pkg as any).profiles.last_name) || (pkg as any).profiles.username || `Usuario ${pkg.user_id.slice(0, 8)}...`
+                                : `Usuario ${pkg.user_id.slice(0, 8)}...`}
                             </p>
-                            {(pkg as any).public_profiles && (
+                            {(pkg as any).profiles && (
                               <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                                Email: {(pkg as any).public_profiles.email || 'Sin email'} • Tel: {(pkg as any).public_profiles.phone_number || 'Sin teléfono'}
+                                Email: {(pkg as any).profiles.email || 'Sin email'} • Tel: {(pkg as any).profiles.phone_number || 'Sin teléfono'}
                               </p>
                             )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
@@ -212,9 +213,9 @@ const AdminApprovalsTab = ({
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Viajero: {(trip as any).public_profiles ? 
-                                `${(trip as any).public_profiles.first_name || ''} ${(trip as any).public_profiles.last_name || ''}`.trim() || (trip as any).public_profiles.username || 'Usuario sin nombre'
-                                : 'Sin perfil'}
+                              Viajero: {(trip as any).profiles ? 
+                                formatFullName((trip as any).profiles.first_name, (trip as any).profiles.last_name) || (trip as any).profiles.username || `Usuario ${trip.user_id.slice(0, 8)}...`
+                                : `Usuario ${trip.user_id.slice(0, 8)}...`}
                             </p>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
