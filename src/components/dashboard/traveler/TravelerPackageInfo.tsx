@@ -2,6 +2,7 @@ import { MapPin, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import AddressDisplay from "@/components/ui/address-display";
 interface TravelerPackageInfoProps {
   pkg: any;
@@ -10,6 +11,7 @@ const TravelerPackageInfo = ({
   pkg
 }: TravelerPackageInfoProps) => {
   const [paymentReceipt, setPaymentReceipt] = useState<any>(null);
+  const { toast } = useToast();
   useEffect(() => {
     const fetchPaymentReceipt = async () => {
       console.log('🔍 TravelerPackageInfo - Package ID:', pkg.id, 'Status:', pkg.status);
@@ -50,7 +52,38 @@ const TravelerPackageInfo = ({
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => window.open(paymentReceipt.receipt_url, '_blank')} className="border-green-300 text-green-700 hover:bg-green-100">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={async () => {
+                const url = paymentReceipt.receipt_url;
+                if (url?.startsWith('http')) {
+                  window.open(url, '_blank');
+                } else if (url) {
+                  try {
+                    const { data, error } = await supabase.storage
+                      .from('payment-receipts')
+                      .createSignedUrl(url, 3600);
+                    if (!error && data?.signedUrl) {
+                      window.open(data.signedUrl, '_blank');
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: "No se pudo acceder al comprobante de pago",
+                        variant: "destructive",
+                      });
+                    }
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "No se pudo acceder al comprobante de pago",
+                      variant: "destructive",
+                    });
+                  }
+                }
+              }}
+              className="border-green-300 text-green-700 hover:bg-green-100"
+            >
               <ExternalLink className="h-3 w-3 mr-1" />
               Ver comprobante
             </Button>
