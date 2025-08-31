@@ -16,19 +16,6 @@ import { supabaseWithRetry } from '@/lib/supabaseWithRetry';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { logAuthError, getEmailDomain, detectAuthErrorFromUrl } from '@/lib/authErrorLogger';
 
-const PRODUCTION_ORIGIN = 'https://83029cdd-4a24-4c8c-80e4-b84bf2312db5.lovableproject.com';
-
-const getSafeOrigin = () => {
-  try {
-    const origin = window.location.origin;
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return PRODUCTION_ORIGIN;
-    }
-    return origin;
-  } catch {
-    return PRODUCTION_ORIGIN;
-  }
-};
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -239,7 +226,7 @@ const Auth = () => {
           emailDomain: getEmailDomain(email),
           supabaseErrorCode: error.name || error.code,
           supabaseErrorMsg: error.message,
-          redirectUrl: getSafeOrigin()
+          redirectUrl: 'https://favoron.app'
         }
       );
 
