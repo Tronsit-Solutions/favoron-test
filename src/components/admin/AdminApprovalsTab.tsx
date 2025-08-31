@@ -212,9 +212,9 @@ const AdminApprovalsTab = ({
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              {(trip as any).profiles ? 
-                                `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || trip.user_id
-                                : trip.user_id}
+                              Viajero: {(trip as any).profiles ? 
+                                `${(trip as any).profiles.first_name || ''} ${(trip as any).profiles.last_name || ''}`.trim() || (trip as any).profiles.username || (trip as any).profiles.email || 'Usuario sin nombre'
+                                : 'Sin perfil'}
                             </p>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
