@@ -9,10 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
+import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import "./ui/mobile-safe-form.css";
 
 interface PackageRequestFormProps {
@@ -113,6 +115,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Sync local state with persisted state (only in create mode)
   useEffect(() => {
@@ -163,6 +167,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     const isValidProduct = (p: Product) => p.itemLink && p.itemDescription && p.estimatedPrice;
     if (!products.every(isValidProduct) || !finalDestination || !finalOrigin) {
       alert('Por favor completa todos los campos obligatorios para todos los productos');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate terms acceptance
+    if (!acceptedTerms) {
+      alert('Debes aceptar los términos y condiciones para continuar');
       setIsSubmitting(false);
       return;
     }
@@ -218,6 +229,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setFormData(initialFormData);
         setShowAddressForm(false);
         setAddressData(null);
+        setAcceptedTerms(false);
         
         // Clear persisted states
         clearProducts();
@@ -623,11 +635,42 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           </div>
 
+          {/* Terms and Conditions Section */}
+          <div className="space-y-3 border-t border-gray-200 pt-4">
+            <div className="flex items-start space-x-3">
+              <Checkbox
+                id="acceptTerms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label htmlFor="acceptTerms" className="text-sm font-medium cursor-pointer">
+                  Acepto los términos y condiciones *
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowTermsModal(true)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Ver términos y condiciones
+                  </button>
+                </p>
+              </div>
+            </div>
+            {!acceptedTerms && (
+              <p className="text-xs text-muted-foreground ml-6">
+                Debes aceptar los términos y condiciones para enviar tu solicitud
+              </p>
+            )}
+          </div>
+
           <div className="flex space-x-3">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
+            <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting || !acceptedTerms}>
               {isSubmitting 
                 ? (editMode ? 'Guardando...' : 'Enviando...') 
                 : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
@@ -636,6 +679,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </div>
         </form>
       </DialogContent>
+      
+      {/* Terms and Conditions Modal */}
+      <TermsAndConditionsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
     </Dialog>
   );
 };
