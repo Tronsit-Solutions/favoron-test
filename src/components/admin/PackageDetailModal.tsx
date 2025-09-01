@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Plane } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Plane, Building } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -905,70 +905,83 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       <span>Dirección para Recibir Paquetes</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 space-y-3">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex items-center justify-center w-6 h-6 bg-primary/15 rounded-full mt-0.5 flex-shrink-0">
-                          <MapPin className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          {matchedTrip.package_receiving_address.recipientName && (
-                            <div className="bg-accent/30 rounded-lg p-3 shadow-sm border border-accent/40">
-                              <div className="flex items-center space-x-2">
-                                <User className="h-4 w-4 text-accent-foreground" />
-                                <p className="font-semibold text-accent-foreground text-sm">
-                                  {matchedTrip.package_receiving_address.recipientName}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
-                            <p className="font-semibold text-foreground text-sm leading-relaxed">
-                              {matchedTrip.package_receiving_address.streetAddress}
-                            </p>
-                            {matchedTrip.package_receiving_address.streetAddress2 && (
-                              <p className="text-muted-foreground text-sm">
-                                {matchedTrip.package_receiving_address.streetAddress2}
-                              </p>
-                            )}
-                            <p className="text-muted-foreground text-sm mt-1">
-                              {matchedTrip.package_receiving_address.cityArea}
-                            </p>
-                            {matchedTrip.package_receiving_address.postalCode && (
-                              <p className="text-muted-foreground text-sm">
-                                <strong>CP:</strong> {matchedTrip.package_receiving_address.postalCode}
-                              </p>
-                            )}
-                            {matchedTrip.package_receiving_address.accommodationType && (
-                              <p className="text-muted-foreground text-sm">
-                                <strong>Tipo:</strong> {matchedTrip.package_receiving_address.accommodationType}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {matchedTrip.package_receiving_address.hotelAirbnbName && (
-                            <div className="bg-secondary/50 rounded-lg p-3 border border-secondary/20">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                                <p className="font-medium text-secondary-foreground text-sm">
-                                  {matchedTrip.package_receiving_address.hotelAirbnbName}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
-                            <div className="flex items-center space-x-2">
-                              <Phone className="h-4 w-4 text-primary" />
-                              <p className="font-medium text-foreground text-sm">
-                                {matchedTrip.package_receiving_address.contactNumber}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                   <CardContent>
+                     <div className="space-y-4">
+                       {/* Recipient Name */}
+                       {matchedTrip.package_receiving_address.recipientName && (
+                         <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                           <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
+                             <User className="h-4 w-4 text-primary" />
+                           </div>
+                           <div>
+                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Destinatario</p>
+                             <p className="font-semibold text-foreground">{matchedTrip.package_receiving_address.recipientName}</p>
+                           </div>
+                         </div>
+                       )}
+                       
+                       {/* Address */}
+                       <div className="flex items-start gap-3 p-4 bg-card border rounded-lg">
+                         <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mt-1">
+                           <MapPin className="h-4 w-4 text-blue-600" />
+                         </div>
+                         <div className="flex-1 space-y-2">
+                           <div>
+                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Dirección</p>
+                             <p className="font-semibold text-foreground leading-relaxed">
+                               {matchedTrip.package_receiving_address.streetAddress}
+                             </p>
+                             {matchedTrip.package_receiving_address.streetAddress2 && (
+                               <p className="text-muted-foreground text-sm">
+                                 {matchedTrip.package_receiving_address.streetAddress2}
+                               </p>
+                             )}
+                             <p className="text-muted-foreground">
+                               {matchedTrip.package_receiving_address.cityArea}
+                               {matchedTrip.package_receiving_address.postalCode && (
+                                 <span className="ml-2 font-medium">CP: {matchedTrip.package_receiving_address.postalCode}</span>
+                               )}
+                             </p>
+                           </div>
+                           
+                           {/* Accommodation Type */}
+                           {matchedTrip.package_receiving_address.accommodationType && (
+                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary/20 border border-secondary/30 rounded-full">
+                               <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                               <span className="text-xs font-medium text-secondary-foreground">
+                                 {matchedTrip.package_receiving_address.accommodationType}
+                               </span>
+                             </div>
+                           )}
+                         </div>
+                       </div>
+                       
+                       {/* Hotel/Airbnb Name */}
+                       {matchedTrip.package_receiving_address.hotelAirbnbName && (
+                         <div className="flex items-center gap-3 p-3 bg-orange-50/50 border border-orange-200/50 rounded-lg">
+                           <div className="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-full">
+                             <Building className="h-4 w-4 text-orange-600" />
+                           </div>
+                           <div>
+                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Hotel/Alojamiento</p>
+                             <p className="font-semibold text-orange-800">{matchedTrip.package_receiving_address.hotelAirbnbName}</p>
+                           </div>
+                         </div>
+                       )}
+                       
+                       {/* Contact Number */}
+                       {matchedTrip.package_receiving_address.contactNumber && (
+                         <div className="flex items-center gap-3 p-3 bg-green-50/50 border border-green-200/50 rounded-lg">
+                           <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
+                             <Phone className="h-4 w-4 text-green-600" />
+                           </div>
+                           <div>
+                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Teléfono de contacto</p>
+                             <p className="font-semibold text-green-800">{matchedTrip.package_receiving_address.contactNumber}</p>
+                           </div>
+                         </div>
+                       )}
+                     </div>
                   </CardContent>
                 </Card>
               )}
