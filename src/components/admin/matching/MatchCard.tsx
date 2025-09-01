@@ -152,13 +152,10 @@ export const MatchCard = ({
                 )}
                 
                 {showAssignmentTimer && (
-                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                    <span className="text-sm text-blue-700 font-medium block mb-1">Tiempo para aceptar</span>
                     <QuoteCountdown 
                       expiresAt={pkg.matched_assignment_expires_at} 
-                      compact={false}
+                      compact={true}
                     />
-                  </div>
                 )}
               </div>
             )}
@@ -329,7 +326,7 @@ export const MatchCard = ({
                     </p>
                     <QuoteCountdown 
                       expiresAt={pkg.quote_expires_at}
-                      compact={false}
+                      compact={true}
                     />
                   </div>
                 )}
@@ -341,7 +338,7 @@ export const MatchCard = ({
                     </p>
                     <QuoteCountdown 
                       expiresAt={pkg.matched_assignment_expires_at}
-                      compact={false}
+                      compact={true}
                     />
                   </div>
                 )}
