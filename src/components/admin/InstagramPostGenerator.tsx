@@ -39,7 +39,6 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-sm px-12 py-8 text-center">
           <h1 className="text-white text-6xl font-bold mb-2">🌍 Hub de Viajes</h1>
-          <p className="text-white/90 text-xl">Viajes Disponibles</p>
           {totalPages > 1 && (
             <p className="text-white/80 text-lg mt-2">
               Página {pageNumber} de {totalPages}
