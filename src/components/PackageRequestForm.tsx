@@ -318,10 +318,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   variant="shopper"
                   size="sm"
                   onClick={addProduct}
-                  className="flex items-center space-x-1 font-semibold shadow-sm"
+                  className="flex items-center space-x-1 font-semibold shadow-sm text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>+ Agregar otro producto</span>
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">+ Agregar otro producto</span>
+                  <span className="sm:hidden">+ Producto</span>
                 </Button>
               )}
             </div>
