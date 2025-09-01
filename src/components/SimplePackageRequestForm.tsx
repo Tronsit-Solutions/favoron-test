@@ -41,24 +41,12 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  // Ultra-simple individual state for desktop - no re-renders
-  const [productDescription, setProductDescription] = useState(() => {
-    if (editMode && initialData?.products?.[0]?.itemDescription) {
-      return initialData.products[0].itemDescription;
+  // Multi-product state with dynamic add/remove functionality
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (editMode && initialData?.products && initialData.products.length > 0) {
+      return initialData.products;
     }
-    return '';
-  });
-  const [productPrice, setProductPrice] = useState(() => {
-    if (editMode && initialData?.products?.[0]?.estimatedPrice) {
-      return initialData.products[0].estimatedPrice;
-    }
-    return '';
-  });
-  const [productLink, setProductLink] = useState(() => {
-    if (editMode && initialData?.products?.[0]?.itemLink) {
-      return initialData.products[0].itemLink;
-    }
-    return '';
+    return [{ itemDescription: '', estimatedPrice: '', itemLink: '', quantity: '1' }];
   });
 
   const [formData, setFormData] = useState(() => ({
@@ -74,6 +62,24 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
     editMode ? initialData?.packageReceivingAddress || {} : {}
   );
 
+  // Multi-product helper functions
+  const addProduct = () => {
+    setProducts([...products, { itemDescription: '', estimatedPrice: '', itemLink: '', quantity: '1' }]);
+  };
+
+  const removeProduct = (index: number) => {
+    if (products.length > 1) {
+      setProducts(products.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateProduct = (index: number, field: keyof Product, value: string) => {
+    const updatedProducts = products.map((product, i) => 
+      i === index ? { ...product, [field]: value } : product
+    );
+    setProducts(updatedProducts);
+  };
+
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -84,8 +90,11 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
   };
 
   const calculateTotalEstimated = () => {
-    const price = parseFloat(productPrice) || 0;
-    return price; // Single product, quantity always 1
+    return products.reduce((total, product) => {
+      const price = parseFloat(product.estimatedPrice) || 0;
+      const quantity = parseInt(product.quantity) || 1;
+      return total + (price * quantity);
+    }, 0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,10 +128,12 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
       return;
     }
 
-    if (!productDescription.trim()) {
+    // Validate products
+    const hasValidProduct = products.some(product => product.itemDescription.trim());
+    if (!hasValidProduct) {
       toast({
         title: "Error",
-        description: "Por favor completa la descripción del producto",
+        description: "Por favor agrega al menos un producto con descripción",
         variant: "destructive"
       });
       return;
@@ -136,14 +147,6 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
       });
       return;
     }
-
-    // Convert individual fields back to expected array format for database
-    const products = [{
-      itemDescription: productDescription,
-      estimatedPrice: productPrice,
-      itemLink: productLink,
-      quantity: '1'
-    }];
 
     const submitData = {
       ...formData,
@@ -162,55 +165,127 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
 
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      {/* Simplified Product Section - Desktop Only */}
+      {/* Multi-Product Section with Dynamic Add/Remove */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Producto a comprar</h3>
+        <h3 className="text-lg font-semibold">Productos a comprar</h3>
 
-        <Card className="p-4">
-          <CardContent className="p-0 space-y-3">
-            <div>
-              <Label htmlFor="productDescription" className="text-xs text-muted-foreground">
-                Descripción del producto *
-              </Label>
-              <Textarea
-                id="productDescription"
-                placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                value={productDescription}
-                onChange={(e) => setProductDescription(e.target.value)}
-                className="mt-1"
-                rows={2}
-              />
-            </div>
+        {products.map((product, index) => (
+          <Card key={index} className="p-4 relative">
+            {products.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeProduct(index)}
+                className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            
+            <CardContent className="p-0 space-y-4">
+              <div className="grid gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Descripción del producto *
+                  </Label>
+                  <Textarea
+                    placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                    value={product.itemDescription}
+                    onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                    className="mt-1"
+                    rows={2}
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="productLink" className="text-xs text-muted-foreground">
-                Link del producto (opcional)
-              </Label>
-              <Input
-                id="productLink"
-                placeholder="https://..."
-                value={productLink}
-                onChange={(e) => setProductLink(e.target.value)}
-                className="mt-1"
-              />
-            </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Link del producto (opcional)
+                  </Label>
+                  <Input
+                    placeholder="https://..."
+                    value={product.itemLink}
+                    onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="productPrice" className="text-xs text-muted-foreground">
-                Precio estimado (USD)
-              </Label>
-              <Input
-                id="productPrice"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={productPrice}
-                onChange={(e) => setProductPrice(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-          </CardContent>
-        </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">
+                      Precio estimado (USD)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={product.estimatedPrice}
+                      onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground">
+                      Cantidad
+                    </Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const currentQty = parseInt(product.quantity) || 1;
+                          if (currentQty > 1) {
+                            updateProduct(index, 'quantity', (currentQty - 1).toString());
+                          }
+                        }}
+                        className="h-8 w-8"
+                        disabled={parseInt(product.quantity) <= 1}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      
+                      <Input
+                        type="number"
+                        min="1"
+                        value={product.quantity}
+                        onChange={(e) => {
+                          const value = Math.max(1, parseInt(e.target.value) || 1);
+                          updateProduct(index, 'quantity', value.toString());
+                        }}
+                        className="w-16 text-center"
+                      />
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const currentQty = parseInt(product.quantity) || 1;
+                          updateProduct(index, 'quantity', (currentQty + 1).toString());
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addProduct}
+          className="w-full"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Agregar otro producto
+        </Button>
 
         {calculateTotalEstimated() > 0 && (
           <div className="text-right text-sm font-medium">
