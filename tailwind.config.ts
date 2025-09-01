@@ -135,6 +135,9 @@ export default {
 				'glow-warning': '0 0 20px hsl(var(--warning) / 0.3)',
 				'glow-error': '0 0 20px hsl(var(--error) / 0.3)'
 			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+			},
 			keyframes: {
 				// Existing keyframes
 				'accordion-down': {
@@ -144,6 +147,11 @@ export default {
 				'accordion-up': {
 					from: { height: 'var(--radix-accordion-content-height)', opacity: '1' },
 					to: { height: '0', opacity: '0' }
+				},
+				// Modern floating animations
+				'float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-20px)' }
 				},
 				// New enhanced keyframes
 				'fade-in': {
@@ -201,6 +209,7 @@ export default {
 				// Enhanced animations
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'fade-out': 'fade-out 0.3s ease-out',
 				'scale-in': 'scale-in 0.2s ease-out',

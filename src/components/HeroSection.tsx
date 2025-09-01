@@ -21,29 +21,45 @@ const HeroSection = ({
   const { stats } = usePublicStats();
   const navigate = useNavigate();
 
-  return <header className="relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"></div>
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
+  return <header className="relative overflow-hidden bg-background">
+      {/* Modern Dynamic Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-muted/50"></div>
+      
+      {/* Animated Grid Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-traveler/5"></div>
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.1) 0%, transparent 25%), 
+                           radial-gradient(circle at 75% 75%, hsl(var(--traveler) / 0.1) 0%, transparent 25%)`
+        }}></div>
+      </div>
+      
+      {/* Floating Orbs with Animation */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl animate-[float_6s_ease-in-out_infinite]"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-radial from-shopper/15 to-transparent rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite_reverse]"></div>
+      <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-radial from-traveler/20 to-transparent rounded-full blur-2xl animate-[float_7s_ease-in-out_infinite_1s]"></div>
+      
+      {/* Geometric Shapes */}
+      <div className="absolute top-1/4 left-1/4 w-16 h-16 border border-primary/20 rotate-45 animate-[spin_20s_linear_infinite]"></div>
+      <div className="absolute bottom-1/3 right-1/3 w-12 h-12 bg-gradient-to-br from-traveler/30 to-shopper/30 rounded-full animate-pulse"></div>
       
       <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
-        {/* Trust Indicators - Top Banner */}
-        <div className="flex flex-row sm:flex-wrap justify-center items-center gap-4 sm:gap-6 mb-1 text-xs sm:text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-xl p-3 sm:p-3 border border-white/40 shadow-sm">
-               <div className="flex items-center gap-1 sm:gap-2">
-            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-            <span className="hidden sm:inline">{stats.total_users}+ usuarios activos</span>
-            <span className="sm:hidden">{stats.total_users}+</span>
+        {/* Modern Trust Indicators */}
+        <div className="flex flex-row sm:flex-wrap justify-center items-center gap-4 sm:gap-6 mb-1 text-xs sm:text-sm text-muted-foreground bg-card/80 backdrop-blur-md rounded-2xl p-4 sm:p-4 border border-border/50 shadow-glow animate-fade-in">
+               <div className="flex items-center gap-1 sm:gap-2 group">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary group-hover:text-traveler transition-colors" />
+            <span className="hidden sm:inline font-medium">{stats.total_users}+ usuarios activos</span>
+            <span className="sm:hidden font-medium">{stats.total_users}+</span>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
-            <span className="hidden sm:inline">4.9/5 rating</span>
-            <span className="sm:hidden">4.9/5</span>
+          <div className="flex items-center gap-1 sm:gap-2 group">
+            <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-warning text-warning group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline font-medium">4.9/5 rating</span>
+            <span className="sm:hidden font-medium">4.9/5</span>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-            <span className="hidden sm:inline">98% entregas efectivas</span>
-            <span className="sm:hidden">98%</span>
+          <div className="flex items-center gap-1 sm:gap-2 group">
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-success group-hover:text-error transition-colors" />
+            <span className="hidden sm:inline font-medium">98% entregas efectivas</span>
+            <span className="sm:hidden font-medium">98%</span>
           </div>
         </div>
 
@@ -116,21 +132,21 @@ const HeroSection = ({
           </div>
         </div>
 
-        {/* Social Proof */}
+        {/* Modern Social Proof Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-shopper mb-2">{stats.total_packages_completed}+</div>
-            <div className="text-gray-600">Paquetes entregados</div>
+          <div className="group bg-card/90 backdrop-blur-md rounded-2xl p-6 shadow-glow border border-border/30 hover:border-shopper/50 transition-all duration-300 hover:shadow-glow-success hover:scale-105">
+            <div className="text-3xl font-bold text-shopper mb-2 group-hover:text-primary transition-colors">{stats.total_packages_completed}+</div>
+            <div className="text-muted-foreground font-medium">Paquetes entregados</div>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-traveler mb-2">{stats.total_trips}+</div>
-            <div className="text-gray-600">Viajes registrados</div>
+          <div className="group bg-card/90 backdrop-blur-md rounded-2xl p-6 shadow-glow border border-border/30 hover:border-traveler/50 transition-all duration-300 hover:shadow-glow-success hover:scale-105">
+            <div className="text-3xl font-bold text-traveler mb-2 group-hover:text-primary transition-colors">{stats.total_trips}+</div>
+            <div className="text-muted-foreground font-medium">Viajes registrados</div>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/50">
-            <div className="text-2xl font-bold text-success mb-2">
+          <div className="group bg-card/90 backdrop-blur-md rounded-2xl p-6 shadow-glow border border-border/30 hover:border-success/50 transition-all duration-300 hover:shadow-glow-warning hover:scale-105">
+            <div className="text-3xl font-bold text-success mb-2 group-hover:text-warning transition-colors">
               Q{stats.total_tips_distributed > 0 ? stats.total_tips_distributed.toLocaleString('es-GT') : '0'}
             </div>
-            <div className="text-gray-600">Tips ganados</div>
+            <div className="text-muted-foreground font-medium">Tips ganados</div>
           </div>
         </div>
       </div>
