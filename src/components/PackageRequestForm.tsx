@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ interface PackageRequestFormProps {
 }
 
 interface Product {
+  id?: string; // Add stable ID for keys
   itemLink: string;
   itemDescription: string;
   estimatedPrice: string;
@@ -31,6 +32,11 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
+  
+  // DEBUG: Track renders (temporary)
+  const renders = useRef(0);
+  renders.current++;
+  console.debug('FORM RENDERS:', renders.current);
   
   // Initialize data based on mode
   const getInitialProducts = () => {
@@ -41,6 +47,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       } else {
         // Legacy format - single product object
         return [{
+          id: `product_0_${Date.now()}`,
           itemLink: initialData.item_link || '',
           itemDescription: initialData.item_description || '',
           estimatedPrice: initialData.estimated_price || '',
@@ -49,6 +56,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       }
     }
     return [{
+      id: `product_0_${Date.now()}`,
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
@@ -83,6 +91,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
+      id: `product_0_${Date.now()}`,
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
@@ -117,16 +126,18 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Stable onChange functions using useCallback to prevent recreations
   const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
+    console.debug('updateProductField:', index, field, value);
     setProducts(prev => {
       const newProducts = [...prev];
       newProducts[index] = { ...newProducts[index], [field]: value };
       return newProducts;
     });
-  }, []);
+  }, [setProducts]);
 
   const updateFormField = useCallback((field: string, value: string) => {
+    console.debug('updateFormField:', field, value);
     setFormData(prev => ({ ...prev, [field]: value }));
-  }, []);
+  }, [setFormData]);
 
   // Prevent Enter key from submitting form in text inputs
   const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {
@@ -221,6 +232,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       // Reset form and clear persisted data on success (only in create mode)
       if (!editMode) {
         const initialProducts = [{
+          id: `product_0_${Date.now()}`,
           itemLink: '',
           itemDescription: '',
           estimatedPrice: '',
@@ -259,6 +271,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const addProduct = () => {
     if (products.length < 5) {
       setProducts(prev => [...prev, {
+        id: `product_${Date.now()}_${Math.random()}`, // Stable unique ID
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
@@ -316,8 +329,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </div>
         
         <div className="space-y-3">
+          {/* DEBUG: Test uncontrolled input to isolate issue */}
+          <div className="space-y-2 p-2 border border-dashed border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+            <Label>🔍 DEBUG: Test Input (uncontrolled)</Label>
+            <input 
+              name="test" 
+              type="text" 
+              defaultValue="" 
+              onChange={(e) => console.debug('test uncontrolled', e.currentTarget.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Type here to test - should work normally"
+            />
+          </div>
+          
           {products.map((product, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
+            <div key={product.id || `product_${index}`} className="border border-gray-200 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">Producto #{index + 1}</Label>
                 {products.length > 1 && (
@@ -341,12 +367,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id={`itemLink-${index}`}
+                      name={`itemLink-${index}`}
                       type="url"
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink ?? ''}
-                      onChange={(e) => updateProductField(index, 'itemLink', e.target.value)}
+                      onChange={(e) => {
+                        console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
+                        updateProductField(index, 'itemLink', e.target.value);
+                      }}
                       onKeyDown={preventEnterSubmit}
+                      onBlur={persistFormData}
                       className="pl-7 h-8 text-sm"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      enterKeyHint="done"
                       required
                     />
                   </div>
@@ -356,11 +391,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
                   <Textarea
                     id={`itemDescription-${index}`}
+                    name={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription ?? ''}
-                    onChange={(e) => updateProductField(index, 'itemDescription', e.target.value)}
+                    onChange={(e) => {
+                      console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
+                      updateProductField(index, 'itemDescription', e.target.value);
+                    }}
                     onKeyDown={preventEnterSubmit}
+                    onBlur={persistFormData}
                     className="min-h-[60px] resize-none text-sm"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
                     rows={2}
                     required
                   />
@@ -373,12 +416,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
                       <Input
                         id={`estimatedPrice-${index}`}
+                        name={`estimatedPrice-${index}`}
                         type="text"
                         placeholder="299.99"
                         value={product.estimatedPrice ?? ''}
-                        onChange={(e) => updateProductField(index, 'estimatedPrice', e.target.value)}
+                        onChange={(e) => {
+                          console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
+                          updateProductField(index, 'estimatedPrice', e.target.value);
+                        }}
                         onKeyDown={preventEnterSubmit}
+                        onBlur={persistFormData}
                         className="pl-7 h-8 text-sm"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        enterKeyHint="done"
                         required
                       />
                     </div>
@@ -388,12 +440,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
                     <Input
                       id={`quantity-${index}`}
+                      name={`quantity-${index}`}
                       type="text"
                       placeholder="1"
                       value={product.quantity ?? ''}
-                      onChange={(e) => updateProductField(index, 'quantity', e.target.value)}
+                      onChange={(e) => {
+                        console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
+                        updateProductField(index, 'quantity', e.target.value);
+                      }}
                       onKeyDown={preventEnterSubmit}
+                      onBlur={persistFormData}
                       className="h-8 text-sm"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      enterKeyHint="done"
                       required
                     />
                   </div>
