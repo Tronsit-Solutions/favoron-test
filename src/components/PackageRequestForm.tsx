@@ -83,7 +83,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   // Only use persisted state in create mode
-  const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
+  const { state: persistedProducts, setState: setPersistedProducts, persistState: persistProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
       itemLink: '',
@@ -93,7 +93,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }] as Product[]
   });
 
-  const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
+  const { state: persistedFormData, setState: setPersistedFormData, persistState: persistFormData, clearPersistedState: clearFormData } = usePersistedFormState({
     key: 'package-form-data',
     initialState: {
       deliveryDeadline: null as Date | null,
@@ -106,7 +106,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   });
 
-  const { state: persistedAddressData, setState: setPersistedAddressData, clearPersistedState: clearAddress } = usePersistedFormState({
+  const { state: persistedAddressData, setState: setPersistedAddressData, persistState: persistAddress, clearPersistedState: clearAddress } = usePersistedFormState({
     key: 'package-form-address',
     initialState: null
   });
@@ -122,15 +122,24 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const shouldPersist = useRef(true);
   const persistTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Debounced persistence to avoid re-renders during typing
-  const debouncedPersist = useCallback((data: any, setter: (data: any) => void) => {
+  // Debounced persistence functions to avoid re-renders during typing
+  const debouncedPersistProducts = useCallback((data: Product[]) => {
     if (!editMode && shouldPersist.current) {
       clearTimeout(persistTimeoutRef.current);
       persistTimeoutRef.current = setTimeout(() => {
-        setter(data);
-      }, 500); // 500ms debounce
+        persistProducts(data);
+      }, 500);
     }
-  }, [editMode]);
+  }, [editMode, persistProducts]);
+
+  const debouncedPersistFormData = useCallback((data: any) => {
+    if (!editMode && shouldPersist.current) {
+      clearTimeout(persistTimeoutRef.current);
+      persistTimeoutRef.current = setTimeout(() => {
+        persistFormData(data);
+      }, 500);
+    }
+  }, [editMode, persistFormData]);
 
   // Optimized product update to prevent re-renders
   const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
@@ -138,16 +147,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       const newProducts = prev.map((product, i) => 
         i === index ? { ...product, [field]: value } : product
       );
-      debouncedPersist(newProducts, setPersistedProducts);
+      debouncedPersistProducts(newProducts);
       return newProducts;
     });
-  }, [debouncedPersist, setPersistedProducts]);
+  }, [debouncedPersistProducts]);
 
   // Optimized form data update
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => {
       const newFormData = { ...prev, [field]: value };
-      debouncedPersist(newFormData, setPersistedFormData);
+      debouncedPersistFormData(newFormData);
       return newFormData;
     });
     
@@ -160,7 +169,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setAddressData(null);
       }
     }
-  }, [debouncedPersist, setPersistedFormData]);
+  }, [debouncedPersistFormData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -273,21 +282,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           estimatedPrice: '',
           quantity: '1'
         }];
-        debouncedPersist(newProducts, setPersistedProducts);
+        debouncedPersistProducts(newProducts);
         return newProducts;
       });
     }
-  }, [products.length, debouncedPersist, setPersistedProducts]);
+  }, [products.length, debouncedPersistProducts]);
 
   const removeProduct = useCallback((index: number) => {
     if (products.length > 1) {
       setProducts(prev => {
         const newProducts = prev.filter((_, i) => i !== index);
-        debouncedPersist(newProducts, setPersistedProducts);
+        debouncedPersistProducts(newProducts);
         return newProducts;
       });
     }
-  }, [products.length, debouncedPersist, setPersistedProducts]);
+  }, [products.length, debouncedPersistProducts]);
 
   const calculateTotalEstimated = useMemo(() => {
     return products.reduce((total, product) => {
@@ -301,9 +310,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     setAddressData(address);
     setShowAddressForm(false);
     if (!editMode) {
-      debouncedPersist(address, setPersistedAddressData);
+      persistAddress(address);
     }
-  }, [editMode, debouncedPersist, setPersistedAddressData]);
+  }, [editMode, persistAddress]);
 
   const handleAddressCancel = useCallback(() => {
     setShowAddressForm(false);
