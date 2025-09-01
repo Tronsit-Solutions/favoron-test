@@ -67,15 +67,6 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="bg-white/10 backdrop-blur-sm px-12 py-6 text-center">
-          <p className="text-white/90 text-lg">
-            Generado el {currentDate}
-          </p>
-          <p className="text-white/70 text-base mt-1">
-            Favron - Conectando viajeros y compradores
-          </p>
-        </div>
 
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
