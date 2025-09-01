@@ -36,7 +36,6 @@ const HeroSection = ({
       
       
       {/* Geometric Shapes */}
-      <div className="absolute top-1/4 left-1/4 w-16 h-16 border border-primary/20 rotate-45 animate-[spin_20s_linear_infinite]"></div>
       <div className="absolute bottom-1/3 right-1/3 w-12 h-12 bg-gradient-to-br from-traveler/30 to-shopper/30 rounded-full animate-pulse"></div>
       
       <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
