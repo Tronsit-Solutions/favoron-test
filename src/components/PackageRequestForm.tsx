@@ -327,9 +327,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
         <ArrowLeft className="h-4 w-4" />
       </Button>
-      <h2 className="text-lg font-semibold text-center flex-1">
-        {editMode ? 'Editar Solicitud' : 'Nueva Solicitud'}
-      </h2>
+      <FormTitles.MobileTitle editMode={editMode} />
       <div className="w-10" /> {/* Spacer for centering */}
     </div>
   );
@@ -337,15 +335,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Desktop Header Component
   const DesktopHeader = () => (
     <DialogHeader>
-      <DialogTitle className="flex items-center space-x-2">
-        <Package className="h-5 w-5 text-primary" />
-        <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
+      <DialogTitle>
+        {editMode ? (
+          <FormTitles.EditRequest requestId={initialData?.id} />
+        ) : (
+          <FormTitles.NewRequest />
+        )}
       </DialogTitle>
       <DialogDescription>
-        {editMode 
-          ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-          : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
-        }
+        {editMode ? (
+          <FormDescriptions.EditRequest />
+        ) : (
+          <FormDescriptions.NewRequest />
+        )}
       </DialogDescription>
     </DialogHeader>
   );
@@ -353,16 +355,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Form Content Component
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
-      <p className="text-sm text-muted-foreground mb-4">
-        {editMode 
-          ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-          : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
-        }
-      </p>
+      <div className="mb-4">
+        {editMode ? (
+          <FormDescriptions.EditRequest />
+        ) : (
+          <FormDescriptions.NewRequest />
+        )}
+      </div>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
+          <Label className="text-base font-medium">
+            <FormLabels.Products count={products.length} />
+          </Label>
           {products.length < 5 && (
             <Button
               type="button"
@@ -372,7 +377,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="flex items-center space-x-1 font-semibold shadow-sm text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>Agregar</span>
+              <ButtonTexts.Add />
             </Button>
           )}
         </div>
