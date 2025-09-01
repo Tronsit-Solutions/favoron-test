@@ -452,11 +452,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <div>
                   <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
                   <Textarea
-                    key={`itemDescription-${index}`}
+                    key={`stable-textarea-${index}`}
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                    value={localTextareaValues[`${index}-itemDescription`] || product.itemDescription || ''}
-                    onChange={(e) => handleTextareaChange(index, e.target.value)}
+                    value={product.itemDescription || ''}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setProducts(prev => prev.map((p, i) => 
+                        i === index ? { ...p, itemDescription: newValue } : p
+                      ));
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
                     }}
