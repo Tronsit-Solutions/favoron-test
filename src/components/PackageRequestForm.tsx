@@ -136,30 +136,25 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, []);
 
-  // Debounced sync to persisted state (only in create mode)
-  useEffect(() => {
+  // Persist form data only on blur/unmount (not during typing)
+  const persistFormData = useCallback(() => {
     if (!editMode) {
-      const timeout = setTimeout(() => {
-        setPersistedProducts(products);
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [products, setPersistedProducts, editMode]);
-
-  useEffect(() => {
-    if (!editMode) {
-      const timeout = setTimeout(() => {
-        setPersistedFormData(formData);
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [formData, setPersistedFormData, editMode]);
-
-  useEffect(() => {
-    if (!editMode && addressData !== persistedAddressData) {
+      setPersistedProducts(products);
+      setPersistedFormData(formData);
       setPersistedAddressData(addressData);
     }
-  }, [addressData, setPersistedAddressData, editMode, persistedAddressData]);
+  }, [products, formData, addressData, editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
+
+  // Auto-persist on component unmount
+  useEffect(() => {
+    return () => {
+      if (!editMode) {
+        setPersistedProducts(products);
+        setPersistedFormData(formData);
+        setPersistedAddressData(addressData);
+      }
+    };
+  }, [products, formData, addressData, editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -217,6 +212,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       deliveryMethod: formData.deliveryMethod
     };
 
+    // Persist data before submission
+    persistFormData();
+    
     try {
       await onSubmit(submitData);
       
