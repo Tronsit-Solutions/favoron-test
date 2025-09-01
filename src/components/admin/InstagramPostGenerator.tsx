@@ -46,7 +46,7 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
           {trips.map((trip, index) => (
             <div 
               key={trip.id}
-              className="bg-white rounded-2xl p-8 shadow-lg mx-2"
+              className="bg-white rounded-2xl p-8 mx-2"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -62,7 +62,7 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center justify-end gap-2 text-gray-600">
                     <Calendar className="h-5 w-5" />
                     <span className="text-lg font-medium">
                       {formatDate(trip.arrival_date)}
