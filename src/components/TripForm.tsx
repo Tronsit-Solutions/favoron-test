@@ -17,6 +17,8 @@ import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { COUNTRIES } from "@/lib/countries";
+import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
+import "./ui/mobile-safe-form.css";
 interface TripFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -105,71 +107,121 @@ const TripForm = ({
     value: 'casa',
     label: 'Casa/Apartamento'
   }];
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalFromCity = formData.fromCity;
-    const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.recipientName || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
-      alert('Por favor completa todos los campos obligatorios');
-      return;
-    }
-    if (!acceptedTerms) {
-      alert('Debes aceptar los términos y condiciones para continuar');
-      return;
-    }
+    
+    try {
+      console.log('📱 Traveler form submission started (mobile compatible)', {
+        userAgent: navigator.userAgent,
+        isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        formData: { ...formData, packageReceivingAddress: '[REDACTED]' }
+      });
 
-    // Validar información de mensajero si seleccionó mensajero
-    if (formData.deliveryMethod === 'mensajero' && !messengerData) {
-      alert('Por favor completa la información de recolección por mensajero');
-      return;
-    }
-    const submitData = {
-      ...formData,
-      fromCity: finalFromCity,
-      toCity: finalToCity,
-      messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
-    };
-    onSubmit(submitData);
-    
-    // Close modal after successful submission
-    onClose();
+      const finalFromCity = formData.fromCity;
+      const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
+      
+      // Enhanced validation with specific error messages
+      const requiredFields = [
+        { field: finalFromCity, name: 'ciudad de origen' },
+        { field: finalToCity, name: 'ciudad de destino' },
+        { field: formData.arrivalDate, name: 'fecha de llegada' },
+        { field: formData.availableSpace, name: 'espacio disponible' },
+        { field: formData.deliveryMethod, name: 'método de entrega' },
+        { field: formData.deliveryDate, name: 'fecha de entrega' },
+        { field: formData.packageReceivingAddress.recipientName, name: 'nombre del recipiente' },
+        { field: formData.packageReceivingAddress.accommodationType, name: 'tipo de alojamiento' },
+        { field: formData.packageReceivingAddress.streetAddress, name: 'dirección' },
+        { field: formData.packageReceivingAddress.cityArea, name: 'ciudad/estado' },
+        { field: formData.packageReceivingAddress.postalCode, name: 'código postal' },
+        { field: formData.packageReceivingAddress.contactNumber, name: 'número de contacto' },
+        { field: formData.firstDayPackages, name: 'primer día para recibir paquetes' },
+        { field: formData.lastDayPackages, name: 'último día para recibir paquetes' },
+        { field: formData.fromCountry, name: 'país de origen' }
+      ];
 
-    // Reset form and clear persisted data on success
-    const initialFormData = {
-      fromCity: '',
-      fromCountry: '',
-      toCity: '',
-      toCityOther: '',
-      toCountry: 'Guatemala',
-      arrivalDate: null as Date | null,
-      availableSpace: '',
-      deliveryMethod: '',
-      deliveryDate: null as Date | null,
-      additionalInfo: '',
-      packageReceivingAddress: {
-        recipientName: '',
-        accommodationType: '',
-        streetAddress: '',
-        streetAddress2: '',
-        cityArea: '',
-        postalCode: '',
-        hotelAirbnbName: '',
-        contactNumber: ''
-      },
-      firstDayPackages: null as Date | null,
-      lastDayPackages: null as Date | null,
-      messengerPickupLocation: ''
-    };
-    
-    setFormData(initialFormData);
-    setShowMessengerForm(false);
-    setMessengerData(null);
-    setAcceptedTerms(false);
-    setShowTermsModal(false);
-    
-    // Clear persisted states
-    clearFormData();
-    clearMessenger();
+      const missingFields = requiredFields.filter(({ field }) => !field).map(({ name }) => name);
+      if (missingFields.length > 0) {
+        const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
+        console.error('❌ Form validation failed:', errorMsg);
+        logFormValidationError(missingFields, 'traveler-form');
+        alert(errorMsg);
+        return;
+      }
+
+      if (!acceptedTerms) {
+        const errorMsg = 'Debes aceptar los términos y condiciones para continuar';
+        console.error('❌ Terms not accepted');
+        alert(errorMsg);
+        return;
+      }
+
+      // Validar información de mensajero si seleccionó mensajero
+      if (formData.deliveryMethod === 'mensajero' && !messengerData) {
+        const errorMsg = 'Por favor completa la información de recolección por mensajero';
+        console.error('❌ Messenger data missing');
+        alert(errorMsg);
+        return;
+      }
+
+      const submitData = {
+        ...formData,
+        fromCity: finalFromCity,
+        toCity: finalToCity,
+        messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
+      };
+
+      console.log('✅ Form validation passed, submitting data');
+      
+      // Use await to handle potential async submission
+      await Promise.resolve(onSubmit(submitData));
+      
+      console.log('✅ Form submitted successfully');
+      
+      // Close modal after successful submission
+      onClose();
+
+      // Reset form and clear persisted data on success
+      const initialFormData = {
+        fromCity: '',
+        fromCountry: '',
+        toCity: '',
+        toCityOther: '',
+        toCountry: 'Guatemala',
+        arrivalDate: null as Date | null,
+        availableSpace: '',
+        deliveryMethod: '',
+        deliveryDate: null as Date | null,
+        additionalInfo: '',
+        packageReceivingAddress: {
+          recipientName: '',
+          accommodationType: '',
+          streetAddress: '',
+          streetAddress2: '',
+          cityArea: '',
+          postalCode: '',
+          hotelAirbnbName: '',
+          contactNumber: ''
+        },
+        firstDayPackages: null as Date | null,
+        lastDayPackages: null as Date | null,
+        messengerPickupLocation: ''
+      };
+      
+      setFormData(initialFormData);
+      setShowMessengerForm(false);
+      setMessengerData(null);
+      setAcceptedTerms(false);
+      setShowTermsModal(false);
+      
+      // Clear persisted states
+      clearFormData();
+      clearMessenger();
+      
+    } catch (error) {
+      console.error('💥 Error submitting traveler form:', error);
+      logFormError(error, 'traveler-form', formData);
+      alert('Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.');
+    }
   };
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -229,7 +281,7 @@ const TripForm = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 mobile-safe-form">
           {/* 🟦 1. Información básica del viaje */}
           <div className="space-y-6">
             <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
@@ -249,14 +301,20 @@ const TripForm = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fromCountry">País de origen *</Label>
-                  <Combobox
-                    options={COUNTRIES}
-                    value={formData.fromCountry}
-                    onValueChange={value => handleInputChange('fromCountry', value)}
-                    placeholder="Selecciona el país de origen"
-                    searchPlaceholder="Buscar país..."
-                    emptyMessage="No se encontraron países"
-                  />
+                  <div className="mobile-safe-combobox">
+                    <Combobox
+                      options={COUNTRIES}
+                      value={formData.fromCountry}
+                      onValueChange={value => {
+                        console.log('🌍 Country selected:', value);
+                        handleInputChange('fromCountry', value);
+                      }}
+                      placeholder="Selecciona el país de origen"
+                      searchPlaceholder="Buscar país..."
+                      emptyMessage="No se encontraron países"
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -303,15 +361,25 @@ const TripForm = ({
               <Label>Fecha de llegada a {displayToCity || 'destino'} *</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.arrivalDate ? format(formData.arrivalDate, "PPP", {
                     locale: es
                   }) : <span>Selecciona fecha de llegada</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={formData.arrivalDate || undefined} onSelect={date => handleInputChange('arrivalDate', date)} disabled={date => date < new Date()} initialFocus />
+                <PopoverContent className="w-auto p-0 z-50" align="start">
+                  <Calendar 
+                    mode="single" 
+                    selected={formData.arrivalDate || undefined} 
+                    onSelect={date => {
+                      console.log('📅 Arrival date selected:', date);
+                      handleInputChange('arrivalDate', date);
+                    }} 
+                    disabled={date => date < new Date()} 
+                    initialFocus 
+                    className="pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -402,15 +470,25 @@ const TripForm = ({
                 <Label>Primer día para recibir paquetes *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", {
                       locale: es
                     }) : <span className="text-xs">Fecha inicio</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={formData.firstDayPackages || undefined} onSelect={date => handleInputChange('firstDayPackages', date)} disabled={date => date < new Date()} initialFocus />
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar 
+                      mode="single" 
+                      selected={formData.firstDayPackages || undefined} 
+                      onSelect={date => {
+                        console.log('📅 First day selected:', date);
+                        handleInputChange('firstDayPackages', date);
+                      }} 
+                      disabled={date => date < new Date()} 
+                      initialFocus 
+                      className="pointer-events-auto"
+                    />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -419,15 +497,25 @@ const TripForm = ({
                 <Label>Último día para recibir paquetes *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", {
                       locale: es
                     }) : <span className="text-xs">Fecha fin</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={formData.lastDayPackages || undefined} onSelect={date => handleInputChange('lastDayPackages', date)} disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)} initialFocus />
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar 
+                      mode="single" 
+                      selected={formData.lastDayPackages || undefined} 
+                      onSelect={date => {
+                        console.log('📅 Last day selected:', date);
+                        handleInputChange('lastDayPackages', date);
+                      }} 
+                      disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)} 
+                      initialFocus 
+                      className="pointer-events-auto"
+                    />
                   </PopoverContent>
                 </Popover>
               </div>
@@ -478,15 +566,25 @@ const TripForm = ({
               <Label>Fecha estimada en que entregarás los paquetes *</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                  <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.deliveryDate ? format(formData.deliveryDate, "PPP", {
                     locale: es
                   }) : <span>Selecciona fecha de entrega</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={formData.deliveryDate || undefined} onSelect={date => handleInputChange('deliveryDate', date)} disabled={date => date < new Date()} initialFocus />
+                <PopoverContent className="w-auto p-0 z-50" align="start">
+                  <Calendar 
+                    mode="single" 
+                    selected={formData.deliveryDate || undefined} 
+                    onSelect={date => {
+                      console.log('📅 Delivery date selected:', date);
+                      handleInputChange('deliveryDate', date);
+                    }} 
+                    disabled={date => date < new Date()} 
+                    initialFocus 
+                    className="pointer-events-auto"
+                  />
                 </PopoverContent>
               </Popover>
             </div>

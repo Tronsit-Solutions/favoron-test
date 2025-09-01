@@ -1,0 +1,63 @@
+/* Mobile-safe form styles for traveler form */
+.mobile-safe-combobox {
+  /* Ensure touch targets are large enough for mobile */
+  min-height: 44px;
+}
+
+.mobile-safe-combobox button {
+  /* iOS Safari specific fixes */
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px;
+}
+
+/* Enhanced date picker styles for mobile */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Calendar interaction fixes for mobile Safari */
+.pointer-events-auto {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.pointer-events-auto button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Form input enhancements for mobile */
+@media (max-width: 768px) {
+  .mobile-safe-form input,
+  .mobile-safe-form button,
+  .mobile-safe-form select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 44px; /* iOS recommended touch target size */
+  }
+  
+  .mobile-safe-form .grid-cols-2 {
+    grid-template-columns: 1fr; /* Stack on mobile */
+    gap: 1rem;
+  }
+}
+
+/* Popover z-index fixes for mobile */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+
+/* Command palette mobile fixes */
+[cmdk-root] {
+  touch-action: manipulation;
+}
+
+[cmdk-item] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
