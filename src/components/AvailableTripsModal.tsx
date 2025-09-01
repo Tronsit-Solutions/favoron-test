@@ -78,14 +78,42 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         const postElement = postRefs.current[i];
         if (!postElement) continue;
 
+        // Temporarily move element to visible area and ensure proper styling
+        const originalPosition = postElement.style.position;
+        const originalTop = postElement.style.top;
+        const originalLeft = postElement.style.left;
+        const originalTransform = postElement.style.transform;
+        
+        postElement.style.position = 'absolute';
+        postElement.style.top = '0px';
+        postElement.style.left = '0px';
+        postElement.style.transform = 'none';
+        postElement.style.zIndex = '9999';
+        
+        // Force a reflow to ensure styles are applied
+        postElement.offsetHeight;
+
         const canvas = await html2canvas(postElement, {
           backgroundColor: '#ffffff',
           scale: 1,
           useCORS: true,
           allowTaint: true,
+          foreignObjectRendering: false,
+          scrollX: 0,
+          scrollY: 0,
           width: 1080,
-          height: 1080
+          height: 1080,
+          logging: false,
+          imageTimeout: 0,
+          removeContainer: true
         });
+
+        // Restore original position
+        postElement.style.position = originalPosition;
+        postElement.style.top = originalTop;
+        postElement.style.left = originalLeft;
+        postElement.style.transform = originalTransform;
+        postElement.style.zIndex = '';
 
         await new Promise<void>((resolve) => {
           canvas.toBlob((blob) => {

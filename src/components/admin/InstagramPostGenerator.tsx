@@ -26,7 +26,15 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
       <div 
         ref={ref}
         className="w-[1080px] h-[1080px] bg-gradient-to-br from-teal-500 via-cyan-400 to-emerald-500 flex flex-col relative overflow-hidden border-8 border-white"
-        style={{ fontSize: '16px' }}
+        style={{ 
+          fontSize: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'stretch',
+          width: '1080px',
+          height: '1080px'
+        }}
       >
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-sm px-12 py-8 text-center">
