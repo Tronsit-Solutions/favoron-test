@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UsePersistedFormStateOptions<T> {
   key: string;
@@ -31,17 +31,41 @@ export function usePersistedFormState<T>(
     }
   });
 
-  // Persist state to localStorage whenever it changes
+  // Debounced persistence to prevent excessive writes
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const isInitialMount = useRef(true);
+
   useEffect(() => {
-    try {
-      const dataToStore = {
-        data: state,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(key, JSON.stringify(dataToStore));
-    } catch (error) {
-      console.warn('Failed to persist form state:', error);
+    // Skip persistence on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
+
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Debounce persistence by 500ms
+    timeoutRef.current = setTimeout(() => {
+      try {
+        const dataToStore = {
+          data: state,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(key, JSON.stringify(dataToStore));
+      } catch (error) {
+        console.warn('Failed to persist form state:', error);
+      }
+    }, 500);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [state, key]);
 
   const clearPersistedState = useCallback(() => {
@@ -65,9 +89,14 @@ export function usePersistedFormState<T>(
     }
   }, [key, ttl]);
 
+  // Stable setState wrapper
+  const stableSetState = useCallback((newState: T | ((prev: T) => T)) => {
+    setState(newState);
+  }, []);
+
   return {
     state,
-    setState,
+    setState: stableSetState,
     clearPersistedState,
     hasPersistedData
   };

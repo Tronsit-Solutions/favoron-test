@@ -128,26 +128,20 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize edit mode data only once
+  // Initialize edit mode data only once when dialog opens
   useEffect(() => {
     if (editMode && initialData && isOpen) {
+      const initialProducts = getInitialProducts();
+      const initialFormData = getInitialFormData();
+      const initialAddress = initialData.delivery_address || null;
+      
       startTransition(() => {
-        setProducts(getInitialProducts());
-        setFormData(getInitialFormData());
-        setAddressData(initialData.delivery_address || null);
+        setProducts(initialProducts);
+        setFormData(initialFormData);
+        setAddressData(initialAddress);
       });
     }
-  }, [editMode, initialData, isOpen, getInitialProducts, getInitialFormData]);
-
-  // Refs for accessing current state without dependencies
-  const productsRef = useRef(products);
-  const formDataRef = useRef(formData);
-  const addressDataRef = useRef(addressData);
-
-  // Update refs whenever state changes
-  useEffect(() => { productsRef.current = products; }, [products]);
-  useEffect(() => { formDataRef.current = formData; }, [formData]);
-  useEffect(() => { addressDataRef.current = addressData; }, [addressData]);
+  }, [editMode, isOpen]); // Simplified dependencies
 
   // OPTIMIZED callbacks using startTransition for batching
   const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
@@ -174,25 +168,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, []);
 
-  // Persist form data using refs (no state dependencies)
+  // Simplified persistence - only on dialog close for create mode
   const persistFormData = useCallback(() => {
     if (!editMode) {
-      setPersistedProducts(productsRef.current);
-      setPersistedFormData(formDataRef.current);
-      setPersistedAddressData(addressDataRef.current);
+      setPersistedProducts(products);
+      setPersistedFormData(formData);
+      setPersistedAddressData(addressData);
     }
-  }, [editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]); // Only setter and editMode dependencies
-
-  // Auto-persist on component unmount
-  useEffect(() => {
-    return () => {
-      if (!editMode) {
-        setPersistedProducts(products);
-        setPersistedFormData(formData);
-        setPersistedAddressData(addressData);
-      }
-    };
-  }, [products, formData, addressData, editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
+  }, [editMode, products, formData, addressData, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -783,4 +766,5 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   );
 };
 
-export default PackageRequestForm;
+// Memoize the entire component to prevent unnecessary re-renders
+export default memo(PackageRequestForm);
