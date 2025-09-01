@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -118,25 +118,71 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debug helpers (temporary)
+  const renders = useRef(0);
+  renders.current++;
+  console.debug('🔄 Form renders:', renders.current, { formData: Object.keys(formData), products: products.length });
 
-  // Sync local state with persisted state (only in create mode)
+  // Stable onChange functions using refs to prevent recreations
+  const updateProductField = useRef((index: number, field: keyof Product) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.currentTarget.value;
+    console.debug('📝 Product field change:', field, value, 'index:', index);
+    
+    setProducts(prev => {
+      const newProducts = [...prev];
+      newProducts[index] = { ...newProducts[index], [field]: value };
+      return newProducts;
+    });
+  }).current;
+
+  const updateFormField = useRef((field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.currentTarget.value;
+    console.debug('📝 Form field change:', field, value);
+    
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }).current;
+
+  // Prevent Enter key from submitting form in text inputs
+  const preventEnterSubmit = useRef((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }).current;
+
+  // Debounced sync to persisted state (only in create mode)
+  const syncTimeout = useRef<NodeJS.Timeout>();
+  
+  // Debounced sync to prevent excessive updates during typing
   useEffect(() => {
     if (!editMode) {
-      setPersistedProducts(products);
+      if (syncTimeout.current) clearTimeout(syncTimeout.current);
+      syncTimeout.current = setTimeout(() => {
+        setPersistedProducts(products);
+      }, 300);
     }
+    return () => {
+      if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    };
   }, [products, setPersistedProducts, editMode]);
 
   useEffect(() => {
     if (!editMode) {
-      setPersistedFormData(formData);
+      if (syncTimeout.current) clearTimeout(syncTimeout.current);
+      syncTimeout.current = setTimeout(() => {
+        setPersistedFormData(formData);
+      }, 300);
     }
+    return () => {
+      if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    };
   }, [formData, setPersistedFormData, editMode]);
 
   useEffect(() => {
-    if (!editMode) {
+    if (!editMode && addressData !== persistedAddressData) {
       setPersistedAddressData(addressData);
     }
-  }, [addressData, setPersistedAddressData, editMode]);
+  }, [addressData, setPersistedAddressData, editMode, persistedAddressData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -309,7 +355,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Form Content Component
   const FormContent = () => (
-    <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="mobile-safe-form space-y-6">
       
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -356,10 +402,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       id={`itemLink-${index}`}
                       type="url"
                       placeholder="https://amazon.com/producto..."
-                      value={product.itemLink}
-                      onChange={(e) => setProducts(prev => prev.map((product, i) => 
-                        i === index ? { ...product, itemLink: e.target.value } : product
-                      ))}
+                      value={product.itemLink ?? ''}
+                      onChange={updateProductField(index, 'itemLink')}
+                      onKeyDown={preventEnterSubmit}
                       className="pl-7 h-8 text-sm"
                       required
                     />
@@ -371,10 +416,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <Textarea
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                    value={product.itemDescription}
-                    onChange={(e) => setProducts(prev => prev.map((product, i) => 
-                      i === index ? { ...product, itemDescription: e.target.value } : product
-                    ))}
+                    value={product.itemDescription ?? ''}
+                    onChange={updateProductField(index, 'itemDescription')}
+                    onKeyDown={preventEnterSubmit}
                     className="min-h-[60px] resize-none text-sm"
                     rows={2}
                     required
@@ -388,13 +432,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
                       <Input
                         id={`estimatedPrice-${index}`}
-                        type="number"
-                        step="0.01"
+                        type="text"
                         placeholder="299.99"
-                        value={product.estimatedPrice}
-                        onChange={(e) => setProducts(prev => prev.map((product, i) => 
-                          i === index ? { ...product, estimatedPrice: e.target.value } : product
-                        ))}
+                        value={product.estimatedPrice ?? ''}
+                        onChange={updateProductField(index, 'estimatedPrice')}
+                        onKeyDown={preventEnterSubmit}
                         className="pl-7 h-8 text-sm"
                         required
                       />
@@ -405,13 +447,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
                     <Input
                       id={`quantity-${index}`}
-                      type="number"
-                      min="1"
+                      type="text"
                       placeholder="1"
-                      value={product.quantity}
-                      onChange={(e) => setProducts(prev => prev.map((product, i) => 
-                        i === index ? { ...product, quantity: e.target.value } : product
-                      ))}
+                      value={product.quantity ?? ''}
+                      onChange={updateProductField(index, 'quantity')}
+                      onKeyDown={preventEnterSubmit}
                       className="h-8 text-sm"
                       required
                     />
@@ -454,8 +494,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {formData.packageDestination === 'Otra ciudad' && (
           <Input
             placeholder="Escribe la ciudad de destino"
-            value={formData.packageDestinationOther}
-            onChange={(e) => setFormData(prev => ({ ...prev, packageDestinationOther: e.target.value }))}
+            value={formData.packageDestinationOther ?? ''}
+            onChange={updateFormField('packageDestinationOther')}
+            onKeyDown={preventEnterSubmit}
             className="mt-2"
             required
           />
@@ -485,8 +526,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {formData.purchaseOrigin === 'Otro' && (
           <Input
             placeholder="Escribe el país de origen"
-            value={formData.purchaseOriginOther}
-            onChange={(e) => setFormData(prev => ({ ...prev, purchaseOriginOther: e.target.value }))}
+            value={formData.purchaseOriginOther ?? ''}
+            onChange={updateFormField('purchaseOriginOther')}
+            onKeyDown={preventEnterSubmit}
             className="mt-2"
             required
           />
@@ -627,8 +669,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <Textarea
           id="additionalNotes"
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
-          value={formData.additionalNotes}
-          onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+          value={formData.additionalNotes ?? ''}
+          onChange={updateFormField('additionalNotes')}
+          onKeyDown={preventEnterSubmit}
           className="min-h-[80px]"
         />
       </div>
