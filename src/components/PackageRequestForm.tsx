@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -118,24 +118,49 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync local state with persisted state (only in create mode)
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedProducts(products);
-    }
-  }, [products, editMode]); // Removed setPersistedProducts dependency
+  // Use ref to track if we should persist (avoid re-renders during typing)
+  const shouldPersist = useRef(true);
+  const persistTimeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedFormData(formData);
+  // Debounced persistence to avoid re-renders during typing
+  const debouncedPersist = useCallback((data: any, setter: (data: any) => void) => {
+    if (!editMode && shouldPersist.current) {
+      clearTimeout(persistTimeoutRef.current);
+      persistTimeoutRef.current = setTimeout(() => {
+        setter(data);
+      }, 500); // 500ms debounce
     }
-  }, [formData, editMode]); // Removed setPersistedFormData dependency
+  }, [editMode]);
 
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedAddressData(addressData);
+  // Optimized product update to prevent re-renders
+  const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
+    setProducts(prev => {
+      const newProducts = prev.map((product, i) => 
+        i === index ? { ...product, [field]: value } : product
+      );
+      debouncedPersist(newProducts, setPersistedProducts);
+      return newProducts;
+    });
+  }, [debouncedPersist, setPersistedProducts]);
+
+  // Optimized form data update
+  const handleInputChange = useCallback((field: string, value: any) => {
+    setFormData(prev => {
+      const newFormData = { ...prev, [field]: value };
+      debouncedPersist(newFormData, setPersistedFormData);
+      return newFormData;
+    });
+    
+    // Mostrar formulario de dirección si selecciona delivery
+    if (field === 'deliveryMethod') {
+      if (value === 'delivery') {
+        setShowAddressForm(true);
+      } else {
+        setShowAddressForm(false);
+        setAddressData(null);
+      }
     }
-  }, [addressData, editMode]); // Removed setPersistedAddressData dependency
+  }, [debouncedPersist, setPersistedFormData]);
 
   const destinationCities = [
     'Guatemala City',
@@ -239,60 +264,51 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   };
 
-  const updateProduct = (index: number, field: keyof Product, value: string) => {
-    setProducts(prev => prev.map((product, i) => 
-      i === index ? { ...product, [field]: value } : product
-    ));
-  };
-
-  const addProduct = () => {
+  const addProduct = useCallback(() => {
     if (products.length < 5) {
-      setProducts(prev => [...prev, {
-        itemLink: '',
-        itemDescription: '',
-        estimatedPrice: '',
-        quantity: '1'
-      }]);
+      setProducts(prev => {
+        const newProducts = [...prev, {
+          itemLink: '',
+          itemDescription: '',
+          estimatedPrice: '',
+          quantity: '1'
+        }];
+        debouncedPersist(newProducts, setPersistedProducts);
+        return newProducts;
+      });
     }
-  };
+  }, [products.length, debouncedPersist, setPersistedProducts]);
 
-  const removeProduct = (index: number) => {
+  const removeProduct = useCallback((index: number) => {
     if (products.length > 1) {
-      setProducts(prev => prev.filter((_, i) => i !== index));
+      setProducts(prev => {
+        const newProducts = prev.filter((_, i) => i !== index);
+        debouncedPersist(newProducts, setPersistedProducts);
+        return newProducts;
+      });
     }
-  };
+  }, [products.length, debouncedPersist, setPersistedProducts]);
 
-  const calculateTotalEstimated = () => {
+  const calculateTotalEstimated = useMemo(() => {
     return products.reduce((total, product) => {
       const price = parseFloat(product.estimatedPrice || '0');
       const quantity = parseInt(product.quantity || '1');
       return total + (price * quantity);
     }, 0);
-  };
+  }, [products]);
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Mostrar formulario de dirección si selecciona delivery
-    if (field === 'deliveryMethod') {
-      if (value === 'delivery') {
-        setShowAddressForm(true);
-      } else {
-        setShowAddressForm(false);
-        setAddressData(null);
-      }
-    }
-  };
-
-  const handleAddressSubmit = (address: any) => {
+  const handleAddressSubmit = useCallback((address: any) => {
     setAddressData(address);
     setShowAddressForm(false);
-  };
+    if (!editMode) {
+      debouncedPersist(address, setPersistedAddressData);
+    }
+  }, [editMode, debouncedPersist, setPersistedAddressData]);
 
-  const handleAddressCancel = () => {
+  const handleAddressCancel = useCallback(() => {
     setShowAddressForm(false);
     setFormData(prev => ({ ...prev, deliveryMethod: '' }));
-  };
+  }, []);
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
 
@@ -395,8 +411,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
                     onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                    className="min-h-[60px] max-h-[60px] resize-none text-sm overflow-y-auto"
-                    rows={2}
+                    className="min-h-[80px] resize-y text-sm mobile-safe-textarea"
+                    rows={3}
                     required
                   />
                 </div>
@@ -441,7 +457,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {products.length > 1 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-sm font-medium text-blue-800">
-              Total estimado: ${calculateTotalEstimated().toFixed(2)} USD
+              Total estimado: ${calculateTotalEstimated.toFixed(2)} USD
             </p>
             <p className="text-xs text-blue-600 mt-1">
               Pedido de {products.length} productos
@@ -667,9 +683,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col">
+        <DrawerContent className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col mobile-safe-drawer">
           <MobileHeader />
-          <div className="flex-1 overflow-y-auto px-4 pb-6 env(safe-area-inset-bottom)">
+          <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <FormContent />
           </div>
         </DrawerContent>
