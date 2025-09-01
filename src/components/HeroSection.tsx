@@ -34,10 +34,6 @@ const HeroSection = ({
         }}></div>
       </div>
       
-      {/* Floating Orbs with Animation */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-radial from-primary/20 to-transparent rounded-full blur-3xl animate-[float_6s_ease-in-out_infinite]"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-radial from-shopper/15 to-transparent rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite_reverse]"></div>
-      <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-radial from-traveler/20 to-transparent rounded-full blur-2xl animate-[float_7s_ease-in-out_infinite_1s]"></div>
       
       {/* Geometric Shapes */}
       <div className="absolute top-1/4 left-1/4 w-16 h-16 border border-primary/20 rotate-45 animate-[spin_20s_linear_infinite]"></div>
