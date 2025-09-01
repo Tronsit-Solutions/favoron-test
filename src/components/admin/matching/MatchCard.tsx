@@ -145,11 +145,10 @@ export const MatchCard = ({
             {isMobile && (showQuoteTimer || showAssignmentTimer) && (
               <div className="space-y-2">
                 {showQuoteTimer && (
-                  <div className="bg-orange-50 border border-orange-200 rounded p-2">
-                    <span className="text-sm text-orange-700 font-medium block mb-1">Tiempo para pago</span>
+                  <div className="bg-red-50 border border-red-200 rounded px-2 py-1">
                     <QuoteCountdown 
                       expiresAt={pkg.quote_expires_at} 
-                      compact={false}
+                      compact={true}
                     />
                   </div>
                 )}
