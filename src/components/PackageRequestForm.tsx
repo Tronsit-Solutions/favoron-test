@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +31,6 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
-  const isMobile = useIsMobile();
   
   // Initialize data based on mode
   const getInitialProducts = () => {
@@ -118,64 +115,44 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Debug helpers (temporary)
-  const renders = useRef(0);
-  renders.current++;
-  console.debug('🔄 Form renders:', renders.current, { formData: Object.keys(formData), products: products.length });
-
-  // Stable onChange functions using refs to prevent recreations
-  const updateProductField = useRef((index: number, field: keyof Product) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.currentTarget.value;
-    console.debug('📝 Product field change:', field, value, 'index:', index);
-    
+  // Stable onChange functions using useCallback to prevent recreations
+  const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
     setProducts(prev => {
       const newProducts = [...prev];
       newProducts[index] = { ...newProducts[index], [field]: value };
       return newProducts;
     });
-  }).current;
+  }, []);
 
-  const updateFormField = useRef((field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.currentTarget.value;
-    console.debug('📝 Form field change:', field, value);
-    
+  const updateFormField = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  }).current;
+  }, []);
 
   // Prevent Enter key from submitting form in text inputs
-  const preventEnterSubmit = useRef((e: React.KeyboardEvent) => {
+  const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
     }
-  }).current;
+  }, []);
 
   // Debounced sync to persisted state (only in create mode)
-  const syncTimeout = useRef<NodeJS.Timeout>();
-  
-  // Debounced sync to prevent excessive updates during typing
   useEffect(() => {
     if (!editMode) {
-      if (syncTimeout.current) clearTimeout(syncTimeout.current);
-      syncTimeout.current = setTimeout(() => {
+      const timeout = setTimeout(() => {
         setPersistedProducts(products);
       }, 300);
+      return () => clearTimeout(timeout);
     }
-    return () => {
-      if (syncTimeout.current) clearTimeout(syncTimeout.current);
-    };
   }, [products, setPersistedProducts, editMode]);
 
   useEffect(() => {
     if (!editMode) {
-      if (syncTimeout.current) clearTimeout(syncTimeout.current);
-      syncTimeout.current = setTimeout(() => {
+      const timeout = setTimeout(() => {
         setPersistedFormData(formData);
       }, 300);
+      return () => clearTimeout(timeout);
     }
-    return () => {
-      if (syncTimeout.current) clearTimeout(syncTimeout.current);
-    };
   }, [formData, setPersistedFormData, editMode]);
 
   useEffect(() => {
@@ -204,7 +181,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     
     if (isSubmitting) return; // Prevent double submission
     
-    console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
     setIsSubmitting(true);
     
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
@@ -241,11 +217,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       deliveryMethod: formData.deliveryMethod
     };
 
-    console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
-    
     try {
       await onSubmit(submitData);
-      console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
       // Reset form and clear persisted data on success (only in create mode)
       if (!editMode) {
@@ -279,7 +252,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       // Close modal
       onClose();
     } catch (error) {
-      console.error('❌ FORM SUBMIT ERROR:', error);
       alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
@@ -323,35 +295,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
-
-  // Mobile Header Component
-  const MobileHeader = () => (
-    <div className="flex items-center justify-between py-4 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
-        <ArrowLeft className="h-4 w-4" />
-      </Button>
-      <h2 className="text-lg font-semibold text-center flex-1">
-        {editMode ? 'Editar Solicitud' : 'Nueva Solicitud'}
-      </h2>
-      <div className="w-10" /> {/* Spacer for centering */}
-    </div>
-  );
-
-  // Desktop Header Component
-  const DesktopHeader = () => (
-    <DialogHeader>
-      <DialogTitle className="flex items-center space-x-2">
-        <Package className="h-5 w-5 text-primary" />
-        <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
-      </DialogTitle>
-      <DialogDescription>
-        {editMode 
-          ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-          : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
-        }
-      </DialogDescription>
-    </DialogHeader>
-  );
 
   // Form Content Component
   const FormContent = () => (
@@ -403,7 +346,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       type="url"
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink ?? ''}
-                      onChange={updateProductField(index, 'itemLink')}
+                      onChange={(e) => updateProductField(index, 'itemLink', e.target.value)}
                       onKeyDown={preventEnterSubmit}
                       className="pl-7 h-8 text-sm"
                       required
@@ -417,7 +360,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription ?? ''}
-                    onChange={updateProductField(index, 'itemDescription')}
+                    onChange={(e) => updateProductField(index, 'itemDescription', e.target.value)}
                     onKeyDown={preventEnterSubmit}
                     className="min-h-[60px] resize-none text-sm"
                     rows={2}
@@ -435,7 +378,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         type="text"
                         placeholder="299.99"
                         value={product.estimatedPrice ?? ''}
-                        onChange={updateProductField(index, 'estimatedPrice')}
+                        onChange={(e) => updateProductField(index, 'estimatedPrice', e.target.value)}
                         onKeyDown={preventEnterSubmit}
                         className="pl-7 h-8 text-sm"
                         required
@@ -450,7 +393,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       type="text"
                       placeholder="1"
                       value={product.quantity ?? ''}
-                      onChange={updateProductField(index, 'quantity')}
+                      onChange={(e) => updateProductField(index, 'quantity', e.target.value)}
                       onKeyDown={preventEnterSubmit}
                       className="h-8 text-sm"
                       required
@@ -495,7 +438,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Input
             placeholder="Escribe la ciudad de destino"
             value={formData.packageDestinationOther ?? ''}
-            onChange={updateFormField('packageDestinationOther')}
+            onChange={(e) => updateFormField('packageDestinationOther', e.target.value)}
             onKeyDown={preventEnterSubmit}
             className="mt-2"
             required
@@ -527,7 +470,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Input
             placeholder="Escribe el país de origen"
             value={formData.purchaseOriginOther ?? ''}
-            onChange={updateFormField('purchaseOriginOther')}
+            onChange={(e) => updateFormField('purchaseOriginOther', e.target.value)}
             onKeyDown={preventEnterSubmit}
             className="mt-2"
             required
@@ -670,7 +613,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           id="additionalNotes"
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
           value={formData.additionalNotes ?? ''}
-          onChange={updateFormField('additionalNotes')}
+          onChange={(e) => updateFormField('additionalNotes', e.target.value)}
           onKeyDown={preventEnterSubmit}
           className="min-h-[80px]"
         />
@@ -705,26 +648,41 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </form>
   );
 
-  // Conditional rendering based on device type
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[95vh] overflow-hidden">
-          <MobileHeader />
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
-            <FormContent />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
-  // Desktop version
+  // Single responsive dialog to prevent component tree remounting
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DesktopHeader />
-        <FormContent />
+      <DialogContent className="sm:max-w-lg w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-0">
+        {/* Mobile-optimized header */}
+        <div className="md:hidden flex items-center justify-between py-4 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-lg font-semibold text-center flex-1">
+            {editMode ? 'Editar Solicitud' : 'Nueva Solicitud'}
+          </h2>
+          <div className="w-10" />
+        </div>
+        
+        {/* Desktop header */}
+        <div className="hidden md:block">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center space-x-2">
+              <Package className="h-5 w-5 text-primary" />
+              <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {editMode 
+                ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
+                : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        
+        {/* Form content with responsive padding */}
+        <div className="p-4 md:p-6 md:pt-0">
+          <FormContent />
+        </div>
       </DialogContent>
     </Dialog>
   );
