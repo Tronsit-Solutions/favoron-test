@@ -904,13 +904,39 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                           <MapPin className="h-3.5 w-3.5 text-primary" />
                         </div>
                         <div className="flex-1 space-y-2">
+                          {matchedTrip.package_receiving_address.recipientName && (
+                            <div className="bg-accent/30 rounded-lg p-3 shadow-sm border border-accent/40">
+                              <div className="flex items-center space-x-2">
+                                <User className="h-4 w-4 text-accent-foreground" />
+                                <p className="font-semibold text-accent-foreground text-sm">
+                                  {matchedTrip.package_receiving_address.recipientName}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="bg-background/80 rounded-lg p-3 shadow-sm">
                             <p className="font-semibold text-foreground text-sm leading-relaxed">
                               {matchedTrip.package_receiving_address.streetAddress}
                             </p>
+                            {matchedTrip.package_receiving_address.streetAddress2 && (
+                              <p className="text-muted-foreground text-sm">
+                                {matchedTrip.package_receiving_address.streetAddress2}
+                              </p>
+                            )}
                             <p className="text-muted-foreground text-sm mt-1">
                               {matchedTrip.package_receiving_address.cityArea}
                             </p>
+                            {matchedTrip.package_receiving_address.postalCode && (
+                              <p className="text-muted-foreground text-sm">
+                                <strong>CP:</strong> {matchedTrip.package_receiving_address.postalCode}
+                              </p>
+                            )}
+                            {matchedTrip.package_receiving_address.accommodationType && (
+                              <p className="text-muted-foreground text-sm">
+                                <strong>Tipo:</strong> {matchedTrip.package_receiving_address.accommodationType}
+                              </p>
+                            )}
                           </div>
                           
                           {matchedTrip.package_receiving_address.hotelAirbnbName && (
