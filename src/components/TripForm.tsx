@@ -118,6 +118,7 @@ const TripForm = ({
   }];
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     try {
       console.log('📱 Traveler form submission started (mobile compatible)', {
@@ -413,7 +414,21 @@ const TripForm = ({
           <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
           <div className="relative">
             <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
+            <Input 
+              id="availableSpace" 
+              type="text" 
+              inputMode="decimal"
+              placeholder="5.0" 
+              value={formData.availableSpace} 
+              onChange={e => {
+                console.debug('availableSpace change:', e.target.value);
+                handleInputChange('availableSpace', e.target.value);
+              }}
+              onFocus={() => console.debug('availableSpace focus')}
+              onBlur={() => console.debug('availableSpace blur')}
+              className="pl-10" 
+              required 
+            />
           </div>
         </div>
       </div>
@@ -432,7 +447,19 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-          <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
+          <Input 
+            id="recipientName" 
+            type="text" 
+            placeholder="Ej: Juan Pérez" 
+            value={formData.packageReceivingAddress.recipientName} 
+            onChange={e => {
+              console.debug('recipientName change:', e.target.value);
+              handleAddressChange('recipientName', e.target.value);
+            }}
+            onFocus={() => console.debug('recipientName focus')}
+            onBlur={() => console.debug('recipientName blur')}
+            required 
+          />
         </div>
 
         <div className="space-y-2">
@@ -454,7 +481,19 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-          <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+          <Input 
+            id="streetAddress" 
+            type="text" 
+            placeholder="Ej: 123 Main Street" 
+            value={formData.packageReceivingAddress.streetAddress} 
+            onChange={e => {
+              console.debug('streetAddress change:', e.target.value);
+              handleAddressChange('streetAddress', e.target.value);
+            }}
+            onFocus={() => console.debug('streetAddress focus')}
+            onBlur={() => console.debug('streetAddress blur')}
+            required 
+          />
         </div>
 
         <div className="space-y-2">

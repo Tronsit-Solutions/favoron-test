@@ -84,8 +84,13 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
           <Textarea
             placeholder="Escribe un mensaje..."
             value={message}
-            onChange={(e) => setMessage(e.target.value.slice(0, 300))}
-            onKeyDown={handleKeyDown}
+            onChange={(e) => {
+              const newValue = e.target.value.slice(0, 300);
+              console.debug('MessageInput change:', newValue);
+              setMessage(newValue);
+            }}
+            onFocus={() => console.debug('MessageInput focus')}
+            onBlur={() => console.debug('MessageInput blur')}
             className="min-h-[50px] resize-none text-sm pr-4 pl-3 py-2 border-0 bg-muted/40 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all duration-200"
             disabled={isSending || disabled}
           />

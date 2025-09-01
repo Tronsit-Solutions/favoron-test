@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,10 +12,23 @@ import NotFound from "./pages/NotFound";
 import CustomsRegulation from "./pages/CustomsRegulation";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import Dashboard from "./pages/Dashboard";
+import InputDebug from "./pages/InputDebug";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Global keyboard debugging instrumentation
+  React.useEffect(() => {
+    const handleGlobalKeydown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      console.debug('GLOBAL keydown:', e.key, target?.tagName, target?.getAttribute?.('name'));
+    };
+    
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -29,6 +43,7 @@ const App = () => (
                 <Dashboard />
               </RequireAuth>
             } />
+            <Route path="/input-debug" element={<InputDebug />} />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
             <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -38,6 +53,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

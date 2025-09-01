@@ -195,6 +195,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (isSubmitting) return; // Prevent double submission
     
@@ -362,7 +363,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               type="url"
               placeholder="https://amazon.com/producto..."
               value={product.itemLink ?? ''}
-              onChange={(e) => onUpdate(index, 'itemLink', e.target.value)}
+              onChange={(e) => {
+                console.debug('itemLink change:', index, e.target.value);
+                onUpdate(index, 'itemLink', e.target.value);
+              }}
+              onFocus={() => console.debug('itemLink focus:', index)}
+              onBlur={() => console.debug('itemLink blur:', index)}
               onKeyDown={preventEnterSubmit}
               className="pl-7 h-8 text-sm"
               autoComplete="off"
@@ -381,7 +387,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             name={`itemDescription-${index}`}
             placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
             value={product.itemDescription ?? ''}
-            onChange={(e) => onUpdate(index, 'itemDescription', e.target.value)}
+            onChange={(e) => {
+              console.debug('itemDescription change:', index, e.target.value);
+              onUpdate(index, 'itemDescription', e.target.value);
+            }}
+            onFocus={() => console.debug('itemDescription focus:', index)}
+            onBlur={() => console.debug('itemDescription blur:', index)}
             onKeyDown={preventEnterSubmit}
             className="min-h-[60px] resize-none text-sm"
             autoComplete="off"
@@ -403,7 +414,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 type="text"
                 placeholder="299.99"
                 value={product.estimatedPrice ?? ''}
-                onChange={(e) => onUpdate(index, 'estimatedPrice', e.target.value)}
+                onChange={(e) => {
+                  console.debug('estimatedPrice change:', index, e.target.value);
+                  onUpdate(index, 'estimatedPrice', e.target.value);
+                }}
+                onFocus={() => console.debug('estimatedPrice focus:', index)}
+                onBlur={() => console.debug('estimatedPrice blur:', index)}
                 onKeyDown={preventEnterSubmit}
                 className="pl-7 h-8 text-sm"
                 autoComplete="off"
@@ -423,7 +439,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               type="text"
               placeholder="1"
               value={product.quantity ?? ''}
-              onChange={(e) => onUpdate(index, 'quantity', e.target.value)}
+              onChange={(e) => {
+                console.debug('quantity change:', index, e.target.value);
+                onUpdate(index, 'quantity', e.target.value);
+              }}
+              onFocus={() => console.debug('quantity focus:', index)}
+              onBlur={() => console.debug('quantity blur:', index)}
               onKeyDown={preventEnterSubmit}
               className="h-8 text-sm"
               autoComplete="off"
