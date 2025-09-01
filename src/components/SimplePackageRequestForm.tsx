@@ -162,7 +162,7 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
 
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      {/* Ultra-Simple Product Section */}
+      {/* Simplified Product Section - Desktop Only */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Producto a comprar</h3>
 
