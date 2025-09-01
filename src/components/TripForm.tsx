@@ -20,6 +20,7 @@ import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { COUNTRIES } from "@/lib/countries";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
+import { cn } from "@/lib/utils";
 import "./ui/mobile-safe-form.css";
 interface TripFormProps {
   isOpen: boolean;
@@ -553,18 +554,44 @@ const TripForm = ({
         
         <div className="space-y-3">
           <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
-          <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="oficina" id="oficina" />
-              <Label htmlFor="oficina" className="cursor-pointer">
-                Entrego en oficina de Favorón (zona 14)
-              </Label>
+          <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-2 sm:space-y-3">
+            <div 
+              className={cn(
+                "mobile-radio-card border-2 rounded-lg p-4 sm:p-3 cursor-pointer transition-all duration-200 flex items-start space-x-3 sm:space-x-2",
+                formData.deliveryMethod === "oficina" 
+                  ? "selected border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              )}
+              onClick={() => handleInputChange('deliveryMethod', 'oficina')}
+            >
+              <RadioGroupItem value="oficina" id="oficina" className="mt-1 sm:mt-0.5" />
+              <div className="flex-1">
+                <Label htmlFor="oficina" className="cursor-pointer text-sm sm:text-base font-medium">
+                  Entrego en oficina de Favorón (zona 14)
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                  Ubicación fija en zona 14, Guatemala
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="mensajero" id="mensajero" />
-              <Label htmlFor="mensajero" className="cursor-pointer">
-                Entrega a mensajero Favorón (Q25–Q40 según dirección)
-              </Label>
+            <div 
+              className={cn(
+                "mobile-radio-card border-2 rounded-lg p-4 sm:p-3 cursor-pointer transition-all duration-200 flex items-start space-x-3 sm:space-x-2",
+                formData.deliveryMethod === "mensajero" 
+                  ? "selected border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              )}
+              onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
+            >
+              <RadioGroupItem value="mensajero" id="mensajero" className="mt-1 sm:mt-0.5" />
+              <div className="flex-1">
+                <Label htmlFor="mensajero" className="cursor-pointer text-sm sm:text-base font-medium">
+                  Entrega a mensajero Favorón (Q25–Q40 según dirección)
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                  Recolección a domicilio con costo adicional
+                </p>
+              </div>
             </div>
           </RadioGroup>
           
@@ -647,18 +674,39 @@ const TripForm = ({
       </div>
 
       {/* Terms and Conditions Checkbox */}
-      <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group">
-        <div className="flex items-start space-x-3">
-          <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => setAcceptedTerms(!!checked)} className="mt-1" />
+      <div 
+        className={cn(
+          "mobile-checkbox-card bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-xl p-4 sm:p-3 transition-all duration-300 cursor-pointer",
+          acceptedTerms 
+            ? "checked border-primary bg-primary/8" 
+            : "hover:border-primary/50 hover:bg-primary/3"
+        )}
+        onClick={() => setAcceptedTerms(!acceptedTerms)}
+      >
+        <div className="flex items-start space-x-4 sm:space-x-3">
+          <Checkbox 
+            id="acceptTerms" 
+            checked={acceptedTerms} 
+            onCheckedChange={checked => setAcceptedTerms(!!checked)} 
+            className="mt-1 sm:mt-0.5" 
+          />
           <div className="flex-1">
-            <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
+            <Label htmlFor="acceptTerms" className="text-base sm:text-sm font-semibold text-foreground cursor-pointer transition-colors">
               Entiendo y acepto los términos y condiciones de Favorón
             </Label>
-            <p className="text-xs text-black/70 mt-1">
+            <p className="text-sm sm:text-xs text-muted-foreground mt-2 sm:mt-1 leading-relaxed">
               Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
             </p>
-            <Button type="button" variant="link" className="h-auto p-0 text-xs text-black hover:text-black/80" onClick={() => setShowTermsModal(true)}>
-              <FileText className="h-3 w-3 mr-1" />
+            <Button 
+              type="button" 
+              variant="link" 
+              className="h-auto p-0 text-sm sm:text-xs text-primary hover:text-primary/80 mt-2 sm:mt-1" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTermsModal(true);
+              }}
+            >
+              <FileText className="h-4 w-4 sm:h-3 sm:w-3 mr-1" />
               Leer términos y condiciones
             </Button>
           </div>
