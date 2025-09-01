@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Plane } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -10,6 +10,7 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 interface PackageDetailModalProps {
   modalId: string;
@@ -19,6 +20,7 @@ interface PackageDetailModalProps {
 }
 
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
+  const [showTravelModal, setShowTravelModal] = useState(false);
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
@@ -333,14 +335,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
-                      <div className="text-sm text-blue-700 space-y-1">
-                        <p><strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                        <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip.arrival_date)}</p>
-                        <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip.delivery_date)}</p>
-                      </div>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTravelModal(true)}
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Plane className="h-4 w-4" />
+                      Ver Información Completa del Viaje
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -723,6 +726,271 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
           )}
         </div>
       </DialogContent>
+
+      {/* Travel Information Modal */}
+      {matchedTrip && (
+        <Dialog open={showTravelModal} onOpenChange={setShowTravelModal}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Plane className="h-5 w-5" />
+                <span>Información Completa del Viaje</span>
+              </DialogTitle>
+              <DialogDescription>
+                Detalles del viaje, direcciones de entrega y fechas importantes
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* Traveler Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>Información del Viajero</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Nombre</p>
+                        <p className="text-sm text-muted-foreground">
+                          {travelerProfile ? `${travelerProfile.first_name || ''} ${travelerProfile.last_name || ''}`.trim() || travelerProfile.username || 'Sin nombre' : 'Sin información'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Email</p>
+                        <p className="text-sm text-muted-foreground">
+                          {travelerProfile?.email || 'Sin email registrado'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Teléfono</p>
+                        <p className="text-sm text-muted-foreground">
+                          {travelerProfile?.phone_number || 'Sin teléfono registrado'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Usuario</p>
+                        <p className="text-sm text-muted-foreground">
+                          @{travelerProfile?.username || 'Sin usuario'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trip Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Plane className="h-4 w-4" />
+                    <span>Detalles del Viaje</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Ruta</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.from_city} → {matchedTrip.to_city}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Fecha de Salida</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatSafeDate(matchedTrip.departure_date)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Fecha de Llegada</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatSafeDate(matchedTrip.arrival_date)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Fecha de Entrega</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatSafeDate(matchedTrip.delivery_date)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Primer día para recibir paquetes</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatSafeDate(matchedTrip.first_day_packages)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Último día para recibir paquetes</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatSafeDate(matchedTrip.last_day_packages)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Método de Entrega</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.delivery_method === 'oficina' ? 'Oficina Favorón' : 'Mensajero'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Espacio Disponible</p>
+                        <p className="text-sm text-muted-foreground">
+                          {matchedTrip.available_space ? `${matchedTrip.available_space} kg` : 'No especificado'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Package Receiving Address */}
+              {matchedTrip.package_receiving_address && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Home className="h-4 w-4" />
+                      <span>Dirección para Recibir Paquetes</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex items-center justify-center w-6 h-6 bg-primary/15 rounded-full mt-0.5 flex-shrink-0">
+                          <MapPin className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                            <p className="font-semibold text-foreground text-sm leading-relaxed">
+                              {matchedTrip.package_receiving_address.streetAddress}
+                            </p>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {matchedTrip.package_receiving_address.cityArea}
+                            </p>
+                          </div>
+                          
+                          {matchedTrip.package_receiving_address.hotelAirbnbName && (
+                            <div className="bg-secondary/50 rounded-lg p-3 border border-secondary/20">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                                <p className="font-medium text-secondary-foreground text-sm">
+                                  {matchedTrip.package_receiving_address.hotelAirbnbName}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                            <div className="flex items-center space-x-2">
+                              <Phone className="h-4 w-4 text-primary" />
+                              <p className="font-medium text-foreground text-sm">
+                                {matchedTrip.package_receiving_address.contactNumber}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Messenger Pickup Info */}
+              {matchedTrip.messenger_pickup_info && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Truck className="h-4 w-4" />
+                      <span>Información de Recogida por Mensajero</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-gradient-to-br from-orange/5 to-orange/10 border border-orange/20 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex items-center justify-center w-6 h-6 bg-orange/15 rounded-full mt-0.5 flex-shrink-0">
+                          <Truck className="h-3.5 w-3.5 text-orange" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                            <p className="font-semibold text-foreground text-sm leading-relaxed">
+                              {matchedTrip.messenger_pickup_info.pickupAddress}
+                            </p>
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {matchedTrip.messenger_pickup_info.cityArea}
+                            </p>
+                          </div>
+                          
+                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                            <div className="flex items-center space-x-2">
+                              <Phone className="h-4 w-4 text-orange" />
+                              <p className="font-medium text-foreground text-sm">
+                                {matchedTrip.messenger_pickup_info.contactNumber}
+                              </p>
+                            </div>
+                          </div>
+
+                          {matchedTrip.messenger_pickup_info.specialInstructions && (
+                            <div className="bg-background/80 rounded-lg p-3 shadow-sm">
+                              <p className="text-sm font-medium mb-1">Instrucciones especiales:</p>
+                              <p className="text-sm text-muted-foreground">
+                                {matchedTrip.messenger_pickup_info.specialInstructions}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 };
