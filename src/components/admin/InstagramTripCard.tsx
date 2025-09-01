@@ -11,7 +11,7 @@ interface InstagramTripCardProps {
 
 export const InstagramTripCard = ({ trip }: InstagramTripCardProps) => {
   return (
-    <div className="bg-white rounded-xl p-4 mx-2 flex items-center">
+    <div className="bg-white rounded-xl p-6 mx-2 flex items-center justify-center min-h-[80px]">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center text-2xl font-bold text-gray-800">
           <span>{trip.from_city}</span>
