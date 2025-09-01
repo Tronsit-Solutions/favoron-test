@@ -67,10 +67,10 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         return;
       }
 
-      // Split trips into chunks of 10
+      // Split trips into chunks of 8
       const tripChunks = [];
-      for (let i = 0; i < tripsToDownload.length; i += 10) {
-        tripChunks.push(tripsToDownload.slice(i, i + 10));
+      for (let i = 0; i < tripsToDownload.length; i += 8) {
+        tripChunks.push(tripsToDownload.slice(i, i + 8));
       }
 
       // Generate and download each image
@@ -164,8 +164,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   // Generate Instagram posts for preview (hidden)
   const generateInstagramPosts = () => {
     const tripChunks = [];
-    for (let i = 0; i < filteredTrips.length; i += 10) {
-      tripChunks.push(filteredTrips.slice(i, i + 10));
+    for (let i = 0; i < filteredTrips.length; i += 8) {
+      tripChunks.push(filteredTrips.slice(i, i + 8));
     }
     return tripChunks;
   };
