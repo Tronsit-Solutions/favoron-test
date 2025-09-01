@@ -32,19 +32,33 @@
 /* Mobile-optimized radio button cards */
 .mobile-radio-card {
   min-height: 60px;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  border: 2px solid hsl(var(--border));
+  position: relative;
 }
 
 .mobile-radio-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: hsl(var(--primary) / 0.5);
 }
 
-.mobile-radio-card.selected {
+.mobile-radio-card[data-state="checked"] {
   border-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.05);
+  background: hsl(var(--primary) / 0.08);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+}
+
+.mobile-radio-card[data-state="checked"]::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: hsl(var(--primary));
+  font-weight: bold;
+  font-size: 16px;
 }
 
 /* Mobile-optimized checkbox container */
