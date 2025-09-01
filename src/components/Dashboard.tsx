@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import PackageRequestForm from "./PackageRequestForm";
+import PackageRequestForm from "./SimplePackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
 import AdminDashboard from "./AdminDashboard";
