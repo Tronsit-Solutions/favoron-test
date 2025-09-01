@@ -125,11 +125,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      // Clear all textarea timeouts
-      Object.values(textareaTimeouts.current).forEach(timeout => {
-        if (timeout) clearTimeout(timeout);
-      });
-      
       // Clear persistence timeout
       if (persistTimeoutRef.current) {
         clearTimeout(persistTimeoutRef.current);
@@ -148,9 +143,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, [editMode, persistProducts, persistFormData, persistAddress, products, formData, addressData]);
 
-  // Refs for stable textarea handling
-  const textareaRefs = useRef<{ [key: string]: string }>({});
-  const textareaTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  // Local state for textarea to prevent re-renders during typing
+  const [localTextareaValues, setLocalTextareaValues] = useState<{ [key: string]: string }>({});
   
   // Optimized product update without automatic persistence
   const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
@@ -159,23 +153,23 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     ));
   }, []);
 
-  // Special handler for textarea to prevent keyboard closing on mobile
-  const handleTextareaChange = useCallback((index: number, field: keyof Product, value: string) => {
-    const key = `${index}-${field}`;
-    
-    // Store in ref immediately (no re-render)
-    textareaRefs.current[key] = value;
-    
-    // Clear existing timeout
-    if (textareaTimeouts.current[key]) {
-      clearTimeout(textareaTimeouts.current[key]);
-    }
-    
-    // Update state with debounce to prevent rapid re-renders
-    textareaTimeouts.current[key] = setTimeout(() => {
-      updateProduct(index, field, value);
-    }, 100);
-  }, [updateProduct]);
+  // Initialize local textarea values when products change
+  useEffect(() => {
+    const newLocalValues: { [key: string]: string } = {};
+    products.forEach((product, index) => {
+      const key = `${index}-itemDescription`;
+      if (!localTextareaValues[key]) {
+        newLocalValues[key] = product.itemDescription || '';
+      }
+    });
+    setLocalTextareaValues(prev => ({ ...prev, ...newLocalValues }));
+  }, [products.length]); // Only when product count changes
+
+  // Handle textarea change with local state (no re-renders)
+  const handleTextareaChange = useCallback((index: number, value: string) => {
+    const key = `${index}-itemDescription`;
+    setLocalTextareaValues(prev => ({ ...prev, [key]: value }));
+  }, []);
 
   // Clean form data update without automatic persistence
   const handleInputChange = useCallback((field: string, value: any) => {
@@ -196,6 +190,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const handleInputBlur = useCallback(() => {
     persistCurrentState();
   }, [persistCurrentState]);
+
+  // Sync local textarea value to main state on blur
+  const handleTextareaBlur = useCallback((index: number) => {
+    const key = `${index}-itemDescription`;
+    const value = localTextareaValues[key] || '';
+    updateProduct(index, 'itemDescription', value);
+    handleInputBlur();
+  }, [localTextareaValues, updateProduct, handleInputBlur]);
 
   const destinationCities = [
     'Guatemala City',
@@ -443,9 +445,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     key={`itemDescription-${index}`}
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                    value={product.itemDescription}
-                    onChange={(e) => handleTextareaChange(index, 'itemDescription', e.target.value)}
-                    onBlur={handleInputBlur}
+                    value={localTextareaValues[`${index}-itemDescription`] || product.itemDescription || ''}
+                    onChange={(e) => handleTextareaChange(index, e.target.value)}
+                    onBlur={() => handleTextareaBlur(index)}
                     className="min-h-[80px] resize-y text-sm mobile-safe-textarea"
                     rows={3}
                     required
