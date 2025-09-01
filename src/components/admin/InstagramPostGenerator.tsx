@@ -52,7 +52,7 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
                   <span className="text-teal-500 mx-2">→</span>
                   <span>{trip.to_city}</span>
                 </div>
-                <div className="flex items-center text-lg font-medium text-gray-600">
+                <div className="flex items-center text-xl font-medium text-gray-600">
                   <span>{new Date(trip.arrival_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
