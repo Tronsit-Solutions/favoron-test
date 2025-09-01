@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plane, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Plane, Calendar, Download } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
 import { LoadingState } from "@/components/ui/loading-state";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import html2canvas from "html2canvas";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -13,7 +17,12 @@ interface AvailableTripsModalProps {
 
 const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const { trips, loading } = usePublicTrips();
+  const { user, userRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const modalContentRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const isAdmin = userRole?.role === 'admin';
 
   const filteredTrips = trips.filter(trip => 
     trip.from_city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,15 +37,77 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     });
   };
 
+  const handleDownloadImage = async () => {
+    if (!modalContentRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(modalContentRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        height: modalContentRef.current.scrollHeight,
+        windowHeight: modalContentRef.current.scrollHeight
+      });
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          const now = new Date();
+          const timestamp = now.toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+          link.download = `hub-viajes-${timestamp}.jpeg`;
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Imagen descargada",
+            description: "El Hub de Viajes se ha exportado como imagen JPEG",
+          });
+        }
+      }, 'image/jpeg', 0.95);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo descargar la imagen",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col bg-gradient-to-br from-teal-500/5 via-cyan-400/5 to-emerald-500/5 p-4 sm:p-6">
-        <DialogHeader className="bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-500 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
-          <DialogTitle className="flex items-center gap-2 text-white text-lg sm:text-xl">
-            <span className="text-lg sm:text-xl">🌍</span>
-            Hub de Viajes
-          </DialogTitle>
-        </DialogHeader>
+        <div ref={modalContentRef}>
+          <DialogHeader className="bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-500 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+            <DialogTitle className="flex items-center justify-between text-white text-lg sm:text-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-lg sm:text-xl">🌍</span>
+                Hub de Viajes
+              </div>
+              {isAdmin && (
+                <Button
+                  onClick={handleDownloadImage}
+                  disabled={isDownloading}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 h-8 px-3"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  {isDownloading ? "Descargando..." : "Descargar"}
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
 
         <div className="flex-shrink-0 space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           <div className="relative">
@@ -98,6 +169,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               </div>
             ))
           )}
+        </div>
         </div>
       </DialogContent>
     </Dialog>
