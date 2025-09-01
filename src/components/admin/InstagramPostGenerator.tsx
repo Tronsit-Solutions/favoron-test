@@ -42,32 +42,28 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
         </div>
 
         {/* Trips List */}
-        <div className="flex-1 px-12 py-8 space-y-8">
+        <div className="flex-1 px-12 py-6 space-y-4">
           {trips.map((trip, index) => (
             <div 
               key={trip.id}
-              className="bg-white rounded-2xl p-8 mx-2"
+              className="bg-white rounded-xl p-4 mx-2"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-r from-teal-500 to-cyan-400 p-3 rounded-xl">
-                    <Plane className="h-8 w-8 text-white" />
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-400 p-2 rounded-lg flex items-center justify-center">
+                    <Plane className="h-5 w-5 text-white" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-                      <span>{trip.from_city}</span>
-                      <span className="text-teal-500">→</span>
-                      <span>{trip.to_city}</span>
-                    </div>
+                  <div className="flex items-center gap-2 text-xl font-bold text-gray-800">
+                    <span>{trip.from_city}</span>
+                    <span className="text-teal-500">→</span>
+                    <span>{trip.to_city}</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center justify-end gap-2 text-gray-600">
-                    <Calendar className="h-5 w-5" />
-                    <span className="text-lg font-medium">
-                      {formatDate(trip.arrival_date)}
-                    </span>
-                  </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-base font-medium">
+                    {formatDate(trip.arrival_date)}
+                  </span>
                 </div>
               </div>
             </div>
