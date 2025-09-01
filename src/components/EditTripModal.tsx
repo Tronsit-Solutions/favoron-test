@@ -211,7 +211,19 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
+              <Input 
+                id="recipientName" 
+                type="text" 
+                placeholder="Ej: Juan Pérez" 
+                value={formData.packageReceivingAddress.recipientName} 
+                onChange={e => handleAddressChange('recipientName', e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                autoComplete="off" 
+                autoCorrect="off" 
+                autoCapitalize="none" 
+                enterKeyHint="done"
+                required 
+              />
             </div>
 
             <div className="space-y-2">
@@ -233,29 +245,88 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-              <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+              <Input 
+                id="streetAddress" 
+                type="text" 
+                placeholder="Ej: 123 Main Street" 
+                value={formData.packageReceivingAddress.streetAddress} 
+                onChange={e => handleAddressChange('streetAddress', e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                autoComplete="off" 
+                autoCorrect="off" 
+                autoCapitalize="none" 
+                enterKeyHint="done"
+                required 
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
-              <Input id="streetAddress2" type="text" placeholder="Ej: Apt 4B, Suite 100" value={formData.packageReceivingAddress.streetAddress2} onChange={e => handleAddressChange('streetAddress2', e.target.value)} />
+              <Input 
+                id="streetAddress2" 
+                type="text" 
+                placeholder="Ej: Apt 4B, Suite 100" 
+                value={formData.packageReceivingAddress.streetAddress2} 
+                onChange={e => handleAddressChange('streetAddress2', e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                autoComplete="off" 
+                autoCorrect="off" 
+                autoCapitalize="none" 
+                enterKeyHint="done"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
-                <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
+                <Input 
+                  id="cityArea" 
+                  type="text" 
+                  placeholder="Ej: Miami, FL" 
+                  value={formData.packageReceivingAddress.cityArea} 
+                  onChange={e => handleAddressChange('cityArea', e.target.value)} 
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                  autoComplete="off" 
+                  autoCorrect="off" 
+                  autoCapitalize="none" 
+                  enterKeyHint="done"
+                  required 
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="postalCode">Código postal *</Label>
-                <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} required />
+                <Input 
+                  id="postalCode" 
+                  type="text" 
+                  placeholder="Ej: 33101" 
+                  value={formData.packageReceivingAddress.postalCode} 
+                  onChange={e => handleAddressChange('postalCode', e.target.value)} 
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                  autoComplete="off" 
+                  autoCorrect="off" 
+                  autoCapitalize="none" 
+                  enterKeyHint="done"
+                  required 
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.) *</Label>
-              <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} required />
+              <Input 
+                id="hotelAirbnbName" 
+                type="text" 
+                placeholder="Ej: Hotel InterContinental Miami" 
+                value={formData.packageReceivingAddress.hotelAirbnbName} 
+                onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
+                autoComplete="off" 
+                autoCorrect="off" 
+                autoCapitalize="none" 
+                enterKeyHint="done"
+                required 
+              />
             </div>
 
             <div className="space-y-2">

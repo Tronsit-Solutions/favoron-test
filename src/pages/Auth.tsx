@@ -530,7 +530,7 @@ const Auth = () => {
                 <p className="text-sm text-muted-foreground">Ingresa tu nueva contraseña</p>
               </div>
               
-              <form onSubmit={handleResetPassword} className="space-y-4">
+              <form onSubmit={(e) => { e.preventDefault(); handleResetPassword(e); }} noValidate className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-password">Nueva contraseña</Label>
                   <div className="relative">
@@ -620,7 +620,7 @@ const Auth = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={(e) => { e.preventDefault(); handleSignIn(e); }} noValidate className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <div className="relative">
@@ -710,7 +710,7 @@ const Auth = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={(e) => { e.preventDefault(); handleSignUp(e); }} noValidate className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <div className="relative">
@@ -891,7 +891,7 @@ const Auth = () => {
           {showForgotPassword && (
             <div className="mt-4 p-4 border rounded-lg">
               <h3 className="font-semibold mb-2">Restablecer contraseña</h3>
-              <form onSubmit={handleForgotPassword} className="space-y-3">
+              <form onSubmit={(e) => { e.preventDefault(); handleForgotPassword(e); }} noValidate className="space-y-3">
                 <Input
                   type="email"
                   placeholder="Ingresa tu email"

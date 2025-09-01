@@ -442,7 +442,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Form Content Component
   const FormContent = () => (
-    <form onSubmit={handleSubmit} noValidate className="mobile-safe-form space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} noValidate className="mobile-safe-form space-y-6">
       
       <div className="space-y-4">
         <div className="flex items-center justify-between">

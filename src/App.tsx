@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { FocusStabilizer } from "@/components/FocusStabilizer";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -21,6 +22,7 @@ const App = () => {
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <FocusStabilizer />
       <Toaster />
       <Sonner />
       <BrowserRouter>
