@@ -78,21 +78,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         const postElement = postRefs.current[i];
         if (!postElement) continue;
 
-        // Temporarily move element to visible area and ensure proper styling
-        const originalPosition = postElement.style.position;
-        const originalTop = postElement.style.top;
-        const originalLeft = postElement.style.left;
-        const originalTransform = postElement.style.transform;
+        // Force browser to render all styles properly
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        postElement.style.position = 'absolute';
-        postElement.style.top = '0px';
-        postElement.style.left = '0px';
-        postElement.style.transform = 'none';
-        postElement.style.zIndex = '9999';
-        
-        // Force a reflow to ensure styles are applied
-        postElement.offsetHeight;
-
         const canvas = await html2canvas(postElement, {
           backgroundColor: '#ffffff',
           scale: 1,
@@ -104,16 +92,20 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           width: 1080,
           height: 1080,
           logging: false,
-          imageTimeout: 0,
-          removeContainer: true
+          imageTimeout: 15000,
+          removeContainer: true,
+          ignoreElements: (element) => {
+            return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+          },
+          onclone: (clonedDoc) => {
+            // Ensure all styles are properly applied in the cloned document
+            const clonedElement = clonedDoc.querySelector('[data-html2canvas-ignore="false"]') || clonedDoc.body.firstChild;
+            if (clonedElement && clonedElement instanceof HTMLElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.position = 'static';
+            }
+          }
         });
-
-        // Restore original position
-        postElement.style.position = originalPosition;
-        postElement.style.top = originalTop;
-        postElement.style.left = originalLeft;
-        postElement.style.transform = originalTransform;
-        postElement.style.zIndex = '';
 
         await new Promise<void>((resolve) => {
           canvas.toBlob((blob) => {
