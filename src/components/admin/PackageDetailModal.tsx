@@ -969,19 +969,52 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                          </div>
                        )}
                        
-                       {/* Contact Number */}
-                       {matchedTrip.package_receiving_address.contactNumber && (
-                         <div className="flex items-center gap-3 p-3 bg-green-50/50 border border-green-200/50 rounded-lg">
-                           <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
-                             <Phone className="h-4 w-4 text-green-600" />
-                           </div>
-                           <div>
-                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Teléfono de contacto</p>
-                             <p className="font-semibold text-green-800">{matchedTrip.package_receiving_address.contactNumber}</p>
-                           </div>
-                         </div>
-                       )}
-                     </div>
+                        {/* Contact Number */}
+                        {matchedTrip.package_receiving_address.contactNumber && (
+                          <div className="flex items-center gap-3 p-3 bg-green-50/50 border border-green-200/50 rounded-lg">
+                            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
+                              <Phone className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Teléfono de contacto</p>
+                              <p className="font-semibold text-green-800">{matchedTrip.package_receiving_address.contactNumber}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Reception and Delivery Dates */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="flex items-center gap-3 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
+                              <Calendar className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Primer día recepción</p>
+                              <p className="font-semibold text-blue-800">{formatSafeDate(matchedTrip.first_day_packages)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 p-3 bg-purple-50/50 border border-purple-200/50 rounded-lg">
+                            <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full">
+                              <Calendar className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Último día recepción</p>
+                              <p className="font-semibold text-purple-800">{formatSafeDate(matchedTrip.last_day_packages)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 p-3 bg-emerald-50/50 border border-emerald-200/50 rounded-lg">
+                            <div className="flex items-center justify-center w-8 h-8 bg-emerald-100 rounded-full">
+                              <Truck className="h-4 w-4 text-emerald-600" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha entrega oficina</p>
+                              <p className="font-semibold text-emerald-800">{formatSafeDate(matchedTrip.delivery_date)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                   </CardContent>
                 </Card>
               )}
