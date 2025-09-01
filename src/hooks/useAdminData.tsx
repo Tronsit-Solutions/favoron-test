@@ -146,9 +146,16 @@ export const useAdminData = (): AdminData => {
       let tripsResult: any[] = data || [];
       console.log('✅ Admin: Fetched trips:', tripsResult.length);
 
-      // Create synthetic profiles object for compatibility
+      // Create synthetic profiles object for compatibility while preserving direct fields
       tripsResult = tripsResult.map((t) => ({
         ...t,
+        // Preserve direct name fields from trips_with_user
+        user_display_name: t.user_display_name,
+        first_name: t.first_name,
+        last_name: t.last_name,
+        username: t.username,
+        email: t.email,
+        // Create synthetic profiles object for backward compatibility
         profiles: {
           id: t.user_id,
           display_name: t.user_display_name,
@@ -160,6 +167,14 @@ export const useAdminData = (): AdminData => {
           phone_number: null
         }
       }));
+
+      console.log('🔍 Admin: Sample trip data for debugging:', tripsResult.slice(0, 2).map(t => ({
+        id: t.id.slice(0, 8),
+        user_display_name: t.user_display_name,
+        first_name: t.first_name,
+        last_name: t.last_name,
+        profiles_display_name: t.profiles.display_name
+      })));
 
       console.log('✅ Admin: Created synthetic profiles for trips');
       return tripsResult;
