@@ -17,16 +17,6 @@ import InputDebug from "./pages/InputDebug";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Global keyboard debugging instrumentation
-  React.useEffect(() => {
-    const handleGlobalKeydown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      console.debug('GLOBAL keydown:', e.key, target?.tagName, target?.getAttribute?.('name'));
-    };
-    
-    window.addEventListener('keydown', handleGlobalKeydown);
-    return () => window.removeEventListener('keydown', handleGlobalKeydown);
-  }, []);
 
   return (
   <QueryClientProvider client={queryClient}>

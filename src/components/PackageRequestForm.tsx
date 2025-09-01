@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo, startTransition } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ interface PackageRequestFormProps {
 }
 
 interface Product {
-  id?: string; // Add stable ID for keys
+  id: string; // Stable ID for keys based on index
   itemLink: string;
   itemDescription: string;
   estimatedPrice: string;
@@ -40,12 +40,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       if (Array.isArray(initialData.products_data)) {
         return initialData.products_data.map((product, index) => ({
           ...product,
-          id: product.id || `product_${index}_${Date.now()}`
+          id: `product_${index}` // Stable key based on index only
         }));
       } else {
         // Legacy format - single product object
         return [{
-          id: `product_0_${Date.now()}`,
+          id: 'product_0', // Stable key
           itemLink: initialData.item_link || '',
           itemDescription: initialData.item_description || '',
           estimatedPrice: initialData.estimated_price || '',
@@ -54,7 +54,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       }
     }
     return [{
-      id: `product_0_${Date.now()}`,
+      id: 'product_0', // Stable key
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
@@ -89,7 +89,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
-      id: `product_0_${Date.now()}`,
+      id: 'product_0', // Stable key
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
@@ -135,11 +135,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       const initialFormData = getInitialFormData();
       const initialAddress = initialData.delivery_address || null;
       
-      startTransition(() => {
-        setProducts(initialProducts);
-        setFormData(initialFormData);
-        setAddressData(initialAddress);
-      });
+      setProducts(initialProducts);
+      setFormData(initialFormData);
+      setAddressData(initialAddress);
     }
   }, [editMode, isOpen]); // Simplified dependencies
 
@@ -244,7 +242,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       // Reset form and clear persisted data on success (only in create mode)
       if (!editMode) {
         const initialProducts = [{
-          id: `product_0_${Date.now()}`,
+          id: 'product_0', // Stable key
           itemLink: '',
           itemDescription: '',
           estimatedPrice: '',
@@ -282,23 +280,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const addProduct = useCallback(() => {
     if (products.length < 5) {
-      startTransition(() => {
-        setProducts(prev => [...prev, {
-          id: `product_${Date.now()}_${Math.random()}`, // Stable unique ID
-          itemLink: '',
-          itemDescription: '',
-          estimatedPrice: '',
-          quantity: '1'
-        }]);
-      });
+      setProducts(prev => [...prev, {
+        id: `product_${prev.length}`, // Stable key based on current length
+        itemLink: '',
+        itemDescription: '',
+        estimatedPrice: '',
+        quantity: '1'
+      }]);
     }
   }, [products.length]);
 
   const removeProduct = useCallback((index: number) => {
     if (products.length > 1) {
-      startTransition(() => {
-        setProducts(prev => prev.filter((_, i) => i !== index));
-      });
+      setProducts(prev => prev.filter((_, i) => i !== index).map((product, newIndex) => ({
+        ...product,
+        id: `product_${newIndex}` // Re-index for stable keys
+      })));
     }
   }, [products.length]);
 
@@ -312,17 +309,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
 
   const handleAddressSubmit = useCallback((address: any) => {
-    startTransition(() => {
-      setAddressData(address);
-      setShowAddressForm(false);
-    });
+    setAddressData(address);
+    setShowAddressForm(false);
   }, []);
 
   const handleAddressCancel = useCallback(() => {
-    startTransition(() => {
-      setShowAddressForm(false);
-      updateFormField('deliveryMethod', '');
-    });
+    setShowAddressForm(false);
+    updateFormField('deliveryMethod', '');
   }, [updateFormField]);
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
@@ -364,11 +357,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               placeholder="https://amazon.com/producto..."
               value={product.itemLink ?? ''}
               onChange={(e) => {
-                console.debug('itemLink change:', index, e.target.value);
                 onUpdate(index, 'itemLink', e.target.value);
               }}
-              onFocus={() => console.debug('itemLink focus:', index)}
-              onBlur={() => console.debug('itemLink blur:', index)}
               onKeyDown={preventEnterSubmit}
               className="pl-7 h-8 text-sm"
               autoComplete="off"
@@ -388,11 +378,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
             value={product.itemDescription ?? ''}
             onChange={(e) => {
-              console.debug('itemDescription change:', index, e.target.value);
               onUpdate(index, 'itemDescription', e.target.value);
             }}
-            onFocus={() => console.debug('itemDescription focus:', index)}
-            onBlur={() => console.debug('itemDescription blur:', index)}
             onKeyDown={preventEnterSubmit}
             className="min-h-[60px] resize-none text-sm"
             autoComplete="off"
@@ -415,11 +402,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 placeholder="299.99"
                 value={product.estimatedPrice ?? ''}
                 onChange={(e) => {
-                  console.debug('estimatedPrice change:', index, e.target.value);
                   onUpdate(index, 'estimatedPrice', e.target.value);
                 }}
-                onFocus={() => console.debug('estimatedPrice focus:', index)}
-                onBlur={() => console.debug('estimatedPrice blur:', index)}
                 onKeyDown={preventEnterSubmit}
                 className="pl-7 h-8 text-sm"
                 autoComplete="off"
@@ -440,11 +424,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               placeholder="1"
               value={product.quantity ?? ''}
               onChange={(e) => {
-                console.debug('quantity change:', index, e.target.value);
                 onUpdate(index, 'quantity', e.target.value);
               }}
-              onFocus={() => console.debug('quantity focus:', index)}
-              onBlur={() => console.debug('quantity blur:', index)}
               onKeyDown={preventEnterSubmit}
               className="h-8 text-sm"
               autoComplete="off"
@@ -576,15 +557,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <RadioGroup 
             value={formData.deliveryMethod} 
             onValueChange={(value) => {
-              startTransition(() => {
-                updateFormField('deliveryMethod', value);
-                if (value === 'delivery') {
-                  setShowAddressForm(true);
-                } else {
-                  setShowAddressForm(false);
-                  setAddressData(null);
-                }
-              });
+              updateFormField('deliveryMethod', value);
+              if (value === 'delivery') {
+                setShowAddressForm(true);
+              } else {
+                setShowAddressForm(false);
+                setAddressData(null);
+              }
             }}
             className="space-y-2 sm:space-y-3"
           >
@@ -592,11 +571,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
               onClick={() => {
-                startTransition(() => {
-                  updateFormField('deliveryMethod', 'pickup');
-                  setShowAddressForm(false);
-                  setAddressData(null);
-                });
+                updateFormField('deliveryMethod', 'pickup');
+                setShowAddressForm(false);
+                setAddressData(null);
               }}
             >
               <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
@@ -615,10 +592,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
               onClick={() => {
-                startTransition(() => {
-                  updateFormField('deliveryMethod', 'delivery');
-                  setShowAddressForm(true);
-                });
+                updateFormField('deliveryMethod', 'delivery');
+                setShowAddressForm(true);
               }}
             >
               <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
@@ -653,9 +628,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  startTransition(() => setShowAddressForm(true));
-                }}
+                onClick={() => setShowAddressForm(true)}
                 className="mt-2"
               >
                 Editar dirección

@@ -36,15 +36,12 @@ export function BaseTextInput({
       inputMode={inputMode}
       value={value ?? ''}
       onChange={(e) => {
-        console.debug('BaseTextInput change:', name, e.currentTarget.value);
         onChange?.(e.currentTarget.value);
       }}
       onFocus={() => {
-        console.debug('BaseTextInput focus:', name);
         onFocus?.();
       }}
       onBlur={() => {
-        console.debug('BaseTextInput blur:', name);
         onBlur?.();
       }}
       onKeyDown={(e) => {
