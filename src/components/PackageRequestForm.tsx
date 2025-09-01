@@ -122,6 +122,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Use ref to track persistence timers (avoid re-renders)
   const persistTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all textarea timeouts
+      Object.values(textareaTimeouts.current).forEach(timeout => {
+        if (timeout) clearTimeout(timeout);
+      });
+      
+      // Clear persistence timeout
+      if (persistTimeoutRef.current) {
+        clearTimeout(persistTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Manual persistence functions - only called on blur or modal close
   const persistCurrentState = useCallback(() => {
     if (!editMode) {
@@ -133,12 +148,34 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, [editMode, persistProducts, persistFormData, persistAddress, products, formData, addressData]);
 
-  // Clean product update without automatic persistence
+  // Refs for stable textarea handling
+  const textareaRefs = useRef<{ [key: string]: string }>({});
+  const textareaTimeouts = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  
+  // Optimized product update without automatic persistence
   const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
     setProducts(prev => prev.map((product, i) => 
       i === index ? { ...product, [field]: value } : product
     ));
   }, []);
+
+  // Special handler for textarea to prevent keyboard closing on mobile
+  const handleTextareaChange = useCallback((index: number, field: keyof Product, value: string) => {
+    const key = `${index}-${field}`;
+    
+    // Store in ref immediately (no re-render)
+    textareaRefs.current[key] = value;
+    
+    // Clear existing timeout
+    if (textareaTimeouts.current[key]) {
+      clearTimeout(textareaTimeouts.current[key]);
+    }
+    
+    // Update state with debounce to prevent rapid re-renders
+    textareaTimeouts.current[key] = setTimeout(() => {
+      updateProduct(index, field, value);
+    }, 100);
+  }, [updateProduct]);
 
   // Clean form data update without automatic persistence
   const handleInputChange = useCallback((field: string, value: any) => {
@@ -403,10 +440,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <div>
                   <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
                   <Textarea
+                    key={`itemDescription-${index}`}
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
-                    onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                    onChange={(e) => handleTextareaChange(index, 'itemDescription', e.target.value)}
                     onBlur={handleInputBlur}
                     className="min-h-[80px] resize-y text-sm mobile-safe-textarea"
                     rows={3}
