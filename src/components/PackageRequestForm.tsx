@@ -119,47 +119,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Use ref to track if we should persist (avoid re-renders during typing)
-  const shouldPersist = useRef(true);
+  // Use ref to track persistence timers (avoid re-renders)
   const persistTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Debounced persistence functions to avoid re-renders during typing
-  const debouncedPersistProducts = useCallback((data: Product[]) => {
-    if (!editMode && shouldPersist.current) {
-      clearTimeout(persistTimeoutRef.current);
-      persistTimeoutRef.current = setTimeout(() => {
-        persistProducts(data);
-      }, 500);
+  // Manual persistence functions - only called on blur or modal close
+  const persistCurrentState = useCallback(() => {
+    if (!editMode) {
+      persistProducts(products);
+      persistFormData(formData);
+      if (addressData) {
+        persistAddress(addressData);
+      }
     }
-  }, [editMode, persistProducts]);
+  }, [editMode, persistProducts, persistFormData, persistAddress, products, formData, addressData]);
 
-  const debouncedPersistFormData = useCallback((data: any) => {
-    if (!editMode && shouldPersist.current) {
-      clearTimeout(persistTimeoutRef.current);
-      persistTimeoutRef.current = setTimeout(() => {
-        persistFormData(data);
-      }, 500);
-    }
-  }, [editMode, persistFormData]);
-
-  // Optimized product update to prevent re-renders
+  // Clean product update without automatic persistence
   const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
-    setProducts(prev => {
-      const newProducts = prev.map((product, i) => 
-        i === index ? { ...product, [field]: value } : product
-      );
-      debouncedPersistProducts(newProducts);
-      return newProducts;
-    });
-  }, [debouncedPersistProducts]);
+    setProducts(prev => prev.map((product, i) => 
+      i === index ? { ...product, [field]: value } : product
+    ));
+  }, []);
 
-  // Optimized form data update
+  // Clean form data update without automatic persistence
   const handleInputChange = useCallback((field: string, value: any) => {
-    setFormData(prev => {
-      const newFormData = { ...prev, [field]: value };
-      debouncedPersistFormData(newFormData);
-      return newFormData;
-    });
+    setFormData(prev => ({ ...prev, [field]: value }));
     
     // Mostrar formulario de dirección si selecciona delivery
     if (field === 'deliveryMethod') {
@@ -170,7 +153,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setAddressData(null);
       }
     }
-  }, [debouncedPersistFormData]);
+  }, []);
+
+  // Handle input blur - persist data when user leaves field
+  const handleInputBlur = useCallback(() => {
+    persistCurrentState();
+  }, [persistCurrentState]);
 
   const destinationCities = [
     'Guatemala City',
@@ -276,28 +264,20 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const addProduct = useCallback(() => {
     if (products.length < 5) {
-      setProducts(prev => {
-        const newProducts = [...prev, {
-          itemLink: '',
-          itemDescription: '',
-          estimatedPrice: '',
-          quantity: '1'
-        }];
-        debouncedPersistProducts(newProducts);
-        return newProducts;
-      });
+      setProducts(prev => [...prev, {
+        itemLink: '',
+        itemDescription: '',
+        estimatedPrice: '',
+        quantity: '1'
+      }]);
     }
-  }, [products.length, debouncedPersistProducts]);
+  }, [products.length]);
 
   const removeProduct = useCallback((index: number) => {
     if (products.length > 1) {
-      setProducts(prev => {
-        const newProducts = prev.filter((_, i) => i !== index);
-        debouncedPersistProducts(newProducts);
-        return newProducts;
-      });
+      setProducts(prev => prev.filter((_, i) => i !== index));
     }
-  }, [products.length, debouncedPersistProducts]);
+  }, [products.length]);
 
   const calculateTotalEstimated = useMemo(() => {
     return products.reduce((total, product) => {
@@ -413,6 +393,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink}
                       onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                      onBlur={handleInputBlur}
                       className="pl-7 h-8 text-sm"
                       required
                     />
@@ -426,6 +407,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
                     onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                    onBlur={handleInputBlur}
                     className="min-h-[80px] resize-y text-sm mobile-safe-textarea"
                     rows={3}
                     required
@@ -444,6 +426,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         placeholder="299.99"
                         value={product.estimatedPrice}
                         onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                        onBlur={handleInputBlur}
                         className="pl-7 h-8 text-sm"
                         required
                       />
@@ -459,6 +442,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       placeholder="1"
                       value={product.quantity}
                       onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
+                      onBlur={handleInputBlur}
                       className="h-8 text-sm"
                       required
                     />
@@ -503,6 +487,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             placeholder="Escribe la ciudad de destino"
             value={formData.packageDestinationOther}
             onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+            onBlur={handleInputBlur}
             className="mt-2"
             required
           />
@@ -534,6 +519,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             placeholder="Escribe el país de origen"
             value={formData.purchaseOriginOther}
             onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
+            onBlur={handleInputBlur}
             className="mt-2"
             required
           />
@@ -661,6 +647,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
           value={formData.additionalNotes}
           onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+          onBlur={handleInputBlur}
           className="min-h-[80px] max-h-[100px] resize-none overflow-y-auto"
         />
       </div>
@@ -694,10 +681,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </form>
   );
 
+  // Handle modal close - persist data when closing
+  const handleClose = useCallback(() => {
+    persistCurrentState();
+    onClose();
+  }, [persistCurrentState, onClose]);
+
   // Conditional rendering based on device type
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
+      <Drawer open={isOpen} onOpenChange={handleClose}>
         <DrawerContent className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col mobile-safe-drawer">
           <MobileHeader />
           <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
@@ -710,7 +703,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Desktop version
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DesktopHeader />
         <FormContent />
