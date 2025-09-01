@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -117,6 +117,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Memoize the updateProduct function to prevent re-renders
+  const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
+    setProducts(prev => prev.map((product, i) => 
+      i === index ? { ...product, [field]: value } : product
+    ));
+  }, []);
 
   // Sync local state with persisted state (only in create mode)
   useEffect(() => {
@@ -239,12 +246,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   };
 
-  const updateProduct = (index: number, field: keyof Product, value: string) => {
-    setProducts(prev => prev.map((product, i) => 
-      i === index ? { ...product, [field]: value } : product
-    ));
-  };
-
   const addProduct = () => {
     if (products.length < 5) {
       setProducts(prev => [...prev, {
@@ -270,7 +271,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }, 0);
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Mostrar formulario de dirección si selecciona delivery
@@ -282,7 +283,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setAddressData(null);
       }
     }
-  };
+  }, []);
 
   const handleAddressSubmit = (address: any) => {
     setAddressData(address);
