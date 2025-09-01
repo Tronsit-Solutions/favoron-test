@@ -79,11 +79,11 @@ export const InstagramTripCard = ({ trip, onTripUpdate }: InstagramTripCardProps
         </div>
       ) : (
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center text-3xl font-bold text-gray-800">
-            <span>{trip.from_city}</span>
-            <span className="text-teal-500 mx-2">→</span>
-            <span>{trip.to_city}</span>
-          </div>
+        <div className="flex items-center text-3xl font-bold text-gray-800">
+          <span className="capitalize">{trip.from_city.toLowerCase()}</span>
+          <span className="text-teal-500 mx-2">→</span>
+          <span className="capitalize">{trip.to_city.toLowerCase()}</span>
+        </div>
           <div className="flex items-center text-3xl font-medium text-gray-600">
             <span>{new Date(trip.arrival_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
           </div>
