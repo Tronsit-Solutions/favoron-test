@@ -319,7 +319,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       <DialogDescription>
         {editMode 
           ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-          : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
+          : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
         }
       </DialogDescription>
     </DialogHeader>
