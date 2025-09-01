@@ -33,12 +33,15 @@ interface Product {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   
-  // Initialize data based on mode
-  const getInitialProducts = () => {
+  // Stable initial data generators - memoized to prevent re-computation
+  const getInitialProducts = useCallback(() => {
     if (editMode && initialData?.products_data) {
       // Handle both old format (single product) and new format (array)
       if (Array.isArray(initialData.products_data)) {
-        return initialData.products_data;
+        return initialData.products_data.map((product, index) => ({
+          ...product,
+          id: product.id || `product_${index}_${Date.now()}`
+        }));
       } else {
         // Legacy format - single product object
         return [{
@@ -57,9 +60,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       estimatedPrice: '',
       quantity: '1'
     }];
-  };
+  }, [editMode, initialData]);
 
-  const getInitialFormData = () => {
+  const getInitialFormData = useCallback(() => {
     if (editMode && initialData) {
       return {
         deliveryDeadline: initialData.delivery_deadline ? new Date(initialData.delivery_deadline) : null,
@@ -80,7 +83,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       purchaseOriginOther: '',
       deliveryMethod: ''
     };
-  };
+  }, [editMode, initialData]);
 
   // Only use persisted state in create mode
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
@@ -112,12 +115,29 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     initialState: null
   });
 
-  // Local state for non-critical UI state
-  const [products, setProducts] = useState<Product[]>(editMode ? getInitialProducts() : persistedProducts);
-  const [formData, setFormData] = useState(editMode ? getInitialFormData() : persistedFormData);
+  // Initialize state once with stable values
+  const [products, setProducts] = useState<Product[]>(() => 
+    editMode ? getInitialProducts() : persistedProducts
+  );
+  const [formData, setFormData] = useState(() => 
+    editMode ? getInitialFormData() : persistedFormData
+  );
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
+  const [addressData, setAddressData] = useState(() => 
+    editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize edit mode data only once
+  useEffect(() => {
+    if (editMode && initialData && isOpen) {
+      startTransition(() => {
+        setProducts(getInitialProducts());
+        setFormData(getInitialFormData());
+        setAddressData(initialData.delivery_address || null);
+      });
+    }
+  }, [editMode, initialData, isOpen, getInitialProducts, getInitialFormData]);
 
   // Refs for accessing current state without dependencies
   const productsRef = useRef(products);
@@ -140,7 +160,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     });
   }, []);
 
-  const updateFormField = useCallback((field: string, value: string) => {
+  const updateFormField = useCallback((field: string, value: any) => {
     startTransition(() => {
       setFormData(prev => ({ ...prev, [field]: value }));
     });
@@ -275,23 +295,27 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   };
 
-  const addProduct = () => {
+  const addProduct = useCallback(() => {
     if (products.length < 5) {
-      setProducts(prev => [...prev, {
-        id: `product_${Date.now()}_${Math.random()}`, // Stable unique ID
-        itemLink: '',
-        itemDescription: '',
-        estimatedPrice: '',
-        quantity: '1'
-      }]);
+      startTransition(() => {
+        setProducts(prev => [...prev, {
+          id: `product_${Date.now()}_${Math.random()}`, // Stable unique ID
+          itemLink: '',
+          itemDescription: '',
+          estimatedPrice: '',
+          quantity: '1'
+        }]);
+      });
     }
-  };
+  }, [products.length]);
 
-  const removeProduct = (index: number) => {
+  const removeProduct = useCallback((index: number) => {
     if (products.length > 1) {
-      setProducts(prev => prev.filter((_, i) => i !== index));
+      startTransition(() => {
+        setProducts(prev => prev.filter((_, i) => i !== index));
+      });
     }
-  };
+  }, [products.length]);
 
   const calculateTotalEstimated = () => {
     return products.reduce((total, product) => {
@@ -302,15 +326,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
 
-  const handleAddressSubmit = (address: any) => {
-    setAddressData(address);
-    setShowAddressForm(false);
-  };
+  const handleAddressSubmit = useCallback((address: any) => {
+    startTransition(() => {
+      setAddressData(address);
+      setShowAddressForm(false);
+    });
+  }, []);
 
-  const handleAddressCancel = () => {
-    setShowAddressForm(false);
-    updateFormField('deliveryMethod', '');
-  };
+  const handleAddressCancel = useCallback(() => {
+    startTransition(() => {
+      setShowAddressForm(false);
+      updateFormField('deliveryMethod', '');
+    });
+  }, [updateFormField]);
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
 
@@ -547,13 +575,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <RadioGroup 
             value={formData.deliveryMethod} 
             onValueChange={(value) => {
-              updateFormField('deliveryMethod', value);
-              if (value === 'delivery') {
-                setShowAddressForm(true);
-              } else {
-                setShowAddressForm(false);
-                setAddressData(null);
-              }
+              startTransition(() => {
+                updateFormField('deliveryMethod', value);
+                if (value === 'delivery') {
+                  setShowAddressForm(true);
+                } else {
+                  setShowAddressForm(false);
+                  setAddressData(null);
+                }
+              });
             }}
             className="space-y-2 sm:space-y-3"
           >
@@ -561,9 +591,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
               onClick={() => {
-                updateFormField('deliveryMethod', 'pickup');
-                setShowAddressForm(false);
-                setAddressData(null);
+                startTransition(() => {
+                  updateFormField('deliveryMethod', 'pickup');
+                  setShowAddressForm(false);
+                  setAddressData(null);
+                });
               }}
             >
               <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
@@ -582,8 +614,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
               onClick={() => {
-                updateFormField('deliveryMethod', 'delivery');
-                setShowAddressForm(true);
+                startTransition(() => {
+                  updateFormField('deliveryMethod', 'delivery');
+                  setShowAddressForm(true);
+                });
               }}
             >
               <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
@@ -618,7 +652,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowAddressForm(true)}
+                onClick={() => {
+                  startTransition(() => setShowAddressForm(true));
+                }}
                 className="mt-2"
               >
                 Editar dirección
@@ -655,11 +691,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <Calendar
               mode="single"
               selected={formData.deliveryDeadline || undefined}
-              onSelect={(date) => {
-                startTransition(() => {
-                  setFormData(prev => ({ ...prev, deliveryDeadline: date }));
-                });
-              }}
+              onSelect={(date) => updateFormField('deliveryDeadline', date)}
               disabled={(date) => date < new Date()}
               initialFocus
             />
