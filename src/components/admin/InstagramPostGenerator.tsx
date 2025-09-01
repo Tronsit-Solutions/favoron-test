@@ -49,19 +49,19 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
               className="bg-white rounded-xl p-4 mx-2"
             >
               <div className="flex items-center justify-between h-12">
-                <div className="flex items-center gap-3 h-full">
-                  <div className="bg-gradient-to-r from-teal-500 to-cyan-400 p-2 rounded-lg flex items-center justify-center h-9 w-9">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-400 p-2 rounded-lg flex items-center justify-center">
                     <Plane className="h-5 w-5 text-white" />
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-2xl font-bold text-gray-800 leading-none h-full">
-                    <span className="flex items-center">{trip.from_city}</span>
-                    <span className="text-teal-500 flex items-center">→</span>
-                    <span className="flex items-center">{trip.to_city}</span>
+                  <div className="flex items-center gap-2 text-2xl font-bold text-gray-800">
+                    <span>{trip.from_city}</span>
+                    <span className="text-teal-500">→</span>
+                    <span>{trip.to_city}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-2 text-gray-600 h-full">
-                  <Calendar className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-lg font-medium leading-none flex items-center">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Calendar className="h-5 w-5" />
+                  <span className="text-lg font-medium">
                     {formatDate(trip.arrival_date)}
                   </span>
                 </div>
