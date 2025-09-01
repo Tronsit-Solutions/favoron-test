@@ -54,12 +54,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   return (
     <>
-    <Card key={trip.id}>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
+    <Card key={trip.id} className="w-full max-w-full overflow-hidden">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex justify-between items-start min-w-0">
+          <div className="flex-1 min-w-0 pr-2">
             <CardTitle className="text-lg">{trip.from_city} → {trip.to_city}</CardTitle>
-            <CardDescription className="flex flex-row items-center gap-2 mt-2">
+            <CardDescription className="flex flex-row items-center gap-1 mt-2 overflow-hidden">
               <TripDate arrivalDate={trip.arrival_date} />
               <span className="hidden sm:inline text-muted-foreground">•</span>
               <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
