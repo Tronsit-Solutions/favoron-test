@@ -33,11 +33,6 @@ interface Product {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   
-  // DEBUG: Track renders (temporary)
-  const renders = useRef(0);
-  renders.current++;
-  console.debug('FORM RENDERS:', renders.current);
-  
   // Initialize data based on mode
   const getInitialProducts = () => {
     if (editMode && initialData?.products_data) {
@@ -124,7 +119,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Stable onChange functions using useCallback to prevent recreations
+  // Debug instrumentation (temporary)
+  const renders = useRef(0);
+  renders.current++;
+  console.debug('FORM RENDERS:', renders.current);
+
+  // Refs for accessing current state without dependencies
+  const productsRef = useRef(products);
+  const formDataRef = useRef(formData);
+  const addressDataRef = useRef(addressData);
+
+  // Update refs whenever state changes
+  useEffect(() => { productsRef.current = products; }, [products]);
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
+  useEffect(() => { addressDataRef.current = addressData; }, [addressData]);
+
+  // STABLE callbacks without dependencies (CRITICAL FIX)
   const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
     console.debug('updateProductField:', index, field, value);
     setProducts(prev => {
@@ -132,12 +142,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       newProducts[index] = { ...newProducts[index], [field]: value };
       return newProducts;
     });
-  }, [setProducts]);
+  }, []); // NO DEPENDENCIES - setProducts is guaranteed stable
 
   const updateFormField = useCallback((field: string, value: string) => {
     console.debug('updateFormField:', field, value);
     setFormData(prev => ({ ...prev, [field]: value }));
-  }, [setFormData]);
+  }, []); // NO DEPENDENCIES - setFormData is guaranteed stable
 
   // Prevent Enter key from submitting form in text inputs
   const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {
@@ -147,14 +157,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, []);
 
-  // Persist form data only on blur/unmount (not during typing)
+  // Persist form data using refs (no state dependencies)
   const persistFormData = useCallback(() => {
     if (!editMode) {
-      setPersistedProducts(products);
-      setPersistedFormData(formData);
-      setPersistedAddressData(addressData);
+      setPersistedProducts(productsRef.current);
+      setPersistedFormData(formDataRef.current);
+      setPersistedAddressData(addressDataRef.current);
     }
-  }, [products, formData, addressData, editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
+  }, [editMode, setPersistedProducts, setPersistedFormData, setPersistedAddressData]); // Only setter and editMode dependencies
 
   // Auto-persist on component unmount
   useEffect(() => {
