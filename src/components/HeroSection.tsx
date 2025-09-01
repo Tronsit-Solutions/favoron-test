@@ -35,8 +35,6 @@ const HeroSection = ({
       </div>
       
       
-      {/* Geometric Shapes */}
-      <div className="absolute bottom-1/3 right-1/3 w-12 h-12 bg-gradient-to-br from-traveler/30 to-shopper/30 rounded-full animate-pulse"></div>
       
       <div className="relative container mx-auto px-4 pt-2 sm:pt-3 pb-12 sm:pb-20 text-center">
         {/* Modern Trust Indicators */}
