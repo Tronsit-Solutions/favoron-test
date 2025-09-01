@@ -667,9 +667,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[95vh] overflow-hidden">
+        <DrawerContent className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col">
           <MobileHeader />
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="flex-1 overflow-y-auto px-4 pb-6 env(safe-area-inset-bottom)">
             <FormContent />
           </div>
         </DrawerContent>

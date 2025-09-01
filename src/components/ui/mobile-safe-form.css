@@ -80,10 +80,25 @@
 }
 
 /* Form input enhancements for mobile */
+.mobile-safe-form {
+  /* Prevent zoom on input focus */
+  font-size: 16px;
+  /* Ensure proper spacing with virtual keyboard */
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.mobile-safe-form input,
+.mobile-safe-form textarea,
+.mobile-safe-form select {
+  font-size: 16px !important;
+  /* Prevent iOS zoom */
+}
+
 @media (max-width: 768px) {
   .mobile-safe-form input,
   .mobile-safe-form button,
-  .mobile-safe-form select {
+  .mobile-safe-form select,
+  .mobile-safe-form textarea {
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: 44px; /* iOS recommended touch target size */
   }
@@ -102,6 +117,12 @@
   .mobile-safe-form .mobile-checkbox-card {
     padding: 1rem;
     border-radius: 0.75rem;
+  }
+
+  /* Ensure modal content is visible when keyboard is open */
+  .mobile-safe-form {
+    max-height: calc(100dvh - env(keyboard-inset-height, 0px));
+    overflow-y: auto;
   }
 }
 
