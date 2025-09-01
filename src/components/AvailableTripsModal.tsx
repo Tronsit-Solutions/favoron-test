@@ -248,9 +248,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
                       <span className="text-base sm:text-lg">🛫</span>
-                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none">{trip.from_city}</span>
+                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none capitalize">{trip.from_city.toLowerCase()}</span>
                       <span className="text-teal-500 font-bold">→</span>
-                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none">{trip.to_city}</span>
+                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none capitalize">{trip.to_city.toLowerCase()}</span>
                       <span className="text-base sm:text-lg">🛬</span>
                     </div>
                   </div>
