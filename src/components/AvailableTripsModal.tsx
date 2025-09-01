@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Plane, Calendar, Download } from "lucide-react";
+import { Search, Plane, Calendar, Download, Eye } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import { DownloadConfigModal } from "@/components/admin/DownloadConfigModal";
 import { InstagramPostGenerator } from "@/components/admin/InstagramPostGenerator";
+import { InstagramPreviewModal } from "@/components/admin/InstagramPreviewModal";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const postRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   const isAdmin = userRole?.role === 'admin';
@@ -153,16 +155,27 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
                 Hub de Viajes
               </div>
               {isAdmin && (
-                <Button
-                  onClick={() => setShowConfigModal(true)}
-                  disabled={isDownloading}
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 h-8 px-3"
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  {isDownloading ? "Generando..." : "Descargar"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowPreviewModal(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-white/20 h-8 px-3"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Vista Previa
+                  </Button>
+                  <Button
+                    onClick={() => setShowConfigModal(true)}
+                    disabled={isDownloading}
+                    variant="ghost"
+                    size="sm"
+                    className="text-white hover:bg-white/20 h-8 px-3"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    {isDownloading ? "Generando..." : "Descargar"}
+                  </Button>
+                </div>
               )}
             </DialogTitle>
           </DialogHeader>
@@ -250,6 +263,14 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       onClose={() => setShowConfigModal(false)}
       onDownload={handleDownloadConfig}
       totalTrips={filteredTrips.length}
+    />
+
+    {/* Preview Modal */}
+    <InstagramPreviewModal
+      isOpen={showPreviewModal}
+      onClose={() => setShowPreviewModal(false)}
+      trips={filteredTrips}
+      onDownload={handleDownloadConfig}
     />
     </>
   );
