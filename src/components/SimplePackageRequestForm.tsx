@@ -162,7 +162,7 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
   };
 
   const FormContent = () => (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {/* Products Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -206,8 +206,18 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
                   placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                   value={product.itemDescription}
                   onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}
                   className="mt-1"
                   rows={2}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  enterKeyHint="done"
                 />
               </div>
 
@@ -220,7 +230,17 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
                   placeholder="https://..."
                   value={product.itemLink}
                   onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}
                   className="mt-1"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  enterKeyHint="done"
                 />
               </div>
 
@@ -236,7 +256,17 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
                     placeholder="0.00"
                     value={product.estimatedPrice}
                     onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }
+                    }}
                     className="mt-1"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    enterKeyHint="done"
                   />
                 </div>
                 <div>
@@ -249,7 +279,17 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
                     min="1"
                     value={product.quantity}
                     onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }
+                    }}
                     className="mt-1"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    enterKeyHint="done"
                   />
                 </div>
               </div>
@@ -374,8 +414,18 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
           placeholder="Cualquier información adicional sobre tu solicitud..."
           value={formData.additionalNotes}
           onChange={(e) => updateFormData('additionalNotes', e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
           className="mt-2"
           rows={3}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          enterKeyHint="done"
         />
       </div>
 
