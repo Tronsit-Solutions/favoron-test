@@ -186,18 +186,18 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, []);
 
-  // Handle input blur - persist data when user leaves field
+  // Handle input blur - persist data when user leaves field (removed automatic blur saves to prevent keyboard issues)
   const handleInputBlur = useCallback(() => {
-    persistCurrentState();
-  }, [persistCurrentState]);
+    // Only persist on explicit actions, not during typing
+  }, []);
 
   // Sync local textarea value to main state on blur
   const handleTextareaBlur = useCallback((index: number) => {
     const key = `${index}-itemDescription`;
     const value = localTextareaValues[key] || '';
     updateProduct(index, 'itemDescription', value);
-    handleInputBlur();
-  }, [localTextareaValues, updateProduct, handleInputBlur]);
+    // Don't persist immediately to avoid focus issues
+  }, [localTextareaValues, updateProduct]);
 
   const destinationCities = [
     'Guatemala City',
@@ -374,7 +374,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Form Content Component
   const FormContent = () => (
-    <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
+    <form 
+      onSubmit={handleSubmit} 
+      noValidate
+      className="mobile-safe-form space-y-6"
+    >
       <div className="mb-4">
         {editMode ? (
           <FormDescriptions.EditRequest />
@@ -432,7 +436,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink}
                       onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                      onBlur={handleInputBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+                      }}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      enterKeyHint="done"
                       className="pl-7 h-8 text-sm"
                       required
                     />
@@ -447,7 +457,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={localTextareaValues[`${index}-itemDescription`] || product.itemDescription || ''}
                     onChange={(e) => handleTextareaChange(index, e.target.value)}
-                    onBlur={() => handleTextareaBlur(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+                    }}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    enterKeyHint="done"
                     className="min-h-[80px] resize-y text-sm mobile-safe-textarea"
                     rows={3}
                     required
@@ -466,7 +482,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         placeholder="299.99"
                         value={product.estimatedPrice}
                         onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
-                        onBlur={handleInputBlur}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+                        }}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        enterKeyHint="done"
                         className="pl-7 h-8 text-sm"
                         required
                       />
@@ -482,7 +504,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       placeholder="1"
                       value={product.quantity}
                       onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
-                      onBlur={handleInputBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+                      }}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      enterKeyHint="done"
                       className="h-8 text-sm"
                       required
                     />
@@ -527,7 +555,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             placeholder="Escribe la ciudad de destino"
             value={formData.packageDestinationOther}
             onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
-            onBlur={handleInputBlur}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+            }}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            enterKeyHint="done"
             className="mt-2"
             required
           />
@@ -559,7 +593,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             placeholder="Escribe el país de origen"
             value={formData.purchaseOriginOther}
             onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
-            onBlur={handleInputBlur}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+            }}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            enterKeyHint="done"
             className="mt-2"
             required
           />
@@ -687,7 +727,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
           value={formData.additionalNotes}
           onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
-          onBlur={handleInputBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
+          }}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          enterKeyHint="done"
           className="min-h-[80px] max-h-[100px] resize-none overflow-y-auto"
         />
       </div>
@@ -731,7 +777,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={handleClose}>
-        <DrawerContent className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col mobile-safe-drawer">
+        <DrawerContent 
+          className="max-h-[100dvh] h-[100dvh] overflow-hidden flex flex-col mobile-safe-drawer"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <MobileHeader />
           <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
             <FormContent />
