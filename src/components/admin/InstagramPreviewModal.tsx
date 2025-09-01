@@ -77,11 +77,11 @@ export const InstagramPreviewModal = ({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4 overflow-auto">
           {/* Preview Container */}
-          <div className="w-full max-w-md aspect-square bg-white rounded-lg shadow-lg overflow-hidden border">
+          <div className="w-[400px] h-[400px] bg-white rounded-lg shadow-lg overflow-hidden border flex items-center justify-center">
             {pages.length > 0 && pages[currentPage] && (
-              <div className="w-full h-full transform scale-75 origin-top-left">
+              <div style={{ transform: 'scale(0.37)', transformOrigin: 'center' }}>
                 <InstagramPostGenerator
                   trips={pages[currentPage]}
                   pageNumber={currentPage + 1}
