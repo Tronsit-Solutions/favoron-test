@@ -30,7 +30,7 @@ export const useDashboardState = (user: any) => {
   
   // Check if user is admin to decide which data hooks to use
   const isAdminTab = activeTab === 'admin';
-  const userRole = user?.userRole?.role;
+  const userRole = user?.userRole?.role ?? user?.role;
   
   // Mejorar detección de admin con persistencia temporal
   const [wasAdminUser, setWasAdminUser] = useState(() => {

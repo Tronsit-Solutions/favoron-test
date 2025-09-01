@@ -317,20 +317,7 @@ const AdminApprovalsTab = ({
                             </p>
                           )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Viajero: {(() => {
-                               const displayName = trip.user_display_name || trip.profiles?.display_name || 
-                                 `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || 
-                                 trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`;
-                               console.log('🔍 Trip name debug:', {
-                                 tripId: trip.id?.slice(0, 8),
-                                 user_display_name: trip.user_display_name,
-                                 profiles_display_name: trip.profiles?.display_name,
-                                 first_name: trip.first_name,
-                                 last_name: trip.last_name,
-                                 final_display: displayName
-                               });
-                               return displayName;
-                             })()}
+                             Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
                            </p>
                           {trip.profiles && (trip.profiles.first_name || trip.profiles.last_name) && (
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">

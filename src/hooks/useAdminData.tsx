@@ -146,33 +146,50 @@ export const useAdminData = (): AdminData => {
       let tripsResult: any[] = data || [];
       console.log('✅ Admin: Fetched trips:', tripsResult.length);
 
-      // Create synthetic profiles object for compatibility while preserving direct fields
-      tripsResult = tripsResult.map((t) => ({
-        ...t,
-        // Preserve direct name fields from trips_with_user
+      // Create synthetic profiles and public_profiles, and compute traveler_display_name
+      tripsResult = tripsResult.map((t) => {
+        const nameFromFull = `${t.first_name || ''} ${t.last_name || ''}`.trim();
+        const travelerDisplay = t.user_display_name || nameFromFull || t.username || t.email || `Usuario ${String(t.user_id || '').slice(0, 8)}`;
+        return {
+          ...t,
+          // Preserve direct name fields from trips_with_user
+          user_display_name: t.user_display_name,
+          first_name: t.first_name,
+          last_name: t.last_name,
+          username: t.username,
+          email: t.email,
+          // Computed display name for traveler
+          traveler_display_name: travelerDisplay,
+          // Create synthetic profiles object for backward compatibility
+          profiles: {
+            id: t.user_id,
+            display_name: t.user_display_name,
+            first_name: t.first_name,
+            last_name: t.last_name,
+            username: t.username,
+            email: t.email,
+            avatar_url: null,
+            phone_number: null
+          },
+          // Also provide public_profiles for components expecting that shape
+          public_profiles: {
+            id: t.user_id,
+            first_name: t.first_name,
+            last_name: t.last_name,
+            username: t.username,
+            avatar_url: null
+          }
+        };
+      });
+
+      console.log('🔍 Admin: Sample trip data for debugging:', tripsResult.slice(0, 2).map(t => ({
+        id: t.id.slice(0, 8),
+        traveler_display_name: t.traveler_display_name,
         user_display_name: t.user_display_name,
         first_name: t.first_name,
         last_name: t.last_name,
         username: t.username,
         email: t.email,
-        // Create synthetic profiles object for backward compatibility
-        profiles: {
-          id: t.user_id,
-          display_name: t.user_display_name,
-          first_name: t.first_name,
-          last_name: t.last_name,
-          username: t.username,
-          email: t.email,
-          avatar_url: null,
-          phone_number: null
-        }
-      }));
-
-      console.log('🔍 Admin: Sample trip data for debugging:', tripsResult.slice(0, 2).map(t => ({
-        id: t.id.slice(0, 8),
-        user_display_name: t.user_display_name,
-        first_name: t.first_name,
-        last_name: t.last_name,
         profiles_display_name: t.profiles.display_name
       })));
 
