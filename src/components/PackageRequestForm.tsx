@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo, startTransition } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
@@ -119,11 +119,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Debug instrumentation (temporary)
-  const renders = useRef(0);
-  renders.current++;
-  console.debug('FORM RENDERS:', renders.current);
-
   // Refs for accessing current state without dependencies
   const productsRef = useRef(products);
   const formDataRef = useRef(formData);
@@ -134,20 +129,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   useEffect(() => { formDataRef.current = formData; }, [formData]);
   useEffect(() => { addressDataRef.current = addressData; }, [addressData]);
 
-  // STABLE callbacks without dependencies (CRITICAL FIX)
+  // OPTIMIZED callbacks using startTransition for batching
   const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
-    console.debug('updateProductField:', index, field, value);
-    setProducts(prev => {
-      const newProducts = [...prev];
-      newProducts[index] = { ...newProducts[index], [field]: value };
-      return newProducts;
+    startTransition(() => {
+      setProducts(prev => {
+        const newProducts = [...prev];
+        newProducts[index] = { ...newProducts[index], [field]: value };
+        return newProducts;
+      });
     });
-  }, []); // NO DEPENDENCIES - setProducts is guaranteed stable
+  }, []);
 
   const updateFormField = useCallback((field: string, value: string) => {
-    console.debug('updateFormField:', field, value);
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }, []); // NO DEPENDENCIES - setFormData is guaranteed stable
+    startTransition(() => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    });
+  }, []);
 
   // Prevent Enter key from submitting form in text inputs
   const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {
@@ -312,10 +309,126 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const handleAddressCancel = () => {
     setShowAddressForm(false);
-    setFormData(prev => ({ ...prev, deliveryMethod: '' }));
+    updateFormField('deliveryMethod', '');
   };
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
+
+  // Memoized Product Card component to prevent unnecessary re-renders
+  const ProductCard = memo(({ product, index, onUpdate, onRemove, canRemove }: {
+    product: Product;
+    index: number;
+    onUpdate: (index: number, field: keyof Product, value: string) => void;
+    onRemove: (index: number) => void;
+    canRemove: boolean;
+  }) => (
+    <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">Producto #{index + 1}</Label>
+        {canRemove && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onRemove(index)}
+            className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
+          >
+            <Trash2 className="h-3 w-3" />
+            <span className="text-xs">Eliminar</span>
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-2">
+        <div>
+          <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link del producto *</Label>
+          <div className="relative">
+            <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+            <Input
+              id={`itemLink-${index}`}
+              name={`itemLink-${index}`}
+              type="url"
+              placeholder="https://amazon.com/producto..."
+              value={product.itemLink ?? ''}
+              onChange={(e) => onUpdate(index, 'itemLink', e.target.value)}
+              onKeyDown={preventEnterSubmit}
+              onBlur={persistFormData}
+              className="pl-7 h-8 text-sm"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              enterKeyHint="done"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
+          <Textarea
+            id={`itemDescription-${index}`}
+            name={`itemDescription-${index}`}
+            placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+            value={product.itemDescription ?? ''}
+            onChange={(e) => onUpdate(index, 'itemDescription', e.target.value)}
+            onKeyDown={preventEnterSubmit}
+            onBlur={persistFormData}
+            className="min-h-[60px] resize-none text-sm"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            rows={2}
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label htmlFor={`estimatedPrice-${index}`} className="text-xs text-muted-foreground">Precio (USD) *</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+              <Input
+                id={`estimatedPrice-${index}`}
+                name={`estimatedPrice-${index}`}
+                type="text"
+                placeholder="299.99"
+                value={product.estimatedPrice ?? ''}
+                onChange={(e) => onUpdate(index, 'estimatedPrice', e.target.value)}
+                onKeyDown={preventEnterSubmit}
+                onBlur={persistFormData}
+                className="pl-7 h-8 text-sm"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                enterKeyHint="done"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
+            <Input
+              id={`quantity-${index}`}
+              name={`quantity-${index}`}
+              type="text"
+              placeholder="1"
+              value={product.quantity ?? ''}
+              onChange={(e) => onUpdate(index, 'quantity', e.target.value)}
+              onKeyDown={preventEnterSubmit}
+              onBlur={persistFormData}
+              className="h-8 text-sm"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              enterKeyHint="done"
+              required
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  ));
 
   // Form Content Component
   const FormContent = () => (
@@ -339,138 +452,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </div>
         
         <div className="space-y-3">
-          {/* DEBUG: Test uncontrolled input to isolate issue */}
-          <div className="space-y-2 p-2 border border-dashed border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
-            <Label>🔍 DEBUG: Test Input (uncontrolled)</Label>
-            <input 
-              name="test" 
-              type="text" 
-              defaultValue="" 
-              onChange={(e) => console.debug('test uncontrolled', e.currentTarget.value)}
-              className="w-full p-2 border rounded"
-              placeholder="Type here to test - should work normally"
-            />
-          </div>
-          
           {products.map((product, index) => (
-            <div key={product.id || `product_${index}`} className="border border-gray-200 rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Producto #{index + 1}</Label>
-                {products.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeProduct(index)}
-                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    <span className="text-xs">Eliminar</span>
-                  </Button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 gap-2">
-                <div>
-                  <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link del producto *</Label>
-                  <div className="relative">
-                    <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      id={`itemLink-${index}`}
-                      name={`itemLink-${index}`}
-                      type="url"
-                      placeholder="https://amazon.com/producto..."
-                      value={product.itemLink ?? ''}
-                      onChange={(e) => {
-                        console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
-                        updateProductField(index, 'itemLink', e.target.value);
-                      }}
-                      onKeyDown={preventEnterSubmit}
-                      onBlur={persistFormData}
-                      className="pl-7 h-8 text-sm"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      enterKeyHint="done"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
-                  <Textarea
-                    id={`itemDescription-${index}`}
-                    name={`itemDescription-${index}`}
-                    placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                    value={product.itemDescription ?? ''}
-                    onChange={(e) => {
-                      console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
-                      updateProductField(index, 'itemDescription', e.target.value);
-                    }}
-                    onKeyDown={preventEnterSubmit}
-                    onBlur={persistFormData}
-                    className="min-h-[60px] resize-none text-sm"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    rows={2}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label htmlFor={`estimatedPrice-${index}`} className="text-xs text-muted-foreground">Precio (USD) *</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-                      <Input
-                        id={`estimatedPrice-${index}`}
-                        name={`estimatedPrice-${index}`}
-                        type="text"
-                        placeholder="299.99"
-                        value={product.estimatedPrice ?? ''}
-                        onChange={(e) => {
-                          console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
-                          updateProductField(index, 'estimatedPrice', e.target.value);
-                        }}
-                        onKeyDown={preventEnterSubmit}
-                        onBlur={persistFormData}
-                        className="pl-7 h-8 text-sm"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="none"
-                        enterKeyHint="done"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
-                    <Input
-                      id={`quantity-${index}`}
-                      name={`quantity-${index}`}
-                      type="text"
-                      placeholder="1"
-                      value={product.quantity ?? ''}
-                      onChange={(e) => {
-                        console.debug('onChange:', e.currentTarget.name, e.currentTarget.value);
-                        updateProductField(index, 'quantity', e.target.value);
-                      }}
-                      onKeyDown={preventEnterSubmit}
-                      onBlur={persistFormData}
-                      className="h-8 text-sm"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      enterKeyHint="done"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProductCard
+              key={product.id || `product_${index}`}
+              product={product}
+              index={index}
+              onUpdate={updateProductField}
+              onRemove={removeProduct}
+              canRemove={products.length > 1}
+            />
           ))}
         </div>
 
@@ -488,7 +478,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
       <div className="space-y-2">
         <Label htmlFor="packageDestination">Destino del paquete *</Label>
-        <Select value={formData.packageDestination} onValueChange={(value) => setFormData(prev => ({ ...prev, packageDestination: value }))}>
+        <Select value={formData.packageDestination} onValueChange={(value) => updateFormField('packageDestination', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecciona el destino del paquete" />
           </SelectTrigger>
@@ -520,7 +510,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
       <div className="space-y-2">
         <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
-        <Select value={formData.purchaseOrigin} onValueChange={(value) => setFormData(prev => ({ ...prev, purchaseOrigin: value }))}>
+        <Select value={formData.purchaseOrigin} onValueChange={(value) => updateFormField('purchaseOrigin', value)}>
           <SelectTrigger>
             <SelectValue placeholder="¿Desde qué país estás comprando?" />
           </SelectTrigger>
@@ -557,7 +547,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <RadioGroup 
             value={formData.deliveryMethod} 
             onValueChange={(value) => {
-              setFormData(prev => ({ ...prev, deliveryMethod: value }));
+              updateFormField('deliveryMethod', value);
               if (value === 'delivery') {
                 setShowAddressForm(true);
               } else {
@@ -571,7 +561,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
               onClick={() => {
-                setFormData(prev => ({ ...prev, deliveryMethod: 'pickup' }));
+                updateFormField('deliveryMethod', 'pickup');
                 setShowAddressForm(false);
                 setAddressData(null);
               }}
@@ -592,7 +582,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
               onClick={() => {
-                setFormData(prev => ({ ...prev, deliveryMethod: 'delivery' }));
+                updateFormField('deliveryMethod', 'delivery');
                 setShowAddressForm(true);
               }}
             >
@@ -665,7 +655,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <Calendar
               mode="single"
               selected={formData.deliveryDeadline || undefined}
-              onSelect={(date) => setFormData(prev => ({ ...prev, deliveryDeadline: date }))}
+              onSelect={(date) => {
+                startTransition(() => {
+                  setFormData(prev => ({ ...prev, deliveryDeadline: date }));
+                });
+              }}
               disabled={(date) => date < new Date()}
               initialFocus
             />
