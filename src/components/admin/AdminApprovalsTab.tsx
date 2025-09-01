@@ -311,11 +311,6 @@ const AdminApprovalsTab = ({
                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
                             Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
                           </p>
-                          {trip.profiles && (
-                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                              Email: {trip.profiles.email || 'Sin email'} • Tel: {trip.profiles.phone_number || 'Sin teléfono'}
-                            </p>
-                          )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
                            </p>
