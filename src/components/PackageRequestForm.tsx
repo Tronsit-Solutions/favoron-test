@@ -345,6 +345,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           )}
         </div>
         
+        <p className="text-sm text-muted-foreground mb-4">
+          {editMode 
+            ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
+            : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
+          }
+        </p>
+        
         <div className="space-y-3">
           {products.map((product, index) => (
             <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
