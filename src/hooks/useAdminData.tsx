@@ -68,6 +68,21 @@ export const useAdminData = (): AdminData => {
             avatar_url,
             email,
             phone_number
+          ),
+          trips:matched_trip_id(
+            id,
+            from_city,
+            to_city,
+            departure_date,
+            arrival_date,
+            delivery_date,
+            profiles:user_id(
+              id,
+              first_name,
+              last_name,
+              username,
+              avatar_url
+            )
           )
         `)
         .order('created_at', { ascending: false });
@@ -128,33 +143,13 @@ export const useAdminData = (): AdminData => {
         throw error;
       }
 
-      let tripsResultRaw: any[] = data || [];
-      console.log('✅ Admin: Fetched trips:', tripsResultRaw.length);
-
-      // Fetch phone numbers for travelers
-      let phoneMap = new Map<string, string | null>();
-      try {
-        const userIds = Array.from(new Set(tripsResultRaw.map(t => t.user_id).filter(Boolean)));
-        if (userIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, phone_number')
-            .in('id', userIds as string[]);
-          if (profilesError) {
-            console.warn('⚠️ Admin: Could not fetch phone numbers:', profilesError);
-          } else if (profilesData) {
-            phoneMap = new Map(profilesData.map((p: any) => [p.id, p.phone_number]));
-          }
-        }
-      } catch (e) {
-        console.warn('⚠️ Admin: Phone number enrichment failed:', e);
-      }
+      let tripsResult: any[] = data || [];
+      console.log('✅ Admin: Fetched trips:', tripsResult.length);
 
       // Create synthetic profiles and public_profiles, and compute traveler_display_name
-      let tripsResult = tripsResultRaw.map((t) => {
+      tripsResult = tripsResult.map((t) => {
         const nameFromFull = `${t.first_name || ''} ${t.last_name || ''}`.trim();
         const travelerDisplay = t.user_display_name || nameFromFull || t.username || t.email || `Usuario ${String(t.user_id || '').slice(0, 8)}`;
-        const phone_number = phoneMap.get(t.user_id) || null;
         return {
           ...t,
           // Preserve direct name fields from trips_with_user
@@ -174,7 +169,7 @@ export const useAdminData = (): AdminData => {
             username: t.username,
             email: t.email,
             avatar_url: null,
-            phone_number
+            phone_number: null
           },
           // Also provide public_profiles for components expecting that shape
           public_profiles: {
@@ -183,8 +178,7 @@ export const useAdminData = (): AdminData => {
             last_name: t.last_name,
             username: t.username,
             avatar_url: null
-          },
-          phone_number
+          }
         };
       });
 

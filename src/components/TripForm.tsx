@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -90,19 +90,14 @@ const TripForm = ({
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Stable callbacks for input changes
-  const updateFormField = useCallback((field: string, value: any) => {
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-      setPersistedFormData(updated);
-      return updated;
-    });
-  }, [setPersistedFormData]);
+  // Sync local state with persisted state
+  useEffect(() => {
+    setPersistedFormData(formData);
+  }, [formData, setPersistedFormData]);
 
-  const updateMessengerData = useCallback((data: any) => {
-    setMessengerData(data);
-    setPersistedMessengerData(data);
-  }, [setPersistedMessengerData]);
+  useEffect(() => {
+    setPersistedMessengerData(messengerData);
+  }, [messengerData, setPersistedMessengerData]);
   
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
@@ -118,7 +113,6 @@ const TripForm = ({
   }];
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     
     try {
       console.log('📱 Traveler form submission started (mobile compatible)', {
@@ -233,8 +227,11 @@ const TripForm = ({
       alert('Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.');
     }
   };
-  const handleInputChange = useCallback((field: string, value: any) => {
-    updateFormField(field, value);
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
 
     // Mostrar formulario de mensajero si selecciona mensajero
     if (field === 'deliveryMethod') {
@@ -245,29 +242,27 @@ const TripForm = ({
         setMessengerData(null);
       }
     }
-  }, [updateFormField]);
-  const handleAddressChange = useCallback((field: string, value: string) => {
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        packageReceivingAddress: {
-          ...prev.packageReceivingAddress,
-          [field]: value
-        }
-      };
-      setPersistedFormData(updated);
-      return updated;
-    });
-  }, [setPersistedFormData]);
-  const handleMessengerSubmit = useCallback((pickupData: any) => {
-    updateMessengerData(pickupData);
+  };
+  const handleAddressChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      packageReceivingAddress: {
+        ...prev.packageReceivingAddress,
+        [field]: value
+      }
+    }));
+  };
+  const handleMessengerSubmit = (pickupData: any) => {
+    setMessengerData(pickupData);
     setShowMessengerForm(false);
-  }, [updateMessengerData]);
-
-  const handleMessengerCancel = useCallback(() => {
+  };
+  const handleMessengerCancel = () => {
     setShowMessengerForm(false);
-    updateFormField('deliveryMethod', '');
-  }, [updateFormField]);
+    setFormData(prev => ({
+      ...prev,
+      deliveryMethod: ''
+    }));
+  };
 
   // Helper function to get the current origin city for display
   const getDisplayFromCity = () => {
@@ -307,7 +302,7 @@ const TripForm = ({
 
   // Form content component
   const FormContent = () => (
-    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} noValidate className="space-y-6 mobile-safe-form">
+    <form onSubmit={handleSubmit} className="space-y-6 mobile-safe-form">
       {/* 🟦 1. Información básica del viaje */}
       <div className="space-y-6">
         <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
@@ -414,18 +409,7 @@ const TripForm = ({
           <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
           <div className="relative">
             <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="availableSpace" 
-              type="text" 
-              inputMode="decimal"
-              placeholder="5.0" 
-              value={formData.availableSpace} 
-              onChange={e => {
-                handleInputChange('availableSpace', e.target.value);
-              }}
-              className="pl-10" 
-              required 
-            />
+            <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
           </div>
         </div>
       </div>
@@ -444,16 +428,7 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-          <Input 
-            id="recipientName" 
-            type="text" 
-            placeholder="Ej: Juan Pérez" 
-            value={formData.packageReceivingAddress.recipientName} 
-            onChange={e => {
-              handleAddressChange('recipientName', e.target.value);
-            }}
-            required 
-          />
+          <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
         </div>
 
         <div className="space-y-2">
@@ -475,84 +450,29 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-          <Input 
-            id="streetAddress" 
-            type="text" 
-            placeholder="Ej: 123 Main Street" 
-            value={formData.packageReceivingAddress.streetAddress} 
-            onChange={e => {
-              handleAddressChange('streetAddress', e.target.value);
-            }}
-            required 
-          />
+          <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
-          <Input 
-            id="streetAddress2" 
-            type="text" 
-            placeholder="Ej: Apt 4B, Suite 100" 
-            value={formData.packageReceivingAddress.streetAddress2} 
-            onChange={e => handleAddressChange('streetAddress2', e.target.value)} 
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
-            autoComplete="off" 
-            autoCorrect="off" 
-            autoCapitalize="none" 
-            enterKeyHint="done"
-          />
+          <Input id="streetAddress2" type="text" placeholder="Ej: Apt 4B, Suite 100" value={formData.packageReceivingAddress.streetAddress2} onChange={e => handleAddressChange('streetAddress2', e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
-            <Input 
-              id="cityArea" 
-              type="text" 
-              placeholder="Ej: Miami, FL" 
-              value={formData.packageReceivingAddress.cityArea} 
-              onChange={e => handleAddressChange('cityArea', e.target.value)} 
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
-              autoComplete="off" 
-              autoCorrect="off" 
-              autoCapitalize="none" 
-              enterKeyHint="done"
-              required 
-            />
+            <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="postalCode">Código postal *</Label>
-            <Input 
-              id="postalCode" 
-              type="text" 
-              placeholder="Ej: 33101" 
-              value={formData.packageReceivingAddress.postalCode} 
-              onChange={e => handleAddressChange('postalCode', e.target.value)} 
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
-              autoComplete="off" 
-              autoCorrect="off" 
-              autoCapitalize="none" 
-              enterKeyHint="done"
-              required 
-            />
+            <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} required />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio FAV, etc.)</Label>
-          <Input 
-            id="hotelAirbnbName" 
-            type="text" 
-            placeholder="Ej: Hotel InterContinental Miami" 
-            value={formData.packageReceivingAddress.hotelAirbnbName} 
-            onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }}
-            autoComplete="off" 
-            autoCorrect="off" 
-            autoCapitalize="none" 
-            enterKeyHint="done"
-          />
+          <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} />
         </div>
 
         <div className="space-y-2">

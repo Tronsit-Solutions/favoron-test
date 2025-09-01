@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Mail, Phone } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -724,26 +724,6 @@ const AdminMatchDialog = ({
                         <p className="text-sm font-medium">Método de Entrega</p>
                         <p className="text-sm text-muted-foreground">
                           {selectedTraveler.trip?.delivery_method === 'oficina' ? 'Oficina Favorón' : 'Mensajero'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Correo</p>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedTraveler.email || 'No disponible'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Teléfono</p>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedTraveler.phone_number || selectedTraveler.whatsapp_number || 'No disponible'}
                         </p>
                       </div>
                     </div>

@@ -145,17 +145,23 @@ export const MatchCard = ({
             {isMobile && (showQuoteTimer || showAssignmentTimer) && (
               <div className="space-y-2">
                 {showQuoteTimer && (
+                  <div className="bg-orange-50 border border-orange-200 rounded p-2">
+                    <span className="text-sm text-orange-700 font-medium block mb-1">Tiempo para pago</span>
                     <QuoteCountdown 
                       expiresAt={pkg.quote_expires_at} 
-                      compact={true}
+                      compact={false}
                     />
+                  </div>
                 )}
                 
                 {showAssignmentTimer && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                    <span className="text-sm text-blue-700 font-medium block mb-1">Tiempo para aceptar</span>
                     <QuoteCountdown 
                       expiresAt={pkg.matched_assignment_expires_at} 
-                      compact={true}
+                      compact={false}
                     />
+                  </div>
                 )}
               </div>
             )}
@@ -326,7 +332,7 @@ export const MatchCard = ({
                     </p>
                     <QuoteCountdown 
                       expiresAt={pkg.quote_expires_at}
-                      compact={true}
+                      compact={false}
                     />
                   </div>
                 )}
@@ -338,7 +344,7 @@ export const MatchCard = ({
                     </p>
                     <QuoteCountdown 
                       expiresAt={pkg.matched_assignment_expires_at}
-                      compact={true}
+                      compact={false}
                     />
                   </div>
                 )}

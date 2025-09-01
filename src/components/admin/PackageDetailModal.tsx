@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Plane, Building } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -10,7 +10,6 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 
 interface PackageDetailModalProps {
   modalId: string;
@@ -20,7 +19,6 @@ interface PackageDetailModalProps {
 }
 
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
-  const [showTravelModal, setShowTravelModal] = useState(false);
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
@@ -42,9 +40,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     console.log('No package provided to PackageDetailModal');
     return null;
   }
-
-  // Find the matched trip using the trips prop and trip ID
-  const matchedTrip = trips?.find(trip => trip.id === pkg.matched_trip_id);
 
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
@@ -125,14 +120,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return translations[reasonText] || reasonText;
   };
 
-  // Use the matchedTrip from trips prop, fallback to pkg.trips if needed
-  const travelerProfile = matchedTrip?.profiles || matchedTrip?.user_display_name ? {
-    first_name: matchedTrip.first_name,
-    last_name: matchedTrip.last_name,
-    username: matchedTrip.username,
-    email: matchedTrip.email,
-    phone_number: matchedTrip.phone_number
-  } : null;
+  // Get traveler information from package.trips.profiles (already contains the correct data)
+  const matchedTrip = pkg.trips || null;
+  const travelerProfile = matchedTrip?.profiles || null;
 
   console.log('Matched trip found:', matchedTrip);
   console.log('✈️ Traveler profile data:', travelerProfile);
@@ -343,15 +333,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </div>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowTravelModal(true)}
-                      className="w-full flex items-center gap-2"
-                    >
-                      <Plane className="h-4 w-4" />
-                      Ver Información Completa del Viaje
-                    </Button>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
+                      <div className="text-sm text-blue-700 space-y-1">
+                        <p><strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}</p>
+                        <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip.arrival_date)}</p>
+                        <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip.delivery_date)}</p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -734,343 +723,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
           )}
         </div>
       </DialogContent>
-
-      {/* Travel Information Modal */}
-      {matchedTrip && (
-        <Dialog open={showTravelModal} onOpenChange={setShowTravelModal}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center space-x-2">
-                <Plane className="h-5 w-5" />
-                <span>Información Completa del Viaje</span>
-              </DialogTitle>
-              <DialogDescription>
-                Detalles del viaje, direcciones de entrega y fechas importantes
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              {/* Traveler Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>Información del Viajero</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Nombre</p>
-                        <p className="text-sm text-muted-foreground">
-                          {travelerProfile ? `${travelerProfile.first_name || ''} ${travelerProfile.last_name || ''}`.trim() || travelerProfile.username || 'Sin nombre' : 'Sin información'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <p className="text-sm text-muted-foreground">
-                          {travelerProfile?.email || 'Sin email registrado'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Teléfono</p>
-                        <p className="text-sm text-muted-foreground">
-                          {travelerProfile?.phone_number || 'Sin teléfono registrado'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Usuario</p>
-                        <p className="text-sm text-muted-foreground">
-                          @{travelerProfile?.username || 'Sin usuario'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Trip Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Plane className="h-4 w-4" />
-                    <span>Detalles del Viaje</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Ruta</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.from_city} → {matchedTrip.to_city}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Fecha de Salida</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatSafeDate(matchedTrip.departure_date)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Fecha de Llegada</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatSafeDate(matchedTrip.arrival_date)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Fecha de Entrega</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatSafeDate(matchedTrip.delivery_date)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Primer día para recibir paquetes</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatSafeDate(matchedTrip.first_day_packages)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Último día para recibir paquetes</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatSafeDate(matchedTrip.last_day_packages)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Truck className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Método de Entrega</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.delivery_method === 'oficina' ? 'Oficina Favorón' : 'Mensajero'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Espacio Disponible</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.available_space ? `${matchedTrip.available_space} kg` : 'No especificado'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Package Receiving Address */}
-              {matchedTrip.package_receiving_address && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Home className="h-4 w-4" />
-                      <span>Dirección para Recibir Paquetes</span>
-                    </CardTitle>
-                  </CardHeader>
-                   <CardContent>
-                     <div className="space-y-4">
-                       {/* Recipient Name */}
-                       {matchedTrip.package_receiving_address.recipientName && (
-                         <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                           <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full">
-                             <User className="h-4 w-4 text-primary" />
-                           </div>
-                           <div>
-                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Destinatario</p>
-                             <p className="font-semibold text-foreground">{matchedTrip.package_receiving_address.recipientName}</p>
-                           </div>
-                         </div>
-                       )}
-                       
-                       {/* Address */}
-                       <div className="flex items-start gap-3 p-4 bg-card border rounded-lg">
-                         <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full mt-1">
-                           <MapPin className="h-4 w-4 text-blue-600" />
-                         </div>
-                         <div className="flex-1 space-y-2">
-                           <div>
-                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Dirección</p>
-                             <p className="font-semibold text-foreground leading-relaxed">
-                               {matchedTrip.package_receiving_address.streetAddress}
-                             </p>
-                             {matchedTrip.package_receiving_address.streetAddress2 && (
-                               <p className="text-muted-foreground text-sm">
-                                 {matchedTrip.package_receiving_address.streetAddress2}
-                               </p>
-                             )}
-                             <p className="text-muted-foreground">
-                               {matchedTrip.package_receiving_address.cityArea}
-                               {matchedTrip.package_receiving_address.postalCode && (
-                                 <span className="ml-2 font-medium">CP: {matchedTrip.package_receiving_address.postalCode}</span>
-                               )}
-                             </p>
-                           </div>
-                           
-                           {/* Accommodation Type */}
-                           {matchedTrip.package_receiving_address.accommodationType && (
-                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-secondary/20 border border-secondary/30 rounded-full">
-                               <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                               <span className="text-xs font-medium text-secondary-foreground">
-                                 {matchedTrip.package_receiving_address.accommodationType}
-                               </span>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                       
-                       {/* Hotel/Airbnb Name */}
-                       {matchedTrip.package_receiving_address.hotelAirbnbName && (
-                         <div className="flex items-center gap-3 p-3 bg-orange-50/50 border border-orange-200/50 rounded-lg">
-                           <div className="flex items-center justify-center w-8 h-8 bg-orange-100 rounded-full">
-                             <Building className="h-4 w-4 text-orange-600" />
-                           </div>
-                           <div>
-                             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Hotel/Alojamiento</p>
-                             <p className="font-semibold text-orange-800">{matchedTrip.package_receiving_address.hotelAirbnbName}</p>
-                           </div>
-                         </div>
-                       )}
-                       
-                        {/* Contact Number */}
-                        {matchedTrip.package_receiving_address.contactNumber && (
-                          <div className="flex items-center gap-3 p-3 bg-green-50/50 border border-green-200/50 rounded-lg">
-                            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
-                              <Phone className="h-4 w-4 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Teléfono de contacto</p>
-                              <p className="font-semibold text-green-800">{matchedTrip.package_receiving_address.contactNumber}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Reception and Delivery Dates */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="flex items-center gap-3 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
-                            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
-                              <Calendar className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Primer día recepción</p>
-                              <p className="font-semibold text-blue-800">{formatSafeDate(matchedTrip.first_day_packages)}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3 p-3 bg-purple-50/50 border border-purple-200/50 rounded-lg">
-                            <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full">
-                              <Calendar className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Último día recepción</p>
-                              <p className="font-semibold text-purple-800">{formatSafeDate(matchedTrip.last_day_packages)}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3 p-3 bg-emerald-50/50 border border-emerald-200/50 rounded-lg">
-                            <div className="flex items-center justify-center w-8 h-8 bg-emerald-100 rounded-full">
-                              <Truck className="h-4 w-4 text-emerald-600" />
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha entrega oficina</p>
-                              <p className="font-semibold text-emerald-800">{formatSafeDate(matchedTrip.delivery_date)}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Messenger Pickup Info */}
-              {matchedTrip.messenger_pickup_info && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Truck className="h-4 w-4" />
-                      <span>Información de Recogida por Mensajero</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-gradient-to-br from-orange/5 to-orange/10 border border-orange/20 rounded-xl p-4 space-y-3">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex items-center justify-center w-6 h-6 bg-orange/15 rounded-full mt-0.5 flex-shrink-0">
-                          <Truck className="h-3.5 w-3.5 text-orange" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
-                            <p className="font-semibold text-foreground text-sm leading-relaxed">
-                              {matchedTrip.messenger_pickup_info.pickupAddress}
-                            </p>
-                            <p className="text-muted-foreground text-sm mt-1">
-                              {matchedTrip.messenger_pickup_info.cityArea}
-                            </p>
-                          </div>
-                          
-                          <div className="bg-background/80 rounded-lg p-3 shadow-sm">
-                            <div className="flex items-center space-x-2">
-                              <Phone className="h-4 w-4 text-orange" />
-                              <p className="font-medium text-foreground text-sm">
-                                {matchedTrip.messenger_pickup_info.contactNumber}
-                              </p>
-                            </div>
-                          </div>
-
-                          {matchedTrip.messenger_pickup_info.specialInstructions && (
-                            <div className="bg-background/80 rounded-lg p-3 shadow-sm">
-                              <p className="text-sm font-medium mb-1">Instrucciones especiales:</p>
-                              <p className="text-sm text-muted-foreground">
-                                {matchedTrip.messenger_pickup_info.specialInstructions}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </Dialog>
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -24,7 +24,6 @@ interface PackageRequestFormProps {
 }
 
 interface Product {
-  id: string; // Stable ID for keys based on index
   itemLink: string;
   itemDescription: string;
   estimatedPrice: string;
@@ -32,20 +31,15 @@ interface Product {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
-  
-  // Stable initial data generators - memoized to prevent re-computation
-  const getInitialProducts = useCallback(() => {
+  // Initialize data based on mode
+  const getInitialProducts = () => {
     if (editMode && initialData?.products_data) {
       // Handle both old format (single product) and new format (array)
       if (Array.isArray(initialData.products_data)) {
-        return initialData.products_data.map((product, index) => ({
-          ...product,
-          id: `product_${index}` // Stable key based on index only
-        }));
+        return initialData.products_data;
       } else {
         // Legacy format - single product object
         return [{
-          id: 'product_0', // Stable key
           itemLink: initialData.item_link || '',
           itemDescription: initialData.item_description || '',
           estimatedPrice: initialData.estimated_price || '',
@@ -54,15 +48,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       }
     }
     return [{
-      id: 'product_0', // Stable key
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
       quantity: '1'
     }];
-  }, [editMode, initialData]);
+  };
 
-  const getInitialFormData = useCallback(() => {
+  const getInitialFormData = () => {
     if (editMode && initialData) {
       return {
         deliveryDeadline: initialData.delivery_deadline ? new Date(initialData.delivery_deadline) : null,
@@ -83,13 +76,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       purchaseOriginOther: '',
       deliveryMethod: ''
     };
-  }, [editMode, initialData]);
+  };
 
   // Only use persisted state in create mode
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
-      id: 'product_0', // Stable key
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
@@ -115,66 +107,31 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     initialState: null
   });
 
-  // Initialize state once with stable values
-  const [products, setProducts] = useState<Product[]>(() => 
-    editMode ? getInitialProducts() : persistedProducts
-  );
-  const [formData, setFormData] = useState(() => 
-    editMode ? getInitialFormData() : persistedFormData
-  );
+  // Local state for non-critical UI state
+  const [products, setProducts] = useState<Product[]>(editMode ? getInitialProducts() : persistedProducts);
+  const [formData, setFormData] = useState(editMode ? getInitialFormData() : persistedFormData);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressData, setAddressData] = useState(() => 
-    editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData
-  );
+  const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize edit mode data only once when dialog opens
+  // Sync local state with persisted state (only in create mode)
   useEffect(() => {
-    if (editMode && initialData && isOpen) {
-      const initialProducts = getInitialProducts();
-      const initialFormData = getInitialFormData();
-      const initialAddress = initialData.delivery_address || null;
-      
-      setProducts(initialProducts);
-      setFormData(initialFormData);
-      setAddressData(initialAddress);
-    }
-  }, [editMode, isOpen]); // Simplified dependencies
-
-  // Stable callbacks without startTransition to prevent focus loss
-  const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
-    setProducts(prev => {
-      const newProducts = [...prev];
-      newProducts[index] = { ...newProducts[index], [field]: value };
-      setPersistedProducts(newProducts);
-      return newProducts;
-    });
-  }, [setPersistedProducts]);
-
-  const updateFormField = useCallback((field: string, value: any) => {
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-      setPersistedFormData(updated);
-      return updated;
-    });
-  }, [setPersistedFormData]);
-
-  // Prevent Enter key from submitting form in text inputs
-  const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, []);
-
-  // Simplified persistence - only on dialog close for create mode
-  const persistFormData = useCallback(() => {
     if (!editMode) {
       setPersistedProducts(products);
+    }
+  }, [products, setPersistedProducts, editMode]);
+
+  useEffect(() => {
+    if (!editMode) {
       setPersistedFormData(formData);
+    }
+  }, [formData, setPersistedFormData, editMode]);
+
+  useEffect(() => {
+    if (!editMode) {
       setPersistedAddressData(addressData);
     }
-  }, [editMode, products, formData, addressData, setPersistedProducts, setPersistedFormData, setPersistedAddressData]);
+  }, [addressData, setPersistedAddressData, editMode]);
 
   const destinationCities = [
     'Guatemala City',
@@ -193,10 +150,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     
     if (isSubmitting) return; // Prevent double submission
     
+    console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
     setIsSubmitting(true);
     
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
@@ -233,16 +190,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       deliveryMethod: formData.deliveryMethod
     };
 
-    // Persist data before submission
-    persistFormData();
+    console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
     
     try {
       await onSubmit(submitData);
+      console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
       // Reset form and clear persisted data on success (only in create mode)
       if (!editMode) {
         const initialProducts = [{
-          id: 'product_0', // Stable key
           itemLink: '',
           itemDescription: '',
           estimatedPrice: '',
@@ -272,32 +228,35 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       // Close modal
       onClose();
     } catch (error) {
+      console.error('❌ FORM SUBMIT ERROR:', error);
       alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const addProduct = useCallback(() => {
+  const updateProduct = (index: number, field: keyof Product, value: string) => {
+    setProducts(prev => prev.map((product, i) => 
+      i === index ? { ...product, [field]: value } : product
+    ));
+  };
+
+  const addProduct = () => {
     if (products.length < 5) {
       setProducts(prev => [...prev, {
-        id: `product_${prev.length}`, // Stable key based on current length
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
         quantity: '1'
       }]);
     }
-  }, [products.length]);
+  };
 
-  const removeProduct = useCallback((index: number) => {
+  const removeProduct = (index: number) => {
     if (products.length > 1) {
-      setProducts(prev => prev.filter((_, i) => i !== index).map((product, newIndex) => ({
-        ...product,
-        id: `product_${newIndex}` // Re-index for stable keys
-      })));
+      setProducts(prev => prev.filter((_, i) => i !== index));
     }
-  }, [products.length]);
+  };
 
   const calculateTotalEstimated = () => {
     return products.reduce((total, product) => {
@@ -307,455 +266,378 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }, 0);
   };
 
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Mostrar formulario de dirección si selecciona delivery
+    if (field === 'deliveryMethod') {
+      if (value === 'delivery') {
+        setShowAddressForm(true);
+      } else {
+        setShowAddressForm(false);
+        setAddressData(null);
+      }
+    }
+  };
 
-  const handleAddressSubmit = useCallback((address: any) => {
+  const handleAddressSubmit = (address: any) => {
     setAddressData(address);
     setShowAddressForm(false);
-  }, []);
+  };
 
-  const handleAddressCancel = useCallback(() => {
+  const handleAddressCancel = () => {
     setShowAddressForm(false);
-    updateFormField('deliveryMethod', '');
-  }, [updateFormField]);
+    setFormData(prev => ({ ...prev, deliveryMethod: '' }));
+  };
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
 
-  // Memoized Product Card component to prevent unnecessary re-renders
-  const ProductCard = memo(({ product, index, onUpdate, onRemove, canRemove }: {
-    product: Product;
-    index: number;
-    onUpdate: (index: number, field: keyof Product, value: string) => void;
-    onRemove: (index: number) => void;
-    canRemove: boolean;
-  }) => (
-    <div className="border border-gray-200 rounded-lg p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">Producto #{index + 1}</Label>
-        {canRemove && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onRemove(index)}
-            className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
-          >
-            <Trash2 className="h-3 w-3" />
-            <span className="text-xs">Eliminar</span>
-          </Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-2">
-        <div>
-          <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link del producto *</Label>
-          <div className="relative">
-            <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-            <Input
-              id={`itemLink-${index}`}
-              name={`itemLink-${index}`}
-              type="url"
-              placeholder="https://amazon.com/producto..."
-              value={product.itemLink ?? ''}
-              onChange={(e) => {
-                onUpdate(index, 'itemLink', e.target.value);
-              }}
-              onKeyDown={preventEnterSubmit}
-              className="pl-7 h-8 text-sm"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              enterKeyHint="done"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
-          <Textarea
-            id={`itemDescription-${index}`}
-            name={`itemDescription-${index}`}
-            placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-            value={product.itemDescription ?? ''}
-            onChange={(e) => {
-              onUpdate(index, 'itemDescription', e.target.value);
-            }}
-            onKeyDown={preventEnterSubmit}
-            className="min-h-[60px] resize-none text-sm"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            rows={2}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label htmlFor={`estimatedPrice-${index}`} className="text-xs text-muted-foreground">Precio (USD) *</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-              <Input
-                id={`estimatedPrice-${index}`}
-                name={`estimatedPrice-${index}`}
-                type="text"
-                placeholder="299.99"
-                value={product.estimatedPrice ?? ''}
-                onChange={(e) => {
-                  onUpdate(index, 'estimatedPrice', e.target.value);
-                }}
-                onKeyDown={preventEnterSubmit}
-                className="pl-7 h-8 text-sm"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="none"
-                enterKeyHint="done"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
-            <Input
-              id={`quantity-${index}`}
-              name={`quantity-${index}`}
-              type="text"
-              placeholder="1"
-              value={product.quantity ?? ''}
-              onChange={(e) => {
-                onUpdate(index, 'quantity', e.target.value);
-              }}
-              onKeyDown={preventEnterSubmit}
-              className="h-8 text-sm"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              enterKeyHint="done"
-              required
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  ));
-
-  // Form Content Component
-  const FormContent = () => (
-    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} noValidate className="mobile-safe-form space-y-6">
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
-          {products.length < 5 && (
-            <Button
-              type="button"
-              variant="shopper"
-              size="sm"
-              onClick={addProduct}
-              className="flex items-center space-x-1 font-semibold shadow-sm text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
-            >
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span>Agregar</span>
-            </Button>
-          )}
-        </div>
-        
-        <div className="space-y-3">
-          {products.map((product, index) => (
-            <ProductCard
-              key={product.id || `product_${index}`}
-              product={product}
-              index={index}
-              onUpdate={updateProductField}
-              onRemove={removeProduct}
-              canRemove={products.length > 1}
-            />
-          ))}
-        </div>
-
-        {products.length > 1 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm font-medium text-blue-800">
-              Total estimado: ${calculateTotalEstimated().toFixed(2)} USD
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Pedido de {products.length} productos
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="packageDestination">Destino del paquete *</Label>
-        <Select value={formData.packageDestination} onValueChange={(value) => updateFormField('packageDestination', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona el destino del paquete" />
-          </SelectTrigger>
-          <SelectContent>
-            {destinationCities.map((city) => (
-              <SelectItem key={city} value={city}>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>{city}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {formData.packageDestination === 'Otra ciudad' && (
-          <Input
-            placeholder="Escribe la ciudad de destino"
-            value={formData.packageDestinationOther ?? ''}
-            onChange={(e) => updateFormField('packageDestinationOther', e.target.value)}
-            onKeyDown={preventEnterSubmit}
-            className="mt-2"
-            required
-          />
-        )}
-        <p className="text-xs text-muted-foreground">
-          ¿A dónde necesitas que llegue el paquete?
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
-        <Select value={formData.purchaseOrigin} onValueChange={(value) => updateFormField('purchaseOrigin', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="¿Desde qué país estás comprando?" />
-          </SelectTrigger>
-          <SelectContent>
-            {purchaseOrigins.map((origin) => (
-              <SelectItem key={origin.value} value={origin.value}>
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>{origin.label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {formData.purchaseOrigin === 'Otro' && (
-          <Input
-            placeholder="Escribe el país de origen"
-            value={formData.purchaseOriginOther ?? ''}
-            onChange={(e) => updateFormField('purchaseOriginOther', e.target.value)}
-            onKeyDown={preventEnterSubmit}
-            className="mt-2"
-            required
-          />
-        )}
-        <p className="text-xs text-muted-foreground">
-          ¿Desde qué país estás comprando tu producto?
-        </p>
-      </div>
-
-      {/* Delivery method for Guatemala only */}
-      {isGuatemalaDestination && (
-        <div className="space-y-4">
-          <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
-          <RadioGroup 
-            value={formData.deliveryMethod} 
-            onValueChange={(value) => {
-              updateFormField('deliveryMethod', value);
-              if (value === 'delivery') {
-                setShowAddressForm(true);
-              } else {
-                setShowAddressForm(false);
-                setAddressData(null);
-              }
-            }}
-            className="space-y-2 sm:space-y-3"
-          >
-            <div 
-              className="mobile-radio-card"
-              data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
-              onClick={() => {
-                updateFormField('deliveryMethod', 'pickup');
-                setShowAddressForm(false);
-                setAddressData(null);
-              }}
-            >
-              <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
-              <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
-                <div className="flex-1">
-                  <Label htmlFor="pickup" className="cursor-pointer text-sm sm:text-base font-medium">
-                    Lo recojo en zona 14
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1 sm:hidden">
-                    Recogida en oficina de Favorón
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div 
-              className="mobile-radio-card"
-              data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
-              onClick={() => {
-                updateFormField('deliveryMethod', 'delivery');
-                setShowAddressForm(true);
-              }}
-            >
-              <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
-              <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
-                <div className="flex-1">
-                  <Label htmlFor="delivery" className="cursor-pointer text-sm sm:text-base font-medium">
-                    Enviarlo a mi domicilio
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1 sm:hidden">
-                    Entrega a domicilio con costo adicional
-                  </p>
-                </div>
-              </div>
-            </div>
-          </RadioGroup>
-          
-          {/* Mostrar formulario de dirección si seleccionó delivery */}
-          {showAddressForm && (
-            <AddressForm
-              onSubmit={handleAddressSubmit}
-              onCancel={handleAddressCancel}
-              initialData={addressData}
-            />
-          )}
-          
-          {/* Mostrar resumen de dirección si ya la completó */}
-          {formData.deliveryMethod === 'delivery' && addressData && !showAddressForm && (
-            <div className="bg-green-50 border border-green-200 rounded p-3">
-              <p className="text-sm font-medium text-green-800 mb-1">✓ Dirección de entrega confirmada</p>
-              <p className="text-xs text-green-700">{addressData.streetAddress}, {addressData.cityArea}</p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAddressForm(true)}
-                className="mt-2"
-              >
-                Editar dirección
-              </Button>
-            </div>
-          )}
-          
-          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            <p className="text-sm text-blue-800">
-              📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional de Q25 (solo válido en Ciudad de Guatemala y municipios cercanos).
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label>Fecha límite de entrega</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-              type="button"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formData.deliveryDeadline ? (
-                format(formData.deliveryDeadline, "PPP", { locale: es })
-              ) : (
-                <span>Selecciona una fecha (opcional)</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={formData.deliveryDeadline || undefined}
-              onSelect={(date) => updateFormField('deliveryDeadline', date)}
-              disabled={(date) => date < new Date()}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        <p className="text-xs text-muted-foreground">
-          ¿Para cuándo necesitas el producto? (opcional)
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="additionalNotes">Notas adicionales</Label>
-        <Textarea
-          id="additionalNotes"
-          placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
-          value={formData.additionalNotes ?? ''}
-          onChange={(e) => updateFormField('additionalNotes', e.target.value)}
-          onKeyDown={preventEnterSubmit}
-          className="min-h-[80px]"
-        />
-      </div>
-
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-          <div className="text-sm text-yellow-800">
-            <p className="font-medium mb-1">¿Cómo funciona?</p>
-            <ul className="space-y-1 text-xs">
-              <li>• Revisaremos tu solicitud en 24-48 horas</li>
-              <li>• Te conectaremos con viajeros disponibles</li>
-              <li>• Recibirás cotizaciones y podrás elegir</li>
-              <li>• Solo pagas cuando aceptes una cotización</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex space-x-3">
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-          Cancelar
-        </Button>
-        <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
-          {isSubmitting 
-            ? (editMode ? 'Guardando...' : 'Enviando...') 
-            : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
-          }
-        </Button>
-      </div>
-    </form>
-  );
-
-  // Single responsive dialog to prevent component tree remounting
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg w-full max-w-[95vw] max-h-[95vh] overflow-y-auto p-0">
-        {/* Mobile-optimized header */}
-        <div className="md:hidden flex items-center justify-between py-4 px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-lg font-semibold text-center flex-1">
-            {editMode ? 'Editar Solicitud' : 'Nueva Solicitud'}
-          </h2>
-          <div className="w-10" />
-        </div>
-        
-        {/* Desktop header */}
-        <div className="hidden md:block">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-primary" />
-              <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
-            </DialogTitle>
-            <DialogDescription>
-              {editMode 
-                ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-                : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <Package className="h-5 w-5 text-primary" />
+            <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
+          </DialogTitle>
+          <DialogDescription>
+            {editMode 
+              ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
+              : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
+            }
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
+              {products.length < 5 && (
+                <Button
+                  type="button"
+                  variant="shopper"
+                  size="sm"
+                  onClick={addProduct}
+                  className="flex items-center space-x-1 font-semibold shadow-sm text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2"
+                >
+                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Agregar</span>
+                </Button>
+              )}
+            </div>
+            
+            <div className="space-y-3">
+              {products.map((product, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Producto #{index + 1}</Label>
+                    {products.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeProduct(index)}
+                        className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span className="text-xs">Eliminar</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    <div>
+                      <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link del producto *</Label>
+                      <div className="relative">
+                        <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+                        <Input
+                          id={`itemLink-${index}`}
+                          type="url"
+                          placeholder="https://amazon.com/producto..."
+                          value={product.itemLink}
+                          onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                          className="pl-7 h-8 text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Descripción del producto *</Label>
+                      <Textarea
+                        id={`itemDescription-${index}`}
+                        placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                        value={product.itemDescription}
+                        onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                        className="min-h-[60px] resize-none text-sm"
+                        rows={2}
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor={`estimatedPrice-${index}`} className="text-xs text-muted-foreground">Precio (USD) *</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+                          <Input
+                            id={`estimatedPrice-${index}`}
+                            type="number"
+                            step="0.01"
+                            placeholder="299.99"
+                            value={product.estimatedPrice}
+                            onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                            className="pl-7 h-8 text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">Cantidad *</Label>
+                        <Input
+                          id={`quantity-${index}`}
+                          type="number"
+                          min="1"
+                          placeholder="1"
+                          value={product.quantity}
+                          onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
+                          className="h-8 text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {products.length > 1 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-blue-800">
+                  Total estimado: ${calculateTotalEstimated().toFixed(2)} USD
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Pedido de {products.length} productos
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="packageDestination">Destino del paquete *</Label>
+            <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona el destino del paquete" />
+              </SelectTrigger>
+              <SelectContent>
+                {destinationCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{city}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.packageDestination === 'Otra ciudad' && (
+              <Input
+                placeholder="Escribe la ciudad de destino"
+                value={formData.packageDestinationOther}
+                onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+                className="mt-2"
+                required
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              ¿A dónde necesitas que llegue el paquete?
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
+            <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="¿Desde qué país estás comprando?" />
+              </SelectTrigger>
+              <SelectContent>
+                {purchaseOrigins.map((origin) => (
+                  <SelectItem key={origin.value} value={origin.value}>
+                    <div className="flex items-center space-x-2">
+                      <Globe className="h-4 w-4" />
+                      <span>{origin.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.purchaseOrigin === 'Otro' && (
+              <Input
+                placeholder="Escribe el país de origen"
+                value={formData.purchaseOriginOther}
+                onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
+                className="mt-2"
+                required
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              ¿Desde qué país estás comprando tu producto?
+            </p>
+          </div>
+
+          {/* Delivery method for Guatemala only */}
+          {isGuatemalaDestination && (
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
+              <RadioGroup 
+                value={formData.deliveryMethod} 
+                onValueChange={(value) => handleInputChange('deliveryMethod', value)}
+                className="space-y-2 sm:space-y-3"
+              >
+                <div 
+                  className="mobile-radio-card"
+                  data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
+                  onClick={() => handleInputChange('deliveryMethod', 'pickup')}
+                >
+                  <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
+                  <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                    <div className="flex-1">
+                      <Label htmlFor="pickup" className="cursor-pointer text-sm sm:text-base font-medium">
+                        Lo recojo en zona 14
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                        Recogida en oficina de Favorón
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div 
+                  className="mobile-radio-card"
+                  data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
+                  onClick={() => handleInputChange('deliveryMethod', 'delivery')}
+                >
+                  <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
+                  <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                    <div className="flex-1">
+                      <Label htmlFor="delivery" className="cursor-pointer text-sm sm:text-base font-medium">
+                        Enviarlo a mi domicilio
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                        Entrega a domicilio con costo adicional
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </RadioGroup>
+              
+              {/* Mostrar formulario de dirección si seleccionó delivery */}
+              {showAddressForm && (
+                <AddressForm
+                  onSubmit={handleAddressSubmit}
+                  onCancel={handleAddressCancel}
+                  initialData={addressData}
+                />
+              )}
+              
+              {/* Mostrar resumen de dirección si ya la completó */}
+              {formData.deliveryMethod === 'delivery' && addressData && !showAddressForm && (
+                <div className="bg-green-50 border border-green-200 rounded p-3">
+                  <p className="text-sm font-medium text-green-800 mb-1">✓ Dirección de entrega confirmada</p>
+                  <p className="text-xs text-green-700">{addressData.streetAddress}, {addressData.cityArea}</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddressForm(true)}
+                    className="mt-2"
+                  >
+                    Editar dirección
+                  </Button>
+                </div>
+              )}
+              
+              <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <p className="text-sm text-blue-800">
+                  📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional de Q25 (solo válido en Ciudad de Guatemala y municipios cercanos).
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Fecha límite de entrega</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  type="button"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.deliveryDeadline ? (
+                    format(formData.deliveryDeadline, "PPP", { locale: es })
+                  ) : (
+                    <span>Selecciona una fecha (opcional)</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.deliveryDeadline || undefined}
+                  onSelect={(date) => handleInputChange('deliveryDeadline', date)}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">
+              ¿Para cuándo necesitas el producto? (opcional)
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="additionalNotes">Notas adicionales</Label>
+            <Textarea
+              id="additionalNotes"
+              placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
+              value={formData.additionalNotes}
+              onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+              className="min-h-[80px]"
+            />
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium mb-1">¿Cómo funciona?</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• Revisaremos tu solicitud en 24-48 horas</li>
+                  <li>• Te conectaremos con viajeros disponibles</li>
+                  <li>• Recibirás cotizaciones y podrás elegir</li>
+                  <li>• Solo pagas cuando aceptes una cotización</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting 
+                ? (editMode ? 'Guardando...' : 'Enviando...') 
+                : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
               }
-            </DialogDescription>
-          </DialogHeader>
-        </div>
-        
-        {/* Form content with responsive padding */}
-        <div className="p-4 md:p-6 md:pt-0">
-          <FormContent />
-        </div>
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
 };
 
-// Memoize the entire component to prevent unnecessary re-renders
-export default memo(PackageRequestForm);
+export default PackageRequestForm;
