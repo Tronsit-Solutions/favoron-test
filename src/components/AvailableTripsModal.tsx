@@ -226,7 +226,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3 pb-2">
+        <div className="flex-1 overflow-y-auto space-y-1 sm:space-y-1.5 pb-4 sm:pb-6">
           {loading ? (
             <LoadingState message="Cargando viajes disponibles..." />
           ) : filteredTrips.length === 0 ? (
@@ -241,10 +241,10 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             filteredTrips.map((trip, index) => (
               <div
                 key={trip.id}
-                className="border border-teal-200 rounded-lg p-3 sm:p-4 hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 transition-all duration-300 hover:scale-105 hover:shadow-md animate-fade-in"
+                className="border border-teal-200 rounded-lg p-2 sm:p-3 hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 transition-all duration-300 hover:scale-105 hover:shadow-md animate-fade-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
                       <span className="text-base sm:text-lg">🛫</span>
