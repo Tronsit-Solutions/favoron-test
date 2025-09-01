@@ -94,6 +94,12 @@ const AdminApprovalsTab = ({
     });
     
     if (trip.profiles) {
+      // First try display_name from trips_with_user
+      if (trip.profiles.display_name) {
+        console.log('✅ Using display_name:', trip.profiles.display_name);
+        return trip.profiles.display_name;
+      }
+      
       const fullName = formatFullName(trip.profiles.first_name, trip.profiles.last_name);
       if (fullName && fullName !== 'Usuario') {
         console.log('✅ Using full name:', fullName);

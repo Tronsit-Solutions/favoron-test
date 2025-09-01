@@ -108,21 +108,33 @@ export const useAdminData = (): AdminData => {
 
   const fetchAdminTrips = useCallback(async () => {
     try {
-      console.log('🔄 Admin: Fetching all trips...');
+      console.log('🔄 Admin: Fetching all trips using trips_with_user...');
       
       const { data, error } = await supabase
-        .from('trips')
+        .from('trips_with_user')
         .select(`
-          *,
-          profiles:user_id(
-            id,
-            first_name,
-            last_name,
-            username,
-            avatar_url,
-            email,
-            phone_number
-          )
+          id,
+          user_id,
+          from_city,
+          to_city,
+          departure_date,
+          arrival_date,
+          delivery_date,
+          first_day_packages,
+          last_day_packages,
+          available_space,
+          package_receiving_address,
+          messenger_pickup_info,
+          created_at,
+          updated_at,
+          status,
+          delivery_method,
+          from_country,
+          user_display_name,
+          first_name,
+          last_name,
+          username,
+          email
         `)
         .order('departure_date', { ascending: true });
 
@@ -134,35 +146,22 @@ export const useAdminData = (): AdminData => {
       let tripsResult: any[] = data || [];
       console.log('✅ Admin: Fetched trips:', tripsResult.length);
 
-      // If embedded profiles are missing (likely no FK), fetch profiles in bulk and merge
-      const missingProfileUserIds = Array.from(
-        new Set(
-          tripsResult
-            .filter((t) => !t?.profiles)
-            .map((t) => t.user_id)
-            .filter(Boolean)
-        )
-      );
-
-      if (missingProfileUserIds.length > 0) {
-        console.log('ℹ️ Admin: Fetching missing traveler profiles for trips:', missingProfileUserIds.length);
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, username, avatar_url, email, phone_number')
-          .in('id', missingProfileUserIds);
-        
-        if (profilesError) {
-          console.warn('⚠️ Admin: Could not fetch traveler profiles:', profilesError);
-        } else if (profilesData) {
-          const profilesMap = new Map(profilesData.map((p: any) => [p.id, p]));
-          tripsResult = tripsResult.map((t) => ({
-            ...t,
-            profiles: t.profiles ?? profilesMap.get(t.user_id) ?? null,
-          }));
-          console.log('✅ Admin: Merged traveler profiles into trips');
+      // Create synthetic profiles object for compatibility
+      tripsResult = tripsResult.map((t) => ({
+        ...t,
+        profiles: {
+          id: t.user_id,
+          display_name: t.user_display_name,
+          first_name: t.first_name,
+          last_name: t.last_name,
+          username: t.username,
+          email: t.email,
+          avatar_url: null,
+          phone_number: null
         }
-      }
+      }));
 
+      console.log('✅ Admin: Created synthetic profiles for trips');
       return tripsResult;
     } catch (error: any) {
       console.error('❌ Admin: Trip fetch failed:', error);
