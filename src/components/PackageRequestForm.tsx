@@ -143,22 +143,23 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, [editMode, isOpen]); // Simplified dependencies
 
-  // OPTIMIZED callbacks using startTransition for batching
+  // Stable callbacks without startTransition to prevent focus loss
   const updateProductField = useCallback((index: number, field: keyof Product, value: string) => {
-    startTransition(() => {
-      setProducts(prev => {
-        const newProducts = [...prev];
-        newProducts[index] = { ...newProducts[index], [field]: value };
-        return newProducts;
-      });
+    setProducts(prev => {
+      const newProducts = [...prev];
+      newProducts[index] = { ...newProducts[index], [field]: value };
+      setPersistedProducts(newProducts);
+      return newProducts;
     });
-  }, []);
+  }, [setPersistedProducts]);
 
   const updateFormField = useCallback((field: string, value: any) => {
-    startTransition(() => {
-      setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      setPersistedFormData(updated);
+      return updated;
     });
-  }, []);
+  }, [setPersistedFormData]);
 
   // Prevent Enter key from submitting form in text inputs
   const preventEnterSubmit = useCallback((e: React.KeyboardEvent) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRef, useCallback } from 'react';
 
 interface UsePersistedFormStateOptions<T> {
   key: string;
@@ -11,7 +11,8 @@ export function usePersistedFormState<T>(
 ) {
   const { ttl = 24 * 60 * 60 * 1000, key, initialState } = options; // 24 hours
   
-  const [state, setState] = useState<T>(() => {
+  // Initialize state from localStorage once
+  const getInitialState = (): T => {
     try {
       const item = localStorage.getItem(key);
       if (!item) return initialState;
@@ -29,49 +30,54 @@ export function usePersistedFormState<T>(
       console.warn('Failed to load persisted form state:', error);
       return initialState;
     }
-  });
+  };
 
-  // Debounced persistence to prevent excessive writes
+  // Use ref to store current state without causing re-renders
+  const currentState = useRef<T>(getInitialState());
+
+  // Debounced persistence using timeout ref
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    // Skip persistence on initial mount
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
+  
+  // Direct persistence function that doesn't cause re-renders
+  const persistState = useCallback((newState: T) => {
     // Clear previous timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    // Debounce persistence by 500ms
+    // Debounce persistence by 300ms
     timeoutRef.current = setTimeout(() => {
       try {
         const dataToStore = {
-          data: state,
+          data: newState,
           timestamp: Date.now()
         };
         localStorage.setItem(key, JSON.stringify(dataToStore));
       } catch (error) {
         console.warn('Failed to persist form state:', error);
       }
-    }, 500);
+    }, 300);
+  }, [key]);
 
-    // Cleanup timeout on unmount
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [state, key]);
+  // Stable setState that updates ref and persists
+  const setState = useCallback((newState: T | ((prev: T) => T)) => {
+    const updatedState = typeof newState === 'function' 
+      ? (newState as (prev: T) => T)(currentState.current)
+      : newState;
+    
+    currentState.current = updatedState;
+    persistState(updatedState);
+    
+    return updatedState;
+  }, [persistState]);
 
   const clearPersistedState = useCallback(() => {
     try {
       localStorage.removeItem(key);
-      setState(initialState);
+      currentState.current = initialState;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     } catch (error) {
       console.warn('Failed to clear persisted form state:', error);
     }
@@ -89,14 +95,13 @@ export function usePersistedFormState<T>(
     }
   }, [key, ttl]);
 
-  // Stable setState wrapper
-  const stableSetState = useCallback((newState: T | ((prev: T) => T)) => {
-    setState(newState);
-  }, []);
+  // Get current state without triggering re-renders
+  const getState = useCallback(() => currentState.current, []);
 
   return {
-    state,
-    setState: stableSetState,
+    state: currentState.current,
+    setState,
+    getState,
     clearPersistedState,
     hasPersistedData
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -90,14 +90,19 @@ const TripForm = ({
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Sync local state with persisted state
-  useEffect(() => {
-    setPersistedFormData(formData);
-  }, [formData, setPersistedFormData]);
+  // Stable callbacks for input changes
+  const updateFormField = useCallback((field: string, value: any) => {
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      setPersistedFormData(updated);
+      return updated;
+    });
+  }, [setPersistedFormData]);
 
-  useEffect(() => {
-    setPersistedMessengerData(messengerData);
-  }, [messengerData, setPersistedMessengerData]);
+  const updateMessengerData = useCallback((data: any) => {
+    setMessengerData(data);
+    setPersistedMessengerData(data);
+  }, [setPersistedMessengerData]);
   
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
@@ -227,11 +232,8 @@ const TripForm = ({
       alert('Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.');
     }
   };
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleInputChange = useCallback((field: string, value: any) => {
+    updateFormField(field, value);
 
     // Mostrar formulario de mensajero si selecciona mensajero
     if (field === 'deliveryMethod') {
@@ -242,27 +244,29 @@ const TripForm = ({
         setMessengerData(null);
       }
     }
-  };
-  const handleAddressChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      packageReceivingAddress: {
-        ...prev.packageReceivingAddress,
-        [field]: value
-      }
-    }));
-  };
-  const handleMessengerSubmit = (pickupData: any) => {
-    setMessengerData(pickupData);
+  }, [updateFormField]);
+  const handleAddressChange = useCallback((field: string, value: string) => {
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        packageReceivingAddress: {
+          ...prev.packageReceivingAddress,
+          [field]: value
+        }
+      };
+      setPersistedFormData(updated);
+      return updated;
+    });
+  }, [setPersistedFormData]);
+  const handleMessengerSubmit = useCallback((pickupData: any) => {
+    updateMessengerData(pickupData);
     setShowMessengerForm(false);
-  };
-  const handleMessengerCancel = () => {
+  }, [updateMessengerData]);
+
+  const handleMessengerCancel = useCallback(() => {
     setShowMessengerForm(false);
-    setFormData(prev => ({
-      ...prev,
-      deliveryMethod: ''
-    }));
-  };
+    updateFormField('deliveryMethod', '');
+  }, [updateFormField]);
 
   // Helper function to get the current origin city for display
   const getDisplayFromCity = () => {
