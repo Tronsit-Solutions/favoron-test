@@ -556,41 +556,37 @@ const TripForm = ({
           <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
           <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-2 sm:space-y-3">
             <div 
-              className={cn(
-                "mobile-radio-card border-2 rounded-lg p-4 sm:p-3 cursor-pointer transition-all duration-200 flex items-start space-x-3 sm:space-x-2",
-                formData.deliveryMethod === "oficina" 
-                  ? "selected border-primary bg-primary/5" 
-                  : "border-border hover:border-primary/50"
-              )}
+              className="mobile-radio-card"
+              data-state={formData.deliveryMethod === "oficina" ? "checked" : "unchecked"}
               onClick={() => handleInputChange('deliveryMethod', 'oficina')}
             >
-              <RadioGroupItem value="oficina" id="oficina" className="mt-1 sm:mt-0.5" />
-              <div className="flex-1">
-                <Label htmlFor="oficina" className="cursor-pointer text-sm sm:text-base font-medium">
-                  Entrego en oficina de Favorón (zona 14)
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1 sm:hidden">
-                  Ubicación fija en zona 14, Guatemala
-                </p>
+              <RadioGroupItem value="oficina" id="oficina" className="sr-only" />
+              <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                <div className="flex-1">
+                  <Label htmlFor="oficina" className="cursor-pointer text-sm sm:text-base font-medium">
+                    Entrego en oficina de Favorón (zona 14)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                    Ubicación fija en zona 14, Guatemala
+                  </p>
+                </div>
               </div>
             </div>
             <div 
-              className={cn(
-                "mobile-radio-card border-2 rounded-lg p-4 sm:p-3 cursor-pointer transition-all duration-200 flex items-start space-x-3 sm:space-x-2",
-                formData.deliveryMethod === "mensajero" 
-                  ? "selected border-primary bg-primary/5" 
-                  : "border-border hover:border-primary/50"
-              )}
+              className="mobile-radio-card"
+              data-state={formData.deliveryMethod === "mensajero" ? "checked" : "unchecked"}
               onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
             >
-              <RadioGroupItem value="mensajero" id="mensajero" className="mt-1 sm:mt-0.5" />
-              <div className="flex-1">
-                <Label htmlFor="mensajero" className="cursor-pointer text-sm sm:text-base font-medium">
-                  Entrega a mensajero Favorón (Q25–Q40 según dirección)
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1 sm:hidden">
-                  Recolección a domicilio con costo adicional
-                </p>
+              <RadioGroupItem value="mensajero" id="mensajero" className="sr-only" />
+              <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                <div className="flex-1">
+                  <Label htmlFor="mensajero" className="cursor-pointer text-sm sm:text-base font-medium">
+                    Entrega a mensajero Favorón (Q25–Q40 según dirección)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                    Recolección a domicilio con costo adicional
+                  </p>
+                </div>
               </div>
             </div>
           </RadioGroup>
