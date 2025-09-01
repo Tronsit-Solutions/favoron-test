@@ -123,19 +123,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     if (!editMode) {
       setPersistedProducts(products);
     }
-  }, [products, setPersistedProducts, editMode]);
+  }, [products, editMode]); // Removed setPersistedProducts dependency
 
   useEffect(() => {
     if (!editMode) {
       setPersistedFormData(formData);
     }
-  }, [formData, setPersistedFormData, editMode]);
+  }, [formData, editMode]); // Removed setPersistedFormData dependency
 
   useEffect(() => {
     if (!editMode) {
       setPersistedAddressData(addressData);
     }
-  }, [addressData, setPersistedAddressData, editMode]);
+  }, [addressData, editMode]); // Removed setPersistedAddressData dependency
 
   const destinationCities = [
     'Guatemala City',
@@ -395,7 +395,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
                     onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                    className="min-h-[60px] resize-none text-sm"
+                    className="min-h-[60px] max-h-[60px] resize-none text-sm overflow-y-auto"
                     rows={2}
                     required
                   />
@@ -630,7 +630,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
           value={formData.additionalNotes}
           onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
-          className="min-h-[80px]"
+          className="min-h-[80px] max-h-[100px] resize-none overflow-y-auto"
         />
       </div>
 
