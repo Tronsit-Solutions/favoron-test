@@ -36,6 +36,7 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   border: 2px solid hsl(var(--border));
+  border-radius: 1rem;
   position: relative;
 }
 
