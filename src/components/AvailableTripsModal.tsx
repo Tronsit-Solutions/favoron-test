@@ -9,6 +9,8 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
+import { DownloadConfigModal } from "@/components/admin/DownloadConfigModal";
+import { InstagramPostGenerator } from "@/components/admin/InstagramPostGenerator";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -19,8 +21,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const { trips, loading } = usePublicTrips();
   const { user, userRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const modalContentRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const postRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   const isAdmin = userRole?.role === 'admin';
 
@@ -37,46 +40,90 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     });
   };
 
-  const handleDownloadImage = async () => {
-    if (!modalContentRef.current) return;
+  const getFilteredTripsByDate = (daysLimit: number) => {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() + daysLimit);
     
+    return filteredTrips.filter(trip => {
+      const arrivalDate = new Date(trip.arrival_date);
+      return arrivalDate <= cutoffDate;
+    });
+  };
+
+  const handleDownloadConfig = async (daysLimit: number) => {
     setIsDownloading(true);
+    
     try {
-      const canvas = await html2canvas(modalContentRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        height: modalContentRef.current.scrollHeight,
-        windowHeight: modalContentRef.current.scrollHeight
-      });
+      const tripsToDownload = getFilteredTripsByDate(daysLimit);
       
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          
-          const now = new Date();
-          const timestamp = now.toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
-          link.download = `hub-viajes-${timestamp}.jpeg`;
-          
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          
-          toast({
-            title: "Imagen descargada",
-            description: "El Hub de Viajes se ha exportado como imagen JPEG",
-          });
+      if (tripsToDownload.length === 0) {
+        toast({
+          title: "Sin viajes",
+          description: "No hay viajes disponibles en el rango de fechas seleccionado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Split trips into chunks of 10
+      const tripChunks = [];
+      for (let i = 0; i < tripsToDownload.length; i += 10) {
+        tripChunks.push(tripsToDownload.slice(i, i + 10));
+      }
+
+      // Generate and download each image
+      for (let i = 0; i < tripChunks.length; i++) {
+        const postElement = postRefs.current[i];
+        if (!postElement) continue;
+
+        const canvas = await html2canvas(postElement, {
+          backgroundColor: '#ffffff',
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+          width: 1080,
+          height: 1080
+        });
+
+        await new Promise<void>((resolve) => {
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              
+              const now = new Date();
+              const timestamp = now.toISOString().slice(0, 10);
+              const fileName = tripChunks.length > 1 
+                ? `hub-viajes-${i + 1}-de-${tripChunks.length}-${timestamp}.jpg`
+                : `hub-viajes-${timestamp}.jpg`;
+              
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }
+            resolve();
+          }, 'image/jpeg', 0.95);
+        });
+
+        // Small delay between downloads
+        if (i < tripChunks.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
-      }, 'image/jpeg', 0.95);
+      }
+
+      toast({
+        title: "Imágenes descargadas",
+        description: `Se generaron ${tripChunks.length} imagen(es) del Hub de Viajes`,
+      });
+
     } catch (error) {
-      console.error('Error downloading image:', error);
+      console.error('Error downloading images:', error);
       toast({
         title: "Error",
-        description: "No se pudo descargar la imagen",
+        description: "No se pudieron descargar las imágenes",
         variant: "destructive",
       });
     } finally {
@@ -84,10 +131,21 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     }
   };
 
+  // Generate Instagram posts for preview (hidden)
+  const generateInstagramPosts = () => {
+    const tripChunks = [];
+    for (let i = 0; i < filteredTrips.length; i += 10) {
+      tripChunks.push(filteredTrips.slice(i, i + 10));
+    }
+    return tripChunks;
+  };
+
+  const instagramPosts = generateInstagramPosts();
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col bg-gradient-to-br from-teal-500/5 via-cyan-400/5 to-emerald-500/5 p-4 sm:p-6">
-        <div ref={modalContentRef}>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden flex flex-col bg-gradient-to-br from-teal-500/5 via-cyan-400/5 to-emerald-500/5 p-4 sm:p-6">
           <DialogHeader className="bg-gradient-to-r from-teal-500 via-cyan-400 to-emerald-500 -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
             <DialogTitle className="flex items-center justify-between text-white text-lg sm:text-xl">
               <div className="flex items-center gap-2">
@@ -96,14 +154,14 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               </div>
               {isAdmin && (
                 <Button
-                  onClick={handleDownloadImage}
+                  onClick={() => setShowConfigModal(true)}
                   disabled={isDownloading}
                   variant="ghost"
                   size="sm"
                   className="text-white hover:bg-white/20 h-8 px-3"
                 >
                   <Download className="h-4 w-4 mr-1" />
-                  {isDownloading ? "Descargando..." : "Descargar"}
+                  {isDownloading ? "Generando..." : "Descargar"}
                 </Button>
               )}
             </DialogTitle>
@@ -170,9 +228,30 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             ))
           )}
         </div>
-        </div>
       </DialogContent>
     </Dialog>
+
+    {/* Hidden Instagram Post Generators for image generation */}
+    <div className="fixed -top-[10000px] -left-[10000px] pointer-events-none">
+      {instagramPosts.map((tripChunk, index) => (
+        <InstagramPostGenerator
+          key={index}
+          ref={(el) => (postRefs.current[index] = el)}
+          trips={tripChunk}
+          pageNumber={index + 1}
+          totalPages={instagramPosts.length}
+        />
+      ))}
+    </div>
+
+    {/* Download Configuration Modal */}
+    <DownloadConfigModal
+      isOpen={showConfigModal}
+      onClose={() => setShowConfigModal(false)}
+      onDownload={handleDownloadConfig}
+      totalTrips={filteredTrips.length}
+    />
+    </>
   );
 };
 
