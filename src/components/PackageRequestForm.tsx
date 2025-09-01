@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
@@ -118,12 +118,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Memoize the updateProduct function to prevent re-renders
-  const updateProduct = useCallback((index: number, field: keyof Product, value: string) => {
-    setProducts(prev => prev.map((product, i) => 
-      i === index ? { ...product, [field]: value } : product
-    ));
-  }, []);
 
   // Sync local state with persisted state (only in create mode)
   useEffect(() => {
@@ -271,19 +265,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }, 0);
   };
 
-  const handleInputChange = useCallback((field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Mostrar formulario de dirección si selecciona delivery
-    if (field === 'deliveryMethod') {
-      if (value === 'delivery') {
-        setShowAddressForm(true);
-      } else {
-        setShowAddressForm(false);
-        setAddressData(null);
-      }
-    }
-  }, []);
 
   const handleAddressSubmit = (address: any) => {
     setAddressData(address);
@@ -382,7 +363,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       type="url"
                       placeholder="https://amazon.com/producto..."
                       value={product.itemLink}
-                      onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
+                      onChange={(e) => setProducts(prev => prev.map((product, i) => 
+                        i === index ? { ...product, itemLink: e.target.value } : product
+                      ))}
                       className="pl-7 h-8 text-sm"
                       required
                     />
@@ -395,7 +378,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     id={`itemDescription-${index}`}
                     placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
                     value={product.itemDescription}
-                    onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
+                    onChange={(e) => setProducts(prev => prev.map((product, i) => 
+                      i === index ? { ...product, itemDescription: e.target.value } : product
+                    ))}
                     className="min-h-[60px] resize-none text-sm"
                     rows={2}
                     required
@@ -413,7 +398,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         step="0.01"
                         placeholder="299.99"
                         value={product.estimatedPrice}
-                        onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
+                        onChange={(e) => setProducts(prev => prev.map((product, i) => 
+                          i === index ? { ...product, estimatedPrice: e.target.value } : product
+                        ))}
                         className="pl-7 h-8 text-sm"
                         required
                       />
@@ -428,7 +415,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       min="1"
                       placeholder="1"
                       value={product.quantity}
-                      onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
+                      onChange={(e) => setProducts(prev => prev.map((product, i) => 
+                        i === index ? { ...product, quantity: e.target.value } : product
+                      ))}
                       className="h-8 text-sm"
                       required
                     />
@@ -453,7 +442,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
       <div className="space-y-2">
         <Label htmlFor="packageDestination">Destino del paquete *</Label>
-        <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
+        <Select value={formData.packageDestination} onValueChange={(value) => setFormData(prev => ({ ...prev, packageDestination: value }))}>
           <SelectTrigger>
             <SelectValue placeholder="Selecciona el destino del paquete" />
           </SelectTrigger>
@@ -472,7 +461,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Input
             placeholder="Escribe la ciudad de destino"
             value={formData.packageDestinationOther}
-            onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+            onChange={(e) => setFormData(prev => ({ ...prev, packageDestinationOther: e.target.value }))}
             className="mt-2"
             required
           />
@@ -484,7 +473,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
       <div className="space-y-2">
         <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
-        <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
+        <Select value={formData.purchaseOrigin} onValueChange={(value) => setFormData(prev => ({ ...prev, purchaseOrigin: value }))}>
           <SelectTrigger>
             <SelectValue placeholder="¿Desde qué país estás comprando?" />
           </SelectTrigger>
@@ -503,7 +492,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Input
             placeholder="Escribe el país de origen"
             value={formData.purchaseOriginOther}
-            onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
+            onChange={(e) => setFormData(prev => ({ ...prev, purchaseOriginOther: e.target.value }))}
             className="mt-2"
             required
           />
@@ -519,13 +508,25 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
           <RadioGroup 
             value={formData.deliveryMethod} 
-            onValueChange={(value) => handleInputChange('deliveryMethod', value)}
+            onValueChange={(value) => {
+              setFormData(prev => ({ ...prev, deliveryMethod: value }));
+              if (value === 'delivery') {
+                setShowAddressForm(true);
+              } else {
+                setShowAddressForm(false);
+                setAddressData(null);
+              }
+            }}
             className="space-y-2 sm:space-y-3"
           >
             <div 
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
-              onClick={() => handleInputChange('deliveryMethod', 'pickup')}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, deliveryMethod: 'pickup' }));
+                setShowAddressForm(false);
+                setAddressData(null);
+              }}
             >
               <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
               <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
@@ -542,7 +543,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <div 
               className="mobile-radio-card"
               data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
-              onClick={() => handleInputChange('deliveryMethod', 'delivery')}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, deliveryMethod: 'delivery' }));
+                setShowAddressForm(true);
+              }}
             >
               <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
               <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
@@ -613,7 +617,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <Calendar
               mode="single"
               selected={formData.deliveryDeadline || undefined}
-              onSelect={(date) => handleInputChange('deliveryDeadline', date)}
+              onSelect={(date) => setFormData(prev => ({ ...prev, deliveryDeadline: date }))}
               disabled={(date) => date < new Date()}
               initialFocus
             />
@@ -630,7 +634,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           id="additionalNotes"
           placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
           value={formData.additionalNotes}
-          onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+          onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
           className="min-h-[80px]"
         />
       </div>
