@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
 import "./ui/mobile-safe-form.css";
+import { FormTitles, FormDescriptions, FormLabels, FormHelpers, FormMessages, ButtonTexts } from './form/FormTextElements';
 
 interface PackageRequestFormProps {
   isOpen: boolean;
