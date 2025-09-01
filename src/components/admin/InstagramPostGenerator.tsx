@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { InstagramPostHeader } from "./InstagramPostHeader";
 import { InstagramTripCard } from "./InstagramTripCard";
 import { InstagramPostDecorations } from "./InstagramPostDecorations";
@@ -14,10 +14,23 @@ interface InstagramPostGeneratorProps {
   trips: Trip[];
   pageNumber: number;
   totalPages: number;
+  onTripsUpdate?: (updatedTrips: Trip[]) => void;
 }
 
 export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGeneratorProps>(
-  ({ trips, pageNumber, totalPages }, ref) => {
+  ({ trips, pageNumber, totalPages, onTripsUpdate }, ref) => {
+    const [editableTrips, setEditableTrips] = useState(trips);
+
+    const handleTripUpdate = (updatedTrip: Trip) => {
+      const newTrips = editableTrips.map(trip => 
+        trip.id === updatedTrip.id ? updatedTrip : trip
+      );
+      setEditableTrips(newTrips);
+      if (onTripsUpdate) {
+        onTripsUpdate(newTrips);
+      }
+    };
+
     return (
       <div 
         ref={ref}
@@ -36,8 +49,12 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
 
         {/* Trips List */}
         <div className="flex-1 px-12 py-6 space-y-4">
-          {trips.map((trip) => (
-            <InstagramTripCard key={trip.id} trip={trip} />
+          {editableTrips.map((trip) => (
+            <InstagramTripCard 
+              key={trip.id} 
+              trip={trip} 
+              onTripUpdate={handleTripUpdate}
+            />
           ))}
         </div>
 
