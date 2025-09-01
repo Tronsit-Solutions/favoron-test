@@ -317,7 +317,7 @@ const AdminApprovalsTab = ({
                             </p>
                           )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Viajero: {trip.profiles?.display_name || getTravelerDisplayName(trip)}
+                             Viajero: {trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
                            </p>
                           {trip.profiles && (trip.profiles.first_name || trip.profiles.last_name) && (
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
