@@ -41,12 +41,24 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
-  // Simple, direct state management
-  const [products, setProducts] = useState<Product[]>(() => {
-    if (editMode && initialData?.products) {
-      return initialData.products;
+  // Ultra-simple individual state for desktop - no re-renders
+  const [productDescription, setProductDescription] = useState(() => {
+    if (editMode && initialData?.products?.[0]?.itemDescription) {
+      return initialData.products[0].itemDescription;
     }
-    return [{ itemLink: '', itemDescription: '', estimatedPrice: '', quantity: '1' }];
+    return '';
+  });
+  const [productPrice, setProductPrice] = useState(() => {
+    if (editMode && initialData?.products?.[0]?.estimatedPrice) {
+      return initialData.products[0].estimatedPrice;
+    }
+    return '';
+  });
+  const [productLink, setProductLink] = useState(() => {
+    if (editMode && initialData?.products?.[0]?.itemLink) {
+      return initialData.products[0].itemLink;
+    }
+    return '';
   });
 
   const [formData, setFormData] = useState(() => ({
@@ -62,23 +74,6 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
     editMode ? initialData?.packageReceivingAddress || {} : {}
   );
 
-  // Direct handlers without complex callbacks
-  const updateProduct = (index: number, field: keyof Product, value: string) => {
-    setProducts(prev => prev.map((product, i) => 
-      i === index ? { ...product, [field]: value } : product
-    ));
-  };
-
-  const addProduct = () => {
-    setProducts(prev => [...prev, { itemLink: '', itemDescription: '', estimatedPrice: '', quantity: '1' }]);
-  };
-
-  const removeProduct = (index: number) => {
-    if (products.length > 1) {
-      setProducts(prev => prev.filter((_, i) => i !== index));
-    }
-  };
-
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
@@ -89,11 +84,8 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
   };
 
   const calculateTotalEstimated = () => {
-    return products.reduce((total, product) => {
-      const price = parseFloat(product.estimatedPrice) || 0;
-      const quantity = parseInt(product.quantity) || 1;
-      return total + (price * quantity);
-    }, 0);
+    const price = parseFloat(productPrice) || 0;
+    return price; // Single product, quantity always 1
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -127,10 +119,10 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
       return;
     }
 
-    if (products.some(p => !p.itemDescription)) {
+    if (!productDescription.trim()) {
       toast({
         title: "Error",
-        description: "Por favor completa la descripción de todos los productos",
+        description: "Por favor completa la descripción del producto",
         variant: "destructive"
       });
       return;
@@ -145,7 +137,14 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
       return;
     }
 
-    // Submit data
+    // Convert individual fields back to expected array format for database
+    const products = [{
+      itemDescription: productDescription,
+      estimatedPrice: productPrice,
+      itemLink: productLink,
+      quantity: '1'
+    }];
+
     const submitData = {
       ...formData,
       products,
@@ -163,139 +162,55 @@ const SimplePackageRequestForm: React.FC<PackageRequestFormProps> = ({
 
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-      {/* Products Section */}
+      {/* Ultra-Simple Product Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Productos a comprar</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addProduct}
-            className="h-8"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Agregar
-          </Button>
-        </div>
+        <h3 className="text-lg font-semibold">Producto a comprar</h3>
 
-        {products.map((product, index) => (
-          <Card key={`product-${index}`} className="p-4">
-            <CardContent className="p-0 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Producto {index + 1}</span>
-                {products.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeProduct(index)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+        <Card className="p-4">
+          <CardContent className="p-0 space-y-3">
+            <div>
+              <Label htmlFor="productDescription" className="text-xs text-muted-foreground">
+                Descripción del producto *
+              </Label>
+              <Textarea
+                id="productDescription"
+                placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
+                className="mt-1"
+                rows={2}
+              />
+            </div>
 
-              <div>
-                <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">
-                  Descripción del producto *
-                </Label>
-                <Textarea
-                  id={`itemDescription-${index}`}
-                  placeholder="Ejemplo: iPhone 15 Pro Max 256GB Color Azul Titanio"
-                  value={product.itemDescription}
-                  onChange={(e) => updateProduct(index, 'itemDescription', e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }
-                  }}
-                  className="mt-1"
-                  rows={2}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  enterKeyHint="done"
-                />
-              </div>
+            <div>
+              <Label htmlFor="productLink" className="text-xs text-muted-foreground">
+                Link del producto (opcional)
+              </Label>
+              <Input
+                id="productLink"
+                placeholder="https://..."
+                value={productLink}
+                onChange={(e) => setProductLink(e.target.value)}
+                className="mt-1"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">
-                  Link del producto (opcional)
-                </Label>
-                <Input
-                  id={`itemLink-${index}`}
-                  placeholder="https://..."
-                  value={product.itemLink}
-                  onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }
-                  }}
-                  className="mt-1"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  enterKeyHint="done"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor={`estimatedPrice-${index}`} className="text-xs text-muted-foreground">
-                    Precio estimado (USD)
-                  </Label>
-                  <Input
-                    id={`estimatedPrice-${index}`}
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={product.estimatedPrice}
-                    onChange={(e) => updateProduct(index, 'estimatedPrice', e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }
-                    }}
-                    className="mt-1"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    enterKeyHint="done"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`quantity-${index}`} className="text-xs text-muted-foreground">
-                    Cantidad
-                  </Label>
-                  <Input
-                    id={`quantity-${index}`}
-                    type="number"
-                    min="1"
-                    value={product.quantity}
-                    onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }
-                    }}
-                    className="mt-1"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    enterKeyHint="done"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            <div>
+              <Label htmlFor="productPrice" className="text-xs text-muted-foreground">
+                Precio estimado (USD)
+              </Label>
+              <Input
+                id="productPrice"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {calculateTotalEstimated() > 0 && (
           <div className="text-right text-sm font-medium">
