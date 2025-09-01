@@ -140,26 +140,6 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
         </div>
       </nav>
 
-      {/* Secondary Navigation - Clean and minimal */}
-      <div className="bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-center space-x-8">
-            <Link 
-              to="/regulacion-aduanera" 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
-              Regulación Aduanera
-            </Link>
-            <div className="w-px h-4 bg-border"></div>
-            <Link 
-              to="/terminos-y-condiciones" 
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
-              Términos y Condiciones
-            </Link>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
