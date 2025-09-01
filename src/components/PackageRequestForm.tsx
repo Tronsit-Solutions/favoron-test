@@ -13,6 +13,7 @@ import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, P
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
+import "./ui/mobile-safe-form.css";
 
 interface PackageRequestFormProps {
   isOpen: boolean;
@@ -307,7 +308,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
@@ -492,19 +493,41 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <RadioGroup 
                 value={formData.deliveryMethod} 
                 onValueChange={(value) => handleInputChange('deliveryMethod', value)}
-                className="space-y-3"
+                className="space-y-2 sm:space-y-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pickup" id="pickup" />
-                  <Label htmlFor="pickup" className="cursor-pointer">
-                    Lo recojo en zona 14
-                  </Label>
+                <div 
+                  className="mobile-radio-card"
+                  data-state={formData.deliveryMethod === "pickup" ? "checked" : "unchecked"}
+                  onClick={() => handleInputChange('deliveryMethod', 'pickup')}
+                >
+                  <RadioGroupItem value="pickup" id="pickup" className="sr-only" />
+                  <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                    <div className="flex-1">
+                      <Label htmlFor="pickup" className="cursor-pointer text-sm sm:text-base font-medium">
+                        Lo recojo en zona 14
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                        Recogida en oficina de Favorón
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="delivery" id="delivery" />
-                  <Label htmlFor="delivery" className="cursor-pointer">
-                    Enviarlo a mi domicilio
-                  </Label>
+                <div 
+                  className="mobile-radio-card"
+                  data-state={formData.deliveryMethod === "delivery" ? "checked" : "unchecked"}
+                  onClick={() => handleInputChange('deliveryMethod', 'delivery')}
+                >
+                  <RadioGroupItem value="delivery" id="delivery" className="sr-only" />
+                  <div className="flex-1 flex items-start space-x-3 sm:space-x-2 p-4 sm:p-3">
+                    <div className="flex-1">
+                      <Label htmlFor="delivery" className="cursor-pointer text-sm sm:text-base font-medium">
+                        Enviarlo a mi domicilio
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1 sm:hidden">
+                        Entrega a domicilio con costo adicional
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </RadioGroup>
               
