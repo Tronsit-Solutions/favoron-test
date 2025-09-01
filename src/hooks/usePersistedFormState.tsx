@@ -31,18 +31,18 @@ export function usePersistedFormState<T>(
     }
   });
 
-  // Manual persist function instead of automatic useEffect
-  const persistState = useCallback((stateToSave: T) => {
+  // Persist state to localStorage whenever it changes
+  useEffect(() => {
     try {
       const dataToStore = {
-        data: stateToSave,
+        data: state,
         timestamp: Date.now()
       };
       localStorage.setItem(key, JSON.stringify(dataToStore));
     } catch (error) {
       console.warn('Failed to persist form state:', error);
     }
-  }, [key]);
+  }, [state, key]);
 
   const clearPersistedState = useCallback(() => {
     try {
@@ -68,7 +68,6 @@ export function usePersistedFormState<T>(
   return {
     state,
     setState,
-    persistState,
     clearPersistedState,
     hasPersistedData
   };

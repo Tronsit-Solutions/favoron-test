@@ -67,10 +67,10 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         return;
       }
 
-      // Split trips into chunks of 8
+      // Split trips into chunks of 10
       const tripChunks = [];
-      for (let i = 0; i < tripsToDownload.length; i += 8) {
-        tripChunks.push(tripsToDownload.slice(i, i + 8));
+      for (let i = 0; i < tripsToDownload.length; i += 10) {
+        tripChunks.push(tripsToDownload.slice(i, i + 10));
       }
 
       // Generate and download each image
@@ -78,21 +78,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         const postElement = postRefs.current[i];
         if (!postElement) continue;
 
-        // Temporarily move element to visible area and ensure proper styling
-        const originalPosition = postElement.style.position;
-        const originalTop = postElement.style.top;
-        const originalLeft = postElement.style.left;
-        const originalTransform = postElement.style.transform;
+        // Force browser to render all styles properly
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        postElement.style.position = 'absolute';
-        postElement.style.top = '0px';
-        postElement.style.left = '0px';
-        postElement.style.transform = 'none';
-        postElement.style.zIndex = '9999';
-        
-        // Force a reflow to ensure styles are applied
-        postElement.offsetHeight;
-
         const canvas = await html2canvas(postElement, {
           backgroundColor: '#ffffff',
           scale: 1,
@@ -104,16 +92,20 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           width: 1080,
           height: 1080,
           logging: false,
-          imageTimeout: 0,
-          removeContainer: true
+          imageTimeout: 15000,
+          removeContainer: true,
+          ignoreElements: (element) => {
+            return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+          },
+          onclone: (clonedDoc) => {
+            // Ensure all styles are properly applied in the cloned document
+            const clonedElement = clonedDoc.querySelector('[data-html2canvas-ignore="false"]') || clonedDoc.body.firstChild;
+            if (clonedElement && clonedElement instanceof HTMLElement) {
+              clonedElement.style.transform = 'none';
+              clonedElement.style.position = 'static';
+            }
+          }
         });
-
-        // Restore original position
-        postElement.style.position = originalPosition;
-        postElement.style.top = originalTop;
-        postElement.style.left = originalLeft;
-        postElement.style.transform = originalTransform;
-        postElement.style.zIndex = '';
 
         await new Promise<void>((resolve) => {
           canvas.toBlob((blob) => {
@@ -164,8 +156,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   // Generate Instagram posts for preview (hidden)
   const generateInstagramPosts = () => {
     const tripChunks = [];
-    for (let i = 0; i < filteredTrips.length; i += 8) {
-      tripChunks.push(filteredTrips.slice(i, i + 8));
+    for (let i = 0; i < filteredTrips.length; i += 10) {
+      tripChunks.push(filteredTrips.slice(i, i + 10));
     }
     return tripChunks;
   };
@@ -226,7 +218,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-1 sm:space-y-1.5 pb-4 sm:pb-6">
+        <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-3 pb-2">
           {loading ? (
             <LoadingState message="Cargando viajes disponibles..." />
           ) : filteredTrips.length === 0 ? (
@@ -241,16 +233,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             filteredTrips.map((trip, index) => (
               <div
                 key={trip.id}
-                className="border border-teal-200 rounded-lg p-2 sm:p-3 hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 transition-all duration-300 hover:scale-105 hover:shadow-md animate-fade-in"
+                className="border border-teal-200 rounded-lg p-3 sm:p-4 hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 transition-all duration-300 hover:scale-105 hover:shadow-md animate-fade-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
                       <span className="text-base sm:text-lg">🛫</span>
-                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none capitalize">{trip.from_city.toLowerCase()}</span>
+                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none">{trip.from_city}</span>
                       <span className="text-teal-500 font-bold">→</span>
-                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none capitalize">{trip.to_city.toLowerCase()}</span>
+                      <span className="text-foreground font-semibold truncate max-w-[80px] sm:max-w-none">{trip.to_city}</span>
                       <span className="text-base sm:text-lg">🛬</span>
                     </div>
                   </div>

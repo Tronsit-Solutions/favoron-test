@@ -79,53 +79,11 @@
   background: hsl(var(--primary) / 0.08);
 }
 
-/* Mobile-safe textarea enhancements */
-.mobile-safe-textarea {
-  /* Prevent aggressive auto-resize that causes re-renders */
-  resize: vertical !important;
-  min-height: 80px;
-  /* Better mobile interaction */
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.mobile-safe-textarea:focus {
-  /* Scroll into view when focused on mobile */
-  scroll-margin-top: 100px;
-}
-
-/* Mobile drawer specific styles */
-.mobile-safe-drawer {
-  /* Ensure proper z-index and touch handling */
-  z-index: 50;
-  touch-action: manipulation;
-  /* Better keyboard handling */
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 /* Form input enhancements for mobile */
-.mobile-safe-form {
-  /* Prevent zoom on input focus */
-  font-size: 16px;
-  /* Ensure proper spacing with virtual keyboard */
-  padding-bottom: env(safe-area-inset-bottom, 20px);
-}
-
-.mobile-safe-form input,
-.mobile-safe-form textarea,
-.mobile-safe-form select {
-  font-size: 16px !important;
-  /* Prevent iOS zoom */
-}
-
 @media (max-width: 768px) {
   .mobile-safe-form input,
   .mobile-safe-form button,
-  .mobile-safe-form select,
-  .mobile-safe-form textarea {
+  .mobile-safe-form select {
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: 44px; /* iOS recommended touch target size */
   }
@@ -144,34 +102,6 @@
   .mobile-safe-form .mobile-checkbox-card {
     padding: 1rem;
     border-radius: 0.75rem;
-  }
-
-  /* Ensure modal content is visible when keyboard is open */
-  .mobile-safe-form {
-    max-height: calc(100dvh - env(keyboard-inset-height, 0px));
-    overflow-y: auto;
-  }
-
-  /* Enhanced textarea behavior on mobile */
-  .mobile-safe-textarea {
-    /* Auto-scroll to focused textarea */
-    scroll-behavior: smooth;
-  }
-  
-  /* Better touch targets for mobile */
-  .mobile-safe-form input,
-  .mobile-safe-form textarea,
-  .mobile-safe-form button {
-    /* Prevent double-tap zoom */
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Drawer specific mobile optimizations */
-  .mobile-safe-drawer {
-    /* Better keyboard avoidance */
-    height: calc(100dvh - env(keyboard-inset-height, 0px)) !important;
-    max-height: calc(100dvh - env(keyboard-inset-height, 0px)) !important;
   }
 }
 
