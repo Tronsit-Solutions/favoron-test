@@ -31,11 +31,11 @@ const CTASection = ({
   }, []);
 
   return (
-    <section className="relative py-20 bg-gradient-to-br from-shopper via-traveler to-primary overflow-hidden">
+    <section className="relative py-20 bg-gradient-to-br from-shopper via-traveler to-primary overflow-hidden animate-fade-in">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-shopper/90 to-traveler/90"></div>
-      <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-20 w-80 h-80 bg-yellow-300/20 rounded-full blur-3xl"></div>
+      <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-white/10 to-primary/10 rounded-full blur-3xl opacity-50"></div>
+      <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-l from-accent/20 to-secondary/20 rounded-full blur-3xl opacity-40"></div>
       
       <div className="container mx-auto px-4 text-center relative">
         {/* Background Airplane */}

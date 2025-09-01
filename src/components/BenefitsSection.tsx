@@ -49,10 +49,11 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-background via-background/95 to-muted/50 relative overflow-hidden animate-fade-in">
       {/* Background Elements */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full opacity-20 blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-r from-green-200 to-yellow-200 rounded-full opacity-20 blur-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent"></div>
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full opacity-20 blur-3xl"></div>
+      <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-gradient-to-l from-accent/10 to-primary/10 rounded-full opacity-20 blur-3xl"></div>
       
       <div className="container mx-auto px-4 relative">
         <div className="text-center mb-16">
@@ -61,7 +62,7 @@ const BenefitsSection = () => {
               ¿Por qué elegir Favorón?
             </span>
           </h3>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             La plataforma más confiable y eficiente para conectar viajeros con compradores. 
             Diseñada pensando en tu seguridad y comodidad.
           </p>
@@ -71,7 +72,7 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <Card 
               key={index}
-              className="group hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden bg-white/80 backdrop-blur-sm hover:scale-105"
+              className="group shadow-glow transition-all duration-300 border-0 overflow-hidden surface-glass hover:scale-105"
             >
               <CardContent className="p-8 text-center relative">
                 {/* Background gradient */}
@@ -83,10 +84,10 @@ const BenefitsSection = () => {
                 </div>
                 
                 {/* Content */}
-                <h4 className="text-xl font-bold mb-4 text-gray-900 group-hover:text-gray-800">
+                <h4 className="text-xl font-bold mb-4 text-foreground group-hover:text-foreground">
                   {benefit.title}
                 </h4>
-                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700">
+                <p className="text-muted-foreground leading-relaxed group-hover:text-muted-foreground">
                   {benefit.description}
                 </p>
                 
@@ -100,17 +101,17 @@ const BenefitsSection = () => {
         {/* Trust indicators */}
         <div className="mt-16 text-center">
           <div className="flex items-center justify-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2 px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full shadow-md">
+            <div className="flex items-center gap-2 px-6 py-3 surface-glass rounded-full shadow-md">
               <Heart className="h-5 w-5 text-success" />
-              <span className="font-semibold text-gray-800">+1000 usuarios felices</span>
+              <span className="font-semibold text-foreground">+1000 usuarios felices</span>
             </div>
-            <div className="flex items-center gap-2 px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full shadow-md">
+            <div className="flex items-center gap-2 px-6 py-3 surface-glass rounded-full shadow-md">
               <CheckCircle className="h-5 w-5 text-success" />
-              <span className="font-semibold text-gray-800">99% entregas exitosas</span>
+              <span className="font-semibold text-foreground">99% entregas exitosas</span>
             </div>
-            <div className="flex items-center gap-2 px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full shadow-md">
+            <div className="flex items-center gap-2 px-6 py-3 surface-glass rounded-full shadow-md">
               <Award className="h-5 w-5 text-warning" />
-              <span className="font-semibold text-gray-800">4.8/5 calificación promedio</span>
+              <span className="font-semibold text-foreground">4.8/5 calificación promedio</span>
             </div>
           </div>
         </div>

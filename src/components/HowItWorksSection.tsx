@@ -3,10 +3,11 @@ import { Package, Plane, Search, DollarSign, ShoppingCart, Truck, ArrowRight, St
 
 const HowItWorksSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-r from-gray-50 to-white relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-background via-background/95 to-muted/50 relative overflow-hidden animate-fade-in">
       {/* Background decoration */}
-      <div className="absolute top-10 right-10 w-64 h-64 bg-blue-100 rounded-full opacity-30 blur-3xl"></div>
-      <div className="absolute bottom-10 left-10 w-48 h-48 bg-purple-100 rounded-full opacity-30 blur-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent"></div>
+      <div className="absolute top-20 right-1/4 w-80 h-80 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute bottom-20 left-1/4 w-64 h-64 bg-gradient-to-l from-accent/10 to-primary/10 rounded-full blur-3xl opacity-20"></div>
       
       <div className="container mx-auto px-4 relative">
         <div className="text-center mb-16">
@@ -15,15 +16,15 @@ const HowItWorksSection = () => {
               ¿Cómo funciona?
             </span>
           </h3>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Un proceso simple y seguro que beneficia a todos
           </p>
         </div>
         
         <div className="grid lg:grid-cols-2 gap-8 xl:gap-12">
           {/* Shopper Card */}
-          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-shopper/5 to-shopper/10">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-shopper/20 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
+          <Card className="relative overflow-hidden border-0 shadow-glow bg-gradient-to-br from-shopper/5 to-shopper/10 surface-glass hover:scale-105 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-shopper/20 to-primary/10 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
             <CardHeader className="relative">
               <CardTitle className="flex items-center space-x-3 text-2xl">
                 <div className="p-3 bg-shopper rounded-xl text-white shadow-lg">
@@ -33,7 +34,7 @@ const HowItWorksSection = () => {
                   Para Compradores
                 </span>
               </CardTitle>
-              <p className="text-gray-600 mt-2">Consigue productos del extranjero fácil y rápido</p>
+              <p className="text-muted-foreground mt-2">Consigue productos del extranjero fácil y rápido</p>
             </CardHeader>
             <CardContent className="space-y-6 relative">
               {[
@@ -49,10 +50,10 @@ const HowItWorksSection = () => {
                        <step.icon className="h-6 w-6 text-shopper" />
                      </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-1 text-lg">{step.title}</h4>
-                    <p className="text-gray-600 leading-relaxed">{step.desc}</p>
-                  </div>
+                   <div className="flex-1">
+                     <h4 className="font-bold text-foreground mb-1 text-lg">{step.title}</h4>
+                     <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                   </div>
                    {index < 4 && (
                      <ArrowRight className="h-4 w-4 text-shopper/60 mt-4 opacity-50" />
                    )}
@@ -62,8 +63,8 @@ const HowItWorksSection = () => {
           </Card>
 
           {/* Traveler Card */}
-          <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-traveler/5 to-traveler/10">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-traveler/20 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
+          <Card className="relative overflow-hidden border-0 shadow-glow bg-gradient-to-br from-traveler/5 to-traveler/10 surface-glass hover:scale-105 transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-traveler/20 to-secondary/10 rounded-full opacity-20 transform translate-x-16 -translate-y-16"></div>
             <CardHeader className="relative">
               <CardTitle className="flex items-center space-x-3 text-2xl">
                 <div className="p-3 bg-traveler rounded-xl text-white shadow-lg">
@@ -73,7 +74,7 @@ const HowItWorksSection = () => {
                   Para Viajeros
                 </span>
               </CardTitle>
-              <p className="text-gray-600 mt-2">Gana dinero extra en tus viajes ayudando a otros</p>
+              <p className="text-muted-foreground mt-2">Gana dinero extra en tus viajes ayudando a otros</p>
             </CardHeader>
             <CardContent className="space-y-6 relative">
               {[
@@ -89,10 +90,10 @@ const HowItWorksSection = () => {
                        <step.icon className="h-6 w-6 text-traveler" />
                      </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-1 text-lg">{step.title}</h4>
-                    <p className="text-gray-600 leading-relaxed">{step.desc}</p>
-                  </div>
+                   <div className="flex-1">
+                     <h4 className="font-bold text-foreground mb-1 text-lg">{step.title}</h4>
+                     <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                   </div>
                    {index < 4 && (
                      <ArrowRight className="h-4 w-4 text-traveler/60 mt-4 opacity-50" />
                    )}
