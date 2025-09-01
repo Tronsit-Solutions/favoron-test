@@ -44,9 +44,9 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
           {trips.map((trip, index) => (
             <div 
               key={trip.id}
-              className="bg-white rounded-xl p-4 mx-2"
+              className="bg-white rounded-xl p-4 mx-2 flex items-center"
             >
-              <div className="flex items-center justify-between h-12">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center text-2xl font-bold text-gray-800">
                   <span>{trip.from_city}</span>
                   <span className="text-teal-500 mx-2">→</span>
