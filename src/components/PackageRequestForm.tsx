@@ -310,12 +310,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Form Content Component
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="mobile-safe-form space-y-6">
-      <p className="text-sm text-muted-foreground mb-4">
-        {editMode 
-          ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-          : 'Completa la información del producto que necesitas y recibirás una cotización de un viajero.'
-        }
-      </p>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between">
