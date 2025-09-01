@@ -43,6 +43,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return null;
   }
 
+  // Find the matched trip using the trips prop and trip ID
+  const matchedTrip = trips?.find(trip => trip.id === pkg.matched_trip_id);
+
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
     if (!dateValue) return 'No especificada';
@@ -122,9 +125,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return translations[reasonText] || reasonText;
   };
 
-  // Get traveler information from package.trips.profiles (already contains the correct data)
-  const matchedTrip = pkg.trips || null;
-  const travelerProfile = matchedTrip?.profiles || null;
+  // Use the matchedTrip from trips prop, fallback to pkg.trips if needed
+  const travelerProfile = matchedTrip?.profiles || matchedTrip?.user_display_name ? {
+    first_name: matchedTrip.first_name,
+    last_name: matchedTrip.last_name,
+    username: matchedTrip.username,
+    email: matchedTrip.email,
+    phone_number: matchedTrip.phone_number
+  } : null;
 
   console.log('Matched trip found:', matchedTrip);
   console.log('✈️ Traveler profile data:', travelerProfile);

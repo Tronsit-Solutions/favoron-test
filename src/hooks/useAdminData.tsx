@@ -68,30 +68,6 @@ export const useAdminData = (): AdminData => {
             avatar_url,
             email,
             phone_number
-          ),
-          trips:matched_trip_id(
-            id,
-            from_city,
-            to_city,
-            from_country,
-            delivery_method,
-            available_space,
-            departure_date,
-            arrival_date,
-            delivery_date,
-            first_day_packages,
-            last_day_packages,
-            package_receiving_address,
-            messenger_pickup_info,
-            profiles:user_id(
-              id,
-              first_name,
-              last_name,
-              username,
-              avatar_url,
-              email,
-              phone_number
-            )
           )
         `)
         .order('created_at', { ascending: false });
