@@ -27,7 +27,7 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
     return (
       <div 
         ref={ref}
-        className="w-[1080px] h-[1080px] bg-gradient-to-br from-teal-500 via-cyan-400 to-emerald-500 flex flex-col relative overflow-hidden"
+        className="w-[1080px] h-[1080px] bg-gradient-to-br from-teal-500 via-cyan-400 to-emerald-500 flex flex-col relative overflow-hidden border-8 border-white"
         style={{ fontSize: '16px' }}
       >
         {/* Header */}
@@ -42,11 +42,11 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
         </div>
 
         {/* Trips List */}
-        <div className="flex-1 px-12 py-8 space-y-6">
+        <div className="flex-1 px-12 py-8 space-y-8">
           {trips.map((trip, index) => (
             <div 
               key={trip.id}
-              className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20"
+              className="bg-white rounded-2xl p-8 shadow-lg mx-2"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -68,12 +68,6 @@ export const InstagramPostGenerator = forwardRef<HTMLDivElement, InstagramPostGe
                       {formatDate(trip.arrival_date)}
                     </span>
                   </div>
-                  <Badge 
-                    variant="outline" 
-                    className="mt-2 bg-teal-50 text-teal-700 border-teal-200"
-                  >
-                    Disponible
-                  </Badge>
                 </div>
               </div>
             </div>
