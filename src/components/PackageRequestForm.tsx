@@ -363,7 +363,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               value={product.itemLink ?? ''}
               onChange={(e) => onUpdate(index, 'itemLink', e.target.value)}
               onKeyDown={preventEnterSubmit}
-              onBlur={persistFormData}
               className="pl-7 h-8 text-sm"
               autoComplete="off"
               autoCorrect="off"
@@ -383,7 +382,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             value={product.itemDescription ?? ''}
             onChange={(e) => onUpdate(index, 'itemDescription', e.target.value)}
             onKeyDown={preventEnterSubmit}
-            onBlur={persistFormData}
             className="min-h-[60px] resize-none text-sm"
             autoComplete="off"
             autoCorrect="off"
@@ -406,7 +404,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 value={product.estimatedPrice ?? ''}
                 onChange={(e) => onUpdate(index, 'estimatedPrice', e.target.value)}
                 onKeyDown={preventEnterSubmit}
-                onBlur={persistFormData}
                 className="pl-7 h-8 text-sm"
                 autoComplete="off"
                 autoCorrect="off"
@@ -427,7 +424,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               value={product.quantity ?? ''}
               onChange={(e) => onUpdate(index, 'quantity', e.target.value)}
               onKeyDown={preventEnterSubmit}
-              onBlur={persistFormData}
               className="h-8 text-sm"
               autoComplete="off"
               autoCorrect="off"
