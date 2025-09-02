@@ -219,8 +219,26 @@ const TripForm = ({
       
     } catch (error) {
       console.error('💥 Error submitting traveler form:', error);
-      logFormError(error, 'traveler-form', formData);
-      alert('Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.');
+      
+      // Enhanced error logging with Safari iOS context
+      const contextualFormData = {
+        ...formData,
+        packageReceivingAddress: '[REDACTED]', // Don't log sensitive data
+        isSafariIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent),
+        formFieldsCount: Object.keys(formData).length,
+        hasMessengerData: !!messengerData,
+        acceptedTerms
+      };
+      
+      logFormError(error, 'traveler-form', contextualFormData);
+      
+      // User-friendly error message for Safari iOS
+      const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
+      const errorMessage = isSafariIOS 
+        ? 'Error al enviar el formulario. Si usas Safari en iPhone, intenta: 1) Refrescar la página, 2) Usar Chrome/Firefox, o 3) Contactar soporte.'
+        : 'Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.';
+      
+      alert(errorMessage);
     }
   };
   const handleInputChange = (field: string, value: any) => {

@@ -97,6 +97,16 @@ export const useDashboardActions = (
       }
     } catch (error) {
       console.error('Error creating package:', error);
+      
+      // Log to our centralized error tracking
+      const { logFormError } = await import('@/lib/formErrorLogger');
+      logFormError(error, 'dashboard-package-submit', {
+        productsCount: packageData.products?.length || 0,
+        hasDeliveryMethod: !!packageData.deliveryMethod,
+        packageDataFields: Object.keys(packageData).length,
+        isSafariIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent)
+      });
+      
       toast({
         title: "Error",
         description: "No se pudo enviar la solicitud. Inténtalo de nuevo.",
@@ -152,6 +162,15 @@ export const useDashboardActions = (
       });
     } catch (error) {
       console.error('❌ Error creating trip:', error);
+      
+      // Log to our centralized error tracking
+      const { logFormError } = await import('@/lib/formErrorLogger');
+      logFormError(error, 'dashboard-trip-submit', {
+        hasRequiredDates: !!(tripData.arrivalDate && tripData.firstDayPackages && tripData.lastDayPackages),
+        tripDataFields: Object.keys(tripData).length,
+        isSafariIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent)
+      });
+      
       toast({
         title: "Error",
         description: "No se pudo registrar el viaje. Inténtalo de nuevo.",

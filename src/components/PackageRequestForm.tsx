@@ -228,7 +228,25 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       onClose();
     } catch (error) {
       console.error('❌ FORM SUBMIT ERROR:', error);
-      alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
+      
+      // Enhanced error logging for package request forms
+      const { logFormError } = await import('@/lib/formErrorLogger');
+      logFormError(error, 'package-request-form', {
+        productsCount: products.length,
+        hasDeliveryMethod: !!formData.deliveryMethod,
+        isGuatemalaDestination: isGuatemalaDestination,
+        hasAddressData: !!addressData,
+        formMode: editMode ? 'edit' : 'create',
+        isSafariIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent)
+      });
+      
+      // Safari iOS specific error handling
+      const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
+      const errorMessage = isSafariIOS 
+        ? 'Error en Safari iPhone. Intenta: 1) Refrescar, 2) Usar Chrome, o 3) Contactar soporte.'
+        : 'Error al enviar la solicitud. Por favor intenta de nuevo.';
+      
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
