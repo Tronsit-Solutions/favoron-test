@@ -54,23 +54,25 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   return (
     <>
-    <Card key={trip.id}>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <CardTitle className="text-lg">{trip.from_city} → {trip.to_city}</CardTitle>
-            <CardDescription className="flex items-center gap-2">
+    <Card key={trip.id} className="mx-4 md:mx-0 max-w-full overflow-hidden">
+      <CardHeader className="pb-3 md:pb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 md:gap-0">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-base md:text-lg font-semibold leading-tight mb-2 break-words">
+              {trip.from_city} → {trip.to_city}
+            </CardTitle>
+            <CardDescription className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs md:text-sm">
               <TripDate arrivalDate={trip.arrival_date} />
-              <span>•</span>
+              <span className="hidden md:inline">•</span>
               <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2 flex-shrink-0">
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setShowDetailModal(true)}
-              className="h-8 px-2"
+              className="h-8 w-8 md:h-8 md:px-2 p-0 md:p-auto"
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -79,24 +81,24 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         </div>
       </CardHeader>
       {hasDeliveredPackages && (
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+              <span className="text-xs text-muted-foreground order-2 md:order-1">
                 Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
               </span>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 order-1 md:order-2">
                 {/* Edit button for early stage trips */}
                 {canEdit && onEditTrip && (
                   <Button 
                     size="sm"
                     variant="outline"
                     onClick={() => setShowEditModal(true)}
-                    className="h-6 px-2"
+                    className="h-8 px-3 text-xs flex-shrink-0"
                   >
                     <Edit className="h-3 w-3 mr-1" />
-                    <span className="text-xs">Editar</span>
+                    <span>Editar</span>
                   </Button>
                 )}
                 
@@ -106,10 +108,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                     size="sm"
                     variant="default"
                     onClick={() => setShowDeliveryModal(true)}
-                    className="h-6 px-2 bg-green-600 hover:bg-green-700"
+                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 flex-shrink-0"
                   >
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    <span className="text-xs">Confirmar entrega</span>
+                    <span className="whitespace-nowrap">Confirmar entrega</span>
                   </Button>
                 )}
               </div>
@@ -117,7 +119,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
             {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
             {currentUser?.id === trip.user_id && (
-              <div className="mt-4">
+              <div className="mt-3 pt-3 border-t border-border/50">
                 <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
               </div>
             )}
