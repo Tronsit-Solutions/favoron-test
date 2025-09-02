@@ -29,6 +29,11 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
 
+  // Resolve traveler confirmation photo (handles storage paths and signed URLs)
+  // Must call this hook before any early returns to follow Rules of Hooks
+  const rawTravelerPhoto = pkg?.traveler_confirmation?.photo || pkg?.traveler_confirmation?.photoUrl;
+  const { url: resolvedTravelerPhotoUrl } = useSignedUrl(rawTravelerPhoto);
+
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
     console.warn('🔒 Unauthorized access to PackageDetailModal:', { 
@@ -159,11 +164,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
   const hasTravelerConfirmation = pkg.traveler_confirmation && (pkg.traveler_confirmation.confirmedAt || pkg.traveler_confirmation.confirmed_at);
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
-
-  // Resolve traveler confirmation photo (handles storage paths and signed URLs)
-  const rawTravelerPhoto = pkg.traveler_confirmation?.photo || pkg.traveler_confirmation?.photoUrl;
-  const { url: resolvedTravelerPhotoUrl } = useSignedUrl(rawTravelerPhoto);
-
+  
   // Enhanced product information processing
   const getDetailedProductInfo = () => {
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
