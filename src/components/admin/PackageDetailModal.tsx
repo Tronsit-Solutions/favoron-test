@@ -783,15 +783,30 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 )}
 
                 {/* Rejection Reason */}
-                {pkg.rejection_reason && (
-                  <div className="mt-4 pt-4 border-t">
-                    <RejectionReasonDisplay 
-                      rejectionReason={typeof pkg.rejection_reason === 'string' ? pkg.rejection_reason : pkg.rejection_reason?.value}
-                      wantsRequote={pkg.rejection_reason?.wantsRequote}
-                      additionalComments={pkg.rejection_reason?.additionalComments}
-                    />
-                  </div>
-                )}
+                {(() => {
+                  const reason = (pkg?.quote_rejection as any)?.reason 
+                    || (pkg?.admin_rejection as any)?.reason 
+                    || (typeof pkg?.rejection_reason === 'string' 
+                        ? pkg.rejection_reason 
+                        : (pkg?.rejection_reason as any)?.value);
+                  if (!reason) return null;
+                  const wantsRequote = (pkg?.quote_rejection as any)?.wants_requote 
+                    ?? (pkg as any)?.wants_requote 
+                    ?? (pkg?.rejection_reason as any)?.wantsRequote;
+                  const additionalComments = (pkg?.quote_rejection as any)?.additional_notes 
+                    ?? (pkg as any)?.additional_notes 
+                    ?? (pkg?.rejection_reason as any)?.additionalComments;
+                  return (
+                    <div className="mt-4 pt-4 border-t">
+                      <RejectionReasonDisplay 
+                        rejectionReason={reason}
+                        wantsRequote={wantsRequote}
+                        additionalComments={additionalComments}
+                      />
+                    </div>
+                  );
+                })()}
+
               </CardContent>
             </Card>
           )}

@@ -297,6 +297,7 @@ export type Database = {
           additional_notes: string | null
           admin_actions_log: Json | null
           admin_assigned_tip: number | null
+          admin_rejection: Json | null
           confirmed_delivery_address: Json | null
           created_at: string
           delivery_deadline: string
@@ -318,11 +319,13 @@ export type Database = {
           purchase_origin: string
           quote: Json | null
           quote_expires_at: string | null
+          quote_rejection: Json | null
           rejection_reason: string | null
           status: string
           tracking_info: Json | null
           traveler_address: Json | null
           traveler_confirmation: Json | null
+          traveler_rejection: Json | null
           updated_at: string
           user_id: string
           wants_requote: boolean | null
@@ -331,6 +334,7 @@ export type Database = {
           additional_notes?: string | null
           admin_actions_log?: Json | null
           admin_assigned_tip?: number | null
+          admin_rejection?: Json | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline: string
@@ -352,11 +356,13 @@ export type Database = {
           purchase_origin: string
           quote?: Json | null
           quote_expires_at?: string | null
+          quote_rejection?: Json | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
+          traveler_rejection?: Json | null
           updated_at?: string
           user_id: string
           wants_requote?: boolean | null
@@ -365,6 +371,7 @@ export type Database = {
           additional_notes?: string | null
           admin_actions_log?: Json | null
           admin_assigned_tip?: number | null
+          admin_rejection?: Json | null
           confirmed_delivery_address?: Json | null
           created_at?: string
           delivery_deadline?: string
@@ -386,11 +393,13 @@ export type Database = {
           purchase_origin?: string
           quote?: Json | null
           quote_expires_at?: string | null
+          quote_rejection?: Json | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
+          traveler_rejection?: Json | null
           updated_at?: string
           user_id?: string
           wants_requote?: boolean | null
@@ -651,6 +660,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          admin_rejection: Json | null
           arrival_date: string
           available_space: number | null
           created_at: string
@@ -671,6 +681,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_rejection?: Json | null
           arrival_date: string
           available_space?: number | null
           created_at?: string
@@ -691,6 +702,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_rejection?: Json | null
           arrival_date?: string
           available_space?: number | null
           created_at?: string

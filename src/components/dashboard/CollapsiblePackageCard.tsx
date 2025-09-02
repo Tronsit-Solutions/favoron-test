@@ -376,15 +376,26 @@ const CollapsiblePackageCard = ({
                       </div>
                       
                       {/* Rejection Reason */}
-                      {['rejected', 'quote_rejected'].includes(pkg.status) && pkg.rejection_reason && (
-                        <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
-                          <RejectionReasonDisplay 
-                            rejectionReason={pkg.rejection_reason}
-                            wantsRequote={pkg.wants_requote}
-                            additionalComments={pkg.additional_notes}
-                          />
-                        </div>
+                      {['rejected', 'quote_rejected'].includes(pkg.status) && (
+                        (() => {
+                          const reason = (pkg?.quote_rejection as any)?.reason 
+                            || (pkg?.admin_rejection as any)?.reason 
+                            || (pkg as any)?.rejection_reason;
+                          if (!reason) return null;
+                          const wantsRequote = (pkg?.quote_rejection as any)?.wants_requote ?? (pkg as any)?.wants_requote;
+                          const additionalComments = (pkg?.quote_rejection as any)?.additional_notes ?? (pkg as any)?.additional_notes;
+                          return (
+                            <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
+                              <RejectionReasonDisplay 
+                                rejectionReason={reason}
+                                wantsRequote={wantsRequote}
+                                additionalComments={additionalComments}
+                              />
+                            </div>
+                          );
+                        })()
                       )}
+
                     </div>
                   </TabsContent>
 

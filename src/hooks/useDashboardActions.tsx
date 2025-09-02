@@ -276,16 +276,25 @@ export const useDashboardActions = (
           } else {
             // Original logic for other rejections (shoppers rejecting quotes)
             const updateData: any = {
+              // Contextual JSON payload
+              quote_rejection: {
+                reason: quoteData.rejectionReason || null,
+                wants_requote: !!quoteData.wantsRequote,
+                additional_notes: quoteData.additionalNotes || null,
+                rejected_at: new Date().toISOString(),
+              },
+              // Legacy fields for backward compatibility
               rejection_reason: quoteData.rejectionReason || null,
-              wants_requote: quoteData.wantsRequote || false,
+              wants_requote: !!quoteData.wantsRequote,
               additional_notes: quoteData.additionalNotes || null,
+              // Reset match/quote context
               quote: null,
               matched_trip_id: null,
               traveler_address: null,
               matched_trip_dates: null,
             };
 
-            // If shopper wants requote (and it's not "no longer want"), set to approved for reassignment
+            // If shopper wants requote (and it's not "no_longer_want"), set to approved for reassignment
             if (quoteData.wantsRequote && quoteData.rejectionReason !== 'no_longer_want') {
               updateData.status = 'approved';
               toast({
@@ -758,9 +767,14 @@ export const useDashboardActions = (
       if (type === 'package' && updatePackage) {
         const updateData: any = { status: newStatus };
         
-        // Add rejection reason if rejecting and reason is provided
+        // When rejecting, persist contextual admin_rejection and keep legacy for compatibility
         if (action === 'reject' && reason) {
-          updateData.rejection_reason = reason;
+          updateData.admin_rejection = {
+            reason,
+            rejected_by: currentUser?.id || null,
+            rejected_at: new Date().toISOString(),
+          };
+          updateData.rejection_reason = reason; // legacy fallback
         }
         
         await updatePackage(id, updateData);
@@ -771,9 +785,13 @@ export const useDashboardActions = (
       } else if (type === 'trip' && updateTrip) {
         const updateData: any = { status: newStatus };
         
-        // Add rejection reason if rejecting and reason is provided
         if (action === 'reject' && reason) {
-          updateData.rejection_reason = reason;
+          updateData.admin_rejection = {
+            reason,
+            rejected_by: currentUser?.id || null,
+            rejected_at: new Date().toISOString(),
+          };
+          updateData.rejection_reason = reason; // legacy fallback
         }
         
         await updateTrip(id, updateData);
