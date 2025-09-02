@@ -1,0 +1,89 @@
+-- Add rejection_reason column to packages table if it doesn't exist
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'packages' AND column_name = 'rejection_reason') THEN
+        ALTER TABLE public.packages ADD COLUMN rejection_reason TEXT;
+    END IF;
+END $$;
+
+-- Add rejection_reason column to trips table if it doesn't exist  
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'trips' AND column_name = 'rejection_reason') THEN
+        ALTER TABLE public.trips ADD COLUMN rejection_reason TEXT;
+    END IF;
+END $$;
+
+-- Update the notify_shopper_package_status function to handle rejection with reason
+CREATE OR REPLACE FUNCTION public.notify_shopper_package_status()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  shopper_name TEXT;
+  notification_title TEXT;
+  notification_message TEXT;
+  notification_type TEXT := 'package';
+  notification_priority TEXT := 'normal';
+BEGIN
+  -- Obtener nombre del shopper
+  SELECT CONCAT(first_name, ' ', last_name) INTO shopper_name
+  FROM public.profiles 
+  WHERE id = NEW.user_id;
+  
+  -- 1. Cuando admin aprueba el paquete
+  IF OLD.status = 'pending_approval' AND NEW.status = 'approved' THEN
+    notification_title := '✅ Tu pedido ha sido aprobado';
+    notification_message := CONCAT('¡Excelente! Tu pedido "', NEW.item_description, '" ha sido aprobado por nuestro equipo. Pronto será asignado a un viajero.');
+    notification_priority := 'high';
+    
+  -- 2. Cuando el paquete pasa a pending_purchase (pago aprobado)
+  ELSIF OLD.status != 'pending_purchase' AND NEW.status = 'pending_purchase' THEN
+    notification_title := '💳 Tu pago ha sido aprobado exitosamente';
+    notification_message := CONCAT('¡Perfecto! Tu pago para el pedido "', NEW.item_description, '" ha sido aprobado. Ahora puedes proceder a realizar la compra del paquete según las instrucciones recibidas.');
+    notification_priority := 'high';
+
+  -- 2.b NUEVO: Cuando el shopper acepta la cotización (payment_pending)
+  ELSIF OLD.status != 'payment_pending' AND NEW.status = 'payment_pending' THEN
+    notification_title := '💳 Aceptaste la cotización';
+    notification_message := CONCAT('Has aceptado la cotización para "', NEW.item_description, '". Ahora sube tu comprobante de pago para continuar.');
+    notification_priority := 'high';
+    
+  -- 3. Cuando admin rechaza el paquete CON RAZÓN
+  ELSIF OLD.status = 'pending_approval' AND NEW.status = 'rejected' THEN
+    notification_title := '❌ Tu pedido ha sido rechazado';
+    notification_message := CONCAT('Lo sentimos, tu pedido "', NEW.item_description, '" ha sido rechazado.');
+    
+    -- Add rejection reason if available
+    IF NEW.rejection_reason IS NOT NULL AND LENGTH(TRIM(NEW.rejection_reason)) > 0 THEN
+      notification_message := notification_message || CONCAT(' Razón: ', NEW.rejection_reason);
+    END IF;
+    
+    notification_message := notification_message || ' Puedes crear una nueva solicitud mejorando los detalles según los comentarios.';
+    notification_priority := 'high';
+    
+  END IF;
+  
+  -- Crear la notificación si hay título y mensaje
+  IF notification_title IS NOT NULL AND notification_message IS NOT NULL THEN
+    PERFORM public.create_notification(
+      NEW.user_id,
+      notification_title,
+      notification_message,
+      notification_type,
+      notification_priority,
+      NULL, -- action_url
+      jsonb_build_object(
+        'package_id', NEW.id,
+        'package_status', NEW.status,
+        'change_type', 'package_status_update',
+        'rejection_reason', NEW.rejection_reason
+      )
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$function$;

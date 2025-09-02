@@ -664,6 +664,7 @@ export type Database = {
           last_day_packages: string
           messenger_pickup_info: Json | null
           package_receiving_address: Json
+          rejection_reason: string | null
           status: string
           to_city: string
           updated_at: string
@@ -683,6 +684,7 @@ export type Database = {
           last_day_packages: string
           messenger_pickup_info?: Json | null
           package_receiving_address: Json
+          rejection_reason?: string | null
           status?: string
           to_city: string
           updated_at?: string
@@ -702,6 +704,7 @@ export type Database = {
           last_day_packages?: string
           messenger_pickup_info?: Json | null
           package_receiving_address?: Json
+          rejection_reason?: string | null
           status?: string
           to_city?: string
           updated_at?: string

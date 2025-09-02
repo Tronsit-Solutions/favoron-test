@@ -751,18 +751,32 @@ export const useDashboardActions = (
     }
   };
 
-  const handleApproveReject = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => {
+  const handleApproveReject = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => {
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     
     try {
       if (type === 'package' && updatePackage) {
-        await updatePackage(id, { status: newStatus });
+        const updateData: any = { status: newStatus };
+        
+        // Add rejection reason if rejecting and reason is provided
+        if (action === 'reject' && reason) {
+          updateData.rejection_reason = reason;
+        }
+        
+        await updatePackage(id, updateData);
         toast({
           title: action === 'approve' ? "¡Solicitud aprobada!" : "Solicitud rechazada",
           description: `La solicitud de paquete ha sido ${action === 'approve' ? 'aprobada' : 'rechazada'}.`,
         });
       } else if (type === 'trip' && updateTrip) {
-        await updateTrip(id, { status: newStatus });
+        const updateData: any = { status: newStatus };
+        
+        // Add rejection reason if rejecting and reason is provided
+        if (action === 'reject' && reason) {
+          updateData.rejection_reason = reason;
+        }
+        
+        await updateTrip(id, updateData);
         toast({
           title: action === 'approve' ? "¡Viaje aprobado!" : "Viaje rechazado",
           description: `El viaje ha sido ${action === 'approve' ? 'aprobado' : 'rechazado'}.`,
