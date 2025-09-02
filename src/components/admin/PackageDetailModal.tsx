@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
@@ -331,46 +332,54 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                        </div>
                      </div>
 
-                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                       <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
-                       <div className="text-sm text-blue-700 space-y-1">
-                         <p><strong>Ruta:</strong> {matchedTrip?.from_city} → {matchedTrip?.to_city}</p>
-                         <p><strong>Salida:</strong> {formatSafeDate(matchedTrip?.departure_date)}</p>
-                         <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip?.arrival_date)}</p>
-                         <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip?.delivery_date)}</p>
-                         <p><strong>Primer día paquetes:</strong> {formatSafeDate(matchedTrip?.first_day_packages)}</p>
-                         <p><strong>Último día paquetes:</strong> {formatSafeDate(matchedTrip?.last_day_packages)}</p>
-                         
-                          {matchedTrip?.package_receiving_address && (
-                            <div className="mt-2 pt-2 border-t border-blue-300">
-                              <p className="font-medium">Dirección de recepción:</p>
-                              <div className="space-y-1 text-sm">
-                                {matchedTrip.package_receiving_address.recipientName && (
-                                  <p><strong>Destinatario:</strong> {matchedTrip.package_receiving_address.recipientName}</p>
-                                )}
-                                <div>
-                                  {matchedTrip.package_receiving_address.streetAddress && (
-                                    <p>{matchedTrip.package_receiving_address.streetAddress}</p>
-                                  )}
-                                  {matchedTrip.package_receiving_address.streetAddress2 && (
-                                    <p>{matchedTrip.package_receiving_address.streetAddress2}</p>
-                                  )}
-                                  <p>
-                                    {matchedTrip.package_receiving_address.cityArea}
-                                    {matchedTrip.package_receiving_address.postalCode && `, ${matchedTrip.package_receiving_address.postalCode}`}
-                                  </p>
-                                </div>
-                                {matchedTrip.package_receiving_address.accommodationType && matchedTrip.package_receiving_address.hotelAirbnbName && (
-                                  <p><strong>{matchedTrip.package_receiving_address.accommodationType}:</strong> {matchedTrip.package_receiving_address.hotelAirbnbName}</p>
-                                )}
-                                {matchedTrip.package_receiving_address.contactNumber && (
-                                  <p><strong>Contacto:</strong> {matchedTrip.package_receiving_address.contactNumber}</p>
-                                )}
-                              </div>
+                      <Accordion type="single" collapsible className="border border-blue-200 rounded-lg">
+                        <AccordionItem value="trip-info" className="border-none">
+                          <AccordionTrigger className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-t-lg">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-blue-800">📍 Información del Viaje</span>
                             </div>
-                          )}
-                       </div>
-                     </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-3 pb-3">
+                            <div className="text-sm text-blue-700 space-y-1">
+                              <p><strong>Ruta:</strong> {matchedTrip?.from_city} → {matchedTrip?.to_city}</p>
+                              <p><strong>Salida:</strong> {formatSafeDate(matchedTrip?.departure_date)}</p>
+                              <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip?.arrival_date)}</p>
+                              <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip?.delivery_date)}</p>
+                              <p><strong>Primer día paquetes:</strong> {formatSafeDate(matchedTrip?.first_day_packages)}</p>
+                              <p><strong>Último día paquetes:</strong> {formatSafeDate(matchedTrip?.last_day_packages)}</p>
+                              
+                              {matchedTrip?.package_receiving_address && (
+                                <div className="mt-2 pt-2 border-t border-blue-300">
+                                  <p className="font-medium">Dirección de recepción:</p>
+                                  <div className="space-y-1 text-sm">
+                                    {matchedTrip.package_receiving_address.recipientName && (
+                                      <p><strong>Destinatario:</strong> {matchedTrip.package_receiving_address.recipientName}</p>
+                                    )}
+                                    <div>
+                                      {matchedTrip.package_receiving_address.streetAddress && (
+                                        <p>{matchedTrip.package_receiving_address.streetAddress}</p>
+                                      )}
+                                      {matchedTrip.package_receiving_address.streetAddress2 && (
+                                        <p>{matchedTrip.package_receiving_address.streetAddress2}</p>
+                                      )}
+                                      <p>
+                                        {matchedTrip.package_receiving_address.cityArea}
+                                        {matchedTrip.package_receiving_address.postalCode && `, ${matchedTrip.package_receiving_address.postalCode}`}
+                                      </p>
+                                    </div>
+                                    {matchedTrip.package_receiving_address.accommodationType && matchedTrip.package_receiving_address.hotelAirbnbName && (
+                                      <p><strong>{matchedTrip.package_receiving_address.accommodationType}:</strong> {matchedTrip.package_receiving_address.hotelAirbnbName}</p>
+                                    )}
+                                    {matchedTrip.package_receiving_address.contactNumber && (
+                                      <p><strong>Contacto:</strong> {matchedTrip.package_receiving_address.contactNumber}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                   </div>
                 </CardContent>
               </Card>
