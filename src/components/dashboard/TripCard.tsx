@@ -55,6 +55,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   return (
     <>
     <Card key={trip.id} className="mx-4 md:mx-0 max-w-full overflow-hidden">
+      {/* Rejection Reason Display */}
+      {trip.status === 'rejected' && trip.rejection_reason && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-3">
+          <div className="flex items-start gap-2">
+            <div className="text-red-600 text-sm">
+              <p className="font-medium">Viaje rechazado:</p>
+              <p className="text-red-700">{trip.rejection_reason}</p>
+            </div>
+          </div>
+        </div>
+      )}
       <CardHeader className="pb-3 md:pb-6">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 md:gap-0">
           <div className="flex-1 min-w-0">

@@ -11,6 +11,7 @@ import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
+import RejectionReasonModal from "./RejectionReasonModal";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
@@ -18,7 +19,7 @@ interface PackageDetailModalProps {
   modalId: string;
   trips: any[];
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, reason?: string) => void;
 }
 
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
@@ -28,6 +29,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const isOpen = isModalOpen(modalId);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -84,10 +86,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     closeModal(modalId);
   };
 
-  // Handle reject action with modal closure
-  const handleReject = async (id: string) => {
-    await onReject(id);
+  // Handle reject action with reason
+  const handleReject = (reason: string) => {
+    onReject(pkg.id, reason);
     closeModal(modalId);
+  };
+
+  // Open rejection modal
+  const handleRejectClick = () => {
+    setRejectionModalOpen(true);
   };
 
   // Centralized rejection reason translation function
@@ -799,9 +806,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Aprobar Solicitud
               </Button>
-              <Button 
+               <Button 
                 variant="destructive"
-                onClick={() => handleReject(pkg.id)}
+                onClick={handleRejectClick}
                 className="flex-1"
               >
                 <XCircle className="h-4 w-4 mr-2" />
@@ -823,8 +830,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
           imageUrl={selectedImage.url}
           title={selectedImage.title}
           filename={selectedImage.filename}
-        />
+         />
       )}
+      
+      {/* Rejection Reason Modal */}
+      <RejectionReasonModal
+        isOpen={rejectionModalOpen}
+        onClose={() => setRejectionModalOpen(false)}
+        onConfirm={handleReject}
+        type="package"
+        itemName={pkg?.item_description || 'Solicitud'}
+      />
     </Dialog>
   );
 };

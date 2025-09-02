@@ -9,11 +9,12 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
+import RejectionReasonModal from "./RejectionReasonModal";
 
 interface TripDetailModalProps {
   modalId: string;
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (id: string, reason?: string) => void;
 }
 
 const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps) => {
@@ -24,6 +25,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   
   const [packages, setPackages] = useState<any[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -91,6 +93,17 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
 
   const getDeliveryMethodIcon = (method: string) => {
     return method === 'pickup' ? <Home className="h-4 w-4" /> : <Truck className="h-4 w-4" />;
+  };
+
+  // Handle reject action with reason
+  const handleReject = (reason: string) => {
+    onReject(trip.id, reason);
+    closeModal(modalId);
+  };
+
+  // Open rejection modal
+  const handleRejectClick = () => {
+    setRejectionModalOpen(true);
   };
 
   return (
@@ -482,7 +495,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
               </Button>
               <Button 
                 variant="destructive"
-                onClick={() => onReject(trip.id)}
+                onClick={handleRejectClick}
                 className="flex-1"
               >
                 <XCircle className="h-4 w-4 mr-2" />
@@ -492,6 +505,15 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
           )}
         </div>
       </DialogContent>
+      
+      {/* Rejection Reason Modal */}
+      <RejectionReasonModal
+        isOpen={rejectionModalOpen}
+        onClose={() => setRejectionModalOpen(false)}
+        onConfirm={handleReject}
+        type="trip"
+        itemName={`${trip?.from_city} → ${trip?.to_city}` || 'Viaje'}
+      />
     </Dialog>
   );
 };
