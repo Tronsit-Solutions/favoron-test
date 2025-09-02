@@ -533,20 +533,53 @@ const TripForm = ({
             
             <div className="space-y-3">
               <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
-              <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="oficina" id="oficina" />
-                  <Label htmlFor="oficina" className="cursor-pointer">
-                    Entrego en oficina de Favorón (zona 14)
-                  </Label>
+              <div className="grid grid-cols-1 gap-3">
+                <div 
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    formData.deliveryMethod === 'oficina' 
+                      ? 'border-primary bg-primary/5 shadow-md' 
+                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                  }`}
+                  onClick={() => handleInputChange('deliveryMethod', 'oficina')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
+                    }`}>
+                      {formData.deliveryMethod === 'oficina' && (
+                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Entrego en oficina de Favorón</p>
+                      <p className="text-sm text-muted-foreground">Zona 14, Ciudad de Guatemala</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="mensajero" id="mensajero" />
-                  <Label htmlFor="mensajero" className="cursor-pointer">
-                    Entrega a mensajero Favorón (Q25–Q40 según dirección)
-                  </Label>
+                
+                <div 
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    formData.deliveryMethod === 'mensajero' 
+                      ? 'border-primary bg-primary/5 shadow-md' 
+                      : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                  }`}
+                  onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
+                    }`}>
+                      {formData.deliveryMethod === 'mensajero' && (
+                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Entrega a mensajero Favorón</p>
+                      <p className="text-sm text-muted-foreground">Q25–Q40 según dirección</p>
+                    </div>
+                  </div>
                 </div>
-              </RadioGroup>
+              </div>
               
               
               {/* Mostrar formulario de mensajero si seleccionó mensajero */}
