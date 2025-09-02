@@ -829,6 +829,7 @@ export type Database = {
           last_name: string | null
           messenger_pickup_info: Json | null
           package_receiving_address: Json | null
+          phone_number: string | null
           status: string | null
           to_city: string | null
           updated_at: string | null

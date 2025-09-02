@@ -35,14 +35,12 @@ export const useAdminData = (): AdminData => {
   const isAdmin = useMemo(() => {
     const currentlyAdmin = userRole?.role === 'admin';
     
-    // Persistir estado admin
     if (currentlyAdmin) {
       setWasAdmin(true);
       try {
         localStorage.setItem('temp_admin_state', 'true');
       } catch {}
     } else if (!authLoading && userRole) {
-      // Solo limpiar si auth terminó de cargar y tenemos un rol definitivo
       setWasAdmin(false);
       try {
         localStorage.removeItem('temp_admin_state');
@@ -134,7 +132,8 @@ export const useAdminData = (): AdminData => {
           first_name,
           last_name,
           username,
-          email
+          email,
+          phone_number
         `)
         .order('departure_date', { ascending: true });
 
@@ -152,15 +151,13 @@ export const useAdminData = (): AdminData => {
         const travelerDisplay = t.user_display_name || nameFromFull || t.username || t.email || `Usuario ${String(t.user_id || '').slice(0, 8)}`;
         return {
           ...t,
-          // Preserve direct name fields from trips_with_user
           user_display_name: t.user_display_name,
           first_name: t.first_name,
           last_name: t.last_name,
           username: t.username,
           email: t.email,
-          // Computed display name for traveler
+          phone_number: t.phone_number,
           traveler_display_name: travelerDisplay,
-          // Create synthetic profiles object for backward compatibility
           profiles: {
             id: t.user_id,
             display_name: t.user_display_name,
@@ -169,9 +166,8 @@ export const useAdminData = (): AdminData => {
             username: t.username,
             email: t.email,
             avatar_url: null,
-            phone_number: null
+            phone_number: t.phone_number
           },
-          // Also provide public_profiles for components expecting that shape
           public_profiles: {
             id: t.user_id,
             first_name: t.first_name,
@@ -190,7 +186,7 @@ export const useAdminData = (): AdminData => {
         last_name: t.last_name,
         username: t.username,
         email: t.email,
-        profiles_display_name: t.profiles.display_name
+        phone_number: t.phone_number
       })));
 
       console.log('✅ Admin: Created synthetic profiles for trips');
@@ -208,7 +204,6 @@ export const useAdminData = (): AdminData => {
   }, [toast]);
 
   const refreshData = useCallback(async () => {
-    // Condición menos restrictiva para permitir carga durante estados temporales
     const shouldSkip = !user || (authLoading && !wasAdmin);
     
     if (shouldSkip) {
@@ -227,7 +222,6 @@ export const useAdminData = (): AdminData => {
     setError(null);
 
     try {
-      // Fetch both packages and trips in parallel
       const [packagesData, tripsData] = await Promise.all([
         fetchAdminPackages(),
         fetchAdminTrips()
@@ -244,7 +238,6 @@ export const useAdminData = (): AdminData => {
       console.error('❌ Admin: Data refresh failed:', error);
       setError(error.message);
       
-      // Retry en caso de error temporal
       if (!authLoading && (isAdmin || wasAdmin)) {
         console.log('🔄 Admin: Scheduling retry in 2 seconds...');
         setTimeout(() => {
@@ -256,7 +249,6 @@ export const useAdminData = (): AdminData => {
     }
   }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchAdminTrips]);
 
-  // Initial data load when admin is authenticated
   useEffect(() => {
     console.log('🔍 Admin: Effect triggered', {
       isAdmin,
@@ -266,12 +258,10 @@ export const useAdminData = (): AdminData => {
       userRole: userRole?.role
     });
 
-    // Cargar datos si es admin actual o era admin anteriormente (durante refresh)
     if ((isAdmin || wasAdmin) && user) {
       console.log('🚀 Admin: Starting initial data load...');
       refreshData();
     } else if (!authLoading && !isAdmin && !wasAdmin && userRole) {
-      // Solo limpiar datos cuando estemos seguros de que no es admin
       console.log('⚠️ Admin: User is definitively not admin, clearing data');
       setPackages([]);
       setTrips([]);
@@ -279,7 +269,6 @@ export const useAdminData = (): AdminData => {
     }
   }, [isAdmin, wasAdmin, authLoading, user, refreshData]);
 
-  // Enhanced safety net - retry with better conditions
   useEffect(() => {
     const shouldRetry = !loading && 
                        !authLoading && 
@@ -293,7 +282,7 @@ export const useAdminData = (): AdminData => {
       console.log('🔄 Admin: Data appears empty, retrying with enhanced conditions...');
       const retryTimer = setTimeout(() => {
         refreshData();
-      }, 1500); // Slightly longer delay
+      }, 1500);
       
       return () => clearTimeout(retryTimer);
     }
