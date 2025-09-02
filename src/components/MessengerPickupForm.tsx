@@ -35,13 +35,13 @@ const MessengerPickupForm = ({ onSubmit, onCancel, initialData }: MessengerPicku
   };
 
   return (
-    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 space-y-4">
-      <div className="flex items-center space-x-2 mb-4">
-        <MapPin className="h-5 w-5 text-yellow-600" />
-        <h3 className="font-medium text-yellow-800">Información para recolección por mensajero</h3>
+    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4 space-y-3 md:space-y-4 w-full max-w-full overflow-hidden">
+      <div className="flex items-center space-x-2 mb-3 md:mb-4">
+        <MapPin className="h-4 w-4 md:h-5 md:w-5 text-yellow-600 flex-shrink-0" />
+        <h3 className="font-medium text-yellow-800 text-sm md:text-base leading-tight">Información para recolección por mensajero</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div className="space-y-2">
           <Label htmlFor="streetAddress" className="text-sm font-medium">
             Dirección completa *
@@ -145,18 +145,18 @@ const MessengerPickupForm = ({ onSubmit, onCancel, initialData }: MessengerPicku
           </p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded p-3">
-          <p className="text-sm text-amber-800">
+        <div className="bg-amber-50 border border-amber-200 rounded p-2 md:p-3">
+          <p className="text-xs md:text-sm text-amber-800 leading-relaxed">
             🚚 <strong>Importante:</strong> El mensajero se coordinará contigo el día de la recolección. 
             El costo del servicio (Q25-Q40) será descontado de tus ganancias como viajero.
           </p>
         </div>
 
-        <div className="flex space-x-3 pt-2">
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1 text-sm">
             Cancelar
           </Button>
-          <Button type="button" variant="secondary" className="flex-1" onClick={handleSubmit}>
+          <Button type="button" variant="secondary" className="flex-1 text-sm" onClick={handleSubmit}>
             Confirmar Información
           </Button>
         </div>
