@@ -299,7 +299,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <Package className="h-5 w-5 text-primary" />
             <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-left">
             {editMode 
               ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
               : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
