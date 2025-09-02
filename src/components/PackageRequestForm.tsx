@@ -293,7 +293,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto mobile-container">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto px-6 md:px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
