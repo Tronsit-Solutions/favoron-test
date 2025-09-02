@@ -83,17 +83,11 @@ const TripForm = ({
     initialState: null
   });
 
-  // Local state
-  const [formData, setFormData] = useState(persistedFormData);
+  // Local state (only for non-persisted data)
   const [showMessengerForm, setShowMessengerForm] = useState(false);
   const [messengerData, setMessengerData] = useState(persistedMessengerData);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-
-  // Sync local state with persisted state
-  useEffect(() => {
-    setPersistedFormData(formData);
-  }, [formData, setPersistedFormData]);
 
   useEffect(() => {
     setPersistedMessengerData(messengerData);
@@ -118,29 +112,29 @@ const TripForm = ({
       console.log('📱 Traveler form submission started (mobile compatible)', {
         userAgent: navigator.userAgent,
         isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-        formData: { ...formData, packageReceivingAddress: '[REDACTED]' }
+        formData: { ...persistedFormData, packageReceivingAddress: '[REDACTED]' }
       });
 
-      const finalFromCity = formData.fromCity;
-      const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
+      const finalFromCity = persistedFormData.fromCity;
+      const finalToCity = persistedFormData.toCity === 'Otra ciudad' ? persistedFormData.toCityOther : persistedFormData.toCity;
       
       // Enhanced validation with specific error messages
       const requiredFields = [
         { field: finalFromCity, name: 'ciudad de origen' },
         { field: finalToCity, name: 'ciudad de destino' },
-        { field: formData.arrivalDate, name: 'fecha de llegada' },
-        { field: formData.availableSpace, name: 'espacio disponible' },
-        { field: formData.deliveryMethod, name: 'método de entrega' },
-        { field: formData.deliveryDate, name: 'fecha de entrega' },
-        { field: formData.packageReceivingAddress.recipientName, name: 'nombre del recipiente' },
-        { field: formData.packageReceivingAddress.accommodationType, name: 'tipo de alojamiento' },
-        { field: formData.packageReceivingAddress.streetAddress, name: 'dirección' },
-        { field: formData.packageReceivingAddress.cityArea, name: 'ciudad/estado' },
-        { field: formData.packageReceivingAddress.postalCode, name: 'código postal' },
-        { field: formData.packageReceivingAddress.contactNumber, name: 'número de contacto' },
-        { field: formData.firstDayPackages, name: 'primer día para recibir paquetes' },
-        { field: formData.lastDayPackages, name: 'último día para recibir paquetes' },
-        { field: formData.fromCountry, name: 'país de origen' }
+        { field: persistedFormData.arrivalDate, name: 'fecha de llegada' },
+        { field: persistedFormData.availableSpace, name: 'espacio disponible' },
+        { field: persistedFormData.deliveryMethod, name: 'método de entrega' },
+        { field: persistedFormData.deliveryDate, name: 'fecha de entrega' },
+        { field: persistedFormData.packageReceivingAddress.recipientName, name: 'nombre del recipiente' },
+        { field: persistedFormData.packageReceivingAddress.accommodationType, name: 'tipo de alojamiento' },
+        { field: persistedFormData.packageReceivingAddress.streetAddress, name: 'dirección' },
+        { field: persistedFormData.packageReceivingAddress.cityArea, name: 'ciudad/estado' },
+        { field: persistedFormData.packageReceivingAddress.postalCode, name: 'código postal' },
+        { field: persistedFormData.packageReceivingAddress.contactNumber, name: 'número de contacto' },
+        { field: persistedFormData.firstDayPackages, name: 'primer día para recibir paquetes' },
+        { field: persistedFormData.lastDayPackages, name: 'último día para recibir paquetes' },
+        { field: persistedFormData.fromCountry, name: 'país de origen' }
       ];
 
       const missingFields = requiredFields.filter(({ field }) => !field).map(({ name }) => name);
@@ -160,7 +154,7 @@ const TripForm = ({
       }
 
       // Validar información de mensajero si seleccionó mensajero
-      if (formData.deliveryMethod === 'mensajero' && !messengerData) {
+      if (persistedFormData.deliveryMethod === 'mensajero' && !messengerData) {
         const errorMsg = 'Por favor completa la información de recolección por mensajero';
         console.error('❌ Messenger data missing');
         alert(errorMsg);
@@ -168,10 +162,10 @@ const TripForm = ({
       }
 
       const submitData = {
-        ...formData,
+        ...persistedFormData,
         fromCity: finalFromCity,
         toCity: finalToCity,
-        messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
+        messengerPickupInfo: persistedFormData.deliveryMethod === 'mensajero' ? messengerData : null
       };
 
       console.log('✅ Form validation passed, submitting data');
@@ -211,7 +205,7 @@ const TripForm = ({
         messengerPickupLocation: ''
       };
       
-      setFormData(initialFormData);
+      setPersistedFormData(initialFormData);
       setShowMessengerForm(false);
       setMessengerData(null);
       setAcceptedTerms(false);
@@ -223,17 +217,16 @@ const TripForm = ({
       
     } catch (error) {
       console.error('💥 Error submitting traveler form:', error);
-      logFormError(error, 'traveler-form', formData);
+      logFormError(error, 'traveler-form', persistedFormData);
       alert('Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.');
     }
   };
   const handleInputChange = (field: string, value: any) => {
     const newFormData = {
-      ...formData,
+      ...persistedFormData,
       [field]: value
     };
     
-    setFormData(newFormData);
     setPersistedFormData(newFormData);
 
     // Mostrar formulario de mensajero si selecciona mensajero
@@ -247,13 +240,14 @@ const TripForm = ({
     }
   };
   const handleAddressChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...persistedFormData,
       packageReceivingAddress: {
-        ...prev.packageReceivingAddress,
+        ...persistedFormData.packageReceivingAddress,
         [field]: value
       }
-    }));
+    };
+    setPersistedFormData(newFormData);
   };
   const handleMessengerSubmit = (pickupData: any) => {
     setMessengerData(pickupData);
@@ -261,7 +255,7 @@ const TripForm = ({
   };
   const handleMessengerCancel = () => {
     setShowMessengerForm(false);
-    setFormData(prev => ({
+    setPersistedFormData(prev => ({
       ...prev,
       deliveryMethod: ''
     }));
@@ -269,13 +263,13 @@ const TripForm = ({
 
   // Helper function to get the current origin city for display
   const getDisplayFromCity = () => {
-    if (formData.fromCity) {
+    if (persistedFormData.fromCity) {
       // Clean up city text by removing state/country abbreviations
-      return formData.fromCity.split(',')[0];
+      return persistedFormData.fromCity.split(',')[0];
     }
     return 'destino';
   };
-  const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
+  const displayToCity = persistedFormData.toCity === 'Otra ciudad' ? persistedFormData.toCityOther : persistedFormData.toCity;
   
   // Mobile header component
   const MobileHeader = () => (
@@ -313,7 +307,7 @@ const TripForm = ({
             <div className="mobile-safe-combobox">
               <Combobox
                 options={COUNTRIES}
-                value={formData.fromCountry}
+                value={persistedFormData.fromCountry}
                 onValueChange={value => {
                   console.log('🌍 Country selected:', value);
                   handleInputChange('fromCountry', value);
@@ -332,7 +326,7 @@ const TripForm = ({
               id="fromCity"
               type="text" 
               placeholder="Escribe tu ciudad de origen" 
-              value={formData.fromCity} 
+              value={persistedFormData.fromCity} 
               onChange={e => handleInputChange('fromCity', e.target.value)} 
               required 
             />
@@ -341,7 +335,7 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="toCity">Ciudad de destino *</Label>
-          <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
+          <Select value={persistedFormData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecciona la ciudad de destino" />
             </SelectTrigger>
@@ -354,7 +348,7 @@ const TripForm = ({
                 </SelectItem>)}
             </SelectContent>
           </Select>
-          {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+          {persistedFormData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={persistedFormData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
         </div>
 
         <div className="space-y-2">
@@ -363,7 +357,7 @@ const TripForm = ({
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.arrivalDate ? format(formData.arrivalDate, "PPP", {
+                {persistedFormData.arrivalDate ? format(persistedFormData.arrivalDate, "PPP", {
                 locale: es
               }) : <span>Selecciona fecha de llegada</span>}
               </Button>
@@ -371,7 +365,7 @@ const TripForm = ({
             <PopoverContent className="w-auto p-0 z-50" align="start">
               <Calendar 
                 mode="single" 
-                selected={formData.arrivalDate || undefined} 
+                selected={persistedFormData.arrivalDate || undefined} 
                 onSelect={date => {
                   console.log('📅 Arrival date selected:', date);
                   handleInputChange('arrivalDate', date);
@@ -388,7 +382,7 @@ const TripForm = ({
           <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
           <div className="relative">
             <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
+            <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={persistedFormData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
           </div>
         </div>
       </div>
@@ -403,12 +397,12 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-          <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
+          <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={persistedFormData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="accommodationType">Tipo de alojamiento *</Label>
-          <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
+          <Select value={persistedFormData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecciona el tipo de alojamiento" />
             </SelectTrigger>
@@ -425,36 +419,36 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-          <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+          <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={persistedFormData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
-          <Input id="streetAddress2" type="text" placeholder="Ej: Apt 4B, Suite 100" value={formData.packageReceivingAddress.streetAddress2} onChange={e => handleAddressChange('streetAddress2', e.target.value)} />
+          <Input id="streetAddress2" type="text" placeholder="Ej: Apt 4B, Suite 100" value={persistedFormData.packageReceivingAddress.streetAddress2} onChange={e => handleAddressChange('streetAddress2', e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
-            <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
+            <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={persistedFormData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="postalCode">Código postal *</Label>
-            <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} required />
+            <Input id="postalCode" type="text" placeholder="Ej: 33101" value={persistedFormData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} required />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio FAV, etc.)</Label>
-          <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} />
+          <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={persistedFormData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="contactNumber">Número de contacto *</Label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input id="contactNumber" type="tel" placeholder="+1 (305) 123-4567" value={formData.packageReceivingAddress.contactNumber} onChange={e => handleAddressChange('contactNumber', e.target.value)} className="pl-10" required />
+            <Input id="contactNumber" type="tel" placeholder="+1 (305) 123-4567" value={persistedFormData.packageReceivingAddress.contactNumber} onChange={e => handleAddressChange('contactNumber', e.target.value)} className="pl-10" required />
           </div>
           <p className="text-xs text-muted-foreground">
             Si te hospedas en hotel, coloca el número del hotel
@@ -468,7 +462,7 @@ const TripForm = ({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", {
+                  {persistedFormData.firstDayPackages ? format(persistedFormData.firstDayPackages, "dd/MM", {
                   locale: es
                 }) : <span className="text-xs">Fecha inicio</span>}
                 </Button>
@@ -476,7 +470,7 @@ const TripForm = ({
               <PopoverContent className="w-auto p-0 z-50" align="start">
                 <Calendar 
                   mode="single" 
-                  selected={formData.firstDayPackages || undefined} 
+                  selected={persistedFormData.firstDayPackages || undefined} 
                   onSelect={date => {
                     console.log('📅 First day selected:', date);
                     handleInputChange('firstDayPackages', date);
@@ -495,7 +489,7 @@ const TripForm = ({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", {
+                  {persistedFormData.lastDayPackages ? format(persistedFormData.lastDayPackages, "dd/MM", {
                   locale: es
                 }) : <span className="text-xs">Fecha fin</span>}
                 </Button>
@@ -503,12 +497,12 @@ const TripForm = ({
               <PopoverContent className="w-auto p-0 z-50" align="start">
                 <Calendar 
                   mode="single" 
-                  selected={formData.lastDayPackages || undefined} 
+                  selected={persistedFormData.lastDayPackages || undefined} 
                   onSelect={date => {
                     console.log('📅 Last day selected:', date);
                     handleInputChange('lastDayPackages', date);
                   }} 
-                  disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)} 
+                  disabled={date => date < new Date() || (persistedFormData.firstDayPackages ? date < persistedFormData.firstDayPackages : false)} 
                   initialFocus 
                   className="pointer-events-auto"
                 />
@@ -523,10 +517,10 @@ const TripForm = ({
         
         <div className="space-y-3">
           <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
-          <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-2 sm:space-y-3">
+          <RadioGroup value={persistedFormData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-2 sm:space-y-3">
             <div 
               className="mobile-radio-card"
-              data-state={formData.deliveryMethod === "oficina" ? "checked" : "unchecked"}
+              data-state={persistedFormData.deliveryMethod === "oficina" ? "checked" : "unchecked"}
               onClick={() => handleInputChange('deliveryMethod', 'oficina')}
             >
               <RadioGroupItem value="oficina" id="oficina" className="sr-only" />
@@ -543,7 +537,7 @@ const TripForm = ({
             </div>
             <div 
               className="mobile-radio-card"
-              data-state={formData.deliveryMethod === "mensajero" ? "checked" : "unchecked"}
+              data-state={persistedFormData.deliveryMethod === "mensajero" ? "checked" : "unchecked"}
               onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
             >
               <RadioGroupItem value="mensajero" id="mensajero" className="sr-only" />
@@ -565,7 +559,7 @@ const TripForm = ({
           {showMessengerForm && <MessengerPickupForm onSubmit={handleMessengerSubmit} onCancel={handleMessengerCancel} initialData={messengerData} />}
           
           {/* Mostrar resumen de información si ya la completó */}
-          {formData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && <div className="bg-green-50 border border-green-200 rounded p-3">
+          {persistedFormData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && <div className="bg-green-50 border border-green-200 rounded p-3">
               <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
               <p className="text-xs text-green-700">{messengerData.streetAddress}, {messengerData.cityArea}</p>
               <Button type="button" variant="outline" size="sm" onClick={() => setShowMessengerForm(true)} className="mt-2">
@@ -580,7 +574,7 @@ const TripForm = ({
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.deliveryDate ? format(formData.deliveryDate, "PPP", {
+                {persistedFormData.deliveryDate ? format(persistedFormData.deliveryDate, "PPP", {
                 locale: es
               }) : <span>Selecciona fecha de entrega</span>}
               </Button>
@@ -588,7 +582,7 @@ const TripForm = ({
             <PopoverContent className="w-auto p-0 z-50" align="start">
               <Calendar 
                 mode="single" 
-                selected={formData.deliveryDate || undefined} 
+                selected={persistedFormData.deliveryDate || undefined} 
                 onSelect={date => {
                   console.log('📅 Delivery date selected:', date);
                   handleInputChange('deliveryDate', date);
@@ -607,7 +601,7 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
-          <Textarea id="additionalInfo" placeholder="Horarios disponibles, zonas de entrega, experiencia previa, etc." value={formData.additionalInfo} onChange={e => handleInputChange('additionalInfo', e.target.value)} className="min-h-[80px]" />
+          <Textarea id="additionalInfo" placeholder="Horarios disponibles, zonas de entrega, experiencia previa, etc." value={persistedFormData.additionalInfo} onChange={e => handleInputChange('additionalInfo', e.target.value)} className="min-h-[80px]" />
         </div>
       </div>
 
@@ -617,7 +611,7 @@ const TripForm = ({
           <div className="text-sm text-traveler">
             <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
             <ul className="space-y-1 text-xs">
-              <li>• Los compradores enviarán paquetes a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
+              <li>• Los compradores enviarán paquetes a tu {persistedFormData.packageReceivingAddress.accommodationType || 'alojamiento'} en {persistedFormData.fromCity || 'tu ciudad de origen'}</li>
               <li>• Podrás cotizar el precio por traer cada paquete</li>
               <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
               <li>• Nosotros coordinamos la entrega final al comprador</li>
