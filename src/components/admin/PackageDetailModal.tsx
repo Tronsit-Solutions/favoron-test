@@ -643,7 +643,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   </div>
                 </div>
                 
-                {pkg.traveler_confirmation.photo && (
+                {(pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl) && (
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Camera className="h-4 w-4 text-green-600" />
@@ -651,16 +651,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     </div>
                     <div className="relative">
                       <img 
-                        src={pkg.traveler_confirmation.photo} 
+                        src={pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl} 
                         alt="Confirmación de recepción"
                         className="max-w-full h-auto max-h-64 rounded-lg border border-green-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                         onError={(e) => {
                           console.error('Error loading confirmation photo:', e);
+                          console.error('Photo URL:', pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl);
                           e.currentTarget.style.display = 'none';
                         }}
                         onClick={() => {
                           setSelectedImage({
-                            url: pkg.traveler_confirmation.photo,
+                            url: pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl,
                             title: "Confirmación de recepción",
                             filename: `confirmacion_${pkg.id}_${new Date().toISOString().split('T')[0]}.jpg`
                           });
