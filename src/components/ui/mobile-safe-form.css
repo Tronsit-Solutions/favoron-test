@@ -29,57 +29,6 @@
   touch-action: manipulation;
 }
 
-/* Mobile-optimized radio button cards */
-.mobile-radio-card {
-  min-height: 60px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  border: 2px solid hsl(var(--border));
-  border-radius: 1rem;
-  position: relative;
-}
-
-.mobile-radio-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: hsl(var(--primary) / 0.5);
-}
-
-.mobile-radio-card[data-state="checked"] {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.08);
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
-}
-
-.mobile-radio-card[data-state="checked"]::after {
-  content: "✓";
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  color: hsl(var(--primary));
-  font-weight: bold;
-  font-size: 16px;
-}
-
-/* Mobile-optimized checkbox container */
-.mobile-checkbox-card {
-  min-height: 80px;
-  transition: all 0.3s ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-checkbox-card:hover {
-  border-color: hsl(var(--primary) / 0.6);
-  background: hsl(var(--primary) / 0.02);
-}
-
-.mobile-checkbox-card.checked {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.08);
-}
-
 /* Form input enhancements for mobile */
 @media (max-width: 768px) {
   .mobile-safe-form input,
@@ -92,17 +41,6 @@
   .mobile-safe-form .grid-cols-2 {
     grid-template-columns: 1fr; /* Stack on mobile */
     gap: 1rem;
-  }
-
-  /* Mobile radio button enhancements */
-  .mobile-safe-form [role="radiogroup"] > * {
-    min-height: 60px;
-  }
-
-  /* Mobile checkbox enhancements */
-  .mobile-safe-form .mobile-checkbox-card {
-    padding: 1rem;
-    border-radius: 0.75rem;
   }
 }
 
