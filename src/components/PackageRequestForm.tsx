@@ -490,24 +490,49 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           {isGuatemalaDestination && (
             <div className="space-y-4">
               <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
-              <RadioGroup 
-                value={formData.deliveryMethod} 
-                onValueChange={(value) => handleInputChange('deliveryMethod', value)}
-                className="space-y-3"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pickup" id="pickup" />
-                  <Label htmlFor="pickup" className="cursor-pointer">
-                    Lo recojo en zona 14
-                  </Label>
+              <div className="space-y-3">
+                <div 
+                  onClick={() => handleInputChange('deliveryMethod', 'pickup')}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    formData.deliveryMethod === 'pickup' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Lo recojo en zona 14</p>
+                      <p className="text-sm text-muted-foreground">Gratis - Recoge en nuestra oficina</p>
+                    </div>
+                    {formData.deliveryMethod === 'pickup' && (
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="delivery" id="delivery" />
-                  <Label htmlFor="delivery" className="cursor-pointer">
-                    Enviarlo a mi domicilio
-                  </Label>
+                
+                <div 
+                  onClick={() => handleInputChange('deliveryMethod', 'delivery')}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    formData.deliveryMethod === 'delivery' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Enviarlo a mi domicilio</p>
+                      <p className="text-sm text-muted-foreground">Q25 - Entrega en Ciudad de Guatemala</p>
+                    </div>
+                    {formData.deliveryMethod === 'delivery' && (
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </RadioGroup>
+              </div>
               
               {/* Mostrar formulario de dirección si seleccionó delivery */}
               {showAddressForm && (
