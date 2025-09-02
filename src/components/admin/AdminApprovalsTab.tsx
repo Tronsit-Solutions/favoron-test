@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
+import RejectionReasonModal from "./RejectionReasonModal";
 
 interface AdminApprovalsTabProps {
   packages: any[];
   trips: any[];
   onViewPackageDetail: (pkg: any) => void;
   onViewTripDetail: (trip: any) => void;
-  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -25,6 +26,8 @@ const AdminApprovalsTab = ({
   getStatusBadge 
 }: AdminApprovalsTabProps) => {
   const [activeTab, setActiveTab] = useState("packages");
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectionTarget, setRejectionTarget] = useState<{ type: 'package' | 'trip'; id: string; name: string } | null>(null);
 
   const pendingPackages = packages.filter(p => p.status === 'pending_approval');
   const pendingTrips = trips.filter(t => t.status === 'pending_approval');
@@ -149,6 +152,24 @@ const AdminApprovalsTab = ({
     return fallback;
   };
 
+  const handleReject = (type: 'package' | 'trip', id: string, name: string) => {
+    setRejectionTarget({ type, id, name });
+    setShowRejectionModal(true);
+  };
+
+  const handleConfirmRejection = async (reason: string) => {
+    if (rejectionTarget) {
+      await onApproveReject(rejectionTarget.type, rejectionTarget.id, 'reject', reason);
+      setShowRejectionModal(false);
+      setRejectionTarget(null);
+    }
+  };
+
+  const handleCancelRejection = () => {
+    setShowRejectionModal(false);
+    setRejectionTarget(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -269,15 +290,15 @@ const AdminApprovalsTab = ({
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Aprobar
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => onApproveReject('package', pkg.id, 'reject')}
-                            className="flex-1 sm:flex-none text-xs sm:text-sm"
-                          >
-                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Rechazar
-                          </Button>
+                           <Button 
+                             size="sm" 
+                             variant="destructive"
+                             onClick={() => handleReject('package', pkg.id, pkg.item_description)}
+                             className="flex-1 sm:flex-none text-xs sm:text-sm"
+                           >
+                             <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                             Rechazar
+                           </Button>
                         </div>
                       </div>
                     </div>
@@ -346,15 +367,15 @@ const AdminApprovalsTab = ({
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Aprobar
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => onApproveReject('trip', trip.id, 'reject')}
-                            className="flex-1 sm:flex-none text-xs sm:text-sm"
-                          >
-                            <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Rechazar
-                          </Button>
+                           <Button 
+                             size="sm" 
+                             variant="destructive"
+                             onClick={() => handleReject('trip', trip.id, `${trip.from_city} → ${trip.to_city}`)}
+                             className="flex-1 sm:flex-none text-xs sm:text-sm"
+                           >
+                             <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                             Rechazar
+                           </Button>
                         </div>
                       </div>
                     </div>
@@ -365,6 +386,14 @@ const AdminApprovalsTab = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <RejectionReasonModal 
+        isOpen={showRejectionModal}
+        onClose={handleCancelRejection}
+        onConfirm={handleConfirmRejection}
+        type={rejectionTarget?.type || 'package'}
+        itemName={rejectionTarget?.name || ''}
+      />
     </div>
   );
 };
