@@ -120,12 +120,10 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     return translations[reasonText] || reasonText;
   };
 
-  // Get traveler information from package.trips.profiles (already contains the correct data)
-  const matchedTrip = pkg.trips || null;
-  const travelerProfile = matchedTrip?.profiles || null;
+  // Get traveler information from trips_with_user data passed via trips prop
+  const matchedTrip = trips?.find(trip => trip.id === pkg.matched_trip_id) || null;
 
   console.log('Matched trip found:', matchedTrip);
-  console.log('✈️ Traveler profile data:', travelerProfile);
   console.log('📅 Delivery date from trips:', matchedTrip?.delivery_date);
 
   const getStatusBadge = (status: string) => {
@@ -283,64 +281,80 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Nombre</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.profiles ? `${matchedTrip.profiles.first_name || ''} ${matchedTrip.profiles.last_name || ''}`.trim() || matchedTrip.profiles.username || 'Sin nombre' : 'Sin información'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Usuario</p>
-                        <p className="text-sm text-muted-foreground">
-                          @{matchedTrip?.profiles?.username || matchedTrip?.username || 'Sin usuario'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.profiles?.email || 'Sin email registrado'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Teléfono</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.profiles?.phone_number || 'Sin teléfono registrado'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Usuario ID</p>
-                        <p className="text-sm text-muted-foreground">
-                          {matchedTrip.user_id}
-                        </p>
-                      </div>
-                    </div>
+                     <div className="flex items-center space-x-2">
+                       <User className="h-4 w-4 text-muted-foreground" />
+                       <div>
+                         <p className="text-sm font-medium">Nombre</p>
+                         <p className="text-sm text-muted-foreground">
+                           {matchedTrip ? `${matchedTrip.first_name || ''} ${matchedTrip.last_name || ''}`.trim() || matchedTrip.username || 'Sin nombre' : 'Sin información'}
+                         </p>
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center space-x-2">
+                       <User className="h-4 w-4 text-muted-foreground" />
+                       <div>
+                         <p className="text-sm font-medium">Usuario</p>
+                         <p className="text-sm text-muted-foreground">
+                           @{matchedTrip?.username || 'Sin usuario'}
+                         </p>
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center space-x-2">
+                       <Mail className="h-4 w-4 text-muted-foreground" />
+                       <div>
+                         <p className="text-sm font-medium">Email</p>
+                         <p className="text-sm text-muted-foreground">
+                           {matchedTrip?.email || 'Sin email registrado'}
+                         </p>
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center space-x-2">
+                       <Phone className="h-4 w-4 text-muted-foreground" />
+                       <div>
+                         <p className="text-sm font-medium">Teléfono</p>
+                         <p className="text-sm text-muted-foreground">
+                           {matchedTrip?.phone_number || 'Sin teléfono registrado'}
+                         </p>
+                       </div>
+                     </div>
+                     
+                     <div className="flex items-center space-x-2">
+                       <Package className="h-4 w-4 text-muted-foreground" />
+                       <div>
+                         <p className="text-sm font-medium">Usuario ID</p>
+                         <p className="text-sm text-muted-foreground">
+                           {matchedTrip?.user_id}
+                         </p>
+                       </div>
+                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
-                      <div className="text-sm text-blue-700 space-y-1">
-                        <p><strong>Ruta:</strong> {matchedTrip.from_city} → {matchedTrip.to_city}</p>
-                        <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip.arrival_date)}</p>
-                        <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip.delivery_date)}</p>
-                      </div>
-                    </div>
+                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                       <p className="text-sm font-medium text-blue-800 mb-2">📍 Información del Viaje:</p>
+                       <div className="text-sm text-blue-700 space-y-1">
+                         <p><strong>Ruta:</strong> {matchedTrip?.from_city} → {matchedTrip?.to_city}</p>
+                         <p><strong>Salida:</strong> {formatSafeDate(matchedTrip?.departure_date)}</p>
+                         <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip?.arrival_date)}</p>
+                         <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip?.delivery_date)}</p>
+                         <p><strong>Primer día paquetes:</strong> {formatSafeDate(matchedTrip?.first_day_packages)}</p>
+                         <p><strong>Último día paquetes:</strong> {formatSafeDate(matchedTrip?.last_day_packages)}</p>
+                         
+                         {matchedTrip?.package_receiving_address && (
+                           <div className="mt-2 pt-2 border-t border-blue-300">
+                             <p className="font-medium">Dirección de recepción:</p>
+                             <p>
+                               {matchedTrip.package_receiving_address.street && `${matchedTrip.package_receiving_address.street}, `}
+                               {matchedTrip.package_receiving_address.city && `${matchedTrip.package_receiving_address.city}, `}
+                               {matchedTrip.package_receiving_address.state && `${matchedTrip.package_receiving_address.state}, `}
+                               {matchedTrip.package_receiving_address.country}
+                               {matchedTrip.package_receiving_address.zipCode && ` ${matchedTrip.package_receiving_address.zipCode}`}
+                             </p>
+                           </div>
+                         )}
+                       </div>
+                     </div>
                   </div>
                 </CardContent>
               </Card>
