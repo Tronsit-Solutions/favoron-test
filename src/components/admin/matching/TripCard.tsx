@@ -77,18 +77,13 @@ export const TripCard = ({
                 </span>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                <div className="flex items-center space-x-1">
-                  <span className="text-green-600">
-                    📥 Primer día: {new Date(trip.first_day_packages).toLocaleDateString()}
-                  </span>
-                </div>
-                
-                <div className="flex items-center space-x-1">
-                  <span className="text-red-600">
-                    📤 Último día: {new Date(trip.last_day_packages).toLocaleDateString()}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-4">
+                <span className="text-green-600">
+                  📥 Primer día: {new Date(trip.first_day_packages).toLocaleDateString()}
+                </span>
+                <span className="text-red-600">
+                  📤 Último día: {new Date(trip.last_day_packages).toLocaleDateString()}
+                </span>
               </div>
 
               <div className="flex items-center space-x-1">
