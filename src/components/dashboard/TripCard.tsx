@@ -72,7 +72,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             <CardTitle className="text-base md:text-lg font-semibold leading-tight mb-2 break-words">
               {trip.from_city} → {trip.to_city}
             </CardTitle>
-            <CardDescription className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs md:text-sm">
+            <CardDescription className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs md:text-sm text-black">
               <TripDate arrivalDate={trip.arrival_date} />
               <span className="hidden md:inline">•</span>
               <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
