@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ArrowLeft } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
@@ -21,7 +19,6 @@ import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { COUNTRIES } from "@/lib/countries";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
 import { cn } from "@/lib/utils";
-import "./ui/mobile-safe-form.css";
 interface TripFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,7 +29,7 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
-  const isMobile = useIsMobile();
+  
   // Auto-persist form open state to maintain modal across tab switches
   const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
     key: 'trip-form-open',
@@ -271,21 +268,8 @@ const TripForm = ({
   };
   const displayToCity = persistedFormData.toCity === 'Otra ciudad' ? persistedFormData.toCityOther : persistedFormData.toCity;
   
-  // Mobile header component
-  const MobileHeader = () => (
-    <div className="flex items-center space-x-3 p-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Button variant="ghost" size="sm" onClick={onClose} className="p-2 h-8 w-8">
-        <ArrowLeft className="h-4 w-4" />
-      </Button>
-      <div className="flex-1">
-        <h2 className="text-lg font-semibold">Registrar Viaje</h2>
-        <p className="text-sm text-muted-foreground">Lleva paquetes y gana extra</p>
-      </div>
-    </div>
-  );
-
-  // Desktop header component  
-  const DesktopHeader = () => (
+  // Header component  
+  const Header = () => (
     <DialogHeader>
       <DialogTitle className="flex items-center space-x-2">
         <Plane className="h-5 w-5 text-traveler" />
@@ -299,12 +283,12 @@ const TripForm = ({
 
   // Form content component
   const FormContent = () => (
-    <form onSubmit={handleSubmit} className="space-y-6 mobile-safe-form">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="fromCountry">País de origen *</Label>
-            <div className="mobile-safe-combobox">
+            <div>
               <Combobox
                 options={COUNTRIES}
                 value={persistedFormData.fromCountry}
@@ -677,25 +661,10 @@ const TripForm = ({
     </form>
   );
 
-  // Conditional rendering based on device type
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[95vh] overflow-hidden">
-          <MobileHeader />
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
-            <FormContent />
-          </div>
-          <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DesktopHeader />
+        <Header />
         <div className="px-1">
           <FormContent />
         </div>
