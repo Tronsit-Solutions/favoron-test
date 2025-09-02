@@ -22,8 +22,6 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   const trip = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
   
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loadingProfile, setLoadingProfile] = useState(false);
   const [packages, setPackages] = useState<any[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
@@ -36,36 +34,6 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
     });
     return null;
   }
-
-  // Fetch user profile data using admin function
-  useEffect(() => {
-    if (trip?.user_id && isOpen) {
-      setLoadingProfile(true);
-      const fetchUserProfile = async () => {
-        try {
-          // Use admin function to get all users and find the specific one
-          const { data, error } = await supabase
-            .rpc('admin_view_all_users', {
-              access_reason: 'Trip detail view for admin dashboard'
-            });
-          
-          if (error) {
-            console.error('Error fetching user profiles:', error);
-          } else {
-            // Find the specific user profile
-            const userProfile = data?.find((user: any) => user.id === trip.user_id);
-            setUserProfile(userProfile || null);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        } finally {
-          setLoadingProfile(false);
-        }
-      };
-      
-      fetchUserProfile();
-    }
-  }, [trip?.user_id, isOpen]);
 
   // Fetch packages associated with this trip
   useEffect(() => {
@@ -154,64 +122,45 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {loadingProfile ? (
-                <div className="text-center text-muted-foreground py-4">
-                  Cargando información del viajero...
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Nombre</p>
-                      <p className="text-sm text-muted-foreground">
-                        {userProfile?.first_name && userProfile?.last_name 
-                          ? `${userProfile.first_name} ${userProfile.last_name}` 
-                          : userProfile?.username || 'No disponible'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{userProfile?.email || 'No disponible'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Teléfono</p>
-                      <p className="text-sm text-muted-foreground">{userProfile?.phone_number || 'No disponible'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">ID del Viajero</p>
-                      <p className="text-sm text-muted-foreground">
-                        <code className="font-mono text-xs">{trip.user_id}</code>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Nivel de Confianza</p>
-                      <p className="text-sm text-muted-foreground">
-                        {userProfile?.trust_level ? 
-                          (userProfile.trust_level === 'basic' ? 'Básico' : 
-                           userProfile.trust_level === 'trusted' ? 'Confiable' : 
-                           userProfile.trust_level === 'premium' ? 'Premium' : userProfile.trust_level)
-                          : 'No definido'}
-                      </p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Nombre</p>
+                    <p className="text-sm text-muted-foreground">
+                      {trip.first_name && trip.last_name 
+                        ? `${trip.first_name} ${trip.last_name}` 
+                        : trip.username || 'No disponible'}
+                    </p>
                   </div>
                 </div>
-              )}
+                
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-muted-foreground">{trip.email || 'No disponible'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Teléfono</p>
+                    <p className="text-sm text-muted-foreground">{trip.phone_number || 'No disponible'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">ID del Viajero</p>
+                    <p className="text-sm text-muted-foreground">
+                      <code className="font-mono text-xs">{trip.user_id}</code>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
