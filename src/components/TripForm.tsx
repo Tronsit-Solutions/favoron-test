@@ -306,79 +306,55 @@ const TripForm = ({
   // Form content component
   const FormContent = () => (
     <form onSubmit={handleSubmit} className="space-y-6 mobile-safe-form">
-      {/* 🟦 1. Información básica del viaje */}
       <div className="space-y-6">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">1</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
-        </div>
-
-        {/* Sección ORIGEN */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-primary">
-            <MapPin className="h-4 w-4" />
-            <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN</h4>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fromCountry">País de origen *</Label>
-              <div className="mobile-safe-combobox">
-                <Combobox
-                  options={COUNTRIES}
-                  value={formData.fromCountry}
-                  onValueChange={value => {
-                    console.log('🌍 Country selected:', value);
-                    handleInputChange('fromCountry', value);
-                  }}
-                  placeholder="Selecciona el país de origen"
-                  searchPlaceholder="Buscar país..."
-                  emptyMessage="No se encontraron países"
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="fromCity">Ciudad de origen *</Label>
-              <Input 
-                id="fromCity"
-                type="text" 
-                placeholder="Escribe tu ciudad de origen" 
-                value={formData.fromCity} 
-                onChange={e => handleInputChange('fromCity', e.target.value)} 
-                required 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="fromCountry">País de origen *</Label>
+            <div className="mobile-safe-combobox">
+              <Combobox
+                options={COUNTRIES}
+                value={formData.fromCountry}
+                onValueChange={value => {
+                  console.log('🌍 Country selected:', value);
+                  handleInputChange('fromCountry', value);
+                }}
+                placeholder="Selecciona el país de origen"
+                searchPlaceholder="Buscar país..."
+                emptyMessage="No se encontraron países"
+                className="w-full"
               />
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fromCity">Ciudad de origen *</Label>
+            <Input 
+              id="fromCity"
+              type="text" 
+              placeholder="Escribe tu ciudad de origen" 
+              value={formData.fromCity} 
+              onChange={e => handleInputChange('fromCity', e.target.value)} 
+              required 
+            />
+          </div>
         </div>
 
-        {/* Sección DESTINO */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-primary">
-            <Target className="h-4 w-4" />
-            <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO</h4>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="toCity">Ciudad de destino *</Label>
-            <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona la ciudad de destino" />
-              </SelectTrigger>
-              <SelectContent>
-                {guatemalanCities.map(city => <SelectItem key={city} value={city}>
-                    <div className="flex items-center space-x-2">
-                      <Target className="h-4 w-4" />
-                      <span>{city}</span>
-                    </div>
-                  </SelectItem>)}
-              </SelectContent>
-            </Select>
-            {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="toCity">Ciudad de destino *</Label>
+          <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona la ciudad de destino" />
+            </SelectTrigger>
+            <SelectContent>
+              {guatemalanCities.map(city => <SelectItem key={city} value={city}>
+                  <div className="flex items-center space-x-2">
+                    <Target className="h-4 w-4" />
+                    <span>{city}</span>
+                  </div>
+                </SelectItem>)}
+            </SelectContent>
+          </Select>
+          {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
         </div>
 
         <div className="space-y-2">
@@ -417,17 +393,13 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 2. Dirección para recibir paquetes en destino */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">2</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
+      <div className="space-y-6 border-t border-gray-200 pt-6">
+        <div className="space-y-1">
+          <Label className="text-base font-medium">Dirección para recibir paquetes en {getDisplayFromCity()}</Label>
+          <p className="text-sm text-muted-foreground">
+            Esta información se comparte únicamente con el shopper si el pedido es aprobado.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Esta información se comparte únicamente con el shopper si el pedido es aprobado.
-        </p>
 
         <div className="space-y-2">
           <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
@@ -546,14 +518,8 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 3. Entrega de paquetes en Guatemala */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">3</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Entrega de paquetes en Guatemala</h3>
-        </div>
+      <div className="space-y-4 border-t border-gray-200 pt-6">
+        <Label className="text-base font-medium">Entrega de paquetes en Guatemala</Label>
         
         <div className="space-y-3">
           <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
@@ -636,14 +602,8 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 4. Información adicional */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">4</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
-        </div>
+      <div className="space-y-4 border-t border-gray-200 pt-6">
+        <Label className="text-base font-medium">Información adicional</Label>
 
         <div className="space-y-2">
           <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
