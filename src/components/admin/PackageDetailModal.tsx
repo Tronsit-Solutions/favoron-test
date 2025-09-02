@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2 } from "lucide-react";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -154,7 +154,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const hasPurchaseConfirmation = pkg.purchase_confirmation && (pkg.purchase_confirmation.receipt_url || pkg.purchase_confirmation.filePath || pkg.purchase_confirmation.filename);
   const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
   const hasTravelerConfirmation = pkg.traveler_confirmation && pkg.traveler_confirmation.confirmed_at;
-  const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo || hasTravelerConfirmation;
+  const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
 
   // Enhanced product information processing
   const getDetailedProductInfo = () => {
@@ -617,6 +617,52 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             </Card>
           )}
 
+          {/* Package Reception Confirmation */}
+          {hasTravelerConfirmation && (
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-green-800">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span>✅ Paquete Recibido por el Viajero</span>
+                </CardTitle>
+                <CardDescription className="text-green-700">
+                  El viajero ha confirmado la recepción del paquete
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-green-100 rounded-lg border border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-800">
+                      Confirmado el {formatSafeDateTime(pkg.traveler_confirmation.confirmed_at || pkg.traveler_confirmation.confirmedAt)}
+                    </span>
+                  </div>
+                </div>
+                
+                {pkg.traveler_confirmation.photo && (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Camera className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Foto de confirmación:</span>
+                    </div>
+                    <div className="relative">
+                      <img 
+                        src={pkg.traveler_confirmation.photo} 
+                        alt="Confirmación de recepción"
+                        className="max-w-full h-auto max-h-64 rounded-lg border border-green-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                        onError={(e) => {
+                          console.error('Error loading confirmation photo:', e);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        onClick={() => window.open(pkg.traveler_confirmation.photo, '_blank')}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Documents Section */}
           {hasAnyDocuments && (
             <Card>
@@ -626,7 +672,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                   <span>Documentos Subidos</span>
                 </CardTitle>
                 <CardDescription>
-                  Todos los documentos relacionados con este paquete
+                  Documentos relacionados con este paquete
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -671,20 +717,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </h4>
                       <TrackingInfoViewer 
                         trackingInfo={pkg.tracking_info}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-
-                  {/* Traveler Confirmation */}
-                  {hasTravelerConfirmation && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        Confirmación del Viajero
-                      </h4>
-                      <TravelerConfirmationDisplay 
-                        pkg={pkg}
                         className="w-full"
                       />
                     </div>
