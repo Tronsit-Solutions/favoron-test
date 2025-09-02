@@ -309,20 +309,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div>
               <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
-              {products.length < 5 && (
-                <Button
-                  type="button"
-                  variant="shopper"
-                  size="sm"
-                  onClick={addProduct}
-                  className="flex items-center space-x-1 font-semibold shadow-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Agregar</span>
-                </Button>
-              )}
             </div>
             
             <div className="space-y-3">
@@ -410,6 +398,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 </div>
               ))}
             </div>
+
+            {products.length < 5 && (
+              <Button
+                type="button"
+                variant="shopper"
+                size="sm"
+                onClick={addProduct}
+                className="flex items-center space-x-1 font-semibold shadow-sm w-fit"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Agregar</span>
+              </Button>
+            )}
 
             {products.length > 1 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
