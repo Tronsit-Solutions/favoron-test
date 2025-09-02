@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, X, ZoomIn, ZoomOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveSignedUrl } from "@/lib/storageUrls";
 
 interface ImageViewerModalProps {
   isOpen: boolean;
@@ -40,35 +41,9 @@ export const ImageViewerModal = ({
     setError(null);
     
     try {
-      // If it's a Supabase storage URL, try to generate a fresh signed URL
-      if (imageUrl.includes('supabase') && imageUrl.includes('/storage/')) {
-        console.log('Refreshing Supabase storage URL:', imageUrl);
-        
-        // Extract the file path from the URL
-        const urlParts = imageUrl.split('/storage/v1/object/');
-        if (urlParts.length > 1) {
-          const pathPart = urlParts[1];
-          const bucketAndPath = pathPart.split('/');
-          if (bucketAndPath.length > 1) {
-            const bucket = bucketAndPath[0];
-            const filePath = bucketAndPath.slice(1).join('/').split('?')[0]; // Remove query params
-            
-            const { data, error } = await supabase.storage
-              .from(bucket)
-              .createSignedUrl(filePath, 3600); // 1 hour expiry
-            
-            if (data?.signedUrl) {
-              console.log('Successfully refreshed URL');
-              setCurrentImageUrl(data.signedUrl);
-            } else {
-              console.error('Failed to refresh URL:', error);
-              setCurrentImageUrl(imageUrl); // Fallback to original
-            }
-          }
-        }
-      } else {
-        setCurrentImageUrl(imageUrl);
-      }
+      // Genera siempre una URL firmada si es un path de Storage o una URL de Supabase Storage
+      const resolved = await resolveSignedUrl(imageUrl, 3600);
+      setCurrentImageUrl(resolved ?? imageUrl);
     } catch (err) {
       console.error('Error refreshing image URL:', err);
       setCurrentImageUrl(imageUrl); // Fallback to original

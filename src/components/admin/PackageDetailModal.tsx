@@ -13,7 +13,7 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
-
+import { useSignedUrl } from "@/hooks/useSignedUrl";
 interface PackageDetailModalProps {
   modalId: string;
   trips: any[];
@@ -159,6 +159,10 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
   const hasTravelerConfirmation = pkg.traveler_confirmation && (pkg.traveler_confirmation.confirmedAt || pkg.traveler_confirmation.confirmed_at);
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
+
+  // Resolve traveler confirmation photo (handles storage paths and signed URLs)
+  const rawTravelerPhoto = pkg.traveler_confirmation?.photo || pkg.traveler_confirmation?.photoUrl;
+  const { url: resolvedTravelerPhotoUrl } = useSignedUrl(rawTravelerPhoto);
 
   // Enhanced product information processing
   const getDetailedProductInfo = () => {
@@ -651,17 +655,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     </div>
                     <div className="relative">
                       <img 
-                        src={pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl} 
+                        src={resolvedTravelerPhotoUrl || rawTravelerPhoto} 
                         alt="Confirmación de recepción"
                         className="max-w-full h-auto max-h-64 rounded-lg border border-green-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                         onError={(e) => {
                           console.error('Error loading confirmation photo:', e);
-                          console.error('Photo URL:', pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl);
+                          console.error('Photo URL:', rawTravelerPhoto);
                           e.currentTarget.style.display = 'none';
                         }}
                         onClick={() => {
                           setSelectedImage({
-                            url: pkg.traveler_confirmation.photo || pkg.traveler_confirmation.photoUrl,
+                            url: rawTravelerPhoto,
                             title: "Confirmación de recepción",
                             filename: `confirmacion_${pkg.id}_${new Date().toISOString().split('T')[0]}.jpg`
                           });

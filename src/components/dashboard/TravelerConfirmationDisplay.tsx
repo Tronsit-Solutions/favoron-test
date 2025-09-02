@@ -4,6 +4,8 @@ import { CheckCircle, Calendar, Image as ImageIcon, Edit } from "lucide-react";
 import { Package } from "@/types";
 import { useState } from "react";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { useSignedUrl } from "@/hooks/useSignedUrl";
 
 interface TravelerConfirmationDisplayProps {
   pkg: any;
@@ -13,7 +15,7 @@ interface TravelerConfirmationDisplayProps {
 
 export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived }: TravelerConfirmationDisplayProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
-  
+  const [viewerOpen, setViewerOpen] = useState(false);
   // Show for all states after in_transit that have confirmation
   const postInTransitStates = ['received_by_traveler', 'delivered', 'pending_office_confirmation', 'completed'];
   if (!postInTransitStates.includes(pkg.status) || !pkg.traveler_confirmation) {
@@ -21,8 +23,9 @@ export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived 
   }
 
   const confirmation = pkg.traveler_confirmation as any;
-  const photoUrl = confirmation.photo;
-  const confirmedAt = confirmation.confirmedAt;
+  const rawPhoto = confirmation.photo || confirmation.photoUrl;
+  const confirmedAt = confirmation.confirmed_at || confirmation.confirmedAt;
+  const { url: resolvedPhotoUrl } = useSignedUrl(rawPhoto);
 
   const handleEditPhoto = (photo?: string) => {
     if (onConfirmReceived) {
@@ -49,7 +52,7 @@ export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived 
               <CheckCircle className="h-4 w-4 text-green-600" />
               <span className="text-sm font-medium text-green-800">Paquete recibido por el viajero</span>
             </div>
-            {onConfirmReceived && photoUrl && (
+            {onConfirmReceived && rawPhoto && (
               <Button
                 variant="outline"
                 size="sm"
@@ -76,13 +79,13 @@ export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived 
             </div>
           )}
 
-          {photoUrl ? (
+          {rawPhoto ? (
             <div className="border border-green-200 rounded p-1 bg-white">
               <img 
-                src={photoUrl} 
+                src={resolvedPhotoUrl || rawPhoto} 
                 alt="Paquete recibido" 
                 className="w-full h-24 object-cover rounded cursor-pointer"
-                onClick={() => window.open(photoUrl, '_blank')}
+                onClick={() => setViewerOpen(true)}
                 title="Ver imagen completa"
               />
             </div>
@@ -102,6 +105,16 @@ export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived 
         packageName={getPackageName()}
         packageId={pkg.id}
       />
+
+      {viewerOpen && rawPhoto && (
+        <ImageViewerModal
+          isOpen={viewerOpen}
+          onClose={() => setViewerOpen(false)}
+          imageUrl={rawPhoto}
+          title="Paquete recibido"
+          filename={`confirmacion_${pkg.id}_${new Date().toISOString().split('T')[0]}.jpg`}
+        />
+      )}
     </>
   );
 };
