@@ -469,4 +469,44 @@
   .transition-slow {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* Global mobile container utility for consistent margins */
+  .mobile-container {
+    @apply px-4 md:px-6 lg:px-8;
+  }
+
+  .mobile-content {
+    @apply px-4 md:px-0;
+  }
+
+  /* Mobile-specific utility classes */
+  .mobile-safe-touch {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-safe-text {
+    font-size: max(16px, 1rem); /* Prevent iOS zoom */
+  }
+
+  .mobile-safe-spacing {
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  .mobile-safe-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-safe-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .mobile-safe-padding {
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
 }

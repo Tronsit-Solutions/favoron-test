@@ -10,7 +10,7 @@ interface QuickActionsProps {
 
 const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mobile-content">
       <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onShowPackageForm}>
         <CardHeader className="pb-3">
           <div className="flex items-center space-x-2">

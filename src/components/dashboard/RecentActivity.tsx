@@ -20,7 +20,7 @@ const RecentActivity = ({ packages, trips, getStatusBadge, currentUserId }: Rece
   const hasActivity = userPackages.length > 0 || userTrips.length > 0;
 
   return (
-    <Card>
+    <Card className="mobile-content">
       <CardHeader>
         <CardTitle>Actividad Reciente</CardTitle>
         <CardDescription>Tus últimas solicitudes y viajes</CardDescription>

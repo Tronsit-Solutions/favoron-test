@@ -27,7 +27,7 @@ const EmptyState = ({ type, onAction }: EmptyStateProps) => {
   const { icon: Icon, title, description, buttonText } = config[type];
 
   return (
-    <Card>
+    <Card className="mobile-content">
       <CardContent className="text-center py-12">
         <Icon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
         <h4 className="text-lg font-semibold mb-2">{title}</h4>

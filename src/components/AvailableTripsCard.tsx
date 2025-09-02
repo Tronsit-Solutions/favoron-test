@@ -42,7 +42,7 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
   });
 
   return (
-    <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg">
+    <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg mobile-content">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between text-slate-800">
           <div className="flex items-center gap-2">

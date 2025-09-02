@@ -191,7 +191,7 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
   };
 
   return (
-    <Tabs defaultValue="overview" className="space-y-4 md:space-y-6">
+    <Tabs defaultValue="overview" className="space-y-4 md:space-y-6 mobile-container">
       <ProfileHeader 
         user={user}
         userLevel={userLevel}
