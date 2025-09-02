@@ -228,10 +228,13 @@ const TripForm = ({
     }
   };
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [field]: value
-    }));
+    };
+    
+    setFormData(newFormData);
+    setPersistedFormData(newFormData);
 
     // Mostrar formulario de mensajero si selecciona mensajero
     if (field === 'deliveryMethod') {
