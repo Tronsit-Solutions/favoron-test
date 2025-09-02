@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2 } from "lucide-react";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
@@ -24,6 +26,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
 
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
@@ -654,7 +658,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                           console.error('Error loading confirmation photo:', e);
                           e.currentTarget.style.display = 'none';
                         }}
-                        onClick={() => window.open(pkg.traveler_confirmation.photo, '_blank')}
+                        onClick={() => {
+                          setSelectedImage({
+                            url: pkg.traveler_confirmation.photo,
+                            title: "Confirmación de recepción",
+                            filename: `confirmacion_${pkg.id}_${new Date().toISOString().split('T')[0]}.jpg`
+                          });
+                          setImageViewerOpen(true);
+                        }}
                       />
                     </div>
                   </div>
@@ -794,6 +805,20 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
           )}
         </div>
       </DialogContent>
+      
+      {/* Image Viewer Modal */}
+      {selectedImage && (
+        <ImageViewerModal
+          isOpen={imageViewerOpen}
+          onClose={() => {
+            setImageViewerOpen(false);
+            setSelectedImage(null);
+          }}
+          imageUrl={selectedImage.url}
+          title={selectedImage.title}
+          filename={selectedImage.filename}
+        />
+      )}
     </Dialog>
   );
 };
