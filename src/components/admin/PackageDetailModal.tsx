@@ -341,18 +341,34 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                          <p><strong>Primer día paquetes:</strong> {formatSafeDate(matchedTrip?.first_day_packages)}</p>
                          <p><strong>Último día paquetes:</strong> {formatSafeDate(matchedTrip?.last_day_packages)}</p>
                          
-                         {matchedTrip?.package_receiving_address && (
-                           <div className="mt-2 pt-2 border-t border-blue-300">
-                             <p className="font-medium">Dirección de recepción:</p>
-                             <p>
-                               {matchedTrip.package_receiving_address.street && `${matchedTrip.package_receiving_address.street}, `}
-                               {matchedTrip.package_receiving_address.city && `${matchedTrip.package_receiving_address.city}, `}
-                               {matchedTrip.package_receiving_address.state && `${matchedTrip.package_receiving_address.state}, `}
-                               {matchedTrip.package_receiving_address.country}
-                               {matchedTrip.package_receiving_address.zipCode && ` ${matchedTrip.package_receiving_address.zipCode}`}
-                             </p>
-                           </div>
-                         )}
+                          {matchedTrip?.package_receiving_address && (
+                            <div className="mt-2 pt-2 border-t border-blue-300">
+                              <p className="font-medium">Dirección de recepción:</p>
+                              <div className="space-y-1 text-sm">
+                                {matchedTrip.package_receiving_address.recipientName && (
+                                  <p><strong>Destinatario:</strong> {matchedTrip.package_receiving_address.recipientName}</p>
+                                )}
+                                <div>
+                                  {matchedTrip.package_receiving_address.streetAddress && (
+                                    <p>{matchedTrip.package_receiving_address.streetAddress}</p>
+                                  )}
+                                  {matchedTrip.package_receiving_address.streetAddress2 && (
+                                    <p>{matchedTrip.package_receiving_address.streetAddress2}</p>
+                                  )}
+                                  <p>
+                                    {matchedTrip.package_receiving_address.cityArea}
+                                    {matchedTrip.package_receiving_address.postalCode && `, ${matchedTrip.package_receiving_address.postalCode}`}
+                                  </p>
+                                </div>
+                                {matchedTrip.package_receiving_address.accommodationType && matchedTrip.package_receiving_address.hotelAirbnbName && (
+                                  <p><strong>{matchedTrip.package_receiving_address.accommodationType}:</strong> {matchedTrip.package_receiving_address.hotelAirbnbName}</p>
+                                )}
+                                {matchedTrip.package_receiving_address.contactNumber && (
+                                  <p><strong>Contacto:</strong> {matchedTrip.package_receiving_address.contactNumber}</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                        </div>
                      </div>
                   </div>
