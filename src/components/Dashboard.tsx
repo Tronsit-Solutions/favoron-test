@@ -469,25 +469,46 @@ const Dashboard = ({ user }: DashboardProps) => {
                      {userTrips
                         .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
                         .map((trip) => {
-                         const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
-                        const hasPendingActions = tripPackages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
-                        
-                        return (
-                          <TripPackagesGroup
-                            key={trip.id}
-                            trip={trip}
-                            packages={tripPackages}
-                            getStatusBadge={getStatusBadge}
-                            onQuote={handleQuote}
-                            onConfirmReceived={handleConfirmPackageReceived}
-                            onConfirmOfficeDelivery={(packageId) => {
-                              // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
-                              handleConfirmOfficeReception(packageId);
-                            }}
-                            defaultExpanded={hasPendingActions}
-                          />
-                        );
-                      })}
+                          const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
+                          const now = Date.now();
+                          const PAID_OR_POST_PAYMENT = [
+                            'pending_purchase',
+                            'payment_pending_approval',
+                            'paid',
+                            'purchased',
+                            'shipped',
+                            'in_transit',
+                            'received_by_traveler',
+                            'delivered_to_office',
+                            'completed'
+                          ];
+                          const isTimerActive = (pkg: any) => (
+                            (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+                            ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+                          );
+                          const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
+                          const filteredTripPackages = tripPackages.filter(pkg => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
+                          const hasPendingActions = filteredTripPackages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
+                          
+                          if (filteredTripPackages.length === 0) return null;
+                          
+                          return (
+                            <TripPackagesGroup
+                              key={trip.id}
+                              trip={trip}
+                              packages={filteredTripPackages}
+                              getStatusBadge={getStatusBadge}
+                              onQuote={handleQuote}
+                              onConfirmReceived={handleConfirmPackageReceived}
+                              onConfirmOfficeDelivery={(packageId) => {
+                                // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
+                                handleConfirmOfficeReception(packageId);
+                              }}
+                              defaultExpanded={hasPendingActions}
+                            />
+                          );
+                        })}
+
                   </div>
                 </div>
               )}

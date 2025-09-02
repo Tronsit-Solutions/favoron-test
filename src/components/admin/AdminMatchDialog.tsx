@@ -125,25 +125,48 @@ const AdminMatchDialog = ({
   const handleTravelerClick = async (trip: any) => {
     const profile = travelerProfiles[trip.user_id];
     setSelectedTraveler({ ...profile, trip });
-    
-    // Fetch packages for this trip
+
+    // Fetch and filter packages for this trip: only with active timers or with shopper-paid statuses
     try {
+      const nowIso = new Date().toISOString();
+      const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
+      const PAID_OR_POST_PAYMENT = [
+        'pending_purchase',
+        'payment_pending_approval',
+        'paid',
+        'purchased',
+        'shipped',
+        'in_transit',
+        'received_by_traveler',
+        'delivered_to_office',
+        'completed'
+      ];
+
+      // Reduce fetched rows by filtering statuses server-side first
       const { data, error } = await supabase
         .from('packages')
         .select('*')
-        .eq('matched_trip_id', trip.id);
-      
+        .eq('matched_trip_id', trip.id)
+        .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]);
+
       if (error) {
         console.error('Error fetching traveler packages:', error);
         setTravelerPackages([]);
       } else {
-        setTravelerPackages(data || []);
+        const now = Date.now();
+        const isTimerActive = (pkg: any) => (
+          (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+          ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+        );
+        const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
+        const filtered = (data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
+        setTravelerPackages(filtered);
       }
     } catch (error) {
       console.error('Error fetching traveler packages:', error);
       setTravelerPackages([]);
     }
-    
+
     setShowTravelerInfo(true);
   };
 
