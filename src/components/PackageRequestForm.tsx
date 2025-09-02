@@ -320,7 +320,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   className="flex items-center space-x-1 font-semibold shadow-sm"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>+ Agregar otro producto</span>
+                  <span>Agregar</span>
                 </Button>
               )}
             </div>
