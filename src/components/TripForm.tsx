@@ -611,15 +611,15 @@ const TripForm = ({
               <div className="text-sm text-traveler">
                 <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• Los compradores enviarán paquetes a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
-                  <li>• Podrás cotizar el precio por traer cada paquete</li>
+                  <li>• Recibirás solicitudes con propina asignada - tú decides si aceptar o rechazar cada paquete</li>
+                  <li>• Los paquetes llegaran a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
                   <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
-                  <li>• Nosotros coordinamos la entrega final al comprador</li>
+                  <li>• Favorón coordina la entrega final al comprador</li>
                   <li>• Ganas entre Q150-800+ por viaje</li>
                 </ul>
                 <div className="mt-3 pt-2 border-t border-traveler/20">
                   <p className="text-xs font-medium text-traveler">
-                    🔒 Tu dirección no será compartida con nadie hasta que apruebes un pedido.
+                    🔒 Tu dirección nunca se comparte hasta que apruebes un pedido.
                   </p>
                 </div>
               </div>
