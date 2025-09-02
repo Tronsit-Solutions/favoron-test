@@ -496,6 +496,12 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </div>
                     )}
                     <div className="text-center">
+                      <p className="font-medium text-muted-foreground">Método de Entrega</p>
+                      <p className="text-xs font-medium">
+                        {pkg.office_delivery ? "Recoger en Z14" : "Pickup"}
+                      </p>
+                    </div>
+                    <div className="text-center">
                       <p className="font-medium text-muted-foreground">Fecha Límite</p>
                       <p className="text-xs font-medium">
                         {formatSafeDate(pkg.delivery_deadline)}
