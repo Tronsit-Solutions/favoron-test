@@ -718,6 +718,14 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex-1">
+                                  {/* Traveler Name */}
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">
+                                      Viajero #{trip.user_id.slice(0, 8)}
+                                    </span>
+                                  </div>
+
                                   {/* Trip Route */}
                                   <div className="flex items-center space-x-2 mb-2">
                                     <MapPin className="h-4 w-4 text-primary" />
