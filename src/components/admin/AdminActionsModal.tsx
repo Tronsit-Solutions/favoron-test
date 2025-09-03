@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [adminNotes, setAdminNotes] = useState("");
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
+  const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
@@ -85,6 +86,50 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     const isNotExpired = new Date(trip.arrival_date) >= today;
     return isValidStatus && isNotExpired;
   });
+
+  // Fetch traveler profiles when modal opens and trips are available
+  useEffect(() => {
+    if (isOpen && availableTrips.length > 0) {
+      const fetchTravelerProfiles = async () => {
+        const userIds = [...new Set(availableTrips.map(trip => trip.user_id))];
+        
+        try {
+          // Use admin function to bypass RLS
+          const { data, error } = await supabase
+            .rpc('admin_view_all_users');
+          
+          if (error) {
+            console.error('Error fetching traveler profiles:', error);
+            return;
+          }
+          
+          // Filter only the users we need
+          const relevantProfiles = data?.filter(profile => userIds.includes(profile.id)) || [];
+          const profilesMap = relevantProfiles.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {});
+          
+          setTravelerProfiles(profilesMap);
+        } catch (error) {
+          console.error('Error fetching traveler profiles:', error);
+        }
+      };
+      
+      fetchTravelerProfiles();
+    }
+  }, [isOpen, availableTrips]);
+
+  const getTravelerName = (userId: string) => {
+    const profile = travelerProfiles[userId];
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.username) {
+      return profile.username;
+    }
+    return `Viajero #${userId.slice(0, 8)}`;
+  };
   
   // Check if package has multiple products
   const hasMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
@@ -722,7 +767,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="flex items-center space-x-2 mb-2">
                                     <User className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm text-muted-foreground">
-                                      Viajero #{trip.user_id.slice(0, 8)}
+                                      {getTravelerName(trip.user_id)}
                                     </span>
                                   </div>
 
@@ -784,7 +829,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="grid grid-cols-2 gap-4 text-xs">
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">VIAJERO</p>
-                                      <p className="text-sm">Viajero #{trip.user_id.slice(0, 8)}</p>
+                                      <p className="text-sm">{getTravelerName(trip.user_id)}</p>
                                     </div>
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">MÉTODO</p>
