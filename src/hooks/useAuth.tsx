@@ -13,6 +13,13 @@ interface Profile {
   trust_level: 'basic' | 'earned' | 'verified';
   created_at: string;
   updated_at: string;
+  username: string | null;
+  document_type: string | null;
+  document_number: string | null;
+  email: string | null;
+  country_code: string | null;
+  email_notifications: boolean | null;
+  email_notification_preferences: any | null;
   // Banking information
   bank_account_holder: string | null;
   bank_name: string | null;

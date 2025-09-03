@@ -32,8 +32,8 @@ const ProfileCompletionModal = ({
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     phone: profile?.phone_number || '',
-    username: '',
-    idNumber: '',
+    username: profile?.username || '',
+    idNumber: profile?.document_number || '',
     avatarUrl: profile?.avatar_url || ''
   });
 
@@ -44,8 +44,8 @@ const ProfileCompletionModal = ({
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         phone: profile.phone_number || '',
-        username: '',
-        idNumber: '',
+        username: profile.username || '',
+        idNumber: profile.document_number || '',
         avatarUrl: profile.avatar_url || ''
       });
     }
@@ -96,6 +96,8 @@ const ProfileCompletionModal = ({
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         phone_number: formData.phone.trim(),
+        username: formData.username.trim() || null,
+        document_number: formData.idNumber.trim() || null,
         avatar_url: formData.avatarUrl || null
       });
 
