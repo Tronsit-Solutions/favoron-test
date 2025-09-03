@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useStrictProfileValidation } from "@/hooks/useStrictProfileValidation";
 import ProfileCompletionModal from "./ProfileCompletionModal";
 
 interface ProfileCompletionGuardProps {
@@ -18,37 +19,50 @@ const ProfileCompletionGuard = ({
   requirePhoneNumber = true 
 }: ProfileCompletionGuardProps) => {
   const { isComplete, missingFields } = useProfileCompletion();
+  const { validateProfileStrict } = useStrictProfileValidation();
   const [showModal, setShowModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
 
   const strictValidation = () => {
     setIsValidating(true);
     
-    // Double-check completion status with debug logging
-    console.log('🛡️ ProfileCompletionGuard strict validation:', {
-      isComplete,
-      missingFields,
-      requirePhoneNumber,
+    // Use the strict validation hook as primary validation
+    const strictResult = validateProfileStrict();
+    
+    // Double-check with original hook for consistency
+    const hookResult = { isComplete, missingFields };
+    
+    console.log('🛡️ ProfileCompletionGuard validation comparison:', {
+      strictResult,
+      hookResult,
+      agreementOnCompletion: strictResult.isValid === isComplete,
       timestamp: new Date().toISOString()
     });
     
-    const isReallyComplete = isComplete && missingFields.length === 0;
+    // Use the most restrictive result (if either says incomplete, treat as incomplete)
+    const finalIsComplete = strictResult.isValid && isComplete;
     
-    if (!isReallyComplete) {
-      console.log('❌ Strict validation failed - profile incomplete:', {
-        isComplete,
-        missingFields,
-        requirePhoneNumber
+    if (!finalIsComplete) {
+      console.log('❌ Final validation failed:', {
+        strictResult,
+        hookResult,
+        finalIsComplete
       });
     } else {
-      console.log('✅ Strict validation passed - profile complete');
+      console.log('✅ Final validation passed - profile complete');
     }
     
     setIsValidating(false);
-    return isReallyComplete;
+    return finalIsComplete;
   };
 
   const handleClick = () => {
+    // Prevent rapid clicking during validation
+    if (isValidating) {
+      console.log('🚫 Click ignored - validation in progress');
+      return;
+    }
+
     console.log('🖱️ ProfileCompletionGuard clicked:', {
       isComplete,
       missingFields,
@@ -87,7 +101,10 @@ const ProfileCompletionGuard = ({
 
   return (
     <>
-      <div onClick={handleClick} className="cursor-pointer">
+      <div 
+        onClick={handleClick} 
+        className={`cursor-pointer ${isValidating ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         {children}
       </div>
       
