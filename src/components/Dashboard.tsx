@@ -17,6 +17,8 @@ import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
+import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
+import ProfileCompletionGuard from "./ProfileCompletionGuard";
 import AvailableTripsCard from "./AvailableTripsCard";
 import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
@@ -369,11 +371,17 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Button variant="shopper" onClick={() => navigateToForm('package')} className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Nueva Solicitud</span>
-                  <span className="sm:hidden">Nuevo Pedido</span>
-                </Button>
+                <ProfileCompletionGuard
+                  onAction={() => navigateToForm('package')}
+                  title="Completar perfil para solicitar paquetes"
+                  description="Necesitamos tu información de contacto para procesar tu solicitud de paquete."
+                >
+                  <Button variant="shopper" className="w-full sm:w-auto">
+                    <Plus className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Nueva Solicitud</span>
+                    <span className="sm:hidden">Nuevo Pedido</span>
+                  </Button>
+                </ProfileCompletionGuard>
               </div>
             </div>
 
@@ -388,7 +396,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               }
               return true;
             }).length === 0 ? (
-              <EmptyState type="packages" onAction={() => navigateToForm('package')} />
+              <ProtectedEmptyState type="packages" onAction={() => navigateToForm('package')} />
             ) : (
               <div className="grid gap-6">
                  {userPackages.filter(pkg => {
@@ -445,10 +453,16 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Button variant="traveler" onClick={() => navigateToForm('trip')} className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Viaje
-                </Button>
+                <ProfileCompletionGuard
+                  onAction={() => navigateToForm('trip')}
+                  title="Completar perfil para registrar viajes"
+                  description="Necesitamos tu información de contacto para procesar tu registro de viaje."
+                >
+                  <Button variant="traveler" className="w-full sm:w-auto">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nuevo Viaje
+                  </Button>
+                </ProfileCompletionGuard>
               </div>
             </div>
 
@@ -457,7 +471,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div>
                 <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
                 {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
-                  <EmptyState type="trips" onAction={() => navigateToForm('trip')} />
+                  <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
                   <div className="grid gap-4">
                     {userTrips.filter(trip => trip.status !== 'completed_paid').map((trip) => (
