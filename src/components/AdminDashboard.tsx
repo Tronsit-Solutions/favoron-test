@@ -455,8 +455,9 @@ const AdminDashboard = ({
             onConfirmDelivery={onConfirmDeliveryComplete}
             onOpenActionsModal={(packageId: string) => {
               const pkg = localPackages.find(p => p.id === packageId);
-              const modalId = `admin-actions-${packageId}`;
-              openModal(modalId, 'admin-actions', pkg);
+              if (pkg) {
+                openModal("admin-actions-matches", 'admin-actions', pkg);
+              }
             }}
           />
         </TabsContent>
@@ -494,14 +495,13 @@ const AdminDashboard = ({
           onMatch={handleMatch}
         />
 
-      {/* Global Modals - using persistent modal system */}
+      {/* Single AdminActionsModal that can handle different modal IDs */}
       <AdminActionsModal
         modalId="admin-actions"
         trips={localTrips}
         onRefresh={() => {
           console.log('🔄 AdminActionsModal refresh requested - using incremental update');
           if (!hasOpenModals()) {
-            // Use incremental refresh instead of window.location.reload()
             processQueuedUpdates();
           } else {
             console.log('📱 Refresh blocked by open modals - will process when modals close');
@@ -509,22 +509,19 @@ const AdminDashboard = ({
         }}
       />
       
-      {/* Dynamic AdminActionsModal instances for packages from Matches tab */}
-      {localPackages.map(pkg => (
-        <AdminActionsModal
-          key={`admin-actions-${pkg.id}`}
-          modalId={`admin-actions-${pkg.id}`}
-          trips={localTrips}
-          onRefresh={() => {
-            console.log('🔄 AdminActionsModal refresh requested - using incremental update');
-            if (!hasOpenModals()) {
-              processQueuedUpdates();
-            } else {
-              console.log('📱 Refresh blocked by open modals - will process when modals close');
-            }
-          }}
-        />
-      ))}
+      {/* Additional modal instance for dynamic package actions from Matches tab */}
+      <AdminActionsModal
+        modalId="admin-actions-matches"
+        trips={localTrips}
+        onRefresh={() => {
+          console.log('🔄 AdminActionsModal refresh requested - using incremental update');
+          if (!hasOpenModals()) {
+            processQueuedUpdates();
+          } else {
+            console.log('📱 Refresh blocked by open modals - will process when modals close');
+          }
+        }}
+      />
 
       <PackageDetailModal
         modalId="package-detail"
