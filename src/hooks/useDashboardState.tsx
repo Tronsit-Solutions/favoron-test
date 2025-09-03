@@ -64,48 +64,29 @@ export const useDashboardState = (user: any) => {
     }
   }, [isAdmin, userRole]);
 
-  // Use admin-specific hook for admin tab, otherwise use regular hooks
+  // Always call all hooks unconditionally to maintain hook order
   const adminData = useAdminData();
-  
   const regularPackagesData = useOptimizedPackagesData();
   const regularTripsData = useOptimizedTripsData();
 
   // Siempre usar datos de admin cuando se está en la pestaña de admin para evitar estados vacíos temporales
   const shouldUseAdminData = isAdminTab;
   
-  const {
-    packages,
-    loading: packagesLoading,
-    createPackage,
-    updatePackage,
-    deletePackage,
-    refreshPackages,
-    setPackages
-  } = shouldUseAdminData ? {
-    packages: adminData.packages,
-    loading: adminData.loading,
-    createPackage: regularPackagesData.createPackage,
-    updatePackage: regularPackagesData.updatePackage,
-    deletePackage: regularPackagesData.deletePackage,
-    refreshPackages: adminData.refreshData,
-    setPackages: () => {} // Admin data is read-only
-  } : regularPackagesData;
+  // Select which data to use without conditionally calling hooks
+  const packages = shouldUseAdminData ? adminData.packages : regularPackagesData.packages;
+  const packagesLoading = shouldUseAdminData ? adminData.loading : regularPackagesData.loading;
+  const createPackage = regularPackagesData.createPackage;
+  const updatePackage = regularPackagesData.updatePackage;
+  const deletePackage = regularPackagesData.deletePackage;
+  const refreshPackages = shouldUseAdminData ? adminData.refreshData : regularPackagesData.refreshPackages;
+  const setPackages = shouldUseAdminData ? () => {} : regularPackagesData.setPackages; // Admin data is read-only
 
-  const {
-    trips,
-    loading: tripsLoading,
-    createTrip,
-    updateTrip,
-    deleteTrip,
-    refreshTrips
-  } = shouldUseAdminData ? {
-    trips: adminData.trips,
-    loading: adminData.loading,
-    createTrip: regularTripsData.createTrip,
-    updateTrip: regularTripsData.updateTrip,
-    deleteTrip: regularTripsData.deleteTrip,
-    refreshTrips: adminData.refreshData
-  } : regularTripsData;
+  const trips = shouldUseAdminData ? adminData.trips : regularTripsData.trips;
+  const tripsLoading = shouldUseAdminData ? adminData.loading : regularTripsData.loading;
+  const createTrip = regularTripsData.createTrip;
+  const updateTrip = regularTripsData.updateTrip;
+  const deleteTrip = regularTripsData.deleteTrip;
+  const refreshTrips = shouldUseAdminData ? adminData.refreshData : regularTripsData.refreshTrips;
   
   const { toast } = useToast();
 
