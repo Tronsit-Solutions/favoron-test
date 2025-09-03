@@ -151,7 +151,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const travelerTip = parseFloat(quote?.price || '0');
       const serviceFee = parseFloat(quote?.serviceFee || '0');
       const favoronRevenue = (travelerTip + serviceFee) * 0.4; // 40% Favoron fee
-      const messengerPayment = 25.00; // Q25 fixed delivery fee
+      const messengerPayment = pkg.delivery_method === 'delivery' ? 25.00 : 0; // Q25 only for delivery
 
       return {
         package: pkg,
