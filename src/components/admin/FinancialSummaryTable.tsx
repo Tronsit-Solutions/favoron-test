@@ -170,8 +170,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       let paymentDate = 'Pendiente';
       if (pkg.payment_receipt && typeof pkg.payment_receipt === 'object') {
         const receipt = pkg.payment_receipt as any;
-        if (receipt.uploadDate) {
-          paymentDate = new Date(receipt.uploadDate).toLocaleDateString('es-GT');
+        if (receipt.uploadedAt) {
+          paymentDate = new Date(receipt.uploadedAt).toLocaleDateString('es-GT');
         }
       } else if (['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
