@@ -12,7 +12,8 @@ import {
   XCircle, 
   MessageCircle, 
   ChevronDown, 
-  ChevronRight 
+  ChevronRight,
+  Settings
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -29,6 +30,7 @@ interface MatchCardProps {
   onConfirmDeliveryComplete: () => void;
   onAdminConfirmOfficeDelivery: () => void;
   onConfirmShopperReceived: () => void;
+  onOpenActionsModal?: (packageId: string) => void;
 }
 
 export const MatchCard = ({
@@ -41,7 +43,8 @@ export const MatchCard = ({
   onConfirmOfficeReception,
   onConfirmDeliveryComplete,
   onAdminConfirmOfficeDelivery,
-  onConfirmShopperReceived
+  onConfirmShopperReceived,
+  onOpenActionsModal
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const statusInfo = getStatusInfo(pkg.status);
@@ -192,15 +195,15 @@ export const MatchCard = ({
               {/* Mobile: Large buttons in rows */}
               {isMobile ? (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Button 
                       size="sm" 
                       variant="outline" 
                       onClick={onViewDetail} 
                       className="min-h-[44px] text-sm"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Detalles
+                      <Eye className="h-4 w-4 mr-1" />
+                      Detalles
                     </Button>
                     <Button 
                       size="sm" 
@@ -208,9 +211,20 @@ export const MatchCard = ({
                       onClick={onOpenChat} 
                       className="min-h-[44px] text-sm"
                     >
-                      <MessageCircle className="h-4 w-4 mr-2" />
+                      <MessageCircle className="h-4 w-4 mr-1" />
                       Chat
                     </Button>
+                    {onOpenActionsModal && (
+                      <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        onClick={() => onOpenActionsModal(pkg.id)} 
+                        className="min-h-[44px] text-sm"
+                      >
+                        <Settings className="h-4 w-4 mr-1" />
+                        Acciones
+                      </Button>
+                    )}
                   </div>
                   
                   {showCompleteButton && (
@@ -233,6 +247,11 @@ export const MatchCard = ({
                   <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2">
                     <MessageCircle className="h-3 w-3" />
                   </Button>
+                  {onOpenActionsModal && (
+                    <Button size="sm" variant="secondary" onClick={() => onOpenActionsModal(pkg.id)} className="px-2" title="Acciones administrativas">
+                      <Settings className="h-3 w-3" />
+                    </Button>
+                  )}
                   
                   {showCompleteButton && (
                     <Button 

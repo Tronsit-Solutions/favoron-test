@@ -29,6 +29,7 @@ interface ActiveMatchesTabProps {
   onConfirmDeliveryComplete: (packageId: string) => void;
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmShopperReceived: (packageId: string) => void;
+  onOpenActionsModal?: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -40,7 +41,8 @@ const ActiveMatchesTab = ({
   onConfirmOfficeReception,
   onConfirmDeliveryComplete,
   onAdminConfirmOfficeDelivery,
-  onConfirmShopperReceived
+  onConfirmShopperReceived,
+  onOpenActionsModal
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
@@ -245,6 +247,7 @@ const ActiveMatchesTab = ({
                 onConfirmDeliveryComplete={() => onConfirmDeliveryComplete(pkg.id)}
                 onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
                 onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
+                onOpenActionsModal={onOpenActionsModal}
               />
             );
           })

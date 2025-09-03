@@ -27,6 +27,7 @@ interface AdminMatchingTabProps {
   onConfirmDelivery: (packageId: string) => void;
   onAdminConfirmOfficeDelivery?: (packageId: string) => void;
   onConfirmShopperReceived?: (packageId: string) => void;
+  onOpenActionsModal?: (packageId: string) => void;
   getStatusBadge?: (status: string) => JSX.Element;
 }
 
@@ -45,6 +46,7 @@ const AdminMatchingTab = ({
   onConfirmDelivery,
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
+  onOpenActionsModal,
   getStatusBadge
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
@@ -223,6 +225,7 @@ const AdminMatchingTab = ({
             onConfirmDeliveryComplete={onConfirmDelivery}
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery || (() => {})}
             onConfirmShopperReceived={onConfirmShopperReceived || (() => {})}
+            onOpenActionsModal={onOpenActionsModal}
             getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
           />
         </TabsContent>
