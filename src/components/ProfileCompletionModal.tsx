@@ -160,7 +160,7 @@ const ProfileCompletionModal = ({
               <div className="space-y-1">
                 <p className="text-sm font-medium text-blue-900">¿Por qué necesitamos tu teléfono?</p>
                 <p className="text-sm text-blue-700">
-                  Los viajeros necesitan contactarte por WhatsApp para coordinar la entrega de tus paquetes.
+                  Necesitamos tu WhatsApp para enviarte notificaciones de paquetes y avisarte cuando haya algún problema.
                 </p>
               </div>
             </div>
