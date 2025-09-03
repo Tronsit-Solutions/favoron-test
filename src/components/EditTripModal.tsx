@@ -31,7 +31,7 @@ const EditTripModal = ({
     toCityOther: tripData?.toCityOther || '',
     toCountry: tripData?.toCountry || 'Guatemala',
     arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null as Date | null,
-    departureDate: tripData?.departure_date ? new Date(tripData.departure_date) : null as Date | null,
+    // departureDate removed - using arrival_date consistently
     availableSpace: tripData?.available_space?.toString() || '',
     deliveryMethod: tripData?.delivery_method || '',
     deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null as Date | null,

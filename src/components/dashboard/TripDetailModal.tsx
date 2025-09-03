@@ -101,7 +101,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
               <div className="bg-muted/30 rounded-lg p-3">
                 <div className="text-xs sm:text-sm font-medium">Fecha de Viaje</div>
                 <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                  {formatDate(trip.departure_date)}
+                  Llegada: {formatDate(trip.arrival_date)}
                 </div>
               </div>
               <div className="bg-muted/30 rounded-lg p-3">

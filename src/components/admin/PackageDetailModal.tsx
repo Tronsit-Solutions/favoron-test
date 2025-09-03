@@ -357,9 +357,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                           </AccordionTrigger>
                           <AccordionContent className="px-3 pb-3">
                             <div className="text-sm text-blue-700 space-y-1">
-                              <p><strong>Ruta:</strong> {matchedTrip?.from_city} → {matchedTrip?.to_city}</p>
-                              <p><strong>Salida:</strong> {formatSafeDate(matchedTrip?.departure_date)}</p>
-                              <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip?.arrival_date)}</p>
+                               <p><strong>Ruta:</strong> {matchedTrip?.from_city} → {matchedTrip?.to_city}</p>
+                               <p><strong>Llegada:</strong> {formatSafeDate(matchedTrip?.arrival_date)}</p>
+                               <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip?.delivery_date)}</p>
                               <p><strong>Entrega:</strong> {formatSafeDate(matchedTrip?.delivery_date)}</p>
                               <p><strong>Primer día paquetes:</strong> {formatSafeDate(matchedTrip?.first_day_packages)}</p>
                               <p><strong>Último día paquetes:</strong> {formatSafeDate(matchedTrip?.last_day_packages)}</p>

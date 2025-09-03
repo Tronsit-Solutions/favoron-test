@@ -37,7 +37,7 @@ export const useOptimizedTripsData = () => {
             avatar_url
           )
         `)
-        .order('departure_date', { ascending: true });
+        .order('arrival_date', { ascending: true });
 
       if (error) {
         console.error('✈️ Error fetching trips:', error);

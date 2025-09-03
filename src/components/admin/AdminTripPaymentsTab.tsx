@@ -159,7 +159,7 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {order.trips?.departure_date && format(new Date(order.trips.departure_date), 'dd MMM yyyy', { locale: es })}
+                {order.trips?.arrival_date && format(new Date(order.trips.arrival_date), 'dd MMM yyyy', { locale: es })}
               </div>
             </div>
           </div>

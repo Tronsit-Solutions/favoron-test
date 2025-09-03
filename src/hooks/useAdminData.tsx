@@ -135,7 +135,7 @@ export const useAdminData = (): AdminData => {
           email,
           phone_number
         `)
-        .order('departure_date', { ascending: true });
+        .order('arrival_date', { ascending: true });
 
       if (error) {
         console.error('❌ Admin: Error fetching trips:', error);

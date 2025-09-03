@@ -641,9 +641,9 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                     <SelectContent>
                       {availableTrips.map(trip => (
                         <SelectItem key={trip.id} value={trip.id}>
-                          {trip.from_city} → {trip.to_city} | 
-                          Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')} |
-                          Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}
+                           {trip.from_city} → {trip.to_city} | 
+                           Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} |
+                           Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -329,8 +329,8 @@ const AdminApprovalsTab = ({
                         <div className="flex-1 space-y-1">
                           <h4 className="font-medium text-sm sm:text-base break-words">{trip.from_city} → {trip.to_city}</h4>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                            Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
-                            Salida: {new Date(trip.departure_date).toLocaleDateString('es-GT')}
+                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
+                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
                           </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
