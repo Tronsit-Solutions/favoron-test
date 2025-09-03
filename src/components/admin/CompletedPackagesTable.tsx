@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import { Package } from "@/types";
 import { formatDate, formatFullName } from "@/lib/formatters";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -16,6 +18,66 @@ interface CompletedPackagesTableProps {
 }
 
 const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
+  // Fetch profiles data for shoppers and travelers
+  const { data: profiles } = useQuery({
+    queryKey: ['completed-packages-profiles'],
+    queryFn: async () => {
+      const completedPkgs = packages.filter((pkg) => pkg.status === "completed");
+      
+      // Get all unique user IDs (shoppers)
+      const shopperIds = [...new Set(completedPkgs.map(pkg => pkg.user_id))];
+      
+      // Get all trip IDs to find travelers
+      const tripIds = [...new Set(completedPkgs.map(pkg => pkg.matched_trip_id).filter(Boolean))];
+      
+      let shopperProfiles = {};
+      let travelerProfiles = {};
+      let tripToUserMap = {};
+
+      // Fetch shopper profiles
+      if (shopperIds.length > 0) {
+        const { data: shoppersData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username')
+          .in('id', shopperIds);
+
+        shopperProfiles = shoppersData?.reduce((acc, profile) => ({
+          ...acc,
+          [profile.id]: profile
+        }), {}) || {};
+      }
+
+      // Fetch trips and traveler profiles
+      if (tripIds.length > 0) {
+        const { data: trips } = await supabase
+          .from('trips')
+          .select('id, user_id')
+          .in('id', tripIds);
+
+        trips?.forEach(trip => {
+          tripToUserMap[trip.id] = trip.user_id;
+        });
+
+        const travelerIds = [...new Set(trips?.map(trip => trip.user_id).filter(Boolean) || [])];
+        
+        if (travelerIds.length > 0) {
+          const { data: travelersData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, username')
+            .in('id', travelerIds);
+
+          travelerProfiles = travelersData?.reduce((acc, profile) => ({
+            ...acc,
+            [profile.id]: profile
+          }), {}) || {};
+        }
+      }
+
+      return { shopperProfiles, travelerProfiles, tripToUserMap };
+    },
+    enabled: packages.some(pkg => pkg.status === "completed")
+  });
+
   const completedPackages = useMemo(() => {
     return packages
       .filter((pkg) => pkg.status === "completed")
@@ -26,15 +88,22 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
           (completedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
         );
 
+        // Get profile information
+        const shopperProfile = profiles?.shopperProfiles?.[pkg.user_id];
+        const travelerId = pkg.matched_trip_id ? profiles?.tripToUserMap?.[pkg.matched_trip_id] : null;
+        const travelerProfile = travelerId ? profiles?.travelerProfiles?.[travelerId] : null;
+
         return {
           ...pkg,
           daysElapsed,
           createdDate,
           completedDate,
+          shopperProfile,
+          travelerProfile,
         };
       })
       .sort((a, b) => b.completedDate.getTime() - a.completedDate.getTime());
-  }, [packages]);
+  }, [packages, profiles]);
 
   const stats = useMemo(() => {
     if (completedPackages.length === 0) return { totalCompleted: 0, avgDays: 0 };
@@ -112,10 +181,14 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                         {formatDate(pkg.created_at)}
                       </TableCell>
                       <TableCell>
-                        Usuario #{pkg.user_id.slice(-8)}
+                        {pkg.shopperProfile 
+                          ? formatFullName(pkg.shopperProfile.first_name, pkg.shopperProfile.last_name) || pkg.shopperProfile.username || "Usuario"
+                          : "Usuario"}
                       </TableCell>
                       <TableCell>
-                        {pkg.matched_trip_id ? `Viajero #${pkg.matched_trip_id.slice(-8)}` : "No asignado"}
+                        {pkg.travelerProfile 
+                          ? formatFullName(pkg.travelerProfile.first_name, pkg.travelerProfile.last_name) || pkg.travelerProfile.username || "Viajero"
+                          : "No asignado"}
                       </TableCell>
                       <TableCell className="max-w-xs truncate">
                         {pkg.item_description}
