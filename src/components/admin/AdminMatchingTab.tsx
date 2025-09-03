@@ -25,6 +25,9 @@ interface AdminMatchingTabProps {
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onConfirmReception: (packageId: string) => void;
   onConfirmDelivery: (packageId: string) => void;
+  onAdminConfirmOfficeDelivery?: (packageId: string) => void;
+  onConfirmShopperReceived?: (packageId: string) => void;
+  getStatusBadge?: (status: string) => JSX.Element;
 }
 
 const AdminMatchingTab = ({
@@ -39,7 +42,10 @@ const AdminMatchingTab = ({
   onDiscardPackage,
   onUpdateStatus,
   onConfirmReception,
-  onConfirmDelivery
+  onConfirmDelivery,
+  onAdminConfirmOfficeDelivery,
+  onConfirmShopperReceived,
+  getStatusBadge
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
   const currentTab = activeMatchingTab;
@@ -217,7 +223,7 @@ const AdminMatchingTab = ({
             onConfirmDeliveryComplete={onConfirmDelivery}
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery || (() => {})}
             onConfirmShopperReceived={onConfirmShopperReceived || (() => {})}
-            getStatusBadge={getStatusBadge || (() => <span>Status</span>)}
+            getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
           />
         </TabsContent>
 
@@ -226,7 +232,7 @@ const AdminMatchingTab = ({
             packages={packages}
             onViewPackageDetail={onViewPackageDetail}
             onUpdateStatus={onUpdateStatus}
-            getStatusBadge={getStatusBadge || (() => <span>Status</span>)}
+            getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
           />
         </TabsContent>
       </Tabs>
