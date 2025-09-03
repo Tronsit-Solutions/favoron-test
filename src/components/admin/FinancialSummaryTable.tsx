@@ -142,8 +142,24 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
       // Get product description
       let productDescription = pkg.item_description || 'Sin descripción';
-      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1) {
-        productDescription = `${pkg.products_data.length} productos`;
+      if (pkg.products_data && Array.isArray(pkg.products_data)) {
+        if (pkg.products_data.length === 1) {
+          const product = pkg.products_data[0] as any;
+          const link = product.itemLink ? ` | Link: ${product.itemLink}` : '';
+          const qty = product.quantity ? `Qty: ${product.quantity}` : '';
+          const price = product.estimatedPrice ? `$${product.estimatedPrice}` : '';
+          productDescription = `${product.itemDescription || pkg.item_description}${link} | ${qty} | ${price}`;
+        } else {
+          const totalItems = pkg.products_data.reduce((sum: number, p) => {
+            const product = p as any;
+            return sum + parseInt(product.quantity || '1');
+          }, 0);
+          const totalValue = pkg.products_data.reduce((sum: number, p) => {
+            const product = p as any;
+            return sum + (parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1'));
+          }, 0);
+          productDescription = `${pkg.products_data.length} productos | Total items: ${totalItems} | Total: $${Number(totalValue).toFixed(2)}`;
+        }
       }
 
       // Calculate financial metrics
