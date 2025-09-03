@@ -62,8 +62,13 @@ const AdminDashboard = ({
   onConfirmDeliveryComplete,
   onConfirmShopperReceived,
   onDiscardPackage,
-  onRefreshPackages
-}: AdminDashboardProps) => {
+  onRefreshPackages,
+  matchingTab,
+  onMatchingTabChange
+}: AdminDashboardProps & { 
+  matchingTab?: string; 
+  onMatchingTabChange?: (tab: string) => void; 
+}) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");

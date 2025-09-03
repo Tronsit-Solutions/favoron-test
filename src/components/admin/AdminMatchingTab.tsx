@@ -215,6 +215,9 @@ const AdminMatchingTab = ({
             onViewPackageDetail={onViewPackageDetail}
             onConfirmOfficeReception={onConfirmReception}
             onConfirmDeliveryComplete={onConfirmDelivery}
+            onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery || (() => {})}
+            onConfirmShopperReceived={onConfirmShopperReceived || (() => {})}
+            getStatusBadge={getStatusBadge || (() => <span>Status</span>)}
           />
         </TabsContent>
 
@@ -223,6 +226,7 @@ const AdminMatchingTab = ({
             packages={packages}
             onViewPackageDetail={onViewPackageDetail}
             onUpdateStatus={onUpdateStatus}
+            getStatusBadge={getStatusBadge || (() => <span>Status</span>)}
           />
         </TabsContent>
       </Tabs>
