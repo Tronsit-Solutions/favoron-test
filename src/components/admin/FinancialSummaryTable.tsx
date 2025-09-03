@@ -18,6 +18,7 @@ interface EnrichedPackageData {
   travelerName: string;
   productDescription: string;
   productLink?: string | null;
+  paymentDate: string;
   totalToPay: number;
   travelerTip: number;
   favoronRevenue: number;
@@ -165,6 +166,17 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         }
       }
 
+      // Extract payment date
+      let paymentDate = 'Pendiente';
+      if (pkg.payment_receipt && typeof pkg.payment_receipt === 'object') {
+        const receipt = pkg.payment_receipt as any;
+        if (receipt.uploadDate) {
+          paymentDate = new Date(receipt.uploadDate).toLocaleDateString('es-GT');
+        }
+      } else if (['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
+        paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
+      }
+
       // Calculate financial metrics
       const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
@@ -178,6 +190,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         travelerName,
         productDescription,
         productLink,
+        paymentDate,
         totalToPay,
         travelerTip,
         favoronRevenue,
@@ -224,6 +237,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Fecha Pago</TableHead>
                 <TableHead>Shopper</TableHead>
                 <TableHead>Viajero</TableHead>
                 <TableHead>Productos</TableHead>
@@ -237,6 +251,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             <TableBody>
               {paginatedData.map((item) => (
                 <TableRow key={item.package.id}>
+                  <TableCell className="text-sm">{item.paymentDate}</TableCell>
                   <TableCell className="font-medium">{item.shopperName}</TableCell>
                   <TableCell>{item.travelerName}</TableCell>
                   <TableCell className="max-w-sm">
@@ -279,7 +294,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               {/* Totals row */}
               {enrichedData.length > 0 && (
                 <TableRow className="border-t-2 bg-muted/50 font-semibold">
-                  <TableCell colSpan={5} className="text-right">
+                  <TableCell colSpan={6} className="text-right">
                     <strong>TOTALES:</strong>
                   </TableCell>
                   <TableCell className="text-right font-mono">
