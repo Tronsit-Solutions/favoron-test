@@ -55,7 +55,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between",
+            "w-1/2 justify-between",
             !value && "text-muted-foreground",
             className
           )}
