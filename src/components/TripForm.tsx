@@ -316,9 +316,9 @@ const TripForm = ({
                 <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN</h4>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fromCountry">País de origen *</Label>
+                  <Label htmlFor="fromCountry" className="text-xs sm:text-sm">País de origen *</Label>
                   <div className="mobile-safe-combobox">
                     <Combobox
                       options={COUNTRIES}
@@ -327,23 +327,24 @@ const TripForm = ({
                         console.log('🌍 Country selected:', value);
                         handleInputChange('fromCountry', value);
                       }}
-                      placeholder="Selecciona el país de origen"
+                      placeholder="Selecciona país"
                       searchPlaceholder="Buscar país..."
                       emptyMessage="No se encontraron países"
-                      className="w-full"
+                      className="w-full text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fromCity">Ciudad de origen *</Label>
+                  <Label htmlFor="fromCity" className="text-xs sm:text-sm">Ciudad de origen *</Label>
                   <Input 
                     id="fromCity"
                     type="text" 
-                    placeholder="Escribe tu ciudad de origen" 
+                    placeholder="Tu ciudad" 
                     value={formData.fromCity} 
                     onChange={e => handleInputChange('fromCity', e.target.value)} 
                     required 
+                    className="text-sm"
                   />
                 </div>
               </div>
