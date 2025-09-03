@@ -456,7 +456,7 @@ const AdminDashboard = ({
             onOpenActionsModal={(packageId: string) => {
               const pkg = localPackages.find(p => p.id === packageId);
               if (pkg) {
-                openModal("admin-actions-matches", 'admin-actions', pkg);
+                openModal("admin-actions", 'admin-actions', pkg);
               }
             }}
           />
@@ -509,19 +509,6 @@ const AdminDashboard = ({
         }}
       />
       
-      {/* Additional modal instance for dynamic package actions from Matches tab */}
-      <AdminActionsModal
-        modalId="admin-actions-matches"
-        trips={localTrips}
-        onRefresh={() => {
-          console.log('🔄 AdminActionsModal refresh requested - using incremental update');
-          if (!hasOpenModals()) {
-            processQueuedUpdates();
-          } else {
-            console.log('📱 Refresh blocked by open modals - will process when modals close');
-          }
-        }}
-      />
 
       <PackageDetailModal
         modalId="package-detail"
