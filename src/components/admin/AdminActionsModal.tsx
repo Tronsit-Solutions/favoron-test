@@ -202,22 +202,21 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         adminAssignedTip = totalPaid / 1.15; // Revertir la comisión del 15%
       }
 
-      // Determinar si el paquete ya está pagado para preservar su status
+      // Determinar si el paquete ya está pagado (para no borrar recibos), pero SIEMPRE pasar a 'matched'
       const isPaid = pkg?.status && ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(pkg.status);
-      const targetStatus = isPaid ? pkg.status : 'matched';
 
-      // Preparar actualización: preservar status pagado o mover a 'matched'
+      // Preparar actualización: mover a 'matched' para que el nuevo viajero ACEPTE; limpiar dirección y fechas
       const updatePayload: any = {
         matched_trip_id: selectedTripId,
-        status: targetStatus,
+        status: 'matched',
         traveler_address: null,
         matched_trip_dates: null,
+        quote: null,
         // No limpiar purchase_confirmation y tracking_info para paquetes pagados
         ...(isPaid ? {} : { purchase_confirmation: null, tracking_info: null }),
         // Guardar tip asignado administrativamente si existe
         ...(adminAssignedTip ? { admin_assigned_tip: adminAssignedTip } : {}),
-        // Solo establecer expiración si no está pagado
-        matched_assignment_expires_at: isPaid ? null : null,
+        matched_assignment_expires_at: null,
         quote_expires_at: null,
       };
 

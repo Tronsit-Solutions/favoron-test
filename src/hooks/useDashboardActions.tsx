@@ -222,30 +222,59 @@ export const useDashboardActions = (
         if (isTravelerAcceptingAssignedTip) {
           console.log('✅ Traveler accepted admin-assigned tip');
           
+          // Buscar el viaje para poblar dirección del viajero y fechas
+          let matchedTrip = selectedPackage.matched_trip_id ? 
+            trips.find(trip => trip.id === selectedPackage.matched_trip_id) : null;
+          
+          if (!matchedTrip && selectedPackage.matched_trip_id) {
+            console.log('🔄 Trip not found locally, fetching for address/dates...');
+            try {
+              const { data: tripData, error } = await supabase
+                .from('trips')
+                .select('*')
+                .eq('id', selectedPackage.matched_trip_id)
+                .single();
+              if (error) throw error;
+              matchedTrip = tripData;
+            } catch (e) {
+              console.error('❌ Failed to fetch matched trip:', e);
+            }
+          }
+
+          const travelerAddress = buildTravelerAddress(matchedTrip);
+          const matchedTripDates = matchedTrip ? {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          } : null;
+          
           // Check if package is already paid
-          const isPaidPackage = ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status);
+          const isPaidPackage = ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status) || !!selectedPackage.payment_receipt;
           
           if (isPaidPackage) {
-            console.log('📦 Package already paid, proceeding directly to purchase flow');
-            // For paid packages, stay in current status - no additional payment needed
+            console.log('📦 Package already paid, proceeding directly and updating delivery info');
+            // For paid packages, move to pending_purchase and update delivery info
             await updatePackage(selectedPackage.id, {
-              status: selectedPackage.status, // Keep current paid status
+              status: 'pending_purchase',
               quote: {
                 price: quoteData.price,
                 serviceFee: quoteData.serviceFee,
                 totalPrice: quoteData.totalPrice,
                 message: quoteData.message,
                 adminAssignedTipAccepted: true
-              }
+              },
+              traveler_address: travelerAddress,
+              matched_trip_dates: matchedTripDates
             });
             
             toast({
               title: "¡Tip aceptado!",
-              description: "Paquete ya pagado. Puedes proceder con la compra.",
+              description: "Datos de entrega actualizados. El shopper ya pagó, procede a recibir el paquete.",
             });
           } else {
-            console.log('💰 Sending quote to shopper for payment');
-            // For unpaid packages, send quote to shopper
+            console.log('💰 Sending quote to shopper for payment (with delivery info)');
+            // For unpaid packages, send quote to shopper and include delivery info
             await updatePackage(selectedPackage.id, {
               status: 'quote_sent',
               quote: {
@@ -254,12 +283,14 @@ export const useDashboardActions = (
                 totalPrice: quoteData.totalPrice,
                 message: quoteData.message,
                 adminAssignedTipAccepted: true
-              }
+              },
+              traveler_address: travelerAddress,
+              matched_trip_dates: matchedTripDates
             });
             
             toast({
               title: "¡Tip aceptado!",
-              description: "Se ha enviado la cotización al shopper para su aprobación.",
+              description: "Se envió la cotización al shopper con la información de entrega.",
             });
           }
           
