@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp } from "lucide-react";
+import FinancialSummaryTable from "./FinancialSummaryTable";
 interface FinancialDashboardProps {
   packages: Package[];
 }
@@ -207,6 +208,9 @@ const FinancialDashboard = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Financial Summary Table */}
+      <FinancialSummaryTable packages={filteredPackages} />
     </div>;
 };
 export default FinancialDashboard;
