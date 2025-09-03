@@ -17,6 +17,7 @@ interface EnrichedPackageData {
   shopperName: string;
   travelerName: string;
   productDescription: string;
+  productLink?: string | null;
   totalToPay: number;
   travelerTip: number;
   favoronRevenue: number;
@@ -142,13 +143,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
       // Get product description
       let productDescription = pkg.item_description || 'Sin descripción';
+      let productLink = null;
       if (pkg.products_data && Array.isArray(pkg.products_data)) {
         if (pkg.products_data.length === 1) {
           const product = pkg.products_data[0] as any;
-          const link = product.itemLink ? ` | Link: ${product.itemLink}` : '';
           const qty = product.quantity ? `Qty: ${product.quantity}` : '';
           const price = product.estimatedPrice ? `$${product.estimatedPrice}` : '';
-          productDescription = `${product.itemDescription || pkg.item_description}${link} | ${qty} | ${price}`;
+          productDescription = `${product.itemDescription || pkg.item_description} | ${qty} | ${price}`;
+          productLink = product.itemLink || null;
         } else {
           const totalItems = pkg.products_data.reduce((sum: number, p) => {
             const product = p as any;
@@ -174,6 +176,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         shopperName,
         travelerName,
         productDescription,
+        productLink,
         totalToPay,
         travelerTip,
         favoronRevenue,
@@ -238,6 +241,18 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="max-w-sm">
                     <div className="whitespace-pre-wrap break-words text-xs leading-relaxed">
                       {item.productDescription}
+                      {item.productLink && (
+                        <div className="mt-1">
+                          <a 
+                            href={item.productLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Ver producto
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
