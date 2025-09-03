@@ -86,11 +86,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Salida: {new Date(trip.departure_date).toLocaleDateString()}</span>
+                          <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString()}</span>
+                          <span>Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </TableCell>

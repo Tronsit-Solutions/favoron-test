@@ -36,7 +36,7 @@ export const useTripsData = () => {
             avatar_url
           )
         `)
-        .order('departure_date', { ascending: true });
+        .order('arrival_date', { ascending: true });
 
       if (error) throw error;
       setTrips(data || []);
