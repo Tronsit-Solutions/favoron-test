@@ -147,9 +147,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       if (pkg.products_data && Array.isArray(pkg.products_data)) {
         if (pkg.products_data.length === 1) {
           const product = pkg.products_data[0] as any;
-          const qty = product.quantity ? `Qty: ${product.quantity}` : '';
-          const price = product.estimatedPrice ? `$${product.estimatedPrice}` : '';
-          productDescription = `${product.itemDescription || pkg.item_description} | ${qty} | ${price}`;
+          const qty = parseInt(product.quantity || '1');
+          const unitPrice = parseFloat(product.estimatedPrice || '0');
+          const totalPrice = qty * unitPrice;
+          productDescription = `${product.itemDescription || pkg.item_description} | Qty: ${qty} | Total: $${totalPrice.toFixed(2)}`;
           productLink = product.itemLink || null;
         } else {
           const totalItems = pkg.products_data.reduce((sum: number, p) => {
