@@ -8,7 +8,6 @@ export interface PublicTrip {
   from_city: string;
   to_city: string;
   arrival_date: string;
-  departure_date: string;
   status: string;
 }
 

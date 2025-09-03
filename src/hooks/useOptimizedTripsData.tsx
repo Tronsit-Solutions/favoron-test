@@ -75,12 +75,15 @@ export const useOptimizedTripsData = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
+      const payload = {
+        ...tripData,
+        departure_date: (tripData as any).departure_date || (tripData as any).arrival_date,
+        user_id: user.id
+      };
+
       const { data, error } = await supabase
         .from('trips')
-        .insert({
-          ...tripData,
-          user_id: user.id
-        })
+        .insert(payload)
         .select()
         .single();
 
@@ -111,9 +114,16 @@ export const useOptimizedTripsData = () => {
 
   const updateTrip = useCallback(async (id: string, updates: TripUpdate) => {
     try {
+      const updatesWithCompat: any = {
+        ...updates,
+        ...(updates as any)?.arrival_date && !("departure_date" in (updates as any))
+          ? { departure_date: (updates as any).arrival_date }
+          : {}
+      };
+
       const { data, error } = await supabase
         .from('trips')
-        .update(updates)
+        .update(updatesWithCompat)
         .eq('id', id)
         .select()
         .single();

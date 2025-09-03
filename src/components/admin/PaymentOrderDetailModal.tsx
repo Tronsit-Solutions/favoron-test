@@ -155,15 +155,15 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Fecha Salida</p>
+                    <p className="text-sm text-muted-foreground">Fecha Llegada</p>
                     <p className="font-medium">
                       {format(new Date(trip.arrival_date), 'dd/MM/yyyy', { locale: es })}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Fecha Llegada</p>
+                    <p className="text-sm text-muted-foreground">Entrega en oficina</p>
                     <p className="font-medium">
-                      {format(new Date(trip.arrival_date), 'dd/MM/yyyy', { locale: es })}
+                      {trip.delivery_date ? format(new Date(trip.delivery_date), 'dd/MM/yyyy', { locale: es }) : '-'}
                     </p>
                   </div>
                 </div>
