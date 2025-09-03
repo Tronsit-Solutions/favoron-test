@@ -13,6 +13,7 @@ import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, P
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
+import ProfileCompletionGuard from "@/components/ProfileCompletionGuard";
 
 interface PackageRequestFormProps {
   isOpen: boolean;
@@ -309,7 +310,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
 
-  return (
+  const renderPackageForm = () => (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto px-6 md:px-8">
         <DialogHeader>
@@ -658,6 +659,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </form>
       </DialogContent>
     </Dialog>
+  );
+
+  // In edit mode, show form directly (profile already validated during creation)
+  if (editMode) {
+    return renderPackageForm();
+  }
+
+  // In create mode, use profile completion guard
+  return (
+    <ProfileCompletionGuard
+      onAction={() => {}}
+      title="Completa tu perfil para solicitar paquetes"
+      description="Necesitamos tu número de WhatsApp para que los viajeros puedan contactarte y coordinar la entrega."
+    >
+      {renderPackageForm()}
+    </ProfileCompletionGuard>
   );
 };
 

@@ -10,6 +10,8 @@ import UserProfile from "./UserProfile";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
+import ProfileCompletionIndicator from "./ProfileCompletionIndicator";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
@@ -214,6 +216,18 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const { getStatusBadge } = useStatusHelpers();
 
+  // Profile completion section component
+  const ProfileCompletionSection = () => {
+    const { isComplete } = useProfileCompletion();
+
+    if (isComplete) return null;
+
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <ProfileCompletionIndicator showDetails={true} />
+      </div>
+    );
+  };
 
   if (showProfile) {
     return (
@@ -294,6 +308,8 @@ const Dashboard = ({ user }: DashboardProps) => {
       />
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
+        <ProfileCompletionSection />
+        
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-2">
             ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋

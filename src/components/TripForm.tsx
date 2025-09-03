@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
+import ProfileCompletionGuard from "@/components/ProfileCompletionGuard";
 import { COUNTRIES } from "@/lib/countries";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
 import "./ui/mobile-safe-form.css";
@@ -287,7 +288,9 @@ const TripForm = ({
     return 'destino';
   };
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+  
+  const renderTripForm = () => (
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto px-6 md:px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -710,6 +713,18 @@ const TripForm = ({
         {/* Terms and Conditions Modal */}
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
+
+  return (
+    <ProfileCompletionGuard
+      onAction={() => {}}
+      title="Completa tu perfil para registrar viajes"
+      description="Necesitamos tu número de WhatsApp para que los shoppers puedan contactarte y coordinar la entrega."
+    >
+      {renderTripForm()}
+    </ProfileCompletionGuard>
+  );
 };
+
 export default TripForm;
