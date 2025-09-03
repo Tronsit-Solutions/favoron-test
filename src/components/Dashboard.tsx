@@ -72,6 +72,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     setCurrentUser,
     activeTab,
     setActiveTab,
+    matchingTab,
+    setMatchingTab,
     showPackageForm,
     setShowPackageForm,
     showTripForm,

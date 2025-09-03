@@ -203,10 +203,10 @@ export const useAdminData = (): AdminData => {
     }
   }, [toast]);
 
-  const refreshData = useCallback(async () => {
+  const refreshData = useCallback(async (forceRefresh = false) => {
     const shouldSkip = !user || (authLoading && !wasAdmin);
     
-    if (shouldSkip) {
+    if (shouldSkip && !forceRefresh) {
       console.log('⏭️ Admin: Skipping refresh', { 
         authLoading, 
         isAdmin, 
@@ -217,7 +217,7 @@ export const useAdminData = (): AdminData => {
       return;
     }
 
-    console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin, authLoading });
+    console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin, authLoading, forceRefresh });
     setLoading(true);
     setError(null);
 

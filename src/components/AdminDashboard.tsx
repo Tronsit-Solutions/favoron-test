@@ -435,21 +435,19 @@ const AdminDashboard = ({
         </TabsContent>
 
         <TabsContent value="matching" className="space-y-4">
-          <AdminMatchingTab 
+          <AdminMatchingTab
             packages={localPackages}
             trips={localTrips}
             modalDataCache={modalDataCache}
+            activeMatchingTab={matchingTab}
+            onMatchingTabChange={onMatchingTabChange}
             onViewPackageDetail={handleViewPackageDetail}
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
             onUpdateStatus={onUpdateStatus}
-            onConfirmOfficeReception={onConfirmOfficeReception}
-            onConfirmDeliveryComplete={onConfirmDeliveryComplete}
-            onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
-            onConfirmShopperReceived={onConfirmShopperReceived}
-            getStatusBadge={getStatusBadge}
-            
+            onConfirmReception={onConfirmOfficeReception}
+            onConfirmDelivery={onConfirmDeliveryComplete}
           />
         </TabsContent>
 

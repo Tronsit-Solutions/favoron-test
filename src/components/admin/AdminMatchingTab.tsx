@@ -1,67 +1,75 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { NotificationBadge } from "@/components/ui/notification-badge";
-import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileTabs } from "@/components/ui/mobile-tabs";
+import { NotificationBadge } from "@/components/ui/notification-badge";
+import { Badge } from "@/components/ui/badge";
+
 import PendingRequestsTab from "./matching/PendingRequestsTab";
 import AvailableTripsTab from "./matching/AvailableTripsTab";
 import ActiveMatchesTab from "./matching/ActiveMatchesTab";
 import PaymentsTab from "./matching/PaymentsTab";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AdminMatchingTabProps {
   packages: any[];
   trips: any[];
   modalDataCache?: { selectedPackage: any; matchedTrip: any } | null;
+  activeMatchingTab?: string;
+  onMatchingTabChange?: (tab: string) => void;
   onViewPackageDetail: (pkg: any) => void;
   onViewTripDetail: (trip: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
   onDiscardPackage: (pkg: any) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
-  onConfirmOfficeReception: (packageId: string) => void;
-  onConfirmDeliveryComplete: (packageId: string) => void;
-  onAdminConfirmOfficeDelivery: (packageId: string) => void;
-  onConfirmShopperReceived: (packageId: string) => void;
-  getStatusBadge: (status: string) => JSX.Element;
+  onConfirmReception: (packageId: string) => void;
+  onConfirmDelivery: (packageId: string) => void;
 }
 
-const AdminMatchingTab = ({ 
-  packages, 
-  trips, 
+const AdminMatchingTab = ({
+  packages,
+  trips,
   modalDataCache,
-  onViewPackageDetail, 
-  onViewTripDetail, 
-  onOpenMatchDialog, 
+  activeMatchingTab = "pending",
+  onMatchingTabChange,
+  onViewPackageDetail,
+  onViewTripDetail,
+  onOpenMatchDialog,
   onDiscardPackage,
-  onUpdateStatus, 
-  onConfirmOfficeReception,
-  onConfirmDeliveryComplete,
-  onAdminConfirmOfficeDelivery,
-  onConfirmShopperReceived,
-  getStatusBadge 
+  onUpdateStatus,
+  onConfirmReception,
+  onConfirmDelivery
 }: AdminMatchingTabProps) => {
-  const [activeTab, setActiveTab] = useState("pending");
+  // Use URL-driven state instead of local state
+  const currentTab = activeMatchingTab;
+  const setActiveTab = onMatchingTabChange || (() => {});
+  
   const isMobile = useIsMobile();
 
-  // One-time cleanup: expire old quotes server-side when opening matching
+  // One-time server-side cleanup of old quotes
   useEffect(() => {
-    (async () => {
+    const cleanupOldQuotes = async () => {
       try {
-        await supabase.rpc('expire_old_quotes');
-      } catch {}
-    })();
+        const { error } = await supabase.rpc('expire_old_quotes');
+        if (error) {
+          console.warn('Error cleaning up old quotes:', error);
+        } else {
+          console.log('✅ Old quotes cleanup completed');
+        }
+      } catch (error) {
+        console.warn('Error during quote cleanup:', error);
+      }
+    };
+    
+    cleanupOldQuotes();
   }, []);
 
   // Calculate stats
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const rejectedQuotes = packages.filter(p => p.status === 'quote_rejected');
-  const pendingRequests = [...approvedPackages, ...rejectedQuotes]; // Combine both types
+  const pendingRequests = [...approvedPackages, ...rejectedQuotes];
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
-  // Active matches exclude expired quotes or expired assignments in real-time
   const activeMatches = packages.filter(pkg => {
     if (!pkg.matched_trip_id) return false;
     const now = Date.now();
@@ -75,7 +83,6 @@ const AdminMatchingTab = ({
   );
   const pendingOfficeConfirmations = packages.filter(pkg => pkg.status === 'pending_office_confirmation');
 
-  // Tabs configuration for mobile
   const tabsConfig = [
     {
       value: "pending",
@@ -160,64 +167,39 @@ const AdminMatchingTab = ({
         </Card>
       </div>
 
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={currentTab} onValueChange={setActiveTab}>
         {isMobile ? (
           <MobileTabs
-            value={activeTab}
+            value={currentTab}
             onValueChange={setActiveTab}
             tabs={tabsConfig}
           />
         ) : (
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="pending" className="relative">
-              📦 Solicitudes
-              {pendingRequests.length > 0 && (
-                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                  {pendingRequests.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="trips" className="relative">
-              ✈️ Viajes
-              {availableTrips.length > 0 && (
-                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                  {availableTrips.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="matches" className="relative">
-              🔗 Matches
-              {activeMatches.length > 0 && (
-                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                  {activeMatches.length}
-                </Badge>
-              )}
-              {pendingOfficeConfirmations.length > 0 && (
-                <NotificationBadge count={pendingOfficeConfirmations.length} className="absolute -top-1 -right-1" />
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="relative">
-              💳 Pagos
-              {pendingPayments.length > 0 && (
-                <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                  {pendingPayments.length}
-                </Badge>
-              )}
-            </TabsTrigger>
+            {tabsConfig.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="relative flex items-center gap-2"
+              >
+                {tab.label}
+                {tab.badge}
+              </TabsTrigger>
+            ))}
           </TabsList>
         )}
-        <TabsContent value="pending" className="mt-6">
+
+        <TabsContent value="pending" className="space-y-4">
           <PendingRequestsTab
             packages={pendingRequests}
-            onOpenMatchDialog={onOpenMatchDialog}
             onViewPackageDetail={onViewPackageDetail}
+            onOpenMatchDialog={onOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
             availableTripsCount={availableTrips.length}
           />
         </TabsContent>
 
-        <TabsContent value="trips" className="mt-6">
+        <TabsContent value="trips" className="space-y-4">
           <AvailableTripsTab
             trips={trips}
             packages={packages}
@@ -225,26 +207,22 @@ const AdminMatchingTab = ({
           />
         </TabsContent>
 
-        <TabsContent value="matches" className="mt-6">
+        <TabsContent value="matches" className="space-y-4">
           <ActiveMatchesTab
             packages={packages}
             trips={trips}
             modalDataCache={modalDataCache}
             onViewPackageDetail={onViewPackageDetail}
-            onConfirmOfficeReception={onConfirmOfficeReception}
-            onConfirmDeliveryComplete={onConfirmDeliveryComplete}
-            onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
-            onConfirmShopperReceived={onConfirmShopperReceived}
-            getStatusBadge={getStatusBadge}
+            onConfirmOfficeReception={onConfirmReception}
+            onConfirmDeliveryComplete={onConfirmDelivery}
           />
         </TabsContent>
 
-        <TabsContent value="payments" className="mt-6">
+        <TabsContent value="payments" className="space-y-4">
           <PaymentsTab 
             packages={packages}
             onViewPackageDetail={onViewPackageDetail}
             onUpdateStatus={onUpdateStatus}
-            getStatusBadge={getStatusBadge}
           />
         </TabsContent>
       </Tabs>

@@ -18,6 +18,11 @@ export const useDashboardState = (user: any) => {
   };
   
   const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [matchingTab, setMatchingTab] = useState(() => {
+    const matchingFromUrl = searchParams.get('matching');
+    const validMatchingTabs = ['pending', 'trips', 'matches', 'payments'];
+    return validMatchingTabs.includes(matchingFromUrl || '') ? matchingFromUrl : 'pending';
+  });
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [showTripForm, setShowTripForm] = useState(false);
   const [showAddressConfirmation, setShowAddressConfirmation] = useState(false);
@@ -118,11 +123,28 @@ export const useDashboardState = (user: any) => {
     setActiveTab(tab);
     const newParams = new URLSearchParams(searchParams);
     if (tab === 'overview') {
-      newParams.delete('tab'); // Clean URL for overview
+      newParams.delete('tab');
+      newParams.delete('matching'); // Clean matching param when leaving admin
     } else {
       newParams.set('tab', tab);
+      // Preserve matching tab when switching to admin
+      if (tab === 'admin' && matchingTab) {
+        newParams.set('matching', matchingTab);
+      } else if (tab !== 'admin') {
+        newParams.delete('matching');
+      }
     }
     setSearchParams(newParams, { replace: true });
+  };
+
+  // Handle matching subtab changes
+  const handleSetMatchingTab = (subtab: string) => {
+    setMatchingTab(subtab);
+    const newParams = new URLSearchParams(searchParams);
+    if (activeTab === 'admin') {
+      newParams.set('matching', subtab);
+      setSearchParams(newParams, { replace: true });
+    }
   };
 
   // Completely disabled tab awareness to prevent any automatic refreshes
@@ -140,6 +162,8 @@ export const useDashboardState = (user: any) => {
     setCurrentUser,
     activeTab,
     setActiveTab: handleSetActiveTab,
+    matchingTab,
+    setMatchingTab: handleSetMatchingTab,
     showPackageForm,
     setShowPackageForm,
     showTripForm,
