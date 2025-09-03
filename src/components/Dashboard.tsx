@@ -42,19 +42,28 @@ interface DashboardProps {
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   
-  // Always call useUrlState hook - React requires hooks to be called in same order
-  const urlState = useUrlState();
-  const navigateToForm = urlState?.navigateToForm || ((formType: 'package' | 'trip') => {
-    if (formType === 'package') {
-      setShowPackageForm(true);
-    } else {
-      setShowTripForm(true);
-    }
-  });
-  const navigateBack = urlState?.navigateBack || (() => {
-    setShowPackageForm(false);
-    setShowTripForm(false);
-  });
+  // Only use URL state in the dashboard context, fallback to regular functions if not available
+  let navigateToForm: (formType: 'package' | 'trip') => void;
+  let navigateBack: () => void;
+  
+  try {
+    const urlState = useUrlState();
+    navigateToForm = urlState.navigateToForm;
+    navigateBack = urlState.navigateBack;
+  } catch {
+    // Fallback if useUrlState fails (not in proper router context)
+    navigateToForm = (formType: 'package' | 'trip') => {
+      if (formType === 'package') {
+        setShowPackageForm(true);
+      } else {
+        setShowTripForm(true);
+      }
+    };
+    navigateBack = () => {
+      setShowPackageForm(false);
+      setShowTripForm(false);
+    };
+  }
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   

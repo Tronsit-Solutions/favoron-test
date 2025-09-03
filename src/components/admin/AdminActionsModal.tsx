@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,13 +48,7 @@ interface AdminActionsModalProps {
 }
 
 const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps) => {
-  // ALL HOOKS MUST BE CALLED FIRST - before any conditional returns
   const { isModalOpen, closeModal, getModalData } = useModalState();
-  const { user, userRole } = useAuth();
-  const { toast } = useToast();
-  const { createPaymentOrder } = usePaymentOrders();
-  const { getStatusBadge } = useStatusHelpers();
-  
   const pkg = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
   
@@ -66,9 +60,11 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [adminNotes, setAdminNotes] = useState("");
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
-  const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
+  const { user, userRole } = useAuth();
+  const { toast } = useToast();
+  const { createPaymentOrder } = usePaymentOrders();
+  const { getStatusBadge } = useStatusHelpers();
 
-  // CONDITIONAL LOGIC AFTER ALL HOOKS
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
     console.warn('🔒 Unauthorized access to AdminActionsModal:', { 
@@ -89,50 +85,6 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     const isNotExpired = new Date(trip.arrival_date) >= today;
     return isValidStatus && isNotExpired;
   });
-
-  // Fetch traveler profiles when modal opens and trips are available
-  useEffect(() => {
-    if (isOpen && availableTrips.length > 0) {
-      const fetchTravelerProfiles = async () => {
-        const userIds = [...new Set(availableTrips.map(trip => trip.user_id))];
-        
-        try {
-          // Use admin function to bypass RLS
-          const { data, error } = await supabase
-            .rpc('admin_view_all_users');
-          
-          if (error) {
-            console.error('Error fetching traveler profiles:', error);
-            return;
-          }
-          
-          // Filter only the users we need
-          const relevantProfiles = data?.filter(profile => userIds.includes(profile.id)) || [];
-          const profilesMap = relevantProfiles.reduce((acc, profile) => {
-            acc[profile.id] = profile;
-            return acc;
-          }, {});
-          
-          setTravelerProfiles(profilesMap);
-        } catch (error) {
-          console.error('Error fetching traveler profiles:', error);
-        }
-      };
-      
-      fetchTravelerProfiles();
-    }
-  }, [isOpen, availableTrips]);
-
-  const getTravelerName = (userId: string) => {
-    const profile = travelerProfiles[userId];
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.username) {
-      return profile.username;
-    }
-    return `Viajero #${userId.slice(0, 8)}`;
-  };
   
   // Check if package has multiple products
   const hasMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
@@ -317,9 +269,28 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
-    // For now, return 0 as we don't have access to all packages data here
-    // This function would need to be implemented with proper data access
-    return 0;
+    // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
+    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
+    
+    const tripPackages = pkg?.packages?.filter(pkg => 
+      pkg.matched_trip_id === tripId && 
+      validStatuses.includes(pkg.status)
+    ) || [];
+
+    return tripPackages.reduce((total, pkg) => {
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        // Sum all products: quantity * estimatedPrice
+        const productsTotal = pkg.products_data.reduce((productSum, product) => {
+          const price = parseFloat(product.estimatedPrice || '0');
+          const quantity = parseInt(product.quantity || '1');
+          return productSum + (price * quantity);
+        }, 0);
+        return total + productsTotal;
+      } else {
+        // Fallback to estimated_price
+        return total + parseFloat(pkg.estimated_price || '0');
+      }
+    }, 0);
   };
 
   const toggleTripExpansion = (tripId: string) => {
@@ -751,7 +722,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="flex items-center space-x-2 mb-2">
                                     <User className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm text-muted-foreground">
-                                      {getTravelerName(trip.user_id)}
+                                      Viajero #{trip.user_id.slice(0, 8)}
                                     </span>
                                   </div>
 
@@ -783,6 +754,11 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                     <Badge variant="secondary" className="text-xs">
                                       ID: {trip.id.slice(0, 8)}
                                     </Badge>
+                                    {calculateTripPackagesTotal(trip.id) > 0 && (
+                                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                                        ${calculateTripPackagesTotal(trip.id).toFixed(2)} asignados
+                                      </Badge>
+                                    )}
                                   </div>
                                 </div>
 
@@ -808,7 +784,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="grid grid-cols-2 gap-4 text-xs">
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">VIAJERO</p>
-                                      <p className="text-sm">{getTravelerName(trip.user_id)}</p>
+                                      <p className="text-sm">Viajero #{trip.user_id.slice(0, 8)}</p>
                                     </div>
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">MÉTODO</p>

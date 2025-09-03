@@ -23,7 +23,6 @@ interface PackageDetailModalProps {
 }
 
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
-  // ALL HOOKS MUST BE CALLED FIRST - before any conditional returns
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
@@ -37,7 +36,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const rawTravelerPhoto = pkg?.traveler_confirmation?.photo || pkg?.traveler_confirmation?.photoUrl;
   const { url: resolvedTravelerPhotoUrl } = useSignedUrl(rawTravelerPhoto);
 
-  // CONDITIONAL LOGIC AFTER ALL HOOKS
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
     console.warn('🔒 Unauthorized access to PackageDetailModal:', { 
