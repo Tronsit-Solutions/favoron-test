@@ -17,26 +17,71 @@ const ProfileCompletionGuard = ({
   description,
   requirePhoneNumber = true 
 }: ProfileCompletionGuardProps) => {
-  const { isComplete } = useProfileCompletion();
+  const { isComplete, missingFields } = useProfileCompletion();
   const [showModal, setShowModal] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const strictValidation = () => {
+    setIsValidating(true);
+    
+    // Double-check completion status with debug logging
+    console.log('🛡️ ProfileCompletionGuard strict validation:', {
+      isComplete,
+      missingFields,
+      requirePhoneNumber,
+      timestamp: new Date().toISOString()
+    });
+    
+    const isReallyComplete = isComplete && missingFields.length === 0;
+    
+    if (!isReallyComplete) {
+      console.log('❌ Strict validation failed - profile incomplete:', {
+        isComplete,
+        missingFields,
+        requirePhoneNumber
+      });
+    } else {
+      console.log('✅ Strict validation passed - profile complete');
+    }
+    
+    setIsValidating(false);
+    return isReallyComplete;
+  };
 
   const handleClick = () => {
-    if (!isComplete) {
+    console.log('🖱️ ProfileCompletionGuard clicked:', {
+      isComplete,
+      missingFields,
+      actionName: onAction.name || 'anonymous'
+    });
+    
+    // Perform strict validation on click
+    if (!strictValidation()) {
+      console.log('🚫 Showing completion modal due to failed validation');
       setShowModal(true);
     } else {
+      console.log('✅ Allowing action to proceed');
       onAction();
     }
   };
 
   const handleComplete = () => {
+    console.log('✅ Profile completion modal completed');
     setShowModal(false);
     // Small delay to ensure profile state is updated
     setTimeout(() => {
-      onAction();
+      // Re-validate before proceeding
+      if (strictValidation()) {
+        console.log('✅ Profile validated after completion - executing action');
+        onAction();
+      } else {
+        console.log('❌ Profile still incomplete after modal - keeping modal closed but not executing action');
+      }
     }, 100);
   };
 
   const handleClose = () => {
+    console.log('❌ Profile completion modal closed without completion');
     setShowModal(false);
   };
 

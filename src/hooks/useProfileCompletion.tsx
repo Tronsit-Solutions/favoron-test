@@ -16,8 +16,25 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
     last_name: 'Apellido'
   };
 
+  const validateFieldValue = (value: any): boolean => {
+    // Strict validation: null, undefined, empty string, or whitespace-only strings are invalid
+    if (value === null || value === undefined) return false;
+    const stringValue = value.toString().trim();
+    return stringValue.length > 0;
+  };
+
   const checkFieldCompletion = () => {
+    // Debug logging
+    console.log('🔍 Profile completion check:', {
+      profile,
+      profileExists: !!profile,
+      phone: profile?.phone_number,
+      firstName: profile?.first_name,
+      lastName: profile?.last_name
+    });
+
     if (!profile) {
+      console.log('❌ No profile found - completion check failed');
       return {
         isComplete: false,
         missingFields: Object.values(requiredFields),
@@ -28,7 +45,16 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
 
     const fieldStatus = Object.keys(requiredFields).reduce((acc, key) => {
       const value = profile[key as keyof typeof profile];
-      const isComplete = value !== null && value !== undefined && value.toString().trim() !== '';
+      const isComplete = validateFieldValue(value);
+      
+      // Debug each field
+      console.log(`📝 Field ${key}:`, {
+        value,
+        rawValue: JSON.stringify(value),
+        isComplete,
+        type: typeof value
+      });
+      
       return { ...acc, [key]: isComplete };
     }, {} as { [key: string]: boolean });
 
@@ -38,24 +64,58 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
       .filter(([_, isComplete]) => !isComplete)
       .map(([key, _]) => requiredFields[key as keyof typeof requiredFields]);
 
-    return {
+    const result = {
       isComplete: completedCount === totalFields,
       missingFields,
       completionPercentage: Math.round((completedCount / totalFields) * 100),
       requiredFields: fieldStatus
     };
+
+    console.log('✅ Profile completion result:', {
+      isComplete: result.isComplete,
+      completedCount,
+      totalFields,
+      missingFields,
+      fieldStatus
+    });
+
+    return result;
   };
 
   return checkFieldCompletion();
 };
 
 export const isProfileComplete = (profile: any): boolean => {
-  if (!profile) return false;
+  if (!profile) {
+    console.log('❌ isProfileComplete: No profile provided');
+    return false;
+  }
   
   const requiredFields = ['phone_number', 'first_name', 'last_name'];
   
-  return requiredFields.every(field => {
+  const isComplete = requiredFields.every(field => {
     const value = profile[field];
-    return value !== null && value !== undefined && value.toString().trim() !== '';
+    const isValid = value !== null && value !== undefined && value.toString().trim() !== '';
+    
+    if (!isValid) {
+      console.log(`❌ isProfileComplete: Field ${field} is invalid:`, {
+        value,
+        rawValue: JSON.stringify(value),
+        type: typeof value
+      });
+    }
+    
+    return isValid;
   });
+  
+  console.log('🔍 isProfileComplete result:', {
+    isComplete,
+    profileId: profile.id,
+    fields: requiredFields.reduce((acc, field) => ({
+      ...acc,
+      [field]: profile[field]
+    }), {})
+  });
+  
+  return isComplete;
 };
