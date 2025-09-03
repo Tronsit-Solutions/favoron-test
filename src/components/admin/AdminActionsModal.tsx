@@ -48,7 +48,13 @@ interface AdminActionsModalProps {
 }
 
 const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps) => {
+  // ALL HOOKS MUST BE CALLED FIRST - before any conditional returns
   const { isModalOpen, closeModal, getModalData } = useModalState();
+  const { user, userRole } = useAuth();
+  const { toast } = useToast();
+  const { createPaymentOrder } = usePaymentOrders();
+  const { getStatusBadge } = useStatusHelpers();
+  
   const pkg = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
   
@@ -61,11 +67,8 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
   const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
-  const { user, userRole } = useAuth();
-  const { toast } = useToast();
-  const { createPaymentOrder } = usePaymentOrders();
-  const { getStatusBadge } = useStatusHelpers();
 
+  // CONDITIONAL LOGIC AFTER ALL HOOKS
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
     console.warn('🔒 Unauthorized access to AdminActionsModal:', { 
