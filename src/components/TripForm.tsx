@@ -330,7 +330,7 @@ const TripForm = ({
                       placeholder="Selecciona país"
                       searchPlaceholder="Buscar país..."
                       emptyMessage="No se encontraron países"
-                      className="w-full text-sm"
+                      className="w-full text-sm h-8"
                     />
                   </div>
                 </div>
@@ -344,7 +344,7 @@ const TripForm = ({
                     value={formData.fromCity} 
                     onChange={e => handleInputChange('fromCity', e.target.value)} 
                     required 
-                    className="text-sm"
+                    className="text-sm h-8"
                   />
                 </div>
               </div>
