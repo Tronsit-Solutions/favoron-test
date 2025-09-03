@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Settings, 
   FileText, 
@@ -24,7 +25,12 @@ import {
   X,
   CheckCircle,
   Package,
-  DollarSign
+  DollarSign,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  ChevronDown,
+  Truck
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,6 +59,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [selectedTripId, setSelectedTripId] = useState(pkg?.matched_trip_id || "");
   const [adminNotes, setAdminNotes] = useState("");
   const [showProductTipModal, setShowProductTipModal] = useState(false);
+  const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
@@ -69,7 +76,15 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
   if (!pkg) return null;
 
-  const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
+  // Filter trips to exclude those with past arrival dates and only include approved/active
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const availableTrips = trips.filter(trip => {
+    const isValidStatus = ['approved', 'active'].includes(trip.status);
+    const isNotExpired = new Date(trip.arrival_date) >= today;
+    return isValidStatus && isNotExpired;
+  });
   
   // Check if package has multiple products
   const hasMultipleProducts = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 1;
@@ -250,6 +265,46 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to calculate total value of packages for a specific trip
+  const calculateTripPackagesTotal = (tripId: string) => {
+    // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
+    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
+    
+    const tripPackages = pkg?.packages?.filter(pkg => 
+      pkg.matched_trip_id === tripId && 
+      validStatuses.includes(pkg.status)
+    ) || [];
+
+    return tripPackages.reduce((total, pkg) => {
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        // Sum all products: quantity * estimatedPrice
+        const productsTotal = pkg.products_data.reduce((productSum, product) => {
+          const price = parseFloat(product.estimatedPrice || '0');
+          const quantity = parseInt(product.quantity || '1');
+          return productSum + (price * quantity);
+        }, 0);
+        return total + productsTotal;
+      } else {
+        // Fallback to estimated_price
+        return total + parseFloat(pkg.estimated_price || '0');
+      }
+    }, 0);
+  };
+
+  const toggleTripExpansion = (tripId: string) => {
+    const newExpanded = new Set(expandedTrips);
+    if (newExpanded.has(tripId)) {
+      newExpanded.delete(tripId);
+    } else {
+      newExpanded.add(tripId);
+    }
+    setExpandedTrips(newExpanded);
+  };
+
+  const handleTripSelection = (tripId: string) => {
+    setSelectedTripId(tripId);
   };
 
   const handleSaveInternalNote = async () => {
@@ -643,24 +698,112 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
                 <div>
                   <Label htmlFor="trip">Seleccionar nuevo viaje</Label>
-                  <Select value={selectedTripId} onValueChange={setSelectedTripId}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Selecciona un viaje disponible" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTrips.map(trip => (
-                        <SelectItem key={trip.id} value={trip.id}>
-                           {trip.from_city} → {trip.to_city} | 
-                           Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} |
-                           Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {availableTrips.length === 0 && (
+                  {availableTrips.length === 0 ? (
                     <p className="text-sm text-muted-foreground mt-2">
                       No hay viajes disponibles para reasignar
                     </p>
+                  ) : (
+                    <ScrollArea className="h-[400px] mt-2">
+                      <div className="space-y-3">
+                        {availableTrips.map(trip => (
+                          <Card 
+                            key={trip.id} 
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedTripId === trip.id 
+                                ? 'border-primary bg-primary/5' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            onClick={() => handleTripSelection(trip.id)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  {/* Trip Route */}
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                    <span className="font-medium text-sm">
+                                      {trip.from_city} → {trip.to_city}
+                                    </span>
+                                  </div>
+
+                                  {/* Trip Dates */}
+                                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                    <div className="flex items-center space-x-1">
+                                      <Calendar className="h-3 w-3" />
+                                      <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                      <Truck className="h-3 w-3" />
+                                      <span>Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Trip Info */}
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    <Badge variant="outline" className="text-xs">
+                                      {trip.status === 'approved' ? 'Aprobado' : 'Activo'}
+                                    </Badge>
+                                    <Badge variant="secondary" className="text-xs">
+                                      ID: {trip.id.slice(0, 8)}
+                                    </Badge>
+                                    {calculateTripPackagesTotal(trip.id) > 0 && (
+                                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                                        ${calculateTripPackagesTotal(trip.id).toFixed(2)} asignados
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Expand Button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleTripExpansion(trip.id);
+                                  }}
+                                  className="p-1 hover:bg-muted rounded transition-colors"
+                                >
+                                  {expandedTrips.has(trip.id) ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Expandable Content */}
+                              {expandedTrips.has(trip.id) && (
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <div className="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                      <p className="font-medium text-muted-foreground mb-1">VIAJERO</p>
+                                      <p className="text-sm">Viajero #{trip.user_id.slice(0, 8)}</p>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-muted-foreground mb-1">MÉTODO</p>
+                                      <p className="text-sm">
+                                        {trip.delivery_method === 'pickup' ? 'Recoger' : 
+                                         trip.delivery_method === 'delivery' ? 'Entregar' : 'No especificado'}
+                                      </p>
+                                    </div>
+                                    {trip.receiving_window && (
+                                      <div className="col-span-2">
+                                        <p className="font-medium text-muted-foreground mb-1">VENTANA DE RECEPCIÓN</p>
+                                        <div className="flex items-center space-x-1">
+                                          <Package className="h-3 w-3 text-primary" />
+                                          <span className="text-sm">
+                                            {new Date(trip.receiving_window.start).toLocaleDateString('es-GT')} - {new Date(trip.receiving_window.end).toLocaleDateString('es-GT')}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   )}
                 </div>
 
