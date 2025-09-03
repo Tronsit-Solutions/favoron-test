@@ -523,6 +523,8 @@ const Dashboard = ({ user }: DashboardProps) => {
               packages={packages}
               trips={trips}
               currentUser={currentUser}
+              matchingTab={matchingTab}
+              onMatchingTabChange={setMatchingTab}
               onMatchPackage={handleMatchPackage}
               onUpdateStatus={enhancedHandleStatusUpdate}
               onApproveReject={handleApproveReject}
