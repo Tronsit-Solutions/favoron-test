@@ -454,8 +454,9 @@ const AdminDashboard = ({
             onConfirmReception={onConfirmOfficeReception}
             onConfirmDelivery={onConfirmDeliveryComplete}
             onOpenActionsModal={(packageId: string) => {
+              const pkg = localPackages.find(p => p.id === packageId);
               const modalId = `admin-actions-${packageId}`;
-              openModal(modalId, 'admin-actions', packageId);
+              openModal(modalId, 'admin-actions', pkg);
             }}
           />
         </TabsContent>
