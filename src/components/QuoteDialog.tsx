@@ -358,6 +358,11 @@ const QuoteDialog = ({
                   <p className="text-green-600 font-medium">
                     Este es el tip que ganarás si aceptas llevar este paquete.
                   </p>
+                  {(['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(packageDetails.status || '')) && (
+                    <p className="text-blue-600 font-medium text-sm mt-2">
+                      ✅ Este paquete ya fue pagado. Al aceptar, procederás directamente a la compra.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>}

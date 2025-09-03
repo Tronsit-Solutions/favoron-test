@@ -178,22 +178,31 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
     setIsLoading(true);
     try {
-      // Determinar tip ya pagado (si existe) para asignarlo al nuevo viajero
-      const adminAssignedTip = pkg?.quote?.price ? parseFloat(pkg.quote.price) : undefined;
+      // Determinar tip correcto: usar admin_assigned_tip existente o calcular desde quote
+      let adminAssignedTip = pkg?.admin_assigned_tip ? parseFloat(pkg.admin_assigned_tip.toString()) : undefined;
+      
+      // Fallback: si no hay admin_assigned_tip pero hay quote, calcular el tip real (sin comisión Favorón)
+      if (!adminAssignedTip && pkg?.quote?.price) {
+        const totalPaid = parseFloat(pkg.quote.price);
+        adminAssignedTip = totalPaid / 1.15; // Revertir la comisión del 15%
+      }
 
-      // Preparar actualización: mover a 'matched' y limpiar datos dependientes del viajero previo
+      // Determinar si el paquete ya está pagado para preservar su status
+      const isPaid = pkg?.status && ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(pkg.status);
+      const targetStatus = isPaid ? pkg.status : 'matched';
+
+      // Preparar actualización: preservar status pagado o mover a 'matched'
       const updatePayload: any = {
         matched_trip_id: selectedTripId,
-        status: 'matched', // Requiere aceptación del nuevo viajero
+        status: targetStatus,
         traveler_address: null,
         matched_trip_dates: null,
-        // Limpiar documentos que podrían corresponder al viajero previo
-        purchase_confirmation: null,
-        tracking_info: null,
+        // No limpiar purchase_confirmation y tracking_info para paquetes pagados
+        ...(isPaid ? {} : { purchase_confirmation: null, tracking_info: null }),
         // Guardar tip asignado administrativamente si existe
         ...(adminAssignedTip ? { admin_assigned_tip: adminAssignedTip } : {}),
-        // Dejar que el trigger set_assignment_expiration establezca vencimiento de 24h
-        matched_assignment_expires_at: null,
+        // Solo establecer expiración si no está pagado
+        matched_assignment_expires_at: isPaid ? null : null,
         quote_expires_at: null,
       };
 

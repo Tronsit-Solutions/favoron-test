@@ -216,28 +216,52 @@ export const useDashboardActions = (
         
         // Special case: traveler accepting admin-assigned tip
         const isTravelerAcceptingAssignedTip = userType === 'user' &&
-                                              selectedPackage.status === 'matched' &&
+                                              (selectedPackage.status === 'matched' || ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status)) &&
                                               selectedPackage.admin_assigned_tip &&
                                               quoteData.adminAssignedTipAccepted;
         if (isTravelerAcceptingAssignedTip) {
-          console.log('✅ Traveler accepted admin-assigned tip, sending quote to shopper');
+          console.log('✅ Traveler accepted admin-assigned tip');
           
-          // Update package with quote data and move to quote_sent status
-          await updatePackage(selectedPackage.id, {
-            status: 'quote_sent',
-            quote: {
-              price: quoteData.price,
-              serviceFee: quoteData.serviceFee,
-              totalPrice: quoteData.totalPrice,
-              message: quoteData.message,
-              adminAssignedTipAccepted: true
-            }
-          });
+          // Check if package is already paid
+          const isPaidPackage = ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status);
           
-          toast({
-            title: "¡Tip aceptado!",
-            description: "Se ha enviado la cotización al shopper para su aprobación.",
-          });
+          if (isPaidPackage) {
+            console.log('📦 Package already paid, proceeding directly to purchase flow');
+            // For paid packages, stay in current status - no additional payment needed
+            await updatePackage(selectedPackage.id, {
+              status: selectedPackage.status, // Keep current paid status
+              quote: {
+                price: quoteData.price,
+                serviceFee: quoteData.serviceFee,
+                totalPrice: quoteData.totalPrice,
+                message: quoteData.message,
+                adminAssignedTipAccepted: true
+              }
+            });
+            
+            toast({
+              title: "¡Tip aceptado!",
+              description: "Paquete ya pagado. Puedes proceder con la compra.",
+            });
+          } else {
+            console.log('💰 Sending quote to shopper for payment');
+            // For unpaid packages, send quote to shopper
+            await updatePackage(selectedPackage.id, {
+              status: 'quote_sent',
+              quote: {
+                price: quoteData.price,
+                serviceFee: quoteData.serviceFee,
+                totalPrice: quoteData.totalPrice,
+                message: quoteData.message,
+                adminAssignedTipAccepted: true
+              }
+            });
+            
+            toast({
+              title: "¡Tip aceptado!",
+              description: "Se ha enviado la cotización al shopper para su aprobación.",
+            });
+          }
           
           // Close dialog after acceptance handled
           setShowQuoteDialog(false);

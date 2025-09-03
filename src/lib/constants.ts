@@ -69,3 +69,19 @@ export const REJECTION_REASONS = {
   wrong_delivery_time: 'El tiempo de entrega no es el que quería',
   other: 'Otra razón'
 } as const;
+
+export const PAID_STATUSES = [
+  'payment_confirmed',
+  'pending_purchase', 
+  'purchase_confirmed',
+  'paid',
+  'shipped',
+  'in_transit',
+  'received_by_traveler',
+  'delivered',
+  'delivered_to_office'
+] as const;
+
+export const isPaidStatus = (status: string): boolean => {
+  return PAID_STATUSES.includes(status as any);
+};
