@@ -317,28 +317,9 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
-    // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
-    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
-    
-    const tripPackages = pkg?.packages?.filter(pkg => 
-      pkg.matched_trip_id === tripId && 
-      validStatuses.includes(pkg.status)
-    ) || [];
-
-    return tripPackages.reduce((total, pkg) => {
-      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-        // Sum all products: quantity * estimatedPrice
-        const productsTotal = pkg.products_data.reduce((productSum, product) => {
-          const price = parseFloat(product.estimatedPrice || '0');
-          const quantity = parseInt(product.quantity || '1');
-          return productSum + (price * quantity);
-        }, 0);
-        return total + productsTotal;
-      } else {
-        // Fallback to estimated_price
-        return total + parseFloat(pkg.estimated_price || '0');
-      }
-    }, 0);
+    // For now, return 0 as we don't have access to all packages data here
+    // This function would need to be implemented with proper data access
+    return 0;
   };
 
   const toggleTripExpansion = (tripId: string) => {
@@ -802,11 +783,6 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                     <Badge variant="secondary" className="text-xs">
                                       ID: {trip.id.slice(0, 8)}
                                     </Badge>
-                                    {calculateTripPackagesTotal(trip.id) > 0 && (
-                                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                                        ${calculateTripPackagesTotal(trip.id).toFixed(2)} asignados
-                                      </Badge>
-                                    )}
                                   </div>
                                 </div>
 
