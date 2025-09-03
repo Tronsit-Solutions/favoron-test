@@ -235,8 +235,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableRow key={item.package.id}>
                   <TableCell className="font-medium">{item.shopperName}</TableCell>
                   <TableCell>{item.travelerName}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={item.productDescription}>
-                    {item.productDescription}
+                  <TableCell className="max-w-sm">
+                    <div className="whitespace-pre-wrap break-words text-xs leading-relaxed">
+                      {item.productDescription}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
