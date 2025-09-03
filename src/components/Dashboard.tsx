@@ -56,6 +56,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     navigateBack = urlState.navigateBack;
   } catch {
     // Fallback if useUrlState fails (not in proper router context)
+    // This fallback should NOT bypass ProfileCompletionGuard - it will be handled by the guard wrapper
     navigateToForm = (formType: 'package' | 'trip') => {
       if (formType === 'package') {
         setShowPackageForm(true);
