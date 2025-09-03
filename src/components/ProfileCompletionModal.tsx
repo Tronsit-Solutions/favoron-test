@@ -125,7 +125,7 @@ const ProfileCompletionModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}} modal>
+    <Dialog open={isOpen} onOpenChange={onClose} modal>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -197,8 +197,17 @@ const ProfileCompletionModal = ({
               )}
             </Button>
             
+            <Button 
+              onClick={onClose} 
+              variant="outline"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            
             <p className="text-xs text-center text-muted-foreground">
-              No podrás continuar hasta completar esta información
+              Puedes cerrar este modal, pero no podrás solicitar paquetes ni registrar viajes hasta completar tu perfil
             </p>
           </div>
         </div>

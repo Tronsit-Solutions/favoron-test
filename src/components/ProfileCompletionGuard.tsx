@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { useStrictProfileValidation } from "@/hooks/useStrictProfileValidation";
+import { useProfileBlockingState } from "@/hooks/useProfileBlockingState";
+import { useToast } from "@/hooks/use-toast";
 import ProfileCompletionModal from "./ProfileCompletionModal";
 
 interface ProfileCompletionGuardProps {
@@ -20,6 +22,15 @@ const ProfileCompletionGuard = ({
 }: ProfileCompletionGuardProps) => {
   const { isComplete, missingFields } = useProfileCompletion();
   const { validateProfileStrict } = useStrictProfileValidation();
+  const { 
+    shouldShowModal, 
+    shouldShowToast, 
+    markModalSeen, 
+    markClosedWithoutCompleting,
+    clearBlockingState,
+    isBlocked 
+  } = useProfileBlockingState();
+  const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
 
@@ -71,10 +82,22 @@ const ProfileCompletionGuard = ({
     
     // Perform strict validation on click
     if (!strictValidation()) {
-      console.log('🚫 Showing completion modal due to failed validation');
-      setShowModal(true);
+      if (shouldShowToast()) {
+        // User already saw and closed the modal, show toast instead
+        toast({
+          title: "Perfil incompleto",
+          description: "Completa tu perfil para solicitar paquetes o registrar viajes. Ve a tu perfil para completar la información.",
+          variant: "destructive"
+        });
+      } else if (shouldShowModal()) {
+        // First time or haven't closed modal yet, show modal
+        console.log('🚫 Showing completion modal due to failed validation');
+        markModalSeen();
+        setShowModal(true);
+      }
     } else {
       console.log('✅ Allowing action to proceed');
+      clearBlockingState(); // Clear any blocking state when profile is complete
       onAction();
     }
   };
@@ -96,6 +119,7 @@ const ProfileCompletionGuard = ({
 
   const handleClose = () => {
     console.log('❌ Profile completion modal closed without completion');
+    markClosedWithoutCompleting();
     setShowModal(false);
   };
 
