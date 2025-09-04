@@ -12,6 +12,8 @@ import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
 import ProfileCompletionIndicator from "./ProfileCompletionIndicator";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { PhoneNumberBanner } from "./PhoneNumberBanner";
+import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
@@ -46,6 +48,7 @@ interface DashboardProps {
 
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
+  const { isPhoneNumberMissing } = usePhoneNumberValidation();
   
   // Use protected navigation that checks profile completion
   const { navigateToFormWithProfileCheck, isProfileComplete } = useProtectedNavigation();
@@ -220,7 +223,51 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const { getStatusBadge } = useStatusHelpers();
 
-  // Profile completion section component
+  // Phone number banner component
+  const PhoneNumberBannerSection = () => {
+    const [showProfileModal, setShowProfileModal] = useState(false);
+
+    if (!isPhoneNumberMissing) return null;
+
+    const handleCompleteProfile = () => {
+      setShowProfileModal(true);
+    };
+
+    return (
+      <>
+        <PhoneNumberBanner onCompleteProfile={handleCompleteProfile} />
+        
+        {showProfileModal && (
+          <div className="fixed inset-0 z-50" onClick={() => setShowProfileModal(false)}>
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+              <div onClick={(e) => e.stopPropagation()}>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                  <h2 className="text-lg font-semibold mb-4">Completar Número de Teléfono</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Te recomendamos agregar tu número de teléfono para mejorar la comunicación.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setShowProfileModal(false)}>
+                      Cerrar
+                    </Button>
+                    <Button onClick={() => {
+                      setShowProfileModal(false);
+                      setShowProfile(true);
+                    }}>
+                      Ir a Mi Perfil
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // Profile completion section component  
   const ProfileCompletionSection = () => {
     const { isComplete } = useProfileCompletion();
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -360,6 +407,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       />
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
+        <PhoneNumberBannerSection />
         <ProfileCompletionSection />
         
         <div className="mb-6 sm:mb-8">
