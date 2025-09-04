@@ -81,6 +81,16 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
       } else {
         const redirectUrl = `${window.location.origin}/`;
         
+        // Validate WhatsApp before registration
+        if (mode === 'register') {
+          const { validateWhatsAppNumber } = await import('@/lib/validators');
+          const phoneValidation = validateWhatsAppNumber(formData.phone);
+          
+          if (!phoneValidation.isValid) {
+            throw new Error(`WhatsApp inválido: ${phoneValidation.error}`);
+          }
+        }
+        
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -321,21 +331,26 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
           </div>
 
           {mode === 'register' && (
-            <div className="space-y-2">
-              <Label htmlFor="phone">WhatsApp (con código de país) *</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+502 1234 5678"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="pl-10"
-                  required
-                />
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="phone">WhatsApp (con código de país) *</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+502 1234 5678"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ Obligatorio: Necesitas WhatsApp para usar solicitar paquetes y registrar viajes
+                </p>
               </div>
-            </div>
+            </>
           )}
 
           <div className="space-y-2">

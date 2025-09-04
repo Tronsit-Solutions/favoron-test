@@ -719,8 +719,8 @@ const TripForm = ({
   return (
     <ProfileCompletionGuard
       onAction={() => {}}
-      title="Completa tu perfil para registrar viajes"
-      description="Necesitamos tu número de WhatsApp para que los shoppers puedan contactarte y coordinar la entrega."
+      title="WhatsApp obligatorio para registrar viajes"
+      description="Para registrar viajes necesitas un número de WhatsApp válido. Los shoppers te contactarán por WhatsApp para coordinar las entregas."
     >
       {renderTripForm()}
     </ProfileCompletionGuard>

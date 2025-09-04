@@ -17,8 +17,8 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mobile-content">
       <ProfileCompletionGuard
         onAction={onShowPackageForm}
-        title="Completa tu perfil para solicitar paquetes"
-        description="Necesitamos tu número de WhatsApp para que los viajeros puedan contactarte."
+        title="WhatsApp obligatorio para solicitar paquetes"
+        description="Necesitas un número de WhatsApp válido para que los viajeros puedan contactarte."
       >
         <Card className={`hover:shadow-lg transition-shadow cursor-pointer ${!isComplete ? 'opacity-75' : ''}`}>
           <CardHeader className="pb-3">
@@ -48,8 +48,8 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
 
       <ProfileCompletionGuard
         onAction={onShowTripForm}
-        title="Completa tu perfil para registrar viajes"
-        description="Necesitamos tu número de WhatsApp para que los shoppers puedan contactarte."
+        title="WhatsApp obligatorio para registrar viajes"
+        description="Necesitas un número de WhatsApp válido para que los shoppers puedan contactarte."
       >
         <Card className={`hover:shadow-lg transition-shadow cursor-pointer ${!isComplete ? 'opacity-75' : ''}`}>
           <CardHeader className="pb-3">

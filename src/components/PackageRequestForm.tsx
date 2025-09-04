@@ -670,8 +670,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   return (
     <ProfileCompletionGuard
       onAction={() => {}}
-      title="Completa tu perfil para solicitar paquetes"
-      description="Necesitamos tu número de WhatsApp para que los viajeros puedan contactarte y coordinar la entrega."
+      title="WhatsApp obligatorio para solicitar paquetes"
+      description="Para solicitar paquetes necesitas un número de WhatsApp válido. Los viajeros te contactarán por WhatsApp para coordinar la entrega."
     >
       {renderPackageForm()}
     </ProfileCompletionGuard>
