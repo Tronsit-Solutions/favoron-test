@@ -10,8 +10,6 @@ import UserProfile from "./UserProfile";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
-import ProfileCompletionIndicator from "./ProfileCompletionIndicator";
-import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
 import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
@@ -267,56 +265,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     );
   };
 
-  // Profile completion section component  
-  const ProfileCompletionSection = () => {
-    const { isComplete } = useProfileCompletion();
-    const [showProfileModal, setShowProfileModal] = useState(false);
-
-    if (isComplete) return null;
-
-    const handleCompleteProfile = () => {
-      setShowProfileModal(true);
-    };
-
-    return (
-      <>
-        <div className="mb-6">
-          <ProfileCompletionIndicator 
-            variant="banner"
-            showDetails={true} 
-            onCompleteProfile={handleCompleteProfile}
-          />
-        </div>
-        
-        {showProfileModal && (
-          <div className="fixed inset-0 z-50" onClick={() => setShowProfileModal(false)}>
-            <div className="absolute inset-0 bg-black/50" />
-            <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
-              <div onClick={(e) => e.stopPropagation()}>
-                <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                  <h2 className="text-lg font-semibold mb-4">Perfil Incompleto</h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Te recomendamos completar tu perfil para mejorar la coordinación. Haz clic en "Mi Perfil" en el menú superior para completar tu información.
-                  </p>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowProfileModal(false)}>
-                      Cerrar
-                    </Button>
-                    <Button onClick={() => {
-                      setShowProfileModal(false);
-                      setShowProfile(true);
-                    }}>
-                      Ir a Mi Perfil
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  };
 
   if (showProfile) {
     return (
@@ -408,7 +356,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
         <PhoneNumberBannerSection />
-        <ProfileCompletionSection />
+        
         
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-2">

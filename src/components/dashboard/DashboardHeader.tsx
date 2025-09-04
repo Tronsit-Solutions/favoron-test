@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
-import ProfileCompletionIndicator from "@/components/ProfileCompletionIndicator";
+
 
 interface DashboardHeaderProps {
   user: any;
@@ -79,13 +79,6 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             </>
           )}
           
-          {/* Profile completion indicator in header */}
-          <div className="hidden sm:block">
-            <ProfileCompletionIndicator 
-              variant="compact" 
-              onCompleteProfile={onShowProfile}
-            />
-          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
