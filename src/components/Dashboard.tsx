@@ -292,6 +292,7 @@ const Dashboard = ({ user }: DashboardProps) => {
         title: "Solicitud cancelada",
         description: "La solicitud ha sido marcada como cancelada exitosamente.",
       });
+      await refreshPackages();
     } catch (error) {
       console.error('Error cancelling package:', error);
       toast({
