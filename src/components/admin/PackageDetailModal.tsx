@@ -635,6 +635,39 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                     {!['quote_sent', 'payment_pending', 'pending_purchase', 'quote_rejected', 'quote_expired'].includes(pkg.status) && 'Cotización enviada'}
                   </p>
                 </div>
+
+                {/* Shopper Quote Rejection Details */}
+                {(pkg.status === 'quote_rejected' && pkg.quote_rejection) && (
+                  <div className="border-t pt-4">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                        <p className="text-sm font-medium text-red-800">Motivo del Rechazo por Shopper:</p>
+                      </div>
+                      <p className="text-sm text-red-700 mb-2">
+                        {translateRejectionReason((pkg.quote_rejection as any)?.reason)}
+                      </p>
+                      
+                      {(pkg.quote_rejection as any)?.additional_notes && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-red-800 mb-1">Comentarios adicionales:</p>
+                          <p className="text-xs text-red-700 bg-red-100 p-2 rounded">
+                            {(pkg.quote_rejection as any).additional_notes}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {(pkg.quote_rejection as any)?.wants_requote && (
+                        <div className="mt-2 flex items-center space-x-2">
+                          <div className="h-1.5 w-1.5 bg-orange-500 rounded-full"></div>
+                          <p className="text-xs text-orange-700 font-medium">
+                            ⚠️ El shopper solicita nueva cotización
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
