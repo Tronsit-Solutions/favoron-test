@@ -336,37 +336,35 @@ export const MatchCard = ({
               </div>
             </div>
 
-            {/* Show full timer details in expanded view */}
+            {/* Show compact timer details in expanded view */}
             {isExpanded && (showQuoteTimer || showAssignmentTimer) && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <div className="flex items-center space-x-2 mb-2">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+                <div className="flex items-center space-x-1 mb-1">
                   <CalendarDays className="h-3 w-3 text-yellow-600" />
-                  <span className="text-xs font-medium text-yellow-800">Timers Activos</span>
+                  <span className="text-xs font-medium text-yellow-800">Timers</span>
                 </div>
                 
-                {showQuoteTimer && (
-                  <div className="mb-3">
-                    <p className="text-xs font-medium text-yellow-700 mb-2">
-                      Cotización expira: {new Date(pkg.quote_expires_at).toLocaleString('es-GT')}
-                    </p>
-                    <QuoteCountdown 
-                      expiresAt={pkg.quote_expires_at}
-                      compact={false}
-                    />
-                  </div>
-                )}
-                
-                {showAssignmentTimer && (
-                  <div>
-                    <p className="text-xs font-medium text-yellow-700 mb-2">
-                      Asignación expira: {new Date(pkg.matched_assignment_expires_at).toLocaleString('es-GT')}
-                    </p>
-                    <QuoteCountdown 
-                      expiresAt={pkg.matched_assignment_expires_at}
-                      compact={false}
-                    />
-                  </div>
-                )}
+                <div className="space-y-1">
+                  {showQuoteTimer && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-yellow-700">Cotización:</span>
+                      <QuoteCountdown 
+                        expiresAt={pkg.quote_expires_at}
+                        compact={true}
+                      />
+                    </div>
+                  )}
+                  
+                  {showAssignmentTimer && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-yellow-700">Asignación:</span>
+                      <QuoteCountdown 
+                        expiresAt={pkg.matched_assignment_expires_at}
+                        compact={true}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
