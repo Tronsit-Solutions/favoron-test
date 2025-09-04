@@ -24,6 +24,7 @@ import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { useUrlState } from "@/hooks/useUrlState";
+import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { Routes, Route } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
@@ -46,29 +47,31 @@ interface DashboardProps {
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   
-  // Only use URL state in the dashboard context, fallback to regular functions if not available
+  // Use protected navigation that checks profile completion
+  const { navigateToFormWithProfileCheck, isProfileComplete } = useProtectedNavigation();
+  
+  // Fallback navigation functions
   let navigateToForm: (formType: 'package' | 'trip') => void;
   let navigateBack: () => void;
   
   try {
     const urlState = useUrlState();
-    navigateToForm = urlState.navigateToForm;
     navigateBack = urlState.navigateBack;
   } catch {
     // Fallback if useUrlState fails (not in proper router context)
-    // This fallback should NOT bypass ProfileCompletionGuard - it will be handled by the guard wrapper
-    navigateToForm = (formType: 'package' | 'trip') => {
-      if (formType === 'package') {
-        setShowPackageForm(true);
-      } else {
-        setShowTripForm(true);
-      }
-    };
     navigateBack = () => {
       setShowPackageForm(false);
       setShowTripForm(false);
     };
   }
+
+  // Protected navigation function
+  navigateToForm = (formType: 'package' | 'trip') => {
+    navigateToFormWithProfileCheck(formType, () => {
+      // Profile incomplete callback - handled by ProfileCompletionGuard in the UI
+      console.log('Profile incomplete, but UI guard will handle this');
+    });
+  };
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   

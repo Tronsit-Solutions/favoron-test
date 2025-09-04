@@ -103,11 +103,22 @@ export const useOptimizedTripsData = () => {
       return data;
     } catch (error: any) {
       console.error('Error creating trip:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo crear el viaje",
-        variant: "destructive",
-      });
+      
+      // Check if it's a phone number requirement error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Phone number is required')) {
+        toast({
+          title: "WhatsApp requerido",
+          description: "Necesitas un número de WhatsApp válido para registrar viajes. Ve a tu perfil para agregarlo.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error?.message || "No se pudo crear el viaje",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   }, [toast, refreshCache]);

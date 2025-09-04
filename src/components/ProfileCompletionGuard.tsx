@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import ProfileCompletionModal from "./ProfileCompletionModal";
-import { validateWhatsAppNumber } from "@/lib/validators";
+import { useStrictProfileValidation } from "@/hooks/useStrictProfileValidation";
 
 interface ProfileCompletionGuardProps {
   children: React.ReactNode;
@@ -21,44 +21,13 @@ const ProfileCompletionGuard = ({
 }: ProfileCompletionGuardProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { validateProfileStrict } = useStrictProfileValidation();
   const [showModal, setShowModal] = useState(false);
   const [hasClosedModal, setHasClosedModal] = useState(false);
 
   const isProfileComplete = () => {
-    if (!profile) {
-      console.log('❌ No profile found');
-      return false;
-    }
-
-    // Check required fields
-    const requiredFields = ['first_name', 'last_name', 'phone_number'];
-    const missingFields = requiredFields.filter(field => {
-      const value = profile[field as keyof typeof profile];
-      return !value || value.toString().trim() === '';
-    });
-
-    // Special WhatsApp validation
-    if (profile.phone_number) {
-      const phoneValidation = validateWhatsAppNumber(profile.phone_number);
-      if (!phoneValidation.isValid) {
-        console.log('❌ WhatsApp validation failed:', phoneValidation.error);
-        return false;
-      }
-    } else {
-      console.log('❌ No phone number provided');
-      return false;
-    }
-
-    const isComplete = missingFields.length === 0;
-    console.log('🔍 Profile completion check:', {
-      isComplete,
-      missingFields,
-      phone: profile.phone_number,
-      firstName: profile.first_name,
-      lastName: profile.last_name
-    });
-
-    return isComplete;
+    const validation = validateProfileStrict();
+    return validation.isValid;
   };
 
   const handleClick = () => {
@@ -69,9 +38,11 @@ const ProfileCompletionGuard = ({
       
       if (hasClosedModal) {
         // User already closed modal before, show toast
+        const validation = validateProfileStrict();
+        const missingFieldsText = validation.missingFields?.join(', ') || 'información requerida';
         toast({
-          title: "WhatsApp obligatorio",
-          description: "Necesitas un número de WhatsApp válido para usar esta función. Ve a tu perfil para agregarlo.",
+          title: "Perfil incompleto",
+          description: `Necesitas completar: ${missingFieldsText}. Ve a tu perfil para completar la información.`,
           variant: "destructive"
         });
       } else {

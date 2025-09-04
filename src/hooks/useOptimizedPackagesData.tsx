@@ -195,11 +195,23 @@ export const useOptimizedPackagesData = () => {
       
       return data;
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: `No se pudo crear el paquete: ${error.message}`,
-        variant: "destructive",
-      });
+      console.error('Error creating package:', error);
+      
+      // Check if it's a phone number requirement error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Phone number is required')) {
+        toast({
+          title: "WhatsApp requerido",
+          description: "Necesitas un número de WhatsApp válido para solicitar paquetes. Ve a tu perfil para agregarlo.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error?.message || "No se pudo crear el paquete",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   }, [toast]);
