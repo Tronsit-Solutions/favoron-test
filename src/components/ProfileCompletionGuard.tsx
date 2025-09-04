@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { useProfileCompletion } from "@/hooks/useProfileCompletion";
-import { useStrictProfileValidation } from "@/hooks/useStrictProfileValidation";
-import { useProfileBlockingState } from "@/hooks/useProfileBlockingState";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import ProfileCompletionModal from "./ProfileCompletionModal";
+import { validateWhatsAppNumber } from "@/lib/validators";
 
 interface ProfileCompletionGuardProps {
   children: React.ReactNode;
@@ -20,84 +19,68 @@ const ProfileCompletionGuard = ({
   description,
   requirePhoneNumber = true 
 }: ProfileCompletionGuardProps) => {
-  const { isComplete, missingFields } = useProfileCompletion();
-  const { validateProfileStrict } = useStrictProfileValidation();
-  const { 
-    shouldShowModal, 
-    shouldShowToast, 
-    markModalSeen, 
-    markClosedWithoutCompleting,
-    clearBlockingState,
-    isBlocked 
-  } = useProfileBlockingState();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const [showModal, setShowModal] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
+  const [hasClosedModal, setHasClosedModal] = useState(false);
 
-  const strictValidation = () => {
-    setIsValidating(true);
-    
-    // Use the strict validation hook as primary validation
-    const strictResult = validateProfileStrict();
-    
-    // Double-check with original hook for consistency
-    const hookResult = { isComplete, missingFields };
-    
-    console.log('🛡️ ProfileCompletionGuard validation comparison:', {
-      strictResult,
-      hookResult,
-      agreementOnCompletion: strictResult.isValid === isComplete,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Use the most restrictive result (if either says incomplete, treat as incomplete)
-    const finalIsComplete = strictResult.isValid && isComplete;
-    
-    if (!finalIsComplete) {
-      console.log('❌ Final validation failed:', {
-        strictResult,
-        hookResult,
-        finalIsComplete
-      });
-    } else {
-      console.log('✅ Final validation passed - profile complete');
+  const isProfileComplete = () => {
+    if (!profile) {
+      console.log('❌ No profile found');
+      return false;
     }
-    
-    setIsValidating(false);
-    return finalIsComplete;
+
+    // Check required fields
+    const requiredFields = ['first_name', 'last_name', 'phone_number'];
+    const missingFields = requiredFields.filter(field => {
+      const value = profile[field as keyof typeof profile];
+      return !value || value.toString().trim() === '';
+    });
+
+    // Special WhatsApp validation
+    if (profile.phone_number) {
+      const phoneValidation = validateWhatsAppNumber(profile.phone_number);
+      if (!phoneValidation.isValid) {
+        console.log('❌ WhatsApp validation failed:', phoneValidation.error);
+        return false;
+      }
+    } else {
+      console.log('❌ No phone number provided');
+      return false;
+    }
+
+    const isComplete = missingFields.length === 0;
+    console.log('🔍 Profile completion check:', {
+      isComplete,
+      missingFields,
+      phone: profile.phone_number,
+      firstName: profile.first_name,
+      lastName: profile.last_name
+    });
+
+    return isComplete;
   };
 
   const handleClick = () => {
-    // Prevent rapid clicking during validation
-    if (isValidating) {
-      console.log('🚫 Click ignored - validation in progress');
-      return;
-    }
-
-    console.log('🖱️ ProfileCompletionGuard clicked:', {
-      isComplete,
-      missingFields,
-      actionName: onAction.name || 'anonymous'
-    });
+    console.log('🖱️ ProfileCompletionGuard clicked');
     
-    // Perform strict validation on click
-    if (!strictValidation()) {
-      if (shouldShowToast()) {
-        // User already saw and closed the modal, show toast instead
+    if (!isProfileComplete()) {
+      console.log('❌ Profile incomplete - showing modal');
+      
+      if (hasClosedModal) {
+        // User already closed modal before, show toast
         toast({
-          title: "Perfil incompleto",
-          description: "Completa tu perfil para solicitar paquetes o registrar viajes. Ve a tu perfil para completar la información.",
+          title: "WhatsApp obligatorio",
+          description: "Necesitas un número de WhatsApp válido para usar esta función. Ve a tu perfil para agregarlo.",
           variant: "destructive"
         });
-      } else if (shouldShowModal()) {
-        // First time or haven't closed modal yet, show modal
-        console.log('🚫 Showing completion modal due to failed validation');
-        markModalSeen();
+      } else {
+        // Show modal
         setShowModal(true);
       }
     } else {
-      console.log('✅ Allowing action to proceed');
-      clearBlockingState(); // Clear any blocking state when profile is complete
+      console.log('✅ Profile complete - executing action');
+      setHasClosedModal(false); // Reset modal state
       onAction();
     }
   };
@@ -105,30 +88,35 @@ const ProfileCompletionGuard = ({
   const handleComplete = () => {
     console.log('✅ Profile completion modal completed');
     setShowModal(false);
+    setHasClosedModal(false); // Reset since user completed profile
+    
     // Small delay to ensure profile state is updated
     setTimeout(() => {
-      // Re-validate before proceeding
-      if (strictValidation()) {
+      if (isProfileComplete()) {
         console.log('✅ Profile validated after completion - executing action');
         onAction();
       } else {
-        console.log('❌ Profile still incomplete after modal - keeping modal closed but not executing action');
+        console.log('❌ Profile still incomplete after modal');
       }
     }, 100);
   };
 
   const handleClose = () => {
     console.log('❌ Profile completion modal closed without completion');
-    markClosedWithoutCompleting();
+    setHasClosedModal(true); // Mark that user has closed modal
     setShowModal(false);
   };
 
+  // Reset modal state when profile changes
+  useEffect(() => {
+    if (isProfileComplete()) {
+      setHasClosedModal(false);
+    }
+  }, [profile]);
+
   return (
     <>
-      <div 
-        onClick={handleClick} 
-        className={`cursor-pointer ${isValidating ? 'opacity-50 pointer-events-none' : ''}`}
-      >
+      <div onClick={handleClick} className="cursor-pointer">
         {children}
       </div>
       
