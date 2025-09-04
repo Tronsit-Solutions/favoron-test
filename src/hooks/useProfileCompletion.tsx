@@ -1,4 +1,5 @@
 import { useAuth } from "./useAuth";
+import { validateWhatsAppNumber } from "@/lib/validators";
 
 export interface ProfileCompletionStatus {
   isComplete: boolean;
@@ -23,7 +24,6 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
     
     // Special validation for phone_number - use WhatsApp validation
     if (key === 'phone_number') {
-      const { validateWhatsAppNumber } = require('@/lib/validators');
       const validation = validateWhatsAppNumber(stringValue);
       
       console.log(`📱 WhatsApp validation for "${stringValue}":`, {
@@ -114,7 +114,6 @@ export const isProfileComplete = (profile: any): boolean => {
     
     // Special validation for phone_number
     if (field === 'phone_number') {
-      const { validateWhatsAppNumber } = require('@/lib/validators');
       const validation = validateWhatsAppNumber(value);
       
       if (!validation.isValid) {
