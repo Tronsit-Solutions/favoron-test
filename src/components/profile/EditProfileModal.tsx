@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Save } from "lucide-react";
+import { parsePhoneNumber, combinePhoneNumber } from "@/lib/phoneUtils";
 import PersonalInfoForm from "./PersonalInfoForm";
 
 interface EditProfileModalProps {
@@ -13,11 +14,14 @@ interface EditProfileModalProps {
 }
 
 const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileModalProps) => {
+  const parsedPhone = parsePhoneNumber(user.phone_number || user.phone || '');
+  
   const [formData, setFormData] = useState({
     firstName: user.first_name || user.firstName || '',
     lastName: user.last_name || user.lastName || '',
     username: user.username || '',
-    phone: user.phone_number || user.phone || '',
+    countryCode: parsedPhone.countryCode,
+    phoneNumber: parsedPhone.phoneNumber,
     idNumber: user.idNumber || '',
     avatarUrl: user.avatar_url || user.avatarUrl || '',
   });
@@ -33,19 +37,31 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileMo
       return;
     }
 
+    if (!formData.phoneNumber && formData.countryCode) {
+      toast({
+        title: "Error", 
+        description: "El número de teléfono es obligatorio",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const fullPhoneNumber = combinePhoneNumber(formData.countryCode, formData.phoneNumber);
+
     const updatedUser = {
       ...user,
       firstName: formData.firstName,
       lastName: formData.lastName,
       name: `${formData.firstName} ${formData.lastName}`,
       username: formData.username,
-      phone: formData.phone,
+      phone: fullPhoneNumber,
       idNumber: formData.idNumber,
       avatarUrl: formData.avatarUrl,
       // Database fields
       first_name: formData.firstName,
       last_name: formData.lastName,
-      phone_number: formData.phone,
+      phone_number: fullPhoneNumber,
+      country_code: formData.countryCode,
       avatar_url: formData.avatarUrl
     };
 
@@ -59,11 +75,14 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileMo
 
   const handleCancel = () => {
     // Reset form data to original values
+    const parsedPhone = parsePhoneNumber(user.phone_number || user.phone || '');
+    
     setFormData({
       firstName: user.first_name || user.firstName || '',
       lastName: user.last_name || user.lastName || '',
       username: user.username || '',
-      phone: user.phone_number || user.phone || '',
+      countryCode: parsedPhone.countryCode,
+      phoneNumber: parsedPhone.phoneNumber,
       idNumber: user.idNumber || '',
       avatarUrl: user.avatar_url || user.avatarUrl || '',
     });

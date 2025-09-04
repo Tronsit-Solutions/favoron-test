@@ -2,7 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AtSign, Phone, CreditCard, Save } from "lucide-react";
+import { PHONE_CONFIG } from "@/lib/constants";
 import AvatarUpload from "./AvatarUpload";
 
 interface PersonalInfoFormProps {
@@ -64,15 +66,32 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
 
       <div className="space-y-2">
         <Label htmlFor="phone">WhatsApp</Label>
-        <div className="relative">
-          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, phone: e.target.value }))}
-            placeholder="+502 1234 5678"
-            className="pl-10"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <Select
+            value={formData.countryCode}
+            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, countryCode: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="País" />
+            </SelectTrigger>
+            <SelectContent>
+              {PHONE_CONFIG.SUPPORTED_COUNTRIES.map((country) => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.flag} {country.code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, phoneNumber: e.target.value }))}
+              placeholder="1234 5678"
+              className="pl-10"
+            />
+          </div>
         </div>
       </div>
 
