@@ -580,6 +580,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onAdminConfirmOfficeDelivery={handleAdminConfirmOfficeDelivery}
               onConfirmShopperReceived={handleConfirmShopperReceived}
               onRefreshPackages={refreshPackages}
+              refreshAdminData={async () => { await refreshPackages(); }}
               />
             </TabsContent>
           )}

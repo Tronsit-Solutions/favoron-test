@@ -47,6 +47,7 @@ interface AdminDashboardProps {
   onConfirmShopperReceived: (packageId: string) => void;
   onDiscardPackage: (pkg: any) => void;
   onRefreshPackages?: () => void;
+  refreshAdminData?: () => Promise<void>;
 }
 
 const AdminDashboard = ({ 
@@ -63,6 +64,7 @@ const AdminDashboard = ({
   onConfirmShopperReceived,
   onDiscardPackage,
   onRefreshPackages,
+  refreshAdminData,
   matchingTab,
   onMatchingTabChange
 }: AdminDashboardProps & { 
@@ -160,7 +162,7 @@ const AdminDashboard = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleMatch = (adminTip?: number, productsWithTips?: any[]) => {
+  const handleMatch = async (adminTip?: number, productsWithTips?: any[]) => {
     if (selectedPackage && matchingTrip) {
       if (!adminTip || adminTip <= 0) {
         toast({
@@ -170,18 +172,59 @@ const AdminDashboard = ({
         });
         return;
       }
-      onMatchPackage(selectedPackage.id, matchingTrip, adminTip, productsWithTips);
-      
-      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
+
+      // Show loading toast
       toast({
-        title: "¡Match exitoso!",
-        description: isMultiProduct 
-          ? `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tips por producto (Total: Q${adminTip})`
-          : `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
+        title: "Procesando match...",
+        description: "Actualizando los datos del paquete y viaje.",
       });
-      setSelectedPackage(null);
-      setMatchingTrip("");
-      setShowMatchDialog(false);
+
+      try {
+        // Apply optimistic update first for immediate UI feedback
+        console.log('🚀 Applying optimistic match update...');
+        setLocalPackages(prevPackages => 
+          prevPackages.map(pkg => 
+            pkg.id === selectedPackage.id ? {
+              ...pkg,
+              status: 'matched',
+              matched_trip_id: matchingTrip,
+              admin_assigned_tip: adminTip,
+              matched_assignment_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              updated_at: new Date().toISOString()
+            } : pkg
+          )
+        );
+
+        // Execute the match in the background
+        await onMatchPackage(selectedPackage.id, matchingTrip, adminTip, productsWithTips);
+        
+        // Force refresh admin data to ensure consistency
+        console.log('🔄 Forcing admin data refresh after match...');
+        if (refreshAdminData) {
+          setTimeout(async () => {
+            await refreshAdminData();
+          }, 500);
+        }
+        
+        const isMultiProduct = productsWithTips && productsWithTips.length > 1;
+        toast({
+          title: "¡Match exitoso!",
+          description: isMultiProduct 
+            ? `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tips por producto (Total: Q${adminTip})`
+            : `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
+        });
+        
+        setSelectedPackage(null);
+        setMatchingTrip("");
+        setShowMatchDialog(false);
+      } catch (error) {
+        console.error('Error during match:', error);
+        toast({
+          title: "Error",
+          description: "Hubo un problema al procesar el match. Intenta de nuevo.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

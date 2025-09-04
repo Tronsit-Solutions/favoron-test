@@ -288,13 +288,33 @@ export const useAdminData = (): AdminData => {
     }
   }, [loading, authLoading, isAdmin, wasAdmin, user, packages.length, trips.length, error, refreshData]);
 
+  const optimisticUpdatePackage = useCallback((packageId: string, updates: any) => {
+    console.log('🚀 Admin: Optimistic package update:', packageId, updates);
+    setPackages(prevPackages => 
+      prevPackages.map(pkg => 
+        pkg.id === packageId ? { ...pkg, ...updates } : pkg
+      )
+    );
+  }, []);
+
+  const optimisticUpdateTrip = useCallback((tripId: string, updates: any) => {
+    console.log('🚀 Admin: Optimistic trip update:', tripId, updates);
+    setTrips(prevTrips => 
+      prevTrips.map(trip => 
+        trip.id === tripId ? { ...trip, ...updates } : trip
+      )
+    );
+  }, []);
+
   const memoizedResult = useMemo(() => ({
     packages,
     trips,
     loading,
     error,
-    refreshData
-  }), [packages, trips, loading, error, refreshData]);
+    refreshData,
+    optimisticUpdatePackage,
+    optimisticUpdateTrip
+  }), [packages, trips, loading, error, refreshData, optimisticUpdatePackage, optimisticUpdateTrip]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,
