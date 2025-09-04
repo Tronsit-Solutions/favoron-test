@@ -226,13 +226,60 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Profile completion section component
   const ProfileCompletionSection = () => {
     const { isComplete } = useProfileCompletion();
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     if (isComplete) return null;
 
+    const handleCompleteProfile = () => {
+      setShowProfileModal(true);
+    };
+
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-        <ProfileCompletionIndicator showDetails={true} />
-      </div>
+      <>
+        <div className="mb-6">
+          <ProfileCompletionIndicator 
+            variant="banner"
+            showDetails={true} 
+            onCompleteProfile={handleCompleteProfile}
+          />
+        </div>
+        
+        {/* Profile Completion Modal - same as in ProfileCompletionGuard */}
+        <ProfileCompletionGuard
+          onAction={() => {}}
+          title="Completar Perfil Obligatorio"
+          description="Necesitas completar tu perfil para poder usar todas las funcionalidades de la plataforma."
+        >
+          <div style={{ display: 'none' }}>Hidden trigger</div>
+        </ProfileCompletionGuard>
+        
+        {showProfileModal && (
+          <div className="fixed inset-0 z-50" onClick={() => setShowProfileModal(false)}>
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+              <div onClick={(e) => e.stopPropagation()}>
+                <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                  <h2 className="text-lg font-semibold mb-4">Perfil Incompleto</h2>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Necesitas completar tu perfil para usar la plataforma. Haz clic en "Mi Perfil" en el menú superior para completar tu información.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setShowProfileModal(false)}>
+                      Cerrar
+                    </Button>
+                    <Button onClick={() => {
+                      setShowProfileModal(false);
+                      setShowProfile(true);
+                    }}>
+                      Ir a Mi Perfil
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
