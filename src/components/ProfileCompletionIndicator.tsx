@@ -35,10 +35,10 @@ const ProfileCompletionIndicator = ({
     );
   }
 
-  // Banner variant - very prominent warning
+  // Banner variant - prominent but not blocking
   if (variant === 'banner') {
     return (
-      <div className={`bg-gradient-to-r from-red-500 to-orange-500 text-white p-6 rounded-lg shadow-lg border-l-4 border-red-600 ${className}`}>
+      <div className={`bg-gradient-to-r from-amber-500 to-orange-500 text-white p-6 rounded-lg shadow-lg border-l-4 border-amber-600 ${className}`}>
         <div className="flex items-start space-x-4">
           <div className="flex-shrink-0">
             <AlertTriangle className="h-8 w-8 text-white" />
@@ -46,13 +46,13 @@ const ProfileCompletionIndicator = ({
           <div className="flex-1 space-y-3">
             <div>
               <h3 className="text-lg font-bold mb-2">
-                ⚠️ Perfil Incompleto - No Puedes Usar la Plataforma
+                📋 Perfil Incompleto - Te Recomendamos Completarlo
               </h3>
               <p className="text-sm opacity-90 mb-3">
-                <strong>Tu cuenta está bloqueada:</strong> Necesitas completar tu información para solicitar paquetes y registrar viajes.
+                <strong>Puedes usar la plataforma normalmente,</strong> pero completar tu información mejorará la coordinación con viajeros y shoppers.
               </p>
               <div className="flex items-center space-x-2 mb-3">
-                <Lock className="h-4 w-4" />
+                <AlertCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">
                   Campos faltantes: {missingFields.join(', ')}
                 </span>
@@ -72,10 +72,10 @@ const ProfileCompletionIndicator = ({
                 </span>
               </div>
               
-              {onCompleteProfile && (
+               {onCompleteProfile && (
                 <Button 
                   onClick={onCompleteProfile}
-                  className="bg-white text-red-600 hover:bg-gray-50 font-semibold px-6 py-2 shadow-md"
+                  className="bg-white text-amber-700 hover:bg-gray-50 font-semibold px-6 py-2 shadow-md"
                   size="sm"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
@@ -108,7 +108,7 @@ const ProfileCompletionIndicator = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
-          <span className="font-medium text-amber-800">⚠️ Completa tu perfil para usar la plataforma</span>
+          <span className="font-medium text-amber-800">📋 Te recomendamos completar tu perfil</span>
         </div>
         <span className="text-sm font-medium text-amber-700">{completionPercentage}%</span>
       </div>

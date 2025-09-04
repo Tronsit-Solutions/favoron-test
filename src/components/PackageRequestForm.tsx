@@ -13,7 +13,7 @@ import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, P
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
-import ProfileCompletionGuard from "@/components/ProfileCompletionGuard";
+
 
 interface PackageRequestFormProps {
   isOpen: boolean;
@@ -666,16 +666,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return renderPackageForm();
   }
 
-  // In create mode, use profile completion guard
-  return (
-    <ProfileCompletionGuard
-      onAction={() => {}}
-      title="WhatsApp obligatorio para solicitar paquetes"
-      description="Para solicitar paquetes necesitas un número de WhatsApp válido. Los viajeros te contactarán por WhatsApp para coordinar la entrega."
-    >
-      {renderPackageForm()}
-    </ProfileCompletionGuard>
-  );
+  // In create mode, show form directly (no longer blocking on profile completion)
+  return renderPackageForm();
 };
 
 export default PackageRequestForm;

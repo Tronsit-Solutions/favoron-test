@@ -18,7 +18,7 @@ import TripPackagesGroup from "./dashboard/TripPackagesGroup";
 import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
-import ProfileCompletionGuard from "./ProfileCompletionGuard";
+
 import AvailableTripsCard from "./AvailableTripsCard";
 import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
@@ -65,12 +65,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     };
   }
 
-  // Protected navigation function
+  // Simple navigation function (no longer blocking on profile completion)
   navigateToForm = (formType: 'package' | 'trip') => {
-    navigateToFormWithProfileCheck(formType, () => {
-      // Profile incomplete callback - handled by ProfileCompletionGuard in the UI
-      console.log('Profile incomplete, but UI guard will handle this');
-    });
+    navigateToFormWithProfileCheck(formType);
   };
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
@@ -244,15 +241,6 @@ const Dashboard = ({ user }: DashboardProps) => {
           />
         </div>
         
-        {/* Profile Completion Modal - same as in ProfileCompletionGuard */}
-        <ProfileCompletionGuard
-          onAction={() => {}}
-          title="Completar Perfil Obligatorio"
-          description="Necesitas completar tu perfil para poder usar todas las funcionalidades de la plataforma."
-        >
-          <div style={{ display: 'none' }}>Hidden trigger</div>
-        </ProfileCompletionGuard>
-        
         {showProfileModal && (
           <div className="fixed inset-0 z-50" onClick={() => setShowProfileModal(false)}>
             <div className="absolute inset-0 bg-black/50" />
@@ -261,7 +249,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                 <div className="bg-white rounded-lg p-6 w-full max-w-md">
                   <h2 className="text-lg font-semibold mb-4">Perfil Incompleto</h2>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Necesitas completar tu perfil para usar la plataforma. Haz clic en "Mi Perfil" en el menú superior para completar tu información.
+                    Te recomendamos completar tu perfil para mejorar la coordinación. Haz clic en "Mi Perfil" en el menú superior para completar tu información.
                   </p>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setShowProfileModal(false)}>
@@ -433,17 +421,11 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <ProfileCompletionGuard
-                  onAction={() => navigateToForm('package')}
-                  title="Completar perfil para solicitar paquetes"
-                  description="Necesitamos tu información de contacto para procesar tu solicitud de paquete."
-                >
-                  <Button variant="shopper" className="w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Nueva Solicitud</span>
-                    <span className="sm:hidden">Nuevo Pedido</span>
-                  </Button>
-                </ProfileCompletionGuard>
+                <Button variant="shopper" className="w-full sm:w-auto" onClick={() => navigateToForm('package')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Nueva Solicitud</span>
+                  <span className="sm:hidden">Nuevo Pedido</span>
+                </Button>
               </div>
             </div>
 
@@ -515,16 +497,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <ProfileCompletionGuard
-                  onAction={() => navigateToForm('trip')}
-                  title="Completar perfil para registrar viajes"
-                  description="Necesitamos tu información de contacto para procesar tu registro de viaje."
-                >
-                  <Button variant="traveler" className="w-full sm:w-auto">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuevo Viaje
-                  </Button>
-                </ProfileCompletionGuard>
+                <Button variant="traveler" className="w-full sm:w-auto" onClick={() => navigateToForm('trip')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Viaje
+                </Button>
               </div>
             </div>
 

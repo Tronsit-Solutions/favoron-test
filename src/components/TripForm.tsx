@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
-import ProfileCompletionGuard from "@/components/ProfileCompletionGuard";
+
 import { COUNTRIES } from "@/lib/countries";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
 import "./ui/mobile-safe-form.css";
@@ -716,15 +716,7 @@ const TripForm = ({
     </Dialog>
   );
 
-  return (
-    <ProfileCompletionGuard
-      onAction={() => {}}
-      title="WhatsApp obligatorio para registrar viajes"
-      description="Para registrar viajes necesitas un número de WhatsApp válido. Los shoppers te contactarán por WhatsApp para coordinar las entregas."
-    >
-      {renderTripForm()}
-    </ProfileCompletionGuard>
-  );
+  return renderTripForm();
 };
 
 export default TripForm;

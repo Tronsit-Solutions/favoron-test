@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, Plane, Plus } from "lucide-react";
-import ProfileCompletionGuard from "@/components/ProfileCompletionGuard";
 
 interface ProtectedEmptyStateProps {
   type: 'packages' | 'trips';
@@ -32,16 +31,10 @@ const ProtectedEmptyState = ({ type, onAction }: ProtectedEmptyStateProps) => {
         <Icon className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
         <h4 className="text-lg font-semibold mb-2">{title}</h4>
         <p className="text-muted-foreground mb-4">{description}</p>
-        <ProfileCompletionGuard
-          onAction={onAction}
-          title={type === 'packages' ? "Completar perfil para solicitar paquetes" : "Completar perfil para registrar viajes"}
-          description={type === 'packages' ? "Necesitamos tu información de contacto para procesar tu solicitud de paquete." : "Necesitamos tu información de contacto para procesar tu registro de viaje."}
-        >
-          <Button variant={type === 'trips' ? 'traveler' : 'shopper'}>
-            <Plus className="h-4 w-4 mr-2" />
-            {buttonText}
-          </Button>
-        </ProfileCompletionGuard>
+        <Button variant={type === 'trips' ? 'traveler' : 'shopper'} onClick={onAction}>
+          <Plus className="h-4 w-4 mr-2" />
+          {buttonText}
+        </Button>
       </CardContent>
     </Card>
   );
