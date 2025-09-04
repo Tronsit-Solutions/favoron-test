@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import PersonalInfoForm from "./profile/PersonalInfoForm";
 import { useToast } from "@/hooks/use-toast";
+import { validateWhatsAppNumber } from "@/lib/validators";
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
@@ -36,20 +37,41 @@ const ProfileCompletionModal = ({
     idNumber: profile?.document_number || '',
     avatarUrl: profile?.avatar_url || ''
   });
+  
+  const [phoneValidation, setPhoneValidation] = useState<{ isValid: boolean; error?: string }>({ isValid: true });
 
   // Update form data when profile changes
   useEffect(() => {
     if (profile) {
-      setFormData({
+      const newFormData = {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         phone: profile.phone_number || '',
         username: profile.username || '',
         idNumber: profile.document_number || '',
         avatarUrl: profile.avatar_url || ''
-      });
+      };
+      setFormData(newFormData);
+      
+      // Validate phone number on load
+      if (newFormData.phone) {
+        const validation = validateWhatsAppNumber(newFormData.phone);
+        setPhoneValidation(validation);
+        console.log('📱 Initial phone validation:', { phone: newFormData.phone, validation });
+      }
     }
   }, [profile]);
+  
+  // Real-time phone validation
+  useEffect(() => {
+    if (formData.phone) {
+      const validation = validateWhatsAppNumber(formData.phone);
+      setPhoneValidation(validation);
+      console.log('📱 Real-time phone validation:', { phone: formData.phone, validation });
+    } else {
+      setPhoneValidation({ isValid: false, error: 'Número de WhatsApp requerido' });
+    }
+  }, [formData.phone]);
 
   // Auto-close modal when profile becomes complete
   useEffect(() => {
@@ -80,10 +102,12 @@ const ProfileCompletionModal = ({
       return;
     }
     
-    if (!formData.phone.trim()) {
+    // Validate WhatsApp number specifically
+    const phoneValidationResult = validateWhatsAppNumber(formData.phone);
+    if (!phoneValidationResult.isValid) {
       toast({
-        title: "Campo requerido",
-        description: "Por favor ingresa tu número de WhatsApp para que los viajeros puedan contactarte",
+        title: "WhatsApp inválido",
+        description: phoneValidationResult.error || "Por favor ingresa un número de WhatsApp válido",
         variant: "destructive"
       });
       return;
@@ -176,6 +200,25 @@ const ProfileCompletionModal = ({
               onSave={handleSave}
               showSaveButton={false}
             />
+            
+            {/* WhatsApp validation feedback */}
+            {formData.phone && !phoneValidation.isValid && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-sm text-red-700">{phoneValidation.error}</span>
+                </div>
+              </div>
+            )}
+            
+            {formData.phone && phoneValidation.isValid && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-4 w-4 text-green-600" />
+                  <span className="text-sm text-green-700">WhatsApp válido ✓</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

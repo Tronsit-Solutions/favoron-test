@@ -16,10 +16,25 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
     last_name: 'Apellido'
   };
 
-  const validateFieldValue = (value: any): boolean => {
+  const validateFieldValue = (key: string, value: any): boolean => {
     // Strict validation: null, undefined, empty string, or whitespace-only strings are invalid
     if (value === null || value === undefined) return false;
     const stringValue = value.toString().trim();
+    
+    // Special validation for phone_number - use WhatsApp validation
+    if (key === 'phone_number') {
+      const { validateWhatsAppNumber } = require('@/lib/validators');
+      const validation = validateWhatsAppNumber(stringValue);
+      
+      console.log(`📱 WhatsApp validation for "${stringValue}":`, {
+        isValid: validation.isValid,
+        error: validation.error,
+        rawValue: JSON.stringify(value)
+      });
+      
+      return validation.isValid;
+    }
+    
     return stringValue.length > 0;
   };
 
@@ -45,14 +60,15 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
 
     const fieldStatus = Object.keys(requiredFields).reduce((acc, key) => {
       const value = profile[key as keyof typeof profile];
-      const isComplete = validateFieldValue(value);
+      const isComplete = validateFieldValue(key, value);
       
       // Debug each field
       console.log(`📝 Field ${key}:`, {
         value,
         rawValue: JSON.stringify(value),
         isComplete,
-        type: typeof value
+        type: typeof value,
+        fieldLabel: requiredFields[key as keyof typeof requiredFields]
       });
       
       return { ...acc, [key]: isComplete };
@@ -95,6 +111,25 @@ export const isProfileComplete = (profile: any): boolean => {
   
   const isComplete = requiredFields.every(field => {
     const value = profile[field];
+    
+    // Special validation for phone_number
+    if (field === 'phone_number') {
+      const { validateWhatsAppNumber } = require('@/lib/validators');
+      const validation = validateWhatsAppNumber(value);
+      
+      if (!validation.isValid) {
+        console.log(`❌ isProfileComplete: WhatsApp ${field} validation failed:`, {
+          value,
+          rawValue: JSON.stringify(value),
+          error: validation.error,
+          type: typeof value
+        });
+      }
+      
+      return validation.isValid;
+    }
+    
+    // Standard validation for other fields
     const isValid = value !== null && value !== undefined && value.toString().trim() !== '';
     
     if (!isValid) {

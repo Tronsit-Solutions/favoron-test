@@ -32,12 +32,47 @@ export const validateFile = (file: File) => {
 };
 
 // Phone validation
-export const validatePhoneNumber = (phone: string, countryCode: string): boolean => {
-  if (!phone || !countryCode) return false;
+export const validatePhoneNumber = (phone: string, countryCode?: string): boolean => {
+  if (!phone) return false;
   
-  // Basic validation - at least 8 digits
-  const phoneWithoutSpaces = phone.replace(/\s/g, '');
-  return phoneWithoutSpaces.length >= 8 && /^\d+$/.test(phoneWithoutSpaces);
+  // Remove all non-digit characters except + for initial validation
+  const cleanPhone = phone.replace(/[^\d+]/g, '');
+  
+  // Must have at least 8 digits (excluding country code symbols)
+  const digitsOnly = cleanPhone.replace(/[^\d]/g, '');
+  
+  if (digitsOnly.length < 8) return false;
+  
+  // If phone starts with +, it should have at least 10 digits total
+  if (cleanPhone.startsWith('+') && digitsOnly.length < 10) return false;
+  
+  return true;
+};
+
+// WhatsApp specific validation - stricter than general phone
+export const validateWhatsAppNumber = (phone: string): { isValid: boolean; error?: string } => {
+  if (!phone || !phone.trim()) {
+    return { isValid: false, error: 'Número de WhatsApp requerido' };
+  }
+
+  const cleanPhone = phone.trim().replace(/[^\d+]/g, '');
+  const digitsOnly = cleanPhone.replace(/[^\d]/g, '');
+  
+  // Must include country code (+ or direct digits)
+  if (!cleanPhone.startsWith('+') && digitsOnly.length < 10) {
+    return { isValid: false, error: 'Incluye el código de país (ej: +502)' };
+  }
+  
+  // Must have sufficient digits
+  if (digitsOnly.length < 8) {
+    return { isValid: false, error: 'Número muy corto (mínimo 8 dígitos)' };
+  }
+  
+  if (digitsOnly.length > 15) {
+    return { isValid: false, error: 'Número muy largo (máximo 15 dígitos)' };
+  }
+  
+  return { isValid: true };
 };
 
 // Email validation

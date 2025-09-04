@@ -370,6 +370,14 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   };
 
   const openWhatsApp = () => {
+    console.log('🔍 WhatsApp open attempt:', {
+      packageId: pkg.id,
+      profileExists: !!pkg.profiles,
+      phoneNumber: pkg.profiles?.phone_number,
+      phoneType: typeof pkg.profiles?.phone_number,
+      phoneLength: pkg.profiles?.phone_number?.length
+    });
+    
     if (pkg.profiles?.phone_number) {
       const phone = pkg.profiles.phone_number.replace(/[^\d]/g, '');
       const message = `Hola! Te contacto desde Favorón respecto a tu pedido #${pkg.id.slice(0, 8)}`;
