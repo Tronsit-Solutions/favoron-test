@@ -32,7 +32,8 @@ const ProfileCompletionModal = ({
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
-    phone: profile?.phone_number || '',
+    countryCode: profile?.country_code || '+502',
+    phoneNumber: profile?.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
     username: profile?.username || '',
     idNumber: profile?.document_number || '',
     avatarUrl: profile?.avatar_url || ''
@@ -46,7 +47,8 @@ const ProfileCompletionModal = ({
       const newFormData = {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
-        phone: profile.phone_number || '',
+        countryCode: profile.country_code || '+502',
+        phoneNumber: profile.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
         username: profile.username || '',
         idNumber: profile.document_number || '',
         avatarUrl: profile.avatar_url || ''
@@ -54,24 +56,26 @@ const ProfileCompletionModal = ({
       setFormData(newFormData);
       
       // Validate phone number on load
-      if (newFormData.phone) {
-        const validation = validateWhatsAppNumber(newFormData.phone);
+      const fullPhone = `${newFormData.countryCode} ${newFormData.phoneNumber}`.trim();
+      if (newFormData.phoneNumber) {
+        const validation = validateWhatsAppNumber(fullPhone);
         setPhoneValidation(validation);
-        console.log('📱 Initial phone validation:', { phone: newFormData.phone, validation });
+        console.log('📱 Initial phone validation:', { fullPhone, validation });
       }
     }
   }, [profile]);
   
   // Real-time phone validation
   useEffect(() => {
-    if (formData.phone) {
-      const validation = validateWhatsAppNumber(formData.phone);
+    const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
+    if (formData.phoneNumber) {
+      const validation = validateWhatsAppNumber(fullPhone);
       setPhoneValidation(validation);
-      console.log('📱 Real-time phone validation:', { phone: formData.phone, validation });
+      console.log('📱 Real-time phone validation:', { fullPhone, validation });
     } else {
       setPhoneValidation({ isValid: false, error: 'Número de WhatsApp requerido' });
     }
-  }, [formData.phone]);
+  }, [formData.countryCode, formData.phoneNumber]);
 
   // Auto-close modal when profile becomes complete
   useEffect(() => {
@@ -103,7 +107,8 @@ const ProfileCompletionModal = ({
     }
     
     // Validate WhatsApp number specifically
-    const phoneValidationResult = validateWhatsAppNumber(formData.phone);
+    const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
+    const phoneValidationResult = validateWhatsAppNumber(fullPhone);
     if (!phoneValidationResult.isValid) {
       toast({
         title: "WhatsApp inválido",
@@ -116,10 +121,12 @@ const ProfileCompletionModal = ({
     setIsSubmitting(true);
     
     try {
+      const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
       await updateProfile({
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
-        phone_number: formData.phone.trim(),
+        country_code: formData.countryCode.trim(),
+        phone_number: fullPhone,
         username: formData.username.trim() || null,
         document_number: formData.idNumber.trim() || null,
         avatar_url: formData.avatarUrl || null
@@ -202,7 +209,7 @@ const ProfileCompletionModal = ({
             />
             
             {/* WhatsApp validation feedback */}
-            {formData.phone && !phoneValidation.isValid && (
+            {formData.phoneNumber && !phoneValidation.isValid && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2">
                   <AlertCircle className="h-4 w-4 text-red-600" />
@@ -211,7 +218,7 @@ const ProfileCompletionModal = ({
               </div>
             )}
             
-            {formData.phone && phoneValidation.isValid && (
+            {formData.phoneNumber && phoneValidation.isValid && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-green-600" />
