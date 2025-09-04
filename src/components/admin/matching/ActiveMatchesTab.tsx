@@ -72,35 +72,64 @@ const ActiveMatchesTab = ({
     
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
-    // Define status priorities
-    const topPriority = ['delivered_to_office'];
-    const adminActionRequired = ['pending_office_confirmation', 'received_by_traveler'];
+    // Helper function to check if package has active timers
+    const hasActiveTimer = (pkg: any) => {
+      const now = new Date();
+      const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at) : null;
+      const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at) : null;
+      
+      return (assignmentExpiry && assignmentExpiry > now) || (quoteExpiry && quoteExpiry > now);
+    };
+
+    // Define priority categories
+    const adminActionStatuses = ['pending_office_confirmation', 'delivered_to_office'];
+    const timerStatuses = ['matched', 'quote_sent', 'payment_pending'];
+    const receivedByTravelerStatuses = ['received_by_traveler'];
     const completedStatuses = ['completed'];
     
-    const aTopPriority = topPriority.includes(a.status);
-    const bTopPriority = topPriority.includes(b.status);
-    const aRequiresAction = adminActionRequired.includes(a.status);
-    const bRequiresAction = adminActionRequired.includes(b.status);
+    // Check category for each package
+    const aAdminAction = adminActionStatuses.includes(a.status);
+    const bAdminAction = adminActionStatuses.includes(b.status);
+    
+    const aHasTimer = timerStatuses.includes(a.status) && hasActiveTimer(a);
+    const bHasTimer = timerStatuses.includes(b.status) && hasActiveTimer(b);
+    
+    const aReceivedByTraveler = receivedByTravelerStatuses.includes(a.status);
+    const bReceivedByTraveler = receivedByTravelerStatuses.includes(b.status);
+    
     const aCompleted = completedStatuses.includes(a.status);
     const bCompleted = completedStatuses.includes(b.status);
     
-    // 1. delivered_to_office packages go first
-    if (aTopPriority && !bTopPriority) return -1;
-    if (!aTopPriority && bTopPriority) return 1;
+    // Priority 1: Admin actions pending
+    if (aAdminAction && !bAdminAction) return -1;
+    if (!aAdminAction && bAdminAction) return 1;
     
-    // 2. Among non-top-priority, packages requiring admin action go next
-    if (!aTopPriority && !bTopPriority) {
-      if (aRequiresAction && !bRequiresAction) return -1;
-      if (!aRequiresAction && bRequiresAction) return 1;
+    // Priority 2: Packages with active timers
+    if (!aAdminAction && !bAdminAction) {
+      if (aHasTimer && !bHasTimer) return -1;
+      if (!aHasTimer && bHasTimer) return 1;
       
-      // 3. Among non-action packages, completed go last
-      if (!aRequiresAction && !bRequiresAction) {
-        if (aCompleted && !bCompleted) return 1;
-        if (!aCompleted && bCompleted) return -1;
+      // Priority 3: Regular packages (not received or completed)
+      if (!aHasTimer && !bHasTimer) {
+        const aOtherStatus = !aReceivedByTraveler && !aCompleted;
+        const bOtherStatus = !bReceivedByTraveler && !bCompleted;
+        
+        if (aOtherStatus && !bOtherStatus) return -1;
+        if (!aOtherStatus && bOtherStatus) return 1;
+        
+        // Priority 4: Received by traveler (penultimate)
+        if (!aOtherStatus && !bOtherStatus) {
+          if (aReceivedByTraveler && !bReceivedByTraveler) return -1;
+          if (!aReceivedByTraveler && bReceivedByTraveler) return 1;
+          
+          // Priority 5: Completed (last)
+          if (aCompleted && !bCompleted) return 1;
+          if (!aCompleted && bCompleted) return -1;
+        }
       }
     }
     
-    // 4. If same priority, sort by creation date (newest first)
+    // Secondary sort: Creation date (newest first)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
