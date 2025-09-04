@@ -229,15 +229,18 @@ const PendingRequestsTab = ({
                           en el historial pero no aparecerá más en las solicitudes pendientes.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          className="bg-red-600 hover:bg-red-700"
-                          onClick={() => onDiscardPackage(pkg)}
-                        >
-                          Marcar como Cancelada
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction 
+                            className="bg-red-600 hover:bg-red-700"
+                            onClick={() => {
+                              console.log('🔥 Discard button clicked for package:', pkg);
+                              onDiscardPackage(pkg);
+                            }}
+                          >
+                            Marcar como Cancelada
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
                 <Button 
