@@ -807,21 +807,19 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone-number">Número de teléfono</Label>
-                  <div className="flex rounded-md shadow-sm">
-                    <Select onValueChange={setCountryCode}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="+502" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="+502">+502 (Guatemala)</SelectItem>
-                        {/* Add more country codes as needed */}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input
+                      placeholder="+502"
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="text-center"
+                    />
                     <Input
                       type="number"
                       placeholder="12345678"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="col-span-2"
                       required
                     />
                   </div>
