@@ -108,7 +108,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     createTrip,
     updateTrip,
     refreshTrips,
-    setPackages
+    setPackages,
+    toast
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -285,10 +286,19 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const handleDiscardPackage = async (pkg: any) => {
     try {
-      // Placeholder - AdminDashboard handles package operations
-      console.log('📦 Delete package request - handled by AdminDashboard');
+      console.log('📦 Cancelling package:', pkg.id);
+      await updatePackage(pkg.id, { status: 'cancelled' });
+      toast({
+        title: "Solicitud cancelada",
+        description: "La solicitud ha sido marcada como cancelada exitosamente.",
+      });
     } catch (error) {
-      // Error silently handled
+      console.error('Error cancelling package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo cancelar la solicitud. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
   };
 

@@ -221,24 +221,24 @@ const PendingRequestsTab = ({
                       Descartar
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción no se puede deshacer. La solicitud será eliminada permanentemente 
-                        y no se podrá recuperar.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction 
-                        className="bg-red-600 hover:bg-red-700"
-                        onClick={() => onDiscardPackage(pkg)}
-                      >
-                        Descartar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción marcará la solicitud como cancelada. La solicitud permanecerá 
+                          en el historial pero no aparecerá más en las solicitudes pendientes.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          className="bg-red-600 hover:bg-red-700"
+                          onClick={() => onDiscardPackage(pkg)}
+                        >
+                          Marcar como Cancelada
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
                 </AlertDialog>
                 <Button 
                   size="sm" 
