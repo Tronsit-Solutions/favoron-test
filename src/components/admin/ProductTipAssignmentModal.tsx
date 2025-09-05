@@ -146,7 +146,7 @@ const ProductTipAssignmentModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl md:max-w-2xl max-w-full max-h-[90vh] overflow-y-auto mobile-safe-form">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Package className="h-4 w-4" />
@@ -191,91 +191,92 @@ const ProductTipAssignmentModal = ({
             
             return (
               <Card key={index} className="border border-border/50 bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    {/* Left Side - Product Information */}
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
-                      </div>
-                      
-                      <p className="text-sm font-medium leading-tight">
-                        {product.itemDescription || 'Sin descripción'}
-                      </p>
-                      
-                      {product.itemLink && (
-                        <div className="pt-1">
-                          <a 
-                            href={product.itemLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors hover:underline"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Ver producto en tienda
-                          </a>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
-                        <span>${price.toFixed(2)}</span>
-                        <span>×</span>
-                        <span>{quantity}</span>
-                        <span>=</span>
-                        <span className="font-semibold text-foreground">${productValue.toFixed(2)}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Right Side - Tip Assignment */}
-                    <div className="flex items-center gap-2 min-w-[200px]">
-                      <div className="flex-1">
-                        <Label htmlFor={`tip-${index}`} className="text-xs text-muted-foreground">
-                          Tip
-                        </Label>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
-                           <Input
-                            key={`tip-input-${index}`}
-                            id={`tip-${index}`}
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={tipValues[index] || ''}
-                            onChange={(e) => updateTipValue(index, e.target.value)}
-                            placeholder="0.00"
-                            className="h-8 text-xs pl-6 font-mono"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-1">
+                 <CardContent className="p-4">
+                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                     {/* Product Information */}
+                     <div className="flex-1 space-y-1">
+                       <div className="flex items-center gap-2">
+                         <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
+                       </div>
+                       
+                       <p className="text-sm font-medium leading-tight">
+                         {product.itemDescription || 'Sin descripción'}
+                       </p>
+                       
+                       {product.itemLink && (
+                         <div className="pt-1">
+                           <a 
+                             href={product.itemLink} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors hover:underline"
+                           >
+                             <ExternalLink className="h-3 w-3" />
+                             Ver producto en tienda
+                           </a>
+                         </div>
+                       )}
+                       
+                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                         <span>${price.toFixed(2)}</span>
+                         <span>×</span>
+                         <span>{quantity}</span>
+                         <span>=</span>
+                         <span className="font-semibold text-foreground">${productValue.toFixed(2)}</span>
+                       </div>
+                     </div>
+                     
+                     {/* Tip Assignment */}
+                     <div className="flex flex-col md:flex-row md:items-center gap-3 md:min-w-[200px]">
+                       <div className="flex-1">
+                         <Label htmlFor={`tip-${index}`} className="text-xs text-muted-foreground">
+                           Tip
+                         </Label>
+                         <div className="relative">
+                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">Q</span>
+                            <Input
+                             key={`tip-input-${index}`}
+                             id={`tip-${index}`}
+                             type="number"
+                             inputMode="decimal"
+                             min="0"
+                             step="0.01"
+                             value={tipValues[index] || ''}
+                             onChange={(e) => updateTipValue(index, e.target.value)}
+                             placeholder="0.00"
+                             className="h-10 md:h-8 text-base md:text-xs pl-8 md:pl-6 font-mono min-h-[44px] md:min-h-[32px]"
+                           />
+                         </div>
+                       </div>
+                       
+                       <div className="flex gap-2 md:gap-1">
+                          <Button
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             const tip = parseFloat((productValue * 0.1).toFixed(2));
+                             updateTipValue(index, tip.toString());
+                           }}
+                           className="h-10 md:h-8 px-3 md:px-2 text-sm md:text-xs min-h-[44px] md:min-h-[32px] flex-1 md:flex-none"
+                         >
+                           10%
+                         </Button>
                          <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const tip = parseFloat((productValue * 0.1).toFixed(2));
-                            updateTipValue(index, tip.toString());
-                          }}
-                          className="h-8 px-2 text-xs"
-                        >
-                          10%
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const tip = parseFloat((productValue * 0.15).toFixed(2));
-                            updateTipValue(index, tip.toString());
-                          }}
-                          className="h-8 px-2 text-xs"
-                        >
-                          15%
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             const tip = parseFloat((productValue * 0.15).toFixed(2));
+                             updateTipValue(index, tip.toString());
+                           }}
+                           className="h-10 md:h-8 px-3 md:px-2 text-sm md:text-xs min-h-[44px] md:min-h-[32px] flex-1 md:flex-none"
+                         >
+                           15%
+                         </Button>
+                       </div>
+                     </div>
+                   </div>
                   
                   {/* Status indicator */}
                   {tipValues[index] && parseFloat(tipValues[index]) > 0 && productValue > 0 && (
@@ -293,67 +294,67 @@ const ProductTipAssignmentModal = ({
             );
           })}
 
-          {/* Compact Actions */}
-          <div className="flex flex-wrap gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={distributeEqually}
-              disabled={calculateTotalTip() === 0}
-              className="h-7 px-2 text-xs"
-            >
-              Distribuir igual
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setTipValues(new Array(products.length).fill('50'));
-              }}
-              className="h-7 px-2 text-xs"
-            >
-              Q50 c/u
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newTipValues = products.map((product) => {
-                  const price = parseFloat(product.estimatedPrice || '0') || 0;
-                  const quantity = parseInt(product.quantity || '1') || 1;
-                  const productValue = price * quantity;
-                  return (productValue * 0.15).toFixed(2);
-                });
-                setTipValues(newTipValues);
-              }}
-              className="h-7 px-2 text-xs"
-            >
-              15% valor
-            </Button>
-          </div>
+           {/* Quick Actions */}
+           <div className="grid grid-cols-1 md:flex md:flex-wrap gap-2 md:gap-1">
+             <Button
+               type="button"
+               variant="outline"
+               size="sm"
+               onClick={distributeEqually}
+               disabled={calculateTotalTip() === 0}
+               className="h-10 md:h-7 px-3 md:px-2 text-sm md:text-xs min-h-[44px] md:min-h-[28px]"
+             >
+               Distribuir igual
+             </Button>
+             <Button
+               type="button"
+               variant="outline"
+               size="sm"
+               onClick={() => {
+                 setTipValues(new Array(products.length).fill('50'));
+               }}
+               className="h-10 md:h-7 px-3 md:px-2 text-sm md:text-xs min-h-[44px] md:min-h-[28px]"
+             >
+               Q50 c/u
+             </Button>
+             <Button
+               type="button"
+               variant="outline"
+               size="sm"
+               onClick={() => {
+                 const newTipValues = products.map((product) => {
+                   const price = parseFloat(product.estimatedPrice || '0') || 0;
+                   const quantity = parseInt(product.quantity || '1') || 1;
+                   const productValue = price * quantity;
+                   return (productValue * 0.15).toFixed(2);
+                 });
+                 setTipValues(newTipValues);
+               }}
+               className="h-10 md:h-7 px-3 md:px-2 text-sm md:text-xs min-h-[44px] md:min-h-[28px]"
+             >
+               15% valor
+             </Button>
+           </div>
 
-          {/* Footer Actions */}
-          <div className="flex gap-2 pt-2 border-t">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose} 
-              className="flex-1 h-8 text-xs"
-              disabled={isLoading}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={isLoading || calculateTotalTip() === 0}
-              className="flex-1 h-8 text-xs"
-            >
-              {isLoading ? 'Guardando...' : `Asignar Q${calculateTotalTip().toFixed(2)}`}
-            </Button>
-          </div>
+           {/* Footer Actions - Sticky on mobile */}
+           <div className="flex gap-3 pt-4 border-t sticky bottom-0 bg-background/95 backdrop-blur-sm md:static md:bg-transparent md:backdrop-blur-none md:pt-2">
+             <Button 
+               type="button" 
+               variant="outline" 
+               onClick={onClose} 
+               className="flex-1 h-12 md:h-8 text-base md:text-xs min-h-[48px] md:min-h-[32px]"
+               disabled={isLoading}
+             >
+               Cancelar
+             </Button>
+             <Button 
+               onClick={handleSave} 
+               disabled={isLoading || calculateTotalTip() === 0}
+               className="flex-1 h-12 md:h-8 text-base md:text-xs min-h-[48px] md:min-h-[32px]"
+             >
+               {isLoading ? 'Guardando...' : `Confirmar Match`}
+             </Button>
+           </div>
         </div>
       </DialogContent>
     </Dialog>
