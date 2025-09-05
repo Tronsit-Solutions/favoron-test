@@ -15,7 +15,7 @@ import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
-import TravelerTipsOverview from "./dashboard/TravelerTipsOverview";
+
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
 
@@ -529,9 +529,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                    
-                  {/* Tips Overview with trip filter */}
-                  <TravelerTipsOverview packages={assignedPackages} trips={userTrips} />
-                  
                   {/* Group packages by trip */}
                    <div className="space-y-6">
                      {userTrips
