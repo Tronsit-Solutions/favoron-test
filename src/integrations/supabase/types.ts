@@ -949,6 +949,34 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_admin_trips_with_user: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          arrival_date: string | null
+          available_space: number | null
+          created_at: string | null
+          delivery_date: string | null
+          delivery_method: string | null
+          departure_date: string | null
+          email: string | null
+          first_day_packages: string | null
+          first_name: string | null
+          from_city: string | null
+          from_country: string | null
+          id: string | null
+          last_day_packages: string | null
+          last_name: string | null
+          messenger_pickup_info: Json | null
+          package_receiving_address: Json | null
+          phone_number: string | null
+          status: string | null
+          to_city: string | null
+          updated_at: string | null
+          user_display_name: string | null
+          user_id: string | null
+          username: string | null
+        }[]
+      }
       get_database_stats: {
         Args: Record<PropertyKey, never>
         Returns: {

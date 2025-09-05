@@ -106,36 +106,10 @@ export const useAdminData = (): AdminData => {
 
   const fetchAdminTrips = useCallback(async () => {
     try {
-      console.log('🔄 Admin: Fetching all trips using trips_with_user...');
+      console.log('🔄 Admin: Fetching all trips using secure admin RPC...');
       
       const { data, error } = await supabase
-        .from('trips_with_user')
-        .select(`
-          id,
-          user_id,
-          from_city,
-          to_city,
-          departure_date,
-          arrival_date,
-          delivery_date,
-          first_day_packages,
-          last_day_packages,
-          available_space,
-          package_receiving_address,
-          messenger_pickup_info,
-          created_at,
-          updated_at,
-          status,
-          delivery_method,
-          from_country,
-          user_display_name,
-          first_name,
-          last_name,
-          username,
-          email,
-          phone_number
-        `)
-        .order('arrival_date', { ascending: true });
+        .rpc('get_admin_trips_with_user');
 
       if (error) {
         console.error('❌ Admin: Error fetching trips:', error);
