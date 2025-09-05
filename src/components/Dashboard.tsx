@@ -28,6 +28,9 @@ import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { Routes, Route } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
+import { useStickyState } from "@/hooks/useStickyState";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 
@@ -163,6 +166,15 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const pendingActions = usePendingActions(packages, trips, currentUser);
 
+  // Filter preference for inactive trips
+  const {
+    state: hideInactiveTrips,
+    setState: setHideInactiveTrips
+  } = useStickyState({
+    key: 'dashboard-hide-inactive-trips',
+    initialState: false
+  });
+
   // Real-time updates are now active, no manual refresh needed
 
   const isAdmin = currentUser.role === 'admin';
@@ -170,6 +182,16 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Filter packages and trips for current user
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
   const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
+  
+  // Filter user trips based on inactive preference
+  const filteredUserTrips = userTrips.filter(trip => {
+    // Filter out inactive trips if user preference is enabled
+    const inactiveStatuses = ['completed', 'rejected', 'cancelled', 'completed_paid'];
+    const isActive = !inactiveStatuses.includes(trip.status);
+    const shouldShow = !hideInactiveTrips || isActive;
+    
+    return shouldShow;
+  });
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => 
@@ -505,12 +527,24 @@ const Dashboard = ({ user }: DashboardProps) => {
             {/* Show user's trips */}
             <div className="space-y-4">
               <div>
-                <h4 className="text-lg font-semibold mb-3">Mis Viajes Registrados</h4>
-                {userTrips.filter(trip => trip.status !== 'completed_paid').length === 0 ? (
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-semibold">Mis Viajes Registrados</h4>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="hide-inactive-trips"
+                      checked={hideInactiveTrips}
+                      onCheckedChange={setHideInactiveTrips}
+                    />
+                    <Label htmlFor="hide-inactive-trips" className="text-sm text-muted-foreground">
+                      Ocultar viajes completados/rechazados
+                    </Label>
+                  </div>
+                </div>
+                {filteredUserTrips.length === 0 ? (
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
                   <div className="grid gap-4">
-                    {userTrips.filter(trip => trip.status !== 'completed_paid').map((trip) => (
+                    {filteredUserTrips.map((trip) => (
                       <TripCard
                         key={trip.id}
                         trip={trip}
@@ -529,10 +563,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                 <div>
                   <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
                    
-                  {/* Group packages by trip */}
+                   {/* Group packages by trip */}
                    <div className="space-y-6">
-                     {userTrips
-                        .filter(trip => trip.status !== 'completed_paid' && assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
+                     {filteredUserTrips
+                        .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
                         .map((trip) => {
                           const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
                           const now = Date.now();
