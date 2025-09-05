@@ -278,6 +278,13 @@
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
 
+  /* Glass morphism effect */
+  .surface-glass {
+    backdrop-filter: blur(16px) saturate(180%);
+    background-color: hsl(var(--background) / 0.75);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+
   /* Status indicators */
   .status-dot {
     @apply inline-flex h-2 w-2 rounded-full;
