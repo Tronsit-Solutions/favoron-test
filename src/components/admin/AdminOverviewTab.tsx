@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, Zap, AlertCircle, CheckCircle } from "lucide-react";
+import { Eye, Zap, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
 
 interface AdminOverviewTabProps {
@@ -9,6 +9,7 @@ interface AdminOverviewTabProps {
   onViewPackageDetail: (pkg: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
+  onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject') => void;
   getStatusBadge: (status: string) => JSX.Element;
 }
 
@@ -18,6 +19,7 @@ const AdminOverviewTab = ({
   onViewPackageDetail, 
   onOpenMatchDialog, 
   onUpdateStatus,
+  onApproveReject,
   getStatusBadge 
 }: AdminOverviewTabProps) => {
   const approvedPackages = packages.filter(p => p.status === 'approved');
@@ -51,6 +53,9 @@ const AdminOverviewTab = ({
                           : `Precio: $${pkg.estimated_price} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
                         }
                       </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        📅 Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                      </p>
                       <p className="text-xs text-blue-600 mt-1">
                         📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
                       </p>
@@ -77,6 +82,14 @@ const AdminOverviewTab = ({
                     >
                       <Zap className="h-4 w-4 mr-1" />
                       Hacer Match
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => onApproveReject('package', pkg.id, 'reject')}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Descartar
                     </Button>
                   </div>
                 </div>
@@ -123,6 +136,9 @@ const AdminOverviewTab = ({
                           ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
                           : `Precio: $${pkg.estimated_price} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
                         }
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">
+                        📅 Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}

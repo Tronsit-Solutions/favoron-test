@@ -468,6 +468,7 @@ const AdminDashboard = ({
             onViewPackageDetail={handleViewPackageDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
             onUpdateStatus={onUpdateStatus}
+            onApproveReject={onApproveReject}
             getStatusBadge={getStatusBadge}
           />
         </TabsContent>
