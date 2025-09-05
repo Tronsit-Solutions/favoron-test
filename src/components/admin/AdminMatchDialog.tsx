@@ -9,6 +9,7 @@ import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck,
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
+import { useModalState } from "@/contexts/ModalStateContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 
 interface AdminMatchDialogProps {
@@ -32,6 +33,7 @@ const AdminMatchDialog = ({
   packages, 
   onMatch 
 }: AdminMatchDialogProps) => {
+  const { openModal, closeModal, isModalOpen, getModalData } = useModalState();
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
@@ -42,6 +44,8 @@ const AdminMatchDialog = ({
   const [adminTip, setAdminTip] = useState<string>('');
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
+
+  const MODAL_ID = 'admin-match-dialog';
 
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
@@ -77,6 +81,35 @@ const AdminMatchDialog = ({
     const isNotExpired = new Date(trip.arrival_date) >= today;
     return isNotExpired;
   });
+
+  // Handle modal state persistence
+  useEffect(() => {
+    if (showMatchDialog && selectedPackage) {
+      // Register this modal as open
+      openModal(MODAL_ID, 'admin-match-dialog', {
+        selectedPackage,
+        matchingTrip,
+        selectedTripId,
+        adminTip,
+        assignedProductsWithTips
+      });
+    } else if (!showMatchDialog && isModalOpen(MODAL_ID)) {
+      // Close the modal in the context
+      closeModal(MODAL_ID);
+    }
+  }, [showMatchDialog, selectedPackage, matchingTrip, selectedTripId, adminTip, assignedProductsWithTips]);
+
+  // Restore modal state if it exists
+  useEffect(() => {
+    const modalData = getModalData(MODAL_ID);
+    if (modalData && !showMatchDialog) {
+      // Restore modal state
+      setMatchingTrip(modalData.matchingTrip || '');
+      setSelectedTripId(modalData.selectedTripId || null);
+      setAdminTip(modalData.adminTip || '');
+      setAssignedProductsWithTips(modalData.assignedProductsWithTips || []);
+    }
+  }, []);
 
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
@@ -255,8 +288,13 @@ const AdminMatchDialog = ({
     return 1; // Default quantity for single product
   };
 
+  const handleCloseDialog = () => {
+    closeModal(MODAL_ID);
+    setShowMatchDialog(false);
+  };
+
   return (
-    <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
+    <Dialog open={showMatchDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4">
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-xl font-semibold flex items-center space-x-2">

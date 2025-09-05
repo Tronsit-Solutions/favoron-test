@@ -26,3 +26,6 @@ export { useToast } from './use-toast';
 export { useFavoronBankingInfo } from './useFavoronBankingInfo';
 export { useUrlState } from './useUrlState';
 export { usePersistedFormState } from './usePersistedFormState';
+export { useModalProtection } from './useModalProtection';
+export { useStickyState } from './useStickyState';
+export { useSecureStorage } from './useSecureStorage';

@@ -40,6 +40,37 @@ export const ModalStateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [modals]);
 
+  // Protect modals from being closed when page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Don't clear modal state when tab becomes hidden
+      if (document.hidden) {
+        console.log('🔒 Tab hidden - protecting modal state');
+        return;
+      }
+      
+      // Tab is now visible again - restore modal state if needed
+      console.log('👁️ Tab visible - modal state preserved');
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Warn user if they try to close/refresh with open modals
+      if (modals.some(modal => modal.isOpen)) {
+        e.preventDefault();
+        e.returnValue = 'Tienes un modal abierto. ¿Estás seguro que quieres salir?';
+        return e.returnValue;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [modals]);
+
   const openModal = useCallback((id: string, type: string, data?: any) => {
     setModals(prev => {
       const existing = prev.find(modal => modal.id === id);
