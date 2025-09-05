@@ -18,7 +18,7 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
     ? packages 
     : packages.filter(pkg => pkg.matched_trip_id === selectedTripFilter);
 
-  // Active packages (excluding rejected and those from completed trips)
+  // Only paid packages (paquetes que ya fueron pagados por los shoppers)
   const filteredPackages = allFilteredPackages.filter(pkg => {
     if (pkg.status === 'rejected') return false;
     
@@ -28,7 +28,17 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
       if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
     }
     
-    return true;
+    // Solo incluir paquetes que han sido pagados por el shopper
+    const paidStatuses = [
+      'pending_purchase',    // Shopper aceptó y pagó la cotización
+      'in_transit',         // Paquete en tránsito (ya pagado)
+      'pending_office_confirmation', // Esperando confirmación en oficina (ya pagado)
+      'delivered_to_office', // Entregado a oficina (ya pagado)
+      'completed',          // Completado (ya pagado)
+      'received_by_traveler' // Recibido por viajero (ya pagado)
+    ];
+    
+    return paidStatuses.includes(pkg.status);
   });
   
   // Rejected packages (to show separately)
@@ -45,15 +55,24 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
   // Count packages with confirmed tips (active only)
   const packagesWithTips = filteredPackages.filter(pkg => pkg.quote?.price).length;
   
-  // Count pending quotes (packages that could generate tips)
-  const pendingQuotes = filteredPackages.filter(pkg => pkg.status === 'matched').length;
+  // Count pending quotes (packages that could generate tips - but only show paid ones)
+  const pendingQuotes = 0; // No mostrar pending quotes ya que solo queremos paquetes pagados
 
   // Group packages by trip for breakdown (excluding rejected and completed trips)
   const packagesByTrip = trips.reduce((acc, trip) => {
     // No incluir viajes completados y pagados
     if (trip.status === 'completed_paid') return acc;
     
-    const tripPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id && pkg.status !== 'rejected');
+    // Solo incluir paquetes pagados para el breakdown por viaje
+    const paidStatuses = [
+      'pending_purchase', 'in_transit', 'pending_office_confirmation', 
+      'delivered_to_office', 'completed', 'received_by_traveler'
+    ];
+    const tripPackages = packages.filter(pkg => 
+      pkg.matched_trip_id === trip.id && 
+      pkg.status !== 'rejected' && 
+      paidStatuses.includes(pkg.status)
+    );
     if (tripPackages.length > 0) {
       acc[trip.id] = {
         trip,
@@ -127,23 +146,23 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
           <div className="text-center p-3 bg-muted/30 rounded border">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Package className="h-3 w-3" />
-              <p className="text-xs font-medium">Activos</p>
+              <p className="text-xs font-medium">Pagados</p>
             </div>
             <p className="text-lg font-bold">{filteredPackages.length}</p>
             <p className="text-xs text-muted-foreground">
-              {selectedTripFilter === "all" ? "todos los viajes" : "este viaje"}
+              paquetes pagados
             </p>
           </div>
 
-          {/* Opportunities */}
+          {/* Total Amount Earned */}
           <div className="text-center p-3 bg-muted/30 rounded border">
             <div className="flex items-center justify-center gap-1 mb-1">
               <DollarSign className="h-3 w-3" />
-              <p className="text-xs font-medium">Oportunidades</p>
+              <p className="text-xs font-medium">Promedio</p>
             </div>
-            <p className="text-lg font-bold">{pendingQuotes}</p>
+            <p className="text-lg font-bold">Q{packagesWithTips > 0 ? (totalTips / packagesWithTips).toFixed(2) : '0.00'}</p>
             <p className="text-xs text-muted-foreground">
-              esperando cotización
+              por paquete pagado
             </p>
           </div>
         </div>
