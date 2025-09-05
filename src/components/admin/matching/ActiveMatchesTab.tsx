@@ -66,7 +66,15 @@ const ActiveMatchesTab = ({
       (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (pkg.user_id || '').toString().includes(searchTerm) ||
       (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Búsqueda por nombres del dueño del paquete (shopper)
+      ((pkg as any)?.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((pkg as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((pkg as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Búsqueda por nombres del viajero asignado
+      ((matchedTrip as any)?.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((matchedTrip as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = selectedStatuses.has(pkg.status);
     
@@ -181,7 +189,7 @@ const ActiveMatchesTab = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por descripción, usuario o ruta..."
+            placeholder="Buscar por descripción, nombres, usuario o ruta..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
