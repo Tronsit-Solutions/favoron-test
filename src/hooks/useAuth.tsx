@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { withRetry } from '@/lib/supabaseWithRetry';
+import { SecurityMonitor } from '@/lib/securityMonitoring';
 
 interface Profile {
   id: string;
@@ -142,6 +143,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      SecurityMonitor.logEvent({
+        type: 'data_access',
+        details: {
+          success: false,
+          context: 'profile_fetch',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId: userId
+        },
+        userId: userId
+      });
     }
   };
 
@@ -174,10 +185,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         if (session?.user) {
           console.log('👤 User authenticated:', session.user.id, session.user.email);
+          SecurityMonitor.logEvent({
+            type: 'auth_attempt',
+            details: {
+              success: true,
+              event: event,
+              userId: session.user.id
+            },
+            userId: session.user.id
+          });
           // Load profile immediately for faster auth
           loadProfile(session.user.id);
         } else {
           console.log('🚪 User signed out or no session');
+          if (event === 'SIGNED_OUT') {
+            SecurityMonitor.logEvent({
+              type: 'auth_attempt',
+              details: {
+                success: true,
+                event: 'SIGNED_OUT'
+              }
+            });
+          }
           setProfile(null);
           setUserRole(null);
           setLoading(false);
@@ -195,6 +224,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (session?.user) {
         console.log('👤 Found existing session for:', session.user.id, session.user.email);
+        SecurityMonitor.logEvent({
+          type: 'auth_attempt',
+          details: {
+            success: true,
+            context: 'session_restore',
+            userId: session.user.id
+          },
+          userId: session.user.id
+        });
         loadProfile(session.user.id);
       } else {
         console.log('🚫 No existing session found');

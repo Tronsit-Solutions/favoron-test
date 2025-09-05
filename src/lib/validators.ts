@@ -1,5 +1,83 @@
 import { APP_CONFIG } from './constants';
 
+// Enhanced security validation utilities with input sanitization
+
+// Input sanitization utility
+export const sanitizeInput = (input: string, maxLength = 500): string => {
+  if (!input) return '';
+  
+  // Remove potentially dangerous characters and limit length
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[<>]/g, '') // Remove HTML brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, ''); // Remove vbscript: protocol
+};
+
+// Enhanced text validation with stricter rules
+export const validateText = (text: string, minLength = 1, maxLength = 500): { isValid: boolean; error?: string } => {
+  if (!text || !text.trim()) {
+    return { isValid: false, error: 'Campo requerido' };
+  }
+
+  const sanitized = sanitizeInput(text, maxLength);
+  
+  if (sanitized.length < minLength) {
+    return { isValid: false, error: `Mínimo ${minLength} caracteres` };
+  }
+
+  if (sanitized.length > maxLength) {
+    return { isValid: false, error: `Máximo ${maxLength} caracteres` };
+  }
+
+  // Check for suspicious patterns
+  const suspiciousPatterns = [
+    /<script/i,
+    /javascript:/i,
+    /data:text\/html/i,
+    /onclick/i,
+    /onload/i,
+    /onerror/i
+  ];
+
+  if (suspiciousPatterns.some(pattern => pattern.test(text))) {
+    return { isValid: false, error: 'Contenido no permitido' };
+  }
+
+  return { isValid: true };
+};
+
+// Enhanced URL validation
+export const validateUrl = (url: string): { isValid: boolean; error?: string } => {
+  if (!url || !url.trim()) {
+    return { isValid: false, error: 'URL requerida' };
+  }
+
+  try {
+    const urlObj = new URL(url);
+    
+    // Only allow HTTP and HTTPS protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return { isValid: false, error: 'Solo se permiten URLs HTTP/HTTPS' };
+    }
+
+    // Prevent localhost and private IP ranges in production
+    if (urlObj.hostname === 'localhost' || 
+        urlObj.hostname.startsWith('127.') ||
+        urlObj.hostname.startsWith('192.168.') ||
+        urlObj.hostname.startsWith('10.') ||
+        urlObj.hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+      return { isValid: false, error: 'URLs privadas no permitidas' };
+    }
+
+    return { isValid: true };
+  } catch {
+    return { isValid: false, error: 'URL inválida' };
+  }
+};
+
 // File validation utilities
 export const isImageFile = (fileType?: string): boolean => {
   if (!fileType) return false;
@@ -75,15 +153,105 @@ export const validateWhatsAppNumber = (phone: string): { isValid: boolean; error
   return { isValid: true };
 };
 
-// Email validation
-export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+// Enhanced email validation
+export const validateEmail = (email: string): { isValid: boolean; error?: string } => {
+  if (!email || !email.trim()) {
+    return { isValid: false, error: 'Email requerido' };
+  }
+
+  const sanitizedEmail = sanitizeInput(email.trim(), 254); // RFC 5321 limit
+  
+  // More comprehensive email regex
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  
+  if (!emailRegex.test(sanitizedEmail)) {
+    return { isValid: false, error: 'Formato de email inválido' };
+  }
+
+  // Check for suspicious patterns
+  if (sanitizedEmail.includes('..') || sanitizedEmail.startsWith('.') || sanitizedEmail.endsWith('.')) {
+    return { isValid: false, error: 'Email contiene caracteres inválidos' };
+  }
+
+  return { isValid: true };
 };
 
-// Username validation
-export const validateUsername = (username: string): boolean => {
-  if (!username || username.length < 3) return false;
-  const usernameRegex = /^[a-zA-Z0-9_]+$/;
-  return usernameRegex.test(username);
+// Enhanced username validation
+export const validateUsername = (username: string): { isValid: boolean; error?: string } => {
+  if (!username || !username.trim()) {
+    return { isValid: false, error: 'Nombre de usuario requerido' };
+  }
+
+  const sanitized = sanitizeInput(username.trim(), 30);
+  
+  if (sanitized.length < 3) {
+    return { isValid: false, error: 'Mínimo 3 caracteres' };
+  }
+
+  if (sanitized.length > 30) {
+    return { isValid: false, error: 'Máximo 30 caracteres' };
+  }
+
+  // Only allow alphanumeric characters, hyphens, and underscores
+  const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+  if (!usernameRegex.test(sanitized)) {
+    return { isValid: false, error: 'Solo letras, números, guiones y guiones bajos' };
+  }
+
+  // Prevent reserved usernames
+  const reservedUsernames = ['admin', 'root', 'system', 'api', 'www', 'mail', 'support'];
+  if (reservedUsernames.includes(sanitized.toLowerCase())) {
+    return { isValid: false, error: 'Nombre de usuario no disponible' };
+  }
+
+  return { isValid: true };
+};
+
+// Enhanced banking information validation
+export const validateBankAccountNumber = (accountNumber: string): { isValid: boolean; error?: string } => {
+  if (!accountNumber || !accountNumber.trim()) {
+    return { isValid: false, error: 'Número de cuenta requerido' };
+  }
+
+  const sanitized = sanitizeInput(accountNumber.trim(), 50);
+  
+  // Allow only numbers, spaces, and hyphens
+  const accountRegex = /^[0-9\s-]+$/;
+  if (!accountRegex.test(sanitized)) {
+    return { isValid: false, error: 'Solo números, espacios y guiones permitidos' };
+  }
+
+  // Remove spaces and hyphens for length validation
+  const digitsOnly = sanitized.replace(/[\s-]/g, '');
+  
+  if (digitsOnly.length < 8) {
+    return { isValid: false, error: 'Número de cuenta muy corto' };
+  }
+
+  if (digitsOnly.length > 34) { // IBAN max length
+    return { isValid: false, error: 'Número de cuenta muy largo' };
+  }
+
+  return { isValid: true };
+};
+
+// Enhanced name validation
+export const validateName = (name: string): { isValid: boolean; error?: string } => {
+  if (!name || !name.trim()) {
+    return { isValid: false, error: 'Nombre requerido' };
+  }
+
+  const sanitized = sanitizeInput(name.trim(), 100);
+  
+  if (sanitized.length < 2) {
+    return { isValid: false, error: 'Mínimo 2 caracteres' };
+  }
+
+  // Allow letters, spaces, hyphens, apostrophes, and common international characters
+  const nameRegex = /^[a-zA-ZÀ-ÿĀ-žА-я\s'-]+$/;
+  if (!nameRegex.test(sanitized)) {
+    return { isValid: false, error: 'Solo letras, espacios, guiones y apostrofes' };
+  }
+
+  return { isValid: true };
 };

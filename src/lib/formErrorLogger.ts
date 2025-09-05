@@ -1,20 +1,27 @@
-// Client-side error logger specifically for form submissions
+import { SecurityMonitor } from './securityMonitoring';
+import { sanitizeInput } from './validators';
+
+// Enhanced client-side error logger with security monitoring
 export const logFormError = async (error: any, formType: string, formData?: any) => {
   try {
+    // Sanitize inputs for security
+    const sanitizedMessage = sanitizeInput(error?.message || error?.toString() || 'Unknown error', 1000);
+    const sanitizedFormType = sanitizeInput(formType, 50);
+    
     // Generate unique attempt ID for traceability
-    const attemptId = `${formType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const attemptId = `${sanitizedFormType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const errorData = {
-      message: error.message || error.toString(),
+      message: sanitizedMessage,
       name: error.name || 'FormSubmissionError',
-      formType,
+      formType: sanitizedFormType,
       route: window.location.pathname,
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
       stack: error.stack,
       context: {
         attemptId,
-        formType,
+        formType: sanitizedFormType,
         hasFormData: !!formData,
         formFieldCount: formData ? Object.keys(formData).length : 0,
         isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
@@ -31,8 +38,19 @@ export const logFormError = async (error: any, formType: string, formData?: any)
       }
     };
 
+    // Log to security monitor
+    SecurityMonitor.logEvent({
+      type: 'form_submission',
+      details: {
+        formType: sanitizedFormType,
+        error: sanitizedMessage,
+        severity: 'error',
+        attemptId
+      }
+    });
+
     // Log to console for immediate debugging
-    console.error(`🚨 [${attemptId}] ${formType} form error:`, errorData);
+    console.error(`🚨 [${attemptId}] ${sanitizedFormType} form error:`, errorData);
 
     // Import supabase and send to edge function with fallbacks for Safari iOS
     try {
@@ -71,14 +89,18 @@ export const logFormError = async (error: any, formType: string, formData?: any)
   }
 };
 
-// Form validation logger
+// Enhanced form validation logger with security monitoring
 export const logFormValidationError = (missingFields: string[], formType: string) => {
-  const attemptId = `validation_${formType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Sanitize inputs
+  const sanitizedFields = missingFields.map(field => sanitizeInput(field, 100));
+  const sanitizedFormType = sanitizeInput(formType, 50);
+  
+  const attemptId = `validation_${sanitizedFormType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   const validationError = {
     type: 'FORM_VALIDATION_ERROR',
-    missingFields,
-    formType,
+    missingFields: sanitizedFields,
+    formType: sanitizedFormType,
     attemptId,
     isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
     isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
@@ -90,12 +112,24 @@ export const logFormValidationError = (missingFields: string[], formType: string
     }
   };
   
-  console.warn(`⚠️ [${attemptId}] ${formType} validation failed:`, validationError);
+  // Log to security monitor
+  SecurityMonitor.logEvent({
+    type: 'form_submission',
+    details: {
+      formType: sanitizedFormType,
+      validationError: true,
+      missingFieldsCount: sanitizedFields.length,
+      severity: 'warning',
+      attemptId
+    }
+  });
+
+  console.warn(`⚠️ [${attemptId}] ${sanitizedFormType} validation failed:`, validationError);
   
   // Also send validation errors to logging with enhanced context
   logFormError(
-    new Error(`Validation failed: ${missingFields.join(', ')}`), 
-    formType, 
-    { missingFields, validationType: 'required_fields' }
+    new Error(`Validation failed: ${sanitizedFields.join(', ')}`), 
+    sanitizedFormType, 
+    { missingFields: sanitizedFields, validationType: 'required_fields' }
   );
 };
