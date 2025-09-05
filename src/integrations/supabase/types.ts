@@ -406,13 +406,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_packages_matched_trip"
-            columns: ["matched_trip_id"]
-            isOneToOne: false
-            referencedRelation: "trips_with_user"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "packages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -503,13 +496,6 @@ export type Database = {
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_orders_trip_id_fkey"
-            columns: ["trip_id"]
-            isOneToOne: false
-            referencedRelation: "trips_with_user"
             referencedColumns: ["id"]
           },
         ]
@@ -640,13 +626,6 @@ export type Database = {
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trip_payment_accumulator_trip_id_fkey"
-            columns: ["trip_id"]
-            isOneToOne: false
-            referencedRelation: "trips_with_user"
             referencedColumns: ["id"]
           },
         ]
@@ -785,49 +764,6 @@ export type Database = {
         }
         Relationships: []
       }
-      trips_with_user: {
-        Row: {
-          arrival_date: string | null
-          available_space: number | null
-          created_at: string | null
-          delivery_date: string | null
-          delivery_method: string | null
-          departure_date: string | null
-          email: string | null
-          first_day_packages: string | null
-          first_name: string | null
-          from_city: string | null
-          from_country: string | null
-          id: string | null
-          last_day_packages: string | null
-          last_name: string | null
-          messenger_pickup_info: Json | null
-          package_receiving_address: Json | null
-          phone_number: string | null
-          status: string | null
-          to_city: string | null
-          updated_at: string | null
-          user_display_name: string | null
-          user_id: string | null
-          username: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "trips_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trips_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Functions: {
       accept_quote: {
@@ -952,29 +888,29 @@ export type Database = {
       get_admin_trips_with_user: {
         Args: Record<PropertyKey, never>
         Returns: {
-          arrival_date: string | null
-          available_space: number | null
-          created_at: string | null
-          delivery_date: string | null
-          delivery_method: string | null
-          departure_date: string | null
-          email: string | null
-          first_day_packages: string | null
-          first_name: string | null
-          from_city: string | null
-          from_country: string | null
-          id: string | null
-          last_day_packages: string | null
-          last_name: string | null
-          messenger_pickup_info: Json | null
-          package_receiving_address: Json | null
-          phone_number: string | null
-          status: string | null
-          to_city: string | null
-          updated_at: string | null
-          user_display_name: string | null
-          user_id: string | null
-          username: string | null
+          arrival_date: string
+          available_space: number
+          created_at: string
+          delivery_date: string
+          delivery_method: string
+          departure_date: string
+          email: string
+          first_day_packages: string
+          first_name: string
+          from_city: string
+          from_country: string
+          id: string
+          last_day_packages: string
+          last_name: string
+          messenger_pickup_info: Json
+          package_receiving_address: Json
+          phone_number: string
+          status: string
+          to_city: string
+          updated_at: string
+          user_display_name: string
+          user_id: string
+          username: string
         }[]
       }
       get_database_stats: {
