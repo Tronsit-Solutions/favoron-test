@@ -40,7 +40,7 @@ const AdminOverviewTab = ({
               {approvedPackages.map(pkg => (
                 <div key={pkg.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium">
                         {pkg.products && pkg.products.length > 0 
                           ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
@@ -63,34 +63,35 @@ const AdminOverviewTab = ({
                         Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
                       </p>
                     </div>
-                    {getStatusBadge(pkg.status)}
-                  </div>
-                  
-                  <div className="flex space-x-2 mt-3">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => onViewPackageDetail(pkg)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver Detalles
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => onOpenMatchDialog(pkg)}
-                      disabled={availableTrips.length === 0}
-                    >
-                      <Zap className="h-4 w-4 mr-1" />
-                      Hacer Match
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="destructive"
-                      onClick={() => onApproveReject('package', pkg.id, 'reject')}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Descartar
-                    </Button>
+                    <div className="flex flex-col items-end gap-2 ml-4">
+                      {getStatusBadge(pkg.status)}
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => onOpenMatchDialog(pkg)}
+                          disabled={availableTrips.length === 0}
+                        >
+                          <Zap className="h-4 w-4 mr-1" />
+                          Hacer Match
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => onApproveReject('package', pkg.id, 'reject')}
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Descartar
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -124,7 +125,7 @@ const AdminOverviewTab = ({
               {packages.filter(pkg => pkg.status === 'payment_pending_approval' && pkg.payment_receipt).map(pkg => (
                 <div key={pkg.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium">
                         {pkg.products && pkg.products.length > 0 
                           ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
@@ -150,27 +151,28 @@ const AdminOverviewTab = ({
                         </p>
                       )}
                     </div>
-                    {getStatusBadge(pkg.status)}
-                  </div>
-                  
-                  <div className="flex space-x-2 mt-3">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => onViewPackageDetail(pkg)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver Detalles
-                    </Button>
-                    {pkg.payment_receipt && (
-                      <Button 
-                        size="sm" 
-                        onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Confirmar Pago
-                      </Button>
-                    )}
+                    <div className="flex flex-col items-end gap-2 ml-4">
+                      {getStatusBadge(pkg.status)}
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => onViewPackageDetail(pkg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver Detalles
+                        </Button>
+                        {pkg.payment_receipt && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Confirmar Pago
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
