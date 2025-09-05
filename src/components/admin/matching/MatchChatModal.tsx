@@ -3,15 +3,17 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { getStatusInfo } from "./MatchStatusBadge";
+import { useEffect } from "react";
 
 interface MatchChatModalProps {
   selectedPackage: any;
   trips: any[];
   modalDataCache?: { selectedPackage: any; matchedTrip: any } | null;
   onClose: () => void;
+  onMarkAsRead?: (packageId: string) => Promise<void>;
 }
 
-export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose }: MatchChatModalProps) => {
+export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose, onMarkAsRead }: MatchChatModalProps) => {
   if (!selectedPackage) return null;
 
   const statusInfo = getStatusInfo(selectedPackage.status);
@@ -38,6 +40,13 @@ export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose
   };
   
   const travelerInfo = findTravelerInfo();
+
+  // Mark messages as read when modal opens
+  useEffect(() => {
+    if (selectedPackage?.id && onMarkAsRead) {
+      onMarkAsRead(selectedPackage.id);
+    }
+  }, [selectedPackage?.id, onMarkAsRead]);
 
   return (
     <Dialog open={!!selectedPackage} onOpenChange={onClose}>

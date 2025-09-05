@@ -29,6 +29,8 @@ interface AdminMatchingTabProps {
   onConfirmShopperReceived?: (packageId: string) => void;
   onOpenActionsModal?: (packageId: string) => void;
   getStatusBadge?: (status: string) => JSX.Element;
+  unreadCounts?: { [packageId: string]: number };
+  markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
 }
 
 const AdminMatchingTab = ({
@@ -47,7 +49,9 @@ const AdminMatchingTab = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
-  getStatusBadge
+  getStatusBadge,
+  unreadCounts = {},
+  markPackageMessagesAsRead
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
   const currentTab = activeMatchingTab;
@@ -227,6 +231,8 @@ const AdminMatchingTab = ({
             onConfirmShopperReceived={onConfirmShopperReceived || (() => {})}
             onOpenActionsModal={onOpenActionsModal}
             getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
+            unreadCounts={unreadCounts}
+            markPackageMessagesAsRead={markPackageMessagesAsRead}
           />
         </TabsContent>
 

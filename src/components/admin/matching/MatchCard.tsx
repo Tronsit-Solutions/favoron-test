@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 import { 
   Eye, 
   CalendarDays, 
@@ -31,6 +32,7 @@ interface MatchCardProps {
   onAdminConfirmOfficeDelivery: () => void;
   onConfirmShopperReceived: () => void;
   onOpenActionsModal?: (packageId: string) => void;
+  unreadCount?: number;
 }
 
 export const MatchCard = ({
@@ -44,7 +46,8 @@ export const MatchCard = ({
   onConfirmDeliveryComplete,
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
-  onOpenActionsModal
+  onOpenActionsModal,
+  unreadCount = 0
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const statusInfo = getStatusInfo(pkg.status);
@@ -209,10 +212,16 @@ export const MatchCard = ({
                       size="sm" 
                       variant="outline" 
                       onClick={onOpenChat} 
-                      className="min-h-[44px] text-sm"
+                      className="min-h-[44px] text-sm relative"
                     >
                       <MessageCircle className="h-4 w-4 mr-1" />
                       Chat
+                      {unreadCount > 0 && (
+                        <NotificationBadge 
+                          count={unreadCount} 
+                          className="absolute -top-1 -right-1" 
+                        />
+                      )}
                     </Button>
                     {onOpenActionsModal && (
                       <Button 
@@ -244,8 +253,14 @@ export const MatchCard = ({
                   <Button size="sm" variant="outline" onClick={onViewDetail} className="px-2">
                     <Eye className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2">
+                  <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2 relative">
                     <MessageCircle className="h-3 w-3" />
+                    {unreadCount > 0 && (
+                      <NotificationBadge 
+                        count={unreadCount} 
+                        className="absolute -top-1 -right-1" 
+                      />
+                    )}
                   </Button>
                   {onOpenActionsModal && (
                     <Button size="sm" variant="secondary" onClick={() => onOpenActionsModal(pkg.id)} className="px-2" title="Acciones administrativas">

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Tables } from '@/integrations/supabase/types';
+import { useUnreadChatMessages } from '@/hooks/useUnreadChatMessages';
 
 export type Package = Tables<'packages'>;
 export type Trip = Tables<'trips'>;
@@ -13,6 +14,8 @@ interface AdminData {
   loading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
+  unreadCounts: { [packageId: string]: number };
+  markPackageMessagesAsRead: (packageId: string) => Promise<void>;
 }
 
 export const useAdminData = (): AdminData => {
@@ -22,6 +25,7 @@ export const useAdminData = (): AdminData => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user, userRole, loading: authLoading } = useAuth();
+  const { unreadCounts, markPackageMessagesAsRead } = useUnreadChatMessages();
 
   // Persistir estado admin para evitar pérdida temporal durante refresh
   const [wasAdmin, setWasAdmin] = useState(() => {
@@ -287,8 +291,10 @@ export const useAdminData = (): AdminData => {
     error,
     refreshData,
     optimisticUpdatePackage,
-    optimisticUpdateTrip
-  }), [packages, trips, loading, error, refreshData, optimisticUpdatePackage, optimisticUpdateTrip]);
+    optimisticUpdateTrip,
+    unreadCounts,
+    markPackageMessagesAsRead
+  }), [packages, trips, loading, error, refreshData, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,

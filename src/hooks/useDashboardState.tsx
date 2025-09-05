@@ -80,7 +80,9 @@ export const useDashboardState = (user: any) => {
     updatePackage,
     deletePackage,
     refreshPackages,
-    setPackages
+    setPackages,
+    unreadCounts,
+    markPackageMessagesAsRead
   } = shouldUseAdminData ? {
     packages: adminData.packages,
     loading: adminData.loading,
@@ -88,8 +90,14 @@ export const useDashboardState = (user: any) => {
     updatePackage: regularPackagesData.updatePackage,
     deletePackage: regularPackagesData.deletePackage,
     refreshPackages: adminData.refreshData,
-    setPackages: () => {} // Admin data is read-only
-  } : regularPackagesData;
+    setPackages: () => {}, // Admin data is read-only
+    unreadCounts: adminData.unreadCounts,
+    markPackageMessagesAsRead: adminData.markPackageMessagesAsRead
+  } : {
+    ...regularPackagesData,
+    unreadCounts: {},
+    markPackageMessagesAsRead: async () => {}
+  };
 
   const {
     trips,
@@ -196,6 +204,8 @@ export const useDashboardState = (user: any) => {
     deleteTrip,
     refreshTrips,
     setPackages,
-    toast
+    toast,
+    unreadCounts,
+    markPackageMessagesAsRead
   };
 };

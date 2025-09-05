@@ -110,7 +110,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     updateTrip,
     refreshTrips,
     setPackages,
-    toast
+    toast,
+    unreadCounts,
+    markPackageMessagesAsRead
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -603,6 +605,8 @@ const Dashboard = ({ user }: DashboardProps) => {
               onConfirmShopperReceived={handleConfirmShopperReceived}
               onRefreshPackages={refreshPackages}
               refreshAdminData={async () => { await refreshPackages(); }}
+              unreadCounts={unreadCounts}
+              markPackageMessagesAsRead={markPackageMessagesAsRead}
               />
             </TabsContent>
           )}

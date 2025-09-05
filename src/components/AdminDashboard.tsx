@@ -66,10 +66,14 @@ const AdminDashboard = ({
   onRefreshPackages,
   refreshAdminData,
   matchingTab,
-  onMatchingTabChange
+  onMatchingTabChange,
+  unreadCounts = {},
+  markPackageMessagesAsRead
 }: AdminDashboardProps & { 
   matchingTab?: string; 
-  onMatchingTabChange?: (tab: string) => void; 
+  onMatchingTabChange?: (tab: string) => void;
+  unreadCounts?: { [packageId: string]: number };
+  markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
 }) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPackage, setSelectedPackage] = useState<any>(null);

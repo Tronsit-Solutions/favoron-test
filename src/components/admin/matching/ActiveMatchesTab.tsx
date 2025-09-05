@@ -31,6 +31,8 @@ interface ActiveMatchesTabProps {
   onConfirmShopperReceived: (packageId: string) => void;
   onOpenActionsModal?: (packageId: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
+  unreadCounts?: { [packageId: string]: number };
+  markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
 }
 
 const ActiveMatchesTab = ({ 
@@ -42,7 +44,10 @@ const ActiveMatchesTab = ({
   onConfirmDeliveryComplete,
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
-  onOpenActionsModal
+  onOpenActionsModal,
+  getStatusBadge,
+  unreadCounts = {},
+  markPackageMessagesAsRead
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
@@ -285,6 +290,7 @@ const ActiveMatchesTab = ({
                 onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
                 onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
                 onOpenActionsModal={onOpenActionsModal}
+                unreadCount={unreadCounts[pkg.id] || 0}
               />
             );
           })
@@ -297,6 +303,7 @@ const ActiveMatchesTab = ({
         trips={trips}
         modalDataCache={modalDataCache}
         onClose={() => setSelectedChatPackage(null)}
+        onMarkAsRead={markPackageMessagesAsRead}
       />
     </div>
   );
