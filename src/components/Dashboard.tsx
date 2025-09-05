@@ -529,14 +529,16 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-lg font-semibold">Mis Viajes Registrados</h4>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <Switch
                       id="hide-inactive-trips"
                       checked={hideInactiveTrips}
                       onCheckedChange={setHideInactiveTrips}
+                      className="scale-90 sm:scale-100"
                     />
-                    <Label htmlFor="hide-inactive-trips" className="text-sm text-muted-foreground">
-                      Ocultar viajes completados/rechazados
+                    <Label htmlFor="hide-inactive-trips" className="text-xs sm:text-sm text-muted-foreground leading-tight">
+                      <span className="hidden sm:inline">Ocultar viajes completados/rechazados</span>
+                      <span className="sm:hidden">Ocultar completados</span>
                     </Label>
                   </div>
                 </div>
