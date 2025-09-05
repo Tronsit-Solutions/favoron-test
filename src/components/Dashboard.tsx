@@ -172,7 +172,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     setState: setHideInactiveTrips
   } = useStickyState({
     key: 'dashboard-hide-inactive-trips',
-    initialState: false
+    initialState: true
   });
 
   // Real-time updates are now active, no manual refresh needed
