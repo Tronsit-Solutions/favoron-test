@@ -9,6 +9,7 @@ interface AdminOverviewTabProps {
   onViewPackageDetail: (pkg: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
+  getStatusBadge: (status: string) => JSX.Element;
 }
 
 const AdminOverviewTab = ({ 
@@ -16,7 +17,8 @@ const AdminOverviewTab = ({
   trips, 
   onViewPackageDetail, 
   onOpenMatchDialog, 
-  onUpdateStatus 
+  onUpdateStatus,
+  getStatusBadge 
 }: AdminOverviewTabProps) => {
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
@@ -32,22 +34,34 @@ const AdminOverviewTab = ({
           {approvedPackages.length === 0 ? (
             <p className="text-muted-foreground">No hay solicitudes pendientes de Match</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {approvedPackages.map(pkg => (
-                <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4">
-                  <div className="flex-1">
-                    <p className="font-medium">{pkg.item_description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimated_price} • Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
-                    </p>
+                <div key={pkg.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium">
+                        {pkg.products && pkg.products.length > 0 
+                          ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
+                          : pkg.item_description
+                        }
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.products && pkg.products.length > 0 
+                          ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
+                          : `Precio: $${pkg.estimated_price} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
+                        }
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                      </p>
+                    </div>
+                    {getStatusBadge(pkg.status)}
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0 w-full sm:w-auto">
+                  
+                  <div className="flex space-x-2 mt-3">
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -93,25 +107,37 @@ const AdminOverviewTab = ({
           {packages.filter(pkg => pkg.status === 'payment_pending_approval' && pkg.payment_receipt).length === 0 ? (
             <p className="text-muted-foreground">No hay pagos pendientes de confirmación</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {packages.filter(pkg => pkg.status === 'payment_pending_approval' && pkg.payment_receipt).map(pkg => (
-                <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4">
-                  <div className="flex-1">
-                    <p className="font-medium">{pkg.item_description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Precio: ${pkg.estimated_price} • Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
-                    </p>
-                    {pkg.payment_receipt && (
-                      <p className="text-xs text-blue-600 mt-1">
-                        Comprobante: {pkg.payment_receipt.filename} • 
-                        Subido: {new Date(pkg.payment_receipt.uploadedAt).toLocaleDateString()}
+                <div key={pkg.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium">
+                        {pkg.products && pkg.products.length > 0 
+                          ? `${pkg.products.length} producto${pkg.products.length > 1 ? 's' : ''}: ${pkg.products[0].itemDescription}${pkg.products.length > 1 ? ' y más...' : ''}`
+                          : pkg.item_description
+                        }
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {pkg.products && pkg.products.length > 0 
+                          ? `Total estimado: $${pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0).toFixed(2)} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
+                          : `Precio: $${pkg.estimated_price} • Shopper: ${formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}`
+                        }
                       </p>
-                    )}
+                      <p className="text-xs text-muted-foreground">
+                        Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                      </p>
+                      {pkg.payment_receipt && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          Comprobante: {pkg.payment_receipt.filename} • 
+                          Subido: {new Date(pkg.payment_receipt.uploadedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    {getStatusBadge(pkg.status)}
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0 w-full sm:w-auto">
+                  
+                  <div className="flex space-x-2 mt-3">
                     <Button 
                       size="sm" 
                       variant="outline"
