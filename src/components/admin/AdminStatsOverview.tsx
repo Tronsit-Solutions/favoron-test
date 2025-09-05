@@ -36,7 +36,21 @@ const AdminStatsOverview = ({ packages, trips }: AdminStatsOverviewProps) => {
           <div className="flex items-center space-x-2">
             <Zap className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-2xl font-bold">{packages.filter(p => p.status === 'matched').length}</p>
+              <p className="text-2xl font-bold">{(() => {
+                const now = Date.now();
+                return packages.filter(pkg => {
+                  // Must have a matched trip
+                  if (!pkg.matched_trip_id) return false;
+                  
+                  // Exclude expired quotes (by status or by time)
+                  const quoteExpiredByTime = pkg.status === 'quote_sent' && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
+                  const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
+                  
+                  if (pkg.status === 'quote_expired' || quoteExpiredByTime || assignmentExpiredByTime) return false;
+                  
+                  return true;
+                }).length;
+              })()}</p>
               <p className="text-xs text-muted-foreground">Matches activos</p>
             </div>
           </div>
