@@ -7,6 +7,7 @@ import AddressConfirmationModal from "./AddressConfirmationModal";
 import AdminDashboard from "./AdminDashboard";
 import QuoteDialog from "./QuoteDialog";
 import UserProfile from "./UserProfile";
+import EditProfileModal from "./profile/EditProfileModal";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
@@ -261,27 +262,6 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
 
-  if (showProfile) {
-    return (
-      <div className="min-h-screen bg-background">
-        <DashboardHeader 
-          user={currentUser}
-          onShowProfile={() => setShowProfile(false)}
-          onLogout={signOut}
-          onShowUserManagement={() => setShowUserManagement(true)}
-          onGoHome={() => setShowProfile(false)}
-        />
-        <div className="container mx-auto mobile-container py-8">
-          <UserProfile 
-            user={currentUser} 
-            packages={packages}
-            trips={trips}
-            onUpdateUser={handleUpdateUser} 
-          />
-        </div>
-      </div>
-    );
-  }
 
   if (showUserManagement) {
     return (
@@ -712,6 +692,13 @@ const Dashboard = ({ user }: DashboardProps) => {
       <AvailableTripsModal
         isOpen={showAvailableTripsModal}
         onClose={() => setShowAvailableTripsModal(false)}
+      />
+
+      <EditProfileModal
+        user={currentUser}
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        onUpdateUser={handleUpdateUser}
       />
 
     </div>
