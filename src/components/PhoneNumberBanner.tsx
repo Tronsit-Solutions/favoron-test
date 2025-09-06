@@ -4,10 +4,10 @@ import { Card } from "@/components/ui/card";
 import { useState } from "react";
 
 interface PhoneNumberBannerProps {
-  onCompleteProfile: () => void;
+  onOpenProfileModal: () => void;
 }
 
-export const PhoneNumberBanner = ({ onCompleteProfile }: PhoneNumberBannerProps) => {
+export const PhoneNumberBanner = ({ onOpenProfileModal }: PhoneNumberBannerProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;
@@ -25,7 +25,7 @@ export const PhoneNumberBanner = ({ onCompleteProfile }: PhoneNumberBannerProps)
             </p>
           </div>
           <Button
-            onClick={onCompleteProfile}
+            onClick={onOpenProfileModal}
             variant="outline"
             size="sm"
             className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/50"
