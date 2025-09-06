@@ -50,6 +50,7 @@ interface CollapsiblePackageCardProps {
   onArchivePackage?: (pkg: PackageType) => void;
   onRequestRequote?: (pkg: PackageType) => void;
   viewMode?: 'user';
+  
 }
 
 const CollapsiblePackageCard = ({ 
@@ -64,6 +65,7 @@ const CollapsiblePackageCard = ({
   viewMode = 'user'
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("producto");
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
@@ -135,6 +137,8 @@ const CollapsiblePackageCard = ({
       onArchivePackage(pkg);
     }
   };
+
+
 
   // Determine if package actions dropdown should be shown
   const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
@@ -321,7 +325,7 @@ const CollapsiblePackageCard = ({
               
               {/* Left Column: Horizontal Tabs */}
               <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
-                <Tabs defaultValue="producto" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
                     <TabsTrigger 
                       value="producto" 
@@ -456,12 +460,16 @@ const CollapsiblePackageCard = ({
                   
                   {/* Priority Actions */}
                   <div className="mb-4">
-                    <ShopperPackagePriorityActions 
-                      pkg={pkg} 
-                      onQuote={onQuote}
-                      onDeletePackage={onDeletePackage}
-                      onRequestRequote={onRequestRequote}
-                    />
+                     <ShopperPackagePriorityActions 
+                       pkg={pkg} 
+                       onQuote={onQuote}
+                       onDeletePackage={onDeletePackage}
+                       onRequestRequote={onRequestRequote}
+                       onShowTimeline={(packageId) => {
+                         setActiveTab("estado");
+                         setIsOpen(true);
+                       }}
+                     />
                   </div>
 
                   {/* Shipping Instructions */}

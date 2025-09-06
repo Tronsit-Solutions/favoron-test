@@ -438,22 +438,22 @@ const Dashboard = ({ user }: DashboardProps) => {
                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                  })
                  .map((pkg) => (
-                     <CollapsiblePackageCard
-                       key={pkg.id}
-                       pkg={pkg}
-                        onQuote={(pkg, userType) => {
-                          setSelectedPackageForQuote(pkg);
-                          setQuoteUserType(userType);
-                          setShowQuoteDialog(true);
-                        }}
-                       onConfirmAddress={handleAddressConfirmation}
-                       onUploadDocument={handleUploadDocument}
-                        onEditPackage={handleEditPackage}
-                        onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
-                       onArchivePackage={handleArchivePackage}
-                        onRequestRequote={() => console.log('Request requote - handled by AdminDashboard')}
-                       viewMode="user"
-                     />
+                      <CollapsiblePackageCard
+                        key={pkg.id}
+                        pkg={pkg}
+                         onQuote={(pkg, userType) => {
+                           setSelectedPackageForQuote(pkg);
+                           setQuoteUserType(userType);
+                           setShowQuoteDialog(true);
+                         }}
+                        onConfirmAddress={handleAddressConfirmation}
+                        onUploadDocument={handleUploadDocument}
+                         onEditPackage={handleEditPackage}
+                         onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
+                        onArchivePackage={handleArchivePackage}
+                         onRequestRequote={() => console.log('Request requote - handled by AdminDashboard')}
+                        viewMode="user"
+                      />
                 ))}
               </div>
             )}

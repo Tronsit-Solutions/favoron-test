@@ -13,6 +13,7 @@ interface ShopperPackagePriorityActionsProps {
   onRefresh?: () => void;
   onDeletePackage?: (pkg: Package) => void;
   onRequestRequote?: (pkg: Package) => void;
+  onShowTimeline?: (packageId: string) => void;
 }
 
 const ShopperPackagePriorityActions = ({
@@ -20,7 +21,8 @@ const ShopperPackagePriorityActions = ({
   onQuote,
   onRefresh,
   onDeletePackage,
-  onRequestRequote
+  onRequestRequote,
+  onShowTimeline
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
 
@@ -273,7 +275,11 @@ const ShopperPackagePriorityActions = ({
         </div>
       )}
       
-      <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg">
+      <div 
+        className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg cursor-pointer hover:from-primary/10 hover:to-primary/15 transition-colors"
+        onClick={() => onShowTimeline?.(pkg.id)}
+        title="Haz clic para ver el estado del paquete"
+      >
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
             <IconComponent className="h-4 w-4 text-primary" />
