@@ -29,3 +29,4 @@ export { usePersistedFormState } from './usePersistedFormState';
 export { useModalProtection } from './useModalProtection';
 export { useStickyState } from './useStickyState';
 export { useSecureStorage } from './useSecureStorage';
+export { usePhoneNumberValidation } from './usePhoneNumberValidation';

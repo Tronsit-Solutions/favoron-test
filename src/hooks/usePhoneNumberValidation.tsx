@@ -1,14 +1,11 @@
 import { useAuth } from "./useAuth";
-import { validateWhatsAppNumber } from "@/lib/validators";
 
 export const usePhoneNumberValidation = () => {
   const { profile } = useAuth();
 
   const isPhoneNumberMissing = () => {
-    if (!profile?.phone_number) return true;
-    
-    const validation = validateWhatsAppNumber(profile.phone_number);
-    return !validation.isValid;
+    // Only return true if phone_number is truly empty, null, or undefined
+    return !profile?.phone_number || profile.phone_number.trim() === '';
   };
 
   return {
