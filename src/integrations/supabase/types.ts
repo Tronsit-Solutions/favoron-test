@@ -984,6 +984,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      send_quote_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       traveler_reject_assignment: {
         Args: {
           _additional_comments?: string

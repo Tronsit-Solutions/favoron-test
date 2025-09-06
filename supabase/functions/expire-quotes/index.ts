@@ -30,66 +30,12 @@ serve(async (req) => {
 
     console.log('✅ Quote expiration check completed successfully');
 
-    // Also check for quotes expiring in the next 3 hours to send warnings
-    const { data: soonToExpire, error: warningError } = await supabase
-      .from('packages')
-      .select(`
-        id,
-        user_id,
-        item_description,
-        quote_expires_at,
-        matched_trip_id,
-        trips:matched_trip_id (
-          user_id
-        )
-      `)
-      .eq('status', 'quote_sent')
-      .not('quote_expires_at', 'is', null)
-      .gte('quote_expires_at', new Date().toISOString())
-      .lte('quote_expires_at', new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString());
-
-    if (warningError) {
-      console.error('❌ Error checking quotes expiring soon:', warningError);
-    } else if (soonToExpire && soonToExpire.length > 0) {
-      console.log(`⚠️ Found ${soonToExpire.length} quotes expiring in the next 3 hours`);
-
-      // Send warning notifications for quotes expiring soon
-      for (const pkg of soonToExpire) {
-        const hoursLeft = Math.floor((new Date(pkg.quote_expires_at).getTime() - Date.now()) / (1000 * 60 * 60));
-        
-        // Notify shopper
-        await supabase.rpc('create_notification', {
-          _user_id: pkg.user_id,
-          _title: '⏰ Tu cotización expira pronto',
-          _message: `La cotización para "${pkg.item_description}" expira en ${hoursLeft} hora${hoursLeft !== 1 ? 's' : ''}. ¡Completa el pago pronto!`,
-          _type: 'quote',
-          _priority: 'high',
-          _action_url: null,
-          _metadata: {
-            package_id: pkg.id,
-            hours_left: hoursLeft,
-            warning_type: 'expiring_soon'
-          }
-        });
-
-        // Notify traveler if there's a matched trip
-        if (pkg.matched_trip_id && pkg.trips?.user_id) {
-          await supabase.rpc('create_notification', {
-            _user_id: pkg.trips.user_id,
-            _title: '⏰ Tu cotización expira pronto',
-            _message: `Tu cotización para "${pkg.item_description}" expira en ${hoursLeft} hora${hoursLeft !== 1 ? 's' : ''}. El shopper debe completar el pago pronto.`,
-            _type: 'quote',
-            _priority: 'normal',
-            _action_url: null,
-            _metadata: {
-              package_id: pkg.id,
-              trip_id: pkg.matched_trip_id,
-              hours_left: hoursLeft,
-              warning_type: 'expiring_soon'
-            }
-          });
-        }
-      }
+    // Trigger shopper quote reminders at 12h and 1h before expiration
+    const { error: remindersError } = await supabase.rpc('send_quote_reminders');
+    if (remindersError) {
+      console.error('❌ Error sending quote reminders:', remindersError);
+    } else {
+      console.log('✅ Quote reminders executed successfully');
     }
 
     return new Response(
@@ -97,7 +43,7 @@ serve(async (req) => {
         success: true, 
         message: 'Quote expiration check completed',
         expiredCount: data?.expired_count || 0,
-        warningsCount: soonToExpire?.length || 0
+        remindersTriggered: true
       }),
       {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
