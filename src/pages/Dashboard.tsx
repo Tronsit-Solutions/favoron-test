@@ -113,29 +113,6 @@ useEffect(() => {
   
   return (
     <div className="min-h-screen bg-background">
-      {/* User info and sign out header */}
-      <div className="bg-card border-b px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={currentUser?.user_metadata?.avatar_url || userData.avatar_url} />
-              <AvatarFallback>
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium">{currentUser?.email}</p>
-              <p className="text-sm text-muted-foreground">
-                {userData.firstName} {userData.lastName}
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleSignOut} variant="outline" size="sm">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign out
-          </Button>
-        </div>
-      </div>
       
       {/* Dashboard content */}
       <Dashboard user={userData} />
