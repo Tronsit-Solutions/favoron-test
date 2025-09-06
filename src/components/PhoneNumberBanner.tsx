@@ -21,7 +21,7 @@ export const PhoneNumberBanner = ({ onOpenProfileModal }: PhoneNumberBannerProps
           </div>
           <div className="flex-1">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Recomendamos que llenes tu número de teléfono en tu perfil.</strong> Nos comunicaremos contigo en caso haya cualquier problema.
+              <strong>Recomendamos que agregues tu número de teléfono en tu perfil.</strong> Te contactaremos por WhatsApp para noticias importantes.
             </p>
           </div>
           <Button
