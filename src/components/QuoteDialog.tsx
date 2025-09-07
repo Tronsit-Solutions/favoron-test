@@ -173,20 +173,20 @@ const QuoteDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4 sm:space-y-6 overflow-x-hidden">{/* Force no horizontal overflow */}
           {/* Package Details */}
-          <div className="bg-muted/50 border rounded-lg p-1 sm:p-1.5">
+          <div className="bg-muted/50 border rounded-lg p-3 sm:p-4 max-w-full">{/* Reduce padding and add max-width */}
             <div className="flex items-start space-x-2 mb-2">
               <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
             </div>
-            <div className="text-sm sm:text-sm ml-7 space-y-0">
-              <div className="bg-background/80 rounded-lg p-2">
+            <div className="text-sm sm:text-sm ml-4 sm:ml-7 space-y-2 overflow-x-hidden">{/* Reduce left margin and force no overflow */}
+                <div className="bg-background/80 rounded-lg p-2 max-w-full break-words">{/* Add break-words for long text */}
                 <p className="font-medium text-foreground"><strong>Producto:</strong></p>
                 <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
               </div>
-              <div className="bg-background/80 rounded-lg p-2 flex justify-between items-center">
-                <div className="flex-1">
+              <div className="bg-background/80 rounded-lg p-2 max-w-full overflow-hidden">{/* Add overflow control */}
+                <div className="w-full space-y-2">{/* Remove flex-1 and make full width */}
                   <p className="font-medium text-foreground mb-2"><strong>Información de precios:</strong></p>
                   {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? <div className="space-y-2">
                       {packageDetails.products_data.map((product: any, index: number) => {
@@ -196,12 +196,12 @@ const QuoteDialog = ({
 
                     // Always use adminAssignedTip from products_data
                     const adminTip = parseFloat(product.adminAssignedTip || '0');
-                    return <div key={index} className="bg-muted/30 rounded p-2">
+                    return <div key={index} className="bg-muted/30 rounded p-2 max-w-full overflow-hidden">{/* Add overflow control */}
                             <p className="text-sm font-medium text-foreground mb-2">
                               Producto {index + 1}: {product.itemDescription}
                             </p>
-                            <div className="flex justify-between items-center">
-                              <div className="text-sm text-muted-foreground space-y-1">
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-2">{/* Stack vertically on mobile */}
+                              <div className="text-sm text-muted-foreground space-y-1 flex-1 min-w-0">{/* Add min-width 0 to prevent overflow */}
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
                                 <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
                                 {quantity > 1 && <p className="text-primary font-medium">
@@ -217,7 +217,7 @@ const QuoteDialog = ({
                                     </a>
                                   </p>}
                               </div>
-                              <div className="text-right">
+                              <div className="text-right flex-shrink-0">{/* Prevent shrinking on mobile */}
                                 {adminTip > 0 ? <div>
                                     {isTravelerContext ?
                             // Traveler sees base tip
