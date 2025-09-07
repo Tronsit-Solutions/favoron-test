@@ -151,7 +151,7 @@ export const MatchCard = ({
             {isMobile && (showQuoteTimer || showAssignmentTimer) && (
               <div className="space-y-2">
                 {showQuoteTimer && (
-                  <div className="bg-orange-50 border border-orange-200 rounded p-2">
+                  <div className="bg-orange-50 border border-orange-200 rounded p-1.5 md:p-2">
                     <span className="text-sm text-orange-700 font-medium block mb-1">Tiempo para pago</span>
                     <QuoteCountdown 
                       expiresAt={pkg.quote_expires_at} 
