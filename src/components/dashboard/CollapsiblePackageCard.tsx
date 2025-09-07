@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -17,6 +17,7 @@ import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
 import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
+import BankingConfirmationModal from "@/components/BankingConfirmationModal";
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
@@ -68,6 +69,7 @@ const CollapsiblePackageCard = ({
   const [activeTab, setActiveTab] = React.useState("producto");
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
+  const [showBankingModal, setShowBankingModal] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
     documentType: 'purchase_confirmation' | 'tracking_info' | null;
@@ -216,8 +218,8 @@ const CollapsiblePackageCard = ({
                 </CardDescription>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto flex-shrink-0 min-w-0">
-                {/* Shopper Quote Action Button */}
-                {pkg.status === 'quote_sent' && !pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? (
+                {/* Shopper Action Button - Different for different statuses */}
+                {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
                   <Button
                     size="sm"
                     variant="success"
@@ -228,6 +230,19 @@ const CollapsiblePackageCard = ({
                     className="mr-2 text-xs font-medium flex-shrink-0"
                   >
                     Ver y Aceptar Cotización
+                  </Button>
+                ) : pkg.status === 'payment_pending' ? (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowBankingModal(true);
+                    }}
+                    className="mr-2 text-xs font-medium flex-shrink-0"
+                  >
+                    <CreditCard className="h-3 w-3 mr-1" />
+                    Ver Info de Pago
                   </Button>
                 ) : null}
                 <div className="flex-shrink-0 min-w-0">
@@ -615,6 +630,18 @@ const CollapsiblePackageCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Banking Confirmation Modal */}
+      <BankingConfirmationModal
+        isOpen={showBankingModal}
+        onClose={() => setShowBankingModal(false)}
+        pkg={pkg}
+        travelerProfile={null} // This would need to be passed from parent if available
+        onConfirm={() => {
+          setShowBankingModal(false);
+          // Handle payment confirmation
+        }}
+      />
     </Collapsible>
   );
 };
