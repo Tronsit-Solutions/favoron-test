@@ -210,12 +210,6 @@ const QuoteDialog = ({
                                 <p className="text-foreground font-medium">
                                   <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
                                 </p>
-                                {product.itemLink && <p>
-                                    <a href={product.itemLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors">
-                                      
-                                      <span className="text-xs font-medium">Ver producto</span>
-                                    </a>
-                                  </p>}
                               </div>
                               <div className="text-right flex-shrink-0">{/* Prevent shrinking on mobile */}
                                 {adminTip > 0 ? <div>
