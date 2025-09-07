@@ -47,17 +47,19 @@ const TravelerPackagePriorityActions = ({
       )}
 
       {/* Action section */}
-      <div className="p-2 bg-muted/30 border rounded-lg">
-        <div className="flex items-start sm:items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="flex-shrink-0 w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+      <div className="p-3 bg-muted/30 border rounded-lg">
+        {/* Mobile-first vertical layout */}
+        <div className="space-y-3">
+          {/* Status message section */}
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-6 h-6 bg-muted rounded-full flex items-center justify-center mt-0.5">
               {pkg.status === 'matched' ? (
                 <DollarSign className="h-3 w-3" />
               ) : (
                 <CheckCircle className="h-3 w-3" />
               )}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {pkg.status === 'matched' && (
                 <div>
                   <p className="text-sm font-semibold mb-1">¿Aceptas el tip asignado por Favorón?</p>
@@ -86,15 +88,17 @@ const TravelerPackagePriorityActions = ({
               )}
             </div>
           </div>
-          <div className="flex-shrink-0 mt-1 sm:mt-0">
+          
+          {/* Action button section - separate row for mobile */}
+          <div className="w-full">
             {pkg.status === 'matched' && pkg.admin_assigned_tip && pkg.matched_trip_id && (
               <Button 
                 size="sm" 
                 variant="success"
                 onClick={() => onQuote(pkg, 'user')} 
-                className="font-semibold px-4 py-2 h-8"
+                className="font-semibold w-full sm:w-auto h-9 text-sm"
               >
-                <DollarSign className="h-3 w-3 mr-1" />
+                <DollarSign className="h-3 w-3 mr-2" />
                 Ver y Aceptar Tip
               </Button>
             )}
@@ -103,7 +107,7 @@ const TravelerPackagePriorityActions = ({
                 size="sm"
                 variant="outline"
                 disabled
-                className="font-medium px-4 py-2 h-8"
+                className="font-medium w-full sm:w-auto h-9 text-sm"
               >
                 Esperando tip del admin
               </Button>
@@ -113,11 +117,10 @@ const TravelerPackagePriorityActions = ({
                 size="sm" 
                 onClick={onConfirmReceived} 
                 variant="success"
-                className="font-medium px-3 py-2 h-9 sm:px-4 sm:h-8 text-xs sm:text-sm whitespace-nowrap min-w-0 flex-shrink-0"
+                className="font-medium w-full sm:w-auto h-9 text-sm"
               >
-                <CheckCircle className="h-3 w-3 mr-1 sm:mr-2" />
-                <span className="hidden xs:inline">Confirmar recibido</span>
-                <span className="xs:hidden">Recibido</span>
+                <CheckCircle className="h-3 w-3 mr-2" />
+                Confirmar recibido
               </Button>
             )}
             {pkg.status === 'received_by_traveler' && onConfirmOfficeDelivery && (
@@ -125,9 +128,9 @@ const TravelerPackagePriorityActions = ({
                 size="sm" 
                 onClick={onConfirmOfficeDelivery} 
                 variant="success"
-                className="font-medium px-4 py-2 h-8"
+                className="font-medium w-full sm:w-auto h-9 text-sm"
               >
-                <CheckCircle className="h-3 w-3 mr-1" />
+                <CheckCircle className="h-3 w-3 mr-2" />
                 Entregado en oficina
               </Button>
             )}
