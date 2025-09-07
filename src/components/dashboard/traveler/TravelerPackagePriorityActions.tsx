@@ -89,8 +89,8 @@ const TravelerPackagePriorityActions = ({
             </div>
           </div>
           
-          {/* Action button section - separate row for mobile */}
-          <div className="w-full">
+          {/* Action button section - right aligned on desktop, full width on mobile */}
+          <div className="w-full sm:flex sm:justify-end">
             {pkg.status === 'matched' && pkg.admin_assigned_tip && pkg.matched_trip_id && (
               <Button 
                 size="sm" 
