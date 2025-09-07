@@ -128,17 +128,9 @@ const CollapsibleTravelerPackageCard = ({
               ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
           }`}>
-            {/* Priority Action Button */}
+            {/* Product Name at the top */}
             <div className="mb-3">
-              <TravelerPackagePriorityActions
-                pkg={pkg}
-                onQuote={onQuote}
-                onConfirmReceived={handleConfirmReceivedClick}
-                onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
-              />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+              <CardTitle className="text-lg font-semibold leading-tight flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <Package className="h-5 w-5 text-primary" />
                   {hasPendingAction && (
@@ -148,14 +140,37 @@ const CollapsibleTravelerPackageCard = ({
                     />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base sm:text-lg font-semibold leading-tight">
-                    <span className="block sm:truncate">{getPackageName()}</span>
-                  </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm mt-1 leading-tight">
-                    <span className="block sm:truncate">{getPackageDescription()}</span>
-                  </CardDescription>
-                </div>
+                <span className="flex-1">{getPackageName()}</span>
+              </CardTitle>
+            </div>
+
+            {/* Tip acceptance message */}
+            {getTipAmount() > 0 && pkg.status === 'matched' && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-800">
+                  ¿Aceptas el tip asignado por Favoron?
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Tip: Q{getTipAmount().toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            {/* Priority Action Button */}
+            <div className="mb-3">
+              <TravelerPackagePriorityActions
+                pkg={pkg}
+                onQuote={onQuote}
+                onConfirmReceived={handleConfirmReceivedClick}
+                onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <CardDescription className="text-xs sm:text-sm leading-tight">
+                  <span className="block sm:truncate">{getPackageDescription()}</span>
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex flex-col items-end text-right">
