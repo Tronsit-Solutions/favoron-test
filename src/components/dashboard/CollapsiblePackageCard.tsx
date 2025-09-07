@@ -242,7 +242,7 @@ const CollapsiblePackageCard = ({
                     className="mr-2 text-xs font-medium flex-shrink-0"
                   >
                     <CreditCard className="h-3 w-3 mr-1" />
-                    Ver Info de Pago
+                    Pagar
                   </Button>
                 ) : null}
                 <div className="flex-shrink-0 min-w-0">
