@@ -161,12 +161,6 @@ const CollapsibleTravelerPackageCard = ({
                 <div className="flex flex-col items-end text-right">
                   {getStatusBadge(pkg.status)}
                   
-                  {/* Tip amount display */}
-                  {getTipAmount() > 0 && (
-                    <div className="mt-1 px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-medium">
-                      Tip: Q{getTipAmount().toFixed(2)}
-                    </div>
-                  )}
                   
                   {/* Status message */}
                   <div className="text-xs mt-1 max-w-48">
