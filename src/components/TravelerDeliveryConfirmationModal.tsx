@@ -147,7 +147,7 @@ const TravelerDeliveryConfirmationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[90vh] overflow-y-auto px-4 md:px-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />
@@ -155,7 +155,7 @@ const TravelerDeliveryConfirmationModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Resumen del viaje */}
           <Card>
             <CardHeader>
@@ -165,17 +165,17 @@ const TravelerDeliveryConfirmationModal = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ruta:</span>
-                  <span className="font-medium">{trip.from_city} → {trip.to_city}</span>
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-muted-foreground text-sm">Ruta:</span>
+                  <span className="font-medium text-sm sm:text-base">{trip.from_city} → {trip.to_city}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Paquetes:</span>
-                  <span className="font-medium">{packages.length}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-muted-foreground text-sm">Paquetes:</span>
+                  <span className="font-medium text-sm sm:text-base">{packages.length}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total a recibir:</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-muted-foreground text-sm">Total a recibir:</span>
                   <span className="font-bold text-green-600 text-lg">Q{totalAmount.toFixed(2)}</span>
                 </div>
               </div>
@@ -188,24 +188,24 @@ const TravelerDeliveryConfirmationModal = ({
               <CardTitle className="text-lg">Método de entrega</CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
-                  <RadioGroupItem value="oficina" id="oficina" />
-                  <Label htmlFor="oficina" className="flex items-center gap-2 cursor-pointer flex-1">
-                    <Building className="h-4 w-4" />
-                    <div>
-                      <p className="font-medium">Entregué en oficina Favorón Zona 14</p>
-                      <p className="text-sm text-muted-foreground">Paquetes entregados en oficina</p>
+              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod} className="space-y-3">
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 min-h-[44px]">
+                  <RadioGroupItem value="oficina" id="oficina" className="mt-1" />
+                  <Label htmlFor="oficina" className="flex items-start gap-2 cursor-pointer flex-1">
+                    <Building className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base leading-tight">Entregué en oficina Favorón Zona 14</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">Paquetes entregados en oficina</p>
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50">
-                  <RadioGroupItem value="mensajero" id="mensajero" />
-                  <Label htmlFor="mensajero" className="flex items-center gap-2 cursor-pointer flex-1">
-                    <Truck className="h-4 w-4" />
-                    <div>
-                      <p className="font-medium">Entregué al mensajero Favorón</p>
-                      <p className="text-sm text-muted-foreground">Paquetes entregados a mensajero</p>
+                <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 min-h-[44px]">
+                  <RadioGroupItem value="mensajero" id="mensajero" className="mt-1" />
+                  <Label htmlFor="mensajero" className="flex items-start gap-2 cursor-pointer flex-1">
+                    <Truck className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base leading-tight">Entregué al mensajero Favorón</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">Paquetes entregados a mensajero</p>
                     </div>
                   </Label>
                 </div>
@@ -222,60 +222,65 @@ const TravelerDeliveryConfirmationModal = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
-                <Shield className="h-4 w-4 text-green-500" />
-                <p className="text-sm text-muted-foreground">
+              <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
+                <Shield className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Favorón nunca compartirá esta información con otros usuarios.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="holder">Nombre del titular *</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="holder" className="text-sm font-medium">Nombre del titular *</Label>
                   <Input
                     id="holder"
                     value={bankInfo.bank_account_holder}
                     onChange={(e) => handleBankInfoChange('bank_account_holder', e.target.value)}
                     placeholder="Nombre completo del titular"
+                    className="min-h-[44px] text-base"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="bank">Banco *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="bank" className="text-sm font-medium">Banco *</Label>
                   <Input
                     id="bank"
                     value={bankInfo.bank_name}
                     onChange={(e) => handleBankInfoChange('bank_name', e.target.value)}
                     placeholder="Nombre del banco"
+                    className="min-h-[44px] text-base"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="type">Tipo de cuenta</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="type" className="text-sm font-medium">Tipo de cuenta</Label>
                   <Input
                     id="type"
                     value={bankInfo.bank_account_type}
                     onChange={(e) => handleBankInfoChange('bank_account_type', e.target.value)}
                     placeholder="Ahorro, Corriente, etc."
+                    className="min-h-[44px] text-base"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="number">Número de cuenta *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="number" className="text-sm font-medium">Número de cuenta *</Label>
                   <Input
                     id="number"
                     value={bankInfo.bank_account_number}
                     onChange={(e) => handleBankInfoChange('bank_account_number', e.target.value)}
                     placeholder="Número de cuenta"
+                    className="min-h-[44px] text-base"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="notes">Notas adicionales</Label>
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-medium">Notas adicionales</Label>
                 <Textarea
                   id="notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Información adicional sobre la entrega..."
                   rows={3}
+                  className="text-base resize-none"
                 />
               </div>
             </CardContent>
@@ -290,16 +295,16 @@ const TravelerDeliveryConfirmationModal = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {packages.map((pkg) => (
-                  <div key={pkg.id} className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                    <div>
-                      <p className="font-medium">{pkg.item_description}</p>
-                      <p className="text-sm text-muted-foreground">Paquete #{pkg.id}</p>
+                  <div key={pkg.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-muted/30 rounded gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm sm:text-base truncate">{pkg.item_description}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Paquete #{pkg.id}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">Q{pkg.quote?.price || '0.00'}</p>
-                      <Badge variant="outline" className="text-xs">
+                    <div className="flex justify-between sm:flex-col sm:text-right items-start sm:items-end gap-2">
+                      <p className="font-medium text-sm sm:text-base">Q{pkg.quote?.price || '0.00'}</p>
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
                         {getStatusLabel(pkg.status)}
                       </Badge>
                     </div>
@@ -312,20 +317,23 @@ const TravelerDeliveryConfirmationModal = ({
           <Separator />
 
           {/* Botones de acción */}
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
             <Button
               variant="outline"
               onClick={onClose}
               disabled={loading}
+              className="w-full sm:w-auto min-h-[44px] order-2 sm:order-1"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirmDelivery}
               disabled={loading || !deliveryMethod}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto min-h-[44px] order-1 sm:order-2"
             >
-              {loading ? "Procesando..." : "Declarar entrega (requiere confirmación admin)"}
+              <span className="text-sm sm:text-base text-center">
+                {loading ? "Procesando..." : "Declarar entrega"}
+              </span>
             </Button>
           </div>
         </div>
