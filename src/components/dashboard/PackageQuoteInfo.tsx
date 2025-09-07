@@ -1,7 +1,6 @@
 import StatusAlert from "@/components/ui/status-alert";
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
-
 interface PackageQuoteInfoProps {
   quote: {
     totalPrice: string;
@@ -10,24 +9,15 @@ interface PackageQuoteInfoProps {
   quoteExpiresAt?: string | Date | null;
   onQuoteExpire?: () => void;
 }
-
-const PackageQuoteInfo = ({ quote, quoteExpiresAt, onQuoteExpire }: PackageQuoteInfoProps) => {
+const PackageQuoteInfo = ({
+  quote,
+  quoteExpiresAt,
+  onQuoteExpire
+}: PackageQuoteInfoProps) => {
   if (!quote) return null;
-  
   const totalPrice = parseFloat(quote.totalPrice || '0');
-  
-  return (
-    <StatusAlert variant="info" title="Cotización recibida">
-      <div className="space-y-1">
-        <p className="text-sm font-medium">
-          Total: {formatCurrency(totalPrice)}
-        </p>
-        <p className="text-xs opacity-90">
-          El monto cotizado incluye la tarifa completa del servicio: comisión Favorón, cobertura de seguro y compensación para el viajero.
-        </p>
-      </div>
-    </StatusAlert>
-  );
+  return <StatusAlert variant="info" title="Cotización recibida">
+      
+    </StatusAlert>;
 };
-
 export default PackageQuoteInfo;
