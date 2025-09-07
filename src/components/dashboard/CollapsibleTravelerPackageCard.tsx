@@ -144,17 +144,6 @@ const CollapsibleTravelerPackageCard = ({
               </CardTitle>
             </div>
 
-            {/* Tip acceptance message */}
-            {getTipAmount() > 0 && pkg.status === 'matched' && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-800">
-                  ¿Aceptas el tip asignado por Favoron?
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Tip: Q{getTipAmount().toFixed(2)}
-                </p>
-              </div>
-            )}
 
             {/* Priority Action Button */}
             <div className="mb-3">
