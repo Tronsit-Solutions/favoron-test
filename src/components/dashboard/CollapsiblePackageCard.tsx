@@ -9,7 +9,7 @@ import UploadDocuments from "@/components/UploadDocuments";
 import PackageRequestForm from "@/components/PackageRequestForm";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
-import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
+
 import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
@@ -518,17 +518,6 @@ const CollapsiblePackageCard = ({
                     </div>
                   )}
 
-                  {/* Payment Receipt Upload */}
-                  {(pkg.status === 'payment_pending' || 
-                     pkg.status === 'quote_accepted' || 
-                     pkg.status === 'awaiting_payment') && (
-                     <div className="mb-4">
-                       <PaymentReceiptUpload 
-                         pkg={pkg}
-                         onUploadComplete={() => {}}
-                       />
-                     </div>
-                   )}
 
                   {/* Document Upload */}
                   {(pkg.status === 'payment_confirmed' || 
