@@ -312,6 +312,13 @@ const QuoteDialog = ({
           {existingQuote && <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="text-sm text-green-700 space-y-1">
+                  {/* Traveler's message */}
+                  {existingQuote.message && (
+                    <div className="mb-3 pb-2 border-b border-green-300">
+                      <p className="font-medium text-green-800 mb-1">💬 Mensaje del viajero:</p>
+                      <p className="text-green-700 italic bg-green-100 rounded p-2">"{existingQuote.message}"</p>
+                    </div>
+                  )}
                   <div className="mt-2 pt-2 border-t border-green-300">
                      <p className="font-medium text-lg">
                        <strong>Total a pagar:</strong> {formatCurrency(parseFloat(existingQuote.totalPrice || '0'))}
