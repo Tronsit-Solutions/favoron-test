@@ -17,7 +17,7 @@ import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
 import ShippingInstructions from "@/components/dashboard/shopper/ShippingInstructions";
 import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
-import BankingConfirmationModal from "@/components/BankingConfirmationModal";
+import ShopperPaymentInfoModal from "@/components/dashboard/shopper/ShopperPaymentInfoModal";
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
@@ -69,7 +69,7 @@ const CollapsiblePackageCard = ({
   const [activeTab, setActiveTab] = React.useState("producto");
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
-  const [showBankingModal, setShowBankingModal] = React.useState(false);
+  const [showPaymentModal, setShowPaymentModal] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
     documentType: 'purchase_confirmation' | 'tracking_info' | null;
@@ -237,7 +237,7 @@ const CollapsiblePackageCard = ({
                     variant="default"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setShowBankingModal(true);
+                      setShowPaymentModal(true);
                     }}
                     className="mr-2 text-xs font-medium flex-shrink-0"
                   >
@@ -631,15 +631,14 @@ const CollapsiblePackageCard = ({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Banking Confirmation Modal */}
-      <BankingConfirmationModal
-        isOpen={showBankingModal}
-        onClose={() => setShowBankingModal(false)}
+      {/* Shopper Payment Info Modal */}
+      <ShopperPaymentInfoModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
         pkg={pkg}
-        travelerProfile={null} // This would need to be passed from parent if available
-        onConfirm={() => {
-          setShowBankingModal(false);
-          // Handle payment confirmation
+        onUploadComplete={(updatedPkg) => {
+          // Update the package state if parent component needs it
+          setShowPaymentModal(false);
         }}
       />
     </Collapsible>
