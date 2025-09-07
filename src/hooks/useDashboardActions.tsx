@@ -852,6 +852,12 @@ export const useDashboardActions = (
         }
         
         await updatePackage(id, updateData);
+        
+        // Refresh packages after approval/rejection to ensure UI is updated
+        if (refreshPackages) {
+          await refreshPackages();
+        }
+        
         toast({
           title: action === 'approve' ? "¡Solicitud aprobada!" : "Solicitud rechazada",
           description: `La solicitud de paquete ha sido ${action === 'approve' ? 'aprobada' : 'rechazada'}.`,
@@ -869,6 +875,12 @@ export const useDashboardActions = (
         }
         
         await updateTrip(id, updateData);
+        
+        // Refresh trips after approval/rejection to ensure UI is updated
+        if (refreshTrips) {
+          await refreshTrips();
+        }
+        
         toast({
           title: action === 'approve' ? "¡Viaje aprobado!" : "Viaje rechazado",
           description: `El viaje ha sido ${action === 'approve' ? 'aprobado' : 'rechazado'}.`,
