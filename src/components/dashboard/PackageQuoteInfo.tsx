@@ -16,8 +16,22 @@ const PackageQuoteInfo = ({
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   const totalPrice = parseFloat(quote.totalPrice || '0');
-  return <StatusAlert variant="info" title="Cotización recibida">
-      
-    </StatusAlert>;
+  return (
+    <StatusAlert variant="info" title="Cotización recibida">
+      <div className="space-y-2">
+        <p className="font-semibold text-lg">{formatCurrency(totalPrice)}</p>
+        {quote.message && (
+          <p className="text-sm text-muted-foreground">{quote.message}</p>
+        )}
+        {quoteExpiresAt && (
+          <QuoteCountdown 
+            expiresAt={quoteExpiresAt} 
+            onExpire={onQuoteExpire}
+            compact={true}
+          />
+        )}
+      </div>
+    </StatusAlert>
+  );
 };
 export default PackageQuoteInfo;

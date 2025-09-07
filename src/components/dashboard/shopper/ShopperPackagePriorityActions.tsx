@@ -262,19 +262,6 @@ const ShopperPackagePriorityActions = ({
 
   return (
     <div className="space-y-4">
-      {/* Countdown for active quotes - only while shopper is deciding */}
-      {['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && 
-       pkg.quote_expires_at && 
-       !isQuoteExpired && (
-        <div className="mb-4">
-          <QuoteCountdown 
-            expiresAt={pkg.quote_expires_at} 
-            onExpire={handleQuoteExpire}
-            compact={true}
-          />
-        </div>
-      )}
-      
       <div 
         className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg cursor-pointer hover:from-primary/10 hover:to-primary/15 transition-colors"
         onClick={() => onShowTimeline?.(pkg.id)}
@@ -320,6 +307,19 @@ const ShopperPackagePriorityActions = ({
           </div>
         </div>
       </div>
+      
+      {/* Countdown for active quotes - only while shopper is deciding */}
+      {['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && 
+       pkg.quote_expires_at && 
+       !isQuoteExpired && (
+        <div className="mb-4">
+          <QuoteCountdown 
+            expiresAt={pkg.quote_expires_at} 
+            onExpire={handleQuoteExpire}
+            compact={true}
+          />
+        </div>
+      )}
     </div>
   );
 };
