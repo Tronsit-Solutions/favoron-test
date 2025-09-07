@@ -508,6 +508,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Additional Notes from Shopper */}
+                  {pkg.additional_notes && (
+                    <div className="mt-3 pt-3 border-t border-primary/20">
+                      <h5 className="font-medium text-xs text-muted-foreground mb-2">Notas Adicionales del Shopper:</h5>
+                      <p className="text-xs text-foreground bg-muted/30 p-2 rounded">{pkg.additional_notes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
