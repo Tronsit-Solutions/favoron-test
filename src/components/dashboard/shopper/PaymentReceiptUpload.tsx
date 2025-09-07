@@ -168,7 +168,53 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
     );
   }
 
-  return null;
+  return (
+    <div 
+      className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+          {uploading ? (
+            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+          ) : (
+            <Upload className="h-6 w-6 text-primary" />
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <p className="text-sm font-medium">
+            {uploading ? "Subiendo comprobante..." : "Subir comprobante de pago"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Arrastra tu archivo aquí o haz clic para seleccionar
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Formatos permitidos: JPG, PNG, PDF (máx. 5MB)
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Seleccionar archivo
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.pdf"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
+    </div>
+  );
 };
 
 export default PaymentReceiptUpload;
