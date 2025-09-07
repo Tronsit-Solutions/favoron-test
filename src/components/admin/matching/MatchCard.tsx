@@ -353,13 +353,13 @@ export const MatchCard = ({
 
             {/* Show compact timer details in expanded view */}
             {isExpanded && (showQuoteTimer || showAssignmentTimer) && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
-                <div className="flex items-center space-x-1 mb-1">
-                  <CalendarDays className="h-3 w-3 text-yellow-600" />
-                  <span className="text-xs font-medium text-yellow-800">Timers</span>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-1 md:p-2">
+                <div className="flex items-center space-x-1 mb-0.5 md:mb-1">
+                  <CalendarDays className="h-2.5 w-2.5 md:h-3 md:w-3 text-yellow-600" />
+                  <span className="text-xs md:text-xs font-medium text-yellow-800">Timers</span>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-0.5 md:space-y-1">
                   {showQuoteTimer && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-yellow-700">Cotización:</span>
