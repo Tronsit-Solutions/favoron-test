@@ -128,6 +128,15 @@ const CollapsibleTravelerPackageCard = ({
               ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
           }`}>
+            {/* Priority Action Button */}
+            <div className="mb-3">
+              <TravelerPackagePriorityActions
+                pkg={pkg}
+                onQuote={onQuote}
+                onConfirmReceived={handleConfirmReceivedClick}
+                onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
+              />
+            </div>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
@@ -201,12 +210,6 @@ const CollapsibleTravelerPackageCard = ({
         
         <CollapsibleContent>
           <CardContent className={`pt-0 pb-1 ${isMobile ? 'px-2' : 'px-4'}`}>
-            <TravelerPackagePriorityActions
-              pkg={pkg}
-              onQuote={onQuote}
-              onConfirmReceived={handleConfirmReceivedClick}
-              onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
-            />
 
             <div className="grid gap-4 lg:grid-cols-5">
               {/* Left section with tabs */}
