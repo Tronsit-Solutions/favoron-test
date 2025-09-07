@@ -216,6 +216,20 @@ const CollapsiblePackageCard = ({
                 </CardDescription>
               </div>
               <div className="flex items-center gap-1 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto flex-shrink-0 min-w-0">
+                {/* Shopper Quote Action Button */}
+                {pkg.status === 'quote_sent' && !pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? (
+                  <Button
+                    size="sm"
+                    variant="success"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onQuote(pkg, 'user');
+                    }}
+                    className="mr-2 text-xs font-medium flex-shrink-0"
+                  >
+                    Ver y Aceptar Cotización
+                  </Button>
+                ) : null}
                 <div className="flex-shrink-0 min-w-0">
                   {expirationInfo ? (
                     <TooltipProvider>
