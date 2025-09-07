@@ -395,7 +395,7 @@ const QuoteDialog = ({
 
           {/* Message for admin assigned tip acceptance */}
           {displayAmount && <div className="space-y-4">
-              <div>
+              <div className="max-w-full overflow-hidden">{/* Reduce width and prevent overflow */}
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
                 <Textarea id="message" placeholder="" value={message} onChange={e => setMessage(e.target.value)} rows={3} />
               </div>
