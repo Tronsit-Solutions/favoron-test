@@ -413,6 +413,16 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             </CardHeader>
             <CardContent className="space-y-4">
               
+              {/* Additional Notes from Shopper */}
+              {pkg.additional_notes && (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 mb-2">
+                    Notas Adicionales del Shopper:
+                  </h4>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">{pkg.additional_notes}</p>
+                </div>
+              )}
+              
               {/* Individual Product Details */}
               <div className="space-y-2">
                 <h4 className="font-medium text-sm">Productos Solicitados:</h4>
