@@ -21,7 +21,7 @@ const PackageQuoteInfo = ({
       <div className="space-y-2">
         <p className="font-semibold text-lg">{formatCurrency(totalPrice)}</p>
         {quote.message && (
-          <p className="text-sm text-muted-foreground">{quote.message}</p>
+          <p className="text-sm text-muted-foreground">Mensaje del viajero: "{quote.message}"</p>
         )}
         {quoteExpiresAt && (
           <QuoteCountdown 
