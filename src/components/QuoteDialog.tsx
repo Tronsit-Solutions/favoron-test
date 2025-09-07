@@ -227,8 +227,6 @@ const QuoteDialog = ({
                                       </> :
                             // Shopper sees quote amount (tip × 1.4)
                             <>
-                                        <p className="text-lg font-bold text-green-600">Q{(adminTip * 1.4).toFixed(2)}</p>
-                                        <p className="text-xs text-muted-foreground">Cotización</p>
                                       </>}
                                   </div> : <p className="text-sm text-muted-foreground">Sin tip</p>}
                               </div>
@@ -252,8 +250,6 @@ const QuoteDialog = ({
                                   <p className="font-medium text-green-600">Tip total:</p>
                                   <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
                                 </> : <>
-                                  <p className="font-medium text-green-600">Cotización total:</p>
-                                  <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
                                 </>}
                             </div>}
                         </div>}
@@ -272,8 +268,6 @@ const QuoteDialog = ({
                                 <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
                                 <p className="text-xs text-muted-foreground">Tip asignado</p>
                               </> : <>
-                                <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
-                                <p className="text-xs text-muted-foreground">Cotización</p>
                               </>}
                           </div>}
                       </div>
