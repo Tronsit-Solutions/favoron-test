@@ -582,7 +582,9 @@ const AdminTravelerPaymentsTab = () => {
                   console.log('🎯 AdminTravelerPaymentsTab - Rendering breakdown:', {
                     packageBreakdownLength: packageBreakdown.length,
                     packageBreakdown: packageBreakdown,
-                    confirmDialogOrder: confirmDialog.order?.id
+                    confirmDialogOrder: confirmDialog.order?.id,
+                    firstPackage: packageBreakdown[0],
+                    availableKeys: packageBreakdown[0] ? Object.keys(packageBreakdown[0]) : []
                   });
                   return null;
                 })()}
@@ -591,8 +593,16 @@ const AdminTravelerPaymentsTab = () => {
                     // Extraer el tip desde quote.price (fuente principal en historical_packages)
                     const packageTip = pkg.quote?.price || 0;
                     
+                    console.log(`📦 Package ${index}:`, {
+                      id: pkg.id,
+                      package_id: (pkg as any).package_id,
+                      item_description: pkg.item_description,
+                      quote: pkg.quote,
+                      packageTip
+                    });
+                    
                     return (
-                      <div key={pkg.id} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
+                      <div key={(pkg as any).package_id || pkg.id || index} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
                         <div className="flex items-center gap-1 flex-1 min-w-0">
                           <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground truncate">
