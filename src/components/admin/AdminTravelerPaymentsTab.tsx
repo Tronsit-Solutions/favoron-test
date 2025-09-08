@@ -83,7 +83,7 @@ const AdminTravelerPaymentsTab = () => {
         .from('packages')
         .select('id, item_description, products_data, status, matched_trip_id')
         .eq('matched_trip_id', tripId)
-        .in('status', ['delivered_to_office', 'received_by_traveler', 'completed'])
+        .in('status', ['received_by_traveler', 'completed'])
         .not('products_data', 'is', null)
         .order('updated_at', { ascending: false });
       
@@ -607,7 +607,18 @@ const AdminTravelerPaymentsTab = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-sm">Total a pagar:</span>
                   <div className="text-xl font-bold text-green-600">
-                    Q{confirmDialog.order?.amount}
+                    {formatCurrency(
+                      packageBreakdown.reduce((sum: number, pkg: any) => {
+                        if (pkg?.products_data && Array.isArray(pkg.products_data)) {
+                          const pkgSum = pkg.products_data.reduce((s: number, product: any) => {
+                            const tip = product?.adminAssignedTip || 0;
+                            return s + (typeof tip === 'string' ? parseFloat(tip) : tip);
+                          }, 0);
+                          return sum + pkgSum;
+                        }
+                        return sum;
+                      }, 0)
+                    )}
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
