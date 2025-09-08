@@ -179,7 +179,7 @@ const ShopperPackagePriorityActions = ({
         return {
           icon: Package2,
           title: "📦 Producto en camino al viajero",
-          description: "El producto fue comprado y está siendo enviado por la tienda a la dirección del viajero.",
+          description: "La tienda ha realizado la compra y está despachando el artículo hacia el domicilio del viajero.",
           button: null
         };
       case 'pending_office_confirmation':
