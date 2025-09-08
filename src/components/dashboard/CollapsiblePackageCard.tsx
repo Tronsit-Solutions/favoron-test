@@ -19,6 +19,7 @@ import ShippingInfoRegistry from "@/components/dashboard/ShippingInfoRegistry";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import ShopperPaymentInfoModal from "@/components/dashboard/shopper/ShopperPaymentInfoModal";
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
+import ShippingInfoModal from "@/components/dashboard/ShippingInfoModal";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -78,6 +79,7 @@ const CollapsiblePackageCard = ({
     documentType: null
   });
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
+  const [showShippingInfoModal, setShowShippingInfoModal] = React.useState(false);
   
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
@@ -243,6 +245,18 @@ const CollapsiblePackageCard = ({
                   >
                     <CreditCard className="h-3 w-3 mr-1" />
                     Pagar
+                  </Button>
+                ) : pkg.status === 'pending_purchase' ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowShippingInfoModal(true);
+                    }}
+                    className="mr-2 text-xs font-medium flex-shrink-0"
+                  >
+                    Ver Info de Envío
                   </Button>
                 ) : null}
                 <div className="flex-shrink-0 min-w-0">
@@ -629,6 +643,13 @@ const CollapsiblePackageCard = ({
           // Update the package state if parent component needs it
           setShowPaymentModal(false);
         }}
+      />
+
+      {/* Shipping Info Modal */}
+      <ShippingInfoModal
+        isOpen={showShippingInfoModal}
+        onClose={() => setShowShippingInfoModal(false)}
+        pkg={pkg}
       />
     </Collapsible>
   );
