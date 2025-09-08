@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCurrency } from "@/utils/priceHelpers";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -63,8 +64,31 @@ const AdminTravelerPaymentsTab = () => {
   const [notes, setNotes] = useState("");
   const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [packageBreakdown, setPackageBreakdown] = useState<Array<{
+    id: string;
+    item_description: string;
+    products_data?: any;
+  }>>([]);
   const { toast } = useToast();
   const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
+
+  // Función para obtener el desglose de paquetes
+  const fetchPackageBreakdown = async (tripId: string, travelerId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('id, item_description, products_data')
+        .eq('matched_trip_id', tripId)
+        .in('status', ['delivered_to_office', 'completed'])
+        .not('products_data', 'is', null);
+      
+      if (error) throw error;
+      setPackageBreakdown(data || []);
+    } catch (error) {
+      console.error('Error fetching package breakdown:', error);
+      setPackageBreakdown([]);
+    }
+  };
   
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
   const processedOrders = orders.filter(order => order && order.status !== 'pending');
@@ -498,9 +522,13 @@ const AdminTravelerPaymentsTab = () => {
       </Tabs>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => 
-        setConfirmDialog(prev => ({ ...prev, isOpen: open }))
-      }>
+      <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: open }));
+        // Obtener desglose cuando se abre el dialog
+        if (open && confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
+          fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -510,12 +538,56 @@ const AdminTravelerPaymentsTab = () => {
           <div className="space-y-3">
             {/* Payment Amount Section */}
             <div className="text-center p-3 bg-muted/30 rounded-lg border">
-              <div className="text-xs text-muted-foreground mb-1">Monto a pagar</div>
-              <div className="text-xl font-bold text-green-600 mb-1">
-                Q{confirmDialog.order?.amount}
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <Receipt className="h-4 w-4 text-primary" />
+                <span className="font-medium text-sm">Desglose de pago:</span>
               </div>
-              <div className="text-xs text-muted-foreground">
-                {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}
+              
+              {/* Desglose de paquetes */}
+              <div className="space-y-2 mb-3">
+                {packageBreakdown.length > 0 ? (
+                  packageBreakdown.map((pkg, index) => {
+                    // Obtener el tip desde products_data
+                    let packageTip = 0;
+                    if (pkg.products_data && Array.isArray(pkg.products_data)) {
+                      packageTip = pkg.products_data.reduce((sum: number, product: any) => {
+                        const tip = product.adminAssignedTip || 0;
+                        return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
+                      }, 0);
+                    }
+                    
+                    return (
+                      <div key={pkg.id} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
+                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                          <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground truncate">
+                            {pkg.item_description}
+                          </span>
+                        </div>
+                        <span className="font-medium text-green-600 ml-2 flex-shrink-0">
+                          {formatCurrency(packageTip)}
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-xs text-muted-foreground py-2">
+                    Cargando desglose de paquetes...
+                  </div>
+                )}
+              </div>
+              
+              {/* Total */}
+              <div className="border-t border-muted/40 pt-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-sm">Total a pagar:</span>
+                  <div className="text-xl font-bold text-green-600">
+                    Q{confirmDialog.order?.amount}
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {confirmDialog.order?.profiles?.first_name} {confirmDialog.order?.profiles?.last_name}
+                </div>
               </div>
             </div>
 
