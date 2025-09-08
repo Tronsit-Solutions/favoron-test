@@ -650,6 +650,7 @@ const CollapsiblePackageCard = ({
         isOpen={showShippingInfoModal}
         onClose={() => setShowShippingInfoModal(false)}
         pkg={pkg}
+        onDocumentUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
       />
     </Collapsible>
   );
