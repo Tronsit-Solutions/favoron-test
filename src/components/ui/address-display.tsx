@@ -37,26 +37,23 @@ const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayP
       </div>
       <div className="text-sm ml-7 space-y-1">
         {address.recipientName && (
-          <p className="font-semibold text-foreground">{address.recipientName}</p>
+          <p><span className="font-medium text-muted-foreground">Destinatario:</span> <span className="font-semibold text-foreground">{address.recipientName}</span></p>
         )}
-        <p>{address.streetAddress}</p>
+        <p><span className="font-medium text-muted-foreground">Dirección #1:</span> {address.streetAddress}</p>
         {address.streetAddress2 && (
-          <p>{address.streetAddress2}</p>
+          <p><span className="font-medium text-muted-foreground">Dirección #2:</span> {address.streetAddress2}</p>
         )}
-        <p>{address.cityArea}</p>
+        <p><span className="font-medium text-muted-foreground">Ciudad:</span> {address.cityArea}</p>
         {address.postalCode && (
-          <p>Código Postal: {address.postalCode}</p>
+          <p><span className="font-medium text-muted-foreground">Código Postal:</span> {address.postalCode}</p>
         )}
         {address.country && (
-          <p>País: {address.country}</p>
+          <p><span className="font-medium text-muted-foreground">País:</span> {address.country}</p>
         )}
         {address.hotelAirbnbName && (
-          <p className="font-medium text-primary">{address.hotelAirbnbName}</p>
+          <p><span className="font-medium text-muted-foreground">Hotel/Airbnb:</span> <span className="font-medium text-primary">{address.hotelAirbnbName}</span></p>
         )}
-        <p className="flex items-center">
-          <span className="mr-1">📞</span>
-          {address.contactNumber}
-        </p>
+        <p><span className="font-medium text-muted-foreground">Teléfono de contacto entregas:</span> {address.contactNumber}</p>
         {address.additionalInstructions && (
           <div className="mt-2 p-2 bg-muted/50 rounded border-l-2 border-primary/30">
             <p className="text-xs font-medium text-muted-foreground mb-1">Instrucciones adicionales:</p>
