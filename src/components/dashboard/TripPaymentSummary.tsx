@@ -190,7 +190,18 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
             </div>
           </div>
 
-          {hasAccumulatedAmount && (
+          {(() => {
+            console.log('🔍 TripPaymentSummary - Button condition check:', {
+              hasAccumulatedAmount,
+              accumulated_amount: tripPayment.accumulated_amount,
+              isAllPackagesDelivered,
+              all_packages_delivered: tripPayment.all_packages_delivered,
+              payment_order_created: tripPayment.payment_order_created,
+              shouldShowSection: hasAccumulatedAmount,
+              shouldShowButton: isAllPackagesDelivered && !tripPayment.payment_order_created
+            });
+            return hasAccumulatedAmount;
+          })() && (
             <div className="border-t pt-1">
               {!tripPayment.payment_order_created ? (
                 <>
