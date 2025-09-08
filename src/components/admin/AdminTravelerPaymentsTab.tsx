@@ -74,18 +74,22 @@ const AdminTravelerPaymentsTab = () => {
 
   // Función para obtener el desglose de paquetes
   const fetchPackageBreakdown = async (tripId: string, travelerId: string) => {
+    console.log('🔍 AdminTravelerPaymentsTab - Fetching package breakdown:', { tripId, travelerId });
+    
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, item_description, products_data')
+        .select('id, item_description, products_data, status, matched_trip_id')
         .eq('matched_trip_id', tripId)
         .in('status', ['delivered_to_office', 'completed'])
         .not('products_data', 'is', null);
       
+      console.log('📦 AdminTravelerPaymentsTab - Package query result:', { data, error, tripId });
+      
       if (error) throw error;
       setPackageBreakdown(data || []);
     } catch (error) {
-      console.error('Error fetching package breakdown:', error);
+      console.error('❌ Error fetching package breakdown:', error);
       setPackageBreakdown([]);
     }
   };
@@ -525,8 +529,23 @@ const AdminTravelerPaymentsTab = () => {
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
         // Obtener desglose cuando se abre el dialog
-        if (open && confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
-          fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
+        if (open && confirmDialog.order) {
+          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
+            orderKeys: Object.keys(confirmDialog.order),
+            order: confirmDialog.order,
+            trip_id: confirmDialog.order?.trip_id,
+            traveler_id: confirmDialog.order?.traveler_id
+          });
+          
+          if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
+            fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
+          } else {
+            console.log('❌ Missing trip_id or traveler_id in order:', {
+              trip_id: confirmDialog.order?.trip_id,
+              traveler_id: confirmDialog.order?.traveler_id,
+              availableKeys: Object.keys(confirmDialog.order)
+            });
+          }
         }
       }}>
         <DialogContent className="max-w-md">
@@ -572,7 +591,10 @@ const AdminTravelerPaymentsTab = () => {
                   })
                 ) : (
                   <div className="text-xs text-muted-foreground py-2">
-                    Cargando desglose de paquetes...
+                    {packageBreakdown.length === 0 ? 
+                      'No se encontraron paquetes entregados para este viaje' : 
+                      'Cargando desglose de paquetes...'
+                    }
                   </div>
                 )}
               </div>
