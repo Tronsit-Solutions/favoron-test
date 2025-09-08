@@ -72,21 +72,44 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                   {matchedTripDates.firstDayPackages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</p>
+                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.firstDayPackages).toLocaleDateString('es-GT', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</p>
                     </div>
                   )}
                   {matchedTripDates.lastDayPackages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</p>
+                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.lastDayPackages).toLocaleDateString('es-GT', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</p>
                     </div>
                   )}
                   {matchedTripDates.deliveryDate && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
-                      <p className="text-sm font-semibold text-success">{new Date(matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}</p>
+                      <p className="text-sm font-semibold text-success">{new Date(matchedTripDates.deliveryDate).toLocaleDateString('es-GT', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</p>
                     </div>
                   )}
+                  
+                  {/* Debug: Show all data from matched_trip_dates */}
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Debug - matched_trip_dates data:</p>
+                    <pre className="text-xs bg-muted p-2 rounded overflow-auto">
+                      {JSON.stringify(matchedTripDates, null, 2)}
+                    </pre>
+                  </div>
                 </div>
               </div>
             </div>
