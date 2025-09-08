@@ -531,6 +531,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                             'shipped',
                             'in_transit',
                             'received_by_traveler',
+                            'pending_office_confirmation',
                             'delivered_to_office',
                             'completed'
                           ];
