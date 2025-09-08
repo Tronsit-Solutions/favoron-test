@@ -207,6 +207,19 @@ const QuoteDialog = ({
                                 {quantity > 1 && <p className="text-primary font-medium">
                                     ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                                   </p>}
+                                {product.itemLink && (
+                                  <p>
+                                    <strong>Link:</strong>{' '}
+                                    <a 
+                                      href={product.itemLink} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline break-all"
+                                    >
+                                      Ver producto
+                                    </a>
+                                  </p>
+                                )}
                                 <p className="text-foreground font-medium">
                                   <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
                                 </p>
