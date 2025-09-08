@@ -83,8 +83,9 @@ const AdminTravelerPaymentsTab = () => {
         .from('packages')
         .select('id, item_description, products_data, status, matched_trip_id')
         .eq('matched_trip_id', tripId)
-        .in('status', ['delivered_to_office', 'completed'])
-        .not('products_data', 'is', null);
+        .in('status', ['delivered_to_office', 'received_by_traveler', 'completed'])
+        .not('products_data', 'is', null)
+        .order('updated_at', { ascending: false });
       
       console.log('📦 AdminTravelerPaymentsTab - Package query result:', { data, error, tripId });
       
@@ -530,24 +531,18 @@ const AdminTravelerPaymentsTab = () => {
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
-        // Obtener desglose desde historical_packages cuando se abre el dialog
+        // Obtener desglose desde packages con travelerId y tripId cuando se abre el dialog
         if (open && confirmDialog.order) {
-          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
+          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order (fetching live packages):', {
             order: confirmDialog.order,
-            historical_packages: confirmDialog.order?.historical_packages
+            trip_id: confirmDialog.order?.trip_id,
+            traveler_id: confirmDialog.order?.traveler_id
           });
           
-          // Usar historical_packages en lugar de hacer query
-          if (confirmDialog.order?.historical_packages && Array.isArray(confirmDialog.order.historical_packages)) {
-            setPackageBreakdown(confirmDialog.order.historical_packages.map((pkg: any) => ({
-              id: pkg.id,
-              item_description: pkg.item_description,
-              products_data: pkg.products_data || null,
-              quote: pkg.quote,
-              admin_assigned_tip: pkg.admin_assigned_tip || (pkg.quote?.price || 0)
-            })));
+          if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
+            fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
           } else {
-            console.log('❌ No historical_packages found in order:', confirmDialog.order);
+            console.warn('❌ Missing trip_id or traveler_id in order, cannot fetch package breakdown');
             setPackageBreakdown([]);
           }
         }
@@ -573,21 +568,15 @@ const AdminTravelerPaymentsTab = () => {
                     // Obtener el tip desde diferentes fuentes posibles
                     let packageTip = 0;
                     
-                    // 1. Desde products_data (si existe)
+                    // Tip exclusivamente desde products_data (adminAssignedTip por producto)
                     if (pkg.products_data && Array.isArray(pkg.products_data)) {
                       packageTip = pkg.products_data.reduce((sum: number, product: any) => {
-                        const tip = product.adminAssignedTip || 0;
+                        const tip = product?.adminAssignedTip || 0;
                         return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
                       }, 0);
                     }
-                    // 2. Desde quote.price (para historical_packages)
-                    else if (pkg.quote?.price) {
-                      packageTip = typeof pkg.quote.price === 'string' ? parseFloat(pkg.quote.price) : pkg.quote.price;
-                    }
-                    // 3. Desde admin_assigned_tip (fallback)
-                    else if (pkg.admin_assigned_tip) {
-                      packageTip = typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip;
-                    }
+                    
+                    // Nota: no usamos admin_assigned_tip ni quote.price aquí por solicitud del usuario
                     
                     return (
                       <div key={pkg.id} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
