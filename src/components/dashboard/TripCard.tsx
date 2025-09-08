@@ -239,7 +239,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       }}
       title="Confirmar Datos Bancarios para Pago del Viaje"
       description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment?.accumulated_amount || 0)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
-      packageBreakdown={completedPackages}
+      tripId={trip.id}
+      travelerId={trip.user_id}
     />
     </>
   );

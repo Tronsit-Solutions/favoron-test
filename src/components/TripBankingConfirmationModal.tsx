@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, Building, Shield, CheckCircle, Edit, Eye, Receipt, Package } from "lucide-react";
 import { formatCurrency } from "@/utils/priceHelpers";
+import { supabase } from "@/integrations/supabase/client";
 interface TripBankingConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,12 +16,8 @@ interface TripBankingConfirmationModalProps {
   currentBankingInfo: any;
   title?: string;
   description?: string;
-  packageBreakdown?: Array<{
-    id: string;
-    item_description: string;
-    quote?: { price?: number };
-    admin_assigned_tip?: number;
-  }>;
+  tripId?: string;
+  travelerId?: string;
 }
 const TripBankingConfirmationModal = ({
   isOpen,
@@ -30,8 +27,14 @@ const TripBankingConfirmationModal = ({
   currentBankingInfo,
   title = "Confirmación de pago",
   description,
-  packageBreakdown = []
+  tripId,
+  travelerId
 }: TripBankingConfirmationModalProps) => {
+  const [packageBreakdown, setPackageBreakdown] = useState<Array<{
+    id: string;
+    item_description: string;
+    products_data?: any;
+  }>>([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [bankingInfo, setBankingInfo] = useState({
@@ -44,10 +47,37 @@ const TripBankingConfirmationModal = ({
   // Determinar si tiene información bancaria completa
   const hasCompleteBankingInfo = currentBankingInfo?.bank_account_holder && currentBankingInfo?.bank_name && currentBankingInfo?.bank_account_number && currentBankingInfo?.bank_account_type;
 
+  // Función para obtener paquetes del viajero
+  const fetchPackageBreakdown = async () => {
+    if (!tripId || !travelerId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('id, item_description, products_data')
+        .eq('matched_trip_id', tripId)
+        .in('status', ['delivered_to_office', 'completed'])
+        .not('products_data', 'is', null);
+      
+      if (error) throw error;
+      setPackageBreakdown(data || []);
+    } catch (error) {
+      console.error('Error fetching package breakdown:', error);
+      setPackageBreakdown([]);
+    }
+  };
+
   // Establecer modo inicial basado en si tiene información completa
   useEffect(() => {
     setIsEditing(!hasCompleteBankingInfo);
   }, [hasCompleteBankingInfo]);
+
+  // Obtener paquetes cuando se abra el modal
+  useEffect(() => {
+    if (isOpen) {
+      fetchPackageBreakdown();
+    }
+  }, [isOpen, tripId, travelerId]);
 
   // Actualizar información cuando cambie currentBankingInfo
   useEffect(() => {
@@ -96,9 +126,15 @@ const TripBankingConfirmationModal = ({
             <div className="space-y-1 mb-2">
               {packageBreakdown.length > 0 ? (
                 packageBreakdown.map((pkg, index) => {
-                  // Obtener el tip específico ganado por el paquete
-                  const packageTip = pkg.admin_assigned_tip || 
-                                   (pkg.quote?.price ? pkg.quote.price : 0);
+                  // Obtener el tip desde products_data
+                  let packageTip = 0;
+                  if (pkg.products_data && Array.isArray(pkg.products_data)) {
+                    // Sumar todos los tips de los productos en el paquete
+                    packageTip = pkg.products_data.reduce((sum: number, product: any) => {
+                      const tip = product.adminAssignedTip || 0;
+                      return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
+                    }, 0);
+                  }
                   
                   return (
                     <div key={pkg.id} className="flex justify-between items-start text-xs py-1 border-b border-muted/20 last:border-b-0">
@@ -121,7 +157,7 @@ const TripBankingConfirmationModal = ({
                 })
               ) : (
                 <div className="text-xs text-muted-foreground py-1">
-                  No hay desglose de paquetes disponible
+                  Cargando desglose de paquetes...
                 </div>
               )}
             </div>
