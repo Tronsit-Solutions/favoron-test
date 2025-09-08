@@ -56,12 +56,39 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                 }}
                 title="Información de envío"
                 variant="info"
-                tripDates={matchedTripDates ? {
-                  firstDayPackages: matchedTripDates.firstDayPackages,
-                  lastDayPackages: matchedTripDates.lastDayPackages,
-                  deliveryDate: matchedTripDates.deliveryDate
-                } : undefined}
               />
+            </div>
+          )}
+          
+          {/* Fechas Importantes */}
+          {matchedTripDates && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Fechas Importantes
+              </h3>
+              <div className="bg-info-muted border-info-border border rounded-lg p-4">
+                <div className="space-y-3">
+                  {matchedTripDates.firstDayPackages && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
+                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}</p>
+                    </div>
+                  )}
+                  {matchedTripDates.lastDayPackages && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
+                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}</p>
+                    </div>
+                  )}
+                  {matchedTripDates.deliveryDate && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
+                      <p className="text-sm font-semibold text-success">{new Date(matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
