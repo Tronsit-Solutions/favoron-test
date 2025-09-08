@@ -49,7 +49,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                   country: travelerAddress.country,
                   postalCode: travelerAddress.postalCode
                 }}
-                title="Destinatario"
+                title="Información de envío"
                 variant="info"
               />
             </div>
