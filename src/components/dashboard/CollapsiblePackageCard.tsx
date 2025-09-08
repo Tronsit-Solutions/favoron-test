@@ -254,7 +254,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowShippingInfoModal(true);
                     }}
-                    className="mr-2 text-xs font-medium flex-shrink-0"
+                    className="mr-2 text-xs font-medium flex-shrink-0 bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100 hover:border-cyan-300"
                   >
                     Ver Info de Envío
                   </Button>
