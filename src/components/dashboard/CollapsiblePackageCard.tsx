@@ -259,7 +259,7 @@ const CollapsiblePackageCard = ({
                     }}
                     className="mr-2 text-xs font-medium flex-shrink-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
                   >
-                    Ver Info de Envío
+                    Comprar y subir comprobantes
                   </Button>
                 ) : null}
                 <div className="flex-shrink-0 min-w-0">
