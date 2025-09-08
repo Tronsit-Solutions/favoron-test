@@ -654,12 +654,7 @@ const AdminTravelerPaymentsTab = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-sm">Total a pagar:</span>
                   <div className="text-xl font-bold text-green-600">
-                    {formatCurrency(
-                      packageBreakdown.reduce((sum: number, pkg: any) => {
-                        const packageTip = pkg.quote?.price || 0;
-                        return sum + packageTip;
-                      }, 0)
-                    )}
+                    {formatCurrency(confirmDialog.order?.amount || 0)}
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
