@@ -50,6 +50,7 @@ export const MatchCard = ({
   unreadCount = 0
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
+  const [isAdminConfirming, setIsAdminConfirming] = useState(false);
   const statusInfo = getStatusInfo(pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
@@ -482,11 +483,19 @@ export const MatchCard = ({
                   {showAdminOfficeConfirmButton && (
                     <Button 
                       size="sm" 
-                      onClick={onAdminConfirmOfficeDelivery} 
-                      className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-sm"
+                      onClick={async () => {
+                        try {
+                          setIsAdminConfirming(true);
+                          await onAdminConfirmOfficeDelivery();
+                        } finally {
+                          setIsAdminConfirming(false);
+                        }
+                      }} 
+                      disabled={isAdminConfirming}
+                      className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-sm disabled:opacity-70"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      Confirmar recepción en oficina
+                      {isAdminConfirming ? 'Confirmando…' : 'Confirmar recepción en oficina'}
                     </Button>
                   )}
 
@@ -534,11 +543,19 @@ export const MatchCard = ({
                   {showAdminOfficeConfirmButton && (
                     <Button 
                       size="sm" 
-                      onClick={onAdminConfirmOfficeDelivery} 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      onClick={async () => {
+                        try {
+                          setIsAdminConfirming(true);
+                          await onAdminConfirmOfficeDelivery();
+                        } finally {
+                          setIsAdminConfirming(false);
+                        }
+                      }} 
+                      disabled={isAdminConfirming}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-70"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      Confirmar recepción en oficina
+                      {isAdminConfirming ? 'Confirmando…' : 'Confirmar recepción en oficina'}
                     </Button>
                   )}
 
