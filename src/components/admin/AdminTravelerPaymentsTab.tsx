@@ -552,28 +552,12 @@ const AdminTravelerPaymentsTab = () => {
             historical_packages: confirmDialog.order?.historical_packages
           });
           
-          // Primero intentar con historical_packages como fallback
+          // Usar historical_packages como fuente principal
           if (confirmDialog.order?.historical_packages && Array.isArray(confirmDialog.order.historical_packages)) {
             console.log('✅ Using historical_packages:', confirmDialog.order.historical_packages);
-            setPackageBreakdown(confirmDialog.order.historical_packages.map((pkg: any) => ({
-              id: pkg.id,
-              item_description: pkg.item_description,
-              products_data: pkg.products_data || null
-            })));
-          } 
-          // Si no, intentar consulta con trip_id y traveler_id
-          else if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
-            console.log('⚡ Fetching live packages for trip/traveler:', {
-              trip_id: confirmDialog.order.trip_id,
-              traveler_id: confirmDialog.order.traveler_id
-            });
-            fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
+            setPackageBreakdown(confirmDialog.order.historical_packages);
           } else {
-            console.error('❌ No data source available for package breakdown:', {
-              has_historical: !!confirmDialog.order?.historical_packages,
-              has_trip_id: !!confirmDialog.order?.trip_id,
-              has_traveler_id: !!confirmDialog.order?.traveler_id
-            });
+            console.error('❌ No historical_packages available');
             setPackageBreakdown([]);
           }
         }
@@ -604,18 +588,8 @@ const AdminTravelerPaymentsTab = () => {
                 })()}
                 {packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
-                    // Obtener el tip desde diferentes fuentes posibles
-                    let packageTip = 0;
-                    
-                    // Tip exclusivamente desde products_data (adminAssignedTip por producto)
-                    if (pkg.products_data && Array.isArray(pkg.products_data)) {
-                      packageTip = pkg.products_data.reduce((sum: number, product: any) => {
-                        const tip = product?.adminAssignedTip || 0;
-                        return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
-                      }, 0);
-                    }
-                    
-                    // Nota: no usamos admin_assigned_tip ni quote.price aquí por solicitud del usuario
+                    // Extraer el tip desde quote.price (fuente principal en historical_packages)
+                    const packageTip = pkg.quote?.price || 0;
                     
                     return (
                       <div key={pkg.id} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
@@ -648,14 +622,8 @@ const AdminTravelerPaymentsTab = () => {
                   <div className="text-xl font-bold text-green-600">
                     {formatCurrency(
                       packageBreakdown.reduce((sum: number, pkg: any) => {
-                        if (pkg?.products_data && Array.isArray(pkg.products_data)) {
-                          const pkgSum = pkg.products_data.reduce((s: number, product: any) => {
-                            const tip = product?.adminAssignedTip || 0;
-                            return s + (typeof tip === 'string' ? parseFloat(tip) : tip);
-                          }, 0);
-                          return sum + pkgSum;
-                        }
-                        return sum;
+                        const packageTip = pkg.quote?.price || 0;
+                        return sum + packageTip;
                       }, 0)
                     )}
                   </div>
