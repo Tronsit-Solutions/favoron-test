@@ -187,39 +187,32 @@ const CollapsiblePackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="w-full max-w-full overflow-hidden min-w-0 box-border mobile-content">
+      <Card className="w-full max-w-full overflow-hidden min-w-0 box-border mobile-content mx-auto">
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-4 lg:p-6 w-full">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-3 w-full min-w-0">
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-4 lg:p-6 w-full overflow-hidden">
+            <div className="flex flex-col gap-3 w-full min-w-0 overflow-hidden">
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm sm:text-base lg:text-lg flex flex-col sm:flex-row sm:items-center gap-2 w-full min-w-0">
-                  <div className="flex items-center justify-between w-full min-w-0">
-                    <span className="truncate pr-1 flex-1 min-w-0 text-sm sm:text-base lg:text-lg">
+                <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-between w-full min-w-0 gap-2">
+                    <span className="truncate flex-1 min-w-0 text-sm sm:text-base lg:text-lg max-w-[70%] sm:max-w-none">
                       {pkg.item_description || 'Sin descripción'}
                     </span>
-                    <div className="flex items-center gap-1 flex-shrink-0 sm:hidden ml-2">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {needsAction && (
                         <NotificationBadge count={1} />
                       )}
                       {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </div>
                   </div>
-                  <div className="hidden sm:flex sm:items-center sm:gap-2">
-                    {needsAction && (
-                      <NotificationBadge count={1} />
-                    )}
-                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </div>
                 </CardTitle>
-                <CardDescription className="text-xs sm:text-sm mt-1 sm:mt-0 w-full min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:gap-2 w-full">
-                    <span className="truncate">Precio: ${pkg.estimated_price}</span>
-                    <span className="hidden sm:inline flex-shrink-0">•</span>
-                    <span className="truncate">Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
+                <CardDescription className="text-xs sm:text-sm w-full min-w-0 overflow-hidden">
+                  <div className="flex flex-col gap-1 w-full min-w-0">
+                    <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
+                    <span className="truncate max-w-full">Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
                   </div>
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-1 sm:gap-2 justify-between sm:justify-end w-full sm:w-auto flex-shrink-0 min-w-0">
+              <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0 overflow-hidden">
                 {/* Shopper Action Button - Different for different statuses */}
                 {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
                   <Button
@@ -229,9 +222,9 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       onQuote(pkg, 'user');
                     }}
-                    className="mr-2 text-xs font-medium flex-shrink-0"
+                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full truncate"
                   >
-                    Ver y Aceptar Cotización
+                    <span className="truncate">Ver y Aceptar Cotización</span>
                   </Button>
                 ) : pkg.status === 'payment_pending' ? (
                   <Button
@@ -241,10 +234,10 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowPaymentModal(true);
                     }}
-                    className="mr-2 text-xs font-medium flex-shrink-0"
+                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
                   >
-                    <CreditCard className="h-3 w-3 mr-1" />
-                    Pagar
+                    <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">Pagar</span>
                   </Button>
                 ) : (pkg.status === 'pending_purchase' || 
                      (pkg.status === 'purchased' && !pkg.tracking_info) ||
@@ -257,47 +250,48 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowShippingInfoModal(true);
                     }}
-                    className="mr-2 text-xs font-medium flex-shrink-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
+                    className="text-xs font-medium flex-shrink-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 w-full sm:w-auto max-w-full"
                   >
-                    Comprar y subir comprobantes
+                    <span className="truncate">Comprar y subir comprobantes</span>
                   </Button>
                 ) : null}
-                <div className="flex-shrink-0 min-w-0">
-                  {expirationInfo ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          {getStatusBadge(pkg.status, { 
-                            packageDestination: pkg.package_destination, 
-                            isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                            pkg: pkg
-                          })}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{expirationInfo.message}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    getStatusBadge(pkg.status, { 
-                      packageDestination: pkg.package_destination, 
-                      isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                      pkg: pkg
-                    })
-                  )}
-                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                  <div className="flex-shrink-0 min-w-0 max-w-[70%] sm:max-w-none">
+                    {expirationInfo ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {getStatusBadge(pkg.status, { 
+                              packageDestination: pkg.package_destination, 
+                              isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                              pkg: pkg
+                            })}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{expirationInfo.message}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      getStatusBadge(pkg.status, { 
+                        packageDestination: pkg.package_destination, 
+                        isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
+                        pkg: pkg
+                      })
+                    )}
+                  </div>
                 {canShowPackageActions && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 hover:bg-muted flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-muted flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
                      <DropdownMenuContent 
                       align="end" 
                       className="bg-background border shadow-md z-50"
@@ -359,7 +353,8 @@ const CollapsiblePackageCard = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
-              </div>
+                </div>
+            </div>
             </div>
           </CardHeader>
         </CollapsibleTrigger>
