@@ -67,26 +67,39 @@ const AddressDisplay = ({ address, title, variant = 'success', tripDates }: Addr
         )}
         
         {/* Fechas importantes */}
+        {/* Fechas importantes */}
         {tripDates && (
-          <div className="mt-4 pt-3 border-t border-border">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Fechas importantes:</p>
-            <div className="space-y-1">
+          <div className="mt-4 pt-3 border-t border-border bg-muted/30 p-3 rounded-md">
+            <p className="text-sm font-semibold text-foreground mb-3">📅 Fechas importantes:</p>
+            <div className="space-y-2">
               {tripDates.firstDayPackages && (
-                <p className="text-xs">
-                  <span className="font-medium text-muted-foreground">Primer día para recibir paquetes:</span> {new Date(tripDates.firstDayPackages).toLocaleDateString('es-GT')}
+                <p className="text-sm">
+                  <span className="font-medium text-muted-foreground">Primer día para recibir paquetes:</span>
+                  <br />
+                  <span className="font-semibold text-primary">{new Date(tripDates.firstDayPackages).toLocaleDateString('es-GT')}</span>
                 </p>
               )}
               {tripDates.lastDayPackages && (
-                <p className="text-xs">
-                  <span className="font-medium text-muted-foreground">Último día para recibir paquetes:</span> {new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}
+                <p className="text-sm">
+                  <span className="font-medium text-muted-foreground">Último día para recibir paquetes:</span>
+                  <br />
+                  <span className="font-semibold text-primary">{new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}</span>
                 </p>
               )}
               {tripDates.deliveryDate && (
-                <p className="text-xs">
-                  <span className="font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</span> <span className="font-semibold text-primary">{new Date(tripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                <p className="text-sm">
+                  <span className="font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</span>
+                  <br />
+                  <span className="font-semibold text-success">{new Date(tripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
                 </p>
               )}
             </div>
+          </div>
+        )}
+        {/* Debug info - remove this after testing */}
+        {!tripDates && (
+          <div className="mt-4 pt-3 border-t border-border bg-warning/10 p-3 rounded-md">
+            <p className="text-sm text-warning">No trip dates available</p>
           </div>
         )}
       </div>
