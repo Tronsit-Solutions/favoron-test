@@ -40,12 +40,9 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
         
         <div className="space-y-6 pb-4">
           {/* Important Notice for Document Upload */}
-          <Alert variant="destructive" className="border-destructive bg-destructive/5">
-            <Info className="h-4 w-4" />
-            <AlertDescription className="font-medium">
-              <strong>Importante:</strong> Después de completar tu compra, debes subir el comprobante de pago y el número de seguimiento (tracking) para procesar tu pedido.
-            </AlertDescription>
-          </Alert>
+          <div className="text-center text-destructive font-medium text-sm border-b border-destructive/20 pb-4">
+            <strong>Importante:</strong> Después de completar tu compra, debes subir el comprobante de pago y el número de seguimiento (tracking) para procesar tu pedido.
+          </div>
           {/* Traveler Address */}
           {travelerAddress && (
             <div>
