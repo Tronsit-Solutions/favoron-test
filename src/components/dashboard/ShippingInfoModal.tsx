@@ -42,17 +42,15 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                   streetAddress: travelerAddress.streetAddress,
                   cityArea: travelerAddress.cityArea,
                   hotelAirbnbName: travelerAddress.hotelAirbnbName,
-                  contactNumber: travelerAddress.contactNumber
+                  contactNumber: travelerAddress.contactNumber,
+                  recipientName: travelerAddress.recipientName,
+                  additionalInstructions: travelerAddress.additionalInstructions,
+                  country: travelerAddress.country,
+                  postalCode: travelerAddress.postalCode
                 }}
                 title="Destinatario"
                 variant="info"
               />
-              {travelerAddress.recipientName && (
-                <div className="mt-3 p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">Nombre del destinatario:</p>
-                  <p className="text-sm">{travelerAddress.recipientName}</p>
-                </div>
-              )}
             </div>
           )}
 

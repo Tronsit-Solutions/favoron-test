@@ -6,6 +6,10 @@ interface AddressDisplayProps {
     cityArea: string;
     hotelAirbnbName?: string;
     contactNumber: string;
+    recipientName?: string;
+    additionalInstructions?: string;
+    country?: string;
+    postalCode?: string;
   };
   title: string;
   variant?: 'success' | 'info' | 'warning';
@@ -31,15 +35,30 @@ const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayP
         <p className="text-sm font-medium">{title}</p>
       </div>
       <div className="text-sm ml-7 space-y-1">
+        {address.recipientName && (
+          <p className="font-semibold text-foreground">{address.recipientName}</p>
+        )}
         <p>{address.streetAddress}</p>
         <p>{address.cityArea}</p>
+        {address.postalCode && (
+          <p>Código Postal: {address.postalCode}</p>
+        )}
+        {address.country && (
+          <p>País: {address.country}</p>
+        )}
         {address.hotelAirbnbName && (
-          <p className="font-medium">{address.hotelAirbnbName}</p>
+          <p className="font-medium text-primary">{address.hotelAirbnbName}</p>
         )}
         <p className="flex items-center">
           <span className="mr-1">📞</span>
           {address.contactNumber}
         </p>
+        {address.additionalInstructions && (
+          <div className="mt-2 p-2 bg-muted/50 rounded border-l-2 border-primary/30">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Instrucciones adicionales:</p>
+            <p className="text-xs">{address.additionalInstructions}</p>
+          </div>
+        )}
       </div>
     </div>
   );
