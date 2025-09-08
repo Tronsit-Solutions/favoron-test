@@ -549,13 +549,37 @@ const AdminTravelerPaymentsTab = () => {
             orderKeys: Object.keys(confirmDialog.order || {}),
             trip_id: confirmDialog.order?.trip_id,
             traveler_id: confirmDialog.order?.traveler_id,
-            historical_packages: confirmDialog.order?.historical_packages
+            historical_packages: confirmDialog.order?.historical_packages,
+            historical_packages_type: typeof confirmDialog.order?.historical_packages,
+            historical_packages_length: Array.isArray(confirmDialog.order?.historical_packages) ? confirmDialog.order.historical_packages.length : 'not array'
           });
           
           // Usar historical_packages como fuente principal
-          if (confirmDialog.order?.historical_packages && Array.isArray(confirmDialog.order.historical_packages)) {
-            console.log('✅ Using historical_packages:', confirmDialog.order.historical_packages);
-            setPackageBreakdown(confirmDialog.order.historical_packages);
+          if (confirmDialog.order?.historical_packages) {
+            console.log('✅ Historical packages found:', {
+              raw: confirmDialog.order.historical_packages,
+              isArray: Array.isArray(confirmDialog.order.historical_packages),
+              stringified: JSON.stringify(confirmDialog.order.historical_packages)
+            });
+            
+            let packagesArray = confirmDialog.order.historical_packages;
+            if (typeof packagesArray === 'string') {
+              try {
+                packagesArray = JSON.parse(packagesArray);
+                console.log('📝 Parsed JSON packages:', packagesArray);
+              } catch (e) {
+                console.error('❌ Failed to parse historical_packages as JSON:', e);
+                packagesArray = [];
+              }
+            }
+            
+            if (Array.isArray(packagesArray) && packagesArray.length > 0) {
+              console.log('✅ Setting package breakdown:', packagesArray);
+              setPackageBreakdown(packagesArray);
+            } else {
+              console.error('❌ No valid packages in historical_packages');
+              setPackageBreakdown([]);
+            }
           } else {
             console.error('❌ No historical_packages available');
             setPackageBreakdown([]);
