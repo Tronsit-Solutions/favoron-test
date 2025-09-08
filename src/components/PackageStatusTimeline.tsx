@@ -153,7 +153,7 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
                 </p>
                 {state === 'current' && (
                   <p className="text-[9px] text-blue-600 mt-0.5">
-                    esperando confirmacion de recepcion en oficina
+                    Esperando confirmacion de recepcion del viajero
                   </p>
                 )}
               </div>
