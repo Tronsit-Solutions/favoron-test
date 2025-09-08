@@ -165,7 +165,7 @@ const ShopperPackagePriorityActions = ({
         return {
           icon: Package2,
           title: "🛒 Tu turno de comprar",
-          description: "Compra el producto, sube el comprobante e información de seguimiento.",
+          description: "Procede con la compra del artículo y adjunta el recibo junto con los datos de envío.",
           button: null
         };
       case 'purchase_confirmed':
