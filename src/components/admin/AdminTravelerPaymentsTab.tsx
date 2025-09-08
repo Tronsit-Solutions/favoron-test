@@ -586,7 +586,7 @@ const AdminTravelerPaymentsTab = () => {
           }
         }
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">`
           <DialogHeader>
             <DialogTitle>
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
