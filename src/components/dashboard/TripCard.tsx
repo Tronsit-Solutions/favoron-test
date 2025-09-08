@@ -75,6 +75,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     tripPayment.accumulated_amount > 0 &&
     currentUser?.id === trip.user_id;
 
+  // Filtrar paquetes completados para el desglose
+  const completedPackages = packages.filter(pkg => 
+    pkg.matched_trip_id === trip.id && pkg.status === 'completed'
+  );
+
   return (
     <>
     <Card key={trip.id} className="mx-4 md:mx-0 max-w-full overflow-hidden">
@@ -234,6 +239,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       }}
       title="Confirmar Datos Bancarios para Pago del Viaje"
       description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment?.accumulated_amount || 0)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
+      packageBreakdown={completedPackages}
     />
     </>
   );

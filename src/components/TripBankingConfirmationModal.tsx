@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CreditCard, Building, Shield, CheckCircle, Edit, Eye } from "lucide-react";
+import { CreditCard, Building, Shield, CheckCircle, Edit, Eye, Receipt, Package } from "lucide-react";
 import { formatCurrency } from "@/utils/priceHelpers";
 interface TripBankingConfirmationModalProps {
   isOpen: boolean;
@@ -15,6 +15,12 @@ interface TripBankingConfirmationModalProps {
   currentBankingInfo: any;
   title?: string;
   description?: string;
+  packageBreakdown?: Array<{
+    id: string;
+    item_description: string;
+    quote?: { price?: number };
+    admin_assigned_tip?: number;
+  }>;
 }
 const TripBankingConfirmationModal = ({
   isOpen,
@@ -23,7 +29,8 @@ const TripBankingConfirmationModal = ({
   amount,
   currentBankingInfo,
   title = "Confirmación de pago",
-  description
+  description,
+  packageBreakdown = []
 }: TripBankingConfirmationModalProps) => {
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -81,15 +88,45 @@ const TripBankingConfirmationModal = ({
 
           <div className="bg-muted/30 border rounded-lg p-2">
             <div className="flex items-center gap-1 mb-1">
-              <CreditCard className="h-3 w-3 text-primary" />
-              <span className="font-medium text-xs">Pago:</span>
+              <Receipt className="h-3 w-3 text-primary" />
+              <span className="font-medium text-xs">Desglose de pago:</span>
             </div>
-            <p className="text-lg font-bold text-green-600">
-              {formatCurrency(amount)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Tips del viaje
-            </p>
+            
+            {/* Desglose estilo factura */}
+            <div className="space-y-1 mb-2">
+              {packageBreakdown.length > 0 ? (
+                packageBreakdown.map((pkg, index) => {
+                  const tip = pkg.quote?.price || pkg.admin_assigned_tip || 0;
+                  return (
+                    <div key={pkg.id} className="flex justify-between items-start text-xs py-1 border-b border-muted/20 last:border-b-0">
+                      <div className="flex items-start gap-1 flex-1 min-w-0">
+                        <Package className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground truncate">
+                          Paquete #{index + 1}: {pkg.item_description}
+                        </span>
+                      </div>
+                      <span className="font-medium text-green-600 ml-2 flex-shrink-0">
+                        {formatCurrency(tip)}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-xs text-muted-foreground py-1">
+                  Tips acumulados del viaje
+                </div>
+              )}
+            </div>
+            
+            {/* Total */}
+            <div className="border-t border-muted/40 pt-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-sm">Total a solicitar:</span>
+                <span className="text-lg font-bold text-green-600">
+                  {formatCurrency(amount)}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Vista de confirmación - mostrar información guardada */}
