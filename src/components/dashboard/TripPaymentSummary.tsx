@@ -18,6 +18,12 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   trip, 
   userProfile 
 }) => {
+  console.log('🚀 TripPaymentSummary - Component rendered for trip:', {
+    tripId: trip.id,
+    userId: userProfile?.id,
+    tripDetails: { from_city: trip.from_city, to_city: trip.to_city, departure_date: trip.departure_date }
+  });
+  
   const { tripPayment, loading, isCreating, createPaymentOrder } = useTripPayments(trip.id);
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [packageCounts, setPackageCounts] = useState<{total: number, completed: number} | null>(null);

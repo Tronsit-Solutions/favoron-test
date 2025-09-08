@@ -129,7 +129,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
 
             {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
-            {currentUser?.id === trip.user_id && (
+            {(() => {
+              const shouldShow = currentUser?.id === trip.user_id;
+              console.log('🔍 TripCard - Payment summary condition check:', {
+                tripId: trip.id,
+                currentUserId: currentUser?.id,
+                tripUserId: trip.user_id,
+                shouldShow,
+                tripDetails: { from_city: trip.from_city, to_city: trip.to_city, departure_date: trip.departure_date }
+              });
+              return shouldShow;
+            })() && (
               <div className="mt-3 pt-3 border-t border-border/50">
                 <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
               </div>
