@@ -100,12 +100,6 @@ const AddressDisplay = ({ address, title, variant = 'success', tripDates }: Addr
             </div>
           </div>
         )}
-        {/* Debug info - remove this after testing */}
-        {!tripDates && (
-          <div className="mt-4 pt-3 border-t border-border bg-warning/10 p-3 rounded-md">
-            <p className="text-sm text-warning">No trip dates available</p>
-          </div>
-        )}
       </div>
     </div>
   );
