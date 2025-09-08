@@ -87,10 +87,21 @@ const AdminTravelerPaymentsTab = () => {
         .not('products_data', 'is', null)
         .order('updated_at', { ascending: false });
       
-      console.log('📦 AdminTravelerPaymentsTab - Package query result:', { data, error, tripId });
+      console.log('📦 AdminTravelerPaymentsTab - Package query result:', { 
+        data, 
+        error, 
+        tripId,
+        dataLength: data?.length || 0,
+        statuses: data?.map(p => p.status) || []
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
+      
       setPackageBreakdown(data || []);
+      console.log('✅ Package breakdown set:', data?.length || 0, 'packages');
     } catch (error) {
       console.error('❌ Error fetching package breakdown:', error);
       setPackageBreakdown([]);
@@ -533,16 +544,36 @@ const AdminTravelerPaymentsTab = () => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
         // Obtener desglose desde packages con travelerId y tripId cuando se abre el dialog
         if (open && confirmDialog.order) {
-          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order (fetching live packages):', {
+          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
             order: confirmDialog.order,
+            orderKeys: Object.keys(confirmDialog.order || {}),
             trip_id: confirmDialog.order?.trip_id,
-            traveler_id: confirmDialog.order?.traveler_id
+            traveler_id: confirmDialog.order?.traveler_id,
+            historical_packages: confirmDialog.order?.historical_packages
           });
           
-          if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
+          // Primero intentar con historical_packages como fallback
+          if (confirmDialog.order?.historical_packages && Array.isArray(confirmDialog.order.historical_packages)) {
+            console.log('✅ Using historical_packages:', confirmDialog.order.historical_packages);
+            setPackageBreakdown(confirmDialog.order.historical_packages.map((pkg: any) => ({
+              id: pkg.id,
+              item_description: pkg.item_description,
+              products_data: pkg.products_data || null
+            })));
+          } 
+          // Si no, intentar consulta con trip_id y traveler_id
+          else if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
+            console.log('⚡ Fetching live packages for trip/traveler:', {
+              trip_id: confirmDialog.order.trip_id,
+              traveler_id: confirmDialog.order.traveler_id
+            });
             fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
           } else {
-            console.warn('❌ Missing trip_id or traveler_id in order, cannot fetch package breakdown');
+            console.error('❌ No data source available for package breakdown:', {
+              has_historical: !!confirmDialog.order?.historical_packages,
+              has_trip_id: !!confirmDialog.order?.trip_id,
+              has_traveler_id: !!confirmDialog.order?.traveler_id
+            });
             setPackageBreakdown([]);
           }
         }
@@ -563,6 +594,14 @@ const AdminTravelerPaymentsTab = () => {
               
               {/* Desglose de paquetes */}
               <div className="space-y-2 mb-3">
+                {(() => {
+                  console.log('🎯 AdminTravelerPaymentsTab - Rendering breakdown:', {
+                    packageBreakdownLength: packageBreakdown.length,
+                    packageBreakdown: packageBreakdown,
+                    confirmDialogOrder: confirmDialog.order?.id
+                  });
+                  return null;
+                })()}
                 {packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
                     // Obtener el tip desde diferentes fuentes posibles
