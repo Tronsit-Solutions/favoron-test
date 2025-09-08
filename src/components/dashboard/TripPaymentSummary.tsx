@@ -131,7 +131,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     );
   }
 
-  const isAllPackagesDelivered = tripPayment.all_packages_delivered || (tripPayment.delivered_packages_count === tripPayment.total_packages_count);
+  // Usar all_packages_delivered del accumulator como fuente de verdad
+  const isAllPackagesDelivered = tripPayment.all_packages_delivered;
   const hasAccumulatedAmount = tripPayment.accumulated_amount > 0;
   
   console.log('💰 TripPaymentSummary - TripPayment found:', {
