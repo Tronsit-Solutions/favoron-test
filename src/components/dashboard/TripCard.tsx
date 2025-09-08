@@ -75,6 +75,31 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     tripPayment.accumulated_amount > 0 &&
     currentUser?.id === trip.user_id;
 
+  // Debug log para Anika
+  if (trip.from_city === "Miami" || trip.to_city === "Guatemala City" || tripPayment?.accumulated_amount > 0) {
+    console.log('🔍 DEBUG TripCard - Anika trip check:', {
+      tripId: trip.id,
+      fromCity: trip.from_city,
+      toCity: trip.to_city,
+      tripPayment: tripPayment ? {
+        accumulated_amount: tripPayment.accumulated_amount,
+        all_packages_delivered: tripPayment.all_packages_delivered,
+        payment_order_created: tripPayment.payment_order_created,
+        delivered_packages_count: tripPayment.delivered_packages_count,
+        total_packages_count: tripPayment.total_packages_count
+      } : null,
+      packages: packages.map(pkg => ({
+        id: pkg.id,
+        status: pkg.status,
+        item_description: pkg.item_description
+      })),
+      shouldShowPaymentButton,
+      currentUserId: currentUser?.id,
+      tripUserId: trip.user_id,
+      isOwner: currentUser?.id === trip.user_id
+    });
+  }
+
   // Filtrar paquetes completados para el desglose
   const completedPackages = packages.filter(pkg => 
     pkg.matched_trip_id === trip.id && pkg.status === 'completed'

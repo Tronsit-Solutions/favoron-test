@@ -150,6 +150,22 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     shouldShowRequestButton: hasAccumulatedAmount && !tripPayment.payment_order_created && isAllPackagesDelivered
   });
 
+  // Debug específico para Anika
+  if (trip.from_city === "Miami" || trip.to_city === "Guatemala City" || tripPayment.accumulated_amount > 0) {
+    console.log('🔍 DEBUG TripPaymentSummary - Anika trip detailed check:', {
+      tripId: trip.id,
+      fromCity: trip.from_city,
+      toCity: trip.to_city,
+      accumulatorData: tripPayment,
+      conditionsCheck: {
+        hasAccumulatedAmount,
+        isAllPackagesDelivered,
+        paymentOrderCreated: tripPayment.payment_order_created,
+        shouldShowButton: hasAccumulatedAmount && !tripPayment.payment_order_created && isAllPackagesDelivered
+      }
+    });
+  }
+
   return (
     <>
       <Card className="bg-muted/20 border">
