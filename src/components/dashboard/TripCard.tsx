@@ -99,6 +99,25 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               <TripDate arrivalDate={trip.arrival_date} />
               <span className="hidden md:inline">•</span>
               <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
+              
+              {/* Botón de crear orden de pago en el preview */}
+              {shouldShowPaymentButton && (
+                <>
+                  <span className="hidden md:inline">•</span>
+                  <Button 
+                    size="sm"
+                    variant="default"
+                    onClick={() => setShowBankingModal(true)}
+                    disabled={isCreating}
+                    className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Banknote className="h-3 w-3 mr-1" />
+                    <span className="whitespace-nowrap">
+                      {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
+                    </span>
+                  </Button>
+                </>
+              )}
             </CardDescription>
           </div>
           <div className="flex items-center justify-end gap-2 flex-shrink-0">
@@ -149,21 +168,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   </Button>
                 )}
 
-                {/* Botón de crear orden de pago */}
-                {shouldShowPaymentButton && (
-                  <Button 
-                    size="sm"
-                    variant="default"
-                    onClick={() => setShowBankingModal(true)}
-                    disabled={isCreating}
-                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 flex-shrink-0"
-                  >
-                    <Banknote className="h-3 w-3 mr-1" />
-                    <span className="whitespace-nowrap">
-                      {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
-                    </span>
-                  </Button>
-                )}
               </div>
             </div>
 
