@@ -250,7 +250,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowShippingInfoModal(true);
                     }}
-                    className="text-xs font-medium flex-shrink-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 w-full sm:w-auto max-w-full"
+                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
                   >
                     <span className="truncate">Comprar y subir comprobantes</span>
                   </Button>
