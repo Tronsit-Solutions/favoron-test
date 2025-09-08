@@ -40,6 +40,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
               <AddressDisplay
                 address={{
                   streetAddress: travelerAddress.streetAddress,
+                  streetAddress2: travelerAddress.streetAddress2,
                   cityArea: travelerAddress.cityArea,
                   hotelAirbnbName: travelerAddress.hotelAirbnbName,
                   contactNumber: travelerAddress.contactNumber,

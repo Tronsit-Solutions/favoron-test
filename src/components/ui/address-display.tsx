@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 interface AddressDisplayProps {
   address: {
     streetAddress: string;
+    streetAddress2?: string;
     cityArea: string;
     hotelAirbnbName?: string;
     contactNumber: string;
@@ -39,6 +40,9 @@ const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayP
           <p className="font-semibold text-foreground">{address.recipientName}</p>
         )}
         <p>{address.streetAddress}</p>
+        {address.streetAddress2 && (
+          <p>{address.streetAddress2}</p>
+        )}
         <p>{address.cityArea}</p>
         {address.postalCode && (
           <p>Código Postal: {address.postalCode}</p>
