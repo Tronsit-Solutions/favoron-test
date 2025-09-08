@@ -105,7 +105,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                       <Alert className="mt-3">
                         <Info className="h-4 w-4" />
                         <AlertDescription>
-                          La fecha para recoger es 1-2 días después de que el viajero entrega los paquetes.
+                          Podrás recoger tu paquete entre 1 y 2 días después de la entrega del viajero.
                         </AlertDescription>
                       </Alert>
                     </div>
