@@ -16,16 +16,18 @@ interface TravelerConfirmationDisplayProps {
 export const TravelerConfirmationDisplay = ({ pkg, className, onConfirmReceived }: TravelerConfirmationDisplayProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  
+  // Always call hooks first, before any conditional logic
+  const confirmation = pkg.traveler_confirmation as any;
+  const rawPhoto = confirmation?.photo || confirmation?.photoUrl;
+  const confirmedAt = confirmation?.confirmed_at || confirmation?.confirmedAt;
+  const { url: resolvedPhotoUrl } = useSignedUrl(rawPhoto);
+  
   // Show for all states after in_transit that have confirmation
   const postInTransitStates = ['received_by_traveler', 'delivered', 'pending_office_confirmation', 'completed'];
   if (!postInTransitStates.includes(pkg.status) || !pkg.traveler_confirmation) {
     return null;
   }
-
-  const confirmation = pkg.traveler_confirmation as any;
-  const rawPhoto = confirmation.photo || confirmation.photoUrl;
-  const confirmedAt = confirmation.confirmed_at || confirmation.confirmedAt;
-  const { url: resolvedPhotoUrl } = useSignedUrl(rawPhoto);
 
   const handleEditPhoto = (photo?: string) => {
     if (onConfirmReceived) {
