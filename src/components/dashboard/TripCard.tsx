@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote } from "lucide-react";
 import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -8,6 +8,9 @@ import { TripPaymentSummary } from "./TripPaymentSummary";
 import { TripDetailModal } from "./TripDetailModal";
 import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
+import { useTripPayments } from "@/hooks/useTripPayments";
+import { formatCurrency } from "@/utils/priceHelpers";
+import TripBankingConfirmationModal from "@/components/TripBankingConfirmationModal";
 
 interface TripCardProps {
   trip: any;
@@ -23,6 +26,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showBankingModal, setShowBankingModal] = useState(false);
+
+  // Hook para obtener datos del trip payment accumulator
+  const { tripPayment, isCreating, createPaymentOrder } = useTripPayments(trip.id);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
@@ -51,6 +58,22 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       onDeliveryConfirmed();
     }
   };
+
+  const handlePaymentRequest = async (bankingInfo: any) => {
+    try {
+      await createPaymentOrder(bankingInfo);
+      setShowBankingModal(false);
+    } catch (error) {
+      console.error('Error requesting payment:', error);
+    }
+  };
+
+  // Verificar si se debe mostrar el botón de crear orden de pago
+  const shouldShowPaymentButton = tripPayment && 
+    tripPayment.all_packages_delivered && 
+    !tripPayment.payment_order_created && 
+    tripPayment.accumulated_amount > 0 &&
+    currentUser?.id === trip.user_id;
 
   return (
     <>
@@ -125,6 +148,22 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                     <span className="whitespace-nowrap">Confirmar entrega</span>
                   </Button>
                 )}
+
+                {/* Botón de crear orden de pago */}
+                {shouldShowPaymentButton && (
+                  <Button 
+                    size="sm"
+                    variant="default"
+                    onClick={() => setShowBankingModal(true)}
+                    disabled={isCreating}
+                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 flex-shrink-0"
+                  >
+                    <Banknote className="h-3 w-3 mr-1" />
+                    <span className="whitespace-nowrap">
+                      {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
+                    </span>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -176,6 +215,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       packages={packages}
       onEditTrip={onEditTrip}
       currentUser={currentUser}
+    />
+    
+    <TripBankingConfirmationModal
+      isOpen={showBankingModal}
+      onClose={() => setShowBankingModal(false)}
+      onConfirm={handlePaymentRequest}
+      amount={tripPayment?.accumulated_amount || 0}
+      currentBankingInfo={{
+        bank_account_holder: currentUser?.bank_account_holder,
+        bank_name: currentUser?.bank_name,
+        bank_account_type: currentUser?.bank_account_type,
+        bank_account_number: currentUser?.bank_account_number
+      }}
+      title="Confirmar Datos Bancarios para Pago del Viaje"
+      description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment?.accumulated_amount || 0)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
     />
     </>
   );
