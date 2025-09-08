@@ -1046,6 +1046,7 @@ export const useDashboardActions = (
   };
 
   const handleAdminConfirmOfficeDelivery = async (packageId: string) => {
+    console.log('🎯 handleAdminConfirmOfficeDelivery called with packageId:', packageId);
     // Optimistic UI: update local state immediately, then confirm via RPC
     const prevPackages = [...packages];
     try {

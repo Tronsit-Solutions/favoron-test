@@ -502,6 +502,8 @@ const AdminDashboard = ({
             onUpdateStatus={onUpdateStatus}
             onConfirmReception={onConfirmOfficeReception}
             onConfirmDelivery={onConfirmDeliveryComplete}
+            onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery}
+            onConfirmShopperReceived={onConfirmShopperReceived}
             onOpenActionsModal={(packageId: string) => {
               const pkg = localPackages.find(p => p.id === packageId);
               if (pkg) {
