@@ -14,9 +14,14 @@ interface AddressDisplayProps {
   };
   title: string;
   variant?: 'success' | 'info' | 'warning';
+  tripDates?: {
+    firstDayPackages?: string;
+    lastDayPackages?: string;
+    deliveryDate?: string;
+  };
 }
 
-const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayProps) => {
+const AddressDisplay = ({ address, title, variant = 'success', tripDates }: AddressDisplayProps) => {
   const variantStyles = {
     success: 'bg-success-muted border-success-border text-foreground',
     info: 'bg-info-muted border-info-border text-foreground', 
@@ -58,6 +63,30 @@ const AddressDisplay = ({ address, title, variant = 'success' }: AddressDisplayP
           <div className="mt-2 p-2 bg-muted/50 rounded border-l-2 border-primary/30">
             <p className="text-xs font-medium text-muted-foreground mb-1">Instrucciones adicionales:</p>
             <p className="text-xs">{address.additionalInstructions}</p>
+          </div>
+        )}
+        
+        {/* Fechas importantes */}
+        {tripDates && (
+          <div className="mt-4 pt-3 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Fechas importantes:</p>
+            <div className="space-y-1">
+              {tripDates.firstDayPackages && (
+                <p className="text-xs">
+                  <span className="font-medium text-muted-foreground">Primer día para recibir paquetes:</span> {new Date(tripDates.firstDayPackages).toLocaleDateString('es-GT')}
+                </p>
+              )}
+              {tripDates.lastDayPackages && (
+                <p className="text-xs">
+                  <span className="font-medium text-muted-foreground">Último día para recibir paquetes:</span> {new Date(tripDates.lastDayPackages).toLocaleDateString('es-GT')}
+                </p>
+              )}
+              {tripDates.deliveryDate && (
+                <p className="text-xs">
+                  <span className="font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</span> <span className="font-semibold text-primary">{new Date(tripDates.deliveryDate).toLocaleDateString('es-GT')}</span>
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -51,50 +51,15 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                 }}
                 title="Información de envío"
                 variant="info"
+                tripDates={matchedTripDates ? {
+                  firstDayPackages: matchedTripDates.firstDayPackages,
+                  lastDayPackages: matchedTripDates.lastDayPackages,
+                  deliveryDate: matchedTripDates.deliveryDate
+                } : undefined}
               />
             </div>
           )}
 
-          {/* Trip Dates */}
-          {matchedTripDates && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Fechas Importantes
-              </h3>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Cronograma del Viaje</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {matchedTripDates.firstDayPackages && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm font-medium">Primer día para recibir paquetes:</span>
-                      <span className="text-sm">
-                        {new Date(matchedTripDates.firstDayPackages).toLocaleDateString('es-GT')}
-                      </span>
-                    </div>
-                  )}
-                  {matchedTripDates.lastDayPackages && (
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm font-medium">Último día para recibir paquetes:</span>
-                      <span className="text-sm">
-                        {new Date(matchedTripDates.lastDayPackages).toLocaleDateString('es-GT')}
-                      </span>
-                    </div>
-                  )}
-                  {matchedTripDates.deliveryDate && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm font-medium">Fecha de entrega en oficina:</span>
-                      <span className="text-sm font-semibold text-primary">
-                        {new Date(matchedTripDates.deliveryDate).toLocaleDateString('es-GT')}
-                      </span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
