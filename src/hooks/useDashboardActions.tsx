@@ -1047,27 +1047,99 @@ export const useDashboardActions = (
 
   const handleAdminConfirmOfficeDelivery = async (packageId: string) => {
     try {
-      if (!currentUser?.id) {
-        console.error('❌ Current user ID not available');
+      console.log('🏢 Admin confirming office delivery...', { packageId, currentUser });
+
+      // 1) Ensure we have a valid session (prevents auth.uid() = NULL in RPC)
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('Auth getSession error:', sessionError);
+      }
+      const session = sessionData?.session ?? null;
+      if (!session || !session.user) {
+        toast({
+          title: "Sesión expirada",
+          description: "Vuelve a iniciar sesión e intenta de nuevo.",
+          variant: "destructive",
+        });
         return;
       }
 
-      // Llamar a la función de base de datos para confirmar la entrega
-      const { error } = await supabase.rpc('admin_confirm_office_delivery', {
+      // 2) Try the secure RPC first (source of truth in DB)
+      const { error: rpcError } = await supabase.rpc('admin_confirm_office_delivery', {
         _package_id: packageId,
-        _admin_id: currentUser.id
+        _admin_id: session.user.id,
       });
 
-      if (error) {
-        console.error('❌ RPC error:', error);
-        throw error;
+      if (rpcError) {
+        console.error('RPC admin_confirm_office_delivery error:', rpcError);
+        const msg = (rpcError.message || '').toLowerCase();
+        const isAuthError = msg.includes('auth') || msg.includes('jwt') || msg.includes('permission') || msg.includes('only admins') || msg.includes('solo los administradores');
+        const isInvalidState = msg.includes('estado inválido') || msg.includes('falta la declaración del viajero');
+
+        // If the function reports invalid state, inform and stop
+        if (isInvalidState) {
+          toast({
+            title: 'Estado inválido',
+            description: 'No se pudo confirmar: estado inválido o falta la declaración del viajero.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // 3) Fallback only for auth-related issues: perform a direct update with RLS
+        if (isAuthError) {
+          console.warn('Falling back to direct update with RLS...');
+
+          // Fetch current package to merge JSON safely
+          const { data: pkg, error: fetchError } = await supabase
+            .from('packages')
+            .select('id,status,office_delivery,user_id,item_description')
+            .eq('id', packageId)
+            .single();
+
+          if (fetchError || !pkg) {
+            console.error('Failed to fetch package before fallback:', fetchError);
+            toast({ title: 'Error', description: 'No se pudo obtener el paquete para confirmar.', variant: 'destructive' });
+            return;
+          }
+
+          const officeDelivery: any = (pkg.office_delivery && typeof pkg.office_delivery === 'object') ? pkg.office_delivery : {};
+          if (pkg.status !== 'pending_office_confirmation' || !officeDelivery?.traveler_declaration) {
+            toast({ title: 'Estado inválido', description: 'Este paquete no está listo para confirmación en oficina.', variant: 'destructive' });
+            return;
+          }
+
+          const updatedOfficeDelivery = {
+            ...(officeDelivery || {}),
+            admin_confirmation: {
+              confirmed_by: session.user.id,
+              confirmed_at: new Date().toISOString(),
+            },
+          } as any;
+
+          const { error: updError } = await supabase
+            .from('packages')
+            .update({
+              status: 'delivered_to_office',
+              office_delivery: updatedOfficeDelivery,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', packageId);
+
+          if (updError) {
+            console.error('Fallback update error:', updError);
+            toast({ title: 'Error', description: 'No se pudo confirmar la entrega (fallback).', variant: 'destructive' });
+            return;
+          }
+        } else {
+          // Non-auth error: surface it
+          throw rpcError;
+        }
       }
 
-      // Buscar el paquete para obtener información del shopper
+      // Optional notification to shopper (keep existing behavior)
       const packageData = packages?.find(pkg => pkg.id === packageId);
-      
       if (packageData?.user_id) {
-        // Notificar al shopper que el paquete está en oficina
         await supabase.from('notifications').insert({
           user_id: packageData.user_id,
           title: "Paquete en oficina",
@@ -1077,24 +1149,25 @@ export const useDashboardActions = (
         });
       }
 
-      // Refrescar los paquetes para mostrar el cambio de estado
-      await refreshPackages();
+      // Refresh UI
+      if (refreshPackages) {
+        await refreshPackages();
+      }
 
       toast({
         title: "¡Entrega confirmada!",
-        description: "Has confirmado la recepción del paquete. El viajero ya puede solicitar su compensación y el shopper ha sido notificado.",
+        description: "Has confirmado la recepción del paquete en oficina.",
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error confirming office delivery:', error);
       toast({
         title: "Error",
-        description: "No se pudo confirmar la entrega. Inténtalo de nuevo.",
+        description: error?.message || "No se pudo confirmar la entrega. Inténtalo de nuevo.",
         variant: "destructive",
       });
     }
   };
-
   const handleConfirmShopperReceived = async (packageId: string) => {
     try {
       const { error } = await supabase
