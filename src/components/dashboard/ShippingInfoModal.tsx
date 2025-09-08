@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Package as PackageType } from '@/types';
 import AddressDisplay from '@/components/ui/address-display';
-import { Calendar, MapPin, Truck, Info, FileText } from 'lucide-react';
+import { Calendar, MapPin, Truck, Info, FileText, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PurchaseConfirmationUpload from '@/components/PurchaseConfirmationUpload';
@@ -16,9 +16,33 @@ interface ShippingInfoModalProps {
 }
 
 const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingInfoModalProps) => {
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const travelerAddress = pkg.traveler_address as any;
   const tripData = (pkg as any).trips;
   
+  // Check scroll position to show/hide scroll indicator
+  const checkScrollIndicator = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+      const hasScrollableContent = scrollHeight > clientHeight;
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50; // 50px threshold
+      setShowScrollIndicator(hasScrollableContent && !isNearBottom);
+    }
+  };
+
+  // Set up scroll listener
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScrollIndicator);
+      // Check initial state
+      checkScrollIndicator();
+      
+      return () => container.removeEventListener('scroll', checkScrollIndicator);
+    }
+  }, [isOpen, pkg]);
+
   // Debug logging
   console.log('🔍 ShippingInfoModal - Package:', pkg);
   console.log('🔍 ShippingInfoModal - travelerAddress:', travelerAddress);
@@ -30,7 +54,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden relative">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Truck className="h-5 w-5" />
@@ -38,7 +62,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 pb-4">
+        <div 
+          ref={scrollContainerRef}
+          className="space-y-6 pb-4 overflow-y-auto max-h-[calc(80vh-120px)]"
+        >
           {/* Traveler Address */}
           {travelerAddress && (
             <div>
@@ -163,6 +190,16 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
           )}
 
         </div>
+
+        {/* Scroll Indicator */}
+        {showScrollIndicator && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+            <div className="bg-primary/90 text-primary-foreground px-3 py-2 rounded-full shadow-lg flex items-center gap-2 animate-bounce">
+              <span className="text-xs font-medium">Más contenido abajo</span>
+              <ChevronDown className="h-3 w-3" />
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
