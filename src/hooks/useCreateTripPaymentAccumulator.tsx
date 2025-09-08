@@ -33,17 +33,19 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       }
     });
 
-    // Obtener total de paquetes del viaje
-    const { data: allPackages, error: allPackagesError } = await supabase
+    // Obtener total de paquetes del viaje con estado igual o posterior a 'in_transit'
+    const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered'];
+    const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
       .from('packages')
-      .select('id')
-      .eq('matched_trip_id', tripId);
+      .select('id, status')
+      .eq('matched_trip_id', tripId)
+      .in('status', eligibleStatuses);
 
-    if (allPackagesError) throw allPackagesError;
+    if (eligiblePkgsError) throw eligiblePkgsError;
 
-    const totalPackagesCount = allPackages?.length || 0;
+    const totalPackagesCount = inTransitOrLaterPackages?.length || 0;
     const deliveredPackagesCount = deliveredEligibleCount;
-
+    const allDelivered = totalPackagesCount > 0 && deliveredPackagesCount === totalPackagesCount;
     // Verificar si ya existe un acumulador
     const { data: existingAccumulator, error: checkError } = await supabase
       .from('trip_payment_accumulator')
@@ -62,6 +64,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
           accumulated_amount: accumulatedAmount,
           delivered_packages_count: deliveredPackagesCount,
           total_packages_count: totalPackagesCount,
+          all_packages_delivered: allDelivered,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingAccumulator.id);
@@ -78,6 +81,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
             accumulated_amount: accumulatedAmount,
             delivered_packages_count: deliveredPackagesCount,
             total_packages_count: totalPackagesCount,
+            all_packages_delivered: allDelivered,
             payment_order_created: false
           });
 
