@@ -246,7 +246,10 @@ const CollapsiblePackageCard = ({
                     <CreditCard className="h-3 w-3 mr-1" />
                     Pagar
                   </Button>
-                ) : pkg.status === 'pending_purchase' ? (
+                ) : (pkg.status === 'pending_purchase' || 
+                     (pkg.status === 'purchased' && !pkg.tracking_info) ||
+                     (pkg.status === 'shipped' && !pkg.tracking_info) ||
+                     (pkg.status === 'in_transit' && !pkg.tracking_info)) ? (
                   <Button
                     size="sm"
                     variant="outline"
