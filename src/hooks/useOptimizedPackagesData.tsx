@@ -119,6 +119,8 @@ export const useOptimizedPackagesData = () => {
             departure_date,
             arrival_date,
             delivery_date,
+            first_day_packages,
+            last_day_packages,
             profiles:user_id(
               id,
               first_name,

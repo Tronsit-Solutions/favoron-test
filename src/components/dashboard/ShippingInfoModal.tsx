@@ -13,14 +13,14 @@ interface ShippingInfoModalProps {
 
 const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => {
   const travelerAddress = pkg.traveler_address as any;
-  const matchedTripDates = pkg.matched_trip_dates as any;
+  const tripData = (pkg as any).trips;
   
   // Debug logging
   console.log('🔍 ShippingInfoModal - Package:', pkg);
   console.log('🔍 ShippingInfoModal - travelerAddress:', travelerAddress);
-  console.log('🔍 ShippingInfoModal - matchedTripDates:', matchedTripDates);
+  console.log('🔍 ShippingInfoModal - tripData:', tripData);
 
-  if (!travelerAddress && !matchedTripDates) {
+  if (!travelerAddress && !tripData) {
     return null;
   }
 
@@ -61,7 +61,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
           )}
           
           {/* Fechas Importantes */}
-          {matchedTripDates && (
+          {tripData && (
             <div>
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -69,10 +69,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
               </h3>
               <div className="bg-info-muted border-info-border border rounded-lg p-4">
                 <div className="space-y-3">
-                  {matchedTripDates.firstDayPackages && (
+                  {tripData.first_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.firstDayPackages).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-primary">{new Date(tripData.first_day_packages).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
@@ -80,10 +80,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                       })}</p>
                     </div>
                   )}
-                  {matchedTripDates.lastDayPackages && (
+                  {tripData.last_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(matchedTripDates.lastDayPackages).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-primary">{new Date(tripData.last_day_packages).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
@@ -91,10 +91,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                       })}</p>
                     </div>
                   )}
-                  {matchedTripDates.deliveryDate && (
+                  {tripData.delivery_date && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
-                      <p className="text-sm font-semibold text-success">{new Date(matchedTripDates.deliveryDate).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-success">{new Date(tripData.delivery_date).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
@@ -102,14 +102,6 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                       })}</p>
                     </div>
                   )}
-                  
-                  {/* Debug: Show all data from matched_trip_dates */}
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Debug - matched_trip_dates data:</p>
-                    <pre className="text-xs bg-muted p-2 rounded overflow-auto">
-                      {JSON.stringify(matchedTripDates, null, 2)}
-                    </pre>
-                  </div>
                 </div>
               </div>
             </div>
