@@ -533,27 +533,6 @@ const CollapsiblePackageCard = ({
                   )}
 
 
-                  {/* Document Upload */}
-                  {(pkg.status === 'payment_confirmed' || 
-                    pkg.status === 'paid' ||
-                    pkg.status === 'pending_purchase' ||
-                    pkg.status === 'purchased' ||
-                    pkg.status === 'shipped' ||
-                    pkg.status === 'matched' ||
-                    pkg.status === 'in_transit' ||
-                    pkg.status === 'received_by_traveler' ||
-                    pkg.status === 'delivered' ||
-                    pkg.status === 'pending_office_confirmation') && (
-                    <div className="mb-4">
-                      <UploadDocuments 
-                        packageId={pkg.id}
-                        currentStatus={pkg.status}
-                        currentConfirmation={pkg.purchase_confirmation}
-                        currentTracking={pkg.tracking_info}
-                        onUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-                      />
-                    </div>
-                  )}
                 </div>
 
 
