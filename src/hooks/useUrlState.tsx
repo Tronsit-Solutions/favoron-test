@@ -23,6 +23,10 @@ export const useUrlState = () => {
     navigate(`/dashboard?tab=${tab}`, { replace: true });
   }, [navigate]);
 
+  const navigateToProfile = useCallback(() => {
+    navigate('/dashboard?tab=profile', { replace: true });
+  }, [navigate]);
+
   const navigateToForm = useCallback((formType: 'package' | 'trip') => {
     navigate(`/dashboard/${formType}`, { replace: true });
   }, [navigate]);
@@ -36,6 +40,7 @@ export const useUrlState = () => {
     setUrlParam,
     getUrlParam,
     navigateToTab,
+    navigateToProfile,
     navigateToForm,
     navigateBack
   };

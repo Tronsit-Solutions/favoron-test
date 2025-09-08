@@ -322,12 +322,12 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader 
-        user={currentUser}
-        onShowProfile={() => setShowProfile(true)}
-        onLogout={signOut}
-        onShowUserManagement={() => setShowUserManagement(true)}
-      />
+        <DashboardHeader 
+          user={currentUser}
+          onShowProfile={() => setActiveTab('profile')}
+          onLogout={signOut}
+          onShowUserManagement={() => setShowUserManagement(true)}
+        />
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
         <PhoneNumberBannerSection />
@@ -595,6 +595,31 @@ const Dashboard = ({ user }: DashboardProps) => {
               />
             </TabsContent>
           )}
+
+          <TabsContent value="profile" className="space-y-6">
+            <div className="mb-6">
+              <div className="flex items-center gap-4 mb-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setActiveTab('overview')}
+                  className="flex items-center gap-2"
+                >
+                  ← Volver al Dashboard
+                </Button>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold">Mi Perfil Completo</h3>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Información personal, historial de paquetes y viajes
+              </p>
+            </div>
+            
+            <UserProfile 
+              user={currentUser}
+              packages={packages}
+              trips={trips}
+              onUpdateUser={handleUpdateUser}
+            />
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -695,9 +720,10 @@ const Dashboard = ({ user }: DashboardProps) => {
         onClose={() => setShowAvailableTripsModal(false)}
       />
 
+      {/* Keep EditProfileModal for legacy access from within profile components */}
       <EditProfileModal
         user={currentUser}
-        isOpen={showProfile}
+        isOpen={showProfile && activeTab !== 'profile'}
         onClose={() => setShowProfile(false)}
         onUpdateUser={handleUpdateUser}
       />

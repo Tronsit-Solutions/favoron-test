@@ -13,7 +13,7 @@ export const useDashboardState = (user: any) => {
   // Read initial tab from URL, fallback to "overview"
   const getInitialTab = () => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['overview', 'packages', 'trips', 'admin'];
+    const validTabs = ['overview', 'packages', 'trips', 'admin', 'profile'];
     return validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'overview';
   };
   
@@ -120,7 +120,7 @@ export const useDashboardState = (user: any) => {
   // Sync tab state with URL
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['overview', 'packages', 'trips', 'admin'];
+    const validTabs = ['overview', 'packages', 'trips', 'admin', 'profile'];
     if (validTabs.includes(tabFromUrl || '') && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
