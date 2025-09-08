@@ -8,6 +8,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Plane, Edit, Eye, MapPin, Calendar, Package as PackageIcon, User } from "lucide-react";
+import TripPackagesModal from "./TripPackagesModal";
 
 interface UserTripsTabProps {
   trips: Trip[];
@@ -17,6 +18,7 @@ interface UserTripsTabProps {
 const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
   const { getStatusBadge } = useStatusHelpers();
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [showPackagesModal, setShowPackagesModal] = useState(false);
 
   const getAssignedPackages = (tripId: string) => {
     return allPackages.filter(pkg => pkg.matched_trip_id === tripId);
@@ -31,7 +33,8 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
   };
 
   const handleViewPackages = (trip: Trip) => {
-    // Package viewer would be implemented here
+    setSelectedTrip(trip);
+    setShowPackagesModal(true);
   };
 
   if (trips.length === 0) {
@@ -199,6 +202,17 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Trip Packages Modal */}
+      <TripPackagesModal
+        trip={selectedTrip}
+        packages={allPackages}
+        isOpen={showPackagesModal}
+        onClose={() => {
+          setShowPackagesModal(false);
+          setSelectedTrip(null);
+        }}
+      />
     </div>
   );
 };
