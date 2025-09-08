@@ -68,6 +68,8 @@ const AdminTravelerPaymentsTab = () => {
     id: string;
     item_description: string;
     products_data?: any;
+    quote?: { price?: number };
+    admin_assigned_tip?: number;
   }>>([]);
   const { toast } = useToast();
   const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
@@ -528,23 +530,25 @@ const AdminTravelerPaymentsTab = () => {
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
-        // Obtener desglose cuando se abre el dialog
+        // Obtener desglose desde historical_packages cuando se abre el dialog
         if (open && confirmDialog.order) {
           console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
-            orderKeys: Object.keys(confirmDialog.order),
             order: confirmDialog.order,
-            trip_id: confirmDialog.order?.trip_id,
-            traveler_id: confirmDialog.order?.traveler_id
+            historical_packages: confirmDialog.order?.historical_packages
           });
           
-          if (confirmDialog.order?.trip_id && confirmDialog.order?.traveler_id) {
-            fetchPackageBreakdown(confirmDialog.order.trip_id, confirmDialog.order.traveler_id);
+          // Usar historical_packages en lugar de hacer query
+          if (confirmDialog.order?.historical_packages && Array.isArray(confirmDialog.order.historical_packages)) {
+            setPackageBreakdown(confirmDialog.order.historical_packages.map((pkg: any) => ({
+              id: pkg.id,
+              item_description: pkg.item_description,
+              products_data: pkg.products_data || null,
+              quote: pkg.quote,
+              admin_assigned_tip: pkg.admin_assigned_tip || (pkg.quote?.price || 0)
+            })));
           } else {
-            console.log('❌ Missing trip_id or traveler_id in order:', {
-              trip_id: confirmDialog.order?.trip_id,
-              traveler_id: confirmDialog.order?.traveler_id,
-              availableKeys: Object.keys(confirmDialog.order)
-            });
+            console.log('❌ No historical_packages found in order:', confirmDialog.order);
+            setPackageBreakdown([]);
           }
         }
       }}>
@@ -566,13 +570,23 @@ const AdminTravelerPaymentsTab = () => {
               <div className="space-y-2 mb-3">
                 {packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
-                    // Obtener el tip desde products_data
+                    // Obtener el tip desde diferentes fuentes posibles
                     let packageTip = 0;
+                    
+                    // 1. Desde products_data (si existe)
                     if (pkg.products_data && Array.isArray(pkg.products_data)) {
                       packageTip = pkg.products_data.reduce((sum: number, product: any) => {
                         const tip = product.adminAssignedTip || 0;
                         return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
                       }, 0);
+                    }
+                    // 2. Desde quote.price (para historical_packages)
+                    else if (pkg.quote?.price) {
+                      packageTip = typeof pkg.quote.price === 'string' ? parseFloat(pkg.quote.price) : pkg.quote.price;
+                    }
+                    // 3. Desde admin_assigned_tip (fallback)
+                    else if (pkg.admin_assigned_tip) {
+                      packageTip = typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip;
                     }
                     
                     return (
