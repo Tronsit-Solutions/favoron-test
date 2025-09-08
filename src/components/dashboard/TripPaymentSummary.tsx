@@ -34,6 +34,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   // Fetch package counts for this trip
   const fetchPackageCounts = useCallback(async () => {
       try {
+        console.log('🔍 TripPaymentSummary - Fetching package counts for trip:', trip.id);
+        
         const { data, error } = await supabase
           .from('packages')
           .select('status')
@@ -44,6 +46,14 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
 
         const total = data?.length || 0;
         const completed = data?.filter(pkg => pkg.status === 'completed').length || 0;
+        
+        console.log('📦 TripPaymentSummary - Package counts:', {
+          tripId: trip.id,
+          total,
+          completed,
+          allStatuses: data?.map(p => p.status),
+          allPackagesCompleted: total > 0 && completed === total
+        });
         
         setPackageCounts({ total, completed });
       } catch (error) {
@@ -87,12 +97,19 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
     }
 
     const allPackagesCompleted = packageCounts.total > 0 && packageCounts.completed === packageCounts.total;
+    
+    console.log('🚨 TripPaymentSummary - No tripPayment found:', {
+      tripId: trip.id,
+      packageCounts,
+      allPackagesCompleted,
+      shouldShowButton: allPackagesCompleted
+    });
 
     return (
       <Card className="bg-muted/20 border">
         <CardContent className="p-3 text-center">
           <p className="text-xs text-muted-foreground mb-2">
-            {packageCounts.completed} de {packageCounts.total} paquetes entregados en oficina. Podrás crear tu orden de cobro cuando todos estén entregados.
+            {packageCounts.completed} de {packageCounts.total} paquetes completados. Podrás crear tu orden de cobro cuando todos estén completados.
           </p>
           {allPackagesCompleted && (
             <Button 
@@ -110,6 +127,21 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
 
   const isAllPackagesDelivered = tripPayment.all_packages_delivered || (tripPayment.delivered_packages_count === tripPayment.total_packages_count);
   const hasAccumulatedAmount = tripPayment.accumulated_amount > 0;
+  
+  console.log('💰 TripPaymentSummary - TripPayment found:', {
+    tripId: trip.id,
+    tripPayment: {
+      accumulated_amount: tripPayment.accumulated_amount,
+      delivered_packages_count: tripPayment.delivered_packages_count,
+      total_packages_count: tripPayment.total_packages_count,
+      all_packages_delivered: tripPayment.all_packages_delivered,
+      payment_order_created: tripPayment.payment_order_created,
+      payment_status: tripPayment.payment_status
+    },
+    isAllPackagesDelivered,
+    hasAccumulatedAmount,
+    shouldShowRequestButton: hasAccumulatedAmount && !tripPayment.payment_order_created && isAllPackagesDelivered
+  });
 
   return (
     <>

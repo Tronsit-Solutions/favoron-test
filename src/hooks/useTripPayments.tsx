@@ -29,6 +29,8 @@ export const useTripPayments = (tripId?: string) => {
     }
 
     try {
+      console.log('🔍 useTripPayments - Fetching trip payment for tripId:', tripId);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -41,6 +43,8 @@ export const useTripPayments = (tripId?: string) => {
 
       if (error) throw error;
 
+      console.log('💾 useTripPayments - Trip payment accumulator data:', data);
+
       // Si existe un accumulator, verificar si hay una payment order completada
       if (data) {
         const { data: paymentOrder, error: paymentError } = await supabase
@@ -52,14 +56,18 @@ export const useTripPayments = (tripId?: string) => {
           .limit(1)
           .maybeSingle();
 
+        console.log('💳 useTripPayments - Payment order data:', paymentOrder);
+
         if (!paymentError && paymentOrder) {
           // Crear un nuevo objeto con la información del estado del pago
           const extendedData = { ...data, payment_status: paymentOrder.status };
+          console.log('📋 useTripPayments - Extended data with payment status:', extendedData);
           setTripPayment(extendedData);
         } else {
           setTripPayment(data);
         }
       } else {
+        console.log('❌ useTripPayments - No trip payment accumulator found');
         setTripPayment(data);
       }
     } catch (error: any) {
