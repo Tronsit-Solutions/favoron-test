@@ -22,6 +22,10 @@ interface AddressDisplayProps {
 }
 
 const AddressDisplay = ({ address, title, variant = 'success', tripDates }: AddressDisplayProps) => {
+  // Debug logging
+  console.log('🔍 AddressDisplay - tripDates received:', tripDates);
+  console.log('🔍 AddressDisplay - tripDates type:', typeof tripDates);
+  
   const variantStyles = {
     success: 'bg-success-muted border-success-border text-foreground',
     info: 'bg-info-muted border-info-border text-foreground', 

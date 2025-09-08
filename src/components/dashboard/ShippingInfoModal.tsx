@@ -14,6 +14,11 @@ interface ShippingInfoModalProps {
 const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => {
   const travelerAddress = pkg.traveler_address as any;
   const matchedTripDates = pkg.matched_trip_dates as any;
+  
+  // Debug logging
+  console.log('🔍 ShippingInfoModal - Package:', pkg);
+  console.log('🔍 ShippingInfoModal - travelerAddress:', travelerAddress);
+  console.log('🔍 ShippingInfoModal - matchedTripDates:', matchedTripDates);
 
   if (!travelerAddress && !matchedTripDates) {
     return null;
