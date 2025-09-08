@@ -2,8 +2,9 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Package as PackageType } from '@/types';
 import AddressDisplay from '@/components/ui/address-display';
-import { Calendar, MapPin, Truck } from 'lucide-react';
+import { Calendar, MapPin, Truck, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ShippingInfoModalProps {
   isOpen: boolean;
@@ -100,6 +101,13 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                         month: 'long', 
                         day: 'numeric' 
                       })}</p>
+                      
+                      <Alert className="mt-3">
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                          La fecha para recoger es 1-2 días después de que el viajero entrega los paquetes.
+                        </AlertDescription>
+                      </Alert>
                     </div>
                   )}
                 </div>
