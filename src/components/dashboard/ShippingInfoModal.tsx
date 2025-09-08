@@ -2,17 +2,20 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Package as PackageType } from '@/types';
 import AddressDisplay from '@/components/ui/address-display';
-import { Calendar, MapPin, Truck, Info } from 'lucide-react';
+import { Calendar, MapPin, Truck, Info, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import PurchaseConfirmationUpload from '@/components/PurchaseConfirmationUpload';
+import TrackingInfoForm from '@/components/TrackingInfoForm';
 
 interface ShippingInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   pkg: PackageType;
+  onDocumentUpload?: (type: 'confirmation' | 'tracking', data: any) => void;
 }
 
-const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => {
+const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingInfoModalProps) => {
   const travelerAddress = pkg.traveler_address as any;
   const tripData = (pkg as any).trips;
   
@@ -112,6 +115,50 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg }: ShippingInfoModalProps) => 
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Document Upload Section */}
+          {onDocumentUpload && (pkg.status === 'pending_purchase' || pkg.status === 'payment_confirmed' || pkg.status === 'paid' || pkg.status === 'in_transit') && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Documentos del Paquete
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Purchase Confirmation Upload */}
+                {!pkg.purchase_confirmation && (
+                  <div className="border border-primary/30 rounded-lg p-4">
+                    <PurchaseConfirmationUpload
+                      packageId={pkg.id}
+                      currentConfirmation={pkg.purchase_confirmation}
+                      onUpload={(data) => onDocumentUpload('confirmation', data)}
+                    />
+                  </div>
+                )}
+                
+                {/* Tracking Information */}
+                {!pkg.tracking_info && (
+                  <div className="border border-primary/30 rounded-lg p-4">
+                    <TrackingInfoForm
+                      packageId={pkg.id}
+                      currentTracking={pkg.tracking_info}
+                      onSubmit={(data) => onDocumentUpload('tracking', data)}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              {/* Success Message when both documents are complete */}
+              {pkg.purchase_confirmation && pkg.tracking_info && (
+                <div className="text-center p-3 bg-success/10 border border-success/20 rounded-lg mt-4">
+                  <div className="text-success text-2xl mb-2">🎉</div>
+                  <h4 className="font-semibold text-success mb-1">¡Documentos Completos!</h4>
+                  <p className="text-sm text-success/80">
+                    Ambos documentos han sido subidos correctamente. Tu pedido está en proceso.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
