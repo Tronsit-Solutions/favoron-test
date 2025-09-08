@@ -96,24 +96,32 @@ const TripBankingConfirmationModal = ({
             <div className="space-y-1 mb-2">
               {packageBreakdown.length > 0 ? (
                 packageBreakdown.map((pkg, index) => {
-                  const tip = pkg.quote?.price || pkg.admin_assigned_tip || 0;
+                  // Obtener el tip específico ganado por el paquete
+                  const packageTip = pkg.admin_assigned_tip || 
+                                   (pkg.quote?.price ? pkg.quote.price : 0);
+                  
                   return (
                     <div key={pkg.id} className="flex justify-between items-start text-xs py-1 border-b border-muted/20 last:border-b-0">
                       <div className="flex items-start gap-1 flex-1 min-w-0">
                         <Package className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground truncate">
-                          Paquete #{index + 1}: {pkg.item_description}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-xs truncate">
+                            {pkg.item_description}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Tip ganado por entrega
+                          </div>
+                        </div>
                       </div>
                       <span className="font-medium text-green-600 ml-2 flex-shrink-0">
-                        {formatCurrency(tip)}
+                        {formatCurrency(packageTip)}
                       </span>
                     </div>
                   );
                 })
               ) : (
                 <div className="text-xs text-muted-foreground py-1">
-                  Tips acumulados del viaje
+                  No hay desglose de paquetes disponible
                 </div>
               )}
             </div>
