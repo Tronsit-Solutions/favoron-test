@@ -41,6 +41,7 @@ import UserManagement from "./admin/UserManagement";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
@@ -117,7 +118,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     setPackages,
     toast,
     unreadCounts,
-    markPackageMessagesAsRead
+    markPackageMessagesAsRead,
+    selectedTripFilter,
+    setSelectedTripFilter
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -515,12 +518,45 @@ const Dashboard = ({ user }: DashboardProps) => {
               {/* Assigned Packages Section */}
               {assignedPackages.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold mb-4">Mis Paquetes Asignados</h4>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+                    <h4 className="text-lg font-semibold">Mis Paquetes Asignados</h4>
+                    {(() => {
+                       // Get available trips from assigned packages
+                       const tripIds = [...new Set(assignedPackages.map(pkg => pkg.matched_trip_id).filter(Boolean))];
+                       const availableTrips = trips.filter(trip => tripIds.includes(trip.id));
+                      
+                      // Only show selector if there are multiple trips
+                      if (availableTrips.length <= 1) return null;
+                      
+                      return (
+                        <Select value={selectedTripFilter} onValueChange={setSelectedTripFilter}>
+                          <SelectTrigger className="w-auto min-w-[200px]">
+                            <SelectValue placeholder="Filtrar por viaje" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos los viajes</SelectItem>
+                            {availableTrips.map(trip => {
+                              const packageCount = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id).length;
+                              return (
+                                <SelectItem key={trip.id} value={trip.id}>
+                                  {trip.from_city} → {trip.to_city} ({new Date(trip.departure_date).toLocaleDateString('es-ES')}) - {packageCount} paquetes
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()}
+                  </div>
                    
                    {/* Display all assigned packages directly */}
                    <div className="space-y-6">
                      {assignedPackages
                         .filter(pkg => {
+                          // First filter by selected trip
+                          if (selectedTripFilter !== "all" && pkg.matched_trip_id !== selectedTripFilter) {
+                            return false;
+                          }
                           const now = Date.now();
                           const PAID_OR_POST_PAYMENT = [
                             'pending_purchase',
