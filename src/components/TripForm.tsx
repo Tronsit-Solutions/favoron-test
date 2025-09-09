@@ -305,7 +305,7 @@ const TripForm = ({
         <form onSubmit={handleSubmit} className="space-y-8 mobile-safe-form">
           {/* 🟦 1. Información básica del viaje */}
           <div className="space-y-6">
-            <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+            <div className="flex items-center space-x-2 border-b border-primary/20">
               <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
                 <span className="text-xs text-primary-foreground font-bold">1</span>
               </div>
