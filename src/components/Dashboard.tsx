@@ -50,6 +50,12 @@ interface DashboardProps {
   user: any;
 }
 
+// Add local state for trip filter
+const useLocalTripFilter = () => {
+  const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
+  return { selectedTripFilter, setSelectedTripFilter };
+};
+
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   const { isPhoneNumberMissing } = usePhoneNumberValidation();
@@ -118,14 +124,14 @@ const Dashboard = ({ user }: DashboardProps) => {
     setPackages,
     toast,
     unreadCounts,
-    markPackageMessagesAsRead,
-    selectedTripFilter,
-    setSelectedTripFilter
+    markPackageMessagesAsRead
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
   });
-
+   
+  // Local trip filter state (temporary fix)
+  const { selectedTripFilter, setSelectedTripFilter } = useLocalTripFilter();
 
   const {
     handlePackageSubmit,
