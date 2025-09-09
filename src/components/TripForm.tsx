@@ -311,6 +311,9 @@ const TripForm = ({
               </div>
               <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
             </div>
+            <p className="text-sm text-muted-foreground">
+              Recomendamos registrar únicamente viajes con destino a Guatemala. Ejemplo: USA → Guatemala, México → Guatemala.
+            </p>
 
             {/* Sección ORIGEN */}
             <div className="space-y-4">
