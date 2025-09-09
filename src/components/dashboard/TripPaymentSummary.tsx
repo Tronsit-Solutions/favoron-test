@@ -286,6 +286,8 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           bank_account_type: userProfile?.bank_account_type,
           bank_account_number: userProfile?.bank_account_number
         }}
+        tripId={trip.id}
+        travelerId={trip.user_id}
         title="Confirmar Datos Bancarios para Pago del Viaje"
         description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment.accumulated_amount)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
       />
