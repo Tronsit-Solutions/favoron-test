@@ -792,6 +792,51 @@ const AdminMatchDialog = ({
                 </CardContent>
               </Card>
 
+              {/* Shipping Information */}
+              {selectedTraveler.trip?.package_receiving_address && (
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold flex items-center space-x-2">
+                      <MapPin className="h-5 w-5" />
+                      <span>Información de Envío</span>
+                    </h3>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <p className="text-sm font-medium">Dirección de Recepción</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip.package_receiving_address.streetAddress}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium">Ciudad/Área</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip.package_receiving_address.cityArea}
+                        </p>
+                      </div>
+                      
+                      {selectedTraveler.trip.package_receiving_address.hotelAirbnbName && (
+                        <div>
+                          <p className="text-sm font-medium">Hotel/Airbnb</p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedTraveler.trip.package_receiving_address.hotelAirbnbName}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <p className="text-sm font-medium">Teléfono de Contacto</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip.package_receiving_address.contactNumber}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Traveler's Packages */}
               <Card>
                 <CardHeader>
