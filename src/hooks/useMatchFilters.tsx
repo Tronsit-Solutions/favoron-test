@@ -33,6 +33,8 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
       const matchesSearch = 
         (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (pkg.user_id || '').toString().includes(searchTerm) ||
+        (pkg.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (pkg.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase());
       
