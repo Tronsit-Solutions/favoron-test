@@ -836,18 +836,18 @@ const AdminMatchDialog = ({
                       )}
                       
                       <div>
+                        <p className="text-sm font-medium">Teléfono de Contacto</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.trip.package_receiving_address.contactNumber}
+                        </p>
+                      </div>
+                      
+                      <div>
                         <p className="text-sm font-medium">Ventana de Recepción de Paquetes</p>
                         <p className="text-sm text-muted-foreground">
                           {selectedTraveler.trip.first_day_packages && selectedTraveler.trip.last_day_packages 
                             ? `${new Date(selectedTraveler.trip.first_day_packages).toLocaleDateString('es-GT')} - ${new Date(selectedTraveler.trip.last_day_packages).toLocaleDateString('es-GT')}`
                             : 'No especificado'}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm font-medium">Teléfono de Contacto</p>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedTraveler.trip.package_receiving_address.contactNumber}
                         </p>
                       </div>
                     </div>
