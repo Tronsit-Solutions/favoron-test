@@ -3,10 +3,13 @@ import { Package } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye, Package as PackageIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { getStatusLabel } from "@/lib/formatters";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import ProductDetailModal from "./ProductDetailModal";
 
 interface FinancialSummaryTableProps {
   packages: Package[];
@@ -27,6 +30,10 @@ interface EnrichedPackageData {
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProductData, setSelectedProductData] = useState<{
+    products: any[];
+    description: string;
+  } | null>(null);
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -255,21 +262,52 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="font-medium">{item.shopperName}</TableCell>
                   <TableCell>{item.travelerName}</TableCell>
                   <TableCell className="max-w-sm">
-                    <div className="whitespace-pre-wrap break-words text-xs leading-relaxed">
-                      {item.productDescription}
-                      {item.productLink && (
-                        <div className="mt-1">
-                          <a 
-                            href={item.productLink} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Ver producto
-                          </a>
+                    {item.package.products_data && Array.isArray(item.package.products_data) ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="text-xs text-muted-foreground">
+                          {item.package.products_data.length === 1 ? '1 producto' : `${item.package.products_data.length} productos`}
                         </div>
-                      )}
-                    </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedProductData({
+                            products: item.package.products_data as any[],
+                            description: item.package.item_description || 'Sin descripción'
+                          })}
+                          className="w-fit"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Ver detalles
+                        </Button>
+                        {item.productLink && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(item.productLink!, '_blank')}
+                            className="w-fit"
+                          >
+                            <PackageIcon className="h-3 w-3 mr-1" />
+                            Ver producto
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap break-words text-xs leading-relaxed">
+                        {item.productDescription}
+                        {item.productLink && (
+                          <div className="mt-1">
+                            <a 
+                              href={item.productLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              Ver producto
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
@@ -339,6 +377,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             </div>
           </div>
         )}
+        
+        <ProductDetailModal
+          isOpen={!!selectedProductData}
+          onClose={() => setSelectedProductData(null)}
+          products={selectedProductData?.products || []}
+          packageDescription={selectedProductData?.description || ''}
+        />
       </CardContent>
     </Card>
   );
