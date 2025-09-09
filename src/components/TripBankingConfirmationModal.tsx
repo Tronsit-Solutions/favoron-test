@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, Building, Shield, CheckCircle, Edit, Eye, Receipt, Package } from "lucide-react";
 import { formatCurrency } from "@/utils/priceHelpers";
+import { getPackageTipFromQuote } from "@/utils/tipHelpers";
 import { supabase } from "@/integrations/supabase/client";
 interface TripBankingConfirmationModalProps {
   isOpen: boolean;
@@ -33,7 +34,9 @@ const TripBankingConfirmationModal = ({
   const [packageBreakdown, setPackageBreakdown] = useState<Array<{
     id: string;
     item_description: string;
-    products_data?: any;
+    quote?: any;
+    status?: string;
+    office_delivery?: any;
   }>>([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -54,10 +57,9 @@ const TripBankingConfirmationModal = ({
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, item_description, products_data')
+        .select('id, item_description, quote, status, office_delivery')
         .eq('matched_trip_id', tripId)
-        .in('status', ['delivered_to_office', 'completed'])
-        .not('products_data', 'is', null);
+        .in('status', ['delivered_to_office', 'completed']);
       
       if (error) throw error;
       setPackageBreakdown(data || []);
@@ -125,36 +127,42 @@ const TripBankingConfirmationModal = ({
             {/* Desglose estilo factura */}
             <div className="space-y-1 mb-2">
               {packageBreakdown.length > 0 ? (
-                packageBreakdown.map((pkg, index) => {
-                  // Obtener el tip desde products_data
-                  let packageTip = 0;
-                  if (pkg.products_data && Array.isArray(pkg.products_data)) {
-                    // Sumar todos los tips de los productos en el paquete
-                    packageTip = pkg.products_data.reduce((sum: number, product: any) => {
-                      const tip = product.adminAssignedTip || 0;
-                      return sum + (typeof tip === 'string' ? parseFloat(tip) : tip);
-                    }, 0);
+                (() => {
+                  const eligiblePackages = packageBreakdown.filter((pkg) =>
+                    pkg.status === 'completed' ||
+                    (pkg.status === 'delivered_to_office' && pkg.office_delivery && (pkg.office_delivery as any).admin_confirmation)
+                  );
+
+                  if (eligiblePackages.length === 0) {
+                    return (
+                      <div className="text-xs text-muted-foreground py-1">
+                        No hay paquetes elegibles para pago aún.
+                      </div>
+                    );
                   }
-                  
-                  return (
-                    <div key={pkg.id} className="flex justify-between items-start text-xs py-1 border-b border-muted/20 last:border-b-0">
-                      <div className="flex items-start gap-1 flex-1 min-w-0">
-                        <Package className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-xs truncate">
-                            {pkg.item_description}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Tip ganado por entrega
+
+                  return eligiblePackages.map((pkg) => {
+                    const packageTip = getPackageTipFromQuote(pkg);
+                    return (
+                      <div key={pkg.id} className="flex justify-between items-start text-xs py-1 border-b border-muted/20 last:border-b-0">
+                        <div className="flex items-start gap-1 flex-1 min-w-0">
+                          <Package className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-xs truncate">
+                              {pkg.item_description}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Tip ganado por entrega
+                            </div>
                           </div>
                         </div>
+                        <span className="font-medium text-green-600 ml-2 flex-shrink-0">
+                          {formatCurrency(packageTip)}
+                        </span>
                       </div>
-                      <span className="font-medium text-green-600 ml-2 flex-shrink-0">
-                        {formatCurrency(packageTip)}
-                      </span>
-                    </div>
-                  );
-                })
+                    );
+                  });
+                })()
               ) : (
                 <div className="text-xs text-muted-foreground py-1">
                   Cargando desglose de paquetes...
