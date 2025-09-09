@@ -193,6 +193,11 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
                   <span>{trip.from_city} → {trip.to_city}</span>
                 </p>
                 <p className="text-muted-foreground">Ruta de viaje</p>
+                {trip.from_country && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    <span className="font-medium">País de origen:</span> {trip.from_country}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
