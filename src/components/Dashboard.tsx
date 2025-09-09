@@ -16,6 +16,7 @@ import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
 import TripPackagesGroup from "./dashboard/TripPackagesGroup";
+import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPackageCard";
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
@@ -511,17 +512,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                 )}
               </div>
 
-              {/* Show packages assigned to user's trips - NOW GROUPED BY TRIP */}
+              {/* Assigned Packages Section */}
               {assignedPackages.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold mb-4">Paquetes Asignados a Mis Viajes</h4>
+                  <h4 className="text-lg font-semibold mb-4">Mis Paquetes Asignados</h4>
                    
-                   {/* Group packages by trip */}
+                   {/* Display all assigned packages directly */}
                    <div className="space-y-6">
-                     {filteredUserTrips
-                        .filter(trip => assignedPackages.some(pkg => pkg.matched_trip_id === trip.id))
-                        .map((trip) => {
-                          const tripPackages = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id);
+                     {assignedPackages
+                        .filter(pkg => {
                           const now = Date.now();
                           const PAID_OR_POST_PAYMENT = [
                             'pending_purchase',
@@ -540,16 +539,34 @@ const Dashboard = ({ user }: DashboardProps) => {
                             ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
                           );
                           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-                          const filteredTripPackages = tripPackages.filter(pkg => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-                          const hasPendingActions = filteredTripPackages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
+                          return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status);
+                        })
+                        .sort((a, b) => {
+                          // Priority 1: Packages with pending actions first
+                          const aPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status);
+                          const bPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(b.status);
+                          if (aPendingAction && !bPendingAction) return -1;
+                          if (!aPendingAction && bPendingAction) return 1;
                           
-                          if (filteredTripPackages.length === 0) return null;
+                          // Priority 2: Packages with countdown timers
+                          const now = Date.now();
+                          const aHasCountdown = (a.status === 'quote_sent' || a.status === 'payment_pending') && a.quote_expires_at && new Date(a.quote_expires_at).getTime() > now;
+                          const bHasCountdown = (b.status === 'quote_sent' || b.status === 'payment_pending') && b.quote_expires_at && new Date(b.quote_expires_at).getTime() > now;
+                          if (aHasCountdown && !bHasCountdown) return -1;
+                          if (!aHasCountdown && bHasCountdown) return 1;
+                          
+                          // Priority 3: Most recent first
+                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                        })
+                        .map(pkg => {
+                          const hasPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status);
+                          const now = Date.now();
+                          const hasCountdown = (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now;
                           
                           return (
-                            <TripPackagesGroup
-                              key={trip.id}
-                              trip={trip}
-                              packages={filteredTripPackages}
+                            <CollapsibleTravelerPackageCard
+                              key={pkg.id}
+                              pkg={pkg}
                               getStatusBadge={getStatusBadge}
                               onQuote={handleQuote}
                               onConfirmReceived={handleConfirmPackageReceived}
@@ -557,7 +574,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
                                 handleConfirmOfficeReception(packageId);
                               }}
-                              defaultExpanded={hasPendingActions}
+                              hasPendingAction={hasPendingAction}
+                              autoExpand={hasPendingAction || hasCountdown}
                             />
                           );
                         })}
