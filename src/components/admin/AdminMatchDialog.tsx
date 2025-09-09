@@ -828,7 +828,7 @@ const AdminMatchDialog = ({
                       
                       {selectedTraveler.trip.package_receiving_address.hotelAirbnbName && (
                         <div>
-                          <p className="text-sm font-medium">Nombre del Edificio</p>
+                          <p className="text-sm font-medium">Nombre del Edificio/Hotel</p>
                           <p className="text-sm text-muted-foreground">
                             {selectedTraveler.trip.package_receiving_address.hotelAirbnbName}
                           </p>
