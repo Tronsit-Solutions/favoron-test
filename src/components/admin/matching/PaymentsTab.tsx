@@ -25,7 +25,7 @@ const PaymentsTab = ({
     (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
   );
   const approvedPayments = packages.filter(pkg => 
-    (pkg.status === 'pending_purchase' || pkg.status === 'paid') && pkg.payment_receipt
+    pkg.payment_receipt && !(pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed')
   );
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
