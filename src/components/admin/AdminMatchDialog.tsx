@@ -810,6 +810,15 @@ const AdminMatchDialog = ({
                         </p>
                       </div>
                       
+                      {selectedTraveler.trip.package_receiving_address.streetAddress2 && (
+                        <div>
+                          <p className="text-sm font-medium">Dirección 2</p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedTraveler.trip.package_receiving_address.streetAddress2}
+                          </p>
+                        </div>
+                      )}
+                      
                       <div>
                         <p className="text-sm font-medium">Ciudad/Área</p>
                         <p className="text-sm text-muted-foreground">
