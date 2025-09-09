@@ -163,9 +163,13 @@ const TripBankingConfirmationModal = ({
                     );
                   });
                 })()
+              ) : packageBreakdown.length === 0 ? (
+                <div className="text-xs text-muted-foreground py-1">
+                  {tripId ? "No hay paquetes elegibles para este viaje" : "Cargando desglose de paquetes..."}
+                </div>
               ) : (
                 <div className="text-xs text-muted-foreground py-1">
-                  Cargando desglose de paquetes...
+                  Procesando información de paquetes...
                 </div>
               )}
             </div>
