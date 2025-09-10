@@ -67,10 +67,15 @@ const ActiveMatchesTab = ({
   const filteredMatches = matchedPackages.filter(pkg => {
     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
     
-    // Excluir matches expirados
+    // Excluir matches expirados - la lógica principal ya está en useMatchFilters
+    // pero mantenemos una verificación adicional para consistencia local
     const now = new Date();
     const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at) : null;
     const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at) : null;
+    
+    // Advanced statuses that should not be filtered out even if quote is expired
+    const advancedStatuses = ['completed', 'delivered_to_office', 'received_by_traveler', 'in_transit'];
+    const isAdvancedStatus = advancedStatuses.includes(pkg.status);
     
     // Si es un match con asignación expirada, excluirlo
     if (pkg.status === 'matched' && assignmentExpiry && assignmentExpiry < now) {
@@ -79,6 +84,11 @@ const ActiveMatchesTab = ({
     
     // Si es un quote enviado expirado, excluirlo  
     if (pkg.status === 'quote_sent' && quoteExpiry && quoteExpiry < now) {
+      return false;
+    }
+    
+    // General quote expiration check for any package that is not in advanced status
+    if (!isAdvancedStatus && quoteExpiry && quoteExpiry < now) {
       return false;
     }
     
