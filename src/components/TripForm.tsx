@@ -33,7 +33,8 @@ const TripForm = ({
   // Auto-persist form open state to maintain modal across tab switches
   const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
     key: 'trip-form-open',
-    initialState: false
+    initialState: false,
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   // Sync modal state with URL/persistence
@@ -84,12 +85,14 @@ const TripForm = ({
       firstDayPackages: null as Date | null,
       lastDayPackages: null as Date | null,
       messengerPickupLocation: ''
-    }
+    },
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   const { state: persistedMessengerData, setState: setPersistedMessengerData, clearPersistedState: clearMessenger } = usePersistedFormState({
     key: 'trip-form-messenger',
-    initialState: null
+    initialState: null,
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   // Local state
@@ -100,6 +103,22 @@ const TripForm = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
+
+  // Restore form data when modal opens and persisted data is available
+  useEffect(() => {
+    if (isOpen && persistedFormData && JSON.stringify(persistedFormData) !== JSON.stringify(formData)) {
+      console.log('🔄 Restoring trip form data from persistence');
+      setFormData(persistedFormData);
+    }
+  }, [isOpen, persistedFormData, formData]);
+
+  useEffect(() => {
+    if (isOpen && persistedMessengerData && persistedMessengerData !== messengerData) {
+      console.log('🔄 Restoring messenger data from persistence');
+      setMessengerData(persistedMessengerData);
+    }
+  }, [isOpen, persistedMessengerData, messengerData]);
+
   // Sync local state with persisted state
   useEffect(() => {
     setPersistedFormData(formData);
