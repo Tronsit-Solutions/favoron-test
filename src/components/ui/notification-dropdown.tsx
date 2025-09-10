@@ -82,7 +82,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-80 p-0 bg-background border shadow-lg z-50" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificaciones</h3>
           {unreadCount > 0 && (
@@ -98,7 +98,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
           )}
         </div>
         
-        <ScrollArea className="max-h-96">
+        <ScrollArea className="max-h-96 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               Cargando notificaciones...
@@ -108,7 +108,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
               No tienes notificaciones
             </div>
           ) : (
-            <div className="p-0">
+            <div className="divide-y divide-border">
               {notifications.map((notification, index) => (
                 <div key={notification.id}>
                   <div
