@@ -335,6 +335,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell colSpan={4} className="text-right">
                     <strong>TOTALES:</strong>
                   </TableCell>
+                  <TableCell></TableCell>
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.totalToPay)}</strong>
                   </TableCell>
