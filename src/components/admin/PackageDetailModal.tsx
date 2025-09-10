@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X } from "lucide-react";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
@@ -20,9 +22,10 @@ interface PackageDetailModalProps {
   trips: any[];
   onApprove: (id: string) => void;
   onReject: (id: string, reason?: string) => void;
+  onUpdatePackage?: (id: string, updates: any) => void;
 }
 
-const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDetailModalProps) => {
+const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePackage }: PackageDetailModalProps) => {
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const pkg = getModalData(modalId);
@@ -30,6 +33,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({
+    item_description: '',
+    item_link: '',
+    estimated_price: '',
+    additional_notes: '',
+    purchase_origin: '',
+    package_destination: ''
+  });
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -52,6 +64,20 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     console.log('No package provided to PackageDetailModal');
     return null;
   }
+
+  // Initialize edit form when package data changes
+  useState(() => {
+    if (pkg) {
+      setEditForm({
+        item_description: pkg.item_description || '',
+        item_link: pkg.item_link || '',
+        estimated_price: pkg.estimated_price?.toString() || '',
+        additional_notes: pkg.additional_notes || '',
+        purchase_origin: pkg.purchase_origin || '',
+        package_destination: pkg.package_destination || ''
+      });
+    }
+  });
 
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
@@ -95,6 +121,46 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
   // Open rejection modal
   const handleRejectClick = () => {
     setRejectionModalOpen(true);
+  };
+
+  // Handle edit mode toggle
+  const handleEditToggle = () => {
+    if (editMode) {
+      // Reset form to current package data when canceling
+      setEditForm({
+        item_description: pkg.item_description || '',
+        item_link: pkg.item_link || '',
+        estimated_price: pkg.estimated_price?.toString() || '',
+        additional_notes: pkg.additional_notes || '',
+        purchase_origin: pkg.purchase_origin || '',
+        package_destination: pkg.package_destination || ''
+      });
+    }
+    setEditMode(!editMode);
+  };
+
+  // Handle save changes
+  const handleSaveChanges = () => {
+    if (onUpdatePackage) {
+      const updates = {
+        item_description: editForm.item_description,
+        item_link: editForm.item_link || null,
+        estimated_price: parseFloat(editForm.estimated_price) || null,
+        additional_notes: editForm.additional_notes || null,
+        purchase_origin: editForm.purchase_origin,
+        package_destination: editForm.package_destination
+      };
+      onUpdatePackage(pkg.id, updates);
+    }
+    setEditMode(false);
+  };
+
+  // Handle form field changes
+  const handleFormChange = (field: string, value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Centralized rejection reason translation function
@@ -206,9 +272,30 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Package className="h-5 w-5" />
-            <span>Detalles de Solicitud #{pkg.id}</span>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Package className="h-5 w-5" />
+              <span>Detalles de Solicitud #{pkg.id}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              {editMode ? (
+                <>
+                  <Button onClick={handleSaveChanges} size="sm" className="text-xs">
+                    <Save className="h-3 w-3 mr-1" />
+                    Guardar
+                  </Button>
+                  <Button onClick={handleEditToggle} variant="outline" size="sm" className="text-xs">
+                    <X className="h-3 w-3 mr-1" />
+                    Cancelar
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={handleEditToggle} variant="outline" size="sm" className="text-xs">
+                  <Edit2 className="h-3 w-3 mr-1" />
+                  Editar
+                </Button>
+              )}
+            </div>
           </DialogTitle>
           <DialogDescription>
             Información completa de la solicitud y del usuario
@@ -407,74 +494,146 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject }: PackageDeta
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-lg">
                 <Package className="h-4 w-4" />
-                <span>Detalles Completos del Pedido</span>
-                <Badge variant="outline">{detailedProducts.length} producto{detailedProducts.length !== 1 ? 's' : ''}</Badge>
+                <span>Detalles del Pedido</span>
+                {!editMode && <Badge variant="outline">{detailedProducts.length} producto{detailedProducts.length !== 1 ? 's' : ''}</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               
-              {/* Individual Product Details */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Productos Solicitados:</h4>
-                {detailedProducts.map((product) => (
-                  <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
-                    <CardContent className="p-2">
-                      <div className="flex justify-between items-start mb-1">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-1 mb-1">
-                            <Badge variant="outline" className="text-xs">
-                              Producto #{product.id}
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              Cantidad: {product.quantity}
-                            </Badge>
+              {editMode ? (
+                /* Edit Mode - Form Fields */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Descripción del producto</label>
+                      <Textarea
+                        value={editForm.item_description}
+                        onChange={(e) => handleFormChange('item_description', e.target.value)}
+                        placeholder="Describe el producto que necesitas..."
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Link del producto</label>
+                      <Input
+                        type="url"
+                        value={editForm.item_link}
+                        onChange={(e) => handleFormChange('item_link', e.target.value)}
+                        placeholder="https://ejemplo.com/producto"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Precio estimado (USD)</label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={editForm.estimated_price}
+                        onChange={(e) => handleFormChange('estimated_price', e.target.value)}
+                        placeholder="0.00"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Notas adicionales</label>
+                      <Textarea
+                        value={editForm.additional_notes}
+                        onChange={(e) => handleFormChange('additional_notes', e.target.value)}
+                        placeholder="Notas adicionales..."
+                        className="mt-1"
+                        rows={2}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">País de compra</label>
+                      <Input
+                        value={editForm.purchase_origin}
+                        onChange={(e) => handleFormChange('purchase_origin', e.target.value)}
+                        placeholder="País donde se comprará"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Destino del paquete</label>
+                      <Input
+                        value={editForm.package_destination}
+                        onChange={(e) => handleFormChange('package_destination', e.target.value)}
+                        placeholder="Ciudad de destino"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* View Mode - Product Details */
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Productos Solicitados:</h4>
+                  {detailedProducts.map((product) => (
+                    <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
+                      <CardContent className="p-2">
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1 mb-1">
+                              <Badge variant="outline" className="text-xs">
+                                Producto #{product.id}
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                Cantidad: {product.quantity}
+                              </Badge>
+                            </div>
+                            <h5 className="font-medium text-sm">{product.description}</h5>
                           </div>
-                          <h5 className="font-medium text-sm">{product.description}</h5>
+                          <div className="text-right ml-3">
+                            <p className="text-base font-bold text-primary">${product.price.toFixed(2)}</p>
+                            <p className="text-xs text-muted-foreground">c/u</p>
+                          </div>
                         </div>
-                        <div className="text-right ml-3">
-                          <p className="text-base font-bold text-primary">${product.price.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">c/u</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-1 text-xs">
-                        <div>
-                          <p className="font-medium text-muted-foreground">Precio Unitario</p>
-                          <p className="font-medium">${product.price.toFixed(2)}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium text-muted-foreground">Cantidad</p>
-                          <p className="font-medium">{product.quantity} unidad{product.quantity !== 1 ? 'es' : ''}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium text-muted-foreground">Subtotal</p>
-                          <p className="font-bold text-primary">${product.subtotal.toFixed(2)}</p>
-                        </div>
-                        {product.adminTip > 0 && (
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-1 text-xs">
                           <div>
-                            <p className="font-medium text-muted-foreground">Tip Asignado</p>
-                            <p className="font-bold text-green-600">Q{product.adminTip.toFixed(2)}</p>
+                            <p className="font-medium text-muted-foreground">Precio Unitario</p>
+                            <p className="font-medium">${product.price.toFixed(2)}</p>
                           </div>
-                        )}
-                        {product.link && (
                           <div>
-                            <p className="font-medium text-muted-foreground">Link</p>
-                            <a 
-                              href={product.link}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-primary hover:underline text-xs"
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" />
-                              <span>Ver producto</span>
-                            </a>
+                            <p className="font-medium text-muted-foreground">Cantidad</p>
+                            <p className="font-medium">{product.quantity} unidad{product.quantity !== 1 ? 'es' : ''}</p>
                           </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                          <div>
+                            <p className="font-medium text-muted-foreground">Subtotal</p>
+                            <p className="font-bold text-primary">${product.subtotal.toFixed(2)}</p>
+                          </div>
+                          {product.adminTip > 0 && (
+                            <div>
+                              <p className="font-medium text-muted-foreground">Tip Asignado</p>
+                              <p className="font-bold text-green-600">Q{product.adminTip.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {product.link && (
+                            <div>
+                              <p className="font-medium text-muted-foreground">Link</p>
+                              <a 
+                                href={product.link}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-primary hover:underline text-xs"
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                <span>Ver producto</span>
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
 
               {/* Order Summary */}
               <div className="border-t pt-3">

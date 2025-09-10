@@ -46,6 +46,7 @@ interface AdminDashboardProps {
   onConfirmDeliveryComplete: (packageId: string) => void;
   onConfirmShopperReceived: (packageId: string) => void;
   onDiscardPackage: (pkg: any) => void;
+  onUpdatePackage: (id: string, updates: any) => void;
   onRefreshPackages?: () => void;
   refreshAdminData?: () => Promise<void>;
 }
@@ -63,6 +64,7 @@ const AdminDashboard = ({
   onConfirmDeliveryComplete,
   onConfirmShopperReceived,
   onDiscardPackage,
+  onUpdatePackage,
   onRefreshPackages,
   refreshAdminData,
   matchingTab,
@@ -592,6 +594,17 @@ const AdminDashboard = ({
           } else {
             onApproveReject('package', id, 'reject');
           }
+        }}
+        onUpdatePackage={(id, updates) => {
+          console.log('Updating package:', id, updates);
+          // Find the package and update it optimistically
+          const updatedPackages = localPackages.map(pkg => 
+            pkg.id === id ? { ...pkg, ...updates } : pkg
+          );
+          setLocalPackages(updatedPackages);
+          
+          // Call the update action from dashboard actions
+          onUpdatePackage(id, updates);
         }}
       />
 

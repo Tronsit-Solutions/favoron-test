@@ -634,7 +634,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
           {isAdmin && (
             <TabsContent value="admin">
-              <AdminDashboard 
+               <AdminDashboard 
               packages={packages}
               trips={trips}
               currentUser={currentUser}
@@ -652,6 +652,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               onDiscardPackage={handleDiscardPackage}
               onAdminConfirmOfficeDelivery={handleAdminConfirmOfficeDelivery}
               onConfirmShopperReceived={handleConfirmShopperReceived}
+              onUpdatePackage={handleEditPackage}
               onRefreshPackages={refreshPackages}
               refreshAdminData={async () => { await refreshPackages(); }}
               unreadCounts={unreadCounts}
