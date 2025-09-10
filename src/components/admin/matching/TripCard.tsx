@@ -47,14 +47,10 @@ export const TripCard = ({
                     <span>📋 {trip.status}</span>
                   </div>
                   
-                  {/* Package receiving address summary */}
-                  {trip.package_receiving_address && (
-                    <div className="text-xs text-blue-600">
-                      📍 {typeof trip.package_receiving_address === 'object' 
-                        ? `${trip.package_receiving_address.cityArea || ''}, ${trip.package_receiving_address.streetAddress?.slice(0, 30) || ''}...`
-                        : trip.package_receiving_address.slice(0, 40) + '...'}
-                    </div>
-                  )}
+                  {/* Traveler origin city */}
+                  <div className="text-xs text-blue-600">
+                    📍 Origen: {trip.from_city}
+                  </div>
                 </div>
                 
                 {/* Packages total badge */}
