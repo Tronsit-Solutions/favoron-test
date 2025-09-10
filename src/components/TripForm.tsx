@@ -354,7 +354,7 @@ const TripForm = ({
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-primary">
                 <MapPin className="h-4 w-4" />
-                <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN</h4>
+                <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN DEL VIAJE</h4>
               </div>
               
               <div className="grid grid-cols-2 gap-1 sm:gap-4">
