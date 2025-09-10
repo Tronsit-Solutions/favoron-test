@@ -457,11 +457,6 @@ const AdminDashboard = ({
                 ))}
               </TabsList>
               
-              {/* Realtime Status Indicator */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className={`w-2 h-2 rounded-full ${isRealtimePaused ? 'bg-yellow-500' : 'bg-green-500'}`} />
-                {isRealtimePaused ? `${queuedUpdates} en cola` : 'En tiempo real'}
-              </div>
             </div>
           </div>
         )}
