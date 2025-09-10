@@ -55,17 +55,19 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-1/2 justify-between",
+            "w-full justify-between text-left font-normal",
             !value && "text-muted-foreground",
             className
           )}
           disabled={disabled}
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          <span className="truncate">
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-full p-0 z-50 bg-popover" align="start">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
