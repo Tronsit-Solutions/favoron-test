@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,20 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const rawTravelerPhoto = pkg?.traveler_confirmation?.photo || pkg?.traveler_confirmation?.photoUrl;
   const { url: resolvedTravelerPhotoUrl } = useSignedUrl(rawTravelerPhoto);
 
+  // Initialize edit form when package data changes
+  useEffect(() => {
+    if (pkg) {
+      setEditForm({
+        item_description: pkg.item_description || '',
+        item_link: pkg.item_link || '',
+        estimated_price: pkg.estimated_price?.toString() || '',
+        additional_notes: pkg.additional_notes || '',
+        purchase_origin: pkg.purchase_origin || '',
+        package_destination: pkg.package_destination || ''
+      });
+    }
+  }, [pkg]);
+
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
     console.warn('🔒 Unauthorized access to PackageDetailModal:', { 
@@ -64,20 +78,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     console.log('No package provided to PackageDetailModal');
     return null;
   }
-
-  // Initialize edit form when package data changes
-  useState(() => {
-    if (pkg) {
-      setEditForm({
-        item_description: pkg.item_description || '',
-        item_link: pkg.item_link || '',
-        estimated_price: pkg.estimated_price?.toString() || '',
-        additional_notes: pkg.additional_notes || '',
-        purchase_origin: pkg.purchase_origin || '',
-        package_destination: pkg.package_destination || ''
-      });
-    }
-  });
 
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
