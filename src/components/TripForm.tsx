@@ -45,6 +45,18 @@ const TripForm = ({
     }
   }, [isOpen, isFormOpen, setIsFormOpen]);
 
+  // Generate a client request id each time the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        setRequestId(crypto.randomUUID());
+      } catch {
+        // Fallback simple id
+        setRequestId(String(Date.now()));
+      }
+    }
+  }, [isOpen]);
+
   // Use persisted form state to maintain data across tab switches
   const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
     key: 'trip-form-data',
@@ -86,7 +98,8 @@ const TripForm = ({
   const [messengerData, setMessengerData] = useState(persistedMessengerData);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestId, setRequestId] = useState<string>('');
   // Sync local state with persisted state
   useEffect(() => {
     setPersistedFormData(formData);
