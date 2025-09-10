@@ -142,17 +142,35 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Handle save changes
   const handleSaveChanges = () => {
     if (onUpdatePackage) {
+      // If it's a single-product order, sync legacy edits to products_data for consistent UI
+      let products_data: any | undefined = undefined;
+      if (Array.isArray(pkg.products_data) && pkg.products_data.length === 1) {
+        const p0 = pkg.products_data[0] || {};
+        products_data = [
+          {
+            ...p0,
+            itemDescription: editForm.item_description || p0.itemDescription,
+            itemLink: editForm.item_link || p0.itemLink || null,
+            estimatedPrice: editForm.estimated_price || p0.estimatedPrice,
+            quantity: p0.quantity || '1',
+          },
+        ];
+      }
+
       const updates = {
         item_description: editForm.item_description,
         item_link: editForm.item_link || null,
         estimated_price: parseFloat(editForm.estimated_price) || null,
         additional_notes: editForm.additional_notes || null,
         purchase_origin: editForm.purchase_origin,
-        package_destination: editForm.package_destination
+        package_destination: editForm.package_destination,
+        ...(products_data ? { products_data } : {}),
       };
       onUpdatePackage(pkg.id, updates);
     }
     setEditMode(false);
+    // Close to reflect latest data from list
+    closeModal(modalId);
   };
 
   // Handle form field changes
