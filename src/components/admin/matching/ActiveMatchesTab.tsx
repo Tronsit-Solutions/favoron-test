@@ -67,6 +67,21 @@ const ActiveMatchesTab = ({
   const filteredMatches = matchedPackages.filter(pkg => {
     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
     
+    // Excluir matches expirados
+    const now = new Date();
+    const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at) : null;
+    const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at) : null;
+    
+    // Si es un match con asignación expirada, excluirlo
+    if (pkg.status === 'matched' && assignmentExpiry && assignmentExpiry < now) {
+      return false;
+    }
+    
+    // Si es un quote enviado expirado, excluirlo  
+    if (pkg.status === 'quote_sent' && quoteExpiry && quoteExpiry < now) {
+      return false;
+    }
+    
     const matchesSearch = 
       (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (pkg.user_id || '').toString().includes(searchTerm) ||
