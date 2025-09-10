@@ -123,6 +123,22 @@ const TripForm = ({
   }];
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('🚫 Submission already in progress, ignoring');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('🚫 Submission already in progress, ignoring');
+      return;
+    }
+
+    setIsSubmitting(true);
     
     try {
       console.log('📱 Traveler form submission started (mobile compatible)', {
@@ -159,6 +175,7 @@ const TripForm = ({
         console.error('❌ Form validation failed:', errorMsg);
         logFormValidationError(missingFields, 'traveler-form');
         alert(errorMsg);
+        setIsSubmitting(false);
         return;
       }
 
@@ -166,6 +183,7 @@ const TripForm = ({
         const errorMsg = 'Debes aceptar los términos y condiciones para continuar';
         console.error('❌ Terms not accepted');
         alert(errorMsg);
+        setIsSubmitting(false);
         return;
       }
 
@@ -174,6 +192,7 @@ const TripForm = ({
         const errorMsg = 'Por favor completa la información de recolección por mensajero';
         console.error('❌ Messenger data missing');
         alert(errorMsg);
+        setIsSubmitting(false);
         return;
       }
 
@@ -181,7 +200,8 @@ const TripForm = ({
         ...formData,
         fromCity: finalFromCity,
         toCity: finalToCity,
-        messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null
+        messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null,
+        client_request_id: requestId // Add idempotency key
       };
 
       console.log('✅ Form validation passed, submitting data');
@@ -253,6 +273,8 @@ const TripForm = ({
         : 'Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.';
       
       alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const handleInputChange = (field: string, value: any) => {
@@ -720,8 +742,13 @@ const TripForm = ({
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
-            <Button type="submit" variant="traveler" className="flex-1">
-              Registrar Viaje
+            <Button 
+              type="submit" 
+              variant="traveler" 
+              className="flex-1" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Enviando...' : 'Registrar Viaje'}
             </Button>
           </div>
         </form>

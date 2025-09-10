@@ -635,6 +635,7 @@ export type Database = {
           admin_rejection: Json | null
           arrival_date: string
           available_space: number | null
+          client_request_id: string | null
           created_at: string
           delivery_date: string
           delivery_method: string | null
@@ -656,6 +657,7 @@ export type Database = {
           admin_rejection?: Json | null
           arrival_date: string
           available_space?: number | null
+          client_request_id?: string | null
           created_at?: string
           delivery_date: string
           delivery_method?: string | null
@@ -677,6 +679,7 @@ export type Database = {
           admin_rejection?: Json | null
           arrival_date?: string
           available_space?: number | null
+          client_request_id?: string | null
           created_at?: string
           delivery_date?: string
           delivery_method?: string | null

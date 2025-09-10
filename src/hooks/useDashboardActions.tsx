@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useRef } from 'react';
 
 export const useDashboardActions = (
   packages: any[],
@@ -24,6 +25,7 @@ export const useDashboardActions = (
   refreshTrips?: () => Promise<void>
 ) => {
   const { toast } = useToast();
+  const tripSubmitInProgressRef = useRef<boolean>(false);
 
   const handlePackageSubmit = async (packageData: any) => {
     try {
@@ -116,6 +118,14 @@ export const useDashboardActions = (
   };
 
   const handleTripSubmit = async (tripData: any) => {
+    // Prevent re-entry if already in progress
+    if (tripSubmitInProgressRef.current) {
+      console.log('🚫 Trip submission already in progress, ignoring');
+      return;
+    }
+
+    tripSubmitInProgressRef.current = true;
+    
     try {
       console.log('🚀 Starting trip submission with data:', tripData);
       
@@ -176,6 +186,8 @@ export const useDashboardActions = (
         description: "No se pudo registrar el viaje. Inténtalo de nuevo.",
         variant: "destructive",
       });
+    } finally {
+      tripSubmitInProgressRef.current = false;
     }
   };
 

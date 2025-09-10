@@ -78,7 +78,8 @@ export const useOptimizedTripsData = () => {
       const payload = {
         ...tripData,
         departure_date: (tripData as any).departure_date || (tripData as any).arrival_date,
-        user_id: user.id
+        user_id: user.id,
+        client_request_id: (tripData as any).client_request_id || null
       };
 
       const { data, error } = await supabase
