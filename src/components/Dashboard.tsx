@@ -353,29 +353,31 @@ const Dashboard = ({ user }: DashboardProps) => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
-            <TabsTrigger value="overview">Home</TabsTrigger>
-            <TabsTrigger value="packages" className="relative flex items-center gap-2">
-              Mis Pedidos
-              {pendingActions.shopperTotal > 0 && (
-                <NotificationBadge count={pendingActions.shopperTotal} />
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="trips" className="relative flex items-center gap-2">
-              Mis Viajes
-              {pendingActions.travelerTotal > 0 && (
-                <NotificationBadge count={pendingActions.travelerTotal} />
-              )}
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="admin" className="relative flex items-center gap-2">
-                Admin
-                {pendingActions.adminTotal > 0 && (
-                  <NotificationBadge count={pendingActions.adminTotal} />
+          {activeTab !== 'profile' && (
+            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
+              <TabsTrigger value="overview">Home</TabsTrigger>
+              <TabsTrigger value="packages" className="relative flex items-center gap-2">
+                Mis Pedidos
+                {pendingActions.shopperTotal > 0 && (
+                  <NotificationBadge count={pendingActions.shopperTotal} />
                 )}
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="trips" className="relative flex items-center gap-2">
+                Mis Viajes
+                {pendingActions.travelerTotal > 0 && (
+                  <NotificationBadge count={pendingActions.travelerTotal} />
+                )}
+              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="admin" className="relative flex items-center gap-2">
+                  Admin
+                  {pendingActions.adminTotal > 0 && (
+                    <NotificationBadge count={pendingActions.adminTotal} />
+                  )}
+                </TabsTrigger>
+              )}
+            </TabsList>
+          )}
 
           <TabsContent value="overview" className="space-y-6">
             <QuickActions 
