@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
@@ -106,18 +106,21 @@ const TripForm = ({
 
   // Restore form data when modal opens and persisted data is available
   useEffect(() => {
-    if (isOpen && persistedFormData && JSON.stringify(persistedFormData) !== JSON.stringify(formData)) {
-      console.log('🔄 Restoring trip form data from persistence');
-      setFormData(persistedFormData);
+    if (isOpen && persistedFormData && Object.keys(persistedFormData).length > 0) {
+      const hasFormDataChanged = JSON.stringify(persistedFormData) !== JSON.stringify(formData);
+      if (hasFormDataChanged && formData.fromCity === '') {
+        console.log('🔄 Restoring trip form data from persistence');
+        setFormData(persistedFormData);
+      }
     }
-  }, [isOpen, persistedFormData, formData]);
+  }, [isOpen, persistedFormData]);
 
   useEffect(() => {
     if (isOpen && persistedMessengerData && persistedMessengerData !== messengerData) {
       console.log('🔄 Restoring messenger data from persistence');
       setMessengerData(persistedMessengerData);
     }
-  }, [isOpen, persistedMessengerData, messengerData]);
+  }, [isOpen, persistedMessengerData]);
 
   // Sync local state with persisted state
   useEffect(() => {
@@ -296,7 +299,7 @@ const TripForm = ({
       setIsSubmitting(false);
     }
   };
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -311,7 +314,7 @@ const TripForm = ({
         setMessengerData(null);
       }
     }
-  };
+  }, []);
   const handleAddressChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -381,12 +384,10 @@ const TripForm = ({
                   <Label htmlFor="fromCountry" className="text-xs sm:text-sm">País de origen *</Label>
                   <div className="mobile-safe-combobox">
                     <Combobox
+                      key="fromCountry-combobox"
                       options={COUNTRIES}
                       value={formData.fromCountry}
-                      onValueChange={value => {
-                        console.log('🌍 Country selected:', value);
-                        handleInputChange('fromCountry', value);
-                      }}
+                      onValueChange={value => handleInputChange('fromCountry', value)}
                       placeholder="País"
                       searchPlaceholder="Buscar país..."
                       emptyMessage="No se encontraron países"
