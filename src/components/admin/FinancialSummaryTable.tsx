@@ -332,7 +332,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               {/* Totals row */}
               {enrichedData.length > 0 && (
                 <TableRow className="border-t-2 bg-muted/50 font-semibold">
-                  <TableCell colSpan={5} className="text-right">
+                  <TableCell colSpan={4} className="text-right">
                     <strong>TOTALES:</strong>
                   </TableCell>
                   <TableCell className="text-right font-mono">
