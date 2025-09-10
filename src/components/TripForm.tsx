@@ -395,7 +395,7 @@ const TripForm = ({
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-primary">
                 <Target className="h-4 w-4" />
-                <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO</h4>
+                <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO DEL VIAJE</h4>
               </div>
               
               <div className="space-y-2">
