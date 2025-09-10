@@ -343,14 +343,16 @@ const Dashboard = ({ user }: DashboardProps) => {
         <PhoneNumberBannerSection />
         
         
-        <div className="mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-            ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋
-          </h2>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Gestiona tus solicitudes de paquetes y viajes desde aquí
-          </p>
-        </div>
+        {activeTab !== 'profile' && (
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+              ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋
+            </h2>
+            <p className="text-muted-foreground text-sm sm:text-base">
+              Gestiona tus solicitudes de paquetes y viajes desde aquí
+            </p>
+          </div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {activeTab !== 'profile' && (
