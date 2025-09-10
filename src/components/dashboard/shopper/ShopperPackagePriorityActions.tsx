@@ -273,7 +273,14 @@ const ShopperPackagePriorityActions = ({
           </div>
           <div className="flex-1 space-y-3">
             <p className="text-sm font-medium text-primary">{config.title}</p>
-            <p className="text-xs text-muted-foreground">{config.description}</p>
+            <p className="text-xs text-muted-foreground">
+              {config.description}
+              {pkg.status === 'quote_accepted' && (
+                <span className="block mt-1 text-emerald-600 dark:text-emerald-400">
+                  Una vez realizado el pago, se compartirá la dirección del viajero para el envío.
+                </span>
+              )}
+            </p>
             {config.button && (
               <Button 
                 size="sm"
