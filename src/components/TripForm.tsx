@@ -405,7 +405,7 @@ const TripForm = ({
                     value={formData.fromCity} 
                     onChange={e => handleInputChange('fromCity', e.target.value)} 
                     required 
-                    className="w-full text-sm h-8"
+                    className="w-full text-sm"
                   />
                 </div>
               </div>
