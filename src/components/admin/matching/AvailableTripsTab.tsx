@@ -65,7 +65,11 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
   }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
 
   const approvedCount = filteredTrips.filter(t => t.status === 'approved').length;
-  const activeCount = filteredTrips.filter(t => t.status === 'active').length;
+  // Un viaje se considera "activo" cuando tiene paquetes asignados
+  const activeCount = filteredTrips.filter(t => {
+    const hasMatchedPackages = packages.some(p => p.matched_trip_id === t.id);
+    return t.status === 'approved' && hasMatchedPackages;
+  }).length;
   const hasFilters = searchTerm !== "" || originFilter !== "all";
 
   return (
