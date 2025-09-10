@@ -145,16 +145,20 @@ export const useDashboardActions = (
         throw new Error('Faltan fechas requeridas para el viaje');
       }
 
-      // Transform form data to database format
+      // Transform form data to database format with safe date conversion
+      const safeToISOString = (dateValue: any) => {
+        return dateValue instanceof Date ? dateValue.toISOString() : new Date(dateValue).toISOString();
+      };
+
       const dbTripData = {
         from_city: tripData.fromCity,
         from_country: tripData.fromCountry, // Add missing fromCountry mapping
         to_city: tripData.toCity,
-        departure_date: tripData.arrivalDate.toISOString(), // Set to arrival_date for compatibility
-        arrival_date: tripData.arrivalDate.toISOString(),
-        first_day_packages: tripData.firstDayPackages.toISOString(),
-        last_day_packages: tripData.lastDayPackages.toISOString(),
-        delivery_date: tripData.deliveryDate.toISOString(),
+        departure_date: safeToISOString(tripData.arrivalDate), // Set to arrival_date for compatibility
+        arrival_date: safeToISOString(tripData.arrivalDate),
+        first_day_packages: safeToISOString(tripData.firstDayPackages),
+        last_day_packages: safeToISOString(tripData.lastDayPackages),
+        delivery_date: safeToISOString(tripData.deliveryDate),
         delivery_method: tripData.deliveryMethod || 'oficina',
         messenger_pickup_info: tripData.messengerPickupInfo || null,
         package_receiving_address: tripData.packageReceivingAddress,
