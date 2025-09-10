@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileTabs } from "@/components/ui/mobile-tabs";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Badge } from "@/components/ui/badge";
+import { usePackageMessageCounts } from '@/hooks/usePackageMessageCounts';
 
 import PendingRequestsTab from "./matching/PendingRequestsTab";
 import AvailableTripsTab from "./matching/AvailableTripsTab";
@@ -58,6 +59,7 @@ const AdminMatchingTab = ({
   const setActiveTab = onMatchingTabChange || (() => {});
   
   const isMobile = useIsMobile();
+  const { hasMessages } = usePackageMessageCounts();
 
   // One-time server-side cleanup of old quotes
   useEffect(() => {
@@ -233,6 +235,7 @@ const AdminMatchingTab = ({
             getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
             unreadCounts={unreadCounts}
             markPackageMessagesAsRead={markPackageMessagesAsRead}
+            hasMessages={hasMessages}
           />
         </TabsContent>
 

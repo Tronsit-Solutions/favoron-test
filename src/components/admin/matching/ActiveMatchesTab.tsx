@@ -33,6 +33,7 @@ interface ActiveMatchesTabProps {
   getStatusBadge: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
+  hasMessages?: (packageId: string) => boolean;
 }
 
 const ActiveMatchesTab = ({ 
@@ -47,7 +48,8 @@ const ActiveMatchesTab = ({
   onOpenActionsModal,
   getStatusBadge,
   unreadCounts = {},
-  markPackageMessagesAsRead
+  markPackageMessagesAsRead,
+  hasMessages = () => false
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
@@ -316,6 +318,7 @@ const ActiveMatchesTab = ({
                 onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
                 onOpenActionsModal={onOpenActionsModal}
                 unreadCount={unreadCounts[pkg.id] || 0}
+                hasMessages={hasMessages(pkg.id)}
               />
             );
           })

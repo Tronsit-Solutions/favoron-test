@@ -33,6 +33,7 @@ interface MatchCardProps {
   onConfirmShopperReceived: () => void;
   onOpenActionsModal?: (packageId: string) => void;
   unreadCount?: number;
+  hasMessages?: boolean;
 }
 
 export const MatchCard = ({
@@ -47,7 +48,8 @@ export const MatchCard = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
-  unreadCount = 0
+  unreadCount = 0,
+  hasMessages = false
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
@@ -215,7 +217,7 @@ export const MatchCard = ({
                       onClick={onOpenChat} 
                       className="min-h-[44px] text-sm relative"
                     >
-                      <MessageCircle className="h-4 w-4 mr-1" />
+                      <MessageCircle className={`h-4 w-4 mr-1 ${hasMessages ? 'text-red-500' : ''}`} />
                       Chat
                       {unreadCount > 0 && (
                         <NotificationBadge 
@@ -255,7 +257,7 @@ export const MatchCard = ({
                     <Eye className="h-3 w-3" />
                   </Button>
                   <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2 relative">
-                    <MessageCircle className="h-3 w-3" />
+                    <MessageCircle className={`h-3 w-3 ${hasMessages ? 'text-red-500' : ''}`} />
                     {unreadCount > 0 && (
                       <NotificationBadge 
                         count={unreadCount} 
