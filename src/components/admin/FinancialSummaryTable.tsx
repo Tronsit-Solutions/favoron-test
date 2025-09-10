@@ -329,26 +329,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 </TableRow>
               ))}
               
-              {/* Totals row */}
-              {enrichedData.length > 0 && (
-                <TableRow className="border-t-2 bg-muted/50 font-semibold">
-                  <TableCell colSpan={4} className="text-right">
-                    <strong>TOTALES:</strong>
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    <strong>{formatCurrency(totals.totalToPay)}</strong>
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    <strong>{formatCurrency(totals.travelerTip)}</strong>
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    <strong>{formatCurrency(totals.favoronRevenue)}</strong>
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    <strong>{formatCurrency(totals.messengerPayment)}</strong>
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </div>
