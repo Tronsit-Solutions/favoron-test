@@ -36,9 +36,18 @@ class StorageEncryption {
 
   // Get a consistent key for the current session
   private static getSessionKey(): string {
-    // Use session ID or create a simple session-based key
-    // In production, you might want to use a more sophisticated approach
-    return `favoron_${window.location.hostname}_${Date.now()}`;
+    // Use session storage to get/create a persistent session key
+    const sessionKey = 'favoron_session_key';
+    let key = sessionStorage.getItem(sessionKey);
+    
+    if (!key) {
+      // Create a new session key using crypto random values
+      const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+      key = `favoron_${window.location.hostname}_${btoa(String.fromCharCode(...randomBytes))}`;
+      sessionStorage.setItem(sessionKey, key);
+    }
+    
+    return key;
   }
 
   // Encrypt data for storage

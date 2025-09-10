@@ -64,7 +64,7 @@ export function usePersistedFormState<T>(
     };
     
     loadEncryptedData();
-  }, [key, ttl, initialState, encrypt]);
+  }, [key, ttl, encrypt]);
 
   // Persist state to localStorage whenever it changes
   useEffect(() => {

@@ -78,7 +78,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     };
   };
 
-  // Only use persisted state in create mode
+  // Only use persisted state in create mode - disable encryption for this form
   const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
     key: 'package-form-products',
     initialState: [{
@@ -86,7 +86,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       itemDescription: '',
       estimatedPrice: '',
       quantity: '1'
-    }] as Product[]
+    }] as Product[],
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
@@ -99,12 +100,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       purchaseOrigin: '',
       purchaseOriginOther: '',
       deliveryMethod: ''
-    }
+    },
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   const { state: persistedAddressData, setState: setPersistedAddressData, clearPersistedState: clearAddress } = usePersistedFormState({
     key: 'package-form-address',
-    initialState: null
+    initialState: null,
+    encrypt: false // Disable encryption for faster, more reliable form restoration
   });
 
   // Local state for non-critical UI state
