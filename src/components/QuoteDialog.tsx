@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
@@ -50,14 +51,52 @@ const QuoteDialog = ({
   existingQuote,
   tripDates
 }: QuoteDialogProps) => {
-  const [price, setPrice] = useState(existingQuote?.price || '');
-  const [message, setMessage] = useState('');
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [wantsRequote, setWantsRequote] = useState(false);
-  const [additionalComments, setAdditionalComments] = useState('');
+  // Create unique storage key based on package details
+  const getPackageId = () => {
+    return `${packageDetails.item_description}_${packageDetails.estimated_price}_${userType}`;
+  };
+
+  // Persisted form state
+  const {
+    state: formState,
+    setState: setFormState,
+    clearPersistedState
+  } = usePersistedFormState({
+    key: `quote_form_${getPackageId()}`,
+    initialState: {
+      price: existingQuote?.price || '',
+      message: '',
+      rejectionReason: '',
+      wantsRequote: false,
+      additionalComments: '',
+      acceptedTerms: false
+    },
+    ttl: 24 * 60 * 60 * 1000, // 24 hours
+    encrypt: true // Encrypt since this contains financial data
+  });
+
+  // Local state for UI components that don't need persistence
   const [showRejectionForm, setShowRejectionForm] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Destructure form state for easier access
+  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms } = formState;
+
+  // Helper functions to update form state
+  const updateFormField = (field: string, value: any) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Clear persisted state when modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      // Clear state when modal is closed unless form has content
+      const hasContent = formState.price || formState.message || formState.acceptedTerms;
+      if (!hasContent) {
+        clearPersistedState();
+      }
+    }
+  }, [isOpen, formState.price, formState.message, formState.acceptedTerms, clearPersistedState]);
   const isMobile = useIsMobile();
   const isQuoteExpired = packageDetails.quote_expires_at && new Date(packageDetails.quote_expires_at) < new Date();
   console.log('🔍 Quote Debug Info:', {
@@ -113,6 +152,7 @@ const QuoteDialog = ({
       if (isQuoteExpired) {
         return; // Prevent submission if quote is expired
       }
+      clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         message: 'accepted'
       });
@@ -121,6 +161,7 @@ const QuoteDialog = ({
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
       const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
       const totalWithFee = basePrice * 1.4 + deliveryFee;
+      clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         price: basePrice,
         serviceFee: 0,
@@ -133,6 +174,7 @@ const QuoteDialog = ({
       // Add 40% Favorón fee automatically + Q25 delivery if applicable
       const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
       const totalWithFee = basePrice * 1.4 + deliveryFee;
+      clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         price: basePrice,
         serviceFee: 0,
@@ -149,6 +191,7 @@ const QuoteDialog = ({
     }
 
     // For admin-assigned tips, travelers can reject directly without justification
+    clearPersistedState(); // Clear form data on successful rejection
     onSubmit({
       message: 'rejected',
       rejectionReason: existingQuote ? rejectionReason : undefined,
@@ -385,7 +428,7 @@ const QuoteDialog = ({
                   </p>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-sans">Q</span>
-                    <Input id="price" type="number" placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} className="pl-8 w-32" style={{
+                    <Input id="price" type="number" placeholder="0.00" value={price} onChange={e => updateFormField('price', e.target.value)} className="pl-8 w-32" style={{
                   fontFamily: 'Arial, sans-serif'
                 }} required />
                   </div>
@@ -396,7 +439,7 @@ const QuoteDialog = ({
                 
                 <div>
                   <Label htmlFor="message">Mensaje (opcional)</Label>
-                  <Textarea id="message" placeholder="Añade cualquier información adicional..." value={message} onChange={e => setMessage(e.target.value)} rows={3} />
+                  <Textarea id="message" placeholder="Añade cualquier información adicional..." value={message} onChange={e => updateFormField('message', e.target.value)} rows={3} />
                 </div>
               </div>
             </div>}
@@ -406,14 +449,14 @@ const QuoteDialog = ({
               <div className="max-w-full overflow-hidden">{/* Reduce width and prevent overflow */}
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
                 <p className="text-sm text-muted-foreground mb-2">Mensaje para el Shopper:</p>
-                <Textarea id="message" placeholder="Escribe un mensaje para el shopper..." value={message} onChange={e => setMessage(e.target.value)} rows={3} />
+                <Textarea id="message" placeholder="Escribe un mensaje para el shopper..." value={message} onChange={e => updateFormField('message', e.target.value)} rows={3} />
               </div>
             </div>}
 
           {/* Terms and Conditions Checkbox - Only for shoppers accepting quotes */}
           {existingQuote && userType === 'user' && <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
-                <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => setAcceptedTerms(!!checked)} className="mt-1" />
+                <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => updateFormField('acceptedTerms', !!checked)} className="mt-1" />
                 <div className="flex-1">
                   <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
                     Entiendo y acepto los términos y condiciones de Favorón
@@ -434,9 +477,9 @@ const QuoteDialog = ({
           wants_requote: wantsRequote,
           additional_comments: additionalComments
         }} onChange={values => {
-          setRejectionReason(values.rejection_reason);
-          setWantsRequote(values.wants_requote ?? false);
-          setAdditionalComments(values.additional_comments ?? "");
+          updateFormField('rejectionReason', values.rejection_reason);
+          updateFormField('wantsRequote', values.wants_requote ?? false);
+          updateFormField('additionalComments', values.additional_comments ?? "");
         }} />}
 
           {/* Action Buttons */}
