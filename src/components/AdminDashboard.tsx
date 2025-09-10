@@ -87,6 +87,7 @@ const AdminDashboard = ({
   const { openModal } = useModalState();
   const { hasOpenModals } = useModalProtection();
   
+  
   // Snapshot mechanism for modal protection
   const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[] } | null>(null);
   const modalStateRef = useRef(false);
@@ -374,14 +375,8 @@ const AdminDashboard = ({
   
   // Setup consolidated real-time with complete modal protection
   const { isRealtimePaused, queuedUpdates, processQueuedUpdates } = useConsolidatedRealtimeAdmin({
-    onPackageUpdate: (updatedPackages) => {
-      console.log('📦 Admin: Applying incremental package updates');
-      setLocalPackages(updatedPackages);
-    },
-    onTripUpdate: (updatedTrips) => {
-      console.log('✈️ Admin: Applying incremental trip updates');
-      setLocalTrips(updatedTrips);
-    },
+    onPackageUpdate: setLocalPackages,
+    onTripUpdate: setLocalTrips,
     packages: localPackages,
     trips: localTrips,
     userRole: 'admin',
@@ -447,18 +442,28 @@ const AdminDashboard = ({
             tabs={adminTabs}
           />
         ) : (
-          <TabsList className="grid w-full grid-cols-7">
-            {adminTabs.map((tab) => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="relative flex items-center gap-2"
-              >
-                {tab.label}
-                {tab.badge}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <TabsList className="grid w-full grid-cols-7">
+                {adminTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="relative flex items-center gap-2"
+                  >
+                    {tab.label}
+                    {tab.badge}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {/* Realtime Status Indicator */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className={`w-2 h-2 rounded-full ${isRealtimePaused ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                {isRealtimePaused ? `${queuedUpdates} en cola` : 'En tiempo real'}
+              </div>
+            </div>
+          </div>
         )}
 
         <TabsContent value="overview" className="space-y-4">

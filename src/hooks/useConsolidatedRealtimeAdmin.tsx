@@ -12,8 +12,8 @@ interface ConsolidatedRealtimeUpdate {
 }
 
 interface ConsolidatedRealtimeProps {
-  onPackageUpdate?: (packages: any[]) => void;
-  onTripUpdate?: (trips: any[]) => void;
+  onPackageUpdate?: (packages: any[] | ((prev: any[]) => any[])) => void;
+  onTripUpdate?: (trips: any[] | ((prev: any[]) => any[])) => void;
   onIncrement?: (data: any) => void;
   packages?: any[];
   trips?: any[];
@@ -38,43 +38,51 @@ export const useConsolidatedRealtimeAdmin = ({
   const channelRef = useRef<any>(null);
   const processTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Process incremental updates without full refresh
+  // Process incremental updates without full refresh using functional updates
   const applyIncrementalUpdate = useCallback((update: ConsolidatedRealtimeUpdate) => {
     const { type, data, eventType } = update;
     
     console.log(`🔄 Applying incremental ${type} update:`, eventType);
 
     if (type === 'package' && onPackageUpdate) {
-      const updatedPackages = [...packages];
-      const packageIndex = updatedPackages.findIndex(p => p.id === data.new?.id || data.old?.id);
-      
-      if (eventType === 'DELETE' && packageIndex >= 0) {
-        updatedPackages.splice(packageIndex, 1);
-      } else if (eventType === 'INSERT') {
-        updatedPackages.push(data.new);
-      } else if (eventType === 'UPDATE' && packageIndex >= 0) {
-        updatedPackages[packageIndex] = { ...updatedPackages[packageIndex], ...data.new };
-      }
-      
-      onPackageUpdate(updatedPackages);
+      // Use functional update to avoid stale closure
+      onPackageUpdate((currentPackages: any[]) => {
+        const updatedPackages = [...currentPackages];
+        const packageIndex = updatedPackages.findIndex(p => p.id === data.new?.id || data.old?.id);
+        
+        if (eventType === 'DELETE' && packageIndex >= 0) {
+          updatedPackages.splice(packageIndex, 1);
+        } else if (eventType === 'INSERT') {
+          // Add new packages at the beginning for better visibility
+          updatedPackages.unshift(data.new);
+        } else if (eventType === 'UPDATE' && packageIndex >= 0) {
+          updatedPackages[packageIndex] = { ...updatedPackages[packageIndex], ...data.new };
+        }
+        
+        return updatedPackages;
+      });
       onIncrement?.(data);
     }
 
     if (type === 'trip' && onTripUpdate) {
-      const updatedTrips = [...trips];
-      const tripIndex = updatedTrips.findIndex(t => t.id === data.new?.id || data.old?.id);
-      
-      if (eventType === 'DELETE' && tripIndex >= 0) {
-        updatedTrips.splice(tripIndex, 1);
-      } else if (eventType === 'INSERT') {
-        updatedTrips.push(data.new);
-      } else if (eventType === 'UPDATE' && tripIndex >= 0) {
-        updatedTrips[tripIndex] = { ...updatedTrips[tripIndex], ...data.new };
-      }
-      
-      onTripUpdate(updatedTrips);
+      // Use functional update to avoid stale closure
+      onTripUpdate((currentTrips: any[]) => {
+        const updatedTrips = [...currentTrips];
+        const tripIndex = updatedTrips.findIndex(t => t.id === data.new?.id || data.old?.id);
+        
+        if (eventType === 'DELETE' && tripIndex >= 0) {
+          updatedTrips.splice(tripIndex, 1);
+        } else if (eventType === 'INSERT') {
+          // Add new trips at the beginning for better visibility
+          updatedTrips.unshift(data.new);
+        } else if (eventType === 'UPDATE' && tripIndex >= 0) {
+          updatedTrips[tripIndex] = { ...updatedTrips[tripIndex], ...data.new };
+        }
+        
+        return updatedTrips;
+      });
     }
-  }, [packages, trips, onPackageUpdate, onTripUpdate, onIncrement]);
+  }, [onPackageUpdate, onTripUpdate, onIncrement]);
 
   // Process queued updates when modals close
   const processQueuedUpdates = useCallback(() => {
