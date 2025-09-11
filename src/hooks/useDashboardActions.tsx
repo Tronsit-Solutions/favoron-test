@@ -1068,24 +1068,26 @@ export const useDashboardActions = (
     try {
       console.log('🏢 Admin confirming office delivery...', { packageId, currentUser });
 
-      // Validate current local state for traveler declaration
+      // Validate current local state - now accepting multiple states
       const current = packages.find(p => p.id === packageId);
-      const hasTravelerDeclaration = !!current?.office_delivery?.traveler_declaration;
-      if (!current || current.status !== 'pending_office_confirmation' || !hasTravelerDeclaration) {
+      const validStates = ['in_transit', 'received_by_traveler', 'pending_office_confirmation'];
+      if (!current || !validStates.includes(current.status)) {
         toast({
           title: 'Estado inválido',
-          description: 'Este paquete no está listo para confirmación en oficina.',
+          description: 'Este paquete no está en un estado válido para confirmación en oficina.',
           variant: 'destructive',
         });
         return;
       }
 
       // Apply optimistic update
+      const hasTravelerDeclaration = !!current?.office_delivery?.traveler_declaration;
       const optimisticOfficeDelivery = {
         ...(current.office_delivery || {}),
         admin_confirmation: {
           confirmed_by: currentUser?.id,
           confirmed_at: new Date().toISOString(),
+          skipped_traveler_declaration: !hasTravelerDeclaration,
         },
       };
       const optimisticPackages = packages.map(p =>
@@ -1122,7 +1124,7 @@ export const useDashboardActions = (
         console.error('RPC admin_confirm_office_delivery error:', rpcError);
         const msg = (rpcError.message || '').toLowerCase();
         const isAuthError = msg.includes('auth') || msg.includes('jwt') || msg.includes('permission') || msg.includes('only admins') || msg.includes('solo los administradores');
-        const isInvalidState = msg.includes('estado inválido') || msg.includes('falta la declaración del viajero');
+        const isInvalidState = msg.includes('estado inválido');
 
         if (isInvalidState) {
           // Revert optimistic update

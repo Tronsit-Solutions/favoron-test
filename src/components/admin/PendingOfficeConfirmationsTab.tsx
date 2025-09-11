@@ -16,8 +16,7 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
   onConfirmOfficeDelivery 
 }) => {
   const pendingConfirmations = packages.filter(pkg => 
-    pkg.status === 'pending_office_confirmation' &&
-    pkg.office_delivery?.traveler_declaration
+    ['in_transit', 'received_by_traveler', 'pending_office_confirmation'].includes(pkg.status)
   );
 
   if (pendingConfirmations.length === 0) {
@@ -26,7 +25,7 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
         <CheckCircle className="h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">No hay entregas pendientes</h3>
         <p className="text-muted-foreground">
-          Todas las entregas declaradas por viajeros han sido confirmadas.
+          No hay paquetes listos para confirmación de entrega en oficina.
         </p>
       </div>
     );
@@ -38,7 +37,7 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
         <div>
           <h2 className="text-xl font-semibold">Entregas Pendientes de Confirmación</h2>
           <p className="text-muted-foreground">
-            Confirma la recepción de paquetes declarados por viajeros para desbloquear sus compensaciones.
+            Confirma la recepción de paquetes en oficina para desbloquear las compensaciones de los viajeros.
           </p>
         </div>
         <Badge variant="warning" className="px-3 py-1">
@@ -50,6 +49,7 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
         {pendingConfirmations.map((pkg) => {
           const travelerDeclaration = pkg.office_delivery?.traveler_declaration;
           const declaredAt = travelerDeclaration?.declared_at ? new Date(travelerDeclaration.declared_at) : null;
+          const hasTravelerDeclaration = !!travelerDeclaration;
           
           return (
             <Card key={pkg.id} className="border-l-4 border-l-warning">
@@ -66,7 +66,14 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
                       </p>
                     </div>
                   </div>
-                  <Badge variant="warning">🔒 Pendiente confirmación</Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="warning">🔒 Pendiente confirmación</Badge>
+                    {!hasTravelerDeclaration && (
+                      <Badge variant="secondary" className="text-xs">
+                        Sin declaración de viajero
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               
@@ -89,13 +96,17 @@ const PendingOfficeConfirmationsTab: React.FC<PendingOfficeConfirmationsTabProps
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Declarado:</span>
+                      <span className="font-medium">Estado:</span>
                     </div>
                     <p className="text-sm">
-                      {declaredAt ? formatDistanceToNow(declaredAt, { 
-                        addSuffix: true, 
-                        locale: es 
-                      }) : 'Fecha no disponible'}
+                      {hasTravelerDeclaration ? (
+                        <>Declarado {declaredAt ? formatDistanceToNow(declaredAt, { 
+                          addSuffix: true, 
+                          locale: es 
+                        }) : ''}</>
+                      ) : (
+                        <span className="text-muted-foreground">Sin declaración del viajero</span>
+                      )}
                     </p>
                   </div>
                 </div>
