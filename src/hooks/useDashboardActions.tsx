@@ -1021,6 +1021,24 @@ export const useDashboardActions = (
 
   const handleConfirmOfficeReception = async (packageId: string) => {
     try {
+      // Check if current user is admin
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentUser?.id);
+
+      if (rolesError) throw rolesError;
+
+      const isAdmin = userRoles?.some(role => role.role === 'admin');
+      
+      if (isAdmin) {
+        // Admin flow: Direct confirmation, bypass pending status
+        console.log('🎯 Admin detected, routing to direct confirmation');
+        await handleAdminConfirmOfficeDelivery(packageId);
+        return;
+      }
+
+      // Traveler flow: Set to pending confirmation
       if (!updatePackage) {
         console.error('updatePackage function not available');
         return;

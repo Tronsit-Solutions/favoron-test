@@ -478,7 +478,7 @@ export const MatchCard = ({
                       className="w-full min-h-[44px] text-sm"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      Confirmar recepción
+                      Confirmar recepción en oficina
                     </Button>
                   )}
 
@@ -538,7 +538,7 @@ export const MatchCard = ({
                   {showOfficeReceptionButton && (
                     <Button size="sm" onClick={onConfirmOfficeReception} className="flex-1">
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      Confirmar recepción
+                      Confirmar recepción en oficina
                     </Button>
                   )}
 
