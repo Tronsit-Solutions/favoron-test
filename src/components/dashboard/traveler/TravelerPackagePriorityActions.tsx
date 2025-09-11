@@ -73,10 +73,18 @@ const TravelerPackagePriorityActions = ({
                     
                   </div>
                 )}
-                {pkg.status === 'received_by_traveler' && (
+                {pkg.status === 'received_by_traveler' && !pkg.office_delivery?.admin_confirmation && (
                   <div>
                     <p className="text-sm font-semibold mb-1">¡Paquete listo para entregar!</p>
                     <p className="text-xs text-muted-foreground">¿Ya entregaste el paquete en la oficina de Favorón?</p>
+                  </div>
+                )}
+                {pkg.status === 'received_by_traveler' && pkg.office_delivery?.admin_confirmation && (
+                  <div>
+                    <p className="text-sm font-semibold mb-1">✅ Entrega confirmada por Favorón</p>
+                    <p className="text-xs text-muted-foreground">
+                      Favorón ha confirmado la recepción del paquete. Tu compensación está siendo procesada.
+                    </p>
                   </div>
                 )}
                 {pkg.status === 'pending_office_confirmation' && (
@@ -123,7 +131,7 @@ const TravelerPackagePriorityActions = ({
                     Confirmar recibido
                   </Button>
                 )}
-                {pkg.status === 'received_by_traveler' && onConfirmOfficeDelivery && (
+                {pkg.status === 'received_by_traveler' && !pkg.office_delivery?.admin_confirmation && onConfirmOfficeDelivery && (
                   <Button 
                     size="sm" 
                     onClick={onConfirmOfficeDelivery} 
@@ -132,6 +140,17 @@ const TravelerPackagePriorityActions = ({
                   >
                     <CheckCircle className="h-3 w-3 mr-2" />
                     Entregado en oficina
+                  </Button>
+                )}
+                {pkg.status === 'received_by_traveler' && pkg.office_delivery?.admin_confirmation && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    disabled
+                    className="font-medium w-full sm:w-auto h-9 text-sm"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-2" />
+                    Confirmado por Favorón
                   </Button>
                 )}
               </div>
