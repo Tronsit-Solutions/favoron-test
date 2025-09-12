@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Trip, Package } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,32 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
 
   const getAssignedPackages = (tripId: string) => {
     return allPackages.filter(pkg => pkg.matched_trip_id === tripId);
+  };
+
+  // Create a mapping of user_id to user name from allPackages that might have profile data
+  const userNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    allPackages.forEach(pkg => {
+      if (pkg.user_id && !map[pkg.user_id]) {
+        // Try to get name from package profiles data (if joined)
+        const profiles = (pkg as any).profiles;
+        if (profiles) {
+          const name = `${profiles.first_name || ''} ${profiles.last_name || ''}`.trim();
+          if (name) {
+            map[pkg.user_id] = name;
+          } else {
+            map[pkg.user_id] = profiles.email?.split('@')[0] || `Usuario #${pkg.user_id.slice(0, 8)}`;
+          }
+        } else {
+          map[pkg.user_id] = `Usuario #${pkg.user_id.slice(0, 8)}`;
+        }
+      }
+    });
+    return map;
+  }, [allPackages]);
+
+  const getUserDisplayName = (userId: string) => {
+    return userNameMap[userId] || `Usuario #${userId.slice(0, 8)}`;
   };
 
   const handleViewDetails = (trip: Trip) => {
@@ -206,7 +232,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                                 {getStatusBadge(pkg.status)}
                               </div>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Comprador: Usuario #{pkg.user_id}
+                                Comprador: {getUserDisplayName(pkg.user_id)}
                               </p>
                             </div>
                             <div className="text-right">
