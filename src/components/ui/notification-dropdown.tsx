@@ -132,7 +132,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
                             <div className={`w-2 h-2 rounded-full ${getPriorityColor(notification.priority)}`} />
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {notification.message}
                         </p>
                         <p className="text-xs text-muted-foreground mt-2">
