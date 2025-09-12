@@ -11,7 +11,17 @@ export type TripUpdate = TablesUpdate<'trips'>;
 export const useOptimizedTripsData = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Get user ID on mount
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUserId();
+  }, []);
 
   // Cached fetch function for trips
   const fetchTripsOptimized = useCallback(async () => {
@@ -30,13 +40,14 @@ export const useOptimizedTripsData = () => {
         .from('trips')
         .select(`
           *,
-          public_profiles!trips_user_id_fkey (
+          profiles (
             id,
             first_name,
             last_name,
             avatar_url
           )
         `)
+        .eq('user_id', user.id)
         .order('arrival_date', { ascending: true });
 
       if (error) {
@@ -58,8 +69,9 @@ export const useOptimizedTripsData = () => {
     loading: cacheLoading,
     refresh: refreshCache
   } = useCachedData(fetchTripsOptimized, {
-    key: 'trips-optimized',
-    ttl: 30000 // 30 seconds
+    key: `trips-optimized-${userId || 'anonymous'}`,
+    ttl: 30000, // 30 seconds
+    enabled: !!userId // Only enable when we have a user ID
   });
 
   // Update local state when cache changes

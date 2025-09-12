@@ -214,9 +214,19 @@ const Dashboard = ({ user }: DashboardProps) => {
   });
   
   // Get packages assigned to user's trips (for traveler view)
-  const assignedPackages = packages.filter(pkg => 
-    userTrips.some(trip => trip.id === pkg.matched_trip_id)
-  );
+  const assignedPackages = packages.filter(pkg => {
+    // Check if package is assigned to any of user's trips
+    if (pkg.matched_trip_id && userTrips.some(trip => trip.id === pkg.matched_trip_id)) {
+      return true;
+    }
+    
+    // Fallback: Check if package has trip data with user's profile
+    if (pkg.matched_trip_id && (pkg as any).trips?.profiles?.id === currentUser.id) {
+      return true;
+    }
+    
+    return false;
+  });
 
   // Real-time updates with modal protection enabled
   useOptimizedRealtime({
