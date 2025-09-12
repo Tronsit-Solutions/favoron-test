@@ -194,6 +194,15 @@ const Dashboard = ({ user }: DashboardProps) => {
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
   const userTrips = trips.filter(trip => trip.user_id === currentUser.id);
   
+  // Debug: Log user trips filtering
+  console.log('🔍 Debugging trips filtering:', {
+    currentUserId: currentUser.id,
+    totalTrips: trips.length,
+    userTrips: userTrips.length,
+    allTripUserIds: trips.map(t => t.user_id).slice(0, 5),
+    userTripsData: userTrips.slice(0, 3)
+  });
+  
   // Filter user trips based on inactive preference
   const filteredUserTrips = userTrips.filter(trip => {
     // Filter out inactive trips if user preference is enabled
