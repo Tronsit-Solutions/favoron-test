@@ -190,26 +190,38 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                     </div>
                     
                     <div className="space-y-2">
-                      {assignedPackages.map((pkg) => (
-                        <div key={pkg.id} className="flex items-center justify-between p-2 bg-muted rounded border">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">
-                                {pkg.item_description || 'Sin descripción'}
-                              </span>
-                              {getStatusBadge(pkg.status)}
+                      {assignedPackages.map((pkg) => {
+                        const quote = pkg.quote as any;
+                        const quotePrice = quote?.price || quote?.totalPrice || 0;
+                        const tip = typeof quotePrice === 'string' ? parseFloat(quotePrice) : Number(quotePrice);
+                        const isConfirmed = pkg.status && ['pending_purchase', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status);
+                        
+                        return (
+                          <div key={pkg.id} className="flex items-center justify-between p-2 bg-muted rounded border">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                  {pkg.item_description || 'Sin descripción'}
+                                </span>
+                                {getStatusBadge(pkg.status)}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Comprador: Usuario #{pkg.user_id}
+                              </p>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Comprador: Usuario #{pkg.user_id}
-                            </p>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">
+                                Precio: {formatCurrency(pkg.estimated_price || 0)}
+                              </p>
+                              {isConfirmed && tip > 0 && (
+                                <p className="text-xs text-green-600 font-medium">
+                                  Tip: {formatCurrency(tip)}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium">
-                              ${pkg.estimated_price || '--'}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );
