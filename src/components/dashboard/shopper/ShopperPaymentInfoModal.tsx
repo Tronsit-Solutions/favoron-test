@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, CreditCard, CheckCircle } from "lucide-react";
@@ -24,6 +24,7 @@ export default function ShopperPaymentInfoModal({
   const { toast } = useToast();
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
   const [currentPkg, setCurrentPkg] = useState(pkg);
+  const [closeLocked, setCloseLocked] = useState(false);
   
   const totalAmount = parseFloat((pkg.quote as any)?.totalPrice || '0');
 
@@ -44,24 +45,75 @@ export default function ShopperPaymentInfoModal({
   // Show success state if receipt was uploaded
   const showSuccessState = currentPkg.payment_receipt && currentPkg.status === 'payment_pending_approval';
 
+  // Protect modal from closing when file picker is active on Android
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isOpen) {
+        console.log('📱 Tab hidden - locking modal');
+        setCloseLocked(true);
+      } else if (!document.hidden && isOpen) {
+        // Small delay to allow file picker to complete
+        setTimeout(() => {
+          console.log('📱 Tab visible - unlocking modal');
+          setCloseLocked(false);
+        }, 500);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isOpen]);
+
   const handleModalClose = (open: boolean) => {
-    if (!open) {
+    if (!open && !closeLocked) {
+      console.log('🚪 Modal close allowed');
       onClose();
+    } else if (!open && closeLocked) {
+      console.log('🔒 Modal close blocked - file picker active');
     }
+  };
+
+  const handlePickerOpen = () => {
+    console.log('📂 File picker opened - locking modal');
+    setCloseLocked(true);
+  };
+
+  const handlePickerClose = () => {
+    console.log('📂 File picker closed - unlocking modal');
+    setTimeout(() => setCloseLocked(false), 300);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
+        onPointerDownOutside={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
+        onFocusOutside={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
+        onOpenAutoFocus={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
+        onCloseAutoFocus={(e) => {
+          if (closeLocked) e.preventDefault();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             Información de Pago
           </DialogTitle>
+          <DialogDescription>
+            Completa el pago bancario y sube tu comprobante para continuar con tu pedido.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -193,6 +245,8 @@ export default function ShopperPaymentInfoModal({
                 <PaymentReceiptUpload 
                   pkg={currentPkg} 
                   onUploadComplete={handleUploadComplete}
+                  onPickerOpen={handlePickerOpen}
+                  onPickerClose={handlePickerClose}
                 />
               )}
             </CardContent>

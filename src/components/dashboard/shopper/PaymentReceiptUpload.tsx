@@ -10,9 +10,11 @@ import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
 interface PaymentReceiptUploadProps {
   pkg: Package;
   onUploadComplete: (updatedPkg: Package) => void;
+  onPickerOpen?: () => void;
+  onPickerClose?: () => void;
 }
 
-const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadProps) => {
+const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClose }: PaymentReceiptUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<any>(pkg.payment_receipt);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,6 +22,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onPickerClose?.();
     const file = event.target.files?.[0];
     if (file) {
       uploadFile(file);
@@ -214,7 +217,8 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             console.log('🖱️ File selection button clicked');
             fileInputRef.current?.click();
           }}
@@ -227,12 +231,13 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         <input
           ref={fileInputRef}
           type="file"
-          accept=".jpg,.jpeg,.png,.pdf"
+          accept="image/*,.pdf"
           onChange={handleFileSelect}
           className="hidden"
           onClick={(e) => {
             console.log('📁 File input clicked');
             e.stopPropagation();
+            onPickerOpen?.();
           }}
         />
       </div>
