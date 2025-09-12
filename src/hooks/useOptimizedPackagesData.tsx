@@ -38,7 +38,7 @@ export const useOptimizedPackagesData = () => {
     if (userIds.length === 0) return {};
     
     const { data, error } = await supabase
-      .from('public_profiles')
+      .from('profiles')
       .select('id, first_name, last_name, username, avatar_url')
       .in('id', userIds);
 

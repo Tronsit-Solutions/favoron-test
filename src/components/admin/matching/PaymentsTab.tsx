@@ -40,7 +40,7 @@ const PaymentsTab = ({
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Precio: ${pkg.estimated_price} • Usuario: {pkg.user_id}
+              Precio: ${pkg.estimated_price} • Usuario: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
             </p>
             {pkg.payment_receipt && (
               <div className="mt-2 p-2 bg-blue-50 rounded">
