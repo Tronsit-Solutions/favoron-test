@@ -178,7 +178,12 @@ const AdminMatchDialog = ({
       // Reduce fetched rows by filtering statuses server-side first
       const { data, error } = await supabase
         .from('packages')
-        .select('*')
+        .select(`
+          *,
+          profiles!packages_user_id_fkey (
+            id, first_name, last_name, email, username
+          )
+        `)
         .eq('matched_trip_id', trip.id)
         .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]);
 
