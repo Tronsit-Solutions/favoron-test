@@ -104,13 +104,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "client_errors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       customer_photos: {
@@ -276,13 +269,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_package_messages_user"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       packages: {
@@ -412,13 +398,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "packages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       payment_orders: {
@@ -482,13 +461,6 @@ export type Database = {
             columns: ["traveler_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_payment_order_traveler"
-            columns: ["traveler_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -615,13 +587,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "trip_payment_accumulator_traveler_id_fkey"
-            columns: ["traveler_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "trip_payment_accumulator_trip_id_fkey"
             columns: ["trip_id"]
             isOneToOne: false
@@ -705,13 +670,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "trips_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       user_roles: {
@@ -748,22 +706,6 @@ export type Database = {
           id: string | null
           last_name: string | null
           username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          username?: string | null
         }
         Relationships: []
       }
@@ -937,6 +879,17 @@ export type Database = {
       get_monthly_reports: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
+      }
+      get_public_profile_data: {
+        Args: { target_user_id?: string }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          username: string
+        }[]
       }
       get_public_stats: {
         Args: Record<PropertyKey, never>
