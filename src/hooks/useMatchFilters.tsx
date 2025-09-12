@@ -15,7 +15,7 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
       const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
       
       // Advanced statuses that should not be filtered out even if quote is expired
-      const advancedStatuses = ['completed', 'delivered_to_office', 'received_by_traveler', 'in_transit'];
+      const advancedStatuses = ['completed', 'delivered_to_office', 'received_by_traveler', 'in_transit', 'pending_office_confirmation'];
       const isAdvancedStatus = advancedStatuses.includes(pkg.status);
       
       // General quote expiration check for any package that is not in advanced status
