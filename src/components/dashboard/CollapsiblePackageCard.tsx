@@ -617,8 +617,8 @@ const CollapsiblePackageCard = ({
         onClose={() => setShowPaymentModal(false)}
         pkg={pkg}
         onUploadComplete={(updatedPkg) => {
-          // Update the package state if parent component needs it
-          setShowPaymentModal(false);
+          // Mantener el modal abierto para mostrar el estado de éxito dentro del modal
+          // (el propio modal ya muestra el mensaje y evita cierres accidentales)
         }}
       />
 
