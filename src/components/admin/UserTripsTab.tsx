@@ -8,6 +8,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Plane, Edit, Eye, MapPin, Calendar, Package as PackageIcon, User } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 import TripPackagesModal from "./TripPackagesModal";
 
 interface UserTripsTabProps {
@@ -126,7 +127,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm font-medium">
-                        {confirmedTip > 0 ? `$${confirmedTip.toFixed(2)}` : '$0.00'}
+                        {confirmedTip > 0 ? formatCurrency(confirmedTip) : formatCurrency(0)}
                       </div>
                     </TableCell>
                     <TableCell>
