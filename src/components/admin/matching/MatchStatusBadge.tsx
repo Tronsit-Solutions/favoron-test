@@ -16,6 +16,7 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'quote_rejected': { icon: '❌', label: 'Cotización rechazada', color: 'bg-destructive/10 text-black border-destructive/20' },
   'quote_expired': { icon: '⏰', label: 'Cotización expirada', color: 'bg-muted/50 text-black border-muted' },
   'payment_pending': { icon: '💳', label: 'Esperando pago', color: 'bg-warning/10 text-black border-warning/20' },
+  'payment_pending_approval': { icon: '🧾', label: 'Pago pendiente de aprobación', color: 'bg-warning/10 text-black border-warning/20' },
   'payment_confirmed': { icon: '💰', label: 'Pago confirmado', color: 'bg-success/10 text-black border-success/20' },
   'pending_purchase': { icon: '🛒', label: 'Comprando productos', color: 'bg-info/10 text-black border-info/20' },
   'in_transit': { icon: '🚚', label: 'En tránsito', color: 'bg-info/10 text-black border-info/20' },

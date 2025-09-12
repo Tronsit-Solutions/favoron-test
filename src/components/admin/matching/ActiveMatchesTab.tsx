@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,36 +63,24 @@ const ActiveMatchesTab = ({
   } = useMatchFilters(packages, trips);
 
   // Estado para los checkboxes de filtros
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set(statuses));
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
+
+  // Sincronizar estados seleccionados al cargar
+  useEffect(() => {
+    setSelectedStatuses(prev => {
+      if (prev.size === 0 && statuses.length > 0) {
+        console.log('🔧 Selecting all statuses by default:', statuses);
+        return new Set(statuses); // seleccionar todos por defecto al inicio
+      }
+      // Mantener elección del usuario, removiendo estados que ya no existan
+      const next = new Set([...prev].filter(s => statuses.includes(s)));
+      return next;
+    });
+  }, [statuses]);
 
   // Filtrar matches basado en búsqueda y estados seleccionados
   const filteredMatches = matchedPackages.filter(pkg => {
     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-    
-    // Excluir matches expirados - la lógica principal ya está en useMatchFilters
-    // pero mantenemos una verificación adicional para consistencia local
-    const now = new Date();
-    const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at) : null;
-    const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at) : null;
-    
-    // Advanced statuses that should not be filtered out even if quote is expired
-    const advancedStatuses = ['completed', 'delivered_to_office', 'received_by_traveler', 'in_transit'];
-    const isAdvancedStatus = advancedStatuses.includes(pkg.status);
-    
-    // Si es un match con asignación expirada, excluirlo
-    if (pkg.status === 'matched' && assignmentExpiry && assignmentExpiry < now) {
-      return false;
-    }
-    
-    // Si es un quote enviado expirado, excluirlo  
-    if (pkg.status === 'quote_sent' && quoteExpiry && quoteExpiry < now) {
-      return false;
-    }
-    
-    // General quote expiration check for any package that is not in advanced status
-    if (!isAdvancedStatus && quoteExpiry && quoteExpiry < now) {
-      return false;
-    }
     
     const matchesSearch = 
       (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,7 +96,8 @@ const ActiveMatchesTab = ({
       ((matchedTrip as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = selectedStatuses.has(pkg.status);
+    // Si no hay estados seleccionados, se trata como "todos seleccionados"
+    const matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(pkg.status);
     
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
@@ -172,6 +161,16 @@ const ActiveMatchesTab = ({
     // Secondary sort: Creation date (newest first)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+
+  // Logs de diagnóstico
+  useEffect(() => {
+    console.log('📊 ActiveMatchesTab Debug:', {
+      matchedPackagesLength: matchedPackages.length,
+      statuses,
+      selectedStatuses: Array.from(selectedStatuses),
+      filteredMatchesLength: filteredMatches.length
+    });
+  }, [matchedPackages.length, statuses, selectedStatuses, filteredMatches.length]);
 
   const togglePackage = (packageId: string) => {
     setExpandedPackages(prev => {
