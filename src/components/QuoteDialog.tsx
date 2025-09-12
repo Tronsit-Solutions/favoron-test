@@ -451,7 +451,9 @@ const QuoteDialog = ({
           {displayAmount && <div className="space-y-4">
               <div className="max-w-full overflow-hidden">{/* Reduce width and prevent overflow */}
                 <Label htmlFor="message">Mensaje adicional (opcional)</Label>
-                <p className="text-sm text-muted-foreground mb-2">Mensaje para el viajero:</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {isTravelerContext ? "Mensaje para el shopper:" : "Mensaje para el viajero:"}
+                </p>
                 <Textarea id="message" placeholder="Escribe un mensaje para el shopper..." value={message} onChange={e => updateFormField('message', e.target.value)} rows={3} />
               </div>
             </div>}
