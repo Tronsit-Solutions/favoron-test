@@ -357,7 +357,7 @@ const QuoteDialog = ({
                   <MapPin className="h-3 w-3" />
                   <span><strong>Fecha de entrega del viajero:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
                 </div>
-                <div className="text-sm text-muted-foreground mt-2 pl-5">
+                <div className="text-sm text-destructive mt-2 pl-5">
                   Esta es la fecha en la que el viajero entregará los paquetes en la oficina de Favorón. Recibirás tu paquete 1-2 días después de la llegada.
                 </div>
                 {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && <div className="flex items-center space-x-2">
