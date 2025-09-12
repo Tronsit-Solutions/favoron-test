@@ -65,6 +65,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                 <TableHead>Estado</TableHead>
                 <TableHead>Fechas</TableHead>
                 <TableHead>Paquetes Asignados</TableHead>
+                <TableHead>Tip Confirmado</TableHead>
                 <TableHead>Dirección de Recepción</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
@@ -72,6 +73,15 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
             <TableBody>
               {trips.map((trip) => {
                 const assignedPackages = getAssignedPackages(trip.id);
+                const confirmedTip = assignedPackages
+                  .filter(pkg => pkg.status && ['pending_purchase', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status))
+                  .reduce((total, pkg) => {
+                    const quote = pkg.quote as any;
+                    const quotePrice = quote?.price || quote?.totalPrice || 0;
+                    const tip = typeof quotePrice === 'string' ? parseFloat(quotePrice) : Number(quotePrice);
+                    return total + (Number.isFinite(tip) ? tip : 0);
+                  }, 0);
+
                 return (
                   <TableRow key={trip.id}>
                     <TableCell>
@@ -112,6 +122,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                             Ver paquetes
                           </Button>
                         )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">
+                        {confirmedTip > 0 ? `$${confirmedTip.toFixed(2)}` : '$0.00'}
                       </div>
                     </TableCell>
                     <TableCell>
