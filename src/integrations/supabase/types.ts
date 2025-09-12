@@ -876,6 +876,19 @@ export type Database = {
           bank_name: string
         }[]
       }
+      get_masked_payment_order_info: {
+        Args: { order_id: string }
+        Returns: {
+          account_number_masked: string
+          amount: number
+          bank_name_masked: string
+          created_at: string
+          id: string
+          status: string
+          traveler_id: string
+          trip_id: string
+        }[]
+      }
       get_monthly_reports: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
