@@ -36,6 +36,11 @@ export const formatCurrency = (amount: number | string): string => {
   return `${APP_CONFIG.PRICE_CURRENCY}${numAmount.toFixed(2)}`;
 };
 
+export const formatDollarPrice = (amount: number | string): string => {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return `$${numAmount.toFixed(2)}`;
+};
+
 export const calculateProductsTotal = (products: Array<{ estimatedPrice: string }>): number => {
   return products.reduce((sum, product) => sum + parseFloat(product.estimatedPrice || '0'), 0);
 };

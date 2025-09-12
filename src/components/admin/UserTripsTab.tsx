@@ -8,7 +8,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Plane, Edit, Eye, MapPin, Calendar, Package as PackageIcon, User } from "lucide-react";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatDollarPrice } from "@/lib/formatters";
 import TripPackagesModal from "./TripPackagesModal";
 
 interface UserTripsTabProps {
@@ -211,11 +211,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium">
-                                Precio: {formatCurrency(pkg.estimated_price || 0)}
+                                Precio (USD): {formatDollarPrice(pkg.estimated_price || 0)}
                               </p>
                               {isConfirmed && tip > 0 && (
                                 <p className="text-xs text-green-600 font-medium">
-                                  Tip: {formatCurrency(tip)}
+                                  Tip (GTQ): {formatCurrency(tip)}
                                 </p>
                               )}
                             </div>
