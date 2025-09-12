@@ -232,13 +232,20 @@ export default function ShopperPaymentInfoModal({
             </CardHeader>
             <CardContent>
               {showSuccessState ? (
-                <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/30 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-success">¡Comprobante subido exitosamente!</p>
-                    <p className="text-sm text-success/80">
-                      Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando sea aprobado.
-                    </p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/30 rounded-lg">
+                    <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-success">¡Comprobante subido exitosamente!</p>
+                      <p className="text-sm text-success/80">
+                        Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando sea aprobado.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button onClick={onClose} variant="default">
+                      Aceptar
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -252,12 +259,14 @@ export default function ShopperPaymentInfoModal({
             </CardContent>
           </Card>
 
-          {/* Close Button */}
-          <div className="flex justify-end">
-            <Button onClick={onClose} variant="outline">
-              Cerrar
-            </Button>
-          </div>
+          {/* Close Button - Only show when upload not complete */}
+          {!showSuccessState && (
+            <div className="flex justify-end">
+              <Button onClick={onClose} variant="outline">
+                Cerrar
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
