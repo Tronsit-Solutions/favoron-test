@@ -879,7 +879,7 @@ const AdminMatchDialog = ({
                                 De: {pkg.purchase_origin} → Para: {pkg.package_destination}
                               </p>
                               <p className="text-xs text-blue-600 font-medium">
-                                Shopper: {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name)}
+                                {formatFullName(pkg.profiles?.first_name, pkg.profiles?.last_name) || pkg.profiles?.username || 'Usuario sin nombre'}
                               </p>
                             </div>
                             <div className="text-right">
