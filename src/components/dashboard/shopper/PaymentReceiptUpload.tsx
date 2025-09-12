@@ -24,14 +24,24 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
     if (file) {
       uploadFile(file);
     }
+    // Resetear el input para permitir seleccionar el mismo archivo nuevamente
+    event.target.value = '';
   };
 
   const uploadFile = async (file: File) => {
     if (!file) return;
 
+    console.log('📎 File selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      sizeInMB: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
+    });
+
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
+      console.error('❌ Invalid file type:', file.type);
       toast({
         title: "Tipo de archivo no válido",
         description: "Solo se permiten archivos JPG, PNG o PDF",
@@ -42,6 +52,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ File too large:', (file.size / (1024 * 1024)).toFixed(2) + 'MB');
       toast({
         title: "Archivo muy grande",
         description: "El archivo debe ser menor a 5MB",
@@ -114,10 +125,14 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
       });
 
     } catch (error: any) {
-      console.error('Error uploading payment receipt:', error);
+      console.error('❌ Error uploading payment receipt:', {
+        error: error.message,
+        stack: error.stack,
+        packageId: pkg.id
+      });
       toast({
         title: "Error al subir comprobante",
-        description: error.message || "Ocurrió un error inesperado",
+        description: error.message || "Ocurrió un error inesperado. Inténtalo nuevamente.",
         variant: "destructive",
       });
     } finally {
@@ -132,6 +147,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
     const files = event.dataTransfer.files;
+    console.log('📂 Files dropped:', files.length);
     if (files.length > 0) {
       uploadFile(files[0]);
     }
@@ -198,7 +214,10 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
         <Button
           variant="outline"
           size="sm"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => {
+            console.log('🖱️ File selection button clicked');
+            fileInputRef.current?.click();
+          }}
           disabled={uploading}
         >
           <FileText className="h-4 w-4 mr-2" />
@@ -211,6 +230,10 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete }: PaymentReceiptUploadPro
           accept=".jpg,.jpeg,.png,.pdf"
           onChange={handleFileSelect}
           className="hidden"
+          onClick={(e) => {
+            console.log('📁 File input clicked');
+            e.stopPropagation();
+          }}
         />
       </div>
     </div>

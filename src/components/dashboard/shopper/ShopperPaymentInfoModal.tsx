@@ -44,8 +44,14 @@ export default function ShopperPaymentInfoModal({
   // Show success state if receipt was uploaded
   const showSuccessState = currentPkg.payment_receipt && currentPkg.status === 'payment_pending_approval';
 
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
