@@ -16,9 +16,11 @@ const PackageHeader = ({ pkg, getStatusBadge }: PackageHeaderProps) => {
   const getDescription = () => {
     if (pkg.products && pkg.products.length > 0) {
       const total = pkg.products.reduce((sum: number, p: any) => sum + parseFloat(p.estimatedPrice || 0), 0);
-      return `Total estimado: $${total.toFixed(2)} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`;
+      const deadline = pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada';
+      return `Total estimado: $${total.toFixed(2)} • Fecha límite: ${deadline}`;
     }
-    return `Precio estimado: ${pkg.estimatedPrice} • Fecha límite: ${new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}`;
+    const deadline = pkg.delivery_deadline ? new Date(pkg.delivery_deadline).toLocaleDateString('es-GT') : 'No especificada';
+    return `Precio estimado: ${pkg.estimatedPrice} • Fecha límite: ${deadline}`;
   };
 
   return (

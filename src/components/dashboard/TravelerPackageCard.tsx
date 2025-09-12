@@ -45,15 +45,15 @@ const TravelerPackageCard = ({
               ) : pkg.products && pkg.products.length > 0 ? (
                 <>
                   Total estimado: ${pkg.products.reduce((sum: number, product: any) => sum + parseFloat(product.estimatedPrice || 0), 0).toFixed(2)}
-                  {pkg.deliveryDeadline && (
-                    <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>
+                  {pkg.delivery_deadline && (
+                    <> • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</>
                   )}
                 </>
               ) : (
                 <>
                   Precio estimado: ${pkg.estimatedPrice || pkg.estimated_price}
-                  {pkg.deliveryDeadline && (
-                    <> • Fecha límite: {new Date(pkg.deliveryDeadline).toLocaleDateString('es-GT')}</>
+                  {pkg.delivery_deadline && (
+                    <> • Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</>
                   )}
                 </>
               )}
