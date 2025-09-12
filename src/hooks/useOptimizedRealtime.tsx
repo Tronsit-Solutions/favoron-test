@@ -94,9 +94,20 @@ export const useOptimizedRealtime = ({
       clearTimeout(debounceTimeoutRef.current);
     }
 
+    // Check if this is a critical update that should bypass modal protection
+    const isCriticalUpdate = payload?.new && (
+      // Payment receipt uploaded
+      (payload.new.payment_receipt && !payload.old?.payment_receipt) ||
+      // Status changed to payment_pending_approval (payment uploaded)
+      (payload.new.status === 'payment_pending_approval' && payload.old?.status === 'payment_pending') ||
+      // Other critical status changes
+      (payload.new.status !== payload.old?.status && ['purchased', 'shipped', 'in_transit', 'delivered'].includes(payload.new.status))
+    );
+
     debounceTimeoutRef.current = setTimeout(() => {
-      // If modals are open, queue the update instead of applying it immediately
-      if (shouldPreventRefresh()) {
+      // If modals are open but this isn't a critical update, queue it
+      if (shouldPreventRefresh() && !isCriticalUpdate) {
+        console.log('🔄 Queueing non-critical update due to open modals');
         updateQueueRef.current.push({ type: updateType, payload });
         return;
       }
@@ -104,7 +115,7 @@ export const useOptimizedRealtime = ({
       if (updateType === 'package' && onPackageUpdate) {
         // Instead of refetching all data, update the specific package
         if (payload?.new) {
-          console.log('🔄 Real-time package update received:', payload.new.id);
+          console.log('🔄 Real-time package update received:', payload.new.id, 'Critical:', isCriticalUpdate);
           const updatedPackages = [...packages];
           const existingIndex = packages.findIndex(pkg => pkg.id === payload.new.id);
           
@@ -121,7 +132,7 @@ export const useOptimizedRealtime = ({
       } else if (updateType === 'trip' && onTripUpdate) {
         onTripUpdate();
       }
-    }, 150); // Reduced debounce for faster updates
+    }, isCriticalUpdate ? 100 : 150); // Faster updates for critical changes
   }, [onPackageUpdate, onTripUpdate, packages, shouldPreventRefresh]);
 
   // Expose function to process queued updates
