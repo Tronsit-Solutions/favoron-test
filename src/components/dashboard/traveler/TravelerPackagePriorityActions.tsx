@@ -63,7 +63,7 @@ const TravelerPackagePriorityActions = ({
               <div className="flex-1">
                 {pkg.status === 'matched' && (
                   <div>
-                    <p className="text-sm font-semibold mb-1">¿Aceptas el tip asignado por Favorón?</p>
+                    <p className="text-sm font-semibold mb-1">¿Aceptas el tip por llevarte este Favorón?</p>
                     <p className="text-xs text-muted-foreground">El admin asignó tu tip. Puedes aceptarlo o rechazarlo.</p>
                   </div>
                 )}
