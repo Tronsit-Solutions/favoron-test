@@ -245,7 +245,7 @@ const CollapsiblePackageCard = ({
                      (pkg.status === 'in_transit' && !pkg.tracking_info)) ? (
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="success"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowShippingInfoModal(true);
