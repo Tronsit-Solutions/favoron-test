@@ -101,7 +101,11 @@ export const MatchCard = ({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`hover:shadow-md transition-shadow ${
+      hasMessages 
+        ? 'bg-purple-50 border-purple-200 hover:bg-purple-100' 
+        : ''
+    }`}>
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
         <CardContent className="p-4">
           {/* Header */}
