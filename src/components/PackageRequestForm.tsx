@@ -596,7 +596,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <p className="text-sm text-blue-800">
-                  📌 <strong>Nota:</strong> El envío a domicilio tiene un costo adicional de Q25 (solo válido en Ciudad de Guatemala y municipios cercanos).
+                  📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25. Para envíos fuera de la capital, el costo puede variar según la ubicación y distancia.
                 </p>
               </div>
             </div>
