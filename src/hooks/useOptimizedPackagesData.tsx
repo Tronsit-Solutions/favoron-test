@@ -110,7 +110,8 @@ export const useOptimizedPackagesData = () => {
             username,
             email,
             phone_number,
-            avatar_url
+            avatar_url,
+            trust_level
           ),
           trips:matched_trip_id(
             id,

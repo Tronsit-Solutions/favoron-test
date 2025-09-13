@@ -34,6 +34,7 @@ interface QuoteDialogProps {
     status?: string;
     traveler_address?: any;
     additional_notes?: string;
+    shopper_trust_level?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -146,7 +147,7 @@ const QuoteDialog = ({
     }
     if (adminTipAmount && isShopperViewingQuote) {
       // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
-      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, profile?.trust_level);
+      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, packageDetails.shopper_trust_level);
     }
     return adminTipAmount;
   };
@@ -163,7 +164,7 @@ const QuoteDialog = ({
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
-      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, profile?.trust_level);
+      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, packageDetails.shopper_trust_level);
       
       clearPersistedState(); // Clear form data on successful submission
       onSubmit({
@@ -175,13 +176,24 @@ const QuoteDialog = ({
       });
     } else {
       const basePrice = parseFloat(price);
-      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, profile?.trust_level);
+      const shopperTrustLevel = packageDetails.shopper_trust_level;
+      const breakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, shopperTrustLevel);
+      
+      // Temporary logging to verify correct commission calculation
+      console.log('🔍 Quote calculation:', {
+        basePrice,
+        shopperTrustLevel,
+        commissionRate: breakdown.commissionRate,
+        serviceFee: breakdown.serviceFee,
+        totalPrice: breakdown.totalPrice,
+        isPrime: breakdown.isPrime
+      });
       
       clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         price: basePrice,
-        serviceFee: priceBreakdown.serviceFee,
-        totalPrice: priceBreakdown.totalPrice,
+        serviceFee: breakdown.serviceFee,
+        totalPrice: breakdown.totalPrice,
         message
       });
     }

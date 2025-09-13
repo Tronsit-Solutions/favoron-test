@@ -28,7 +28,8 @@ export const usePackagesData = () => {
             bank_name,
             bank_account_number,
             bank_account_holder,
-            bank_account_type
+            bank_account_type,
+            trust_level
           ),
           trips:matched_trip_id (
             id,
