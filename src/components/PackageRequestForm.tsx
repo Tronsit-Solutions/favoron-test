@@ -512,7 +512,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           {/* Delivery method for Guatemala only */}
           {isGuatemalaDestination && (
             <div className="space-y-4">
-              <Label className="text-base font-medium">Forma de entrega en Guatemala *</Label>
+              <Label className="text-base font-medium">
+                Forma de entrega en {formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination} *
+              </Label>
                <div className="space-y-3">
                  {/* Solo mostrar opción de pickup si es Guatemala City */}
                  {isGuatemalaCityDestination && (
