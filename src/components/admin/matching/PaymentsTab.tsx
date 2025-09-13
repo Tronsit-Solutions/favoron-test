@@ -131,7 +131,7 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
               size="sm" 
               variant="outline"
               onClick={() => membership.receipt_url && setSelectedReceipt({
-                url: membership.receipt_url,
+                url: membership.receipt_url.startsWith('http') ? membership.receipt_url : `payment-receipts/${membership.receipt_url}`,
                 filename: membership.receipt_filename || 'Comprobante',
                 title: `Comprobante Membresía Prime - ${membership.profiles?.first_name || 'Usuario'} ${membership.profiles?.last_name || ''}`
               })}

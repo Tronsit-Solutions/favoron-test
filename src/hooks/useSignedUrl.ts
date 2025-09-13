@@ -25,6 +25,7 @@ export function useSignedUrl(raw?: string | null, expiresInSeconds = 3600) {
         if (!cancelled) {
           setUrl(resolved);
           setRetryCount(0);
+          setLoading(false);
         }
       } catch (e) {
         console.error(`useSignedUrl error (attempt ${attempt + 1}):`, e, { raw });

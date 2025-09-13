@@ -24,7 +24,7 @@ export function ReceiptViewerModal({
   const [downloadingFile, setDownloadingFile] = useState(false);
   const { url: signedUrl, loading, error, retryCount } = useSignedUrl(receiptUrl);
 
-  const isImage = filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  const isImage = filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || receiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
   const displayUrl = signedUrl || receiptUrl;
 
   const handleDownload = async () => {
@@ -90,7 +90,7 @@ export function ReceiptViewerModal({
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => window.open(receiptUrl, '_blank')}
+                  onClick={() => window.open(displayUrl || receiptUrl, '_blank')}
                 >
                   Abrir en nueva pestaña
                 </Button>
