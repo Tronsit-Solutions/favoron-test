@@ -17,8 +17,9 @@ export const PRICING_CONFIG = {
   STANDARD_DELIVERY_FEE: 25, // Q25 for standard users
   PRIME_DELIVERY_FEE: 0, // Free for Prime users
   
-  // Service fee calculation
-  SERVICE_FEE_RATE: 0.40 // 40% of base price
+  // Service fee calculation by trust level
+  SERVICE_FEE_RATE_STANDARD: 0.40, // 40% for standard users
+  SERVICE_FEE_RATE_PRIME: 0.20 // 20% for Prime users
 } as const;
 
 export const DELIVERY_PRIORITIES = {

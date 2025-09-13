@@ -22,12 +22,9 @@ const ShopperPackageInfo = ({
   const renderQuoteInfo = () => {
     if (!pkg.quote) return null;
 
-    // Calculate total with Favorón fee (40%)
+    // Use stored totalPrice from quote (preserves existing calculations for historical orders)
     const quote = pkg.quote as any;
-    const basePrice = parseFloat(quote?.price || '0');
-    const additionalFee = parseFloat(quote?.serviceFee || '0');
-    const subtotal = basePrice + additionalFee;
-    const totalWithFavoronFee = quote?.totalPrice ? parseFloat(quote.totalPrice) : subtotal * 1.4;
+    const totalWithFavoronFee = parseFloat(quote?.totalPrice || '0');
     return <div className="bg-info-muted border border-info-border rounded-lg p-2">
         <div className="flex items-center justify-between mb-1">
           <p className="text-sm font-medium text-info">Cotización recibida:</p>

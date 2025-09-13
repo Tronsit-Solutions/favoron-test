@@ -31,10 +31,13 @@ export const getDeliveryFee = (
 };
 
 /**
- * Calculate the service fee (40% of base price)
+ * Calculate the service fee based on trust level
  */
-export const calculateServiceFee = (basePrice: number): number => {
-  return basePrice * PRICING_CONFIG.SERVICE_FEE_RATE;
+export const calculateServiceFee = (basePrice: number, trustLevel?: TrustLevel | string): number => {
+  if (trustLevel === 'prime') {
+    return basePrice * PRICING_CONFIG.SERVICE_FEE_RATE_PRIME;
+  }
+  return basePrice * PRICING_CONFIG.SERVICE_FEE_RATE_STANDARD;
 };
 
 /**
@@ -45,7 +48,7 @@ export const calculateQuoteTotal = (
   deliveryMethod: string = 'pickup',
   trustLevel?: TrustLevel | string
 ): number => {
-  const serviceFee = calculateServiceFee(basePrice);
+  const serviceFee = calculateServiceFee(basePrice, trustLevel);
   const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel);
   return basePrice + serviceFee + deliveryFee;
 };
@@ -85,7 +88,7 @@ export const getPriceBreakdown = (
   deliveryMethod: string = 'pickup',
   trustLevel?: TrustLevel | string
 ) => {
-  const serviceFee = calculateServiceFee(basePrice);
+  const serviceFee = calculateServiceFee(basePrice, trustLevel);
   const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel);
   const totalPrice = basePrice + serviceFee + deliveryFee;
   const favoronRevenue = calculateFavoronRevenue(basePrice, serviceFee, trustLevel);
