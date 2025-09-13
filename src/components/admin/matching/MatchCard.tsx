@@ -256,8 +256,13 @@ export const MatchCard = ({
                   <Button size="sm" variant="outline" onClick={onViewDetail} className="px-2">
                     <Eye className="h-3 w-3" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2 relative">
-                    <MessageCircle className={`h-3 w-3 ${hasMessages ? 'text-purple-500' : ''}`} />
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={onOpenChat} 
+                    className={`px-2 relative ${hasMessages ? 'bg-purple-500 text-white border-purple-500 hover:bg-purple-600' : ''}`}
+                  >
+                    <MessageCircle className="h-3 w-3" />
                     {unreadCount > 0 && (
                       <NotificationBadge 
                         count={unreadCount} 
