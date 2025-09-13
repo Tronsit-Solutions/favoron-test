@@ -17,7 +17,7 @@ import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
-import { calculateQuoteTotal, getPriceBreakdown } from '@/lib/pricing';
+import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -441,10 +441,11 @@ const QuoteDialog = ({
                                   <span>{formatCurrency(breakdown.totalPrice)}</span>
                                 </div>
                                 {(() => {
-                                  // Show Prime savings only if user is Prime
+                                  // Show Prime savings only if user is Prime (service fee difference only)
                                   if (packageDetails.shopper_trust_level === 'prime') {
-                                    const standardBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'basic');
-                                    const savings = standardBreakdown.totalPrice - breakdown.totalPrice;
+                                    const standardServiceFee = calculateServiceFee(base, 'basic');
+                                    const primeServiceFee = calculateServiceFee(base, 'prime');
+                                    const savings = standardServiceFee - primeServiceFee;
                                     if (savings > 0) {
                                       return (
                                         <div className="flex justify-between pt-1 text-xs text-green-600 font-medium">
