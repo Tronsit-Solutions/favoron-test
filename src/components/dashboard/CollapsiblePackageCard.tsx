@@ -22,6 +22,7 @@ import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import ShippingInfoModal from "@/components/dashboard/ShippingInfoModal";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
+import { useAuth } from "@/hooks/useAuth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package as PackageType, UserType, DocumentType } from "@/types";
@@ -81,6 +82,7 @@ const CollapsiblePackageCard = ({
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [showShippingInfoModal, setShowShippingInfoModal] = React.useState(false);
   
+  const { profile } = useAuth();
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
 
@@ -526,6 +528,9 @@ const CollapsiblePackageCard = ({
                       <PackageQuoteInfo 
                         quote={pkg.quote as any}
                         quoteExpiresAt={pkg.quote_expires_at}
+                        deliveryMethod={pkg.delivery_method}
+                        shopperTrustLevel={(profile as any)?.trust_level}
+                        adminTipAmount={pkg.admin_assigned_tip}
                       />
                     </div>
                   )}
