@@ -1,9 +1,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Truck, Percent, Sparkles, CreditCard } from "lucide-react";
+import { Crown, Check, Truck, Percent, Sparkles, CreditCard, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePrimePayment } from "@/hooks/usePrimePayment";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PrimeModalProps {
   isOpen: boolean;
@@ -14,39 +16,23 @@ interface PrimeModalProps {
 const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
   const { createPrimePaymentOrder, isCreating, favoronAccount, bankingLoading } = usePrimePayment();
+  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const { toast } = useToast();
 
-  const handleUpgradeToPrime = async () => {
+  const handlePayPrime = async () => {
     const result = await createPrimePaymentOrder();
     if (result.success) {
-      onClose();
+      setShowPaymentInfo(true);
     }
   };
 
-  // Inline component to avoid module import issues
-  const BankingInfoDisplay = ({ account }: { account: any }) => (
-    <Card>
-      <CardContent className="space-y-3 pt-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">Banco:</span>{' '}
-            <span className="font-medium text-foreground">{account?.bank_name || '—'}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Titular:</span>{' '}
-            <span className="font-medium text-foreground">{account?.account_holder || '—'}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Cuenta:</span>{' '}
-            <span className="font-medium text-foreground">{account?.account_number || '—'}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Tipo:</span>{' '}
-            <span className="font-medium text-foreground">{account?.account_type || '—'}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado",
+      description: `${label} copiado al portapapeles`,
+    });
+  };
 
   const benefits = [
     {
@@ -125,24 +111,115 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                 </div>
               </div>
 
-              <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
-                onClick={handleUpgradeToPrime}
-                disabled={isCreating || bankingLoading || !favoronAccount}
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                {isCreating ? 'Procesando...' : 'Crear solicitud de pago'}
-              </Button>
-              
-              {favoronAccount && !bankingLoading && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
-                    Información de pago a Favorón:
-                  </h4>
-                  <BankingInfoDisplay account={favoronAccount} />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Realiza el pago de Q200 y un administrador aprobará tu membresía Prime.
-                  </p>
+              {!showPaymentInfo ? (
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                  onClick={handlePayPrime}
+                  disabled={isCreating || bankingLoading || !favoronAccount}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {isCreating ? 'Procesando...' : 'Pagar Membresía Prime'}
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-green-800">¡Solicitud creada exitosamente!</h4>
+                    <p className="text-sm text-green-700 mt-1">
+                      Completa tu pago con la información bancaria de abajo
+                    </p>
+                  </div>
+
+                  {favoronAccount && (
+                    <Card className="border-purple-200">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          Información para transferencia bancaria
+                        </h4>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                            <div>
+                              <span className="text-sm text-purple-600">Banco:</span>
+                              <p className="font-medium">{favoronAccount.bank_name}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(favoronAccount.bank_name, "Banco")}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          
+                          <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                            <div>
+                              <span className="text-sm text-purple-600">Titular:</span>
+                              <p className="font-medium">{favoronAccount.account_holder}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(favoronAccount.account_holder, "Titular")}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                            <div>
+                              <span className="text-sm text-purple-600">No. de Cuenta:</span>
+                              <p className="font-medium font-mono">{favoronAccount.account_number}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(favoronAccount.account_number, "Número de cuenta")}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+
+                          <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                            <div>
+                              <span className="text-sm text-purple-600">Tipo de Cuenta:</span>
+                              <p className="font-medium capitalize">{favoronAccount.account_type}</p>
+                            </div>
+                          </div>
+
+                          <div className="text-center p-3 bg-purple-100 rounded-lg">
+                            <p className="text-lg font-bold text-purple-800">Monto a transferir: Q200.00</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-800 mb-2">Instrucciones de pago:</h5>
+                    <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                      <li>Realiza la transferencia bancaria por Q200.00</li>
+                      <li>Guarda el comprobante de la transferencia</li>
+                      <li>Un administrador verificará tu pago</li>
+                      <li>Tu membresía Prime se activará automáticamente</li>
+                    </ol>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setShowPaymentInfo(false)}
+                    >
+                      Volver
+                    </Button>
+                    <Button
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={onClose}
+                    >
+                      Entendido
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
