@@ -552,12 +552,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                    <div className="flex items-center justify-between">
                      <div>
                        <p className="font-medium">Enviarlo a mi domicilio</p>
-                       <p className="text-sm text-muted-foreground">
-                         {isGuatemalaCityDestination 
-                           ? "Q25 - Entrega en Ciudad de Guatemala" 
-                           : "Q25 - Entrega en Guatemala"
-                         }
-                       </p>
                      </div>
                      {formData.deliveryMethod === 'delivery' && (
                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
