@@ -136,11 +136,53 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
   ).length;
 
   const getUserLevel = () => {
+    // Check for Prime status first (trust_level from database)
+    const trustLevel = user.trust_level || user.trustLevel;
+    if (trustLevel === 'prime') {
+      return { 
+        level: "Prime", 
+        progress: 100, 
+        next: "¡Máximo nivel!", 
+        color: "bg-purple-500",
+        isPrime: true,
+        trustLevel: 'prime'
+      };
+    }
+
+    // Activity-based levels for non-Prime users
     const totalActivity = stats.packagesRequested + stats.packagesCompleted;
-    if (totalActivity >= 20) return { level: "Experto", progress: 100, next: "¡Máximo nivel!", color: "bg-yellow-500" };
-    if (totalActivity >= 10) return { level: "Avanzado", progress: ((totalActivity - 10) / 10) * 100, next: "10 más para Experto", color: "bg-blue-500" };
-    if (totalActivity >= 5) return { level: "Intermedio", progress: ((totalActivity - 5) / 5) * 100, next: "5 más para Avanzado", color: "bg-green-500" };
-    return { level: "Principiante", progress: (totalActivity / 5) * 100, next: "5 actividades para Intermedio", color: "bg-gray-500" };
+    if (totalActivity >= 20) return { 
+      level: "Experto", 
+      progress: 100, 
+      next: "¡Máximo nivel!", 
+      color: "bg-yellow-500",
+      isPrime: false,
+      trustLevel: trustLevel || 'basic'
+    };
+    if (totalActivity >= 10) return { 
+      level: "Avanzado", 
+      progress: ((totalActivity - 10) / 10) * 100, 
+      next: "10 más para Experto", 
+      color: "bg-blue-500",
+      isPrime: false,
+      trustLevel: trustLevel || 'basic'
+    };
+    if (totalActivity >= 5) return { 
+      level: "Intermedio", 
+      progress: ((totalActivity - 5) / 5) * 100, 
+      next: "5 más para Avanzado", 
+      color: "bg-green-500",
+      isPrime: false,
+      trustLevel: trustLevel || 'basic'
+    };
+    return { 
+      level: "Principiante", 
+      progress: (totalActivity / 5) * 100, 
+      next: "5 actividades para Intermedio", 
+      color: "bg-gray-500",
+      isPrime: false,
+      trustLevel: trustLevel || 'basic'
+    };
   };
 
   const userLevel = getUserLevel();
