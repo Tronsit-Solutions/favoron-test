@@ -89,7 +89,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -99,7 +99,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
           {/* Payment Information */}
           {bankingLoading ? (
             <div className="text-center py-4">
