@@ -175,14 +175,13 @@ const QuoteDialog = ({
       });
     } else {
       const basePrice = parseFloat(price);
-      // Add 40% Favorón fee automatically + Q25 delivery if applicable
-      const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
-      const totalWithFee = basePrice * 1.4 + deliveryFee;
+      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, profile?.trust_level);
+      
       clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         price: basePrice,
-        serviceFee: 0,
-        totalPrice: totalWithFee,
+        serviceFee: priceBreakdown.serviceFee,
+        totalPrice: priceBreakdown.totalPrice,
         message
       });
     }
