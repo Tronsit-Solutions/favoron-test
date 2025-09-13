@@ -20,6 +20,11 @@ export type PrimeMembership = {
   approved_at?: string;
   expires_at?: string;
   approved_by?: string;
+  profiles?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  };
 };
 
 export function usePrimeMembership() {
@@ -34,7 +39,7 @@ export function usePrimeMembership() {
     try {
       const { data, error } = await supabase
         .from('prime_memberships')
-        .select('*')
+        .select('*, profiles!user_id(first_name, last_name, email)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
