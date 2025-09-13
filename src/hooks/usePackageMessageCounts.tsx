@@ -22,10 +22,11 @@ export const usePackageMessageCounts = () => {
       let data, error;
 
       if (userRole?.role === 'admin') {
-        // Admin users can see message counts for all packages
+        // Admin users can see message counts for all packages (only real chat messages)
         const result = await supabase
           .from('package_messages')
-          .select('package_id');
+          .select('package_id')
+          .in('message_type', ['text', 'file']);
         data = result.data;
         error = result.error;
       } else {
@@ -48,11 +49,12 @@ export const usePackageMessageCounts = () => {
 
         const packageIds = accessiblePackages.map(p => p.id);
 
-        // Count all messages for each package
+        // Count only real chat messages for each package
         const result = await supabase
           .from('package_messages')
           .select('package_id')
-          .in('package_id', packageIds);
+          .in('package_id', packageIds)
+          .in('message_type', ['text', 'file']);
         
         data = result.data;
         error = result.error;
