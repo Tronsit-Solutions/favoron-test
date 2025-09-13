@@ -390,9 +390,40 @@ const QuoteDialog = ({
                       Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
                       {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
                     </p>
-                    <p className="text-xs text-red-600 mt-1 font-medium">
-                      Tú eres el encargado de hacer la compra del producto y la cotización no incluye el precio de tu producto.
-                    </p>
+                     <p className="text-xs text-red-600 mt-1 font-medium">
+                       Tú eres el encargado de hacer la compra del producto y la cotización no incluye el precio de tu producto.
+                     </p>
+                     
+                     {/* Price Breakdown */}
+                     <div className="mt-3 pt-2 border-t border-green-200">
+                       <p className="text-xs font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
+                       <div className="space-y-1 text-xs text-green-700">
+                         {(() => {
+                           const totalPrice = parseFloat(existingQuote.totalPrice || '0');
+                           const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
+                           const compensationAndCommission = totalPrice - deliveryFee;
+                           
+                           return (
+                             <>
+                               <div className="flex justify-between">
+                                 <span>Compensación viajero, seguro y comisión Favorón:</span>
+                                 <span>{formatCurrency(compensationAndCommission)}</span>
+                               </div>
+                               {deliveryFee > 0 && (
+                                 <div className="flex justify-between">
+                                   <span>Entrega a domicilio:</span>
+                                   <span>{formatCurrency(deliveryFee)}</span>
+                                 </div>
+                               )}
+                               <div className="flex justify-between pt-1 border-t border-green-200 font-medium">
+                                 <span>Total:</span>
+                                 <span>{formatCurrency(totalPrice)}</span>
+                               </div>
+                             </>
+                           );
+                         })()}
+                       </div>
+                     </div>
                   </div>
                 </div>
               </div>
