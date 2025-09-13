@@ -14,12 +14,16 @@ import PaymentOrderDetailModal from './PaymentOrderDetailModal';
 
 interface AdminTripPaymentsTabProps {
   paymentOrders: any[];
-  onUpdatePaymentStatus: (orderId: string, status: string) => void;
+  primeMemberships?: any[];
+  combinedPayments?: any[];
+  onUpdatePaymentStatus: (orderId: string, status: string, type?: 'trip_payment' | 'prime_membership') => void;
   onViewPaymentDetail?: (order: any) => void;
 }
 
 export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
   paymentOrders,
+  primeMemberships = [],
+  combinedPayments = [],
   onUpdatePaymentStatus,
   onViewPaymentDetail
 }) => {
@@ -35,23 +39,36 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
     setShowDetailModal(true);
   };
 
-  // Separate payment orders by type
-  const tripPaymentOrders = paymentOrders.filter(order => order.payment_type !== 'prime_membership');
-  const primePaymentOrders = paymentOrders.filter(order => order.payment_type === 'prime_membership');
+  // Use combined payments if available, otherwise fallback to legacy logic
+  const allPayments = combinedPayments.length > 0 ? combinedPayments : [
+    ...paymentOrders.map(order => ({
+      ...order,
+      type: order.payment_type === 'prime_membership' ? 'prime_membership' : 'trip_payment'
+    })),
+    ...primeMemberships.map(membership => ({
+      ...membership,
+      type: 'prime_membership',
+      traveler_id: membership.user_id
+    }))
+  ];
   
-  const pendingTripPayments = tripPaymentOrders.filter(order => order.status === 'pending');
-  const processedTripPayments = tripPaymentOrders.filter(order => 
-    order.status === 'completed' || order.status === 'rejected'
+  const pendingTripPayments = allPayments.filter(order => 
+    order.type === 'trip_payment' && order.status === 'pending'
+  );
+  const processedTripPayments = allPayments.filter(order => 
+    order.type === 'trip_payment' && (order.status === 'completed' || order.status === 'rejected' || order.status === 'approved')
   );
   
-  const pendingPrimePayments = primePaymentOrders.filter(order => order.status === 'pending');
-  const processedPrimePayments = primePaymentOrders.filter(order => 
-    order.status === 'completed' || order.status === 'rejected'
+  const pendingPrimePayments = allPayments.filter(order => 
+    order.type === 'prime_membership' && order.status === 'pending'
+  );
+  const processedPrimePayments = allPayments.filter(order => 
+    order.type === 'prime_membership' && (order.status === 'completed' || order.status === 'rejected' || order.status === 'approved')
   );
 
-  const handlePaymentAction = async (orderId: string, action: string) => {
+  const handlePaymentAction = async (orderId: string, action: string, paymentType: 'trip_payment' | 'prime_membership' = 'trip_payment') => {
     try {
-      const newStatus = action === 'approve' ? 'completed' : 'rejected';
+      const newStatus = action === 'approve' ? 'approved' : 'rejected';
       
       if (action === 'approve') {
         // Para aprobar, necesitamos subir el comprobante de pago
@@ -74,24 +91,33 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
 
             if (uploadError) throw uploadError;
 
-            // Actualizar la orden con el comprobante (guardamos filePath) y marcar como completada
+            // Determine which table to update
+            const tableName = paymentType === 'prime_membership' ? 'prime_memberships' : 'payment_orders';
+            const updateData: any = {
+              status: 'approved',
+              receipt_url: fileName,
+              receipt_filename: file.name,
+            };
+
+            if (paymentType === 'trip_payment') {
+              updateData.completed_at = new Date().toISOString();
+            }
+
+            // Actualizar la orden/membresía con el comprobante y marcar como aprobada
             const { error: updateError } = await supabase
-              .from('payment_orders')
-              .update({
-                status: 'completed',
-                receipt_url: fileName,
-                receipt_filename: file.name,
-                completed_at: new Date().toISOString()
-              })
+              .from(tableName)
+              .update(updateData)
               .eq('id', orderId);
 
             if (updateError) throw updateError;
 
-            onUpdatePaymentStatus(orderId, 'completed');
+            onUpdatePaymentStatus(orderId, 'approved', paymentType);
             
             toast({
               title: "¡Éxito!",
-              description: "Pago aprobado y comprobante subido correctamente",
+              description: paymentType === 'prime_membership' 
+                ? "Membresía Prime aprobada exitosamente" 
+                : "Pago aprobado y comprobante subido correctamente",
             });
           } catch (error: any) {
             console.error('Error uploading receipt:', error);
@@ -108,18 +134,22 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
         input.click();
       } else {
         // Para rechazar, solo actualizar el estado
+        const tableName = paymentType === 'prime_membership' ? 'prime_memberships' : 'payment_orders';
+        
         const { error } = await supabase
-          .from('payment_orders')
+          .from(tableName)
           .update({ status: newStatus })
           .eq('id', orderId);
 
         if (error) throw error;
 
-        onUpdatePaymentStatus(orderId, newStatus);
+        onUpdatePaymentStatus(orderId, newStatus, paymentType);
         
         toast({
-          title: "Pago rechazado",
-          description: "La orden de pago ha sido rechazada",
+          title: paymentType === 'prime_membership' ? "Membresía rechazada" : "Pago rechazado",
+          description: paymentType === 'prime_membership' 
+            ? "La solicitud de membresía Prime ha sido rechazada"
+            : "La orden de pago ha sido rechazada",
         });
       }
       
@@ -128,7 +158,7 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
       console.error('Error updating payment status:', error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el estado del pago",
+        description: "No se pudo actualizar el estado",
         variant: "destructive",
       });
     }
@@ -139,7 +169,8 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
       case 'pending':
         return <Badge variant="outline">Pendiente</Badge>;
       case 'completed':
-        return <Badge variant="default">Completado</Badge>;
+      case 'approved':
+        return <Badge variant="default">Aprobado</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rechazado</Badge>;
       case 'cancelled':

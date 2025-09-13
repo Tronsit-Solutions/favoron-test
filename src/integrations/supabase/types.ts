@@ -475,6 +475,78 @@ export type Database = {
           },
         ]
       }
+      prime_memberships: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          receipt_filename: string | null
+          receipt_url: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type?: string
+          bank_name: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account_holder?: string
+          bank_account_number?: string
+          bank_account_type?: string
+          bank_name?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prime_memberships_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prime_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, Check, Truck, Percent, Sparkles, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { PrimePaymentModal } from "./PrimePaymentModal";
+import PrimePaymentModal from "./PrimePaymentModal";
 
 interface PrimeModalProps {
   isOpen: boolean;

@@ -24,6 +24,7 @@ export { useTripPayments } from './useTripPayments';
 export { useUserManagement } from './useUserManagement';
 export { useToast } from './use-toast';
 export { useFavoronBankingInfo } from './useFavoronBankingInfo';
+export { usePrimeMembership } from './usePrimeMembership';
 export { useUrlState } from './useUrlState';
 export { usePersistedFormState } from './usePersistedFormState';
 export { useModalProtection } from './useModalProtection';

@@ -2,12 +2,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileImage, X, CreditCard, Copy, CheckCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
-import { useAuth } from "@/hooks/useAuth";
+import { usePrimeMembership } from "@/hooks/usePrimeMembership";
 
 interface PrimePaymentModalProps {
   isOpen: boolean;
@@ -15,12 +15,11 @@ interface PrimePaymentModalProps {
   onSuccess: () => void;
 }
 
-export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentModalProps) => {
+export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimePaymentModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [notes, setNotes] = useState('');
   const { toast } = useToast();
-  const { account: favoronAccount } = useFavoronBankingInfo();
-  const { user } = useAuth();
+  const { createPrimeMembership, isCreating, favoronAccount, bankingLoading } = usePrimeMembership();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -49,65 +48,30 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
   };
 
   const handleSubmitPayment = async () => {
-    if (!selectedFile || !user || !favoronAccount) {
+    if (!selectedFile) {
       toast({
         title: "Error",
-        description: "Debes seleccionar un comprobante de pago",
+        description: "Por favor selecciona un comprobante de pago",
         variant: "destructive",
       });
       return;
     }
 
-    setIsUploading(true);
-
     try {
-      // Upload payment receipt to storage
-      const fileName = `prime_payment_receipt_${user.id}_${Date.now()}.${selectedFile.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('payment-receipts')
-        .upload(fileName, selectedFile);
-
-      if (uploadError) throw uploadError;
-
-      // Create Prime membership payment order
-      const { data: paymentOrder, error: paymentError } = await supabase
-        .from('payment_orders')
-        .insert({
-          traveler_id: user.id,
-          trip_id: '00000000-0000-0000-0000-000000000000', // Dummy trip ID for Prime payments
-          amount: 200,
-          payment_type: 'prime_membership',
-          bank_name: favoronAccount.bank_name,
-          bank_account_holder: favoronAccount.account_holder,
-          bank_account_number: favoronAccount.account_number,
-          bank_account_type: favoronAccount.account_type,
-          notes: `Pago de membresía Favorón Prime - 1 año. Comprobante: ${fileName}`,
-          historical_packages: [],
-          status: 'pending',
-          receipt_url: fileName,
-          receipt_filename: selectedFile.name
-        })
-        .select()
-        .single();
-
-      if (paymentError) throw paymentError;
-
-      toast({
-        title: "✨ Comprobante enviado exitosamente",
-        description: "Tu solicitud de membresía Prime está siendo procesada por un administrador.",
-      });
-
-      onSuccess();
-      onClose();
+      const result = await createPrimeMembership(selectedFile, notes);
+      if (result) {
+        onSuccess();
+        onClose();
+        setSelectedFile(null);
+        setNotes('');
+      }
     } catch (error: any) {
-      console.error('Error submitting Prime payment:', error);
+      console.error('Error submitting prime membership:', error);
       toast({
         title: "Error",
-        description: error.message || "Error al enviar el comprobante de pago",
+        description: error.message || "Error al enviar la solicitud de membresía",
         variant: "destructive",
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -137,7 +101,12 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
 
         <div className="space-y-6">
           {/* Payment Information */}
-          {favoronAccount && (
+          {bankingLoading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-600 border-t-transparent mx-auto" />
+              <p className="text-sm text-gray-600 mt-2">Cargando información bancaria...</p>
+            </div>
+          ) : favoronAccount ? (
             <Card className="border-purple-200">
               <CardContent className="p-4">
                 <h4 className="font-semibold text-purple-700 mb-3">
@@ -192,6 +161,10 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
                 </div>
               </CardContent>
             </Card>
+          ) : (
+            <div className="text-center py-4 text-red-600">
+              Error al cargar la información bancaria
+            </div>
           )}
 
           {/* Upload Section */}
@@ -246,6 +219,19 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
                   </div>
                 </div>
               )}
+
+              {/* Notes field */}
+              <div className="mt-4">
+                <Label htmlFor="notes">Notas adicionales (opcional)</Label>
+                <Input
+                  id="notes"
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Comentarios adicionales sobre el pago..."
+                  className="mt-1"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -266,16 +252,16 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
               variant="outline"
               className="flex-1"
               onClick={onClose}
-              disabled={isUploading}
+              disabled={isCreating}
             >
               Cancelar
             </Button>
             <Button
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
               onClick={handleSubmitPayment}
-              disabled={!selectedFile || isUploading}
+              disabled={!selectedFile || isCreating || bankingLoading}
             >
-              {isUploading ? (
+              {isCreating ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
                   Enviando...
@@ -292,4 +278,4 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
       </DialogContent>
     </Dialog>
   );
-};
+}
