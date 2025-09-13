@@ -111,12 +111,6 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
           </p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded p-3">
-          <p className="text-sm text-amber-800">
-            📍 <strong>Importante:</strong> Verifica que tu dirección sea correcta. 
-            El costo de envío adicional será entre Q25-Q40 dependiendo de la ubicación.
-          </p>
-        </div>
 
         <div className="flex space-x-3 pt-2">
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
