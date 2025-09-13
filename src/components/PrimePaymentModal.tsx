@@ -125,7 +125,7 @@ export const PrimePaymentModal = ({ isOpen, onClose, onSuccess }: PrimePaymentMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
