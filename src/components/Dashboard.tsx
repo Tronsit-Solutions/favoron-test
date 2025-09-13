@@ -12,6 +12,7 @@ import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
+import PrimeModal from "./PrimeModal";
 import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
@@ -84,6 +85,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
+  const [showPrimeModal, setShowPrimeModal] = useState(false);
   
   const {
     currentUser,
@@ -301,6 +303,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(false)}
           onGoHome={() => setShowUserManagement(false)}
+          onShowPrime={() => setShowPrimeModal(true)}
         />
         <div className="container mx-auto mobile-container py-8">
           <UserManagement 
@@ -356,6 +359,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowProfile={() => setActiveTab('profile')}
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
+          onShowPrime={() => setShowPrimeModal(true)}
         />
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
@@ -810,6 +814,13 @@ const Dashboard = ({ user }: DashboardProps) => {
         isOpen={showProfile && activeTab !== 'profile'}
         onClose={() => setShowProfile(false)}
         onUpdateUser={handleUpdateUser}
+      />
+
+      {/* Prime Modal */}
+      <PrimeModal
+        isOpen={showPrimeModal}
+        onClose={() => setShowPrimeModal(false)}
+        user={currentUser}
       />
 
     </div>
