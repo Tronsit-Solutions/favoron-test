@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle, Crown, Sparkles } from "lucide-react";
-import { usePrimeMembership } from "@/hooks/usePrimeMembership";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles } from 'lucide-react';
+import { usePrimeMembership } from '@/hooks';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -13,14 +14,10 @@ interface PaymentsTabProps {
   getStatusBadge: (status: string) => JSX.Element;
 }
 
-const PaymentsTab = ({ 
-  packages, 
-  onViewPackageDetail, 
-  onUpdateStatus, 
-  getStatusBadge 
-}: PaymentsTabProps) => {
-  const [activeTab, setActiveTab] = useState("pending");
+export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, getStatusBadge }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
+  const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string} | null>(null);
+  const [activeTab, setActiveTab] = useState("pending");
 
   // Separate payments by status - updated to use payment_pending_approval
   const pendingPayments = packages.filter(pkg => 
@@ -129,7 +126,10 @@ const PaymentsTab = ({
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => membership.receipt_url && window.open(membership.receipt_url, '_blank')}
+              onClick={() => membership.receipt_url && setSelectedReceipt({
+                url: membership.receipt_url,
+                filename: membership.receipt_filename || 'Comprobante'
+              })}
               className="w-full sm:w-auto text-xs sm:text-sm border-purple-300 text-purple-700"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -310,8 +310,46 @@ const PaymentsTab = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal para ver comprobante */}
+      <Dialog open={!!selectedReceipt} onOpenChange={() => setSelectedReceipt(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              {selectedReceipt?.filename || 'Comprobante de Pago'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {selectedReceipt?.url && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <img 
+                  src={selectedReceipt.url} 
+                  alt="Comprobante de pago"
+                  className="w-full h-auto rounded-lg shadow-sm"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden text-center py-8 text-gray-500">
+                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No se pudo cargar la imagen del comprobante</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-2"
+                    onClick={() => selectedReceipt && window.open(selectedReceipt.url, '_blank')}
+                  >
+                    Abrir en nueva pestaña
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
+}
 
 export default PaymentsTab;
