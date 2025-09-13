@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles } from 'lucide-react';
 import { usePrimeMembership } from '@/hooks';
+import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -16,7 +16,7 @@ interface PaymentsTabProps {
 
 export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, getStatusBadge }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
-  const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string} | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
 
   // Separate payments by status - updated to use payment_pending_approval
@@ -63,7 +63,11 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => onViewPackageDetail(pkg)}
+              onClick={() => pkg.payment_receipt && setSelectedReceipt({
+                url: pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '',
+                filename: pkg.payment_receipt.filename || 'comprobante.jpg',
+                title: `Comprobante de pago - ${pkg.item_description}`
+              })}
               className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -128,7 +132,8 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
               variant="outline"
               onClick={() => membership.receipt_url && setSelectedReceipt({
                 url: membership.receipt_url,
-                filename: membership.receipt_filename || 'Comprobante'
+                filename: membership.receipt_filename || 'Comprobante',
+                title: `Comprobante Membresía Prime - ${membership.profiles?.first_name || 'Usuario'} ${membership.profiles?.last_name || ''}`
               })}
               className="w-full sm:w-auto text-xs sm:text-sm border-purple-300 text-purple-700"
             >
@@ -312,71 +317,13 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
       </Tabs>
 
       {/* Modal para ver comprobante */}
-      <Dialog open={!!selectedReceipt} onOpenChange={() => setSelectedReceipt(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="h-5 w-5" />
-              {selectedReceipt?.filename || 'Comprobante de Pago'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            {selectedReceipt?.url && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="mb-2 p-2 bg-blue-100 rounded text-sm text-blue-800">
-                  <strong>URL del comprobante:</strong> {selectedReceipt.url}
-                </div>
-                <img 
-                  src={selectedReceipt.url} 
-                  alt="Comprobante de pago"
-                  className="w-full h-auto rounded-lg shadow-sm max-h-[600px] object-contain"
-                  onLoad={() => console.log('Imagen cargada exitosamente')}
-                  onError={(e) => {
-                    console.error('Error al cargar imagen:', selectedReceipt.url);
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.style.display = 'none';
-                    const errorDiv = target.parentElement?.querySelector('.error-fallback') as HTMLElement;
-                    if (errorDiv) {
-                      errorDiv.classList.remove('hidden');
-                    }
-                  }}
-                />
-                <div className="error-fallback hidden text-center py-8 text-gray-500">
-                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="mb-2">No se pudo cargar la imagen del comprobante</p>
-                  <p className="text-xs text-gray-400 mb-4">URL: {selectedReceipt.url}</p>
-                  <div className="flex gap-2 justify-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => selectedReceipt && window.open(selectedReceipt.url, '_blank')}
-                    >
-                      Abrir en nueva pestaña
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const img = document.createElement('img');
-                        img.src = selectedReceipt.url;
-                        img.style.display = 'block';
-                        img.style.maxWidth = '100%';
-                        img.style.height = 'auto';
-                        const errorDiv = document.querySelector('.error-fallback') as HTMLElement;
-                        if (errorDiv) {
-                          errorDiv.replaceWith(img);
-                        }
-                      }}
-                    >
-                      Reintentar carga
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ReceiptViewerModal
+        isOpen={!!selectedReceipt}
+        onClose={() => setSelectedReceipt(null)}
+        receiptUrl={selectedReceipt?.url}
+        filename={selectedReceipt?.filename}
+        title={selectedReceipt?.title}
+      />
     </div>
   );
 }
