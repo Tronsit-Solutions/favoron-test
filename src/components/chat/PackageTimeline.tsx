@@ -60,7 +60,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-foreground">Chat del Paquete</h3>
-              <p className="text-xs text-muted-foreground">Comunicación en tiempo real</p>
+              <p className="text-xs text-muted-foreground">Conversación entre viajero y comprador • Favoron supervisa</p>
             </div>
           </div>
         </div>
