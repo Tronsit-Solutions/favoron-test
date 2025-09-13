@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, Check, Truck, Percent, Sparkles, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePrimePayment } from "@/hooks/usePrimePayment";
-import FavoronBankingInfoDisplay from "@/components/admin/FavoronBankingInfoDisplay";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface PrimeModalProps {
   isOpen: boolean;
@@ -21,6 +21,32 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
       onClose();
     }
   };
+
+  // Inline component to avoid module import issues
+  const BankingInfoDisplay = ({ account }: { account: any }) => (
+    <Card>
+      <CardContent className="space-y-3 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div>
+            <span className="text-muted-foreground">Banco:</span>{' '}
+            <span className="font-medium text-foreground">{account?.bank_name || '—'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Titular:</span>{' '}
+            <span className="font-medium text-foreground">{account?.account_holder || '—'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Cuenta:</span>{' '}
+            <span className="font-medium text-foreground">{account?.account_number || '—'}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Tipo:</span>{' '}
+            <span className="font-medium text-foreground">{account?.account_type || '—'}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const benefits = [
     {
@@ -113,7 +139,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                   <h4 className="text-sm font-medium mb-2 text-muted-foreground">
                     Información de pago a Favorón:
                   </h4>
-                  <FavoronBankingInfoDisplay account={favoronAccount} />
+                  <BankingInfoDisplay account={favoronAccount} />
                   <p className="text-xs text-muted-foreground mt-2">
                     Realiza el pago de Q200 y un administrador aprobará tu membresía Prime.
                   </p>
