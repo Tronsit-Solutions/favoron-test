@@ -283,18 +283,29 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-muted/50 rounded-lg p-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="flex items-start space-x-3">
+              {/* Preview */}
+              <div className="w-20 h-20 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {isImageFile(pendingFile.fileType) ? (
-                  <Eye className="h-5 w-5 text-primary" />
+                  <img 
+                    src={URL.createObjectURL(pendingFile.file)}
+                    alt="Preview"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 ) : (
-                  <FileText className="h-5 w-5 text-primary" />
+                  <div className="flex flex-col items-center text-center">
+                    <FileText className="h-6 w-6 text-primary mb-1" />
+                    <span className="text-xs text-primary">PDF</span>
+                  </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{pendingFile.fileName}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(pendingFile.fileSize / (1024 * 1024)).toFixed(1)}MB
+                  {(pendingFile.fileSize / (1024 * 1024)).toFixed(1)}MB • {pendingFile.fileType.split('/')[1].toUpperCase()}
+                </p>
+                <p className="text-xs text-primary mt-1">
+                  {isImageFile(pendingFile.fileType) ? "Vista previa de imagen" : "Archivo PDF listo"}
                 </p>
               </div>
             </div>
