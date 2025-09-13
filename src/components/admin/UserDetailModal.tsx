@@ -375,7 +375,9 @@ const UserDetailModal = ({
                          <SelectItem value="basic">Básico</SelectItem>
                          <SelectItem value="earned">Ganado</SelectItem>
                          <SelectItem value="verified">Verificado</SelectItem>
-                         <SelectItem value="prime">Prime</SelectItem>
+                         <SelectItem value="prime" className="text-purple-600 font-semibold">
+                           Prime ✨
+                         </SelectItem>
                        </SelectContent>
                     </Select>
                   </div>
