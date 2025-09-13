@@ -966,7 +966,7 @@ export type Database = {
       }
     }
     Enums: {
-      trust_level: "basic" | "earned" | "verified"
+      trust_level: "basic" | "earned" | "verified" | "prime"
       user_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -1095,7 +1095,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      trust_level: ["basic", "earned", "verified"],
+      trust_level: ["basic", "earned", "verified", "prime"],
       user_role: ["admin", "user"],
     },
   },

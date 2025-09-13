@@ -11,11 +11,13 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
+import { useAuth } from "@/hooks/useAuth";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
+import { calculateQuoteTotal, getPriceBreakdown } from '@/lib/pricing';
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,6 +53,8 @@ const QuoteDialog = ({
   existingQuote,
   tripDates
 }: QuoteDialogProps) => {
+  const { profile } = useAuth();
+  
   // Create unique storage key based on package details
   const getPackageId = () => {
     return `${packageDetails.item_description}_${packageDetails.estimated_price}_${userType}`;
@@ -141,8 +145,8 @@ const QuoteDialog = ({
       return parseFloat(existingQuote.totalPrice || existingQuote.price || '0');
     }
     if (adminTipAmount && isShopperViewingQuote) {
-      // If shopper is viewing admin assigned tip as quote, show 1.4x
-      return adminTipAmount * 1.4;
+      // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
+      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, profile?.trust_level);
     }
     return adminTipAmount;
   };
@@ -159,13 +163,13 @@ const QuoteDialog = ({
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
-      const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
-      const totalWithFee = basePrice * 1.4 + deliveryFee;
+      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, profile?.trust_level);
+      
       clearPersistedState(); // Clear form data on successful submission
       onSubmit({
         price: basePrice,
-        serviceFee: 0,
-        totalPrice: totalWithFee,
+        serviceFee: priceBreakdown.serviceFee,
+        totalPrice: priceBreakdown.totalPrice,
         message: message || '',
         adminAssignedTipAccepted: true
       });

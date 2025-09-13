@@ -58,6 +58,7 @@ export const useUserManagement = () => {
           registrationDate: profile.created_at,
           status: 'verified' as const, // Since they have profiles, assume verified
           trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
+                     profile.trust_level === 'prime' ? 'premium' as const :
                      profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
           adminNotes: '',
           // Banking information now included

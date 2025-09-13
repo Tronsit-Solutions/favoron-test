@@ -5,8 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Package as PackageIcon } from "lucide-react";
-import { formatCurrency } from "@/lib/formatters";
-import { getStatusLabel } from "@/lib/formatters";
+import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
+import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductDetailModal from "./ProductDetailModal";
@@ -187,9 +187,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Calculate financial metrics
       const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
-      const serviceFee = parseFloat(quote?.serviceFee || '0');
-      const favoronRevenue = (travelerTip + serviceFee) * 0.4; // 40% Favoron fee
-      const messengerPayment = pkg.delivery_method === 'delivery' ? 25.00 : 0; // Q25 only for delivery
+      const serviceFee = calculateServiceFee(travelerTip);
+      const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, undefined);
+      const deliveryFee = getDeliveryFee(pkg.delivery_method, undefined);
+      const messengerPayment = pkg.delivery_method === 'messenger' ? deliveryFee : 0;
 
       return {
         package: pkg,

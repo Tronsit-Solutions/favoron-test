@@ -1,6 +1,6 @@
 import { PRICING_CONFIG } from './constants';
 
-export type TrustLevel = 'basic' | 'verified' | 'trusted' | 'prime';
+export type TrustLevel = 'basic' | 'earned' | 'verified' | 'prime';
 
 /**
  * Get the commission rate for Favoron based on user's trust level

@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
+import { calculateFavoronRevenue, calculateServiceFee } from '@/lib/pricing';
 interface FinancialDashboardProps {
   packages: Package[];
 }
@@ -53,9 +54,10 @@ const FinancialDashboard = ({
     const favoronRevenue = completedPackages.reduce((sum, pkg) => {
       const quote = pkg.quote as any;
       const basePrice = parseFloat(quote?.price || '0');
-      const serviceFee = parseFloat(quote?.serviceFee || '0');
-      const favoronFee = (basePrice + serviceFee) * 0.4; // 40% fee
-      return sum + favoronFee;
+      const serviceFee = calculateServiceFee(basePrice);
+      // For now, use standard rate as we don't have trust_level in Package type
+      const revenue = calculateFavoronRevenue(basePrice, serviceFee, undefined);
+      return sum + revenue;
     }, 0);
 
     // Tips para viajeros (igual a la cotización completa)
