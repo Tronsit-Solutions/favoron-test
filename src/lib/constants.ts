@@ -2,10 +2,23 @@
 export const APP_CONFIG = {
   DEFAULT_LOCALE: 'es-GT',
   PRICE_CURRENCY: 'Q',
-  FAVARON_FEE_PERCENTAGE: 0.15, // 15%
+  FAVARON_FEE_PERCENTAGE: 0.40, // 40% - corrected from 15%
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   ALLOWED_DOCUMENT_TYPES: ['application/pdf', 'image/jpeg', 'image/png']
+} as const;
+
+export const PRICING_CONFIG = {
+  // Commission rates by trust level
+  STANDARD_COMMISSION_RATE: 0.40, // 40% for standard users
+  PRIME_COMMISSION_RATE: 0.20, // 20% for Prime users
+  
+  // Delivery fees by trust level
+  STANDARD_DELIVERY_FEE: 25, // Q25 for standard users
+  PRIME_DELIVERY_FEE: 0, // Free for Prime users
+  
+  // Service fee calculation
+  SERVICE_FEE_RATE: 0.40 // 40% of base price
 } as const;
 
 export const DELIVERY_PRIORITIES = {
