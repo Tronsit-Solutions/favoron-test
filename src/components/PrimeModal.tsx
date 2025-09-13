@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Truck, Percent, Sparkles, CreditCard } from "lucide-react";
+import { Crown, Check, Truck, Percent, Sparkles, CreditCard, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import PrimePaymentModal from "./PrimePaymentModal";
+import { usePrimeMembership } from "@/hooks";
 
 interface PrimeModalProps {
   isOpen: boolean;
@@ -14,6 +15,12 @@ interface PrimeModalProps {
 const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const { memberships, loading } = usePrimeMembership();
+  
+  // Check if user has a pending Prime membership request
+  const pendingMembership = memberships?.find(
+    membership => membership.status === 'pending' && membership.user_id === user?.id
+  );
 
   const handleOpenPayment = () => {
     setShowPaymentModal(true);
@@ -84,8 +91,26 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
             ))}
           </div>
 
-          {/* Pricing for non-Prime users */}
-          {!isPrimeUser && (
+          {/* Status for pending requests */}
+          {!isPrimeUser && pendingMembership && (
+            <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="flex items-center justify-center mb-2">
+                <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Solicitud Pendiente
+                </Badge>
+              </div>
+              <p className="text-sm text-orange-700 mb-1">
+                Esperando aprobación del admin
+              </p>
+              <p className="text-xs text-orange-600">
+                Solicitud enviada el {new Date(pendingMembership.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+
+          {/* Pricing for non-Prime users without pending requests */}
+          {!isPrimeUser && !pendingMembership && !loading && (
             <div className="space-y-4">
               <div className="text-center p-4 bg-primary/5 rounded-lg border">
                 <div className="space-y-2">
