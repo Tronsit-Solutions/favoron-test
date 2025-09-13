@@ -101,11 +101,7 @@ export const MatchCard = ({
   };
 
   return (
-    <Card className={`hover:shadow-md transition-shadow ${
-      hasMessages 
-        ? 'bg-purple-50 border-purple-200 hover:bg-purple-100' 
-        : ''
-    }`}>
+    <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
         <CardContent className="p-4">
           {/* Header */}
@@ -221,7 +217,7 @@ export const MatchCard = ({
                       onClick={onOpenChat} 
                       className="min-h-[44px] text-sm relative"
                     >
-                      <MessageCircle className={`h-4 w-4 mr-1 ${hasMessages ? 'text-red-500' : ''}`} />
+                      <MessageCircle className={`h-4 w-4 mr-1 ${hasMessages ? 'text-purple-500' : ''}`} />
                       Chat
                       {unreadCount > 0 && (
                         <NotificationBadge 
@@ -261,7 +257,7 @@ export const MatchCard = ({
                     <Eye className="h-3 w-3" />
                   </Button>
                   <Button size="sm" variant="outline" onClick={onOpenChat} className="px-2 relative">
-                    <MessageCircle className={`h-3 w-3 ${hasMessages ? 'text-red-500' : ''}`} />
+                    <MessageCircle className={`h-3 w-3 ${hasMessages ? 'text-purple-500' : ''}`} />
                     {unreadCount > 0 && (
                       <NotificationBadge 
                         count={unreadCount} 
