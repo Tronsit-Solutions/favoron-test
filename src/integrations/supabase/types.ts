@@ -412,6 +412,7 @@ export type Database = {
           historical_packages: Json | null
           id: string
           notes: string | null
+          payment_type: string
           receipt_filename: string | null
           receipt_url: string | null
           status: string
@@ -430,6 +431,7 @@ export type Database = {
           historical_packages?: Json | null
           id?: string
           notes?: string | null
+          payment_type?: string
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
@@ -448,6 +450,7 @@ export type Database = {
           historical_packages?: Json | null
           id?: string
           notes?: string | null
+          payment_type?: string
           receipt_filename?: string | null
           receipt_url?: string | null
           status?: string
@@ -491,6 +494,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone_number: string | null
+          prime_expires_at: string | null
           trust_level: Database["public"]["Enums"]["trust_level"] | null
           updated_at: string | null
           username: string | null
@@ -513,6 +517,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone_number?: string | null
+          prime_expires_at?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
@@ -535,6 +540,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone_number?: string | null
+          prime_expires_at?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
@@ -705,6 +711,10 @@ export type Database = {
         Args: { _package_id: string }
         Returns: undefined
       }
+      activate_prime_membership: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       admin_confirm_office_delivery: {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
@@ -813,6 +823,10 @@ export type Database = {
         Returns: string
       }
       expire_old_quotes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      expire_prime_memberships: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

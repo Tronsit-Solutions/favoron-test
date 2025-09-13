@@ -1,7 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Truck, Percent, Sparkles } from "lucide-react";
+import { Crown, Check, Truck, Percent, Sparkles, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePrimePayment } from "@/hooks/usePrimePayment";
+import FavoronBankingInfoDisplay from "@/components/admin/FavoronBankingInfoDisplay";
 
 interface PrimeModalProps {
   isOpen: boolean;
@@ -11,6 +13,14 @@ interface PrimeModalProps {
 
 const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
+  const { createPrimePaymentOrder, isCreating, favoronAccount, bankingLoading } = usePrimePayment();
+
+  const handleUpgradeToPrime = async () => {
+    const result = await createPrimePaymentOrder();
+    if (result.success) {
+      onClose();
+    }
+  };
 
   const benefits = [
     {
@@ -89,10 +99,26 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                 </div>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Upgrade a Prime
+              <Button 
+                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+                onClick={handleUpgradeToPrime}
+                disabled={isCreating || bankingLoading || !favoronAccount}
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                {isCreating ? 'Procesando...' : 'Crear solicitud de pago'}
               </Button>
+              
+              {favoronAccount && !bankingLoading && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+                    Información de pago a Favorón:
+                  </h4>
+                  <FavoronBankingInfoDisplay account={favoronAccount} />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Realiza el pago de Q200 y un administrador aprobará tu membresía Prime.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

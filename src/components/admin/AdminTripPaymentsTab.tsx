@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Eye, CheckCircle, XCircle, Banknote, MapPin, Calendar, FileText } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Banknote, MapPin, Calendar, FileText, Sparkles } from 'lucide-react';
 import PaymentOrderDetailModal from './PaymentOrderDetailModal';
 
 interface AdminTripPaymentsTabProps {
@@ -35,11 +35,17 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
     setShowDetailModal(true);
   };
 
-  // Filtrar órdenes de pago por viaje (tienen trip_id)
-  const tripPaymentOrders = paymentOrders.filter(order => order.trip_id);
+  // Separate payment orders by type
+  const tripPaymentOrders = paymentOrders.filter(order => order.payment_type !== 'prime_membership');
+  const primePaymentOrders = paymentOrders.filter(order => order.payment_type === 'prime_membership');
   
   const pendingTripPayments = tripPaymentOrders.filter(order => order.status === 'pending');
   const processedTripPayments = tripPaymentOrders.filter(order => 
+    order.status === 'completed' || order.status === 'rejected'
+  );
+  
+  const pendingPrimePayments = primePaymentOrders.filter(order => order.status === 'pending');
+  const processedPrimePayments = primePaymentOrders.filter(order => 
     order.status === 'completed' || order.status === 'rejected'
   );
 
@@ -261,46 +267,218 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
     </Card>
   );
 
+  const PrimePaymentCard = ({ order, showActions = false }: { order: any; showActions?: boolean }) => (
+    <Card key={order.id} className="mb-4 border-purple-200 bg-purple-50/30">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-purple-600" />
+              </div>
+              <span className="text-purple-700">Membresía Prime - {formatCurrency(order.amount)}</span>
+              <Badge className="bg-purple-100 text-purple-700 text-xs">PRIME</Badge>
+            </CardTitle>
+            <p className="text-sm text-purple-600 mt-1">
+              Membresía anual Favorón Prime
+            </p>
+          </div>
+          {getPaymentStatusBadge(order.status)}
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Usuario:</span>
+              <p className="font-medium">
+                {order.profiles?.first_name} {order.profiles?.last_name}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Fecha de solicitud:</span>
+              <p>{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Banco:</span>
+              <p className="font-medium">{order.bank_name}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Cuenta:</span>
+              <p className="font-medium">{maskAccount(order.bank_account_number)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Titular:</span>
+              <p className="font-medium">{order.bank_account_holder}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Tipo de cuenta:</span>
+              <p className="font-medium capitalize">{order.bank_account_type}</p>
+            </div>
+          </div>
+
+          {showActions && (
+            <div className="flex gap-2 pt-3 border-t">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleViewDetails(order)}
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                Ver Detalles
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setConfirmAction({ action: 'approve', order })}
+                disabled={isUploading}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                {isUploading ? 'Procesando...' : 'Activar Prime'}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setConfirmAction({ action: 'reject', order })}
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Rechazar
+              </Button>
+            </div>
+          )}
+
+          {order.status === 'completed' && order.receipt_url && (
+            <div className="pt-3 border-t">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  const url = order.receipt_url;
+                  if (url?.startsWith('http')) {
+                    window.open(url, '_blank');
+                  } else if (url) {
+                    const { data, error } = await supabase.storage
+                      .from('payment-receipts')
+                      .createSignedUrl(url, 3600);
+                    if (!error && data?.signedUrl) {
+                      window.open(data.signedUrl, '_blank');
+                    }
+                  }
+                }}
+              >
+                Ver comprobante de pago
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const totalPending = pendingTripPayments.length + pendingPrimePayments.length;
+  const totalProcessed = processedTripPayments.length + processedPrimePayments.length;
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pending">
-            Pendientes ({pendingTripPayments.length})
+            Pendientes ({totalPending})
           </TabsTrigger>
           <TabsTrigger value="processed">
-            Procesados ({processedTripPayments.length})
+            Procesados ({totalProcessed})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pagos por Viaje Pendientes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingTripPayments.length === 0 ? (
-                <p className="text-muted-foreground">No hay pagos por viaje pendientes</p>
-              ) : (
+          {/* Prime Membership Payments */}
+          {pendingPrimePayments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Sparkles className="h-3 w-3 text-purple-600" />
+                  </div>
+                  <span className="text-purple-700">Membresías Prime Pendientes ({pendingPrimePayments.length})</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {pendingPrimePayments.map(order => (
+                    <PrimePaymentCard key={order.id} order={order} showActions />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Trip Payments */}
+          {pendingTripPayments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Pagos por Viaje Pendientes ({pendingTripPayments.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
                   {pendingTripPayments.map(order => (
                     <TripPaymentCard key={order.id} order={order} showActions />
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
+          {totalPending === 0 && (
+            <Card>
+              <CardContent className="py-8">
+                <p className="text-muted-foreground text-center">No hay pagos pendientes</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="processed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pagos por Viaje Procesados</CardTitle>
-            </CardHeader>
-            <CardContent>
-          {processedTripPayments.length === 0 ? (
-                <p className="text-muted-foreground">No hay pagos por viaje procesados</p>
-              ) : (
+          {/* Processed Prime Payments */}
+          {processedPrimePayments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Sparkles className="h-3 w-3 text-purple-600" />
+                  </div>
+                  <span className="text-purple-700">Membresías Prime Procesadas ({processedPrimePayments.length})</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {processedPrimePayments.map(order => (
+                    <div key={order.id} className="space-y-2">
+                      <PrimePaymentCard order={order} />
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewDetails(order)}
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Ver Detalles Completos
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Processed Trip Payments */}
+          {processedTripPayments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Pagos por Viaje Procesados ({processedTripPayments.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
                   {processedTripPayments.map(order => (
                     <div key={order.id} className="space-y-2">
@@ -318,9 +496,17 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
+
+          {totalProcessed === 0 && (
+            <Card>
+              <CardContent className="py-8">
+                <p className="text-muted-foreground text-center">No hay pagos procesados</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -328,11 +514,17 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmAction?.action === 'approve' ? 'Aprobar Pago' : 'Rechazar Pago'}
+              {confirmAction?.action === 'approve' 
+                ? (confirmAction?.order?.payment_type === 'prime_membership' ? 'Activar Membresía Prime' : 'Aprobar Pago')
+                : 'Rechazar Pago'
+              }
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction?.action === 'approve' 
-                ? 'Se te pedirá subir el comprobante de pago después de confirmar.'
+                ? (confirmAction?.order?.payment_type === 'prime_membership' 
+                    ? 'Se activará la membresía Prime del usuario por 1 año después de subir el comprobante.'
+                    : 'Se te pedirá subir el comprobante de pago después de confirmar.'
+                  )
                 : '¿Estás seguro de que quieres rechazar este pago?'
               }
             </AlertDialogDescription>
@@ -341,6 +533,10 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmAction && handlePaymentAction(confirmAction.order.id, confirmAction.action)}
+              className={confirmAction?.order?.payment_type === 'prime_membership' && confirmAction?.action === 'approve' 
+                ? 'bg-purple-600 hover:bg-purple-700' 
+                : ''
+              }
             >
               Confirmar
             </AlertDialogAction>
