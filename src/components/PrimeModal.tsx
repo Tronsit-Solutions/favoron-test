@@ -30,12 +30,12 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="relative h-16 w-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+            <div className="relative h-16 w-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-white" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-300 rounded-full animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-300 rounded-full animate-pulse"></div>
             </div>
           </div>
-          <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
+          <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
             Favorón Prime
           </DialogTitle>
         </DialogHeader>
@@ -43,14 +43,14 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
         <div className="space-y-6">
           {/* Status for Prime users */}
           {isPrimeUser && (
-            <div className="text-center p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
               <div className="flex items-center justify-center mb-2">
-                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Miembro Activo
                 </Badge>
               </div>
-              <p className="text-sm text-amber-700">
+              <p className="text-sm text-purple-700">
                 ¡Ya eres miembro Prime! Disfruta de todos los beneficios.
               </p>
             </div>
@@ -61,8 +61,8 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
             <h3 className="font-semibold text-lg">Beneficios exclusivos</h3>
             {benefits.map((benefit, index) => (
               <div key={index} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
-                <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <benefit.icon className="h-4 w-4 text-amber-600" />
+                <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <benefit.icon className="h-4 w-4 text-purple-600" />
                 </div>
                 <div>
                   <h4 className="font-medium text-sm">{benefit.title}</h4>
@@ -83,13 +83,13 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                     <Badge variant="destructive" className="text-xs">60% OFF</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">Membresía anual</p>
-                  <p className="text-xs text-amber-600 font-medium">
+                  <p className="text-xs text-purple-600 font-medium">
                     ¡Oferta por tiempo limitado!
                   </p>
                 </div>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white">
+              <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Upgrade a Prime
               </Button>
