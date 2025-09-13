@@ -371,11 +371,12 @@ const UserDetailModal = ({
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="basic">Básico</SelectItem>
-                        <SelectItem value="trusted">Confiable</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                      </SelectContent>
+                       <SelectContent>
+                         <SelectItem value="basic">Básico</SelectItem>
+                         <SelectItem value="earned">Ganado</SelectItem>
+                         <SelectItem value="verified">Verificado</SelectItem>
+                         <SelectItem value="prime">Prime</SelectItem>
+                       </SelectContent>
                     </Select>
                   </div>
                 </div>
