@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Truck, Percent } from "lucide-react";
+import { Crown, Check, Truck, Percent, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface PrimeModalProps {
@@ -30,8 +30,9 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="h-16 w-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
-              <Crown className="h-8 w-8 text-white" />
+            <div className="relative h-16 w-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-white" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-300 rounded-full animate-pulse"></div>
             </div>
           </div>
           <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
@@ -45,7 +46,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
             <div className="text-center p-4 bg-amber-50 rounded-lg border border-amber-200">
               <div className="flex items-center justify-center mb-2">
                 <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
-                  <Crown className="h-3 w-3 mr-1" />
+                  <Sparkles className="h-3 w-3 mr-1" />
                   Miembro Activo
                 </Badge>
               </div>
@@ -89,7 +90,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
               </div>
 
               <Button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white">
-                <Crown className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 mr-2" />
                 Upgrade a Prime
               </Button>
             </div>

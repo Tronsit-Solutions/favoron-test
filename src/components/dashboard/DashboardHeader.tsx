@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users, Home, FileText, Shield, Crown } from "lucide-react";
+import { LogOut, User, Plane, Users, Home, FileText, Shield, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -120,7 +120,12 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 onClick={handlePrimeClick}
                 className={`${isPrimeUser ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'text-primary hover:bg-primary/5'}`}
               >
-                <Crown className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-amber-600' : 'text-primary'}`} />
+                <div className="relative">
+                  <Sparkles className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-amber-500' : 'text-primary'}`} />
+                  {isPrimeUser && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                  )}
+                </div>
                 <div className="flex items-center justify-between w-full">
                   <span>Favorón Prime</span>
                   {isPrimeUser ? (
