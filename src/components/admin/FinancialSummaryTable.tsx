@@ -88,14 +88,15 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name')
+        .select('id, first_name, last_name, trust_level')
         .in('id', Array.from(userIds));
 
-      const profilesMap: Record<string, { first_name: string; last_name: string }> = {};
+      const profilesMap: Record<string, { first_name: string; last_name: string; trust_level: string }> = {};
       profilesData?.forEach(profile => {
         profilesMap[profile.id] = {
           first_name: profile.first_name || '',
-          last_name: profile.last_name || ''
+          last_name: profile.last_name || '',
+          trust_level: profile.trust_level || 'basic'
         };
       });
 
@@ -184,12 +185,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 
-      // Calculate financial metrics
+      // Calculate financial metrics with correct trust level
       const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
       const serviceFee = calculateServiceFee(travelerTip);
-      const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, undefined);
-      const deliveryFee = getDeliveryFee(pkg.delivery_method, undefined);
+      
+      // Get traveler's trust level for correct commission calculation
+      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
+      
+      const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
+      const deliveryFee = getDeliveryFee(pkg.delivery_method, travelerTrustLevel);
       const messengerPayment = pkg.delivery_method === 'messenger' ? deliveryFee : 0;
 
       return {

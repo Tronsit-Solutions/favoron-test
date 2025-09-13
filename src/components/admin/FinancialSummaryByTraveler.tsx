@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatters";
+import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -66,14 +67,15 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
 
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name')
+        .select('id, first_name, last_name, trust_level')
         .in('id', userIds);
 
-      const profilesMap: Record<string, { first_name: string; last_name: string }> = {};
+      const profilesMap: Record<string, { first_name: string; last_name: string; trust_level: string }> = {};
       profilesData?.forEach(profile => {
         profilesMap[profile.id] = {
           first_name: profile.first_name || '',
-          last_name: profile.last_name || ''
+          last_name: profile.last_name || '',
+          trust_level: profile.trust_level || 'basic'
         };
       });
 
@@ -104,8 +106,13 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
       const quote = pkg.quote as any;
       const travelerTip = parseFloat(quote?.price || '0');
       const serviceFee = parseFloat(quote?.serviceFee || '0');
-      const favoronRevenue = (travelerTip + serviceFee) * 0.4; // 40% Favoron fee
-      const messengerPayment = pkg.delivery_method === 'delivery' ? 25.00 : 0;
+      
+      // Get traveler's trust level for correct commission calculation
+      const travelerProfile = profilesMap[travelerId];
+      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
+      
+      const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
+      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel);
 
       if (!travelerData[travelerId]) {
         const profile = profilesMap[travelerId];
