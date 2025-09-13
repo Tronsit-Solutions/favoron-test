@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle } from "lucide-react";
+import { Eye, CheckCircle, Crown, Sparkles } from "lucide-react";
+import { usePrimeMembership } from "@/hooks/usePrimeMembership";
 
 interface PaymentsTabProps {
   packages: any[];
@@ -19,6 +20,7 @@ const PaymentsTab = ({
   getStatusBadge 
 }: PaymentsTabProps) => {
   const [activeTab, setActiveTab] = useState("pending");
+  const { memberships, updateMembershipStatus } = usePrimeMembership();
 
   // Separate payments by status - updated to use payment_pending_approval
   const pendingPayments = packages.filter(pkg => 
@@ -26,6 +28,12 @@ const PaymentsTab = ({
   );
   const approvedPayments = packages.filter(pkg => 
     pkg.payment_receipt && !(pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed')
+  );
+
+  // Prime membership payments
+  const pendingPrimeMemberships = memberships.filter(membership => membership.status === 'pending');
+  const approvedPrimeMemberships = memberships.filter(membership => 
+    membership.status === 'approved' || membership.status === 'rejected'
   );
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
@@ -80,15 +88,88 @@ const PaymentsTab = ({
     </Card>
   );
 
+  const renderPrimeMembershipCard = (membership: any, showConfirmButton: boolean = false) => (
+    <Card key={membership.id} className="hover:shadow-md transition-shadow border-purple-200">
+      <CardContent className="p-2 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-2 gap-1 sm:gap-0">
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-purple-600" />
+                <h4 className="font-medium text-purple-700">Membresía Favorón Prime</h4>
+              </div>
+              <div className="flex-shrink-0">
+                <Badge 
+                  variant={membership.status === 'pending' ? 'outline' : 
+                          membership.status === 'approved' ? 'default' : 'destructive'}
+                  className={membership.status === 'pending' ? 'border-yellow-500 text-yellow-700' :
+                            membership.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
+                >
+                  {membership.status === 'pending' ? 'Pendiente' :
+                   membership.status === 'approved' ? 'Aprobado' : 'Rechazado'}
+                </Badge>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Monto: Q{membership.amount} • Usuario: {membership.profiles?.first_name} {membership.profiles?.last_name || 'Usuario sin nombre'}
+            </p>
+            {membership.receipt_url && (
+              <div className="mt-2 p-2 bg-purple-50 rounded">
+                <p className="text-xs text-purple-800 font-medium">Comprobante de pago:</p>
+                <p className="text-xs text-purple-600 truncate">
+                  📄 {membership.receipt_filename || 'Comprobante'}
+                </p>
+                <p className="text-xs text-purple-600">
+                  📅 Solicitud: {new Date(membership.created_at).toLocaleDateString('es-GT')}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => membership.receipt_url && window.open(membership.receipt_url, '_blank')}
+              className="w-full sm:w-auto text-xs sm:text-sm border-purple-300 text-purple-700"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              <span className="sm:inline">Ver Comprobante</span>
+            </Button>
+            {showConfirmButton && (
+              <>
+                <Button 
+                  size="sm" 
+                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs sm:text-sm"
+                  onClick={() => updateMembershipStatus(membership.id, 'approved')}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  <span className="sm:inline">Aprobar</span>
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
+                  onClick={() => updateMembershipStatus(membership.id, 'rejected')}
+                >
+                  <span className="sm:inline">Rechazar</span>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600">{pendingPayments.length}</div>
-              <div className="text-xs text-muted-foreground">Pendientes de Aprobar</div>
+              <div className="text-xs text-muted-foreground">Pagos Pendientes</div>
             </div>
           </CardContent>
         </Card>
@@ -100,6 +181,22 @@ const PaymentsTab = ({
             </div>
           </CardContent>
         </Card>
+        <Card className="border-purple-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{pendingPrimeMemberships.length}</div>
+              <div className="text-xs text-muted-foreground">Prime Pendientes</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-800">{approvedPrimeMemberships.length}</div>
+              <div className="text-xs text-muted-foreground">Prime Aprobadas</div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Payment Tabs */}
@@ -107,17 +204,17 @@ const PaymentsTab = ({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pending" className="relative">
             ⏳ Pendientes de Aprobar
-            {pendingPayments.length > 0 && (
+            {(pendingPayments.length + pendingPrimeMemberships.length) > 0 && (
               <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {pendingPayments.length}
+                {pendingPayments.length + pendingPrimeMemberships.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="approved" className="relative">
             ✅ Aprobados
-            {approvedPayments.length > 0 && (
+            {(approvedPayments.length + approvedPrimeMemberships.length) > 0 && (
               <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
-                {approvedPayments.length}
+                {approvedPayments.length + approvedPrimeMemberships.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -130,14 +227,38 @@ const PaymentsTab = ({
               <CardDescription>Revisa y confirma los comprobantes de pago subidos</CardDescription>
             </CardHeader>
             <CardContent>
-              {pendingPayments.length === 0 ? (
+              {pendingPayments.length === 0 && pendingPrimeMemberships.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-2">⏳</div>
                   <p className="text-muted-foreground">No hay pagos pendientes de aprobación</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {pendingPayments.map(pkg => renderPaymentCard(pkg, true))}
+                <div className="space-y-4">
+                  {/* Prime Memberships Section */}
+                  {pendingPrimeMemberships.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-purple-700">Membresías Prime Pendientes ({pendingPrimeMemberships.length})</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {pendingPrimeMemberships.map(membership => renderPrimeMembershipCard(membership, true))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Package Payments Section */}
+                  {pendingPayments.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Eye className="h-5 w-5 text-blue-600" />
+                        <h3 className="font-semibold text-blue-700">Pagos de Paquetes Pendientes ({pendingPayments.length})</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {pendingPayments.map(pkg => renderPaymentCard(pkg, true))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -151,14 +272,38 @@ const PaymentsTab = ({
               <CardDescription>Historial de pagos confirmados</CardDescription>
             </CardHeader>
             <CardContent>
-              {approvedPayments.length === 0 ? (
+              {approvedPayments.length === 0 && approvedPrimeMemberships.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-2">✅</div>
                   <p className="text-muted-foreground">No hay pagos aprobados aún</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {approvedPayments.map(pkg => renderPaymentCard(pkg, false))}
+                <div className="space-y-4">
+                  {/* Approved Prime Memberships Section */}
+                  {approvedPrimeMemberships.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Crown className="h-5 w-5 text-purple-600" />
+                        <h3 className="font-semibold text-purple-700">Membresías Prime Procesadas ({approvedPrimeMemberships.length})</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {approvedPrimeMemberships.map(membership => renderPrimeMembershipCard(membership, false))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Approved Package Payments Section */}
+                  {approvedPayments.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <h3 className="font-semibold text-green-700">Pagos de Paquetes Aprobados ({approvedPayments.length})</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {approvedPayments.map(pkg => renderPaymentCard(pkg, false))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
