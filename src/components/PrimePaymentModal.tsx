@@ -272,7 +272,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Enviar Solicitud
+                  Pagar Membresía
                 </>
               )}
             </Button>
