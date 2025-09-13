@@ -112,46 +112,49 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                 <h4 className="font-semibold text-purple-700 mb-3">
                   Información para transferencia bancaria
                 </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center p-1.5 bg-purple-50 rounded text-sm">
                     <div>
-                      <span className="text-sm text-purple-600">Banco:</span>
-                      <p className="font-medium">{favoronAccount.bank_name}</p>
+                      <span className="text-xs text-purple-600">Banco:</span>
+                      <p className="font-medium text-sm">{favoronAccount.bank_name}</p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(favoronAccount.bank_name, "Banco")}
+                      className="h-6 w-8 p-0"
                     >
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-2.5 w-2.5" />
                     </Button>
                   </div>
                   
-                  <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                  <div className="flex justify-between items-center p-1.5 bg-purple-50 rounded text-sm">
                     <div>
-                      <span className="text-sm text-purple-600">Titular:</span>
-                      <p className="font-medium">{favoronAccount.account_holder}</p>
+                      <span className="text-xs text-purple-600">Titular:</span>
+                      <p className="font-medium text-sm">{favoronAccount.account_holder}</p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(favoronAccount.account_holder, "Titular")}
+                      className="h-6 w-8 p-0"
                     >
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-2.5 w-2.5" />
                     </Button>
                   </div>
 
-                  <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                  <div className="flex justify-between items-center p-1.5 bg-purple-50 rounded text-sm">
                     <div>
-                      <span className="text-sm text-purple-600">No. de Cuenta:</span>
-                      <p className="font-medium font-mono">{favoronAccount.account_number}</p>
+                      <span className="text-xs text-purple-600">No. de Cuenta:</span>
+                      <p className="font-medium font-mono text-sm">{favoronAccount.account_number}</p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(favoronAccount.account_number, "Número de cuenta")}
+                      className="h-6 w-8 p-0"
                     >
-                      <Copy className="h-3 w-3" />
+                      <Copy className="h-2.5 w-2.5" />
                     </Button>
                   </div>
 
