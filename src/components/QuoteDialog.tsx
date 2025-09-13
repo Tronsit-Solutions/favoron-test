@@ -436,10 +436,26 @@ const QuoteDialog = ({
                                    <span>{formatCurrency(deliveryFee)}</span>
                                  </div>
                                )}
-                               <div className="flex justify-between pt-1 border-t border-green-200 font-medium">
-                                 <span>Total:</span>
-                                 <span>{formatCurrency(breakdown.totalPrice)}</span>
-                               </div>
+                                <div className="flex justify-between pt-1 border-t border-green-200 font-medium">
+                                  <span>Total:</span>
+                                  <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                </div>
+                                {(() => {
+                                  // Show Prime savings only if user is Prime
+                                  if (packageDetails.shopper_trust_level === 'prime') {
+                                    const standardBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'basic');
+                                    const savings = standardBreakdown.totalPrice - breakdown.totalPrice;
+                                    if (savings > 0) {
+                                      return (
+                                        <div className="flex justify-between pt-1 text-xs text-green-600 font-medium">
+                                          <span>💎 Ahorro Prime:</span>
+                                          <span>-{formatCurrency(savings)}</span>
+                                        </div>
+                                      );
+                                    }
+                                  }
+                                  return null;
+                                })()}
                              </>
                            );
                          })()}
