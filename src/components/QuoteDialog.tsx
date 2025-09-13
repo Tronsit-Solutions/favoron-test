@@ -142,8 +142,9 @@ const QuoteDialog = ({
       return adminTipAmount;
     }
     if (isShopperViewingQuote && existingQuote) {
-      // Shopper sees quote total (already includes 1.4x multiplier)
-      return parseFloat(existingQuote.totalPrice || existingQuote.price || '0');
+      // Shopper sees quote total recalculated with shopper trust level
+      const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+      return calculateQuoteTotal(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
     }
     if (adminTipAmount && isShopperViewingQuote) {
       // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
@@ -395,7 +396,15 @@ const QuoteDialog = ({
                   )}
                   <div className="mt-2 pt-2 border-t border-green-300">
                      <p className="font-medium text-lg">
-                       <strong>Total a pagar:</strong> {formatCurrency(parseFloat(existingQuote.totalPrice || '0'))}
+                       {(() => {
+                         const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                         const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+                         return (
+                           <>
+                             <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
+                           </>
+                         );
+                       })()}
                      </p>
                     <p className="text-xs text-green-600 mt-1">
                       Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
@@ -410,9 +419,10 @@ const QuoteDialog = ({
                        <p className="text-xs font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
                        <div className="space-y-1 text-xs text-green-700">
                          {(() => {
-                           const totalPrice = parseFloat(existingQuote.totalPrice || '0');
-                           const deliveryFee = packageDetails.delivery_method === 'delivery' ? 25 : 0;
-                           const compensationAndCommission = totalPrice - deliveryFee;
+                           const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                           const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+                           const deliveryFee = breakdown.deliveryFee;
+                           const compensationAndCommission = breakdown.totalPrice - deliveryFee;
                            
                            return (
                              <>
@@ -428,7 +438,7 @@ const QuoteDialog = ({
                                )}
                                <div className="flex justify-between pt-1 border-t border-green-200 font-medium">
                                  <span>Total:</span>
-                                 <span>{formatCurrency(totalPrice)}</span>
+                                 <span>{formatCurrency(breakdown.totalPrice)}</span>
                                </div>
                              </>
                            );
