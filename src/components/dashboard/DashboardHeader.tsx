@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users, Home, FileText, Shield } from "lucide-react";
+import { LogOut, User, Plane, Users, Home, FileText, Shield, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -19,9 +19,10 @@ interface DashboardHeaderProps {
   onLogout: () => void;
   onShowUserManagement?: () => void;
   onGoHome?: () => void;
+  onShowPrime?: () => void;
 }
 
-const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome, onShowPrime }: DashboardHeaderProps) => {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -43,6 +44,14 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
   const handleRegulationClick = () => {
     navigate('/regulacion-aduanera');
   };
+
+  const handlePrimeClick = () => {
+    if (onShowPrime) {
+      onShowPrime();
+    }
+  };
+
+  const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
@@ -106,6 +115,24 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
               <DropdownMenuItem onClick={onShowProfile}>
                 <User className="h-4 w-4 mr-2" />
                 Mi Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handlePrimeClick}
+                className={`${isPrimeUser ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'text-primary hover:bg-primary/5'}`}
+              >
+                <Crown className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-amber-600' : 'text-primary'}`} />
+                <div className="flex items-center justify-between w-full">
+                  <span>Favorón Prime</span>
+                  {isPrimeUser ? (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                      Upgrade
+                    </span>
+                  )}
+                </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleTermsClick}>
