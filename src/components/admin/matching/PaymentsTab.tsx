@@ -323,25 +323,54 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
           <div className="mt-4">
             {selectedReceipt?.url && (
               <div className="bg-gray-50 rounded-lg p-4">
+                <div className="mb-2 p-2 bg-blue-100 rounded text-sm text-blue-800">
+                  <strong>URL del comprobante:</strong> {selectedReceipt.url}
+                </div>
                 <img 
                   src={selectedReceipt.url} 
                   alt="Comprobante de pago"
-                  className="w-full h-auto rounded-lg shadow-sm"
+                  className="w-full h-auto rounded-lg shadow-sm max-h-[600px] object-contain"
+                  onLoad={() => console.log('Imagen cargada exitosamente')}
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    console.error('Error al cargar imagen:', selectedReceipt.url);
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.style.display = 'none';
+                    const errorDiv = target.parentElement?.querySelector('.error-fallback') as HTMLElement;
+                    if (errorDiv) {
+                      errorDiv.classList.remove('hidden');
+                    }
                   }}
                 />
-                <div className="hidden text-center py-8 text-gray-500">
+                <div className="error-fallback hidden text-center py-8 text-gray-500">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p>No se pudo cargar la imagen del comprobante</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-2"
-                    onClick={() => selectedReceipt && window.open(selectedReceipt.url, '_blank')}
-                  >
-                    Abrir en nueva pestaña
-                  </Button>
+                  <p className="mb-2">No se pudo cargar la imagen del comprobante</p>
+                  <p className="text-xs text-gray-400 mb-4">URL: {selectedReceipt.url}</p>
+                  <div className="flex gap-2 justify-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => selectedReceipt && window.open(selectedReceipt.url, '_blank')}
+                    >
+                      Abrir en nueva pestaña
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const img = document.createElement('img');
+                        img.src = selectedReceipt.url;
+                        img.style.display = 'block';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        const errorDiv = document.querySelector('.error-fallback') as HTMLElement;
+                        if (errorDiv) {
+                          errorDiv.replaceWith(img);
+                        }
+                      }}
+                    >
+                      Reintentar carga
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
