@@ -111,7 +111,7 @@ const PaymentsTab = ({
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Monto: Q{membership.amount} • Usuario: {membership.profiles?.first_name} {membership.profiles?.last_name || 'Usuario sin nombre'}
+              Monto: Q{membership.amount} • Usuario: {membership.profiles?.first_name || 'Sin nombre'} {membership.profiles?.last_name || ''}
             </p>
             {membership.receipt_url && (
               <div className="mt-2 p-2 bg-purple-50 rounded">
