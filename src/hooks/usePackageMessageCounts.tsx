@@ -9,7 +9,7 @@ interface MessageCounts {
 export const usePackageMessageCounts = () => {
   const [messageCounts, setMessageCounts] = useState<MessageCounts>({});
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
 
   const fetchMessageCounts = async () => {
     if (!user?.id) {
@@ -19,30 +19,44 @@ export const usePackageMessageCounts = () => {
     }
 
     try {
-      // Get packages the user has access to (shopper, traveler, or admin)
-      const { data: accessiblePackages, error: packagesError } = await supabase
-        .from('packages')
-        .select('id')
-        .or(`user_id.eq.${user.id},matched_trip_id.in.(select id from trips where user_id = ${user.id})`);
+      let data, error;
 
-      if (packagesError) {
-        console.error('Error fetching accessible packages:', packagesError);
-        return;
+      if (userRole?.role === 'admin') {
+        // Admin users can see message counts for all packages
+        const result = await supabase
+          .from('package_messages')
+          .select('package_id');
+        data = result.data;
+        error = result.error;
+      } else {
+        // Get packages the user has access to (shopper, traveler)
+        const { data: accessiblePackages, error: packagesError } = await supabase
+          .from('packages')
+          .select('id')
+          .or(`user_id.eq.${user.id},matched_trip_id.in.(select id from trips where user_id = ${user.id})`);
+
+        if (packagesError) {
+          console.error('Error fetching accessible packages:', packagesError);
+          return;
+        }
+
+        if (!accessiblePackages || accessiblePackages.length === 0) {
+          setMessageCounts({});
+          setLoading(false);
+          return;
+        }
+
+        const packageIds = accessiblePackages.map(p => p.id);
+
+        // Count all messages for each package
+        const result = await supabase
+          .from('package_messages')
+          .select('package_id')
+          .in('package_id', packageIds);
+        
+        data = result.data;
+        error = result.error;
       }
-
-      if (!accessiblePackages || accessiblePackages.length === 0) {
-        setMessageCounts({});
-        setLoading(false);
-        return;
-      }
-
-      const packageIds = accessiblePackages.map(p => p.id);
-
-      // Count all messages for each package
-      const { data, error } = await supabase
-        .from('package_messages')
-        .select('package_id')
-        .in('package_id', packageIds);
 
       if (error) {
         console.error('Error fetching message counts:', error);
@@ -90,7 +104,7 @@ export const usePackageMessageCounts = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, userRole?.role]);
 
   const hasMessages = (packageId: string): boolean => {
     return (messageCounts[packageId] || 0) > 0;
