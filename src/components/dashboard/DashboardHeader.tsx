@@ -118,10 +118,10 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={handlePrimeClick}
-                className={`${isPrimeUser ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' : 'text-primary hover:bg-primary/5'}`}
+                className={`${isPrimeUser ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}
               >
                 <div className="relative">
-                  <Sparkles className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-purple-500' : 'text-primary'}`} />
+                  <Sparkles className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-purple-600' : 'text-purple-500'}`} />
                   {isPrimeUser && (
                     <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                   )}
@@ -129,11 +129,11 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 <div className="flex items-center justify-between w-full">
                   <span>Favorón Prime</span>
                   {isPrimeUser ? (
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-medium">
                       Activo
                     </span>
                   ) : (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full font-medium">
                       Upgrade
                     </span>
                   )}
