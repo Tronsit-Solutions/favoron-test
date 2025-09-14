@@ -94,26 +94,15 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
 
       {/* Content */}
       <div className="p-4 space-y-3">
-        {/* Package Info */}
+        {/* Package Info - Unified Section */}
         <div>
-          <div className="text-sm font-bold mb-1">PEDIDO:</div>
-          <div className="text-xs break-words">{pkg.item_description}</div>
-        </div>
-
-        <div>
-          <div className="text-sm font-bold mb-1">ID:</div>
-          <div className="text-sm font-mono">{getPackageId()}</div>
-        </div>
-
-        {/* Price and Quantity */}
-        <div>
-          <div className="text-sm font-bold mb-1">PRECIO TOTAL:</div>
-          <div className="text-sm">{getPackagePrice()}</div>
-        </div>
-
-        <div>
-          <div className="text-sm font-bold mb-1">CANTIDAD:</div>
-          <div className="text-sm">{getTotalQuantity()}</div>
+          <div className="text-sm font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
+          <div className="text-xs break-words space-y-1">
+            <div><strong>Descripción:</strong> {pkg.item_description}</div>
+            <div><strong>ID:</strong> {getPackageId()}</div>
+            <div><strong>Precio Total:</strong> {getPackagePrice()}</div>
+            <div><strong>Cantidad:</strong> {getTotalQuantity()}</div>
+          </div>
         </div>
 
         {/* Shopper Info */}
