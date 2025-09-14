@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, User, Crown } from "lucide-react";
+import { Edit2, User, Star } from "lucide-react";
 import EditProfileModal from "./EditProfileModal";
 
 interface ProfileHeaderProps {
@@ -45,7 +45,7 @@ const ProfileHeader = ({ user, userLevel, onUpdateUser }: ProfileHeaderProps) =>
                 <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2 mt-2">
                   {userLevel.isPrime ? (
                     <Badge className="bg-purple-600 text-white text-center">
-                      <Crown className="h-3 w-3 mr-1" />
+                      <Star className="h-3 w-3 mr-1" />
                       {userLevel.level}
                     </Badge>
                   ) : (
