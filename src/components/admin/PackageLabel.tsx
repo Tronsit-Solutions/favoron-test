@@ -84,7 +84,7 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
       {/* Header with Logo */}
       <div className="text-center py-4 border-b border-black">
         <img 
-          src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+          src="/favoron-logo.jpg" 
           alt="Favorón"
           className="h-12 mx-auto mb-2"
           style={{ filter: 'grayscale(100%)' }}
