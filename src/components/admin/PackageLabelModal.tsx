@@ -89,7 +89,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-md mx-auto max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>Vista Previa - Etiqueta PDF</span>
@@ -99,12 +99,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Preview */}
-          <div className="flex justify-center bg-gray-50 p-4 rounded-lg">
+          <div className="flex justify-center bg-gray-50 p-2 rounded-lg">
             <div 
               ref={labelRef} 
-              className="transform scale-50 origin-center"
+              className="transform scale-40 origin-center"
               style={{ transformOrigin: 'center center' }}
             >
               <PackageLabel pkg={pkg} />
@@ -112,7 +112,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
           </div>
 
           {/* Package Info */}
-          <div className="text-sm text-gray-600 space-y-1">
+          <div className="text-xs text-gray-600 space-y-1">
             <div><strong>Pedido:</strong> {pkg.item_description}</div>
             <div><strong>ID:</strong> {pkg.id ? pkg.id.substring(0, 8) : 'N/A'}</div>
             <div><strong>Estado:</strong> {pkg.status}</div>
