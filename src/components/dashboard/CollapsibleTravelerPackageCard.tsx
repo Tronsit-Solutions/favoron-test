@@ -123,145 +123,231 @@ const CollapsibleTravelerPackageCard = ({
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className={`transition-all duration-200 ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-all duration-200 py-4 ${
+          <CardHeader className={`cursor-pointer transition-all duration-200 ${
             hasPendingAction 
               ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
-          }`}>
-            {/* Product Name at the top */}
-            <div className="mb-3">
-              <CardTitle className="text-lg font-semibold leading-tight flex items-center gap-3">
-                <div className="relative flex-shrink-0">
-                  <Package className="h-5 w-5 text-primary" />
-                  {hasPendingAction && (
-                    <NotificationBadge 
-                      count={1} 
-                      className="absolute -top-2 -right-2 w-3 h-3 min-w-[12px] text-[10px]" 
-                    />
+          } ${isMobile ? 'p-3' : 'py-4'}`}>
+            
+            {/* Mobile optimized header layout */}
+            {isMobile ? (
+              <div className="space-y-3">
+                {/* Product name and status in single row */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <Package className="h-4 w-4 text-primary" />
+                      {hasPendingAction && (
+                        <NotificationBadge 
+                          count={1} 
+                          className="absolute -top-1 -right-1 w-2.5 h-2.5 min-w-[10px] text-[8px]" 
+                        />
+                      )}
+                    </div>
+                    <CardTitle className="text-sm font-semibold leading-tight truncate">
+                      {getPackageName()}
+                    </CardTitle>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {getStatusBadge(pkg.status)}
+                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <CardDescription className="text-xs leading-tight text-muted-foreground">
+                  {getPackageDescription()}
+                </CardDescription>
+
+                {/* Status message - mobile optimized */}
+                <div className="text-xs">
+                  {pkg.status === 'quote_sent' && (
+                    <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
+                      📝 Cotización enviada - Esperando respuesta
+                    </div>
+                  )}
+                  {pkg.status === 'quote_accepted' && (
+                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
+                      ✅ Cotización aceptada - Esperando pago
+                    </div>
+                  )}
+                  {pkg.status === 'payment_confirmed' && (
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-md">
+                      💳 Pago confirmado - Esperando envío
+                    </div>
+                  )}
+                  {pkg.status === 'in_transit' && (
+                    <div className="text-orange-600 bg-orange-50 p-2 rounded-md">
+                      🚚 En tránsito
+                    </div>
+                  )}
+                  {pkg.status === 'received_by_traveler' && (
+                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
+                      ✅ Paquete recibido
+                      {pkg.traveler_confirmation?.confirmedAt && (
+                        <div className="text-muted-foreground mt-1 text-[10px]">
+                          {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                <span className="flex-1">{getPackageName()}</span>
-              </CardTitle>
-            </div>
 
-
-            {/* Priority Action Button */}
-            <div className="mb-3">
-              <TravelerPackagePriorityActions
-                pkg={pkg}
-                onQuote={onQuote}
-                onConfirmReceived={handleConfirmReceivedClick}
-                onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <CardDescription className="text-xs sm:text-sm leading-tight">
-                  <span className="block sm:truncate">{getPackageDescription()}</span>
-                </CardDescription>
+                {/* Priority action button - full width on mobile */}
+                <div className="w-full">
+                  <TravelerPackagePriorityActions
+                    pkg={pkg}
+                    onQuote={onQuote}
+                    onConfirmReceived={handleConfirmReceivedClick}
+                    onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex flex-col items-end text-right">
-                  {getStatusBadge(pkg.status)}
-                  
-                  
-                  {/* Status message */}
-                  <div className="text-xs mt-1 max-w-48">
-                    {pkg.status === 'quote_sent' && (
-                      <div className="text-muted-foreground">
-                        Cotización enviada - Esperando respuesta del shopper
-                      </div>
-                    )}
-                    {pkg.status === 'quote_accepted' && (
-                      <div className="font-medium text-green-600">
-                        ✅ Cotización aceptada - Esperando confirmación de pago
-                      </div>
-                    )}
-                    {pkg.status === 'payment_confirmed' && (
-                      <div className="font-medium text-blue-600">
-                        💳 Pago confirmado - Esperando que el shopper envíe el paquete
-                      </div>
-                    )}
-                    {pkg.status === 'in_transit' && (
-                      <div className="font-medium text-orange-600">
-                        🚚 En tránsito
-                      </div>
-                    )}
-                    {pkg.status === 'received_by_traveler' && (
-                      <div className="font-medium text-green-600">
-                        ✅ Paquete recibido y confirmado
-                        {pkg.traveler_confirmation?.confirmedAt && (
-                          <div className="text-muted-foreground mt-0.5">
-                            Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+            ) : (
+              // Desktop layout (unchanged)
+              <>
+                {/* Product Name at the top */}
+                <div className="mb-3">
+                  <CardTitle className="text-lg font-semibold leading-tight flex items-center gap-3">
+                    <div className="relative flex-shrink-0">
+                      <Package className="h-5 w-5 text-primary" />
+                      {hasPendingAction && (
+                        <NotificationBadge 
+                          count={1} 
+                          className="absolute -top-2 -right-2 w-3 h-3 min-w-[12px] text-[10px]" 
+                        />
+                      )}
+                    </div>
+                    <span className="flex-1">{getPackageName()}</span>
+                  </CardTitle>
+                </div>
+
+                {/* Priority Action Button */}
+                <div className="mb-3">
+                  <TravelerPackagePriorityActions
+                    pkg={pkg}
+                    onQuote={onQuote}
+                    onConfirmReceived={handleConfirmReceivedClick}
+                    onConfirmOfficeDelivery={handleConfirmOfficeDeliveryClick}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <CardDescription className="text-xs sm:text-sm leading-tight">
+                      <span className="block sm:truncate">{getPackageDescription()}</span>
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-col items-end text-right">
+                      {getStatusBadge(pkg.status)}
+                      
+                      {/* Status message */}
+                      <div className="text-xs mt-1 max-w-48">
+                        {pkg.status === 'quote_sent' && (
+                          <div className="text-muted-foreground">
+                            Cotización enviada - Esperando respuesta del shopper
+                          </div>
+                        )}
+                        {pkg.status === 'quote_accepted' && (
+                          <div className="font-medium text-green-600">
+                            ✅ Cotización aceptada - Esperando confirmación de pago
+                          </div>
+                        )}
+                        {pkg.status === 'payment_confirmed' && (
+                          <div className="font-medium text-blue-600">
+                            💳 Pago confirmado - Esperando que el shopper envíe el paquete
+                          </div>
+                        )}
+                        {pkg.status === 'in_transit' && (
+                          <div className="font-medium text-orange-600">
+                            🚚 En tránsito
+                          </div>
+                        )}
+                        {pkg.status === 'received_by_traveler' && (
+                          <div className="font-medium text-green-600">
+                            ✅ Paquete recibido y confirmado
+                            {pkg.traveler_confirmation?.confirmedAt && (
+                              <div className="text-muted-foreground mt-0.5">
+                                Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
+                    </div>
+                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                   </div>
                 </div>
-                {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-              </div>
-            </div>
+              </>
+            )}
           </CardHeader>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
           <CardContent className={`pt-0 pb-1 ${isMobile ? 'px-2' : 'px-4'}`}>
 
-            <div className="grid gap-4 lg:grid-cols-5">
-              {/* Left section with tabs */}
-              <div className="lg:col-span-3">
+            {isMobile ? (
+              // Mobile optimized content layout
+              <div className="space-y-4">
+                {/* Mobile tabs - horizontal scroll for better UX */}
                 <Tabs defaultValue="producto" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-3">
-                    <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                      <Package className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Producto</span>
+                  <TabsList className="grid w-full grid-cols-4 h-8 mb-3">
+                    <TabsTrigger value="producto" className="flex items-center gap-1 text-xs px-1 py-1">
+                      <Package className="h-3 w-3" />
+                      <span className="hidden xs:inline">Producto</span>
                     </TabsTrigger>
-                    <TabsTrigger value="estado" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Estado</span>
+                    <TabsTrigger value="estado" className="flex items-center gap-1 text-xs px-1 py-1">
+                      <Clock className="h-3 w-3" />
+                      <span className="hidden xs:inline">Estado</span>
                     </TabsTrigger>
-                    <TabsTrigger value="docs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                      <FileText className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Docs</span>
+                    <TabsTrigger value="docs" className="flex items-center gap-1 text-xs px-1 py-1">
+                      <FileText className="h-3 w-3" />
+                      <span className="hidden xs:inline">Docs</span>
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Chat</span>
+                    <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-1 py-1">
+                      <MessageCircle className="h-3 w-3" />
+                      <span className="hidden xs:inline">Chat</span>
                     </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="producto" className="mt-0">
-                    <TravelerPackageDetails pkg={pkg} />
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <TravelerPackageDetails pkg={pkg} />
+                    </div>
                   </TabsContent>
                   
-                  
                   <TabsContent value="estado" className="mt-0">
-                    {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                    {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) ? (
                       <div className="bg-muted/30 rounded-lg p-3">
                         <TravelerPackageTimeline currentStatus={pkg.status} />
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
+                        <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
+                        <p>Estado disponible después de aceptar cotización</p>
                       </div>
                     )}
                   </TabsContent>
                   
                   <TabsContent value="docs" className="mt-0">
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {/* Comprobante de Compra */}
-                      {pkg.purchase_confirmation && (
+                      {pkg.purchase_confirmation ? (
                         <div className="bg-card border rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-2">
                             <FileText className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-sm">Comprobante de Compra</span>
+                            <span className="font-medium text-sm">Comprobante</span>
                           </div>
                           <div className="text-xs text-muted-foreground mb-2">
-                            Archivo: {pkg.purchase_confirmation.filename || 'Comprobante subido'}
+                            {pkg.purchase_confirmation.filename || 'Archivo subido'}
                           </div>
                           {pkg.purchase_confirmation.filePath && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs"
+                              className="h-7 text-xs w-full"
                               onClick={async () => {
                                 try {
                                   const { data, error } = await supabase.storage
@@ -276,26 +362,26 @@ const CollapsibleTravelerPackageCard = ({
                               }}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
-                              Ver Documento
+                              Ver
                             </Button>
                           )}
                         </div>
-                      )}
+                      ) : null}
 
                       {/* Información de Seguimiento */}
-                      {pkg.tracking_info && pkg.tracking_info.trackingNumber && (
+                      {pkg.tracking_info?.trackingNumber ? (
                         <div className="bg-card border rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-2">
                             <Package className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-sm">Información de Seguimiento</span>
+                            <span className="font-medium text-sm">Seguimiento</span>
                           </div>
-                          <div className="space-y-1 text-xs">
-                            <div>
-                              <span className="text-muted-foreground">Número de seguimiento:</span>
+                          <div className="text-xs space-y-1">
+                            <div className="truncate">
+                              <span className="text-muted-foreground">Número:</span>
                               <span className="ml-1 font-mono">{pkg.tracking_info.trackingNumber}</span>
                             </div>
                             {pkg.tracking_info.shippingCompany && (
-                              <div>
+                              <div className="truncate">
                                 <span className="text-muted-foreground">Empresa:</span>
                                 <span className="ml-1">{pkg.tracking_info.shippingCompany}</span>
                               </div>
@@ -303,7 +389,7 @@ const CollapsibleTravelerPackageCard = ({
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs mt-2"
+                              className="h-7 text-xs w-full mt-2"
                               onClick={() => openDocumentModal('Información de Seguimiento', '', 'tracking', pkg.tracking_info)}
                             >
                               <ExternalLink className="h-3 w-3 mr-1" />
@@ -311,16 +397,14 @@ const CollapsibleTravelerPackageCard = ({
                             </Button>
                           </div>
                         </div>
-                      )}
-
-                      {/* Comprobante de Pago - Solo visible para admins, NO para viajeros */}
+                      ) : null}
 
                       {/* Estado cuando no hay documentos */}
-                      {!pkg.purchase_confirmation && !pkg.tracking_info?.trackingNumber && !pkg.payment_receipt && (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">
-                          <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                          <p>No hay documentos disponibles aún.</p>
-                          <p className="text-xs mt-1">Los documentos aparecerán aquí cuando el shopper los suba.</p>
+                      {!pkg.purchase_confirmation && !pkg.tracking_info?.trackingNumber && (
+                        <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
+                          <FileText className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
+                          <p>Sin documentos</p>
+                          <p className="text-xs mt-1">Aparecerán cuando el shopper los suba</p>
                         </div>
                       )}
                     </div>
@@ -328,25 +412,164 @@ const CollapsibleTravelerPackageCard = ({
                   
                   <TabsContent value="chat" className="mt-0">
                     {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) ? (
-                      <PackageTimeline pkg={pkg} />
+                      <div className="bg-muted/30 rounded-lg">
+                        <PackageTimeline pkg={pkg} />
+                      </div>
                     ) : (
-                      <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                        El chat estará disponible una vez que se acepte la cotización.
+                      <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
+                        <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
+                        <p>Chat disponible tras aceptar cotización</p>
                       </div>
                     )}
                   </TabsContent>
                 </Tabs>
+
+                {/* Traveler Confirmation - Mobile optimized */}
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <TravelerConfirmationDisplay 
+                    pkg={pkg} 
+                    onConfirmReceived={handleConfirmReceived}
+                  />
+                </div>
               </div>
-              
-              {/* Right section */}
-              <div className="lg:col-span-2 space-y-3">
-                {/* Traveler Confirmation Display */}
-                <TravelerConfirmationDisplay 
-                  pkg={pkg} 
-                  onConfirmReceived={handleConfirmReceived}
-                />
+            ) : (
+              // Desktop layout (unchanged)
+              <div className="grid gap-4 lg:grid-cols-5">
+                {/* Left section with tabs */}
+                <div className="lg:col-span-3">
+                  <Tabs defaultValue="producto" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4 mb-3">
+                      <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                        <Package className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Producto</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="estado" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Estado</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="docs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                        <FileText className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Docs</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Chat</span>
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="producto" className="mt-0">
+                      <TravelerPackageDetails pkg={pkg} />
+                    </TabsContent>
+                    
+                    <TabsContent value="estado" className="mt-0">
+                      {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <TravelerPackageTimeline currentStatus={pkg.status} />
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="docs" className="mt-0">
+                      <div className="space-y-3">
+                        {/* Comprobante de Compra */}
+                        {pkg.purchase_confirmation && (
+                          <div className="bg-card border rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <span className="font-medium text-sm">Comprobante de Compra</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-2">
+                              Archivo: {pkg.purchase_confirmation.filename || 'Comprobante subido'}
+                            </div>
+                            {pkg.purchase_confirmation.filePath && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs"
+                                onClick={async () => {
+                                  try {
+                                    const { data, error } = await supabase.storage
+                                      .from('purchase-confirmations')
+                                      .createSignedUrl(pkg.purchase_confirmation.filePath, 3600);
+                                    if (!error && data?.signedUrl) {
+                                      openDocumentModal('Comprobante de Compra', data.signedUrl, 'image');
+                                    }
+                                  } catch (e) {
+                                    console.error('Error generating signed URL', e);
+                                  }
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Ver Documento
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Información de Seguimiento */}
+                        {pkg.tracking_info && pkg.tracking_info.trackingNumber && (
+                          <div className="bg-card border rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="h-4 w-4 text-primary" />
+                              <span className="font-medium text-sm">Información de Seguimiento</span>
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Número de seguimiento:</span>
+                                <span className="ml-1 font-mono">{pkg.tracking_info.trackingNumber}</span>
+                              </div>
+                              {pkg.tracking_info.shippingCompany && (
+                                <div>
+                                  <span className="text-muted-foreground">Empresa:</span>
+                                  <span className="ml-1">{pkg.tracking_info.shippingCompany}</span>
+                                </div>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs mt-2"
+                                onClick={() => openDocumentModal('Información de Seguimiento', '', 'tracking', pkg.tracking_info)}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Ver Detalles
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Estado cuando no hay documentos */}
+                        {!pkg.purchase_confirmation && !pkg.tracking_info?.trackingNumber && !pkg.payment_receipt && (
+                          <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">
+                            <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                            <p>No hay documentos disponibles aún.</p>
+                            <p className="text-xs mt-1">Los documentos aparecerán aquí cuando el shopper los suba.</p>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="chat" className="mt-0">
+                      {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) ? (
+                        <PackageTimeline pkg={pkg} />
+                      ) : (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
+                          El chat estará disponible una vez que se acepte la cotización.
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+                
+                {/* Right section */}
+                <div className="lg:col-span-2 space-y-3">
+                  {/* Traveler Confirmation Display */}
+                  <TravelerConfirmationDisplay 
+                    pkg={pkg} 
+                    onConfirmReceived={handleConfirmReceived}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Card>
