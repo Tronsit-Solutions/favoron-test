@@ -114,8 +114,9 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
 
         {/* Delivery Method */}
         <div>
-          <div className="text-sm font-bold mb-1">ENTREGA:</div>
-          <div className="text-sm">{getDeliveryMethodText()}</div>
+          <div className="text-sm">
+            <span className="font-bold">ENTREGA:</span> {getDeliveryMethodText()}
+          </div>
         </div>
 
         {/* Delivery Address (only for delivery) */}
