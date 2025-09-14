@@ -105,9 +105,9 @@ const CollapsiblePackageCard = ({
       case 'pending_approval':
         return 'Esperando aprobación del administrador';
       case 'approved':
-        return 'Aprobado - Esperando emparejamiento con traveler';
+        return "Aprobado - Esperando emparejamiento con viajero";
       case 'matched':
-        return 'Emparejado con traveler - Esperando cotización';
+        return "Emparejado con viajero - Esperando cotización";
       case 'quote_sent':
         const isExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date();
         if (isExpired) {
@@ -121,7 +121,7 @@ const CollapsiblePackageCard = ({
       case 'payment_pending_approval':
         return 'Pago enviado - Esperando aprobación';
       case 'payment_confirmed':
-        return 'Pago confirmado - Traveler comprará el producto';
+        return "Pago confirmado - Viajero comprará el producto";
       case 'pending_purchase':
         return 'Pendiente de compra - Sube el comprobante';
       case 'purchased':
@@ -129,7 +129,7 @@ const CollapsiblePackageCard = ({
       case 'in_transit':
         return 'En tránsito hacia Guatemala';
       case 'received_by_traveler':
-        return 'Recibido por traveler';
+        return "Recibido por viajero";
       case 'pending_office_confirmation':
         return 'Entregado - Esperando confirmación de oficina';
       case 'delivered_to_office':
