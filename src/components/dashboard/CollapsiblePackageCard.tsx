@@ -279,7 +279,7 @@ const CollapsiblePackageCard = ({
                 </CardDescription>
                 
                 {/* Action buttons - responsive layout */}
-                <div className="flex flex-wrap gap-1 sm:gap-2 flex-shrink-0">
+                <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
                   {pkg.status === 'quote_expired' && onRequestRequote && (
                     <Button
                       size="sm"
@@ -287,7 +287,7 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         onRequestRequote(pkg);
                       }}
-                      className="text-xs sm:text-sm"
+                      className="text-xs sm:text-sm w-full sm:w-auto"
                     >
                       Recotizar
                     </Button>
@@ -310,7 +310,7 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         setShowDeleteDialog(true);
                       }}
-                      className="text-xs sm:text-sm"
+                      className="text-xs sm:text-sm w-full sm:w-auto"
                     >
                       <span className="hidden sm:inline">Eliminar pedido</span>
                       <span className="sm:hidden">Eliminar</span>
