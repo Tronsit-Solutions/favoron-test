@@ -416,8 +416,8 @@ const QuoteDialog = ({
                      
                      {/* Price Breakdown */}
                      <div className="mt-3 pt-2 border-t border-green-200">
-                       <p className="text-xs font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
-                       <div className="space-y-1 text-xs text-green-700">
+                       <p className="text-sm font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
+                       <div className="space-y-1 text-sm text-green-700">
                          {(() => {
                            const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
                            const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
@@ -446,7 +446,7 @@ const QuoteDialog = ({
                                     const savings = standardServiceFee - primeServiceFee;
                                     if (savings > 0) {
                                       return (
-                                        <div className="flex justify-between text-xs text-green-600 font-medium">
+                                        <div className="flex justify-between text-sm text-green-600 font-medium">
                                           <span className="flex items-center gap-1">
                                             <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                                             Descuento Prime:
