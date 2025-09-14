@@ -120,100 +120,103 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         </div>
       )}
       <CardHeader className="pb-3 md:pb-6">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 md:gap-0">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-base md:text-lg font-semibold leading-tight mb-2 break-words">
-              {trip.from_city} → {trip.to_city}
-            </CardTitle>
-            <CardDescription className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs md:text-sm text-black">
-              <TripDate arrivalDate={trip.arrival_date} />
-              <span className="hidden md:inline">•</span>
-              <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
-              
-              {/* Botón de crear orden de pago en el preview */}
-              {shouldShowPaymentButton && (
-                <>
-                  <span className="hidden md:inline">•</span>
-                  <Button 
-                    size="sm"
-                    variant="default"
-                    onClick={() => setShowBankingModal(true)}
-                    disabled={isCreating}
-                    className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Banknote className="h-3 w-3 mr-1" />
-                    <span className="whitespace-nowrap">
-                      {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
-                    </span>
-                  </Button>
-                </>
-              )}
-            </CardDescription>
+        <div className="flex flex-col gap-4">
+          {/* Trip Route and Status - Mobile Optimized */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
+                {trip.from_city} → {trip.to_city}
+              </CardTitle>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {getStatusBadge(trip.status)}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowDetailModal(true)}
+                className="h-8 w-8 p-0 hover:bg-muted/50"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center justify-end gap-2 flex-shrink-0">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowDetailModal(true)}
-              className="h-8 w-8 md:h-8 md:px-2 p-0 md:p-auto"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-            {getStatusBadge(trip.status)}
+
+          {/* Trip Details - Reorganized for better mobile experience */}
+          <div className="space-y-3">
+            {/* Date and Reception Window */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <TripDate arrivalDate={trip.arrival_date} />
+              </div>
+              <span className="hidden sm:inline text-muted-foreground">•</span>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
+              </div>
+            </div>
+
+            {/* Payment Request Button - More prominent */}
+            {shouldShowPaymentButton && (
+              <div className="flex justify-start">
+                <Button 
+                  size="sm"
+                  variant="default"
+                  onClick={() => setShowBankingModal(true)}
+                  disabled={isCreating}
+                  className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white hover-scale"
+                >
+                  <Banknote className="h-3 w-3 mr-1" />
+                  <span className="font-medium">
+                    {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
+                  </span>
+                </Button>
+              </div>
+            )}
+
+            {/* Action Buttons - Better organized */}
+            <div className="flex flex-wrap gap-2">
+              {/* Edit button for early stage trips */}
+              {canEdit && onEditTrip && (
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowEditModal(true)}
+                  className="h-8 px-3 text-xs hover-scale"
+                >
+                  <Edit className="h-3 w-3 mr-1" />
+                  <span>Editar viaje</span>
+                </Button>
+              )}
+              
+              {/* Delivery confirmation button */}
+              {canConfirmDelivery && travelerProfile && (
+                <Button 
+                  size="sm"
+                  variant="default"
+                  onClick={() => setShowDeliveryModal(true)}
+                  className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
+                >
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <span className="whitespace-nowrap">Confirmar entrega</span>
+                </Button>
+              )}
+            </div>
+
+            {/* Creation Date - Less prominent */}
+            <div className="text-xs text-muted-foreground/70">
+              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+            </div>
           </div>
         </div>
       </CardHeader>
       {hasDeliveredPackages && (
         <CardContent className="pt-0">
-          <div className="space-y-3">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-              <span className="text-xs text-muted-foreground order-2 md:order-1">
-                Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-              </span>
-              
-              <div className="flex flex-wrap gap-2 order-1 md:order-2">
-                {/* Edit button for early stage trips */}
-                {canEdit && onEditTrip && (
-                  <Button 
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowEditModal(true)}
-                    className="h-8 px-3 text-xs flex-shrink-0"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    <span>Editar</span>
-                  </Button>
-                )}
-                
-                {/* Delivery confirmation button */}
-                {canConfirmDelivery && travelerProfile && (
-                  <Button 
-                    size="sm"
-                    variant="default"
-                    onClick={() => setShowDeliveryModal(true)}
-                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 flex-shrink-0"
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    <span className="whitespace-nowrap">Confirmar entrega</span>
-                  </Button>
-                )}
-
-              </div>
-            </div>
-
+          <div className="space-y-4">
             {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
             {(() => {
               const shouldShow = currentUser?.id === trip.user_id;
-              console.log('🔍 TripCard - Payment summary condition check:', {
-                tripId: trip.id,
-                currentUserId: currentUser?.id,
-                tripUserId: trip.user_id,
-                shouldShow,
-                tripDetails: { from_city: trip.from_city, to_city: trip.to_city, departure_date: trip.departure_date }
-              });
               return shouldShow;
             })() && (
-              <div className="mt-3 pt-3 border-t border-border/50">
+              <div className="bg-muted/30 rounded-lg p-3 animate-fade-in">
                 <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
               </div>
             )}
