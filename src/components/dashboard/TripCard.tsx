@@ -121,7 +121,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       )}
       <CardHeader className="pb-3 md:pb-6">
         <div className="flex flex-col gap-4">
-          {/* Trip Route and Status - Mobile Optimized */}
+          {/* Trip Route - Mobile Optimized */}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
@@ -129,7 +129,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {getStatusBadge(trip.status)}
               <Button
                 size="sm"
                 variant="ghost"
@@ -212,9 +211,14 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               )}
             </div>
 
-            {/* Creation Date - Less prominent */}
-            <div className="text-xs text-muted-foreground/70">
-              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+            {/* Creation Date and Status Badge */}
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground/70">
+                Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+              </div>
+              <div className="flex-shrink-0">
+                {getStatusBadge(trip.status)}
+              </div>
             </div>
           </div>
         </div>
