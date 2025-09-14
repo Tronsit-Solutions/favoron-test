@@ -650,7 +650,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 handleConfirmOfficeReception(packageId);
                               }}
                               hasPendingAction={hasPendingAction}
-                              autoExpand={hasPendingAction || hasCountdown}
+                              autoExpand={false}
                             />
                           );
                         })}
