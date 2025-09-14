@@ -254,7 +254,34 @@ const CollapsiblePackageCard = ({
                       <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                       {pkg.item_description || 'Sin descripción'}
                     </span>
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Action buttons for header */}
+                      {pkg.status === 'quote_expired' && onRequestRequote && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRequestRequote(pkg);
+                          }}
+                          className="text-xs"
+                        >
+                          Recotizar
+                        </Button>
+                      )}
+                      {pkg.status === 'rejected' && onDeletePackage && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteDialog(true);
+                          }}
+                          className="text-xs"
+                        >
+                          Eliminar
+                        </Button>
+                      )}
                       {needsAction && (
                         <NotificationBadge count={1} />
                       )}
