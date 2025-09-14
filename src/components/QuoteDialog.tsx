@@ -383,6 +383,28 @@ const QuoteDialog = ({
               </div>
             </div>}
 
+          {/* Traveler Address Preview - Show only for shoppers viewing existing quotes */}
+          {existingQuote && userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
+            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 shadow-md">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="space-y-2">
+                  <p className="font-semibold text-yellow-800">📍 Ubicación General del Viajero</p>
+                  <p className="text-sm text-yellow-700">
+                    <strong>Dirección aproximada:</strong> {packageDetails.traveler_address.streetAddress}
+                    {packageDetails.traveler_address.cityArea && `, ${packageDetails.traveler_address.cityArea}`}
+                  </p>
+                  <div className="bg-yellow-100 border border-yellow-300 rounded p-3 mt-2">
+                    <p className="text-xs text-yellow-800 font-medium">
+                      ⚠️ <strong>IMPORTANTE:</strong> Esta NO es la dirección de envío final. 
+                      La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Existing Quote Display */}
           {existingQuote && <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
