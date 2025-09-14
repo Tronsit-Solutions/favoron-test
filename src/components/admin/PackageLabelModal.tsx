@@ -17,11 +17,11 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
   const generatePDF = () => {
     if (!labelRef.current) return;
 
-    // Create PDF with 1x1.5 inch dimensions (72x108 points at 72 DPI)
+    // Create PDF with 4x6 inch dimensions (288x432 points at 72 DPI)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: [72, 108]
+      format: [288, 432]
     });
 
     // Get the label element
@@ -36,8 +36,8 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       },
       x: 0,
       y: 0,
-      width: 72,
-      windowWidth: 72,
+      width: 288,
+      windowWidth: 288,
       html2canvas: {
         scale: 2,
         useCORS: true,

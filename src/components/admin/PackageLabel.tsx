@@ -75,45 +75,68 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
   return (
     <div className={`bg-white border-2 border-black ${className}`} 
          style={{ 
-           width: '1in', 
-           height: '1.5in', 
+           width: '4in', 
+           height: '6in', 
            fontFamily: 'monospace',
-           fontSize: '3px',
-           lineHeight: '1.1'
+           fontSize: '12px',
+           lineHeight: '1.2'
          }}>
       {/* Header with Logo */}
-      <div className="text-center py-1 border-b border-black">
+      <div className="text-center py-4 border-b border-black">
         <img 
           src="/favoron-logo.jpg" 
           alt="Favorón"
-          className="h-3 mx-auto mb-1"
+          className="h-12 mx-auto mb-2"
           style={{ filter: 'grayscale(100%)' }}
         />
-        <div className="text-xs font-bold">ETIQUETA</div>
+        <div className="text-lg font-bold">ETIQUETA PEDIDO</div>
       </div>
 
       {/* Content */}
-      <div className="p-1 space-y-1">
-        {/* Package Info - Compact */}
+      <div className="p-4 space-y-3">
+        {/* Package Info - Unified Section */}
         <div>
-          <div className="font-bold">ID: {getPackageId()}</div>
-          <div className="break-words">{pkg.item_description}</div>
-          <div>${getPackagePrice()}</div>
+          <div className="text-sm font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
+          <div className="text-xs break-words space-y-1">
+            <div><strong>Descripción:</strong> {pkg.item_description}</div>
+            <div><strong>ID:</strong> {getPackageId()}</div>
+            <div><strong>Precio Total:</strong> {getPackagePrice()}</div>
+            <div><strong>Cantidad:</strong> {getTotalQuantity()}</div>
+          </div>
         </div>
 
-        {/* Shopper */}
+        {/* Shopper Info */}
         <div>
-          <span className="font-bold">SHOPPER:</span> {getShopperName()}
+          <div className="text-sm">
+            <span className="font-bold">SHOPPER:</span> {getShopperName()}
+          </div>
         </div>
 
-        {/* Delivery */}
+        {/* Delivery Method */}
         <div>
-          <span className="font-bold">ENTREGA:</span> {getDeliveryMethodText()}
+          <div className="text-sm">
+            <span className="font-bold">ENTREGA:</span> {getDeliveryMethodText()}
+          </div>
         </div>
 
-        {/* Date */}
-        <div className="pt-1 border-t border-gray-400">
-          <div>{getCreationDate()}</div>
+        {/* Delivery Address (only for delivery) */}
+        {pkg.delivery_method === 'delivery' && getDeliveryAddress() && (
+          <div>
+            <div className="text-sm font-bold mb-1">DIRECCIÓN:</div>
+            <div className="text-xs break-words">{getDeliveryAddress()}</div>
+          </div>
+        )}
+
+        {/* Dates */}
+        <div className="pt-2 border-t border-gray-400 space-y-2">
+          <div>
+            <div className="text-sm font-bold mb-1">FECHA PEDIDO:</div>
+            <div className="text-xs">{getCreationDate()}</div>
+          </div>
+          <div>
+            <div className="text-sm font-bold mb-1">FECHA ETIQUETA:</div>
+            <div className="text-xs">{new Date().toLocaleDateString('es-GT')}</div>
+          </div>
         </div>
       </div>
     </div>
