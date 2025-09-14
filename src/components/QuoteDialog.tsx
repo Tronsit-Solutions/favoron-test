@@ -239,23 +239,28 @@ const QuoteDialog = ({
               <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
             </div>
-            <div className="text-sm sm:text-sm ml-4 sm:ml-7 space-y-2 overflow-x-hidden">{/* Reduce left margin and force no overflow */}
-                <div className="bg-background/80 rounded-lg p-2 max-w-full break-words">{/* Add break-words for long text */}
-                <p className="font-medium text-foreground"><strong>Producto:</strong></p>
-                <p className="text-muted-foreground leading-relaxed">{packageDetails.item_description}</p>
-              </div>
-              <div className="bg-background/80 rounded-lg p-2 max-w-full overflow-hidden">{/* Add overflow control */}
-                <div className="w-full space-y-2">{/* Remove flex-1 and make full width */}
-                  <p className="font-medium text-foreground mb-2"><strong>Información de precios:</strong></p>
-                  {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? <div className="space-y-2">
-                      {packageDetails.products_data.map((product: any, index: number) => {
-                    const quantity = parseInt(product.quantity || '1');
-                    const unitPrice = parseFloat(product.estimatedPrice || '0');
-                    const totalPrice = quantity * unitPrice;
+            <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
+              {/* Unified container for all package details */}
+              <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
+                {/* Product Description */}
+                <div>
+                  <p className="font-medium text-foreground mb-2"><strong>Producto:</strong></p>
+                  <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
+                </div>
 
-                    // Always use adminAssignedTip from products_data
-                    const adminTip = parseFloat(product.adminAssignedTip || '0');
-                    return <div key={index} className="bg-muted/30 rounded p-3 max-w-full overflow-hidden">
+                {/* Pricing Information */}
+                <div>
+                  <p className="font-medium text-foreground mb-3"><strong>Información de precios:</strong></p>
+                  {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
+                    <div className="space-y-3">
+                      {packageDetails.products_data.map((product: any, index: number) => {
+                        const quantity = parseInt(product.quantity || '1');
+                        const unitPrice = parseFloat(product.estimatedPrice || '0');
+                        const totalPrice = quantity * unitPrice;
+                        const adminTip = parseFloat(product.adminAssignedTip || '0');
+                        
+                        return (
+                          <div key={index} className="border border-muted rounded-lg p-3 bg-muted/20">
                             <p className="text-sm font-medium text-foreground mb-3">
                               Producto {index + 1}: {product.itemDescription}
                             </p>
@@ -263,9 +268,11 @@ const QuoteDialog = ({
                               <div className="text-sm text-foreground space-y-2 flex-1 min-w-0">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
                                 <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
-                                {quantity > 1 && <p className="text-sm text-primary font-medium">
+                                {quantity > 1 && (
+                                  <p className="text-sm text-primary font-medium">
                                     ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
-                                  </p>}
+                                  </p>
+                                )}
                                 {product.itemLink && (
                                   <p className="text-sm">
                                     <strong>Link:</strong>{' '}
@@ -284,43 +291,56 @@ const QuoteDialog = ({
                                 </p>
                               </div>
                               <div className="text-right flex-shrink-0">
-                                {adminTip > 0 ? <div>
-                                    {isTravelerContext ?
-                            // Traveler sees base tip
-                            <>
+                                {adminTip > 0 ? (
+                                  <div>
+                                    {isTravelerContext ? (
+                                      <>
                                         <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
                                         <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                      </> :
-                            // Shopper sees quote amount (tip × 1.4)
-                            <>
-                                      </>}
-                                  </div> : <p className="text-sm text-muted-foreground">Sin tip</p>}
+                                      </>
+                                    ) : (
+                                      <></>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">Sin tip</p>
+                                )}
                               </div>
                             </div>
-                          </div>;
-                  })}
+                          </div>
+                        );
+                      })}
                       
                       {/* Total general si hay múltiples productos */}
-                      {packageDetails.products_data.length > 1 && <div className="border-t pt-2 mt-2">
+                      {packageDetails.products_data.length > 1 && (
+                        <div className="border-t pt-3 mt-3">
                           <div className="flex justify-between items-center">
                             <p className="font-medium text-foreground">
                               <strong>Total del pedido:</strong> ${packageDetails.products_data.reduce((sum: number, product: any) => {
-                          const quantity = parseInt(product.quantity || '1');
-                          const unitPrice = parseFloat(product.estimatedPrice || '0');
-                          return sum + quantity * unitPrice;
-                        }, 0).toFixed(2)}
+                                const quantity = parseInt(product.quantity || '1');
+                                const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                return sum + quantity * unitPrice;
+                              }, 0).toFixed(2)}
                             </p>
                           </div>
-                          {displayAmount && <div className="flex justify-between items-center mt-1">
-                              {isTravelerContext ? <>
+                          {displayAmount && (
+                            <div className="flex justify-between items-center mt-1">
+                              {isTravelerContext ? (
+                                <>
                                   <p className="font-medium text-green-600">Tip total:</p>
                                   <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
-                                </> : <>
-                                </>}
-                            </div>}
-                        </div>}
-                    </div> : <div className="flex justify-between items-center">
-                      <div className="text-sm text-muted-foreground">
+                                </>
+                              ) : (
+                                <></>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-foreground">
                         <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
                         <p><strong>Cantidad:</strong> 1 unidad</p>
                       </div>
@@ -329,21 +349,31 @@ const QuoteDialog = ({
                           <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
                           <p className="text-xs text-muted-foreground">Total</p>
                         </div>
-                        {displayAmount && <div>
-                            {isTravelerContext ? <>
+                        {displayAmount && (
+                          <div>
+                            {isTravelerContext ? (
+                              <>
                                 <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
                                 <p className="text-xs text-muted-foreground">Tip asignado</p>
-                              </> : <>
-                              </>}
-                          </div>}
+                              </>
+                            ) : (
+                              <></>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>}
+                    </div>
+                  )}
                 </div>
+
+                {/* Additional Notes */}
+                {packageDetails.additional_notes && (
+                  <div>
+                    <p className="font-medium text-foreground mb-2"><strong>Notas adicionales:</strong></p>
+                    <p className="text-foreground leading-relaxed">{packageDetails.additional_notes}</p>
+                  </div>
+                )}
               </div>
-              {packageDetails.additional_notes && <div className="bg-background/80 rounded-lg p-2">
-                  <p className="font-medium text-foreground mb-1"><strong>Notas adicionales:</strong></p>
-                  <p className="text-muted-foreground leading-relaxed">{packageDetails.additional_notes}</p>
-                </div>}
             </div>
           </div>
 
