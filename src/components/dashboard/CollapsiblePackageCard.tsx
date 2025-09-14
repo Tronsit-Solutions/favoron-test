@@ -267,7 +267,17 @@ const CollapsiblePackageCard = ({
                           Recotizar
                         </Button>
                       )}
-                      {pkg.status === 'rejected' && onDeletePackage && (
+                      {onDeletePackage && [
+                        'pending_approval',
+                        'approved', 
+                        'matched',
+                        'quote_sent',
+                        'quote_accepted',
+                        'quote_rejected',
+                        'quote_expired',
+                        'payment_pending',
+                        'payment_pending_approval'
+                      ].includes(pkg.status) && (
                         <Button
                           size="sm"
                           variant="destructive"
@@ -275,9 +285,8 @@ const CollapsiblePackageCard = ({
                             e.stopPropagation();
                             setShowDeleteDialog(true);
                           }}
-                          className="text-xs font-medium"
                         >
-                          Eliminar
+                          Eliminar pedido
                         </Button>
                       )}
                       {needsAction && (
