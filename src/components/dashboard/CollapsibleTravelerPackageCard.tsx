@@ -162,6 +162,11 @@ const CollapsibleTravelerPackageCard = ({
 
                 {/* Status message - mobile optimized */}
                 <div className="text-xs">
+                  {pkg.status === 'matched' && (
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-md">
+                      🔗 Paquete emparejado - Envía tu cotización
+                    </div>
+                  )}
                   {pkg.status === 'quote_sent' && (
                     <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
                       📝 Cotización enviada - Esperando respuesta del shopper
@@ -179,7 +184,7 @@ const CollapsibleTravelerPackageCard = ({
                   )}
                   {pkg.status === 'in_transit' && (
                     <div className="text-orange-600 bg-orange-50 p-2 rounded-md">
-                      🚚 En tránsito
+                      🚚 En tránsito - Confirma cuando recibas
                     </div>
                   )}
                   {pkg.status === 'received_by_traveler' && (
@@ -190,6 +195,36 @@ const CollapsibleTravelerPackageCard = ({
                           {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
                         </div>
                       )}
+                    </div>
+                  )}
+                  {pkg.status === 'pending_office_confirmation' && (
+                    <div className="text-amber-600 bg-amber-50 p-2 rounded-md">
+                      ⏳ Entregado - Esperando confirmación de oficina
+                    </div>
+                  )}
+                  {pkg.status === 'delivered_to_office' && (
+                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
+                      🏢 Entregado en oficina - Listo para recojo
+                    </div>
+                  )}
+                  {pkg.status === 'completed' && (
+                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
+                      ✅ Completado - Paquete entregado exitosamente
+                    </div>
+                  )}
+                  {pkg.status === 'cancelled' && (
+                    <div className="text-red-600 bg-red-50 p-2 rounded-md">
+                      ❌ Cancelado
+                    </div>
+                  )}
+                  {pkg.status === 'pending_approval' && (
+                    <div className="text-amber-600 bg-amber-50 p-2 rounded-md">
+                      ⏳ Pendiente de aprobación
+                    </div>
+                  )}
+                  {pkg.status === 'approved' && (
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-md">
+                      👍 Aprobado - Esperando emparejamiento
                     </div>
                   )}
                 </div>
