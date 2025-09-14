@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -448,10 +448,13 @@ const QuoteDialog = ({
                                     const savings = standardServiceFee - primeServiceFee;
                                     if (savings > 0) {
                                       return (
-                                        <div className="flex justify-between pt-1 text-xs text-green-600 font-medium">
-                                          <span>💎 Ahorro Prime:</span>
-                                          <span>-{formatCurrency(savings)}</span>
-                                        </div>
+                                         <div className="flex justify-between pt-1 text-xs text-green-600 font-medium">
+                                           <span className="flex items-center gap-1">
+                                             <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
+                                             Ahorro Prime:
+                                           </span>
+                                           <span>-{formatCurrency(savings)}</span>
+                                         </div>
                                       );
                                     }
                                   }
