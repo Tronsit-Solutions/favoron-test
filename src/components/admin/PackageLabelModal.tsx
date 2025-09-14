@@ -17,16 +17,20 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
   const generatePDF = () => {
     if (!labelRef.current) return;
 
-    // Create PDF with 4x6 inch dimensions (288x432 points at 72 DPI)
+    // Create PDF with letter size (8.5x11 inches = 612x792 points at 72 DPI)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: [288, 432]
+      format: 'letter'
     });
 
     // Get the hidden label element for PDF (full size, no scaling)
     const hiddenLabelElement = document.getElementById('hidden-pdf-label');
     if (!hiddenLabelElement) return;
+    
+    // Calculate position to center 4x6" label (288x432 pt) on letter paper (612x792 pt)
+    const centerX = (612 - 288) / 2; // 162 pt
+    const centerY = (792 - 432) / 2; // 180 pt
     
     // Use html2canvas equivalent - capture as image and add to PDF
     pdf.html(hiddenLabelElement, {
@@ -35,8 +39,8 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
         const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
       },
-      x: 0,
-      y: 0,
+      x: centerX,
+      y: centerY,
       width: 288,
       windowWidth: 288,
       html2canvas: {
