@@ -22,7 +22,7 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
   };
 
   const getDeliveryAddress = () => {
-    if (pkg.delivery_method === 'pickup' && pkg.confirmed_delivery_address) {
+    if (pkg.delivery_method === 'delivery' && pkg.confirmed_delivery_address) {
       const addr = pkg.confirmed_delivery_address;
       return [
         addr.streetAddress,
@@ -117,8 +117,8 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           <div className="text-sm">{getDeliveryMethodText()}</div>
         </div>
 
-        {/* Delivery Address (only for pickup) */}
-        {pkg.delivery_method === 'pickup' && getDeliveryAddress() && (
+        {/* Delivery Address (only for delivery) */}
+        {pkg.delivery_method === 'delivery' && getDeliveryAddress() && (
           <div>
             <div className="text-sm font-bold mb-1">DIRECCIÓN:</div>
             <div className="text-xs break-words">{getDeliveryAddress()}</div>
