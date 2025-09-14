@@ -132,7 +132,7 @@ export const MatchCard = ({
                       🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
                       {isShopperPrime() && (
                         <span title="Usuario Prime">
-                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                          <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                         </span>
                       )}
                     </span>
@@ -153,7 +153,7 @@ export const MatchCard = ({
                     🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
                     {isShopperPrime() && (
                       <span title="Usuario Prime">
-                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                        <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                       </span>
                     )}
                     {matchedTrip && (

@@ -403,7 +403,7 @@ const AdminMatchDialog = ({
                                 : selectedPackage.profiles?.username || 'Usuario'}
                               {isShopperPrime() && (
                                 <span title="Usuario Prime">
-                                  <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                  <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                                 </span>
                               )}
                               <span className="text-xs text-blue-600 ml-2">
