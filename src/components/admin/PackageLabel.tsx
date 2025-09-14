@@ -98,7 +98,7 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
           <div className="break-words space-y-1">
             <div><strong>Descripción:</strong> {pkg.item_description}</div>
-            <div><strong>ID:</strong> {getPackageId()}</div>
+            <div><strong>NO. DE SEGUIMIENTO:</strong> {getPackageId()}</div>
             <div><strong>Precio Total:</strong> {getPackagePrice()}</div>
             <div><strong>Cantidad:</strong> {getTotalQuantity()}</div>
           </div>
