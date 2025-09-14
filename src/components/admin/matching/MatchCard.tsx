@@ -15,7 +15,7 @@ import {
   ChevronDown, 
   ChevronRight,
   Settings,
-  Crown
+  Star
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -132,7 +132,7 @@ export const MatchCard = ({
                       🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
                       {isShopperPrime() && (
                         <span title="Usuario Prime">
-                          <Crown className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                         </span>
                       )}
                     </span>
@@ -153,7 +153,7 @@ export const MatchCard = ({
                     🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
                     {isShopperPrime() && (
                       <span title="Usuario Prime">
-                        <Crown className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                       </span>
                     )}
                     {matchedTrip && (

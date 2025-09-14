@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -293,6 +293,11 @@ const AdminMatchDialog = ({
     return 1; // Default quantity for single product
   };
 
+  const isShopperPrime = () => {
+    return selectedPackage?.profiles?.trust_level === 'prime' || 
+           (selectedPackage?.profiles?.prime_expires_at && new Date(selectedPackage.profiles.prime_expires_at) > new Date());
+  };
+
   const handleCloseDialog = () => {
     closeModal(MODAL_ID);
     setShowMatchDialog(false);
@@ -392,14 +397,19 @@ const AdminMatchDialog = ({
                         <User className="h-4 w-4 text-blue-600" />
                         <div>
                           <p className="text-xs text-blue-700">SHOPPER</p>
-                           <p className="font-medium text-sm text-blue-900">
-                             {selectedPackage.profiles?.first_name && selectedPackage.profiles?.last_name 
-                               ? `${selectedPackage.profiles.first_name} ${selectedPackage.profiles.last_name}`
-                               : selectedPackage.profiles?.username || 'Usuario'}
-                             <span className="text-xs text-blue-600 ml-2">
-                               (ID: {selectedPackage.user_id || 'N/A'})
-                             </span>
-                           </p>
+                           <p className="font-medium text-sm text-blue-900 flex items-center gap-1">
+                              {selectedPackage.profiles?.first_name && selectedPackage.profiles?.last_name 
+                                ? `${selectedPackage.profiles.first_name} ${selectedPackage.profiles.last_name}`
+                                : selectedPackage.profiles?.username || 'Usuario'}
+                              {isShopperPrime() && (
+                                <span title="Usuario Prime">
+                                  <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                </span>
+                              )}
+                              <span className="text-xs text-blue-600 ml-2">
+                                (ID: {selectedPackage.user_id || 'N/A'})
+                              </span>
+                            </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
