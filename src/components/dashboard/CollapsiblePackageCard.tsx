@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -219,13 +219,15 @@ const CollapsiblePackageCard = ({
                   {pkg.status === 'quote_expired' && onRequestRequote && (
                     <Button
                       size="sm"
+                      variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
                         onRequestRequote(pkg);
                       }}
-                      className="text-xs w-full"
+                      className="text-xs w-full flex items-center gap-2"
                     >
-                      Recotizar
+                      <RefreshCw className="h-3 w-3" />
+                      Solicitar Nueva Cotización
                     </Button>
                   )}
                   {onDeletePackage && [
@@ -333,16 +335,19 @@ const CollapsiblePackageCard = ({
                   {/* Action buttons - responsive layout */}
                   <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
                     {pkg.status === 'quote_expired' && onRequestRequote && (
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRequestRequote(pkg);
-                        }}
-                        className="text-xs sm:text-sm w-full sm:w-auto"
-                      >
-                        Recotizar
-                      </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRequestRequote(pkg);
+                      }}
+                      className="text-xs sm:text-sm w-full sm:w-auto flex items-center gap-2"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      <span className="hidden sm:inline">Solicitar Nueva Cotización</span>
+                      <span className="sm:hidden">Nueva Cotización</span>
+                    </Button>
                     )}
                     {onDeletePackage && [
                       'pending_approval',
