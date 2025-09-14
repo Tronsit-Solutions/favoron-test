@@ -594,7 +594,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                        <div>
                          <div className="text-xl font-bold text-primary">
                            Q{assignedPackages
-                             .filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status))
+                             .filter(pkg => ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status))
                              .reduce((sum, pkg) => {
                                const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
                                  ? (pkg as any).products_data.reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
