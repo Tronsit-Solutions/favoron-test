@@ -86,7 +86,7 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
         <img 
           src="/favoron-logo.jpg" 
           alt="Favorón"
-          className="h-6 mx-auto"
+          className="h-8 mx-auto"
           style={{ filter: 'grayscale(100%)' }}
         />
       </div>
