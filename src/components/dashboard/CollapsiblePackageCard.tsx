@@ -97,6 +97,7 @@ const CollapsiblePackageCard = ({
   );
 
   const getStatusDescription = (pkg: any): string => {
+    console.log('Package status:', pkg.status, 'Package:', pkg);
     const isExpired = expirationInfo?.type === 'quote_expired';
     
     switch (pkg.status) {
@@ -106,6 +107,8 @@ const CollapsiblePackageCard = ({
         return isExpired 
           ? 'La cotización expiró. Si quieres otra cotización haz click en recotizar.'
           : 'Revisa la cotización y decide si aceptarla o solicitar cambios.';
+      case 'quote_expired':
+        return 'La cotización expiró. Si quieres otra cotización haz click en recotizar.';
       case 'quote_accepted':
         return 'Cotización aceptada. Procede a realizar el pago para confirmar tu pedido.';
       case 'payment_pending':
@@ -118,6 +121,10 @@ const CollapsiblePackageCard = ({
         return 'Pedido comprado. Sube la información de envío cuando la recibas.';
       case 'shipped':
         return 'Tu pedido está en camino hacia nuestra oficina.';
+      case 'in_transit':
+        return 'Tu pedido está en tránsito hacia nuestra oficina.';
+      case 'received_by_traveler':
+        return 'El viajero ha recibido tu pedido y está en camino.';
       case 'arrived_at_office':
         return 'Tu pedido llegó a oficina. Esperando asignación de viajero.';
       case 'delivered_to_office':
@@ -139,7 +146,7 @@ const CollapsiblePackageCard = ({
       case 'matched':
         return 'Tu pedido fue asignado a un viajero. Pronto estará en camino.';
       default:
-        return 'Estado del pedido no reconocido.';
+        return `Estado: ${pkg.status || 'desconocido'}`;
     }
   };
 
