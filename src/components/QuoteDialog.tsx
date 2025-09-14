@@ -340,13 +340,6 @@ const QuoteDialog = ({
                     </div>}
                 </div>
               </div>
-              {packageDetails.item_link && <div className="bg-background/80 rounded-lg p-2">
-                  <p className="font-medium text-foreground mb-1"><strong>Enlace del producto:</strong></p>
-                  <a href={packageDetails.item_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary hover:underline font-medium">
-                    <ExternalLink className="h-4 w-4" />
-                    Ver producto
-                  </a>
-                </div>}
               {packageDetails.additional_notes && <div className="bg-background/80 rounded-lg p-2">
                   <p className="font-medium text-foreground mb-1"><strong>Notas adicionales:</strong></p>
                   <p className="text-muted-foreground leading-relaxed">{packageDetails.additional_notes}</p>
