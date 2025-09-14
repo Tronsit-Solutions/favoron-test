@@ -96,6 +96,49 @@ const CollapsiblePackageCard = ({
     // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
   );
 
+  const getStatusDescription = (pkg: any): string => {
+    switch (pkg.status) {
+      case 'pending':
+        return 'Esperando cotización';
+      case 'quote_sent':
+        return 'Cotización enviada - pendiente de respuesta';
+      case 'quote_accepted':
+        return 'Cotización aceptada - proceder con compra';
+      case 'payment_pending':
+        return 'Pago pendiente de confirmación';
+      case 'payment_pending_approval':
+        return 'Pago pendiente de aprobación';
+      case 'pending_purchase':
+        return 'Pendiente de compra';
+      case 'purchased':
+        return 'Comprado - esperando información de envío';
+      case 'shipped':
+        return 'Enviado - en tránsito';
+      case 'arrived_at_office':
+        return 'Llegó a oficina - esperando viajero';
+      case 'delivered_to_office':
+        return pkg.confirmed_delivery_address 
+          ? 'En oficina - pendiente de entrega'
+          : 'En oficina - pendiente de recoger';
+      case 'out_for_delivery':
+        return `En reparto en ${pkg.package_destination || 'destino'}`;
+      case 'delivered':
+        return 'Entregado exitosamente';
+      case 'completed':
+        return 'Completado';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'rejected':
+        return 'Rechazado';
+      case 'approved':
+        return 'Aprobado - esperando asignación de viajero';
+      case 'matched':
+        return 'Asignado a viajero';
+      default:
+        return pkg.status || 'Estado desconocido';
+    }
+  };
+
   const handleEditDocument = (type: 'purchase_confirmation' | 'tracking_info') => {
     setEditDocumentModal({ isOpen: true, documentType: type });
   };
@@ -211,7 +254,9 @@ const CollapsiblePackageCard = ({
                 <CardDescription className="text-xs sm:text-sm w-full min-w-0 overflow-hidden">
                   <div className="flex flex-col gap-1 w-full min-w-0">
                     <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
-                    
+                    <span className="truncate max-w-full text-muted-foreground">
+                      {getStatusDescription(pkg)}
+                    </span>
                   </div>
                 </CardDescription>
               </div>
