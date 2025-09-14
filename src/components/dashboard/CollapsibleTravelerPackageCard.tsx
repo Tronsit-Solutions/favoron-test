@@ -179,7 +179,12 @@ const CollapsibleTravelerPackageCard = ({
                   )}
                   {pkg.status === 'payment_confirmed' && (
                     <div className="text-blue-600 bg-blue-50 p-2 rounded-md">
-                      💳 Pago confirmado - Esperando envío
+                      💳 Pago confirmado - El cliente ya pagó la cotización y debes comprar el producto
+                    </div>
+                  )}
+                  {pkg.status === 'purchased' && (
+                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
+                      🛒 Producto comprado - Esperando envío del paquete
                     </div>
                   )}
                   {pkg.status === 'in_transit' && (
