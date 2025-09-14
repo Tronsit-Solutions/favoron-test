@@ -82,14 +82,13 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
            lineHeight: '1.2'
          }}>
       {/* Header with Logo */}
-      <div className="text-center py-4 border-b border-black">
+      <div className="text-center py-2 border-b border-black">
         <img 
           src="/favoron-logo.jpg" 
           alt="Favorón"
-          className="h-12 mx-auto mb-2"
+          className="h-6 mx-auto"
           style={{ filter: 'grayscale(100%)' }}
         />
-        
       </div>
 
       {/* Content */}
