@@ -104,9 +104,9 @@ const CollapsibleTravelerPackageCard = ({
       const total = pkg.products.reduce((sum: number, product: any) => 
         sum + parseFloat(product.estimatedPrice || 0), 0
       ).toFixed(2);
-      return `Total: $${total}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
+      return `Total: $${total}`;
     }
-    return `Precio: $${pkg.estimated_price}${pkg.delivery_deadline ? ` • Fecha límite: ${new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}` : ''}`;
+    return `Precio: $${pkg.estimated_price}`;
   };
 
   const getTipAmount = () => {
