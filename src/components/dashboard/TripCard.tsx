@@ -143,16 +143,40 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
           {/* Trip Details - Reorganized for better mobile experience */}
           <div className="space-y-3">
-            {/* Date and Reception Window */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <TripDate arrivalDate={trip.arrival_date} />
+          {/* Date and Reception Window - Redesigned */}
+          <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-3 border border-border/50">
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Trip Date */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-primary">Fecha de llegada</span>
+                </div>
+                <div className="text-sm font-semibold text-foreground">
+                  {new Date(trip.arrival_date).toLocaleDateString('es-GT', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </div>
               </div>
-              <span className="hidden sm:inline text-muted-foreground">•</span>
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <ReceptionWindow firstDay={trip.first_day_packages} lastDay={trip.last_day_packages} />
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px bg-border/50 mx-2"></div>
+
+              {/* Reception Window */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
+                  <span className="text-xs font-medium text-secondary">Ventana de recepción</span>
+                </div>
+                <div className="text-sm font-semibold text-foreground">
+                  {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
+                </div>
               </div>
             </div>
+          </div>
 
             {/* Payment Request Button - More prominent */}
             {shouldShowPaymentButton && (
