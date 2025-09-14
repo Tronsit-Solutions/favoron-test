@@ -69,7 +69,9 @@ export const useAdminData = (): AdminData => {
             username,
             avatar_url,
             email,
-            phone_number
+            phone_number,
+            trust_level,
+            prime_expires_at
           ),
           trips:matched_trip_id(
             id,
