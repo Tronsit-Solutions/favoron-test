@@ -203,7 +203,7 @@ const CollapsiblePackageCard = ({
                       {needsAction && (
                         <NotificationBadge count={1} />
                       )}
-                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isOpen ? <ChevronUp className="h-4 w-4 hidden sm:block" /> : <ChevronDown className="h-4 w-4 hidden sm:block" />}
                     </div>
                   </div>
                 </CardTitle>
