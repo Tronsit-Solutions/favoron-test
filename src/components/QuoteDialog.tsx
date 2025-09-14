@@ -424,44 +424,56 @@ const QuoteDialog = ({
                            const deliveryFee = breakdown.deliveryFee;
                            const compensationAndCommission = breakdown.totalPrice - deliveryFee;
                            
-                           return (
-                             <>
-                               <div className="flex justify-between">
-                                 <span>Compensación viajero, seguro y comisión Favorón:</span>
-                                 <span>{formatCurrency(compensationAndCommission)}</span>
-                               </div>
-                               {deliveryFee > 0 && (
-                                 <div className="flex justify-between">
-                                   <span>Entrega a domicilio:</span>
-                                   <span>{formatCurrency(deliveryFee)}</span>
-                                 </div>
-                               )}
-                                <div className="flex justify-between pt-1 border-t border-green-200 font-medium">
-                                  <span>Total:</span>
-                                  <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                </div>
+                            return (
+                              <>
+                                {/* Show original standard rate first */}
                                 {(() => {
-                                  // Show Prime savings only if user is Prime (service fee difference only)
+                                  const standardServiceFee = calculateServiceFee(base, 'basic');
+                                  const standardCompensationAndCommission = base + standardServiceFee;
+                                  return (
+                                    <div className="flex justify-between">
+                                      <span>Tarifa original Favorón (40%):</span>
+                                      <span>{formatCurrency(standardCompensationAndCommission)}</span>
+                                    </div>
+                                  );
+                                })()}
+                                
+                                {/* Show Prime savings if applicable */}
+                                {(() => {
                                   if (packageDetails.shopper_trust_level === 'prime') {
                                     const standardServiceFee = calculateServiceFee(base, 'basic');
                                     const primeServiceFee = calculateServiceFee(base, 'prime');
                                     const savings = standardServiceFee - primeServiceFee;
                                     if (savings > 0) {
                                       return (
-                                         <div className="flex justify-between pt-1 text-xs text-green-600 font-medium">
-                                           <span className="flex items-center gap-1">
-                                             <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
-                                             Ahorro Prime:
-                                           </span>
-                                           <span>-{formatCurrency(savings)}</span>
-                                         </div>
+                                        <div className="flex justify-between text-xs text-green-600 font-medium">
+                                          <span className="flex items-center gap-1">
+                                            <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
+                                            Descuento Prime:
+                                          </span>
+                                          <span>-{formatCurrency(savings)}</span>
+                                        </div>
                                       );
                                     }
                                   }
                                   return null;
                                 })()}
-                             </>
-                           );
+                                
+                                {/* Show delivery fee if applicable */}
+                                {deliveryFee > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>Entrega a domicilio:</span>
+                                    <span>{formatCurrency(deliveryFee)}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Total at the bottom */}
+                                <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
+                                  <span>Total:</span>
+                                  <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                </div>
+                              </>
+                            );
                          })()}
                        </div>
                      </div>
