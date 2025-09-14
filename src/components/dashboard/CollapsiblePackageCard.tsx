@@ -210,7 +210,7 @@ const CollapsiblePackageCard = ({
                 <CardDescription className="text-xs sm:text-sm w-full min-w-0 overflow-hidden">
                   <div className="flex flex-col gap-1 w-full min-w-0">
                     <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
-                    <span className="truncate max-w-full">Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}</span>
+                    
                   </div>
                 </CardDescription>
               </div>
