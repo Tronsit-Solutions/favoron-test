@@ -97,45 +97,49 @@ const CollapsiblePackageCard = ({
   );
 
   const getStatusDescription = (pkg: any): string => {
+    const isExpired = expirationInfo?.type === 'quote_expired';
+    
     switch (pkg.status) {
       case 'pending':
-        return 'Esperando cotización';
+        return 'Esperando cotización del equipo de Favorón.';
       case 'quote_sent':
-        return 'Cotización enviada - pendiente de respuesta';
+        return isExpired 
+          ? 'La cotización expiró. Si quieres otra cotización haz click en recotizar.'
+          : 'Revisa la cotización y decide si aceptarla o solicitar cambios.';
       case 'quote_accepted':
-        return 'Cotización aceptada - proceder con compra';
+        return 'Cotización aceptada. Procede a realizar el pago para confirmar tu pedido.';
       case 'payment_pending':
-        return 'Pago pendiente de confirmación';
+        return 'Sube el comprobante de pago para que podamos procesar tu pedido.';
       case 'payment_pending_approval':
-        return 'Pago pendiente de aprobación';
+        return 'Tu pago está siendo verificado. Te notificaremos cuando sea aprobado.';
       case 'pending_purchase':
-        return 'Pendiente de compra';
+        return 'Pago aprobado. Estamos comprando tu pedido.';
       case 'purchased':
-        return 'Comprado - esperando información de envío';
+        return 'Pedido comprado. Sube la información de envío cuando la recibas.';
       case 'shipped':
-        return 'Enviado - en tránsito';
+        return 'Tu pedido está en camino hacia nuestra oficina.';
       case 'arrived_at_office':
-        return 'Llegó a oficina - esperando viajero';
+        return 'Tu pedido llegó a oficina. Esperando asignación de viajero.';
       case 'delivered_to_office':
         return pkg.confirmed_delivery_address 
-          ? 'En oficina - pendiente de entrega'
-          : 'En oficina - pendiente de recoger';
+          ? 'Tu pedido está listo para ser entregado en tu dirección.'
+          : 'Tu pedido está listo para recoger en oficina.';
       case 'out_for_delivery':
-        return `En reparto en ${pkg.package_destination || 'destino'}`;
+        return 'Tu pedido está siendo entregado en este momento.';
       case 'delivered':
-        return 'Entregado exitosamente';
+        return 'Pedido entregado exitosamente. ¡Gracias por usar Favorón!';
       case 'completed':
-        return 'Completado';
+        return 'Proceso completado satisfactoriamente.';
       case 'cancelled':
-        return 'Cancelado';
+        return 'Este pedido fue cancelado.';
       case 'rejected':
-        return 'Rechazado';
+        return 'Este pedido fue rechazado. Contacta soporte para más información.';
       case 'approved':
-        return 'Aprobado - esperando asignación de viajero';
+        return 'Pedido aprobado. Esperando asignación de viajero.';
       case 'matched':
-        return 'Asignado a viajero';
+        return 'Tu pedido fue asignado a un viajero. Pronto estará en camino.';
       default:
-        return pkg.status || 'Estado desconocido';
+        return 'Estado del pedido no reconocido.';
     }
   };
 
