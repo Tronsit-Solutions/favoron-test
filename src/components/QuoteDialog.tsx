@@ -391,7 +391,7 @@ const QuoteDialog = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-3 w-3" />
-                  <span><strong>Fecha de entrega del viajero:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Fecha de entrega del paquete:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')} (2 días hábiles después de la entrega del viajero)</span>
                 </div>
                 
                 {/* Traveler location info if available */}
