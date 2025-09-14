@@ -198,19 +198,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
             {/* Action Buttons - Better organized */}
             <div className="flex flex-wrap gap-2">
-              {/* Edit button for early stage trips */}
-              {canEdit && onEditTrip && (
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowEditModal(true)}
-                  className="h-8 px-3 text-xs hover-scale"
-                >
-                  <Edit className="h-3 w-3 mr-1" />
-                  <span>Editar viaje</span>
-                </Button>
-              )}
-              
               {/* Delivery confirmation button */}
               {canConfirmDelivery && travelerProfile && (
                 <Button 
