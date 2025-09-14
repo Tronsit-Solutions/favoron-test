@@ -188,7 +188,7 @@ const CollapsibleTravelerPackageCard = ({
                     </div>
                   )}
                   {pkg.status === 'pending_purchase' && (
-                    <div className="text-purple-600 bg-purple-50 p-2 rounded-md">
+                    <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
                       🛍️ Pendiente de compra - El cliente ya pagó la cotización y debe comprar el producto
                     </div>
                   )}
@@ -316,7 +316,7 @@ const CollapsibleTravelerPackageCard = ({
                            </div>
                          )}
                          {pkg.status === 'pending_purchase' && (
-                           <div className="font-medium text-purple-600">
+                           <div className="text-muted-foreground">
                              🛍️ Pendiente de compra - El cliente ya pagó la cotización y debe comprar el producto
                            </div>
                          )}
