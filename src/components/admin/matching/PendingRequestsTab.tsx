@@ -134,17 +134,6 @@ const PendingRequestsTab = ({
             </SelectContent>
           </Select>
 
-          <div className="flex gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              📊 Nuevos: <Badge variant="secondary" className="text-xs">{reQuoteStats.new}</Badge>
-            </span>
-            <span className="flex items-center gap-1">
-              🕐 Expirados: <Badge variant="secondary" className="text-xs">{reQuoteStats.expired}</Badge>
-            </span>
-            <span className="flex items-center gap-1">
-              ❌ Rechazados: <Badge variant="secondary" className="text-xs">{reQuoteStats.rejected}</Badge>
-            </span>
-          </div>
         </div>
       </div>
 
