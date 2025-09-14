@@ -223,7 +223,7 @@ const QuoteDialog = ({
           <span className="sr-only">Cerrar</span>
         </button>
 
-        <DialogHeader className="pr-12 pb-4">
+        <DialogHeader className="pr-12">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
             {isTravelerContext ? '💰 Tip Asignado por Favorón' : !existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
           </DialogTitle>
