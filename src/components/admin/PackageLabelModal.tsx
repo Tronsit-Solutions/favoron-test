@@ -24,11 +24,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       format: [288, 432]
     });
 
-    // Get the label element
-    const labelElement = labelRef.current;
+    // Get the hidden label element for PDF (full size, no scaling)
+    const hiddenLabelElement = document.getElementById('hidden-pdf-label');
+    if (!hiddenLabelElement) return;
     
     // Use html2canvas equivalent - capture as image and add to PDF
-    pdf.html(labelElement, {
+    pdf.html(hiddenLabelElement, {
       callback: function (doc) {
         const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
         const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -39,9 +40,11 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       width: 288,
       windowWidth: 288,
       html2canvas: {
-        scale: 2,
+        scale: 1,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: 288,
+        height: 432
       }
     });
   };
@@ -109,6 +112,15 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
             >
               <PackageLabel pkg={pkg} />
             </div>
+          </div>
+
+          {/* Hidden element for PDF generation - full size, not scaled */}
+          <div 
+            id="hidden-pdf-label" 
+            className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none"
+            style={{ width: '288px', height: '432px' }}
+          >
+            <PackageLabel pkg={pkg} />
           </div>
 
           {/* Package Info */}
