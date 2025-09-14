@@ -230,29 +230,6 @@ const CollapsiblePackageCard = ({
                       Solicitar Nueva Cotización
                     </Button>
                   )}
-                  {onDeletePackage && [
-                    'pending_approval',
-                    'approved', 
-                    'matched',
-                    'quote_sent',
-                    'quote_accepted',
-                    'quote_rejected',
-                    'quote_expired',
-                    'payment_pending',
-                    'payment_pending_approval'
-                  ].includes(pkg.status) && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDeleteDialog(true);
-                      }}
-                      className="text-xs w-full"
-                    >
-                      Eliminar pedido
-                    </Button>
-                  )}
                   
                   {/* Shopper Action Button - mobile optimized */}
                   {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
@@ -348,30 +325,6 @@ const CollapsiblePackageCard = ({
                       <span className="hidden sm:inline">Solicitar Nueva Cotización</span>
                       <span className="sm:hidden">Nueva Cotización</span>
                     </Button>
-                    )}
-                    {onDeletePackage && [
-                      'pending_approval',
-                      'approved', 
-                      'matched',
-                      'quote_sent',
-                      'quote_accepted',
-                      'quote_rejected',
-                      'quote_expired',
-                      'payment_pending',
-                      'payment_pending_approval'
-                    ].includes(pkg.status) && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowDeleteDialog(true);
-                        }}
-                        className="text-xs sm:text-sm w-full sm:w-auto"
-                      >
-                        <span className="hidden sm:inline">Eliminar pedido</span>
-                        <span className="sm:hidden">Eliminar</span>
-                      </Button>
                     )}
                   </div>
                 </div>
