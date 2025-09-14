@@ -126,17 +126,6 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           </div>
         )}
 
-        {/* Dates */}
-        <div className="pt-2 border-t border-gray-400 space-y-1">
-          <div className="flex justify-between">
-            <span className="font-bold">FECHA PEDIDO:</span>
-            <span>{getCreationDate()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-bold">FECHA ETIQUETA:</span>
-            <span>{new Date().toLocaleDateString('es-GT')}</span>
-          </div>
-        </div>
       </div>
     </div>
   );
