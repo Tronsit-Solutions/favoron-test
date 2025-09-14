@@ -201,7 +201,7 @@ const CollapsiblePackageCard = ({
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {needsAction && <NotificationBadge count={1} />}
-                    {getStatusBadge(pkg.status)}
+                    
                     
                     {/* Three dots menu */}
                     <DropdownMenu>
@@ -303,6 +303,11 @@ const CollapsiblePackageCard = ({
                       📦 Subir comprobante compra
                     </Button>
                   ) : null}
+                </div>
+                
+                {/* Status badge in bottom right corner */}
+                <div className="flex justify-end">
+                  {getStatusBadge(pkg.status)}
                 </div>
               </div>
             ) : (
@@ -492,9 +497,14 @@ const CollapsiblePackageCard = ({
                          )}
                        </DropdownMenuContent>
                      </DropdownMenu>
-                   )}
-                </div>
-              </div>
+                    )}
+                 </div>
+                 
+                 {/* Status badge in bottom right corner */}
+                 <div className="flex justify-end mt-2">
+                   {getStatusBadge(pkg.status)}
+                 </div>
+               </div>
             )}
           </CardHeader>
         </CollapsibleTrigger>
