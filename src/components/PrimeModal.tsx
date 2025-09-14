@@ -22,6 +22,20 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
     membership => membership.status === 'pending' && membership.user_id === user?.id
   );
 
+  // Get the approved Prime membership for expiration date
+  const activeMembership = memberships?.find(
+    membership => membership.status === 'approved' && membership.user_id === user?.id
+  );
+
+  // Calculate expiration date (1 year from approval date)
+  const getExpirationDate = () => {
+    if (!activeMembership?.created_at) return 'N/A';
+    const startDate = new Date(activeMembership.created_at);
+    const expirationDate = new Date(startDate);
+    expirationDate.setFullYear(startDate.getFullYear() + 1);
+    return expirationDate.toLocaleDateString('es-GT');
+  };
+
   const handleOpenPayment = () => {
     setShowPaymentModal(true);
   };
@@ -143,7 +157,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                 Ver mis beneficios utilizados
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Tu membresía vence el 31 de diciembre, 2024
+                Tu membresía vence el {getExpirationDate()}
               </p>
             </div>
           )}
