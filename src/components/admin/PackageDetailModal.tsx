@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star } from "lucide-react";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
@@ -343,8 +343,13 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Nombre</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
                         {pkg.profiles ? `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim() || pkg.profiles.username || 'Sin nombre' : 'Sin información'}
+                        {pkg.profiles && (pkg.profiles.trust_level === 'prime' || (pkg.profiles.prime_expires_at && new Date(pkg.profiles.prime_expires_at) > new Date())) && (
+                          <span title="Usuario Prime">
+                            <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
