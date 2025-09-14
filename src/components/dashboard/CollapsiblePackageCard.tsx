@@ -259,12 +259,10 @@ const CollapsiblePackageCard = ({
                       {pkg.status === 'quote_expired' && onRequestRequote && (
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
                             onRequestRequote(pkg);
                           }}
-                          className="text-xs font-medium"
                         >
                           Recotizar
                         </Button>
