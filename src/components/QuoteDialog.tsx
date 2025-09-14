@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -377,13 +377,14 @@ const QuoteDialog = ({
             </div>
           </div>
 
-          {/* IMPORTANT INFO - Show for shoppers viewing quotes */}
-          {existingQuote && tripDates && <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-md">
+          {/* UNIFIED IMPORTANT INFO - Show for shoppers viewing quotes */}
+          {existingQuote && tripDates && (
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-md">
               <div className="flex items-start space-x-2 mb-3">
                 <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 animate-pulse" />
-                <p className="text-sm font-medium text-amber-800">📋 Información importante previo a aceptar cotización:</p>
+                <p className="text-sm font-medium text-amber-800">📋 Información importante previo a aceptar cotización</p>
               </div>
-              <div className="text-sm text-amber-700 ml-6 space-y-2">
+              <div className="text-sm text-amber-700 ml-6 space-y-3">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
                   <span><strong>Ventana de recepción:</strong> {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')} - {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
@@ -392,34 +393,32 @@ const QuoteDialog = ({
                   <MapPin className="h-3 w-3" />
                   <span><strong>Fecha de entrega del viajero:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')}</span>
                 </div>
-                <div className="text-sm text-destructive mt-2 pl-5">
-                  Esta es la fecha en la que el viajero entregará los paquetes en la oficina de Favorón. Recibirás tu paquete 1-2 días después de la llegada.
-                </div>
-              </div>
-            </div>}
-
-          {/* Traveler Address Preview - Show only for shoppers viewing existing quotes */}
-          {existingQuote && userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 shadow-md">
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="space-y-2">
-                  <p className="font-semibold text-yellow-800">📍 Ubicación General del Viajero</p>
-                  <p className="text-sm text-yellow-700">
-                    <strong>Dirección aproximada:</strong> {packageDetails.traveler_address.streetAddress}
-                    {packageDetails.traveler_address.cityArea && `, ${packageDetails.traveler_address.cityArea}`}
+                
+                {/* Traveler location info if available */}
+                {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <Home className="h-3 w-3" />
+                      <span><strong>Dirección aproximada del viajero:</strong> {packageDetails.traveler_address.streetAddress}
+                        {packageDetails.traveler_address.cityArea && `, ${packageDetails.traveler_address.cityArea}`}
+                      </span>
+                    </div>
+                    {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-3 w-3" />
+                        <span><strong>Código postal:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                <div className="bg-amber-100 border border-amber-300 rounded p-3 mt-3">
+                  <p className="text-xs text-amber-800 font-medium space-y-1">
+                    <span className="block">• Esta es la fecha en la que el viajero entregará los paquetes en la oficina de Favorón. Recibirás tu paquete 1-2 días después de la llegada.</span>
+                    {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
+                      <span className="block">• ⚠️ <strong>IMPORTANTE:</strong> La dirección mostrada NO es la dirección de envío final. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
+                    )}
                   </p>
-                  {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
-                    <p className="text-sm text-yellow-700">
-                      <strong>Código postal:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}
-                    </p>
-                  )}
-                  <div className="bg-yellow-100 border border-yellow-300 rounded p-3 mt-2">
-                    <p className="text-xs text-yellow-800 font-medium">
-                      ⚠️ <strong>IMPORTANTE:</strong> Esta NO es la dirección de envío final. 
-                      La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
