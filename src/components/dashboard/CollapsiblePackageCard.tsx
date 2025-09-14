@@ -249,7 +249,7 @@ const CollapsiblePackageCard = ({
                   {pkg.status === 'quote_expired' && onRequestRequote && (
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="shopper"
                       onClick={(e) => {
                         e.stopPropagation();
                         onRequestRequote(pkg);
@@ -380,7 +380,7 @@ const CollapsiblePackageCard = ({
                     {pkg.status === 'quote_expired' && onRequestRequote && (
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="shopper"
                       onClick={(e) => {
                         e.stopPropagation();
                         onRequestRequote(pkg);
