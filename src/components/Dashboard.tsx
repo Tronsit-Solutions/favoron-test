@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PackageRequestForm from "./PackageRequestForm";
@@ -368,8 +369,13 @@ const Dashboard = ({ user }: DashboardProps) => {
         
         {activeTab !== 'profile' && (
           <div className="mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2">
               ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋
+              {(currentUser?.trust_level === 'prime' || (currentUser?.prime_expires_at && new Date(currentUser.prime_expires_at) > new Date())) && (
+                <span title="Usuario Prime">
+                  <Star className="h-5 w-5 text-purple-500 fill-purple-500" />
+                </span>
+              )}
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
               Gestiona tus solicitudes de paquetes y viajes desde aquí
