@@ -331,36 +331,6 @@ const CollapsiblePackageCard = ({
                     )}
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     
-                    {/* Three dots menu for desktop */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0 ml-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Opciones del paquete</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        align="end" 
-                        className="w-48 bg-background border shadow-lg z-50"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteDialog(true);
-                          }}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Cancelar pedido
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </div>
               
@@ -463,7 +433,7 @@ const CollapsiblePackageCard = ({
                   )}
 
                    {/* Package Actions Dropdown */}
-                   {onDeletePackage && viewMode === 'user' && (
+                   {viewMode === 'user' && (
                      <DropdownMenu>
                        <DropdownMenuTrigger asChild>
                          <Button 
@@ -475,7 +445,11 @@ const CollapsiblePackageCard = ({
                            <MoreHorizontal className="h-4 w-4" />
                          </Button>
                        </DropdownMenuTrigger>
-                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                       <DropdownMenuContent 
+                         align="end" 
+                         className="w-48 bg-background border shadow-lg z-50"
+                         onClick={(e) => e.stopPropagation()}
+                       >
                          {onEditPackage && [
                            'pending_approval',
                            'approved', 
@@ -495,6 +469,16 @@ const CollapsiblePackageCard = ({
                              Archivar
                            </DropdownMenuItem>
                          )}
+                         <DropdownMenuItem 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setShowDeleteDialog(true);
+                           }}
+                           className="text-destructive focus:text-destructive"
+                         >
+                           <Trash2 className="mr-2 h-4 w-4" />
+                           Cancelar pedido
+                         </DropdownMenuItem>
                        </DropdownMenuContent>
                      </DropdownMenu>
                     )}
