@@ -264,7 +264,7 @@ const CollapsiblePackageCard = ({
                             e.stopPropagation();
                             onRequestRequote(pkg);
                           }}
-                          className="text-xs"
+                          className="text-xs font-medium"
                         >
                           Recotizar
                         </Button>
@@ -277,7 +277,7 @@ const CollapsiblePackageCard = ({
                             e.stopPropagation();
                             setShowDeleteDialog(true);
                           }}
-                          className="text-xs"
+                          className="text-xs font-medium"
                         >
                           Eliminar
                         </Button>
