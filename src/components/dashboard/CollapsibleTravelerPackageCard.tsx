@@ -164,7 +164,7 @@ const CollapsibleTravelerPackageCard = ({
                 <div className="text-xs">
                   {pkg.status === 'quote_sent' && (
                     <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
-                      📝 Cotización enviada - Esperando respuesta
+                      📝 Cotización enviada - Esperando respuesta del shopper
                     </div>
                   )}
                   {pkg.status === 'quote_accepted' && (
