@@ -386,11 +386,7 @@ const QuoteDialog = ({
               <div className="text-sm text-amber-700 ml-6 space-y-2">
                 <div className="flex items-center space-x-2">
                   <Clock className="h-3 w-3" />
-                  <span><strong>Primera fecha para recibir paquetes:</strong> {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-3 w-3" />
-                  <span><strong>Última fecha para recibir paquetes:</strong> {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
+                  <span><strong>Ventana de recepción:</strong> {new Date(tripDates.first_day_packages).toLocaleDateString('es-GT')} - {new Date(tripDates.last_day_packages).toLocaleDateString('es-GT')}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-3 w-3" />
