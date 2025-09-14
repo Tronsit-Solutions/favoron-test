@@ -183,9 +183,61 @@ const CollapsiblePackageCard = ({
         needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"
       }`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden ${
+          <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden relative ${
             isMobile ? 'p-3' : 'p-4 sm:p-6'
           }`}>
+            
+            {/* Three dots menu - positioned absolutely in top-right corner */}
+            {viewMode === 'user' && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="absolute top-2 right-2 h-6 w-6 p-0 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Opciones del paquete</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-48 bg-background border shadow-lg z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {onEditPackage && [
+                    'pending_approval',
+                    'approved', 
+                    'matched',
+                    'quote_sent',
+                    'quote_rejected',
+                    'quote_expired'
+                  ].includes(pkg.status) && (
+                    <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar pedido
+                    </DropdownMenuItem>
+                  )}
+                  {onArchivePackage && (
+                    <DropdownMenuItem onClick={() => onArchivePackage(pkg)}>
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archivar
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Cancelar pedido
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             
             {/* Mobile optimized layout */}
             {isMobile ? (
@@ -201,38 +253,6 @@ const CollapsiblePackageCard = ({
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {needsAction && <NotificationBadge count={1} />}
-                    
-                    
-                    {/* Three dots menu */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Opciones del paquete</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent 
-                        align="end" 
-                        className="w-48 bg-background border shadow-lg z-50"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteDialog(true);
-                          }}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Cancelar pedido
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -330,7 +350,6 @@ const CollapsiblePackageCard = ({
                       <NotificationBadge count={1} />
                     )}
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    
                   </div>
                 </div>
               
@@ -432,56 +451,6 @@ const CollapsiblePackageCard = ({
                     </TooltipProvider>
                   )}
 
-                   {/* Package Actions Dropdown */}
-                   {viewMode === 'user' && (
-                     <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button 
-                           variant="ghost" 
-                           size="sm" 
-                           className="h-auto w-auto p-1 rounded-full"
-                           onClick={(e) => e.stopPropagation()}
-                         >
-                           <MoreHorizontal className="h-4 w-4" />
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent 
-                         align="end" 
-                         className="w-48 bg-background border shadow-lg z-50"
-                         onClick={(e) => e.stopPropagation()}
-                       >
-                         {onEditPackage && [
-                           'pending_approval',
-                           'approved', 
-                           'matched',
-                           'quote_sent',
-                           'quote_rejected',
-                           'quote_expired'
-                         ].includes(pkg.status) && (
-                           <DropdownMenuItem onClick={() => setShowEditModal(true)}>
-                             <Edit className="mr-2 h-4 w-4" />
-                             Editar pedido
-                           </DropdownMenuItem>
-                         )}
-                         {onArchivePackage && (
-                           <DropdownMenuItem onClick={() => onArchivePackage(pkg)}>
-                             <Archive className="mr-2 h-4 w-4" />
-                             Archivar
-                           </DropdownMenuItem>
-                         )}
-                         <DropdownMenuItem 
-                           onClick={(e) => {
-                             e.stopPropagation();
-                             setShowDeleteDialog(true);
-                           }}
-                           className="text-destructive focus:text-destructive"
-                         >
-                           <Trash2 className="mr-2 h-4 w-4" />
-                           Cancelar pedido
-                         </DropdownMenuItem>
-                       </DropdownMenuContent>
-                     </DropdownMenu>
-                    )}
                  </div>
                  
                  {/* Status badge in bottom right corner */}
