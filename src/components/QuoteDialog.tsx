@@ -250,7 +250,7 @@ const QuoteDialog = ({
 
                 {/* Pricing Information */}
                 <div>
-                  <p className="font-medium text-foreground mb-3"><strong>Información de precios:</strong></p>
+                  <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
                   {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
                     <div className="space-y-3">
                       {packageDetails.products_data.map((product: any, index: number) => {
