@@ -616,7 +616,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                return sum + parseFloat(String((pkg as any).estimated_price || 0));
                              }, 0).toFixed(2)}
                          </div>
-                         <div className="text-xs text-muted-foreground font-medium">GMV Confirmado</div>
+                         <div className="text-xs text-muted-foreground font-medium">Valor de productos confirmados</div>
                        </div>
                        <div>
                          <div className="text-xl font-bold text-foreground">
