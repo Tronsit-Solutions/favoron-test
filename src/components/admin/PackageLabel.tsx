@@ -107,8 +107,9 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
 
         {/* Shopper Info */}
         <div>
-          <div className="text-sm font-bold mb-1">SHOPPER:</div>
-          <div className="text-sm">{getShopperName()}</div>
+          <div className="text-sm">
+            <span className="font-bold">SHOPPER:</span> {getShopperName()}
+          </div>
         </div>
 
         {/* Delivery Method */}
