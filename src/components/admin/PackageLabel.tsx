@@ -38,6 +38,40 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
     return pkg.id ? pkg.id.substring(0, 8).toUpperCase() : 'N/A';
   };
 
+  const getPackagePrice = () => {
+    // Try to get price from products_data first
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      const total = pkg.products_data.reduce((sum, product) => {
+        const price = parseFloat(product.estimatedPrice || '0');
+        const quantity = parseInt(product.quantity || '1');
+        return sum + (price * quantity);
+      }, 0);
+      return `$${total.toFixed(2)}`;
+    }
+    // Fallback to estimated_price
+    if (pkg.estimated_price) {
+      return `$${parseFloat(pkg.estimated_price).toFixed(2)}`;
+    }
+    return 'N/A';
+  };
+
+  const getTotalQuantity = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      const total = pkg.products_data.reduce((sum, product) => {
+        return sum + parseInt(product.quantity || '1');
+      }, 0);
+      return total.toString();
+    }
+    return '1';
+  };
+
+  const getCreationDate = () => {
+    if (pkg.created_at) {
+      return new Date(pkg.created_at).toLocaleDateString('es-GT');
+    }
+    return 'N/A';
+  };
+
   return (
     <div className={`bg-white border-2 border-black ${className}`} 
          style={{ 
@@ -71,6 +105,17 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           <div className="text-sm font-mono">{getPackageId()}</div>
         </div>
 
+        {/* Price and Quantity */}
+        <div>
+          <div className="text-sm font-bold mb-1">PRECIO TOTAL:</div>
+          <div className="text-sm">{getPackagePrice()}</div>
+        </div>
+
+        <div>
+          <div className="text-sm font-bold mb-1">CANTIDAD:</div>
+          <div className="text-sm">{getTotalQuantity()}</div>
+        </div>
+
         {/* Shopper Info */}
         <div>
           <div className="text-sm font-bold mb-1">SHOPPER:</div>
@@ -91,10 +136,16 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           </div>
         )}
 
-        {/* Date */}
-        <div className="pt-2 border-t border-gray-400">
-          <div className="text-sm font-bold mb-1">FECHA:</div>
-          <div className="text-xs">{new Date().toLocaleDateString('es-GT')}</div>
+        {/* Dates */}
+        <div className="pt-2 border-t border-gray-400 space-y-2">
+          <div>
+            <div className="text-sm font-bold mb-1">FECHA PEDIDO:</div>
+            <div className="text-xs">{getCreationDate()}</div>
+          </div>
+          <div>
+            <div className="text-sm font-bold mb-1">FECHA ETIQUETA:</div>
+            <div className="text-xs">{new Date().toLocaleDateString('es-GT')}</div>
+          </div>
         </div>
       </div>
     </div>
