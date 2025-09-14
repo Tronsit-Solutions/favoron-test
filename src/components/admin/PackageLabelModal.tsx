@@ -32,25 +32,34 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
     const centerX = (612 - 288) / 2; // 162 pt
     const centerY = (792 - 432) / 2; // 180 pt
     
-    // Use html2canvas equivalent - capture as image and add to PDF
-    pdf.html(hiddenLabelElement, {
-      callback: function (doc) {
-        const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
-        const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
-        doc.save(fileName);
-      },
-      x: centerX,
-      y: centerY,
-      width: 288,
-      windowWidth: 288,
-      html2canvas: {
-        scale: 1,
-        useCORS: true,
-        backgroundColor: '#ffffff',
+    // Temporarily move the element to visible area for capture
+    const originalStyle = hiddenLabelElement.style.cssText;
+    hiddenLabelElement.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 9999; background: white;';
+    
+    // Wait a bit for rendering, then capture
+    setTimeout(() => {
+      pdf.html(hiddenLabelElement, {
+        callback: function (doc) {
+          // Restore original positioning
+          hiddenLabelElement.style.cssText = originalStyle;
+          
+          const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
+          const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
+          doc.save(fileName);
+        },
+        x: centerX,
+        y: centerY,
         width: 288,
-        height: 432
-      }
-    });
+        windowWidth: 288,
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          allowTaint: true
+        }
+      });
+    }, 100);
   };
 
   const handlePrint = () => {
