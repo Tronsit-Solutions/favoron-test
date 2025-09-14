@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PackageLabel } from './PackageLabel';
 import { Download, Printer, X } from 'lucide-react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface PackageLabelModalProps {
   isOpen: boolean;
@@ -14,55 +15,66 @@ interface PackageLabelModalProps {
 export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalProps) => {
   const labelRef = useRef<HTMLDivElement>(null);
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     if (!labelRef.current) return;
 
-    // Create a temporary container for PDF generation (unscaled)
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '0';
-    document.body.appendChild(tempContainer);
+    try {
+      // Create a temporary container for rendering (hidden off-screen)
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '288px';
+      tempContainer.style.height = '432px';
+      tempContainer.style.backgroundColor = '#ffffff';
+      document.body.appendChild(tempContainer);
 
-    // Clone the label without scaling
-    const labelClone = labelRef.current.cloneNode(true) as HTMLElement;
-    labelClone.style.transform = 'none';
-    labelClone.style.transformOrigin = 'initial';
-    tempContainer.appendChild(labelClone);
+      // Clone the label and force it to render at actual size (no scaling)
+      const labelClone = labelRef.current.cloneNode(true) as HTMLElement;
+      labelClone.style.transform = 'none';
+      labelClone.style.transformOrigin = 'initial';
+      labelClone.style.width = '288px';
+      labelClone.style.height = '432px';
+      tempContainer.appendChild(labelClone);
 
-    // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'letter'
-    });
-
-    // Calculate position to center 4x6" label (288x432 points) on letter page
-    const centerX = (612 - 288) / 2; // 162 points
-    const centerY = (792 - 432) / 2; // 180 points
-
-    // Capture the unscaled element
-    pdf.html(tempContainer, {
-      callback: function (doc) {
-        // Clean up temporary element
-        document.body.removeChild(tempContainer);
-        
-        const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
-        const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
-        doc.save(fileName);
-      },
-      x: centerX,
-      y: centerY,
-      width: 288,
-      windowWidth: 288,
-      html2canvas: {
+      // Use html2canvas to capture the element
+      const canvas = await html2canvas(tempContainer, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         width: 288,
-        height: 432
-      }
-    });
+        height: 432,
+        windowWidth: 288,
+        windowHeight: 432
+      });
+
+      // Clean up temporary element
+      document.body.removeChild(tempContainer);
+
+      // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'letter'
+      });
+
+      // Calculate position to center 4x6" label (288x432 points) on letter page
+      const centerX = (612 - 288) / 2; // 162 points
+      const centerY = (792 - 432) / 2; // 180 points
+
+      // Convert canvas to image and add to PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+
+      // Generate filename and save
+      const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
+      const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error al generar el PDF. Por favor, inténtalo de nuevo.');
+    }
   };
 
   const handlePrint = () => {
