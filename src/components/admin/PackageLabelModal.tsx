@@ -30,12 +30,16 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
     labelClone.style.transformOrigin = 'initial';
     tempContainer.appendChild(labelClone);
 
-    // Create PDF with 4x6 inch dimensions (288x432 points at 72 DPI)
+    // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: [288, 432]
+      format: 'letter'
     });
+
+    // Calculate position to center 4x6" label (288x432 points) on letter page
+    const centerX = (612 - 288) / 2; // 162 points
+    const centerY = (792 - 432) / 2; // 180 points
 
     // Capture the unscaled element
     pdf.html(tempContainer, {
@@ -47,12 +51,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
         const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
       },
-      x: 0,
-      y: 0,
+      x: centerX,
+      y: centerY,
       width: 288,
       windowWidth: 288,
       html2canvas: {
-        scale: 1,
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         width: 288,
