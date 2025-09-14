@@ -246,57 +246,30 @@ const CollapsiblePackageCard = ({
       <Card className="w-full max-w-full overflow-hidden min-w-0 box-border mobile-content mx-auto">
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-4 lg:p-6 w-full overflow-hidden">
-            <div className="flex flex-col gap-3 w-full min-w-0 overflow-hidden">
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
-                  <div className="flex items-center justify-between w-full min-w-0 gap-2">
-                    <span className="truncate flex-1 min-w-0 text-sm sm:text-base lg:text-lg max-w-[70%] sm:max-w-none flex items-center gap-2">
+            <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
+              {/* Title row */}
+              <div className="flex items-start justify-between w-full min-w-0 gap-2">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
+                    <span className="truncate flex items-center gap-2 w-full">
                       <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                      {pkg.item_description || 'Sin descripción'}
+                      <span className="truncate">
+                        {pkg.item_description || 'Sin descripción'}
+                      </span>
                     </span>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Action buttons for header */}
-                      {pkg.status === 'quote_expired' && onRequestRequote && (
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRequestRequote(pkg);
-                          }}
-                        >
-                          Recotizar
-                        </Button>
-                      )}
-                      {onDeletePackage && [
-                        'pending_approval',
-                        'approved', 
-                        'matched',
-                        'quote_sent',
-                        'quote_accepted',
-                        'quote_rejected',
-                        'quote_expired',
-                        'payment_pending',
-                        'payment_pending_approval'
-                      ].includes(pkg.status) && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          Eliminar pedido
-                        </Button>
-                      )}
-                      {needsAction && (
-                        <NotificationBadge count={1} />
-                      )}
-                      {isOpen ? <ChevronUp className="h-4 w-4 hidden sm:block" /> : <ChevronDown className="h-4 w-4 hidden sm:block" />}
-                    </div>
-                  </div>
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm w-full min-w-0 overflow-hidden">
+                  </CardTitle>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {needsAction && (
+                    <NotificationBadge count={1} />
+                  )}
+                  {isOpen ? <ChevronUp className="h-4 w-4 hidden sm:block" /> : <ChevronDown className="h-4 w-4 hidden sm:block" />}
+                </div>
+              </div>
+              
+              {/* Description and Action buttons row */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full min-w-0">
+                <CardDescription className="text-xs sm:text-sm min-w-0 flex-1">
                   <div className="flex flex-col gap-1 w-full min-w-0">
                     <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
                     <span className="truncate max-w-full text-muted-foreground">
@@ -304,6 +277,46 @@ const CollapsiblePackageCard = ({
                     </span>
                   </div>
                 </CardDescription>
+                
+                {/* Action buttons - responsive layout */}
+                <div className="flex flex-wrap gap-1 sm:gap-2 flex-shrink-0">
+                  {pkg.status === 'quote_expired' && onRequestRequote && (
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRequestRequote(pkg);
+                      }}
+                      className="text-xs sm:text-sm"
+                    >
+                      Recotizar
+                    </Button>
+                  )}
+                  {onDeletePackage && [
+                    'pending_approval',
+                    'approved', 
+                    'matched',
+                    'quote_sent',
+                    'quote_accepted',
+                    'quote_rejected',
+                    'quote_expired',
+                    'payment_pending',
+                    'payment_pending_approval'
+                  ].includes(pkg.status) && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteDialog(true);
+                      }}
+                      className="text-xs sm:text-sm"
+                    >
+                      <span className="hidden sm:inline">Eliminar pedido</span>
+                      <span className="sm:hidden">Eliminar</span>
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0 overflow-hidden">
                 {/* Shopper Action Button - Different for different statuses */}
