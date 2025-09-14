@@ -353,6 +353,53 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   };
 
+  const handleRequestRequote = async (pkg: any) => {
+    try {
+      console.log('🔄 Requesting new quote for package:', pkg.id);
+      
+      // Update package status back to approved for new matching
+      const { error } = await supabase
+        .from('packages')
+        .update({ 
+          status: 'approved',
+          wants_requote: true,
+          quote: null,
+          matched_trip_id: null,
+          traveler_address: null,
+          matched_trip_dates: null,
+          quote_expires_at: null
+        })
+        .eq('id', pkg.id);
+
+      if (error) {
+        console.error('❌ Error requesting requote:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo solicitar nueva cotización. Inténtalo de nuevo.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Solicitud enviada",
+        description: "Tu paquete está nuevamente disponible para recibir cotizaciones de viajeros.",
+      });
+
+      // Refresh packages to update the UI
+      if (refreshPackages) {
+        await refreshPackages();
+      }
+    } catch (error) {
+      console.error('❌ Error requesting requote:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo solicitar nueva cotización. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
         <DashboardHeader 
@@ -494,7 +541,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                          onEditPackage={handleEditPackage}
                          onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
                         onArchivePackage={handleArchivePackage}
-                         onRequestRequote={() => console.log('Request requote - handled by AdminDashboard')}
+                         onRequestRequote={handleRequestRequote}
                         viewMode="user"
                       />
                 ))}
