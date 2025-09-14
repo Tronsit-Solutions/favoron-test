@@ -252,7 +252,11 @@ const CollapsiblePackageCard = ({
                   </div>
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {needsAction && <NotificationBadge count={1} />}
+                    {needsAction && (
+                      <div className="absolute -top-1 right-8 z-20">
+                        <NotificationBadge count={1} />
+                      </div>
+                    )}
                   </div>
                 </div>
 
