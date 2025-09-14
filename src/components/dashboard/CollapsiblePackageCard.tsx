@@ -2,13 +2,14 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
 import PackageRequestForm from "@/components/PackageRequestForm";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
@@ -85,6 +86,7 @@ const CollapsiblePackageCard = ({
   const { profile } = useAuth();
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
+  const isMobile = useIsMobile();
 
 
   const needsAction = viewMode === 'user' && (
@@ -98,188 +100,122 @@ const CollapsiblePackageCard = ({
 
   const getStatusDescription = (pkg: any): string => {
     console.log('Package status:', pkg.status, 'Package:', pkg);
-    const isExpired = expirationInfo?.type === 'quote_expired';
     
     switch (pkg.status) {
-      case 'pending':
-        return 'Esperando cotización del equipo de Favorón.';
-      case 'quote_sent':
-        return isExpired 
-          ? 'La cotización expiró. Si quieres otra cotización haz click en recotizar.'
-          : 'Revisa la cotización y decide si aceptarla o solicitar cambios.';
-      case 'quote_expired':
-        return 'La cotización expiró. Si quieres otra cotización haz click en recotizar.';
-      case 'quote_accepted':
-        return 'Cotización aceptada. Procede a realizar el pago para confirmar tu pedido.';
-      case 'payment_pending':
-        return 'Sube el comprobante de pago para que podamos procesar tu pedido.';
-      case 'payment_pending_approval':
-        return 'Tu pago está siendo verificado. Te notificaremos cuando sea aprobado.';
-      case 'pending_purchase':
-        return 'Pago aprobado. Estamos comprando tu pedido.';
-      case 'purchased':
-        return 'Pedido comprado. Sube la información de envío cuando la recibas.';
-      case 'shipped':
-        return 'Tu pedido está en camino hacia nuestra oficina.';
-      case 'in_transit':
-        return 'Tu pedido está en tránsito hacia nuestra oficina.';
-      case 'received_by_traveler':
-        return 'El viajero ha recibido tu pedido y está en camino.';
-      case 'arrived_at_office':
-        return 'Tu pedido llegó a oficina. Esperando asignación de viajero.';
-      case 'delivered_to_office':
-        return pkg.confirmed_delivery_address 
-          ? 'Tu pedido está listo para ser entregado en tu dirección.'
-          : 'Tu pedido está listo para recoger en oficina.';
-      case 'out_for_delivery':
-        return 'Tu pedido está siendo entregado en este momento.';
-      case 'delivered':
-        return 'Pedido entregado exitosamente. ¡Gracias por usar Favorón!';
-      case 'completed':
-        return 'Proceso completado satisfactoriamente.';
-      case 'cancelled':
-        return 'Este pedido fue cancelado.';
-      case 'rejected':
-        return 'Este pedido fue rechazado. Contacta soporte para más información.';
+      case 'pending_approval':
+        return 'Esperando aprobación del administrador';
       case 'approved':
-        return 'Pedido aprobado. Esperando asignación de viajero.';
+        return 'Aprobado - Esperando emparejamiento con traveler';
       case 'matched':
-        return 'Tu pedido fue asignado a un viajero. Pronto estará en camino.';
+        return 'Emparejado con traveler - Esperando cotización';
+      case 'quote_sent':
+        const isExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date();
+        if (isExpired) {
+          return 'Cotización expirada';
+        }
+        return 'Cotización recibida - Revisa y acepta';
+      case 'quote_accepted':
+        return 'Cotización aceptada - Esperando confirmación de pago';
+      case 'payment_pending':
+        return 'Pago pendiente - Realiza el pago para continuar';
+      case 'payment_pending_approval':
+        return 'Pago enviado - Esperando aprobación';
+      case 'payment_confirmed':
+        return 'Pago confirmado - Traveler comprará el producto';
+      case 'pending_purchase':
+        return 'Pendiente de compra - Sube el comprobante';
+      case 'purchased':
+        return pkg.tracking_info ? 'Producto comprado - En camino' : 'Producto comprado - Esperando envío';
+      case 'in_transit':
+        return 'En tránsito hacia Guatemala';
+      case 'received_by_traveler':
+        return 'Recibido por traveler';
+      case 'pending_office_confirmation':
+        return 'Entregado - Esperando confirmación de oficina';
+      case 'delivered_to_office':
+        return 'Entregado en oficina - Listo para recojo';
+      case 'completed':
+        return 'Completado';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'quote_rejected':
+        return 'Cotización rechazada';
+      case 'quote_expired':
+        return 'Cotización expirada - Solicita nueva cotización';
       default:
-        return `Estado: ${pkg.status || 'desconocido'}`;
+        return `Estado: ${pkg.status}`;
     }
   };
 
-  const handleEditDocument = (type: 'purchase_confirmation' | 'tracking_info') => {
-    setEditDocumentModal({ isOpen: true, documentType: type });
+  const handleDeleteDocument = (documentType: 'purchase_confirmation' | 'tracking_info') => {
+    setEditDocumentModal({ isOpen: true, documentType });
   };
 
-  const handleCloseEditModal = () => {
-    setEditDocumentModal({ isOpen: false, documentType: null });
+  const isShipmentReadyStatus = (pkg: any): boolean => {
+    return pkg.status === 'purchased' || 
+           pkg.status === 'in_transit' || 
+           pkg.status === 'received_by_traveler' ||
+           pkg.status === 'pending_office_confirmation' ||
+           pkg.status === 'delivered_to_office' ||
+           pkg.status === 'completed';
   };
 
-  const handleEditSubmit = (editedData: any) => {
-    if (onEditPackage) {
-      // Transform editedData from PackageRequestForm format to database update format
-      const updateData: Partial<PackageType> = {
-        package_destination: editedData.destination,
-        purchase_origin: editedData.origin,
-        delivery_method: editedData.deliveryMethod,
-        delivery_deadline: editedData.deliveryDeadline instanceof Date 
-          ? editedData.deliveryDeadline.toISOString() 
-          : editedData.deliveryDeadline,
-        additional_notes: editedData.notes || null,
-        confirmed_delivery_address: editedData.address || null,
-        // Transform products array to products_data format
-        products_data: editedData.products?.map((product: any) => ({
-          itemDescription: product.itemDescription,
-          itemLink: product.itemLink,
-          estimatedPrice: product.estimatedPrice?.toString(),
-          quantity: product.quantity?.toString()
-        })) || null
-      };
-      
-      // Call onEditPackage with the package ID and update data
-      onEditPackage({ id: pkg.id, ...updateData } as any);
-    }
-    setShowEditModal(false);
+  // Helper function to check if the package has valid quote
+  const hasValidQuote = (pkg: any): boolean => {
+    return pkg.quote && 
+           pkg.quote.total_price && 
+           (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date());
   };
 
-  const handleDeletePackage = () => {
-    if (onDeletePackage) {
-      onDeletePackage(pkg);
-    }
-    setShowDeleteDialog(false);
+  // Helper function to get package name
+  const getPackageName = () => {
+    return pkg.item_description || 'Sin descripción';
   };
 
-  const handleArchivePackage = () => {
-    if (onArchivePackage) {
-      onArchivePackage(pkg);
-    }
-  };
-
-
-
-  // Determine if package actions dropdown should be shown
-  const canEdit = viewMode === 'user' && ['pending_approval', 'approved'].includes(pkg.status);
-  const canShowPackageActions = viewMode === 'user' && (
-    (canEdit && onEditPackage) ||
-    (onDeletePackage && [
-      'pending_approval',
-      'approved', 
-      'matched',
-      'quote_sent',
-      'quote_accepted',
-      'quote_rejected',
-      'quote_expired',
-      'payment_pending',
-      'payment_pending_approval'
-    ].includes(pkg.status)) ||
-    (onArchivePackage && [
-      'completed',
-      'delivered',
-      'delivered_to_office',
-      'cancelled',
-      'rejected'
-    ].includes(pkg.status))
-  );
-
-  // Determine if this is an archivable status
-  const isArchivable = [
-    'completed',
-    'delivered', 
-    'delivered_to_office',
-    'cancelled',
-    'rejected'
-  ].includes(pkg.status);
-
-  const renderActionButtons = () => {
-    return (
-      <div className="flex flex-wrap gap-2 w-full">
-        {/* Action buttons moved to dropdown menu */}
-      </div>
-    );
+  // Helper function to get package description
+  const getPackageDescription = () => {
+    return `Precio: $${pkg.estimated_price}`;
   };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="w-full max-w-full overflow-hidden min-w-0 box-border mobile-content mx-auto">
+      <Card className={`transition-all duration-200 w-full max-w-full overflow-hidden ${
+        needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"
+      }`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors p-3 sm:p-4 lg:p-6 w-full overflow-hidden">
-            <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
-              {/* Title row */}
-              <div className="flex items-start justify-between w-full min-w-0 gap-2">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
-                    <span className="truncate flex items-center gap-2 w-full">
-                      <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                      <span className="truncate">
-                        {pkg.item_description || 'Sin descripción'}
-                      </span>
-                    </span>
-                  </CardTitle>
+          <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden ${
+            isMobile ? 'p-3' : 'p-4 sm:p-6'
+          }`}>
+            
+            {/* Mobile optimized layout */}
+            {isMobile ? (
+              <div className="space-y-3 w-full">
+                {/* Product name and status in single row */}
+                <div className="flex items-start justify-between gap-2 w-full">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Package className="h-4 w-4 text-primary flex-shrink-0" />
+                    <CardTitle className="text-sm font-semibold leading-tight truncate">
+                      {getPackageName()}
+                    </CardTitle>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {needsAction && <NotificationBadge count={1} />}
+                    {getStatusBadge(pkg.status)}
+                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {needsAction && (
-                    <NotificationBadge count={1} />
-                  )}
-                  {isOpen ? <ChevronUp className="h-4 w-4 hidden sm:block" /> : <ChevronDown className="h-4 w-4 hidden sm:block" />}
-                </div>
-              </div>
-              
-              {/* Description and Action buttons row */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full min-w-0">
-                <CardDescription className="text-xs sm:text-sm min-w-0 flex-1">
-                  <div className="flex flex-col gap-1 w-full min-w-0">
-                    <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
-                    <span className="truncate max-w-full text-muted-foreground">
-                      {getStatusDescription(pkg)}
-                    </span>
+
+                {/* Description */}
+                <CardDescription className="text-xs leading-tight text-muted-foreground">
+                  <div className="space-y-1">
+                    <span className="block">{getPackageDescription()}</span>
+                    <span className="block">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
-                
-                {/* Action buttons - responsive layout */}
-                <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
+
+                {/* Action buttons - stacked vertically on mobile */}
+                <div className="space-y-2 w-full">
                   {pkg.status === 'quote_expired' && onRequestRequote && (
                     <Button
                       size="sm"
@@ -287,7 +223,7 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         onRequestRequote(pkg);
                       }}
-                      className="text-xs sm:text-sm w-full sm:w-auto"
+                      className="text-xs w-full"
                     >
                       Recotizar
                     </Button>
@@ -310,163 +246,242 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         setShowDeleteDialog(true);
                       }}
-                      className="text-xs sm:text-sm w-full sm:w-auto"
+                      className="text-xs w-full"
                     >
-                      <span className="hidden sm:inline">Eliminar pedido</span>
-                      <span className="sm:hidden">Eliminar</span>
+                      Eliminar pedido
                     </Button>
                   )}
+                  
+                  {/* Shopper Action Button - mobile optimized */}
+                  {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onQuote(pkg, 'user');
+                      }}
+                      className="text-xs font-medium w-full"
+                    >
+                      Ver y Aceptar Cotización
+                    </Button>
+                  ) : pkg.status === 'payment_pending' ? (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPaymentModal(true);
+                      }}
+                      className="text-xs font-medium w-full"
+                    >
+                      <CreditCard className="h-3 w-3 mr-1" />
+                      Pagar
+                    </Button>
+                  ) : (pkg.status === 'pending_purchase' || 
+                       (pkg.status === 'purchased' && !pkg.tracking_info) ||
+                       (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) ||
+                       pkg.status === 'payment_pending_approval') ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowShippingInfoModal(true);
+                      }}
+                      className="text-xs font-medium w-full"
+                    >
+                      📦 Subir comprobante compra
+                    </Button>
+                  ) : null}
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0 overflow-hidden">
-                {/* Shopper Action Button - Different for different statuses */}
-                {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
-                  <Button
-                    size="sm"
-                    variant="success"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onQuote(pkg, 'user');
-                    }}
-                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full truncate"
-                  >
-                    <span className="truncate">Ver y Aceptar Cotización</span>
-                  </Button>
-                ) : pkg.status === 'payment_pending' ? (
-                  <Button
-                    size="sm"
-                    variant="default"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowPaymentModal(true);
-                    }}
-                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
-                  >
-                    <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">Pagar</span>
-                  </Button>
-                ) : (pkg.status === 'pending_purchase' || 
-                     (pkg.status === 'purchased' && !pkg.tracking_info) ||
-                     (pkg.status === 'shipped' && !pkg.tracking_info) ||
-                     (pkg.status === 'in_transit' && !pkg.tracking_info)) ? (
-                  <Button
-                    size="sm"
-                    variant="success"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowShippingInfoModal(true);
-                    }}
-                    className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
-                  >
-                    <span className="truncate">Comprar y subir comprobantes</span>
-                  </Button>
-                ) : null}
-                <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                  <div className="flex-shrink-0 min-w-0 max-w-[70%] sm:max-w-none">
-                    {expirationInfo ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            {getStatusBadge(pkg.status, { 
-                              packageDestination: pkg.package_destination, 
-                              isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                              pkg: pkg
-                            })}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{expirationInfo.message}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      getStatusBadge(pkg.status, { 
-                        packageDestination: pkg.package_destination, 
-                        isQuoteExpired: !!(pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date()),
-                        pkg: pkg
-                      })
+            ) : (
+              // Desktop layout (original)
+              <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
+                {/* Title row */}
+                <div className="flex items-start justify-between w-full min-w-0 gap-2">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
+                      <span className="truncate flex items-center gap-2 w-full">
+                        <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                        <span className="truncate">
+                          {pkg.item_description || 'Sin descripción'}
+                        </span>
+                      </span>
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {needsAction && (
+                      <NotificationBadge count={1} />
+                    )}
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </div>
+                </div>
+              
+                {/* Description and Action buttons row */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full min-w-0">
+                  <CardDescription className="text-xs sm:text-sm min-w-0 flex-1">
+                    <div className="flex flex-col gap-1 w-full min-w-0">
+                      <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
+                      <span className="truncate max-w-full text-muted-foreground">
+                        {getStatusDescription(pkg)}
+                      </span>
+                    </div>
+                  </CardDescription>
+                  
+                  {/* Action buttons - responsive layout */}
+                  <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
+                    {pkg.status === 'quote_expired' && onRequestRequote && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRequestRequote(pkg);
+                        }}
+                        className="text-xs sm:text-sm w-full sm:w-auto"
+                      >
+                        Recotizar
+                      </Button>
+                    )}
+                    {onDeletePackage && [
+                      'pending_approval',
+                      'approved', 
+                      'matched',
+                      'quote_sent',
+                      'quote_accepted',
+                      'quote_rejected',
+                      'quote_expired',
+                      'payment_pending',
+                      'payment_pending_approval'
+                    ].includes(pkg.status) && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteDialog(true);
+                        }}
+                        className="text-xs sm:text-sm w-full sm:w-auto"
+                      >
+                        <span className="hidden sm:inline">Eliminar pedido</span>
+                        <span className="sm:hidden">Eliminar</span>
+                      </Button>
                     )}
                   </div>
-                {canShowPackageActions && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-muted flex-shrink-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                     <DropdownMenuContent 
-                      align="end" 
-                      className="bg-background border shadow-md z-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {canEdit && onEditPackage && (
-                        <DropdownMenuItem
-                          className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEditModal(true);
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                      )}
-                      {isArchivable ? (
-                        <>
-                          <DropdownMenuItem
-                            className="text-muted-foreground focus:text-foreground hover:bg-muted cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleArchivePackage();
-                            }}
-                          >
-                            <Archive className="mr-2 h-4 w-4" />
-                            Archivar
-                          </DropdownMenuItem>
-                          {pkg.status === 'rejected' && (
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Descartar pedido
-                            </DropdownMenuItem>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {onDeletePackage && (
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Descartar pedido
-                            </DropdownMenuItem>
-                          )}
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
                 </div>
-            </div>
-            </div>
+                
+                <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0 overflow-hidden">
+                  {/* Shopper Action Button - Different for different statuses */}
+                  {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || (pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date())) ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onQuote(pkg, 'user');
+                      }}
+                      className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full truncate"
+                    >
+                      <span className="truncate">Ver y Aceptar Cotización</span>
+                    </Button>
+                  ) : pkg.status === 'payment_pending' ? (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowPaymentModal(true);
+                      }}
+                      className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
+                    >
+                      <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Pagar</span>
+                    </Button>
+                  ) : (pkg.status === 'pending_purchase' || 
+                       (pkg.status === 'purchased' && !pkg.tracking_info) ||
+                       (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) ||
+                       pkg.status === 'payment_pending_approval') && (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowShippingInfoModal(true);
+                      }}
+                      className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
+                    >
+                      📦 <span className="ml-1 truncate">Subir comprobante compra</span>
+                    </Button>
+                  )}
+   
+                  {/* Badge showing admin notes if any */}
+                  {((pkg as any).admin_notes || (pkg as any).estimated_price_note) && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="px-2 py-1 bg-muted text-muted-foreground rounded text-[10px] sm:text-xs cursor-help flex-shrink-0">
+                            ℹ️ Nota admin
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-80">
+                          <div className="space-y-1">
+                            {(pkg as any).admin_notes && (
+                              <p><strong>Nota:</strong> {(pkg as any).admin_notes}</p>
+                            )}
+                            {(pkg as any).estimated_price_note && (
+                              <p><strong>Precio estimado:</strong> {(pkg as any).estimated_price_note}</p>
+                            )}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+
+                   {/* Package Actions Dropdown */}
+                   {onDeletePackage && viewMode === 'user' && (
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button 
+                           variant="ghost" 
+                           size="sm" 
+                           className="h-auto w-auto p-1 rounded-full"
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           <MoreHorizontal className="h-4 w-4" />
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                         {onEditPackage && [
+                           'pending_approval',
+                           'approved', 
+                           'matched',
+                           'quote_sent',
+                           'quote_rejected',
+                           'quote_expired'
+                         ].includes(pkg.status) && (
+                           <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                             <Edit className="mr-2 h-4 w-4" />
+                             Editar pedido
+                           </DropdownMenuItem>
+                         )}
+                         {onArchivePackage && (
+                           <DropdownMenuItem onClick={() => onArchivePackage(pkg)}>
+                             <Archive className="mr-2 h-4 w-4" />
+                             Archivar
+                           </DropdownMenuItem>
+                         )}
+                       </DropdownMenuContent>
+                     </DropdownMenu>
+                   )}
+                </div>
+              </div>
+            )}
           </CardHeader>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="p-1 sm:p-3 overflow-hidden">
+          <CardContent className={`pt-0 pb-1 overflow-hidden ${isMobile ? 'px-2' : 'px-4'}`}>
             {/* Main Content Layout - 2 Columns */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-0 overflow-hidden">
               
@@ -478,266 +493,191 @@ const CollapsiblePackageCard = ({
                       value="producto" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
                     >
-                      <Box className="h-4 w-4" />
-                      <span className="hidden sm:inline">Producto</span>
+                      <Package className="h-3 w-3" />
+                      <span className="text-[10px]">Producto</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="estado" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
                     >
-                      <Activity className="h-4 w-4" />
-                      <span className="hidden sm:inline">Estado</span>
+                      <Activity className="h-3 w-3" />
+                      <span className="text-[10px]">Estado</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="documentos" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
                     >
-                      <FileText className="h-4 w-4" />
-                      <span className="hidden sm:inline">Docs</span>
+                      <FileText className="h-3 w-3" />
+                      <span className="text-[10px]">Docs</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="chat" 
                       className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background"
                     >
-                      <MessageCircle className="h-4 w-4" />
-                      <span className="hidden sm:inline">Chat</span>
+                      <MessageCircle className="h-3 w-3" />
+                      <span className="text-[10px]">Chat</span>
                     </TabsTrigger>
                   </TabsList>
-
-                  <TabsContent value="producto" className="mt-0 px-1 py-2 sm:p-2">
-                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Detalles del Producto</h4>
-                        {canEdit && onEditPackage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowEditModal(true);
-                            }}
-                            className="h-7 w-7 p-0 hover:bg-muted"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                      <div className="max-w-full overflow-hidden">
-                        <ShopperPackageDetails pkg={pkg} />
-                      </div>
-                      
-                      {/* Rejection Reason */}
-                      {['rejected', 'quote_rejected'].includes(pkg.status) && (
-                        (() => {
-                          const reason = (pkg?.quote_rejection as any)?.reason 
-                            || (pkg?.admin_rejection as any)?.reason 
-                            || (pkg as any)?.rejection_reason;
-                          if (!reason) return null;
-                          const wantsRequote = (pkg?.quote_rejection as any)?.wants_requote ?? (pkg as any)?.wants_requote;
-                          const additionalComments = (pkg?.quote_rejection as any)?.additional_notes ?? (pkg as any)?.additional_notes;
-                          return (
-                            <div className="mt-2 sm:mt-4 max-w-full overflow-hidden">
-                              <RejectionReasonDisplay 
-                                rejectionReason={reason}
-                                wantsRequote={wantsRequote}
-                                additionalComments={additionalComments}
-                              />
-                            </div>
-                          );
-                        })()
+                  
+                  <div className="p-3 max-h-64 overflow-y-auto">
+                    <TabsContent value="producto" className="mt-0">
+                      <ShopperPackageDetails pkg={pkg} />
+                      {pkg.rejection_reason && (
+                        <div className="mt-3">
+                          <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
+                        </div>
                       )}
-
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="estado" className="mt-0 px-1 py-2 sm:p-2">
-                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm w-full max-w-full overflow-hidden min-w-0">
-                      <div className="w-full max-w-full overflow-x-auto overflow-y-hidden min-w-0">
-                        <PackageStatusTimeline 
-                          currentStatus={pkg.status}
-                          deliveryMethod={pkg.delivery_method}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="documentos" className="mt-0 px-1 py-2 sm:p-2">
-                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
-                      <div className="max-w-full overflow-hidden">
-                        <UploadedDocumentsRegistry 
-                          pkg={pkg}
-                          onEditDocument={handleEditDocument}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="chat" className="mt-0 px-1 py-2 sm:p-2">
-                    <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm">
-                      <PackageTimeline pkg={pkg} />
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
+                    
+                    <TabsContent value="estado" className="mt-0">
+                      <PackageStatusTimeline packageId={pkg.id} />
+                    </TabsContent>
+                    
+                    <TabsContent value="documentos" className="mt-0">
+                      <UploadedDocumentsRegistry 
+                        pkg={pkg} 
+                        onEditDocument={handleDeleteDocument}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="chat" className="mt-0">
+                      <PackageTimeline packageId={pkg.id} />
+                    </TabsContent>
+                  </div>
                 </Tabs>
               </div>
-
-              {/* Right Column: Information & Communication */}
-              <div className="md:col-span-3 space-y-1 sm:space-y-2 px-1 py-0.5 md:p-2 bg-card/50 rounded-lg border border-card/80 order-1 md:order-2 overflow-hidden">
+              
+              {/* Right Column: Package Actions and Info */}
+              <div className="md:col-span-3 space-y-3 order-1 md:order-2 px-0 md:px-3">
                 
                 {/* Traveler Confirmation Section */}
-                {(pkg.status === 'received_by_traveler' ||
-                  pkg.status === 'delivered' ||
-                  pkg.status === 'pending_office_confirmation') && (
-                  <div className="bg-card border rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
-                    <div className="flex items-center gap-2 mb-2 sm:mb-4">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <h3 className="text-sm font-medium text-primary">Confirmación del Viajero</h3>
+                <TravelerConfirmationDisplay pkg={pkg} />
+                
+                {/* Priority Actions Section */}
+                <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                  <div className="p-3 border-b border-muted/50">
+                    <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Box className="h-4 w-4 text-primary" />
+                      Acciones Requeridas
+                    </h3>
+                  </div>
+                  <div className="p-3">
+                    <ShopperPackagePriorityActions
+                      pkg={pkg}
+                      onQuote={onQuote}
+                    />
+                  </div>
+                </div>
+                
+                {/* Quote Information */}
+                {hasValidQuote(pkg) && (
+                  <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                    <div className="p-3 border-b border-muted/50">
+                      <h3 className="text-sm font-medium text-foreground">Información de Cotización</h3>
                     </div>
-                    <div className="max-w-full overflow-hidden">
-                      <TravelerConfirmationDisplay pkg={pkg} />
+                    <div className="p-3">
+                      <PackageQuoteInfo pkg={pkg} />
                     </div>
                   </div>
                 )}
                 
-                {/* Required Actions Section */}
-                <div className="bg-card border-2 border-warning/20 rounded-lg px-1 py-1 sm:p-2 shadow-sm max-w-full overflow-hidden">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 bg-warning rounded-full animate-pulse"></div>
-                    <h3 className="text-sm font-medium text-warning">Acciones Requeridas</h3>
-                  </div>
-                  
-                  {/* Priority Actions */}
-                  <div className="mb-4">
-                     <ShopperPackagePriorityActions 
-                       pkg={pkg} 
-                       onQuote={onQuote}
-                       onDeletePackage={onDeletePackage}
-                       onRequestRequote={onRequestRequote}
-                       onShowTimeline={(packageId) => {
-                         setActiveTab("estado");
-                         setIsOpen(true);
-                       }}
-                     />
-                  </div>
-
-                  {/* Shipping Instructions */}
-                  {['pending_purchase', 'payment_confirmed'].includes(pkg.status) && (
-                    <div className="mb-4">
-                      <ShippingInstructions pkg={pkg} />
-                    </div>
-                  )}
-
-                  {/* Quote Information */}
-                  {pkg.quote && !pkg.wants_requote && !['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'].includes(pkg.status) && (
-                    <div className="mb-4">
-                      <PackageQuoteInfo 
-                        quote={pkg.quote as any}
-                        quoteExpiresAt={pkg.quote_expires_at}
-                        deliveryMethod={pkg.delivery_method}
-                        shopperTrustLevel={(profile as any)?.trust_level}
-                        adminTipAmount={pkg.admin_assigned_tip}
-                      />
-                    </div>
-                  )}
-
-
-                </div>
-
-
-                {/* Collapsible Shipping Information Section for later states only */}
-                {['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'delivered', 'completed'].includes(pkg.status) && (
-                  <div className="bg-card border rounded-lg p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Información de Envío</h3>
-                    </div>
-                    
-                    <div>
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-between mb-3"
-                        onClick={() => setShippingInfoOpen(!shippingInfoOpen)}
-                      >
-                        Ver detalles de envío
-                        {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </Button>
-                      {shippingInfoOpen && (
-                        <div className="space-y-4">
+                {/* Shipping Instructions - For later stages */}
+                {isShipmentReadyStatus(pkg) && (
+                  <Collapsible open={shippingInfoOpen} onOpenChange={setShippingInfoOpen}>
+                    <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                      <CollapsibleTrigger asChild>
+                        <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-primary" />
+                              Información de Envío
+                            </h3>
+                            {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="p-3 space-y-3">
                           <ShippingInstructions pkg={pkg} />
                           <ShippingInfoRegistry pkg={pkg} />
                         </div>
-                      )}
+                      </CollapsibleContent>
                     </div>
-                  </div>
+                  </Collapsible>
                 )}
               </div>
             </div>
           </CardContent>
         </CollapsibleContent>
       </Card>
-      
-      {/* Edit Modal */}
-      <PackageRequestForm
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onSubmit={handleEditSubmit}
-        editMode={true}
-        initialData={pkg}
-      />
 
+      {/* Edit Package Modal */}
+      {showEditModal && onEditPackage && (
+        <PackageRequestForm
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={(data) => {
+            onEditPackage(data);
+            setShowEditModal(false);
+          }}
+          initialData={pkg}
+          
+        />
+      )}
+
+      {/* Edit Document Modal */}
       <EditDocumentModal
         isOpen={editDocumentModal.isOpen}
-        onClose={handleCloseEditModal}
-        documentType={editDocumentModal.documentType}
+        onClose={() => setEditDocumentModal({ isOpen: false, documentType: null })}
         pkg={pkg}
-        onUpdate={(type, data) => {
-          if (type === 'purchase_confirmation') {
-            onUploadDocument(pkg.id, 'confirmation', data);
-          } else if (type === 'tracking_info') {
-            onUploadDocument(pkg.id, 'tracking', data);
-          }
-        }}
+        documentType={editDocumentModal.documentType}
+        
       />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Descartar pedido?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar pedido?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción cancelará permanentemente tu pedido de "{pkg.item_description}". 
-              No podrás recuperarlo después de confirmarlo.
+              Esta acción no se puede deshacer. El pedido será eliminado permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeletePackage}
+              onClick={() => {
+                if (onDeletePackage) {
+                  onDeletePackage(pkg);
+                  setShowDeleteDialog(false);
+                }
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Descartar pedido
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Shopper Payment Info Modal */}
-      <ShopperPaymentInfoModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        pkg={pkg}
-        onUploadComplete={(updatedPkg) => {
-          // Mantener el modal abierto para mostrar el estado de éxito dentro del modal
-          // (el propio modal ya muestra el mensaje y evita cierres accidentales)
-        }}
-      />
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <ShopperPaymentInfoModal
+          pkg={pkg}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onUploadComplete={() => setShowPaymentModal(false)}
+        />
+      )}
 
       {/* Shipping Info Modal */}
-      <ShippingInfoModal
-        isOpen={showShippingInfoModal}
-        onClose={() => setShowShippingInfoModal(false)}
-        pkg={pkg}
-        onDocumentUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
-      />
+      {showShippingInfoModal && (
+        <ShippingInfoModal
+          pkg={pkg}
+          isOpen={showShippingInfoModal}
+          onClose={() => setShowShippingInfoModal(false)}
+        />
+      )}
     </Collapsible>
   );
 };
