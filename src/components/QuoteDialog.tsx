@@ -227,7 +227,7 @@ const QuoteDialog = ({
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
             {isTravelerContext ? '💰 Tip Asignado por Favorón' : !existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
           </DialogTitle>
-          <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed">
+          <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed text-left">
             {isTravelerContext ? 'Favorón ha asignado un tip específico para este pedido. Revisa y decide si aceptas.' : !existingQuote ? 'Proporciona tu mejor cotización para este Favorón' : 'Revisa los detalles y responde a la cotización del viajero'}
           </DialogDescription>
         </DialogHeader>
