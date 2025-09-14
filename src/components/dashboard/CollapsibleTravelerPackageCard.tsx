@@ -151,7 +151,7 @@ const CollapsibleTravelerPackageCard = ({
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {getStatusBadge(pkg.status)}
-                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground hidden sm:block" /> : <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />}
                   </div>
                 </div>
 
