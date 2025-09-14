@@ -391,7 +391,22 @@ const QuoteDialog = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-3 w-3" />
-                  <span><strong>Fecha de entrega del paquete:</strong> {new Date(tripDates.delivery_date).toLocaleDateString('es-GT')} (2 días hábiles después de la entrega del viajero)</span>
+                  <span><strong>Fecha de entrega del paquete:</strong> {(() => {
+                    const addBusinessDays = (date: Date, days: number) => {
+                      const result = new Date(date);
+                      let addedDays = 0;
+                      while (addedDays < days) {
+                        result.setDate(result.getDate() + 1);
+                        // Skip weekends (0 = Sunday, 6 = Saturday)
+                        if (result.getDay() !== 0 && result.getDay() !== 6) {
+                          addedDays++;
+                        }
+                      }
+                      return result;
+                    };
+                    const packageDeliveryDate = addBusinessDays(new Date(tripDates.delivery_date), 2);
+                    return packageDeliveryDate.toLocaleDateString('es-GT');
+                  })()}</span>
                 </div>
                 
                 {/* Traveler location info if available */}
