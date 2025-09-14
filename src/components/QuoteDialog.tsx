@@ -376,10 +376,6 @@ const QuoteDialog = ({
                 <div className="text-sm text-destructive mt-2 pl-5">
                   Esta es la fecha en la que el viajero entregará los paquetes en la oficina de Favorón. Recibirás tu paquete 1-2 días después de la llegada.
                 </div>
-                {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && <div className="flex items-center space-x-2">
-                    <MapPin className="h-3 w-3" />
-                    <span><strong>Código postal del viajero:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}</span>
-                  </div>}
               </div>
             </div>}
 
@@ -394,6 +390,11 @@ const QuoteDialog = ({
                     <strong>Dirección aproximada:</strong> {packageDetails.traveler_address.streetAddress}
                     {packageDetails.traveler_address.cityArea && `, ${packageDetails.traveler_address.cityArea}`}
                   </p>
+                  {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
+                    <p className="text-sm text-yellow-700">
+                      <strong>Código postal:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}
+                    </p>
+                  )}
                   <div className="bg-yellow-100 border border-yellow-300 rounded p-3 mt-2">
                     <p className="text-xs text-yellow-800 font-medium">
                       ⚠️ <strong>IMPORTANTE:</strong> Esta NO es la dirección de envío final. 
