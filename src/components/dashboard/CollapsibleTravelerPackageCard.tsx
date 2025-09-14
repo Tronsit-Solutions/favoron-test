@@ -296,11 +296,11 @@ const CollapsibleTravelerPackageCard = ({
                              🔗 Paquete emparejado - Envía tu cotización
                            </div>
                          )}
-                         {pkg.status === 'quote_sent' && (
-                           <div className="text-muted-foreground whitespace-nowrap">
-                             📝 Cotización enviada - Esperando respuesta del shopper
-                           </div>
-                         )}
+                          {pkg.status === 'quote_sent' && (
+                            <div className="text-muted-foreground whitespace-nowrap text-left">
+                              📝 Cotización enviada - Esperando respuesta del shopper
+                            </div>
+                          )}
                          {pkg.status === 'quote_accepted' && (
                            <div className="font-medium text-green-600">
                              ✅ Cotización aceptada - Esperando pago
