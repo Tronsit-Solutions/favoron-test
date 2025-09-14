@@ -187,6 +187,11 @@ const CollapsibleTravelerPackageCard = ({
                       🛒 Producto comprado - Esperando envío del paquete
                     </div>
                   )}
+                  {pkg.status === 'pending_purchase' && (
+                    <div className="text-purple-600 bg-purple-50 p-2 rounded-md">
+                      🛍️ Pendiente de compra - El cliente ya pagó la cotización, procede a comprar el producto
+                    </div>
+                  )}
                   {pkg.status === 'in_transit' && (
                     <div className="text-orange-600 bg-orange-50 p-2 rounded-md">
                       🚚 En tránsito - Confirma cuando recibas
@@ -308,6 +313,11 @@ const CollapsibleTravelerPackageCard = ({
                          {pkg.status === 'purchased' && (
                            <div className="font-medium text-green-600">
                              🛒 Producto comprado - Esperando envío del paquete
+                           </div>
+                         )}
+                         {pkg.status === 'pending_purchase' && (
+                           <div className="font-medium text-purple-600">
+                             🛍️ Pendiente de compra - El cliente ya pagó la cotización, procede a comprar el producto
                            </div>
                          )}
                          {pkg.status === 'in_transit' && (
