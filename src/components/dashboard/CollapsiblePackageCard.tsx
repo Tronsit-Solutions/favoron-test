@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -196,7 +196,8 @@ const CollapsiblePackageCard = ({
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-sm sm:text-base lg:text-lg w-full min-w-0 overflow-hidden">
                   <div className="flex items-center justify-between w-full min-w-0 gap-2">
-                    <span className="truncate flex-1 min-w-0 text-sm sm:text-base lg:text-lg max-w-[70%] sm:max-w-none">
+                    <span className="truncate flex-1 min-w-0 text-sm sm:text-base lg:text-lg max-w-[70%] sm:max-w-none flex items-center gap-2">
+                      <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                       {pkg.item_description || 'Sin descripción'}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
