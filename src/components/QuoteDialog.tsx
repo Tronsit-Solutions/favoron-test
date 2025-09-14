@@ -217,11 +217,6 @@ const QuoteDialog = ({
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} overflow-y-auto p-4 sm:p-6`}>
-        {/* Close button in top right - larger for mobile */}
-        <button onClick={onClose} className="absolute right-3 top-3 rounded-full p-2 opacity-70 bg-background border shadow-sm transition-all hover:opacity-100 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10">
-          <X className="h-5 w-5" />
-          <span className="sr-only">Cerrar</span>
-        </button>
 
         <DialogHeader className="pr-12">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
