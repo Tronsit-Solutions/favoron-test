@@ -54,7 +54,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
     {
       icon: Truck,
       title: "Entregas a domicilio gratis en la capital",
-      description: "Sin costo adicional por delivery en Ciudad de Guatemala",
+      description: "Sin costo adicional por entrega en Ciudad de Guatemala",
     },
   ];
 
