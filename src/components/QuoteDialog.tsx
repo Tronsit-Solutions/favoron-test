@@ -260,7 +260,7 @@ const QuoteDialog = ({
                               Producto {index + 1}: {product.itemDescription}
                             </p>
                             <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
-                              <div className="text-sm text-muted-foreground space-y-2 flex-1 min-w-0">
+                              <div className="text-sm text-foreground space-y-2 flex-1 min-w-0">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
                                 <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
                                 {quantity > 1 && <p className="text-sm text-primary font-medium">
