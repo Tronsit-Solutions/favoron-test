@@ -74,7 +74,7 @@ export const PRIORITY_LABELS = {
 export const ROLE_LABELS = {
   shopper: 'Comprador',
   traveler: 'Viajero',
-  admin: 'Administrador'
+  admin: 'Equipo Favorón'
 } as const;
 
 export const REJECTION_REASONS = {

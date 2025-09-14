@@ -4,10 +4,14 @@ import { getRoleStyles } from './styles';
 export type UserRole = 'shopper' | 'traveler' | 'admin';
 
 // User role determination
-export const getUserRole = (userId: string, pkg: Package): UserRole => {
+export const getUserRole = (userId: string, pkg: Package, userDatabaseRole?: string): UserRole => {
+  // If user has admin role in database, always return admin
+  if (userDatabaseRole === 'admin') return 'admin';
+  
+  // Otherwise check package relationship
   if (pkg.user_id === userId) return 'shopper';
-  // Note: traveler_id might be in matched_trip_id or handled differently
-  // For now, assume non-owner users are travelers, admins have special role
+  
+  // For non-admin, non-owner users, they are travelers
   return 'traveler';
 };
 

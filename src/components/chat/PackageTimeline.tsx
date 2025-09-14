@@ -16,7 +16,7 @@ interface PackageTimelineProps {
 }
 
 export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { 
     messages, 
     loading, 
@@ -79,7 +79,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
                 </div>
               ) : (
                 messages.map((message) => {
-                  const role = getUserRole(message.user_id, pkg);
+                  const role = getUserRole(message.user_id, pkg, message.user_id === user?.id ? userRole?.toString() : undefined);
                   
                   return (
                     <MessageBubble
