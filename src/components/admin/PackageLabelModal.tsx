@@ -17,6 +17,19 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
   const generatePDF = () => {
     if (!labelRef.current) return;
 
+    // Create a temporary container for PDF generation (unscaled)
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '0';
+    document.body.appendChild(tempContainer);
+
+    // Clone the label without scaling
+    const labelClone = labelRef.current.cloneNode(true) as HTMLElement;
+    labelClone.style.transform = 'none';
+    labelClone.style.transformOrigin = 'initial';
+    tempContainer.appendChild(labelClone);
+
     // Create PDF with 4x6 inch dimensions (288x432 points at 72 DPI)
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -24,12 +37,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       format: [288, 432]
     });
 
-    // Get the label element
-    const labelElement = labelRef.current;
-    
-    // Use html2canvas equivalent - capture as image and add to PDF
-    pdf.html(labelElement, {
+    // Capture the unscaled element
+    pdf.html(tempContainer, {
       callback: function (doc) {
+        // Clean up temporary element
+        document.body.removeChild(tempContainer);
+        
         const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
         const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
@@ -39,9 +52,11 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       width: 288,
       windowWidth: 288,
       html2canvas: {
-        scale: 2,
+        scale: 1,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: 288,
+        height: 432
       }
     });
   };

@@ -75,8 +75,8 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
   return (
     <div className={`bg-white border-2 border-black ${className}`} 
          style={{ 
-           width: '4in', 
-           height: '6in', 
+           width: '288px', 
+           height: '432px', 
            fontFamily: 'monospace',
            fontSize: '12px',
            lineHeight: '1.2'
