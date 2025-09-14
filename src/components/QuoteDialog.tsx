@@ -255,19 +255,19 @@ const QuoteDialog = ({
 
                     // Always use adminAssignedTip from products_data
                     const adminTip = parseFloat(product.adminAssignedTip || '0');
-                    return <div key={index} className="bg-muted/30 rounded p-2 max-w-full overflow-hidden">{/* Add overflow control */}
-                            <p className="text-sm font-medium text-foreground mb-2">
+                    return <div key={index} className="bg-muted/30 rounded p-3 max-w-full overflow-hidden">
+                            <p className="text-sm font-medium text-foreground mb-3">
                               Producto {index + 1}: {product.itemDescription}
                             </p>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-2">{/* Stack vertically on mobile */}
-                              <div className="text-sm text-muted-foreground space-y-1 flex-1 min-w-0">{/* Add min-width 0 to prevent overflow */}
+                            <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                              <div className="text-sm text-muted-foreground space-y-2 flex-1 min-w-0">
                                 <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
                                 <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
-                                {quantity > 1 && <p className="text-primary font-medium">
+                                {quantity > 1 && <p className="text-sm text-primary font-medium">
                                     ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                                   </p>}
                                 {product.itemLink && (
-                                  <p>
+                                  <p className="text-sm">
                                     <strong>Link:</strong>{' '}
                                     <a 
                                       href={product.itemLink} 
@@ -279,11 +279,11 @@ const QuoteDialog = ({
                                     </a>
                                   </p>
                                 )}
-                                <p className="text-foreground font-medium">
+                                <p className="text-sm text-foreground font-medium">
                                   <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
                                 </p>
                               </div>
-                              <div className="text-right flex-shrink-0">{/* Prevent shrinking on mobile */}
+                              <div className="text-right flex-shrink-0">
                                 {adminTip > 0 ? <div>
                                     {isTravelerContext ?
                             // Traveler sees base tip
