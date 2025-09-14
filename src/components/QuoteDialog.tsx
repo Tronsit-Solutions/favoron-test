@@ -429,7 +429,7 @@ const QuoteDialog = ({
                 
                 <div className="bg-amber-100 border border-amber-300 rounded p-3 mt-3">
                   <p className="text-xs text-amber-800 font-medium space-y-1">
-                    <span className="block">• Esta es la fecha en la que el viajero entregará los paquetes en la oficina de Favorón. Recibirás tu paquete 1-2 días después de la llegada.</span>
+                    
                     {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
                       <span className="block">• ⚠️ <strong>IMPORTANTE:</strong> La dirección mostrada NO es la dirección de envío final. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
                     )}
