@@ -297,7 +297,7 @@ const CollapsibleTravelerPackageCard = ({
                            </div>
                          )}
                          {pkg.status === 'quote_sent' && (
-                           <div className="text-muted-foreground">
+                           <div className="text-muted-foreground whitespace-nowrap">
                              📝 Cotización enviada - Esperando respuesta del shopper
                            </div>
                          )}
