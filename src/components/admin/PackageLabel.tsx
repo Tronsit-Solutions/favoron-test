@@ -89,7 +89,7 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
           className="h-12 mx-auto mb-2"
           style={{ filter: 'grayscale(100%)' }}
         />
-        <div className="text-lg font-bold">ETIQUETA PEDIDO</div>
+        
       </div>
 
       {/* Content */}
