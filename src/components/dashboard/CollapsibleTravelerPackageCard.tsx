@@ -290,7 +290,7 @@ const CollapsibleTravelerPackageCard = ({
                       {getStatusBadge(pkg.status)}
                       
                        {/* Status message */}
-                       <div className="text-xs mt-1 max-w-48">
+                       <div className="text-xs mt-1 max-w-48 text-left">"
                          {pkg.status === 'matched' && (
                            <div className="font-medium text-blue-600">
                              🔗 Paquete emparejado - Envía tu cotización
