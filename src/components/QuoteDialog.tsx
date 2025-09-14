@@ -431,7 +431,7 @@ const QuoteDialog = ({
                   <p className="text-xs text-amber-800 font-medium space-y-1">
                     
                     {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
-                      <span className="block">• ⚠️ <strong>IMPORTANTE:</strong> La dirección mostrada NO es la dirección de envío final. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
+                      <span className="block">⚠️ <strong>IMPORTANTE:</strong> La dirección mostrada NO es la dirección de envío final. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
                     )}
                   </p>
                 </div>
