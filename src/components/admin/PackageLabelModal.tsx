@@ -17,49 +17,33 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
   const generatePDF = () => {
     if (!labelRef.current) return;
 
-    // Create PDF with letter size (8.5x11 inches = 612x792 points at 72 DPI)
+    // Create PDF with 4x6 inch dimensions (288x432 points at 72 DPI)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
-      format: 'letter'
+      format: [288, 432]
     });
 
-    // Get the hidden label element for PDF (full size, no scaling)
-    const hiddenLabelElement = document.getElementById('hidden-pdf-label');
-    if (!hiddenLabelElement) return;
+    // Get the label element
+    const labelElement = labelRef.current;
     
-    // Calculate position to center 4x6" label (288x432 pt) on letter paper (612x792 pt)
-    const centerX = (612 - 288) / 2; // 162 pt
-    const centerY = (792 - 432) / 2; // 180 pt
-    
-    // Temporarily move the element to visible area for capture
-    const originalStyle = hiddenLabelElement.style.cssText;
-    hiddenLabelElement.style.cssText = 'position: fixed; top: 0; left: 0; z-index: 9999; background: white;';
-    
-    // Wait a bit for rendering, then capture
-    setTimeout(() => {
-      pdf.html(hiddenLabelElement, {
-        callback: function (doc) {
-          // Restore original positioning
-          hiddenLabelElement.style.cssText = originalStyle;
-          
-          const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
-          const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
-          doc.save(fileName);
-        },
-        x: centerX,
-        y: centerY,
-        width: 288,
-        windowWidth: 288,
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          allowTaint: true
-        }
-      });
-    }, 100);
+    // Use html2canvas equivalent - capture as image and add to PDF
+    pdf.html(labelElement, {
+      callback: function (doc) {
+        const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
+        const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+      },
+      x: 0,
+      y: 0,
+      width: 288,
+      windowWidth: 288,
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }
+    });
   };
 
   const handlePrint = () => {
@@ -125,15 +109,6 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
             >
               <PackageLabel pkg={pkg} />
             </div>
-          </div>
-
-          {/* Hidden element for PDF generation - full size, not scaled */}
-          <div 
-            id="hidden-pdf-label" 
-            className="fixed -left-[9999px] top-0 opacity-0 pointer-events-none"
-            style={{ width: '288px', height: '432px' }}
-          >
-            <PackageLabel pkg={pkg} />
           </div>
 
           {/* Package Info */}
