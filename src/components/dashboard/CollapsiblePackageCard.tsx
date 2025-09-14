@@ -530,7 +530,7 @@ const CollapsiblePackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="estado" className="mt-0">
-                      <PackageStatusTimeline packageId={pkg.id} />
+                      <PackageStatusTimeline currentStatus={pkg.status} />
                     </TabsContent>
                     
                     <TabsContent value="documentos" className="mt-0">
@@ -541,7 +541,7 @@ const CollapsiblePackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="chat" className="mt-0">
-                      <PackageTimeline packageId={pkg.id} />
+                      <PackageTimeline pkg={pkg} />
                     </TabsContent>
                   </div>
                 </Tabs>
@@ -576,7 +576,13 @@ const CollapsiblePackageCard = ({
                       <h3 className="text-sm font-medium text-foreground">Información de Cotización</h3>
                     </div>
                     <div className="p-3">
-                      <PackageQuoteInfo pkg={pkg} />
+                      <PackageQuoteInfo 
+                        quote={pkg.quote as any}
+                        quoteExpiresAt={pkg.quote_expires_at}
+                        deliveryMethod={pkg.delivery_method}
+                        shopperTrustLevel={(pkg as any).shopper_trust_level}
+                        adminTipAmount={pkg.admin_assigned_tip}
+                      />
                     </div>
                   </div>
                 )}
@@ -626,13 +632,18 @@ const CollapsiblePackageCard = ({
       )}
 
       {/* Edit Document Modal */}
-      <EditDocumentModal
-        isOpen={editDocumentModal.isOpen}
-        onClose={() => setEditDocumentModal({ isOpen: false, documentType: null })}
-        pkg={pkg}
-        documentType={editDocumentModal.documentType}
-        
-      />
+      {editDocumentModal.isOpen && pkg && (
+        <EditDocumentModal
+          isOpen={editDocumentModal.isOpen}
+          onClose={() => setEditDocumentModal({ isOpen: false, documentType: null })}
+          pkg={pkg}
+          documentType={editDocumentModal.documentType}
+          onUpdate={(type, data) => {
+            onUploadDocument(pkg.id, type === 'purchase_confirmation' ? 'confirmation' : 'tracking', data);
+            setEditDocumentModal({ isOpen: false, documentType: null });
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
