@@ -15,9 +15,9 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
 
   const getDeliveryMethodText = () => {
     if (pkg.delivery_method === 'delivery') {
-      return 'A DOMICILIO';
+      return 'A domicilio';
     } else {
-      return 'PICK-UP';
+      return 'Pick-up';
     }
   };
 
