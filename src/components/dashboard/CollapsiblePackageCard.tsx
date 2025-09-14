@@ -202,7 +202,6 @@ const CollapsiblePackageCard = ({
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {needsAction && <NotificationBadge count={1} />}
                     {getStatusBadge(pkg.status)}
-                    {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                   </div>
                 </div>
 
