@@ -283,39 +283,79 @@ const CollapsibleTravelerPackageCard = ({
                     <div className="flex flex-col items-end text-right">
                       {getStatusBadge(pkg.status)}
                       
-                      {/* Status message */}
-                      <div className="text-xs mt-1 max-w-48">
-                        {pkg.status === 'quote_sent' && (
-                          <div className="text-muted-foreground">
-                            Cotización enviada - Esperando respuesta del shopper
-                          </div>
-                        )}
-                        {pkg.status === 'quote_accepted' && (
-                          <div className="font-medium text-green-600">
-                            ✅ Cotización aceptada - Esperando confirmación de pago
-                          </div>
-                        )}
-                        {pkg.status === 'payment_confirmed' && (
-                          <div className="font-medium text-blue-600">
-                            💳 Pago confirmado - Esperando que el shopper envíe el paquete
-                          </div>
-                        )}
-                        {pkg.status === 'in_transit' && (
-                          <div className="font-medium text-orange-600">
-                            🚚 En tránsito
-                          </div>
-                        )}
-                        {pkg.status === 'received_by_traveler' && (
-                          <div className="font-medium text-green-600">
-                            ✅ Paquete recibido y confirmado
-                            {pkg.traveler_confirmation?.confirmedAt && (
-                              <div className="text-muted-foreground mt-0.5">
-                                Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                       {/* Status message */}
+                       <div className="text-xs mt-1 max-w-48">
+                         {pkg.status === 'matched' && (
+                           <div className="font-medium text-blue-600">
+                             🔗 Paquete emparejado - Envía tu cotización
+                           </div>
+                         )}
+                         {pkg.status === 'quote_sent' && (
+                           <div className="text-muted-foreground">
+                             📝 Cotización enviada - Esperando respuesta del shopper
+                           </div>
+                         )}
+                         {pkg.status === 'quote_accepted' && (
+                           <div className="font-medium text-green-600">
+                             ✅ Cotización aceptada - Esperando pago
+                           </div>
+                         )}
+                         {pkg.status === 'payment_confirmed' && (
+                           <div className="font-medium text-blue-600">
+                             💳 Pago confirmado - El cliente ya pagó la cotización y debes comprar el producto
+                           </div>
+                         )}
+                         {pkg.status === 'purchased' && (
+                           <div className="font-medium text-green-600">
+                             🛒 Producto comprado - Esperando envío del paquete
+                           </div>
+                         )}
+                         {pkg.status === 'in_transit' && (
+                           <div className="font-medium text-orange-600">
+                             🚚 En tránsito - Confirma cuando recibas
+                           </div>
+                         )}
+                         {pkg.status === 'received_by_traveler' && (
+                           <div className="font-medium text-green-600">
+                             ✅ Paquete recibido y confirmado
+                             {pkg.traveler_confirmation?.confirmedAt && (
+                               <div className="text-muted-foreground mt-0.5">
+                                 Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                               </div>
+                             )}
+                           </div>
+                         )}
+                         {pkg.status === 'pending_office_confirmation' && (
+                           <div className="font-medium text-amber-600">
+                             ⏳ Entregado - Esperando confirmación de oficina
+                           </div>
+                         )}
+                         {pkg.status === 'delivered_to_office' && (
+                           <div className="font-medium text-green-600">
+                             🏢 Entregado en oficina - Listo para recojo
+                           </div>
+                         )}
+                         {pkg.status === 'completed' && (
+                           <div className="font-medium text-green-600">
+                             ✅ Completado - Paquete entregado exitosamente
+                           </div>
+                         )}
+                         {pkg.status === 'cancelled' && (
+                           <div className="font-medium text-red-600">
+                             ❌ Cancelado
+                           </div>
+                         )}
+                         {pkg.status === 'pending_approval' && (
+                           <div className="font-medium text-amber-600">
+                             ⏳ Pendiente de aprobación
+                           </div>
+                         )}
+                         {pkg.status === 'approved' && (
+                           <div className="font-medium text-blue-600">
+                             👍 Aprobado - Esperando emparejamiento
+                           </div>
+                         )}
+                       </div>
                     </div>
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                   </div>
