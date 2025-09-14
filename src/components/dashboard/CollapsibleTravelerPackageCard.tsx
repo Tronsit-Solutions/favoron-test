@@ -100,13 +100,14 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const getPackageDescription = () => {
+    const tipAmount = getTipAmount();
     if (pkg.products && pkg.products.length > 0) {
       const total = pkg.products.reduce((sum: number, product: any) => 
         sum + parseFloat(product.estimatedPrice || 0), 0
       ).toFixed(2);
-      return `Total: $${total}`;
+      return `Total: $${total}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
     }
-    return `Precio: $${pkg.estimated_price}`;
+    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
   };
 
   const getTipAmount = () => {
