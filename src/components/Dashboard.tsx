@@ -607,7 +607,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                        <div>
                          <div className="text-xl font-bold text-secondary">
                            ${assignedPackages
-                             .filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status))
+                             .filter(pkg => ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status))
                              .reduce((sum, pkg) => {
                                if ((pkg as any).products && (pkg as any).products.length > 0) {
                                  return sum + (pkg as any).products.reduce((productSum: number, product: any) => 
