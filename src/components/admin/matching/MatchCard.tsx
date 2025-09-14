@@ -14,7 +14,8 @@ import {
   MessageCircle, 
   ChevronDown, 
   ChevronRight,
-  Settings
+  Settings,
+  Crown
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -100,6 +101,11 @@ export const MatchCard = ({
     return matchedTrip?.public_profiles?.username || `Usuario ${matchedTrip?.user_id || 'N/A'}`;
   };
 
+  const isShopperPrime = () => {
+    return pkg.profiles?.trust_level === 'prime' || 
+           (pkg.profiles?.prime_expires_at && new Date(pkg.profiles.prime_expires_at) > new Date());
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -122,7 +128,14 @@ export const MatchCard = ({
               {isMobile ? (
                 <div className="space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">
-                    <span>🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}</span>
+                    <span className="flex items-center gap-1">
+                      🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                      {isShopperPrime() && (
+                        <span title="Usuario Prime">
+                          <Crown className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                        </span>
+                      )}
+                    </span>
                   </div>
                   {matchedTrip && (
                     <div className="flex items-center space-x-2">
@@ -136,8 +149,13 @@ export const MatchCard = ({
                 </div>
               ) : (
                 <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                  <span>
-                    🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name} 
+                  <span className="flex items-center gap-1">
+                    🛍️ {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                    {isShopperPrime() && (
+                      <span title="Usuario Prime">
+                        <Crown className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                      </span>
+                    )}
                     {matchedTrip && (
                       <>
                         {' '} 🤝 {getTravelerName()} ✈️
