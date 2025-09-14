@@ -1,0 +1,102 @@
+import React from 'react';
+
+interface PackageLabelProps {
+  pkg: any;
+  className?: string;
+}
+
+export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
+  const getShopperName = () => {
+    if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
+      return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
+    }
+    return 'N/A';
+  };
+
+  const getDeliveryMethodText = () => {
+    if (pkg.delivery_method === 'delivery') {
+      return '🚚 A DOMICILIO';
+    } else {
+      return '🏢 PICK-UP';
+    }
+  };
+
+  const getDeliveryAddress = () => {
+    if (pkg.delivery_method === 'pickup' && pkg.confirmed_delivery_address) {
+      const addr = pkg.confirmed_delivery_address;
+      return [
+        addr.streetAddress,
+        addr.cityArea,
+        addr.hotelAirbnbName,
+        addr.contactNumber ? `Tel: ${addr.contactNumber}` : null
+      ].filter(Boolean).join(', ');
+    }
+    return null;
+  };
+
+  const getPackageId = () => {
+    return pkg.id ? pkg.id.substring(0, 8).toUpperCase() : 'N/A';
+  };
+
+  return (
+    <div className={`bg-white border-2 border-black ${className}`} 
+         style={{ 
+           width: '4in', 
+           height: '6in', 
+           fontFamily: 'monospace',
+           fontSize: '12px',
+           lineHeight: '1.2'
+         }}>
+      {/* Header with Logo */}
+      <div className="text-center py-4 border-b border-black">
+        <img 
+          src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
+          alt="Favorón"
+          className="h-12 mx-auto mb-2"
+          style={{ filter: 'grayscale(100%)' }}
+        />
+        <div className="text-lg font-bold">ETIQUETA PEDIDO</div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        {/* Package Info */}
+        <div>
+          <div className="text-sm font-bold mb-1">PEDIDO:</div>
+          <div className="text-xs break-words">{pkg.item_description}</div>
+        </div>
+
+        <div>
+          <div className="text-sm font-bold mb-1">ID:</div>
+          <div className="text-sm font-mono">{getPackageId()}</div>
+        </div>
+
+        {/* Shopper Info */}
+        <div>
+          <div className="text-sm font-bold mb-1">SHOPPER:</div>
+          <div className="text-sm">{getShopperName()}</div>
+        </div>
+
+        {/* Delivery Method */}
+        <div>
+          <div className="text-sm font-bold mb-1">ENTREGA:</div>
+          <div className="text-sm">{getDeliveryMethodText()}</div>
+        </div>
+
+        {/* Delivery Address (only for pickup) */}
+        {pkg.delivery_method === 'pickup' && getDeliveryAddress() && (
+          <div>
+            <div className="text-sm font-bold mb-1">DIRECCIÓN:</div>
+            <div className="text-xs break-words">{getDeliveryAddress()}</div>
+          </div>
+        )}
+
+        {/* Date */}
+        <div className="pt-2 border-t border-gray-400">
+          <div className="text-sm font-bold mb-1">FECHA:</div>
+          <div className="text-xs">{new Date().toLocaleDateString('es-GT')}</div>
+        </div>
+      </div>
+    </div>
+  );
+};

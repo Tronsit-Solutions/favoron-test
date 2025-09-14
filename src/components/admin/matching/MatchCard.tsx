@@ -15,11 +15,13 @@ import {
   ChevronDown, 
   ChevronRight,
   Settings,
-  Star
+  Star,
+  Tag
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PackageLabelModal } from "../PackageLabelModal";
 
 interface MatchCardProps {
   pkg: any;
@@ -54,11 +56,15 @@ export const MatchCard = ({
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
+  const [showLabelModal, setShowLabelModal] = useState(false);
   const statusInfo = getStatusInfo(pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation' && !!pkg.office_delivery?.traveler_declaration;
   const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
+  
+  // Check if package is confirmed (can generate label)
+  const canGenerateLabel = ['pending_purchase', 'payment_pending', 'paid', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status);
 
   // Check if we should show timers - including payment_pending
   const showQuoteTimer = (['quote_sent', 'payment_pending'].includes(pkg.status)) && pkg.quote_expires_at;
@@ -257,6 +263,19 @@ export const MatchCard = ({
                     )}
                   </div>
                   
+                  {/* Label Generation Button for Mobile */}
+                  {canGenerateLabel && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setShowLabelModal(true)}
+                      className="w-full min-h-[44px] text-sm border-orange-300 text-orange-700 hover:bg-orange-50"
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      🏷️ Generar Etiqueta
+                    </Button>
+                  )}
+                  
                   {showCompleteButton && (
                     <Button 
                       size="sm" 
@@ -291,6 +310,19 @@ export const MatchCard = ({
                   {onOpenActionsModal && (
                     <Button size="sm" variant="secondary" onClick={() => onOpenActionsModal(pkg.id)} className="px-2" title="Acciones administrativas">
                       <Settings className="h-3 w-3" />
+                    </Button>
+                  )}
+                  
+                  {/* Label Generation Button for Desktop */}
+                  {canGenerateLabel && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setShowLabelModal(true)}
+                      className="px-2 border-orange-300 text-orange-700 hover:bg-orange-50"
+                      title="Generar etiqueta PDF"
+                    >
+                      <Tag className="h-3 w-3" />
                     </Button>
                   )}
                   
@@ -611,6 +643,13 @@ export const MatchCard = ({
           </CollapsibleContent>
         </CardContent>
       </Collapsible>
+      
+      {/* Package Label Modal */}
+      <PackageLabelModal 
+        isOpen={showLabelModal}
+        onClose={() => setShowLabelModal(false)}
+        pkg={pkg}
+      />
     </Card>
   );
 };
