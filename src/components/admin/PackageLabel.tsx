@@ -92,11 +92,11 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 text-xs">
         {/* Package Info - Unified Section */}
         <div>
-          <div className="text-sm font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
-          <div className="text-xs break-words space-y-1">
+          <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
+          <div className="break-words space-y-1">
             <div><strong>Descripción:</strong> {pkg.item_description}</div>
             <div><strong>ID:</strong> {getPackageId()}</div>
             <div><strong>Precio Total:</strong> {getPackagePrice()}</div>
@@ -106,14 +106,14 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
 
         {/* Shopper Info */}
         <div>
-          <div className="text-sm">
+          <div>
             <span className="font-bold">SHOPPER:</span> {getShopperName()}
           </div>
         </div>
 
         {/* Delivery Method */}
         <div>
-          <div className="text-sm">
+          <div>
             <span className="font-bold">ENTREGA:</span> {getDeliveryMethodText()}
           </div>
         </div>
@@ -121,20 +121,20 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
         {/* Delivery Address (only for delivery) */}
         {pkg.delivery_method === 'delivery' && getDeliveryAddress() && (
           <div>
-            <div className="text-sm font-bold mb-1">DIRECCIÓN:</div>
-            <div className="text-xs break-words">{getDeliveryAddress()}</div>
+            <div className="font-bold mb-1">DIRECCIÓN:</div>
+            <div className="break-words">{getDeliveryAddress()}</div>
           </div>
         )}
 
         {/* Dates */}
         <div className="pt-2 border-t border-gray-400 space-y-2">
           <div>
-            <div className="text-sm font-bold mb-1">FECHA PEDIDO:</div>
-            <div className="text-xs">{getCreationDate()}</div>
+            <div className="font-bold mb-1">FECHA PEDIDO:</div>
+            <div>{getCreationDate()}</div>
           </div>
           <div>
-            <div className="text-sm font-bold mb-1">FECHA ETIQUETA:</div>
-            <div className="text-xs">{new Date().toLocaleDateString('es-GT')}</div>
+            <div className="font-bold mb-1">FECHA ETIQUETA:</div>
+            <div>{new Date().toLocaleDateString('es-GT')}</div>
           </div>
         </div>
       </div>
