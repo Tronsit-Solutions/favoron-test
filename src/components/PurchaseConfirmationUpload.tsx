@@ -240,8 +240,8 @@ const PurchaseConfirmationUpload = ({
       case 'uploaded':
         return (
           <div className="space-y-3">
-            <div className="border-2 border-dashed border-primary/50 rounded-md p-4">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="border-2 border-dashed border-primary/50 rounded-md p-4 space-y-4">
+              <div className="flex items-center gap-3">
                 <FileText className="h-6 w-6 text-primary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{pendingFile?.fileName}</p>
@@ -251,11 +251,11 @@ const PurchaseConfirmationUpload = ({
                 </div>
               </div>
               
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                 <Button 
                   onClick={confirmPurchaseConfirmation}
                   size="sm" 
-                  className="flex-1"
+                  className="w-full"
                 >
                   <CheckCircle className="h-3 w-3 mr-2" />
                   Confirmar Subida
@@ -264,7 +264,7 @@ const PurchaseConfirmationUpload = ({
                   onClick={handleTryAgain}
                   size="sm" 
                   variant="outline"
-                  className="flex-1"
+                  className="w-full"
                 >
                   <RefreshCw className="h-3 w-3 mr-2" />
                   Intentar de Nuevo
