@@ -310,7 +310,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                         className="flex items-center space-x-2 border-blue-300 text-blue-700 hover:bg-blue-50"
                       >
                         <User className="h-4 w-4" />
-                        <span>Ver Detalles del Viajero</span>
+                        <span>Ver Detalles</span>
                       </Button>
 
                       <Button
