@@ -263,8 +263,9 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-sm break-words">{pkg.item_description}</h4>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Paquete #{index + 1}
+                            <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                              <div>Paquete #{index + 1}</div>
+                              <div>ID: {pkg.id.substring(0, 8)}</div>
                             </div>
                           </div>
                           <Badge variant="secondary" className="text-xs flex-shrink-0">
