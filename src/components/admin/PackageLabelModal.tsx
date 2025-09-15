@@ -36,32 +36,18 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
       const labelWidth = 288;
       const labelHeight = 432;
       
-      // Calculate how many labels fit per page (2 columns)
-      const labelsPerRow = 2;
-      const labelsPerColumn = Math.floor(792 / labelHeight); // ~1 label per column
-      const labelsPerPage = labelsPerRow * labelsPerColumn;
-      
-      // Margins and spacing
-      const marginX = (612 - (labelsPerRow * labelWidth)) / (labelsPerRow + 1);
-      const marginY = (792 - (labelsPerColumn * labelHeight)) / (labelsPerColumn + 1);
-
-      let currentPage = 0;
-      let labelIndex = 0;
+      let isFirstPage = true;
 
       for (const pkg of packageList) {
-        const positionInPage = labelIndex % labelsPerPage;
-        const row = Math.floor(positionInPage / labelsPerRow);
-        const col = positionInPage % labelsPerRow;
-
-        // Add new page if needed
-        if (labelIndex > 0 && positionInPage === 0) {
+        // Add new page for each label (except the first one)
+        if (!isFirstPage) {
           pdf.addPage();
-          currentPage++;
         }
+        isFirstPage = false;
 
-        // Calculate position
-        const x = marginX + col * (labelWidth + marginX);
-        const y = marginY + row * (labelHeight + marginY);
+        // Calculate position to center the label on the page
+        const x = (612 - labelWidth) / 2; // Center horizontally
+        const y = (792 - labelHeight) / 2; // Center vertically
 
         // Create a temporary container for rendering (hidden off-screen)
         const tempContainer = document.createElement('div');
@@ -104,8 +90,6 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         // Convert canvas to image and add to PDF
         const imgData = canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', x, y, labelWidth, labelHeight);
-
-        labelIndex++;
       }
 
       // Generate filename and save
