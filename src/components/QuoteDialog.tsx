@@ -487,7 +487,7 @@ const QuoteDialog = ({
                                   const standardCompensationAndCommission = base + standardServiceFee;
                                   return (
                                     <div className="flex justify-between">
-                                      <span>Tarifa original Favorón (40%):</span>
+                                      <span>Compensacion Viajero + Comision Favoron:</span>
                                       <span>{formatCurrency(standardCompensationAndCommission)}</span>
                                     </div>
                                   );
