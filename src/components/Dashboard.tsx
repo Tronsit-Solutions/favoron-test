@@ -682,32 +682,39 @@ const Dashboard = ({ user }: DashboardProps) => {
                    
                    {/* Display all assigned packages directly */}
                    <div className="space-y-6">
-                     {assignedPackages
-                        .filter(pkg => {
-                          // First filter by selected trip
-                          if (selectedTripFilter !== "all" && pkg.matched_trip_id !== selectedTripFilter) {
-                            return false;
-                          }
-                          const now = Date.now();
-                          const PAID_OR_POST_PAYMENT = [
-                            'pending_purchase',
-                            'payment_pending_approval',
-                            'paid',
-                            'purchased',
-                            'shipped',
-                            'in_transit',
-                            'received_by_traveler',
-                            'pending_office_confirmation',
-                            'delivered_to_office',
-                            'completed'
-                          ];
-                          const isTimerActive = (pkg: any) => (
-                            (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-                            ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-                          );
-                          const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-                          return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status);
-                        })
+                      {assignedPackages
+                         .filter(pkg => {
+                           // First filter by selected trip
+                           if (selectedTripFilter !== "all" && pkg.matched_trip_id !== selectedTripFilter) {
+                             return false;
+                           }
+                           
+                           // Exclude packages from completed and paid trips
+                           const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                           if (matchedTrip && matchedTrip.status === 'completed_paid') {
+                             return false;
+                           }
+                           
+                           const now = Date.now();
+                           const PAID_OR_POST_PAYMENT = [
+                             'pending_purchase',
+                             'payment_pending_approval',
+                             'paid',
+                             'purchased',
+                             'shipped',
+                             'in_transit',
+                             'received_by_traveler',
+                             'pending_office_confirmation',
+                             'delivered_to_office',
+                             'completed'
+                           ];
+                           const isTimerActive = (pkg: any) => (
+                             (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+                             ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+                           );
+                           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
+                           return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status);
+                         })
                         .sort((a, b) => {
                           // Priority 1: Packages with pending actions first
                           const aPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status);
