@@ -311,10 +311,20 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1" />
                       Pagar
                     </Button>
-                  ) : (pkg.status === 'pending_purchase' || 
-                       (pkg.status === 'purchased' && !pkg.tracking_info) ||
-                       (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) ||
-                       pkg.status === 'payment_pending_approval') ? (
+                  ) : pkg.status === 'pending_purchase' ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowShippingInfoModal(true);
+                      }}
+                      className="text-xs font-medium w-full"
+                    >
+                      📦 Subir comprobante compra
+                    </Button>
+                  ) : ((pkg.status === 'purchased' && !pkg.tracking_info) ||
+                       (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url)) ? (
                     <Button
                       size="sm"
                       variant="success"
@@ -414,10 +424,7 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
                       <span className="truncate">Pagar</span>
                     </Button>
-                  ) : (pkg.status === 'pending_purchase' || 
-                       (pkg.status === 'purchased' && !pkg.tracking_info) ||
-                       (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) ||
-                       pkg.status === 'payment_pending_approval') && (
+                  ) : pkg.status === 'pending_purchase' && (
                      <Button
                       size="sm"
                       variant="success"
@@ -428,6 +435,22 @@ const CollapsiblePackageCard = ({
                       className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
                     >
                       <span className="truncate">ver direccion y comprar</span>
+                    </Button>
+                  )}
+                  
+                  {/* Show upload tracking button for purchased items without tracking */}
+                  {((pkg.status === 'purchased' && !pkg.tracking_info) ||
+                    (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url)) && (
+                     <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowShippingInfoModal(true);
+                      }}
+                      className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
+                    >
+                      <span className="truncate">📦 Subir info de envío</span>
                     </Button>
                   )}
    
