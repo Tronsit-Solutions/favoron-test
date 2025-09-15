@@ -109,16 +109,43 @@ export function ReceiptViewerModal({
           {!loading && !error && displayUrl && (
             <div className="bg-gray-50 rounded-lg p-4">
               {isImage ? (
-                <img 
-                  src={displayUrl} 
-                  alt={title}
-                  className="w-full h-auto rounded-lg shadow-sm max-h-[600px] object-contain"
-                  onLoad={() => console.log('Imagen cargada exitosamente:', displayUrl)}
-                  onError={(e) => {
-                    console.error('Error al cargar imagen:', displayUrl);
-                    toast.error("Error al cargar la imagen");
-                  }}
-                />
+                <div className="relative">
+                  <img 
+                    src={displayUrl} 
+                    alt={title}
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[600px] object-contain"
+                    onLoad={() => {
+                      console.log('✅ Imagen cargada exitosamente:', {
+                        displayUrl,
+                        signedUrl,
+                        receiptUrl,
+                        filename
+                      });
+                    }}
+                    onError={(e) => {
+                      console.error('❌ Error al cargar imagen:', {
+                        displayUrl,
+                        signedUrl,
+                        receiptUrl,
+                        filename,
+                        event: e
+                      });
+                      // Try fallback to original URL if signed URL fails
+                      if (displayUrl !== receiptUrl && receiptUrl) {
+                        console.log('🔄 Intentando con URL original:', receiptUrl);
+                        e.currentTarget.src = receiptUrl;
+                      }
+                    }}
+                  />
+                  {/* Debug info - remove in production */}
+                  <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                    <p><strong>Display URL:</strong> {displayUrl}</p>
+                    <p><strong>Signed URL:</strong> {signedUrl || 'No generada'}</p>
+                    <p><strong>Original URL:</strong> {receiptUrl}</p>
+                    <p><strong>Loading:</strong> {loading ? 'Sí' : 'No'}</p>
+                    <p><strong>Error:</strong> {error || 'Ninguno'}</p>
+                  </div>
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
