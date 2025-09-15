@@ -409,9 +409,7 @@ const QuoteDialog = ({
                   <>
                     <div className="flex items-center space-x-2">
                       <Home className="h-3 w-3" />
-                      <span><strong>Dirección aproximada del viajero:</strong> {packageDetails.traveler_address.streetAddress}
-                        {packageDetails.traveler_address.cityArea && `, ${packageDetails.traveler_address.cityArea}`}
-                      </span>
+                      <span><strong>Dirección aproximada del viajero:</strong> {packageDetails.traveler_address.streetAddress}</span>
                     </div>
                     {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
                       <div className="flex items-center space-x-2">
@@ -426,7 +424,7 @@ const QuoteDialog = ({
                   <p className="text-xs text-amber-800 font-medium space-y-1">
                     
                     {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
-                      <span className="block">⚠️ <strong>IMPORTANTE:</strong> La dirección mostrada NO es la dirección de envío final. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
+                      <span className="block">⚠️ <strong>IMPORTANTE:</strong> Esta es información parcial del viajero. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
                     )}
                   </p>
                 </div>
