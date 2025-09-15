@@ -403,6 +403,11 @@ const AdminDashboard = ({
       badge: (matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
     },
     {
+      value: "trips",
+      label: "Viajes",
+      badge: undefined
+    },
+    {
       value: "traveler-payments",
       label: "Pagos Viajeros",
       badge: pendingTravelerPayments > 0 ? <NotificationBadge count={pendingTravelerPayments} /> : undefined
@@ -446,7 +451,7 @@ const AdminDashboard = ({
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className="grid w-full grid-cols-8">
                 {adminTabs.map((tab) => (
                   <TabsTrigger
                     key={tab.value}
@@ -512,6 +517,15 @@ const AdminDashboard = ({
                 openModal("admin-actions-matches", 'admin-actions', pkg);
               }
             }}
+          />
+        </TabsContent>
+
+        <TabsContent value="trips" className="space-y-4">
+          <AdminTripsTab 
+            trips={localTrips}
+            onViewTripDetail={handleViewTripDetail}
+            onApproveReject={onApproveReject}
+            getStatusBadge={getStatusBadge}
           />
         </TabsContent>
 
