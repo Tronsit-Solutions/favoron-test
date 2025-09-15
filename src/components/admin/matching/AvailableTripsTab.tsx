@@ -57,7 +57,11 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
     const matchesSearch = 
       (trip.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (trip.to_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (trip.user_id || '').toString().includes(searchTerm);
+      (trip.user_id || '').toString().includes(searchTerm) ||
+      // Búsqueda por nombres del viajero
+      ((trip as any)?.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((trip as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((trip as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesOrigin = originFilter === "all" || trip.from_city === originFilter;
     
