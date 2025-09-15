@@ -111,23 +111,31 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     try {
       setGeneratingPDF(trip.id);
       
-      const pdf = new jsPDF();
-      let isFirstPage = true;
+      // Import React and ReactDOM for rendering
+      const React = await import('react');
+      const ReactDOM = await import('react-dom/client');
+      
+      // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'letter'
+      });
 
-      for (const pkg of trip.packages) {
-        if (!isFirstPage) {
-          pdf.addPage();
-        }
-        isFirstPage = false;
-
-        // Create temporary container for React component
+      for (let i = 0; i < trip.packages.length; i++) {
+        const pkg = trip.packages[i];
+        
+        // Create a temporary container for rendering (hidden off-screen)
         const tempContainer = document.createElement('div');
         tempContainer.style.position = 'absolute';
         tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
         tempContainer.style.width = '288px';
         tempContainer.style.height = '432px';
+        tempContainer.style.backgroundColor = '#ffffff';
         document.body.appendChild(tempContainer);
 
+        // Create a div to render the React component
         const reactContainer = document.createElement('div');
         tempContainer.appendChild(reactContainer);
 
@@ -135,25 +143,35 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
         const root = ReactDOM.createRoot(reactContainer);
         await new Promise<void>((resolve) => {
           root.render(React.createElement(PackageLabel, { pkg, trip }));
+          // Give React time to render
           setTimeout(resolve, 100);
         });
 
-        // Convert to canvas and add to PDF
-        const canvas = await html2canvas(reactContainer, {
+        // Use html2canvas to capture the element
+        const canvas = await html2canvas(tempContainer, {
           scale: 2,
           useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          width: 288,
+          height: 432,
+          windowWidth: 288,
+          windowHeight: 432
         });
 
-        // Cleanup
+        // Clean up temporary element and React root
         root.unmount();
         document.body.removeChild(tempContainer);
 
-        // Calculate position to center label
-        const centerX = (612 - 288) / 2;
-        const centerY = (792 - 432) / 2;
+        // Add new page for each label except the first one
+        if (i > 0) {
+          pdf.addPage();
+        }
 
+        // Calculate position to center 4x6" label (288x432 points) on letter page
+        const centerX = (612 - 288) / 2; // 162 points
+        const centerY = (792 - 432) / 2; // 180 points
+
+        // Convert canvas to image and add to PDF
         const imgData = canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
       }
