@@ -269,7 +269,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                               'Sin información del viajero'
                             }
                           </h4>
-                          {getStatusBadge(trip.status)}
                         </div>
                         
                         <div className="flex items-center space-x-2 text-muted-foreground">
