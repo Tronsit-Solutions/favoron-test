@@ -57,11 +57,22 @@ export const MatchCard = ({
   const isMobile = useIsMobile();
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
-  const statusInfo = getStatusInfo(pkg.status);
-  const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const statusInfo = getStatusInfo(isCompleting ? 'completed' : pkg.status);
+  const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status) && !isCompleting;
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
   const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation' && !!pkg.office_delivery?.traveler_declaration;
   const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
+
+  const handleCompleteDelivery = async () => {
+    setIsCompleting(true);
+    try {
+      await onConfirmDeliveryComplete();
+    } catch (error) {
+      console.error('Error completing delivery:', error);
+      setIsCompleting(false);
+    }
+  };
   
   // Check if package is confirmed (can generate label)
   const canGenerateLabel = ['pending_purchase', 'payment_pending', 'paid', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status);
@@ -71,6 +82,10 @@ export const MatchCard = ({
   const showAssignmentTimer = pkg.status === 'matched' && pkg.matched_assignment_expires_at;
 
   const getStatusDescription = () => {
+    if (isCompleting) {
+      return '✅ Completando entrega...';
+    }
+    
     switch (pkg.status) {
       case 'delivered_to_office':
         return pkg.confirmed_delivery_address 
@@ -279,12 +294,13 @@ export const MatchCard = ({
                   {showCompleteButton && (
                     <Button 
                       size="sm" 
-                      onClick={onConfirmDeliveryComplete}
+                      onClick={handleCompleteDelivery}
+                      disabled={isCompleting}
                       className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
                       title="Confirmar entrega completada"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      COMPLETAR ENTREGA
+                      {isCompleting ? 'COMPLETANDO...' : 'COMPLETAR ENTREGA'}
                     </Button>
                   )}
                 </div>
@@ -329,11 +345,12 @@ export const MatchCard = ({
                   {showCompleteButton && (
                     <Button 
                       size="sm" 
-                      onClick={onConfirmDeliveryComplete}
+                      onClick={handleCompleteDelivery}
+                      disabled={isCompleting}
                       className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium"
                       title="Confirmar entrega completada"
                     >
-                      COMPLETAR
+                      {isCompleting ? 'COMPLETANDO...' : 'COMPLETAR'}
                     </Button>
                   )}
                 </>
@@ -570,11 +587,12 @@ export const MatchCard = ({
                   {showCompleteButton && (
                     <Button 
                       size="sm" 
-                      onClick={onConfirmDeliveryComplete}
+                      onClick={handleCompleteDelivery}
+                      disabled={isCompleting}
                       className="w-full min-h-[44px] bg-green-600 hover:bg-green-700 text-sm"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      {getCompleteButtonText()}
+                      {isCompleting ? 'Completando...' : getCompleteButtonText()}
                     </Button>
                   )}
                 </div>
@@ -630,11 +648,12 @@ export const MatchCard = ({
                   {showCompleteButton && (
                     <Button 
                       size="sm" 
-                      onClick={onConfirmDeliveryComplete}
+                      onClick={handleCompleteDelivery}
+                      disabled={isCompleting}
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      {getCompleteButtonText()}
+                      {isCompleting ? 'Completando...' : getCompleteButtonText()}
                     </Button>
                   )}
                 </>
