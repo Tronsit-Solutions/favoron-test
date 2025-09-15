@@ -34,6 +34,17 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
 
       const tripsData = await Promise.all(
         eligibleTrips.map(async (trip) => {
+          // Get traveler profile information
+          const { data: travelerProfile, error: travelerError } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email, phone_number')
+            .eq('id', trip.user_id)
+            .single();
+
+          if (travelerError) {
+            console.error('Error fetching traveler profile:', travelerError);
+          }
+
           // Get packages for this trip that are assigned and confirmed
           const { data: packages, error } = await supabase
             .from('packages')
@@ -66,7 +77,8 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             return {
               ...trip,
               packages,
-              packageCount: packages.length
+              packageCount: packages.length,
+              travelerProfile: travelerProfile || null
             };
           }
 
@@ -77,7 +89,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
       // Filter out null results and sort by arrival date
       const validTrips = tripsData
         .filter(trip => trip !== null)
-        .sort((a, b) => new Date(a.arrivalDate).getTime() - new Date(b.arrivalDate).getTime());
+        .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
 
       setTripsWithPackages(validTrips);
     } catch (error) {
@@ -198,19 +210,36 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                         <div className="flex items-center space-x-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <h4 className="font-semibold text-lg">
-                            {trip.fromCity} → {trip.toCity}
+                            {trip.from_city} → {trip.to_city}
                           </h4>
                           {getStatusBadge(trip.status)}
                         </div>
                         
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <Calendar className="h-4 w-4" />
-                            <span>Llegada: {new Date(trip.arrivalDate).toLocaleDateString()}</span>
+                            <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>Salida: {new Date(trip.departure_date).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <User className="h-4 w-4" />
-                            <span>Viajero: {trip.userId}</span>
+                            <span className="font-medium">
+                              Viajero: {trip.travelerProfile ? 
+                                `${trip.travelerProfile.first_name} ${trip.travelerProfile.last_name}` : 
+                                'Sin información'
+                              }
+                            </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Package className="h-4 w-4" />
@@ -220,11 +249,33 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                           </div>
                         </div>
 
-                        {trip.deliveryDate && (
+                        {trip.travelerProfile?.email && (
+                          <div className="text-sm text-muted-foreground">
+                            <span>Email: {trip.travelerProfile.email}</span>
+                          </div>
+                        )}
+
+                        {trip.travelerProfile?.phone_number && (
+                          <div className="text-sm text-muted-foreground">
+                            <span>Teléfono: {trip.travelerProfile.phone_number}</span>
+                          </div>
+                        )}
+
+                        {trip.delivery_date && (
                           <div className="text-sm">
                             <span className="font-medium text-primary">
-                              Entrega en oficina: {new Date(trip.deliveryDate).toLocaleDateString()}
+                              Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long', 
+                                day: 'numeric'
+                              })}
                             </span>
+                          </div>
+                        )}
+
+                        {trip.available_space && (
+                          <div className="text-sm text-muted-foreground">
+                            <span>Espacio disponible: {trip.available_space}kg</span>
                           </div>
                         )}
                       </div>
