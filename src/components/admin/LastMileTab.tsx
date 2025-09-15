@@ -287,11 +287,11 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setPreviewPackage(trip.packages[0])}
+                        onClick={() => setPreviewPackage(trip.packages)}
                         className="flex items-center space-x-2 border-orange-300 text-orange-700 hover:bg-orange-50"
                       >
                         <Eye className="h-4 w-4" />
-                        <span>Vista Previa Etiqueta</span>
+                        <span>Vista Previa Etiquetas ({trip.packageCount})</span>
                       </Button>
 
                       <Button
@@ -329,7 +329,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
         <PackageLabelModal 
           isOpen={true}
           onClose={() => setPreviewPackage(null)}
-          pkg={previewPackage}
+          packages={Array.isArray(previewPackage) ? previewPackage : [previewPackage]}
         />
       )}
     </div>

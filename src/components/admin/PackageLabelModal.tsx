@@ -1,22 +1,27 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PackageLabel } from './PackageLabel';
-import { Download, Printer, X } from 'lucide-react';
+import { Download, Printer, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 interface PackageLabelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  pkg: any;
+  pkg?: any;
+  packages?: any[];
 }
 
-export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalProps) => {
+export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLabelModalProps) => {
   const labelRef = useRef<HTMLDivElement>(null);
+  const [currentPackageIndex, setCurrentPackageIndex] = useState(0);
+  
+  const packageList = packages || (pkg ? [pkg] : []);
+  const currentPackage = packageList[currentPackageIndex] || pkg;
 
   const generatePDF = async () => {
-    if (!labelRef.current) return;
+    if (!labelRef.current || !currentPackage) return;
 
     try {
       // Create a temporary container for rendering (hidden off-screen)
@@ -67,7 +72,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
 
       // Generate filename and save
-      const packageId = pkg.id ? pkg.id.substring(0, 8) : 'package';
+      const packageId = currentPackage.id ? currentPackage.id.substring(0, 8) : 'package';
       const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
@@ -78,7 +83,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
   };
 
   const handlePrint = () => {
-    if (!labelRef.current) return;
+    if (!labelRef.current || !currentPackage) return;
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -88,7 +93,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
     printWindow.document.write(`
       <html>
         <head>
-          <title>Etiqueta - ${pkg.id ? pkg.id.substring(0, 8) : 'Package'}</title>
+          <title>Etiqueta - ${currentPackage.id ? currentPackage.id.substring(0, 8) : 'Package'}</title>
           <style>
             body { 
               margin: 0; 
@@ -123,7 +128,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
       <DialogContent className="max-w-md mx-auto max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Vista Previa - Etiqueta PDF</span>
+            <span>Vista Previa - Etiqueta PDF {packageList.length > 1 && `(${currentPackageIndex + 1}/${packageList.length})`}</span>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -131,6 +136,32 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
         </DialogHeader>
 
         <div className="space-y-3">
+          {/* Navigation for multiple packages */}
+          {packageList.length > 1 && (
+            <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPackageIndex(Math.max(0, currentPackageIndex - 1))}
+                disabled={currentPackageIndex === 0}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <span className="text-sm font-medium">
+                Paquete {currentPackageIndex + 1} de {packageList.length}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPackageIndex(Math.min(packageList.length - 1, currentPackageIndex + 1))}
+                disabled={currentPackageIndex === packageList.length - 1}
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
           {/* Preview */}
           <div className="flex justify-center bg-gray-50 p-2 rounded-lg">
             <div 
@@ -138,15 +169,15 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg }: PackageLabelModalPro
               className="transform scale-40 origin-center"
               style={{ transformOrigin: 'center center' }}
             >
-              <PackageLabel pkg={pkg} />
+              <PackageLabel pkg={currentPackage} />
             </div>
           </div>
 
           {/* Package Info */}
           <div className="text-xs text-gray-600 space-y-1">
-            <div><strong>Pedido:</strong> {pkg.item_description}</div>
-            <div><strong>ID:</strong> {pkg.id ? pkg.id.substring(0, 8) : 'N/A'}</div>
-            <div><strong>Estado:</strong> {pkg.status}</div>
+            <div><strong>Pedido:</strong> {currentPackage.item_description}</div>
+            <div><strong>ID:</strong> {currentPackage.id ? currentPackage.id.substring(0, 8) : 'N/A'}</div>
+            <div><strong>Estado:</strong> {currentPackage.status}</div>
           </div>
 
           {/* Actions */}
