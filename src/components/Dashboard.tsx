@@ -6,6 +6,7 @@ import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
 import AdminDashboard from "./AdminDashboard";
+import LastMileTab from "./admin/LastMileTab";
 import QuoteDialog from "./QuoteDialog";
 import UserProfile from "./UserProfile";
 import EditProfileModal from "./profile/EditProfileModal";
@@ -432,7 +433,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {activeTab !== 'profile' && (
-            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
+            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-5 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
               <TabsTrigger value="overview">Home</TabsTrigger>
               <TabsTrigger value="packages" className="relative flex items-center gap-2">
                 Mis Pedidos
@@ -444,16 +445,21 @@ const Dashboard = ({ user }: DashboardProps) => {
                 Mis Viajes
                 {pendingActions.travelerTotal > 0 && (
                   <NotificationBadge count={pendingActions.travelerTotal} />
-                )}
-              </TabsTrigger>
-              {isAdmin && (
-                <TabsTrigger value="admin" className="relative flex items-center gap-2">
-                  Admin
-                  {pendingActions.adminTotal > 0 && (
-                    <NotificationBadge count={pendingActions.adminTotal} />
-                  )}
-                </TabsTrigger>
-              )}
+                 )}
+               </TabsTrigger>
+               {isAdmin && (
+                 <TabsTrigger value="admin" className="relative flex items-center gap-2">
+                   Admin
+                   {pendingActions.adminTotal > 0 && (
+                     <NotificationBadge count={pendingActions.adminTotal} />
+                   )}
+                 </TabsTrigger>
+               )}
+               {isAdmin && (
+                 <TabsTrigger value="ultima-milla" className="relative flex items-center gap-2">
+                   Última Milla
+                 </TabsTrigger>
+               )}
             </TabsList>
           )}
 
@@ -772,6 +778,15 @@ const Dashboard = ({ user }: DashboardProps) => {
               refreshAdminData={async () => { await refreshPackages(); }}
               unreadCounts={unreadCounts}
               markPackageMessagesAsRead={markPackageMessagesAsRead}
+              />
+            </TabsContent>
+          )}
+
+          {isAdmin && (
+            <TabsContent value="ultima-milla">
+              <LastMileTab 
+                trips={trips}
+                getStatusBadge={getStatusBadge}
               />
             </TabsContent>
           )}

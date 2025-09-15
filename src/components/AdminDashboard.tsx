@@ -21,7 +21,7 @@ import AdminStatsOverview from "./admin/AdminStatsOverview";
 import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
-import AdminTripsTab from "./admin/AdminTripsTab";
+
 
 import AdminTravelerPaymentsTab from "./admin/AdminTravelerPaymentsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
@@ -403,11 +403,6 @@ const AdminDashboard = ({
       badge: (matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
     },
     {
-      value: "trips",
-      label: "Última Milla",
-      badge: undefined
-    },
-    {
       value: "traveler-payments",
       label: "Pagos Viajeros",
       badge: pendingTravelerPayments > 0 ? <NotificationBadge count={pendingTravelerPayments} /> : undefined
@@ -520,14 +515,6 @@ const AdminDashboard = ({
           />
         </TabsContent>
 
-        <TabsContent value="trips" className="space-y-4">
-          <AdminTripsTab 
-            trips={localTrips}
-            onViewTripDetail={handleViewTripDetail}
-            onApproveReject={onApproveReject}
-            getStatusBadge={getStatusBadge}
-          />
-        </TabsContent>
 
         <TabsContent value="traveler-payments" className="space-y-4">
           <AdminTravelerPaymentsTab />
