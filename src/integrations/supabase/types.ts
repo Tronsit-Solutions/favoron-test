@@ -845,8 +845,9 @@ export type Database = {
         Returns: undefined
       }
       admin_view_all_users: {
-        Args: { access_reason?: string }
+        Args: { _access_reason?: string }
         Returns: {
+          avatar_url: string
           bank_account_holder: string
           bank_account_number: string
           bank_account_type: string
@@ -857,12 +858,15 @@ export type Database = {
           document_number: string
           document_type: string
           email: string
+          email_notification_preferences: Json
+          email_notifications: boolean
           first_name: string
           id: string
           last_name: string
           phone_number: string
-          trust_level: string
-          user_role: string
+          trust_level: Database["public"]["Enums"]["trust_level"]
+          updated_at: string
+          user_role: Database["public"]["Enums"]["user_role"]
           username: string
         }[]
       }
