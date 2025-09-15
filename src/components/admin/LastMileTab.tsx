@@ -30,8 +30,19 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     try {
       setLoading(true);
       
-      // Include all trips to see comprehensive view
-      const eligibleTrips = trips;
+      // Fetch trips with last_mile_delivered field from database
+      const { data: tripsFromDB, error: tripsError } = await supabase
+        .from('trips')
+        .select('*, last_mile_delivered')
+        .in('status', ['approved', 'active']);
+
+      if (tripsError) {
+        console.error('Error fetching trips:', tripsError);
+        setLoading(false);
+        return;
+      }
+
+      const eligibleTrips = tripsFromDB || [];
 
       const tripsData = await Promise.all(
         eligibleTrips.map(async (trip) => {
