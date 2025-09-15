@@ -48,7 +48,7 @@ interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
   onConfirmAddress: (pkg: PackageType) => void;
-  onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking', data: any) => void;
+  onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   onEditPackage?: (packageData: PackageType) => void;
   onDeletePackage?: (pkg: PackageType) => void;
   onArchivePackage?: (pkg: PackageType) => void;
@@ -685,7 +685,14 @@ const CollapsiblePackageCard = ({
           pkg={pkg}
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
-          onUploadComplete={() => setShowPaymentModal(false)}
+          onUploadComplete={(updatedPkg) => {
+            // The PaymentReceiptUpload component already updates the package in Supabase
+            // We just need to call onUploadDocument to trigger any additional state updates
+            if (onUploadDocument && updatedPkg.payment_receipt) {
+              onUploadDocument(pkg.id, 'payment_receipt', updatedPkg.payment_receipt);
+            }
+            setShowPaymentModal(false);
+          }}
         />
       )}
 
