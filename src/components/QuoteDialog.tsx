@@ -414,7 +414,7 @@ const QuoteDialog = ({
                     {packageDetails.traveler_address?.cityArea && (
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-3 w-3" />
-                        <span className="text-red-600 font-semibold"><strong>Área:</strong> {packageDetails.traveler_address.cityArea}</span>
+                        <span className="text-red-600 font-semibold"><strong>Ciudad/Estado:</strong> {packageDetails.traveler_address.cityArea}</span>
                       </div>
                     )}
                     {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
