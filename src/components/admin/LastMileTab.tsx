@@ -17,7 +17,6 @@ interface LastMileTabProps {
 
 const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
   const [tripsWithPackages, setTripsWithPackages] = useState<any[]>([]);
-  const [deliveredTrips, setDeliveredTrips] = useState<Set<string>>(new Set());
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [previewPackage, setPreviewPackage] = useState<any>(null);
@@ -101,8 +100,31 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     }
   };
 
-  const handleMarkAsDelivered = (tripId: string) => {
-    setDeliveredTrips(prev => new Set(prev).add(tripId));
+  const handleMarkAsDelivered = async (tripId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .update({ last_mile_delivered: true })
+        .eq('id', tripId);
+
+      if (error) {
+        console.error('Error marking trip as delivered:', error);
+        alert('Error al marcar como entregado. Inténtalo de nuevo.');
+        return;
+      }
+
+      // Update local state to immediately hide the trip
+      setTripsWithPackages(prev => 
+        prev.map(trip => 
+          trip.id === tripId 
+            ? { ...trip, last_mile_delivered: true }
+            : trip
+        )
+      );
+    } catch (error) {
+      console.error('Error marking trip as delivered:', error);
+      alert('Error al marcar como entregado. Inténtalo de nuevo.');
+    }
   };
 
   const generateTripLabels = async (trip: any) => {
@@ -188,7 +210,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     }
   };
 
-  const filteredTrips = tripsWithPackages.filter(trip => !deliveredTrips.has(trip.id));
+  const filteredTrips = tripsWithPackages.filter(trip => !trip.last_mile_delivered);
 
   if (loading) {
     return (
