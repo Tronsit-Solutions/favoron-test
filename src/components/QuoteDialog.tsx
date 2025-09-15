@@ -411,6 +411,12 @@ const QuoteDialog = ({
                       <Home className="h-3 w-3" />
                       <span className="text-red-600 font-semibold"><strong>Dirección #1:</strong> {packageDetails.traveler_address.streetAddress}{packageDetails.traveler_address.city && `, ${packageDetails.traveler_address.city}`}{packageDetails.traveler_address.state && `, ${packageDetails.traveler_address.state}`}</span>
                     </div>
+                    {packageDetails.traveler_address?.cityArea && (
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-3 w-3" />
+                        <span className="text-red-600 font-semibold"><strong>Área:</strong> {packageDetails.traveler_address.cityArea}</span>
+                      </div>
+                    )}
                     {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-3 w-3" />
