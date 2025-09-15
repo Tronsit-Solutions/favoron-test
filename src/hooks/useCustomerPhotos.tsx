@@ -85,9 +85,12 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
 
-      // If not admin, only fetch approved photos
+      // If not admin, only fetch approved testimonial photos with consent
       if (!isAdmin) {
-        query = query.eq('status', 'approved');
+        query = query
+          .eq('status', 'approved')
+          .eq('customer_consent', true)
+          .eq('usage_type', 'testimonial');
       }
 
       const { data, error } = await query;

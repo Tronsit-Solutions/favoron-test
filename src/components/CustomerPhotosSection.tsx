@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useCustomerPhotos } from '@/hooks/useCustomerPhotos';
 import { AdminPhotoModal } from '@/components/AdminPhotoModal';
+import { anonymizeCustomerName, sanitizeProductDescription, isPhotoSafeForPublicDisplay } from '@/lib/privacy';
 import Autoplay from "embla-carousel-autoplay";
 
 interface CustomerPhotosSectionProps {
@@ -206,21 +207,21 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   }}
                 >
                   <CarouselContent>
-                    {approvedPhotos.map((photo) => (
-                      <CarouselItem key={photo.id}>
-                        <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-md">
-                          <img
-                            src={photo.image_url}
-                            alt={photo.product_description}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* Small Delete Button */}
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="absolute top-2 right-2 h-6 w-6 p-0 opacity-80 hover:opacity-100"
-                            onClick={() => handleDeletePhoto(photo.id, photo.image_url)}
-                          >
+                     {approvedPhotos.map((photo) => (
+                       <CarouselItem key={photo.id}>
+                         <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-md">
+                           <img
+                             src={photo.image_url}
+                             alt={photo.product_description}
+                             className="w-full h-full object-cover"
+                           />
+                           {/* Small Delete Button */}
+                           <Button
+                             variant="destructive"
+                             size="sm"
+                             className="absolute top-2 right-2 h-6 w-6 p-0 opacity-80 hover:opacity-100"
+                             onClick={() => handleDeletePhoto(photo.id, photo.image_url)}
+                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -275,25 +276,23 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 }}
               >
                 <CarouselContent>
-                  {approvedPhotos.slice(0, 10).map((photo) => (
+                  {approvedPhotos.slice(0, 10).filter(isPhotoSafeForPublicDisplay).map((photo) => (
                     <CarouselItem key={photo.id}>
                       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg group">
                         <img
                           src={photo.image_url}
-                          alt={photo.product_description}
+                          alt={sanitizeProductDescription(photo.product_description)}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         {/* Semi-transparent overlay with gradient */}
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 pt-8">
                           <div className="text-white">
                             <h3 className="text-sm md:text-base font-semibold mb-1 drop-shadow-sm">
-                              {photo.product_description}
+                              {sanitizeProductDescription(photo.product_description)}
                             </h3>
-                            {photo.customer_name && (
-                              <p className="text-xs md:text-sm text-white/90 drop-shadow-sm">
-                                Cliente: {photo.customer_name}
-                              </p>
-                            )}
+                            <p className="text-xs md:text-sm text-white/90 drop-shadow-sm">
+                              Cliente: {anonymizeCustomerName(photo.customer_name)}
+                            </p>
                           </div>
                         </div>
                       </div>
