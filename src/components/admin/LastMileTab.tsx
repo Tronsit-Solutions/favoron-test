@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Printer, CheckCircle, Package, User, MapPin, Calendar } from "lucide-react";
+import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PackageLabel } from './PackageLabel';
+import { PackageLabelModal } from './PackageLabelModal';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
@@ -18,6 +19,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
   const [deliveredTrips, setDeliveredTrips] = useState<Set<string>>(new Set());
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [previewPackage, setPreviewPackage] = useState<any>(null);
 
   useEffect(() => {
     fetchTripsWithPackages();
@@ -45,7 +47,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             console.error('Error fetching traveler profile:', travelerError);
           }
 
-          // Get packages for this trip that are assigned and confirmed
+          // Get packages for this trip that can generate labels (same conditions as matches area)
           const { data: packages, error } = await supabase
             .from('packages')
             .select(`
@@ -58,14 +60,14 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             `)
             .eq('matched_trip_id', trip.id)
             .in('status', [
-              'matched', 
-              'quote_sent', 
-              'payment_pending', 
               'pending_purchase', 
-              'purchased', 
+              'payment_pending', 
+              'paid', 
               'in_transit', 
-              'received_by_traveler',
-              'pending_office_confirmation'
+              'received_by_traveler', 
+              'delivered_to_office', 
+              'out_for_delivery', 
+              'completed'
             ]);
 
           if (error) {
@@ -281,7 +283,17 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                       </div>
                     </div>
 
-                    <div className="flex space-x-3 mt-4">
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPreviewPackage(trip.packages[0])}
+                        className="flex items-center space-x-2 border-orange-300 text-orange-700 hover:bg-orange-50"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Vista Previa Etiqueta</span>
+                      </Button>
+
                       <Button
                         size="sm"
                         variant="outline"
@@ -291,7 +303,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                       >
                         <Printer className="h-4 w-4" />
                         <span>
-                          {generatingPDF === trip.id ? 'Generando...' : 'Imprimir Etiquetas'}
+                          {generatingPDF === trip.id ? 'Generando...' : 'Imprimir Todas las Etiquetas'}
                         </span>
                       </Button>
 
@@ -311,6 +323,15 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Package Label Preview Modal */}
+      {previewPackage && (
+        <PackageLabelModal 
+          isOpen={true}
+          onClose={() => setPreviewPackage(null)}
+          pkg={previewPackage}
+        />
+      )}
     </div>
   );
 };
