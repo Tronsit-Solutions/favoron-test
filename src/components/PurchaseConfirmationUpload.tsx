@@ -251,23 +251,23 @@ const PurchaseConfirmationUpload = ({
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+              <div className="flex flex-col gap-3 w-full">
                 <Button 
                   onClick={confirmPurchaseConfirmation}
                   size="sm" 
-                  className="w-full"
+                  className="w-full px-4 py-2 text-sm"
                 >
-                  <CheckCircle className="h-3 w-3 mr-2" />
-                  Confirmar Subida
+                  <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="flex-1">Confirmar Subida</span>
                 </Button>
                 <Button 
                   onClick={handleTryAgain}
                   size="sm" 
                   variant="outline"
-                  className="w-full"
+                  className="w-full px-4 py-2 text-sm"
                 >
-                  <RefreshCw className="h-3 w-3 mr-2" />
-                  Intentar de Nuevo
+                  <RefreshCw className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="flex-1">Intentar de Nuevo</span>
                 </Button>
               </div>
             </div>
