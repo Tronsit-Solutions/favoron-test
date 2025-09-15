@@ -32,28 +32,51 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         format: 'letter'
       });
 
-      let isFirstPage = true;
+      // Label dimensions (4x6 inches = 288x432 points)
+      const labelWidth = 288;
+      const labelHeight = 432;
+      
+      // Calculate how many labels fit per page (2 columns)
+      const labelsPerRow = 2;
+      const labelsPerColumn = Math.floor(792 / labelHeight); // ~1 label per column
+      const labelsPerPage = labelsPerRow * labelsPerColumn;
+      
+      // Margins and spacing
+      const marginX = (612 - (labelsPerRow * labelWidth)) / (labelsPerRow + 1);
+      const marginY = (792 - (labelsPerColumn * labelHeight)) / (labelsPerColumn + 1);
+
+      let currentPage = 0;
+      let labelIndex = 0;
 
       for (const pkg of packageList) {
-        if (!isFirstPage) {
+        const positionInPage = labelIndex % labelsPerPage;
+        const row = Math.floor(positionInPage / labelsPerRow);
+        const col = positionInPage % labelsPerRow;
+
+        // Add new page if needed
+        if (labelIndex > 0 && positionInPage === 0) {
           pdf.addPage();
+          currentPage++;
         }
-        isFirstPage = false;
+
+        // Calculate position
+        const x = marginX + col * (labelWidth + marginX);
+        const y = marginY + row * (labelHeight + marginY);
 
         // Create a temporary container for rendering (hidden off-screen)
         const tempContainer = document.createElement('div');
         tempContainer.style.position = 'absolute';
         tempContainer.style.left = '-9999px';
         tempContainer.style.top = '0';
-        tempContainer.style.width = '288px';
-        tempContainer.style.height = '432px';
+        tempContainer.style.width = `${labelWidth}px`;
+        tempContainer.style.height = `${labelHeight}px`;
         tempContainer.style.backgroundColor = '#ffffff';
         document.body.appendChild(tempContainer);
 
         // Create a new PackageLabel component for this package
         const tempLabelContainer = document.createElement('div');
-        tempLabelContainer.style.width = '288px';
-        tempLabelContainer.style.height = '432px';
+        tempLabelContainer.style.width = `${labelWidth}px`;
+        tempLabelContainer.style.height = `${labelHeight}px`;
         tempContainer.appendChild(tempLabelContainer);
 
         // Render PackageLabel component
@@ -68,29 +91,27 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
-          width: 288,
-          height: 432,
-          windowWidth: 288,
-          windowHeight: 432
+          width: labelWidth,
+          height: labelHeight,
+          windowWidth: labelWidth,
+          windowHeight: labelHeight
         });
 
         // Clean up temporary element
         root.unmount();
         document.body.removeChild(tempContainer);
 
-        // Calculate position to center 4x6" label (288x432 points) on letter page
-        const centerX = (612 - 288) / 2; // 162 points
-        const centerY = (792 - 432) / 2; // 180 points
-
         // Convert canvas to image and add to PDF
         const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+        pdf.addImage(imgData, 'PNG', x, y, labelWidth, labelHeight);
+
+        labelIndex++;
       }
 
       // Generate filename and save
       const fileName = packageList.length === 1 
         ? `etiqueta_${packageList[0].id ? packageList[0].id.substring(0, 8) : 'package'}_${new Date().toISOString().split('T')[0]}.pdf`
-        : `etiquetas_${packageList.length}_paquetes_${new Date().toISOString().split('T')[0]}.pdf`;
+        : `etiquetas_unificadas_${packageList.length}_paquetes_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
     } catch (error) {
