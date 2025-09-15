@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, CreditCard, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
+import { useAuth } from "@/hooks/useAuth";
+import { getPriceBreakdown } from "@/lib/pricing";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import { Package } from "@/types";
 
@@ -22,11 +24,19 @@ export default function ShopperPaymentInfoModal({
   onUploadComplete 
 }: ShopperPaymentInfoModalProps) {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   
-  const totalAmount = parseFloat((pkg.quote as any)?.totalPrice || '0');
+  // Calculate correct amount including Prime discount
+  const basePrice = parseFloat((pkg.quote as any)?.price || '0');
+  const breakdown = getPriceBreakdown(
+    basePrice, 
+    pkg.delivery_method || 'pickup', 
+    profile?.trust_level
+  );
+  const totalAmount = breakdown.totalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
