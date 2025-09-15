@@ -70,9 +70,10 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             `)
             .eq('matched_trip_id', trip.id)
             .in('status', [
-              'pending_purchase', 
-              'payment_pending', 
               'paid', 
+              'pending_purchase', 
+              'purchased',
+              'shipped',
               'in_transit', 
               'received_by_traveler', 
               'delivered_to_office', 
