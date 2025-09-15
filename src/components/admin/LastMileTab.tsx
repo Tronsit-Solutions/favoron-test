@@ -31,10 +31,8 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     try {
       setLoading(true);
       
-      // Filter trips that could have packages (approved, active, completed)
-      const eligibleTrips = trips.filter(trip => 
-        ['approved', 'active', 'completed'].includes(trip.status)
-      );
+      // Include all trips to see comprehensive view
+      const eligibleTrips = trips;
 
       const tripsData = await Promise.all(
         eligibleTrips.map(async (trip) => {
