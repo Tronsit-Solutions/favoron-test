@@ -90,16 +90,17 @@ export const useTripPayments = (tripId?: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
-      // Actualizar perfil del usuario con información bancaria
+      // Actualizar información bancaria del usuario
       const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
+        .from('user_financial_data')
+        .upsert({
+          user_id: user.id,
           bank_account_holder: bankingInfo.bank_account_holder,
           bank_name: bankingInfo.bank_name,
           bank_account_type: bankingInfo.bank_account_type,
           bank_account_number: bankingInfo.bank_account_number
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (profileError) throw profileError;
 

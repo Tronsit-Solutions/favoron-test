@@ -60,16 +60,17 @@ const BankingConfirmationModal = ({
       if (packageUpdateError) {
         throw packageUpdateError;
       }
-      // First, update the traveler's profile with the banking information
+      // First, update the traveler's financial data with the banking information
       const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
+        .from('user_financial_data')
+        .upsert({
+          user_id: travelerProfile.id,
           bank_account_holder: bankingInfo.bankAccountHolder,
           bank_name: bankingInfo.bankName,
           bank_account_number: bankingInfo.bankAccountNumber,
           bank_account_type: bankingInfo.bankAccountType,
         })
-        .eq('id', travelerProfile.id);
+        .eq('user_id', travelerProfile.id);
 
       if (profileError) {
         throw profileError;

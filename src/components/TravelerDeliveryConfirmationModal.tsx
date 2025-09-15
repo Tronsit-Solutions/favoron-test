@@ -87,16 +87,17 @@ const TravelerDeliveryConfirmationModal = ({
     setLoading(true);
 
     try {
-      // Actualizar información bancaria del perfil para cuando se apruebe
+      // Actualizar información bancaria del traveler para cuando se apruebe
       await supabase
-        .from('profiles')
-        .update({
+        .from('user_financial_data')
+        .upsert({
+          user_id: travelerProfile.id,
           bank_account_holder: bankInfo.bank_account_holder,
           bank_name: bankInfo.bank_name,
           bank_account_type: bankInfo.bank_account_type,
           bank_account_number: bankInfo.bank_account_number,
         })
-        .eq('id', travelerProfile.id);
+        .eq('user_id', travelerProfile.id);
 
       // Solo actualizar estado de todos los paquetes con declaración del viajero
       // NO crear payment orders todavía - eso lo hará el admin al confirmar

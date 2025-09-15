@@ -35,7 +35,7 @@ const ProfileCompletionModal = ({
     countryCode: profile?.country_code || '+502',
     phoneNumber: profile?.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
     username: profile?.username || '',
-    idNumber: profile?.document_number || '',
+    idNumber: '',
     avatarUrl: profile?.avatar_url || ''
   });
   
@@ -50,7 +50,7 @@ const ProfileCompletionModal = ({
         countryCode: profile.country_code || '+502',
         phoneNumber: profile.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
         username: profile.username || '',
-        idNumber: profile.document_number || '',
+        idNumber: '',
         avatarUrl: profile.avatar_url || ''
       };
       setFormData(newFormData);
@@ -128,7 +128,7 @@ const ProfileCompletionModal = ({
         country_code: formData.countryCode.trim(),
         phone_number: fullPhone,
         username: formData.username.trim() || null,
-        document_number: formData.idNumber.trim() || null,
+        
         avatar_url: formData.avatarUrl || null
       });
 

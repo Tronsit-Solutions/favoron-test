@@ -1,41 +1,52 @@
-import { CreditCard, Building, Hash, Code, Shield } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from '@/components/ui/card';
+import { CreditCard, Building, Hash, Landmark, Shield, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useFinancialData } from '@/hooks/useFinancialData';
 
-interface BankingInfoDisplayProps {
-  user: any;
-}
+const BankingInfoDisplay = () => {
+  const { financialData, loading } = useFinancialData();
 
-const BankingInfoDisplay = ({ user }: BankingInfoDisplayProps) => {
-  const bankingInfo = [
+  const bankingDetails = [
     {
       icon: CreditCard,
       label: "Nombre de cuenta",
-      value: user.bank_account_holder || user.bankAccountHolder || 'No registrado'
+      value: financialData?.bank_account_holder
     },
     {
       icon: Building,
-      label: "Nombre del banco",
-      value: user.bank_name || user.bankName || 'No registrado'
+      label: "Banco",
+      value: financialData?.bank_name
     },
     {
       icon: Hash,
       label: "Número de cuenta",
-      value: user.bank_account_number || user.bankAccountNumber || 'No registrado'
+      value: financialData?.bank_account_number
     },
     {
-      icon: Code,
+      icon: Landmark,
       label: "Tipo de cuenta",
-      value: user.bank_account_type || user.bankAccountType || 'No especificado'
+      value: financialData?.bank_account_type
     }
   ];
 
-  const hasAnyBankingInfo = user.bank_account_holder || user.bankAccountHolder || 
-                            user.bank_name || user.bankName || 
-                            user.bank_account_number || user.bankAccountNumber;
+  const hasBankingInfo = bankingDetails.some(detail => detail.value);
+  
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="space-y-3 pt-4">
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {hasAnyBankingInfo && (
+      {hasBankingInfo && (
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription>
@@ -45,18 +56,18 @@ const BankingInfoDisplay = ({ user }: BankingInfoDisplayProps) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {bankingInfo.map((item, index) => (
+        {bankingDetails.map((item, index) => (
           <div key={index} className="flex items-center space-x-3">
             <item.icon className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">{item.label}</p>
-              <p className="text-sm text-muted-foreground">{item.value}</p>
+              <p className="text-sm text-muted-foreground">{item.value || 'No registrado'}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {!hasAnyBankingInfo && (
+      {!hasBankingInfo && (
         <div className="text-center py-8">
           <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-sm text-muted-foreground">

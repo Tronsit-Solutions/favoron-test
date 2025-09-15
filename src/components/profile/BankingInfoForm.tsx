@@ -4,14 +4,46 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CreditCard, Building, Save, Shield } from "lucide-react";
+import { useFinancialData, FinancialData } from "@/hooks/useFinancialData";
+import { useState, useEffect } from "react";
 
 interface BankingInfoFormProps {
-  formData: any;
-  setFormData: (data: any) => void;
-  onSave: () => void;
+  onSave?: () => void;
 }
 
-const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps) => {
+const BankingInfoForm = ({ onSave }: BankingInfoFormProps) => {
+  const { financialData, updateFinancialData, loading } = useFinancialData();
+  const [formData, setFormData] = useState({
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_holder: '',
+    bank_account_type: 'monetaria'
+  });
+
+  // Initialize form data when financial data loads
+  useEffect(() => {
+    if (financialData) {
+      setFormData({
+        bank_name: financialData.bank_name || '',
+        bank_account_number: financialData.bank_account_number || '',
+        bank_account_holder: financialData.bank_account_holder || '',
+        bank_account_type: financialData.bank_account_type || 'monetaria'
+      });
+    }
+  }, [financialData]);
+
+  const handleSave = async () => {
+    try {
+      await updateFinancialData(formData);
+      onSave?.();
+    } catch (error) {
+      console.error('Error saving financial data:', error);
+    }
+  };
+
+  const updateField = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
   return (
     <>
       <Alert>
@@ -28,10 +60,11 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
             <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="bankAccountHolder"
-              value={formData.bank_account_holder || formData.bankAccountHolder || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_account_holder: e.target.value, bankAccountHolder: e.target.value }))}
+              value={formData.bank_account_holder}
+              onChange={(e) => updateField('bank_account_holder', e.target.value)}
               placeholder="Nombre completo del titular"
               className="pl-10"
+              disabled={loading}
             />
           </div>
         </div>
@@ -42,10 +75,11 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
             <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id="bankName"
-              value={formData.bank_name || formData.bankName || ''}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_name: e.target.value, bankName: e.target.value }))}
+              value={formData.bank_name}
+              onChange={(e) => updateField('bank_name', e.target.value)}
               placeholder="Ej: Banco Industrial"
               className="pl-10"
+              disabled={loading}
             />
           </div>
         </div>
@@ -54,17 +88,19 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
           <Label htmlFor="bankAccountNumber">Número de cuenta</Label>
           <Input
             id="bankAccountNumber"
-            value={formData.bank_account_number || formData.bankAccountNumber || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, bank_account_number: e.target.value, bankAccountNumber: e.target.value }))}
+            value={formData.bank_account_number}
+            onChange={(e) => updateField('bank_account_number', e.target.value)}
             placeholder="Número de cuenta bancaria"
+            disabled={loading}
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="bankAccountType">Tipo de cuenta</Label>
           <Select
-            value={formData.bank_account_type || formData.bankAccountType || ''}
-            onValueChange={(value) => setFormData((prev: any) => ({ ...prev, bank_account_type: value, bankAccountType: value }))}
+            value={formData.bank_account_type}
+            onValueChange={(value) => updateField('bank_account_type', value)}
+            disabled={loading}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona tipo de cuenta" />
@@ -76,9 +112,9 @@ const BankingInfoForm = ({ formData, setFormData, onSave }: BankingInfoFormProps
           </Select>
         </div>
 
-        <Button onClick={onSave} className="w-full">
+        <Button onClick={handleSave} className="w-full" disabled={loading}>
           <Save className="h-4 w-4 mr-2" />
-          Guardar Información Bancaria
+          {loading ? 'Guardando...' : 'Guardar Información Bancaria'}
         </Button>
       </div>
     </>

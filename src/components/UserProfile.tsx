@@ -360,8 +360,6 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
           {isBankingEditing ? (
             <div className="space-y-4">
               <BankingInfoForm 
-                formData={formData}
-                setFormData={setFormData}
                 onSave={handleBankingSave}
               />
               <Button 
@@ -374,7 +372,7 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
               </Button>
             </div>
           ) : (
-            <BankingInfoDisplay user={user} />
+            <BankingInfoDisplay />
           )}
         </CardContent>
       </Card>

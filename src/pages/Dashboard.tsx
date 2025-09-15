@@ -98,11 +98,12 @@ useEffect(() => {
     trustLevel: profile.trust_level,
     avatar_url: profile.avatar_url,
     joinedAt: profile.created_at,
-    bankAccountHolder: profile.bank_account_holder,
-    bankName: profile.bank_name,
-    bankAccountType: profile.bank_account_type,
-    bankAccountNumber: profile.bank_account_number,
-    bankSwiftCode: profile.bank_swift_code,
+    // Banking information is now in separate financial data table
+    bankAccountHolder: null,
+    bankName: null,
+    bankAccountType: null,
+    bankAccountNumber: null,
+    bankSwiftCode: null,
     stats: {
       packagesRequested: 0,
       packagesCompleted: 0,

@@ -559,15 +559,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          bank_account_holder: string | null
-          bank_account_number: string | null
-          bank_account_type: string | null
-          bank_name: string | null
-          bank_swift_code: string | null
           country_code: string | null
           created_at: string | null
-          document_number: string | null
-          document_type: string | null
           email: string | null
           email_notification_preferences: Json | null
           email_notifications: boolean | null
@@ -582,15 +575,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_account_type?: string | null
-          bank_name?: string | null
-          bank_swift_code?: string | null
           country_code?: string | null
           created_at?: string | null
-          document_number?: string | null
-          document_type?: string | null
           email?: string | null
           email_notification_preferences?: Json | null
           email_notifications?: boolean | null
@@ -605,15 +591,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          bank_account_holder?: string | null
-          bank_account_number?: string | null
-          bank_account_type?: string | null
-          bank_name?: string | null
-          bank_swift_code?: string | null
           country_code?: string | null
           created_at?: string | null
-          document_number?: string | null
-          document_type?: string | null
           email?: string | null
           email_notification_preferences?: Json | null
           email_notifications?: boolean | null
@@ -757,6 +736,56 @@ export type Database = {
             foreignKeyName: "trips_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_financial_data: {
+        Row: {
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_account_type: string | null
+          bank_name: string | null
+          bank_swift_code: string | null
+          created_at: string | null
+          document_number: string | null
+          document_type: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_name?: string | null
+          bank_swift_code?: string | null
+          created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_account_type?: string | null
+          bank_name?: string | null
+          bank_swift_code?: string | null
+          created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_financial_data_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1060,6 +1089,10 @@ export type Database = {
           _account_number: string
           _bank_name: string
         }
+        Returns: boolean
+      }
+      verify_admin_access: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
