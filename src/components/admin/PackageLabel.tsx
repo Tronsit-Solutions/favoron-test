@@ -2,10 +2,11 @@ import React from 'react';
 
 interface PackageLabelProps {
   pkg: any;
+  trip?: any;
   className?: string;
 }
 
-export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
+export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) => {
   const getShopperName = () => {
     if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
       return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
@@ -65,6 +66,13 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
     return '1';
   };
 
+  const getTravelerName = () => {
+    if (trip?.first_name || trip?.last_name) {
+      return `${trip.first_name || ''} ${trip.last_name || ''}`.trim();
+    }
+    return 'N/A';
+  };
+
   const getCreationDate = () => {
     if (pkg.created_at) {
       return new Date(pkg.created_at).toLocaleDateString('es-GT');
@@ -110,6 +118,15 @@ export const PackageLabel = ({ pkg, className = '' }: PackageLabelProps) => {
             <span className="font-bold">SHOPPER:</span> {getShopperName()}
           </div>
         </div>
+
+        {/* Traveler Info */}
+        {trip && (
+          <div>
+            <div>
+              <span className="font-bold">VIAJERO:</span> {getTravelerName()}
+            </div>
+          </div>
+        )}
 
         {/* Delivery Method */}
         <div>

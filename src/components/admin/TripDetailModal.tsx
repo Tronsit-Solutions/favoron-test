@@ -152,7 +152,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
         // Create and render the PackageLabel component
         const root = ReactDOM.createRoot(reactContainer);
         await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg }));
+          root.render(React.createElement(PackageLabel, { pkg, trip }));
           // Give React time to render
           setTimeout(resolve, 100);
         });
@@ -658,7 +658,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
                 </div>
                 <div className="flex justify-center bg-white p-4 rounded-lg shadow-sm">
                   <div className="transform scale-75 origin-center">
-                    <PackageLabel pkg={pkg} />
+                    <PackageLabel pkg={pkg} trip={trip} />
                   </div>
                 </div>
               </div>
