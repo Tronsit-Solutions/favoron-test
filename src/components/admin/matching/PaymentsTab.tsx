@@ -63,11 +63,32 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => pkg.payment_receipt && setSelectedReceipt({
-                url: pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '',
-                filename: pkg.payment_receipt.filename || 'comprobante.jpg',
-                title: `Comprobante de pago - ${pkg.item_description}`
-              })}
+              onClick={() => {
+                if (pkg.payment_receipt) {
+                  // Extract the correct file path for Supabase storage
+                  let filePath = pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '';
+                  
+                  // If it's a full URL, extract just the file path
+                  if (filePath.startsWith('http')) {
+                    try {
+                      const url = new URL(filePath);
+                      const pathParts = url.pathname.split('/');
+                      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+                      if (bucketIndex !== -1) {
+                        filePath = pathParts.slice(bucketIndex + 1).join('/');
+                      }
+                    } catch (e) {
+                      console.error('Error parsing receipt URL:', e);
+                    }
+                  }
+                  
+                  setSelectedReceipt({
+                    url: `payment-receipts/${filePath}`,
+                    filename: pkg.payment_receipt.filename || 'comprobante.jpg',
+                    title: `Comprobante de pago - ${pkg.item_description}`
+                  });
+                }
+              }}
               className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -130,11 +151,32 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => membership.receipt_url && setSelectedReceipt({
-                url: membership.receipt_url.startsWith('http') ? membership.receipt_url : `payment-receipts/${membership.receipt_url}`,
-                filename: membership.receipt_filename || 'Comprobante',
-                title: `Comprobante Membresía Prime - ${membership.profiles?.first_name || 'Usuario'} ${membership.profiles?.last_name || ''}`
-              })}
+              onClick={() => {
+                if (membership.receipt_url) {
+                  // Extract the correct file path for Supabase storage
+                  let filePath = membership.receipt_url;
+                  
+                  // If it's a full URL, extract just the file path
+                  if (filePath.startsWith('http')) {
+                    try {
+                      const url = new URL(filePath);
+                      const pathParts = url.pathname.split('/');
+                      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+                      if (bucketIndex !== -1) {
+                        filePath = pathParts.slice(bucketIndex + 1).join('/');
+                      }
+                    } catch (e) {
+                      console.error('Error parsing prime receipt URL:', e);
+                    }
+                  }
+                  
+                  setSelectedReceipt({
+                    url: `payment-receipts/${filePath}`,
+                    filename: membership.receipt_filename || 'Comprobante',
+                    title: `Comprobante Membresía Prime - ${membership.profiles?.first_name || 'Usuario'} ${membership.profiles?.last_name || ''}`
+                  });
+                }
+              }}
               className="w-full sm:w-auto text-xs sm:text-sm border-purple-300 text-purple-700"
             >
               <Eye className="h-4 w-4 mr-1" />
