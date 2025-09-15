@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import ReactDOM from 'react-dom/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PackageLabel } from './PackageLabel';
@@ -21,41 +22,9 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const currentPackage = packageList[currentPackageIndex] || pkg;
 
   const generatePDF = async () => {
-    if (!labelRef.current || !currentPackage) return;
+    if (!packageList || packageList.length === 0) return;
 
     try {
-      // Create a temporary container for rendering (hidden off-screen)
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '288px';
-      tempContainer.style.height = '432px';
-      tempContainer.style.backgroundColor = '#ffffff';
-      document.body.appendChild(tempContainer);
-
-      // Clone the label and force it to render at actual size (no scaling)
-      const labelClone = labelRef.current.cloneNode(true) as HTMLElement;
-      labelClone.style.transform = 'none';
-      labelClone.style.transformOrigin = 'initial';
-      labelClone.style.width = '288px';
-      labelClone.style.height = '432px';
-      tempContainer.appendChild(labelClone);
-
-      // Use html2canvas to capture the element
-      const canvas = await html2canvas(tempContainer, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        width: 288,
-        height: 432,
-        windowWidth: 288,
-        windowHeight: 432
-      });
-
-      // Clean up temporary element
-      document.body.removeChild(tempContainer);
-
       // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -63,17 +32,65 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         format: 'letter'
       });
 
-      // Calculate position to center 4x6" label (288x432 points) on letter page
-      const centerX = (612 - 288) / 2; // 162 points
-      const centerY = (792 - 432) / 2; // 180 points
+      let isFirstPage = true;
 
-      // Convert canvas to image and add to PDF
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+      for (const pkg of packageList) {
+        if (!isFirstPage) {
+          pdf.addPage();
+        }
+        isFirstPage = false;
+
+        // Create a temporary container for rendering (hidden off-screen)
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '288px';
+        tempContainer.style.height = '432px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        document.body.appendChild(tempContainer);
+
+        // Create a new PackageLabel component for this package
+        const tempLabelContainer = document.createElement('div');
+        tempLabelContainer.style.width = '288px';
+        tempLabelContainer.style.height = '432px';
+        tempContainer.appendChild(tempLabelContainer);
+
+        // Render PackageLabel component
+        const root = ReactDOM.createRoot(tempLabelContainer);
+        await new Promise<void>((resolve) => {
+          root.render(React.createElement(PackageLabel, { pkg }));
+          setTimeout(resolve, 100);
+        });
+
+        // Use html2canvas to capture the element
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          width: 288,
+          height: 432,
+          windowWidth: 288,
+          windowHeight: 432
+        });
+
+        // Clean up temporary element
+        root.unmount();
+        document.body.removeChild(tempContainer);
+
+        // Calculate position to center 4x6" label (288x432 points) on letter page
+        const centerX = (612 - 288) / 2; // 162 points
+        const centerY = (792 - 432) / 2; // 180 points
+
+        // Convert canvas to image and add to PDF
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+      }
 
       // Generate filename and save
-      const packageId = currentPackage.id ? currentPackage.id.substring(0, 8) : 'package';
-      const fileName = `etiqueta_${packageId}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = packageList.length === 1 
+        ? `etiqueta_${packageList[0].id ? packageList[0].id.substring(0, 8) : 'package'}_${new Date().toISOString().split('T')[0]}.pdf`
+        : `etiquetas_${packageList.length}_paquetes_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
     } catch (error) {
