@@ -645,36 +645,54 @@ const Dashboard = ({ user }: DashboardProps) => {
                    <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-4 mb-6 border border-border/50">
                      <div className="grid grid-cols-3 gap-4 text-center">
                        <div>
-                         <div className="text-xl font-bold text-primary">
-                           Q{assignedPackages
-                             .filter(pkg => ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status))
-                             .reduce((sum, pkg) => {
-                               const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
-                                 ? (pkg as any).products_data.reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
-                                 : parseFloat(String((pkg as any).admin_assigned_tip || '0'));
-                               return sum + tip;
-                             }, 0).toFixed(2)}
-                         </div>
+                          <div className="text-xl font-bold text-primary">
+                            Q{assignedPackages
+                              .filter(pkg => {
+                                // Exclude packages from completed and paid trips
+                                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                                if (matchedTrip && matchedTrip.status === 'completed_paid') {
+                                  return false;
+                                }
+                                return ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
+                              })
+                              .reduce((sum, pkg) => {
+                                const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
+                                  ? (pkg as any).products_data.reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
+                                  : parseFloat(String((pkg as any).admin_assigned_tip || '0'));
+                                return sum + tip;
+                              }, 0).toFixed(2)}
+                          </div>
                          <div className="text-xs text-muted-foreground font-medium">Tips Confirmados</div>
                        </div>
                        <div>
-                         <div className="text-xl font-bold text-secondary">
-                           ${assignedPackages
-                             .filter(pkg => ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status))
-                             .reduce((sum, pkg) => {
-                               if ((pkg as any).products && (pkg as any).products.length > 0) {
-                                 return sum + (pkg as any).products.reduce((productSum: number, product: any) => 
-                                   productSum + parseFloat(String(product.estimatedPrice || 0)), 0);
-                               }
-                               return sum + parseFloat(String((pkg as any).estimated_price || 0));
-                             }, 0).toFixed(2)}
-                         </div>
+                          <div className="text-xl font-bold text-secondary">
+                            ${assignedPackages
+                              .filter(pkg => {
+                                // Exclude packages from completed and paid trips
+                                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                                if (matchedTrip && matchedTrip.status === 'completed_paid') {
+                                  return false;
+                                }
+                                return ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
+                              })
+                              .reduce((sum, pkg) => {
+                                if ((pkg as any).products && (pkg as any).products.length > 0) {
+                                  return sum + (pkg as any).products.reduce((productSum: number, product: any) => 
+                                    productSum + parseFloat(String(product.estimatedPrice || 0)), 0);
+                                }
+                                return sum + parseFloat(String((pkg as any).estimated_price || 0));
+                              }, 0).toFixed(2)}
+                          </div>
                          <div className="text-xs text-muted-foreground font-medium">Valor de Productos</div>
                        </div>
                        <div>
-                         <div className="text-xl font-bold text-foreground">
-                           {assignedPackages.length}
-                         </div>
+                          <div className="text-xl font-bold text-foreground">
+                            {assignedPackages.filter(pkg => {
+                              // Exclude packages from completed and paid trips
+                              const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                              return !(matchedTrip && matchedTrip.status === 'completed_paid');
+                            }).length}
+                          </div>
                          <div className="text-xs text-muted-foreground font-medium">Paquetes Asignados</div>
                        </div>
                      </div>
