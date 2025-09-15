@@ -313,9 +313,9 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                                 href={pkg.item_link} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="text-sm text-primary hover:underline break-all"
+                                className="text-sm text-primary hover:underline"
                               >
-                                {pkg.item_link}
+                                Enlace
                               </a>
                             </div>
                           </div>
