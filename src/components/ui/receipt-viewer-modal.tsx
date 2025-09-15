@@ -110,11 +110,11 @@ export function ReceiptViewerModal({
             <div className="bg-gray-50 rounded-lg p-4">
               {isImage ? (
                 <div className="relative">
-                  <img 
-                    src={displayUrl} 
-                    alt={title}
-                    className="w-full h-auto rounded-lg shadow-sm max-h-[600px] object-contain"
-                    onLoad={() => {
+                <img 
+                  src={displayUrl} 
+                  alt={title}
+                  className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain"
+                  onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
                         displayUrl,
                         signedUrl,
