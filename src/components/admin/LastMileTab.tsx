@@ -5,6 +5,7 @@ import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag } from 
 import { supabase } from "@/integrations/supabase/client";
 import { PackageLabel } from './PackageLabel';
 import { PackageLabelModal } from './PackageLabelModal';
+import { TripDetailModal } from '../dashboard/TripDetailModal';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
@@ -20,6 +21,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [previewPackage, setPreviewPackage] = useState<any>(null);
+  const [selectedTripDetail, setSelectedTripDetail] = useState<any>(null);
 
   useEffect(() => {
     fetchTripsWithPackages();
@@ -306,6 +308,16 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => setSelectedTripDetail(trip)}
+                        className="flex items-center space-x-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Ver Detalles del Viajero</span>
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => setPreviewPackage(trip.packages)}
                         className="flex items-center space-x-2 border-orange-300 text-orange-700 hover:bg-orange-50"
                       >
@@ -349,6 +361,17 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
           isOpen={true}
           onClose={() => setPreviewPackage(null)}
           packages={Array.isArray(previewPackage) ? previewPackage : [previewPackage]}
+        />
+      )}
+
+      {/* Trip Detail Modal */}
+      {selectedTripDetail && (
+        <TripDetailModal
+          isOpen={true}
+          onClose={() => setSelectedTripDetail(null)}
+          trip={selectedTripDetail}
+          getStatusBadge={getStatusBadge}
+          packages={selectedTripDetail.packages}
         />
       )}
     </div>
