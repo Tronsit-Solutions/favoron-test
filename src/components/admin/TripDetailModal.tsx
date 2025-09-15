@@ -687,14 +687,14 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
 
           <div className="space-y-6">
             {packages.map((pkg, index) => (
-              <div key={pkg.id} className="border rounded-lg p-4 bg-gray-50">
-                <div className="mb-3">
+              <div key={pkg.id} className="border rounded-lg p-6 bg-gray-50">
+                <div className="mb-4">
                   <span className="text-sm font-medium text-gray-600">
                     Etiqueta {index + 1} de {packages.length} - {pkg.item_description}
                   </span>
                 </div>
-                <div className="flex justify-center">
-                  <div className="transform scale-50 origin-center">
+                <div className="flex justify-center bg-white p-4 rounded-lg shadow-sm">
+                  <div className="transform scale-75 origin-center">
                     <PackageLabel pkg={pkg} />
                   </div>
                 </div>
