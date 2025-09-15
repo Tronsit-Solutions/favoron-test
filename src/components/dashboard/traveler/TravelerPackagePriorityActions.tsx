@@ -1,17 +1,21 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DollarSign, CheckCircle } from "lucide-react";
+import { DollarSign, CheckCircle, AlertTriangle } from "lucide-react";
+
 interface TravelerPackagePriorityActionsProps {
   pkg: any;
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: () => void;
   onConfirmOfficeDelivery?: () => void;
 }
+
 const TravelerPackagePriorityActions = ({
   pkg,
   onQuote,
   onConfirmReceived,
   onConfirmOfficeDelivery
 }: TravelerPackagePriorityActionsProps) => {
+  const [showDeliveryConfirmation, setShowDeliveryConfirmation] = useState(false);
   if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler' && pkg.status !== 'pending_office_confirmation') return null;
   return <div className="mb-3 space-y-2">
       {/* Tip/Compensation display - most important for travelers */}
@@ -86,10 +90,50 @@ const TravelerPackagePriorityActions = ({
                     <CheckCircle className="h-3 w-3 mr-2" />
                     Confirmar recibido
                   </Button>}
-                {pkg.status === 'received_by_traveler' && !pkg.office_delivery?.admin_confirmation && onConfirmOfficeDelivery && <Button size="sm" onClick={onConfirmOfficeDelivery} variant="success" className="font-medium w-full sm:w-auto h-9 text-sm">
-                    <CheckCircle className="h-3 w-3 mr-2" />
-                    Entregado en oficina
-                  </Button>}
+                {pkg.status === 'received_by_traveler' && !pkg.office_delivery?.admin_confirmation && onConfirmOfficeDelivery && (
+                  <div className="w-full sm:w-auto space-y-2">
+                    {!showDeliveryConfirmation ? (
+                      <Button 
+                        size="sm" 
+                        onClick={() => setShowDeliveryConfirmation(true)} 
+                        variant="success" 
+                        className="font-medium w-full sm:w-auto h-9 text-sm"
+                      >
+                        <CheckCircle className="h-3 w-3 mr-2" />
+                        Marcar como entregado
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="p-2 bg-warning/10 border border-warning/30 rounded text-xs text-warning-foreground">
+                          <AlertTriangle className="h-3 w-3 inline mr-1" />
+                          ¿Confirmas que entregaste el paquete en la oficina?
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              onConfirmOfficeDelivery();
+                              setShowDeliveryConfirmation(false);
+                            }} 
+                            variant="success" 
+                            className="font-medium flex-1 h-9 text-sm"
+                          >
+                            <CheckCircle className="h-3 w-3 mr-2" />
+                            Confirmar entrega
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => setShowDeliveryConfirmation(false)} 
+                            variant="outline" 
+                            className="font-medium flex-1 h-9 text-sm"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {pkg.status === 'received_by_traveler' && pkg.office_delivery?.admin_confirmation && <Button size="sm" variant="outline" disabled className="font-medium w-full sm:w-auto h-9 text-sm">
                     <CheckCircle className="h-3 w-3 mr-2" />
                     Confirmado por Favorón
