@@ -1,6 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
@@ -15,7 +16,10 @@ import {
   Package,
   Clock,
   Info,
-  Edit
+  Edit,
+  ExternalLink,
+  DollarSign,
+  Hash
 } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
 
@@ -248,24 +252,116 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <h3 className="font-semibold text-sm sm:text-base">Paquetes Asignados</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Paquetes Asignados ({packages.length})</h3>
               </div>
-              <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
-                <div className="text-xs sm:text-sm font-medium mb-2">
-                  {packages.length} paquete{packages.length !== 1 ? 's' : ''} asignado{packages.length !== 1 ? 's' : ''}
-                </div>
-                <div className="space-y-2">
-                  {packages.slice(0, 3).map((pkg: any) => (
-                    <div key={pkg.id} className="text-xs sm:text-sm text-muted-foreground break-words">
-                      • {pkg.item_description}
-                    </div>
-                  ))}
-                  {packages.length > 3 && (
-                    <div className="text-xs text-muted-foreground">
-                      Y {packages.length - 3} más...
-                    </div>
-                  )}
-                </div>
+              <div className="space-y-3">
+                {packages.map((pkg: any, index: number) => (
+                  <Card key={pkg.id} className="bg-muted/30">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="space-y-3">
+                        {/* Header with status */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm break-words">{pkg.item_description}</h4>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Paquete #{index + 1}
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="text-xs flex-shrink-0">
+                            {pkg.status}
+                          </Badge>
+                        </div>
+
+                        {/* Package details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Price */}
+                          {pkg.estimated_price && (
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs text-muted-foreground">Precio estimado</div>
+                                <div className="text-sm font-medium break-words">
+                                  Q{parseFloat(pkg.estimated_price).toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quantity from products data */}
+                          {pkg.products_data && Array.isArray(pkg.products_data) && (
+                            <div className="flex items-center gap-2">
+                              <Hash className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs text-muted-foreground">Cantidad de productos</div>
+                                <div className="text-sm font-medium">
+                                  {pkg.products_data.reduce((total: number, product: any) => 
+                                    total + (product.quantity || 1), 0
+                                  )} artículos
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Product links */}
+                        {pkg.item_link && (
+                          <div className="flex items-start gap-2">
+                            <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs text-muted-foreground">Enlace del producto</div>
+                              <a 
+                                href={pkg.item_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline break-all"
+                              >
+                                {pkg.item_link}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Products details */}
+                        {pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground font-medium">Productos detallados:</div>
+                            <div className="space-y-2 pl-2 border-l-2 border-muted">
+                              {pkg.products_data.map((product: any, prodIndex: number) => (
+                                <div key={prodIndex} className="text-xs space-y-1">
+                                  <div className="font-medium break-words">{product.name || product.description}</div>
+                                  <div className="flex flex-wrap gap-3 text-muted-foreground">
+                                    {product.quantity && (
+                                      <span>Cantidad: {product.quantity}</span>
+                                    )}
+                                    {product.price && (
+                                      <span>Precio: Q{parseFloat(product.price).toFixed(2)}</span>
+                                    )}
+                                  </div>
+                                  {product.link && (
+                                    <a 
+                                      href={product.link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline break-all block"
+                                    >
+                                      Ver producto
+                                    </a>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Additional info */}
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                          <div>Origen: {pkg.purchase_origin}</div>
+                          <div>Destino: {pkg.package_destination}</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           )}
