@@ -61,12 +61,7 @@ export const usePaymentOrders = () => {
             first_name,
             last_name,
             email,
-            username,
-            bank_account_holder,
-            bank_name,
-            bank_account_type,
-            bank_account_number,
-            bank_swift_code
+            username
           )
         `)
         .order('created_at', { ascending: false });

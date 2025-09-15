@@ -25,7 +25,7 @@ export const useUserManagement = () => {
       
       // Use the new admin function to get all users efficiently
       const { data: profiles, error } = await supabase.rpc('admin_view_all_users', {
-        access_reason: 'User management dashboard access'
+        _access_reason: 'User management dashboard access'
       });
 
       if (error) {
