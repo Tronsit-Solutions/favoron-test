@@ -404,7 +404,7 @@ const AdminDashboard = ({
     },
     {
       value: "trips",
-      label: "Viajes",
+      label: "Última Milla",
       badge: undefined
     },
     {
