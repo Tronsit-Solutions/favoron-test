@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote } from "lucide-react";
-import { useState } from "react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt } from "lucide-react";
+import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
@@ -11,6 +11,8 @@ import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
 import TripBankingConfirmationModal from "@/components/TripBankingConfirmationModal";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripCardProps {
   trip: any;
@@ -27,9 +29,38 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showBankingModal, setShowBankingModal] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   // Hook para obtener datos del trip payment accumulator
   const { tripPayment, isCreating, createPaymentOrder } = useTripPayments(trip.id);
+
+  // Fetch payment receipt for completed trips
+  useEffect(() => {
+    if (trip.status === 'completed_paid' && currentUser?.id === trip.user_id) {
+      const fetchPaymentReceipt = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('payment_orders')
+            .select('receipt_url, receipt_filename')
+            .eq('trip_id', trip.id)
+            .eq('traveler_id', trip.user_id)
+            .eq('status', 'completed')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (!error && data?.receipt_url) {
+            setPaymentReceipt(data);
+          }
+        } catch (error) {
+          console.error('Error fetching payment receipt:', error);
+        }
+      };
+
+      fetchPaymentReceipt();
+    }
+  }, [trip.id, trip.status, trip.user_id, currentUser?.id]);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
@@ -209,6 +240,19 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   <span className="whitespace-nowrap">Confirmar entrega</span>
                 </Button>
               )}
+              
+              {/* Payment receipt button for completed trips */}
+              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && currentUser?.id === trip.user_id && (
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowReceiptModal(true)}
+                  className="h-8 px-3 text-xs hover-scale"
+                >
+                  <Receipt className="h-3 w-3 mr-1" />
+                  <span className="whitespace-nowrap">Ver comprobante</span>
+                </Button>
+              )}
             </div>
 
             {/* Creation Date and Status Badge */}
@@ -285,6 +329,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       tripId={trip.id}
       travelerId={trip.user_id}
     />
+
+    {/* Payment Receipt Modal */}
+    {paymentReceipt?.receipt_url && (
+      <ImageViewerModal
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        imageUrl={paymentReceipt.receipt_url}
+        title="Comprobante de Pago"
+        filename={paymentReceipt.receipt_filename || "comprobante-pago.jpg"}
+      />
+    )}
     </>
   );
 };
