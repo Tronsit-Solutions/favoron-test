@@ -30,6 +30,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -562,14 +563,13 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
                 </div>
                 {packages.length > 0 && (
                   <Button
-                    onClick={generateMultipleLabelsPDF}
-                    disabled={generatingPDF}
+                    onClick={() => setPreviewModalOpen(true)}
                     variant="outline"
                     size="sm"
                     className="flex items-center space-x-2"
                   >
                     <Download className="h-4 w-4" />
-                    <span>{generatingPDF ? 'Generando...' : 'Descargar Etiquetas'}</span>
+                    <span>Vista Previa Etiquetas</span>
                   </Button>
                 )}
               </div>
@@ -664,6 +664,45 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
         type="trip"
         itemName={`${trip?.from_city} → ${trip?.to_city}` || 'Viaje'}
       />
+
+      {/* Preview Modal for Multiple Labels */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Vista Previa - Etiquetas del Viaje</span>
+              <Button
+                onClick={generateMultipleLabelsPDF}
+                disabled={generatingPDF}
+                className="flex items-center space-x-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>{generatingPDF ? 'Generando...' : 'Descargar PDF'}</span>
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              {packages.length} etiquetas para el viaje {trip?.from_city} → {trip?.to_city}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {packages.map((pkg, index) => (
+              <div key={pkg.id} className="border rounded-lg p-4 bg-gray-50">
+                <div className="mb-3">
+                  <span className="text-sm font-medium text-gray-600">
+                    Etiqueta {index + 1} de {packages.length} - {pkg.item_description}
+                  </span>
+                </div>
+                <div className="flex justify-center">
+                  <div className="transform scale-50 origin-center">
+                    <PackageLabel pkg={pkg} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
