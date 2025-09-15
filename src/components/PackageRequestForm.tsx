@@ -311,8 +311,20 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     setFormData(prev => ({ ...prev, deliveryMethod: '' }));
   };
 
-  const isGuatemalaDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala');
-  const isGuatemalaCityDestination = (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('guatemala city') || (formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination)?.toLowerCase().includes('ciudad de guatemala');
+  // Get the actual destination value
+  const actualDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
+  
+  // List of Guatemalan cities from destinationCities array
+  const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla'];
+  
+  // Check if destination is any Guatemalan city
+  const isGuatemalaDestination = actualDestination && guatemalanCities.some(city => 
+    actualDestination.toLowerCase().includes(city.toLowerCase())
+  );
+  
+  // Check specifically for Guatemala City (to enable pickup option)
+  const isGuatemalaCityDestination = actualDestination?.toLowerCase().includes('guatemala city') || 
+    actualDestination?.toLowerCase().includes('ciudad de guatemala');
 
   const renderPackageForm = () => (
     <Dialog open={isOpen} onOpenChange={onClose}>
