@@ -418,7 +418,7 @@ const CollapsiblePackageCard = ({
                        (pkg.status === 'purchased' && !pkg.tracking_info) ||
                        (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) ||
                        pkg.status === 'payment_pending_approval') && (
-                    <Button
+                     <Button
                       size="sm"
                       variant="success"
                       onClick={(e) => {
@@ -427,7 +427,7 @@ const CollapsiblePackageCard = ({
                       }}
                       className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
                     >
-                      📦 <span className="ml-1 truncate">Subir comprobante compra</span>
+                      <span className="truncate">ver direccion y comprar</span>
                     </Button>
                   )}
    
