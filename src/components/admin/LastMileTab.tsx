@@ -277,14 +277,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                             })}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>Salida: {new Date(trip.departure_date).toLocaleDateString('es-ES', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
                             <Package className="h-4 w-4" />
                             <span className="font-medium text-primary">
                               {trip.packageCount} paquete{trip.packageCount !== 1 ? 's' : ''}
