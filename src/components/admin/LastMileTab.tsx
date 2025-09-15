@@ -276,7 +276,19 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                           <span className="font-medium text-primary">
                             {trip.from_city} → {trip.to_city}
                           </span>
-                        </div>
+                         </div>
+                         
+                         {trip.delivery_date && (
+                           <div className="text-sm">
+                             <span className="font-medium text-primary">
+                               Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString('es-ES', {
+                                 year: 'numeric',
+                                 month: 'long', 
+                                 day: 'numeric'
+                               })}
+                             </span>
+                           </div>
+                         )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
@@ -307,17 +319,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                           </div>
                         )}
 
-                        {trip.delivery_date && (
-                          <div className="text-sm">
-                            <span className="font-medium text-primary">
-                              Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long', 
-                                day: 'numeric'
-                              })}
-                            </span>
-                          </div>
-                        )}
 
                         {trip.available_space && (
                           <div className="text-sm text-muted-foreground">
