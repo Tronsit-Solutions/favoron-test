@@ -121,6 +121,10 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
     setGeneratingPDF(true);
     
     try {
+      // Import React and ReactDOM for rendering
+      const React = await import('react');
+      const ReactDOM = await import('react-dom/client');
+      
       // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -141,59 +145,17 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
         tempContainer.style.backgroundColor = '#ffffff';
         document.body.appendChild(tempContainer);
 
-        // Create the label component and add it to the temp container
-        const labelElement = document.createElement('div');
-        labelElement.style.width = '288px';
-        labelElement.style.height = '432px';
-        tempContainer.appendChild(labelElement);
+        // Create a div to render the React component
+        const reactContainer = document.createElement('div');
+        tempContainer.appendChild(reactContainer);
 
-        // Render the PackageLabel component by creating it manually
-        const labelHTML = `
-          <div style="width: 288px; height: 432px; background: white; border: 2px solid #333; font-family: 'Courier New', monospace; font-size: 10px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column;">
-            <div style="text-align: center; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 8px;">
-              <div style="font-weight: bold; font-size: 12px;">FAVORÓN</div>
-              <div style="font-size: 8px;">Etiqueta de Paquete</div>
-            </div>
-            
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
-              <div>
-                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">INFORMACIÓN DEL PAQUETE:</div>
-                <div>Producto: ${pkg.item_description || 'N/A'}</div>
-                <div>ID: ${pkg.id ? pkg.id.substring(0, 8).toUpperCase() : 'N/A'}</div>
-                <div>Precio: Q${pkg.agreed_price || pkg.quoted_price || 'N/A'}</div>
-                <div>Cantidad: ${pkg.quantity || '1'}</div>
-              </div>
-              
-              <div>
-                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">COMPRADOR:</div>
-                <div>${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || 'N/A'}</div>
-                <div>${pkg.profiles?.email || 'N/A'}</div>
-              </div>
-              
-              <div>
-                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">MÉTODO DE ENTREGA:</div>
-                <div>${pkg.delivery_method === 'pickup' ? 'Pick-up en oficina' : 'A domicilio'}</div>
-              </div>
-              
-              ${pkg.delivery_method === 'domicilio' && pkg.delivery_address ? `
-                <div>
-                  <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">DIRECCIÓN:</div>
-                  <div style="font-size: 8px; line-height: 1.2;">
-                    ${pkg.delivery_address.streetAddress || ''}${pkg.delivery_address.streetAddress2 ? ', ' + pkg.delivery_address.streetAddress2 : ''}
-                    <br>${pkg.delivery_address.cityArea || ''}
-                    ${pkg.delivery_address.postalCode ? '<br>CP: ' + pkg.delivery_address.postalCode : ''}
-                  </div>
-                </div>
-              ` : ''}
-              
-              <div style="margin-top: auto; padding-top: 8px; border-top: 1px solid #333; font-size: 8px;">
-                <div>Fecha: ${pkg.created_at ? new Date(pkg.created_at).toLocaleDateString('es-GT') : 'N/A'}</div>
-              </div>
-            </div>
-          </div>
-        `;
-        
-        labelElement.innerHTML = labelHTML;
+        // Create and render the PackageLabel component
+        const root = ReactDOM.createRoot(reactContainer);
+        await new Promise<void>((resolve) => {
+          root.render(React.createElement(PackageLabel, { pkg }));
+          // Give React time to render
+          setTimeout(resolve, 100);
+        });
 
         // Use html2canvas to capture the element
         const canvas = await html2canvas(tempContainer, {
@@ -206,7 +168,8 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
           windowHeight: 432
         });
 
-        // Clean up temporary element
+        // Clean up temporary element and React root
+        root.unmount();
         document.body.removeChild(tempContainer);
 
         // Add new page for each label except the first one
