@@ -12,6 +12,10 @@ export interface TripPaymentAccumulator {
   all_packages_delivered: boolean;
   payment_order_created: boolean;
   payment_status?: string; // Agregar campo opcional para el status del pago
+  payment_receipt_url?: string;
+  payment_receipt_filename?: string;
+  payment_completed_at?: string;
+  payment_completed_by?: string;
   created_at: string;
   updated_at: string;
 }

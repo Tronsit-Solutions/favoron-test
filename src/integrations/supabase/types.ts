@@ -614,7 +614,11 @@ export type Database = {
           created_at: string
           delivered_packages_count: number
           id: string
+          payment_completed_at: string | null
+          payment_completed_by: string | null
           payment_order_created: boolean
+          payment_receipt_filename: string | null
+          payment_receipt_url: string | null
           total_packages_count: number
           traveler_id: string
           trip_id: string
@@ -626,7 +630,11 @@ export type Database = {
           created_at?: string
           delivered_packages_count?: number
           id?: string
+          payment_completed_at?: string | null
+          payment_completed_by?: string | null
           payment_order_created?: boolean
+          payment_receipt_filename?: string | null
+          payment_receipt_url?: string | null
           total_packages_count?: number
           traveler_id: string
           trip_id: string
@@ -638,7 +646,11 @@ export type Database = {
           created_at?: string
           delivered_packages_count?: number
           id?: string
+          payment_completed_at?: string | null
+          payment_completed_by?: string | null
           payment_order_created?: boolean
+          payment_receipt_filename?: string | null
+          payment_receipt_url?: string | null
           total_packages_count?: number
           traveler_id?: string
           trip_id?: string

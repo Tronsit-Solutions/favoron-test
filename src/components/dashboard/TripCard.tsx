@@ -12,7 +12,6 @@ import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
 import TripBankingConfirmationModal from "@/components/TripBankingConfirmationModal";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
-import { supabase } from "@/integrations/supabase/client";
 
 interface TripCardProps {
   trip: any;
@@ -35,32 +34,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   // Hook para obtener datos del trip payment accumulator
   const { tripPayment, isCreating, createPaymentOrder } = useTripPayments(trip.id);
 
-  // Fetch payment receipt for completed trips
+  // Use payment receipt from trip payment accumulator
   useEffect(() => {
-    if (trip.status === 'completed_paid' && currentUser?.id === trip.user_id) {
-      const fetchPaymentReceipt = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('payment_orders')
-            .select('receipt_url, receipt_filename')
-            .eq('trip_id', trip.id)
-            .eq('traveler_id', trip.user_id)
-            .eq('status', 'completed')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (!error && data?.receipt_url) {
-            setPaymentReceipt(data);
-          }
-        } catch (error) {
-          console.error('Error fetching payment receipt:', error);
-        }
-      };
-
-      fetchPaymentReceipt();
+    if (tripPayment?.payment_receipt_url) {
+      setPaymentReceipt({
+        receipt_url: tripPayment.payment_receipt_url,
+        receipt_filename: tripPayment.payment_receipt_filename
+      });
+    } else {
+      setPaymentReceipt(null);
     }
-  }, [trip.id, trip.status, trip.user_id, currentUser?.id]);
+  }, [tripPayment]);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
