@@ -281,7 +281,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                               <div className="min-w-0 flex-1">
                                 <div className="text-xs text-muted-foreground">Precio estimado</div>
                                 <div className="text-sm font-medium break-words">
-                                  Q{parseFloat(pkg.estimated_price).toFixed(2)}
+                                  ${parseFloat(pkg.estimated_price).toFixed(2)}
                                 </div>
                               </div>
                             </div>
