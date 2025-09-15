@@ -4,19 +4,30 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, X, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminPhotoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (file: File, customerName: string, productDescription: string, approveDirectly: boolean) => Promise<void>;
+  onUpload: (
+    file: File, 
+    customerName: string, 
+    productDescription: string, 
+    approveDirectly: boolean,
+    customerConsent: boolean,
+    usageType: 'testimonial' | 'marketing' | 'showcase'
+  ) => Promise<void>;
 }
 
 export const AdminPhotoModal = ({ isOpen, onClose, onUpload }: AdminPhotoModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [productDescription, setProductDescription] = useState('');
+  const [customerConsent, setCustomerConsent] = useState(false);
+  const [usageType, setUsageType] = useState<'testimonial' | 'marketing' | 'showcase'>('testimonial');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,9 +84,18 @@ export const AdminPhotoModal = ({ isOpen, onClose, onUpload }: AdminPhotoModalPr
       return;
     }
 
+    if (approveDirectly && !customerConsent) {
+      toast({
+        title: "Error",
+        description: "Se requiere consentimiento del cliente para aprobar y publicar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
     try {
-      await onUpload(file, customerName.trim(), productDescription.trim(), approveDirectly);
+      await onUpload(file, customerName.trim(), productDescription.trim(), approveDirectly, customerConsent, usageType);
       resetForm();
       onClose();
     } catch (error) {
@@ -89,6 +109,8 @@ export const AdminPhotoModal = ({ isOpen, onClose, onUpload }: AdminPhotoModalPr
     setFile(null);
     setCustomerName('');
     setProductDescription('');
+    setCustomerConsent(false);
+    setUsageType('testimonial');
     setPreviewUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -192,6 +214,31 @@ export const AdminPhotoModal = ({ isOpen, onClose, onUpload }: AdminPhotoModalPr
                 placeholder="Describe el producto que se trajo..."
                 rows={3}
               />
+            </div>
+
+            <div>
+              <Label htmlFor="usageType">Tipo de Uso</Label>
+              <Select value={usageType} onValueChange={(value: 'testimonial' | 'marketing' | 'showcase') => setUsageType(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el tipo de uso" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="testimonial">Testimonio</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="showcase">Showcase Público</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="customerConsent" 
+                checked={customerConsent}
+                onCheckedChange={(checked) => setCustomerConsent(checked as boolean)}
+              />
+              <Label htmlFor="customerConsent" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                El cliente ha dado consentimiento explícito para el uso de su imagen
+              </Label>
             </div>
           </div>
 

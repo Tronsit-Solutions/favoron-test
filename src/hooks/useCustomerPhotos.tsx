@@ -10,6 +10,9 @@ export interface CustomerPhoto {
   status: 'pending' | 'approved' | 'rejected';
   sort_order: number;
   uploaded_by?: string;
+  customer_consent: boolean;
+  consent_date?: string;
+  usage_type: 'testimonial' | 'marketing' | 'showcase';
   created_at: string;
   updated_at: string;
 }
@@ -107,7 +110,14 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
     }
   };
 
-  const uploadPhoto = async (file: File, customerName: string, productDescription: string, approveDirectly: boolean = false) => {
+  const uploadPhoto = async (
+    file: File, 
+    customerName: string, 
+    productDescription: string, 
+    approveDirectly: boolean = false,
+    customerConsent: boolean = false,
+    usageType: 'testimonial' | 'marketing' | 'showcase' = 'testimonial'
+  ) => {
     try {
       console.log('🔐 Starting photo upload - Admin mode:', isAdmin, 'Approve directly:', approveDirectly);
       
@@ -150,6 +160,9 @@ export const useCustomerPhotos = (isAdmin: boolean = false) => {
         customer_name: customerName || null,
         product_description: productDescription,
         status: approveDirectly ? 'approved' : 'pending',
+        customer_consent: customerConsent,
+        consent_date: customerConsent ? new Date().toISOString() : null,
+        usage_type: usageType,
         sort_order: 0,
         uploaded_by: user.id
       };

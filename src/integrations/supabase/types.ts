@@ -108,7 +108,9 @@ export type Database = {
       }
       customer_photos: {
         Row: {
+          consent_date: string | null
           created_at: string
+          customer_consent: boolean
           customer_name: string | null
           id: string
           image_url: string
@@ -117,9 +119,12 @@ export type Database = {
           status: string
           updated_at: string
           uploaded_by: string | null
+          usage_type: string | null
         }
         Insert: {
+          consent_date?: string | null
           created_at?: string
+          customer_consent?: boolean
           customer_name?: string | null
           id?: string
           image_url: string
@@ -128,9 +133,12 @@ export type Database = {
           status?: string
           updated_at?: string
           uploaded_by?: string | null
+          usage_type?: string | null
         }
         Update: {
+          consent_date?: string | null
           created_at?: string
+          customer_consent?: boolean
           customer_name?: string | null
           id?: string
           image_url?: string
@@ -139,6 +147,7 @@ export type Database = {
           status?: string
           updated_at?: string
           uploaded_by?: string | null
+          usage_type?: string | null
         }
         Relationships: []
       }
