@@ -228,11 +228,21 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                     <div className="flex justify-between items-start mb-3">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <User className="h-4 w-4 text-muted-foreground" />
                           <h4 className="font-semibold text-lg">
-                            {trip.from_city} → {trip.to_city}
+                            {trip.travelerProfile ? 
+                              `${trip.travelerProfile.first_name} ${trip.travelerProfile.last_name}` : 
+                              'Sin información del viajero'
+                            }
                           </h4>
                           {getStatusBadge(trip.status)}
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span className="font-medium text-primary">
+                            {trip.from_city} → {trip.to_city}
+                          </span>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
@@ -251,15 +261,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                               month: 'long',
                               day: 'numeric'
                             })}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <User className="h-4 w-4" />
-                            <span className="font-medium">
-                              Viajero: {trip.travelerProfile ? 
-                                `${trip.travelerProfile.first_name} ${trip.travelerProfile.last_name}` : 
-                                'Sin información'
-                              }
-                            </span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Package className="h-4 w-4" />
