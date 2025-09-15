@@ -118,21 +118,26 @@ const AdminMatchDialog = ({
         const userIds = [...new Set(validTrips.map(trip => trip.user_id))];
         
         try {
-          // Use admin function to bypass RLS
+          console.log('Fetching traveler profiles for user IDs:', userIds);
+          
+          // Try to fetch profiles directly from the profiles table
           const { data, error } = await supabase
-            .rpc('admin_view_all_users');
+            .from('profiles')
+            .select('id, first_name, last_name, username, email')
+            .in('id', userIds);
           
           if (error) {
             console.error('Error fetching traveler profiles:', error);
             return;
           }
           
-          // Filter only the users we need
-          const relevantProfiles = data?.filter(profile => userIds.includes(profile.id)) || [];
-          const profilesMap = relevantProfiles.reduce((acc, profile) => {
+          console.log('Fetched profiles:', data);
+          
+          // Create profiles map
+          const profilesMap = data?.reduce((acc, profile) => {
             acc[profile.id] = profile;
             return acc;
-          }, {});
+          }, {}) || {};
           
           setTravelerProfiles(profilesMap);
         } catch (error) {
@@ -146,13 +151,17 @@ const AdminMatchDialog = ({
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
+    console.log('Getting traveler name for:', userId, 'Profile found:', profile);
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
     if (profile?.username) {
       return profile.username;
     }
-    return `Viajero #${userId}`;
+    if (profile?.email) {
+      return profile.email.split('@')[0];
+    }
+    return `Viajero #${userId.slice(-6)}`;
   };
 
   const handleTravelerClick = async (trip: any) => {
