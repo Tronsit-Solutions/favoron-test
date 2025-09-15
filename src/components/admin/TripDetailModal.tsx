@@ -4,7 +4,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag } from "lucide-react";
+import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { PackageLabel } from './PackageLabel';
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
@@ -26,6 +29,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   const [packages, setPackages] = useState<any[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -104,6 +108,131 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   // Open rejection modal
   const handleRejectClick = () => {
     setRejectionModalOpen(true);
+  };
+
+  // Generate PDF with multiple package labels
+  const generateMultipleLabelsPDF = async () => {
+    if (!packages.length) {
+      alert('No hay paquetes para generar etiquetas.');
+      return;
+    }
+
+    setGeneratingPDF(true);
+    
+    try {
+      // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'letter'
+      });
+
+      for (let i = 0; i < packages.length; i++) {
+        const pkg = packages[i];
+        
+        // Create a temporary container for rendering (hidden off-screen)
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '288px';
+        tempContainer.style.height = '432px';
+        tempContainer.style.backgroundColor = '#ffffff';
+        document.body.appendChild(tempContainer);
+
+        // Create the label component and add it to the temp container
+        const labelElement = document.createElement('div');
+        labelElement.style.width = '288px';
+        labelElement.style.height = '432px';
+        tempContainer.appendChild(labelElement);
+
+        // Render the PackageLabel component by creating it manually
+        const labelHTML = `
+          <div style="width: 288px; height: 432px; background: white; border: 2px solid #333; font-family: 'Courier New', monospace; font-size: 10px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column;">
+            <div style="text-align: center; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 8px;">
+              <div style="font-weight: bold; font-size: 12px;">FAVORÓN</div>
+              <div style="font-size: 8px;">Etiqueta de Paquete</div>
+            </div>
+            
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+              <div>
+                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">INFORMACIÓN DEL PAQUETE:</div>
+                <div>Producto: ${pkg.item_description || 'N/A'}</div>
+                <div>ID: ${pkg.id ? pkg.id.substring(0, 8).toUpperCase() : 'N/A'}</div>
+                <div>Precio: Q${pkg.agreed_price || pkg.quoted_price || 'N/A'}</div>
+                <div>Cantidad: ${pkg.quantity || '1'}</div>
+              </div>
+              
+              <div>
+                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">COMPRADOR:</div>
+                <div>${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || 'N/A'}</div>
+                <div>${pkg.profiles?.email || 'N/A'}</div>
+              </div>
+              
+              <div>
+                <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">MÉTODO DE ENTREGA:</div>
+                <div>${pkg.delivery_method === 'pickup' ? 'Pick-up en oficina' : 'A domicilio'}</div>
+              </div>
+              
+              ${pkg.delivery_method === 'domicilio' && pkg.delivery_address ? `
+                <div>
+                  <div style="font-weight: bold; font-size: 9px; margin-bottom: 2px;">DIRECCIÓN:</div>
+                  <div style="font-size: 8px; line-height: 1.2;">
+                    ${pkg.delivery_address.streetAddress || ''}${pkg.delivery_address.streetAddress2 ? ', ' + pkg.delivery_address.streetAddress2 : ''}
+                    <br>${pkg.delivery_address.cityArea || ''}
+                    ${pkg.delivery_address.postalCode ? '<br>CP: ' + pkg.delivery_address.postalCode : ''}
+                  </div>
+                </div>
+              ` : ''}
+              
+              <div style="margin-top: auto; padding-top: 8px; border-top: 1px solid #333; font-size: 8px;">
+                <div>Fecha: ${pkg.created_at ? new Date(pkg.created_at).toLocaleDateString('es-GT') : 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        labelElement.innerHTML = labelHTML;
+
+        // Use html2canvas to capture the element
+        const canvas = await html2canvas(tempContainer, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          width: 288,
+          height: 432,
+          windowWidth: 288,
+          windowHeight: 432
+        });
+
+        // Clean up temporary element
+        document.body.removeChild(tempContainer);
+
+        // Add new page for each label except the first one
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Calculate position to center 4x6" label (288x432 points) on letter page
+        const centerX = (612 - 288) / 2; // 162 points
+        const centerY = (792 - 432) / 2; // 180 points
+
+        // Convert canvas to image and add to PDF
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+      }
+
+      // Generate filename and save
+      const tripId = trip.id ? trip.id.substring(0, 8) : 'viaje';
+      const fileName = `etiquetas_viaje_${tripId}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+    } catch (error) {
+      console.error('Error generating multiple labels PDF:', error);
+      alert('Error al generar el PDF. Por favor, inténtalo de nuevo.');
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   return (
@@ -421,13 +550,29 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
           {/* Packages Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <ShoppingBag className="h-4 w-4" />
-                <span>Paquetes Asignados ({packages.length})</span>
-              </CardTitle>
-              <CardDescription>
-                Paquetes que lleva este viajero en su viaje
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <ShoppingBag className="h-4 w-4" />
+                    <span>Paquetes Asignados ({packages.length})</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Paquetes que lleva este viajero en su viaje
+                  </CardDescription>
+                </div>
+                {packages.length > 0 && (
+                  <Button
+                    onClick={generateMultipleLabelsPDF}
+                    disabled={generatingPDF}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>{generatingPDF ? 'Generando...' : 'Descargar Etiquetas'}</span>
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {loadingPackages ? (
