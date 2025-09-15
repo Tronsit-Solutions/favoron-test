@@ -19,8 +19,8 @@ export const getDeliveryFee = (
   deliveryMethod: string = 'pickup', 
   trustLevel?: TrustLevel | string
 ): number => {
-  // No delivery fee for messenger pickup regardless of trust level
-  if (deliveryMethod === 'messenger') {
+  // No delivery fee for pickup regardless of trust level
+  if (deliveryMethod === 'pickup') {
     return 0;
   }
   
