@@ -188,11 +188,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Calculate financial metrics with correct trust level
       const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
-      const serviceFee = calculateServiceFee(travelerTip);
       
       // Get traveler's trust level for correct commission calculation
       const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
       
+      const serviceFee = calculateServiceFee(travelerTip, travelerTrustLevel);
       const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
       const deliveryFee = getDeliveryFee(pkg.delivery_method, travelerTrustLevel);
       const messengerPayment = pkg.delivery_method === 'messenger' ? deliveryFee : 0;
