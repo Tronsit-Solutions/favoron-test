@@ -780,7 +780,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
@@ -792,8 +792,16 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Tarifa de Favoron (40%)</p>
-                      <p className="text-sm text-muted-foreground">Q{((pkg.quote.price || 0) * 0.4).toFixed(2)}</p>
+                      <p className="text-sm font-medium">Service Fee ({pkg.profiles?.trust_level === 'prime' ? '20%' : '40%'})</p>
+                      <p className="text-sm text-muted-foreground">Q{(pkg.quote.serviceFee || ((pkg.quote.price || 0) * (pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40))).toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Delivery Fee</p>
+                      <p className="text-sm text-muted-foreground">Q{(pkg.quote.deliveryFee || (pkg.delivery_method === 'delivery' && pkg.profiles?.trust_level !== 'prime' ? 25 : 0)).toFixed(2)}</p>
                     </div>
                   </div>
 

@@ -18,6 +18,7 @@ interface PaymentReceiptViewerProps {
   quote?: {
     price: number;
     serviceFee: number;
+    deliveryFee?: number;
     totalPrice: number;
     message?: string;
   };
@@ -88,8 +89,12 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
                   <span className="font-medium">Q{quote.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Cuota Favorón (40%):</span>
-                  <span className="font-medium">Q{(quote.price * 0.4).toFixed(2)}</span>
+                  <span>Service Fee:</span>
+                  <span className="font-medium">Q{(quote.serviceFee || (quote.price * 0.4)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee:</span>
+                  <span className="font-medium">Q{(quote.deliveryFee || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-1 font-semibold">
                   <span>Total a pagar:</span>
@@ -189,8 +194,12 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
                   <span className="font-medium">Q{quote.price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Cuota Favorón (40%):</span>
-                  <span className="font-medium">Q{(quote.price * 0.4).toFixed(2)}</span>
+                  <span>Service Fee:</span>
+                  <span className="font-medium">Q{(quote.serviceFee || (quote.price * 0.4)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee:</span>
+                  <span className="font-medium">Q{(quote.deliveryFee || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-green-200 pt-1 font-semibold">
                   <span>Total a pagar:</span>
