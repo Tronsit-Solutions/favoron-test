@@ -858,15 +858,15 @@ export type Database = {
           document_number: string
           document_type: string
           email: string
-          email_notification_preferences: Json
           email_notifications: boolean
           first_name: string
           id: string
           last_name: string
           phone_number: string
+          prime_expires_at: string
           trust_level: Database["public"]["Enums"]["trust_level"]
           updated_at: string
-          user_role: Database["public"]["Enums"]["user_role"]
+          user_role: string
           username: string
         }[]
       }
