@@ -32,6 +32,7 @@ import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminDashboardProps {
   packages: any[];
@@ -167,6 +168,27 @@ const AdminDashboard = ({
     
     const config = statusMap[status as keyof typeof statusMap] || { label: getStatusLabel(status), variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  // Admin: run intelligent backfill on demand
+  const handleRunBackfill = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('intelligent-quote-backfill');
+      if (error) throw error as any;
+      toast({
+        title: 'Backfill ejecutado',
+        description: `Actualizados: ${data?.summary?.packagesUpdated ?? 0}, Omitidos: ${data?.summary?.packagesSkipped ?? 0}`,
+      });
+      // Refresh packages after backfill
+      await refreshAdminData?.();
+    } catch (e: any) {
+      console.error('Backfill error', e);
+      toast({
+        title: 'Error al backfillear',
+        description: e?.message || 'No se pudo ejecutar el backfill',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleMatch = async (adminTip?: number, productsWithTips?: any[]) => {
@@ -444,23 +466,27 @@ const AdminDashboard = ({
             tabs={adminTabs}
           />
         ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <TabsList className="grid w-full grid-cols-7">
-                {adminTabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="relative flex items-center gap-2"
-                  >
-                    {tab.label}
-                    {tab.badge}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <TabsList className="grid w-full grid-cols-7">
+                  {adminTabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="relative flex items-center gap-2"
+                    >
+                      {tab.label}
+                      {tab.badge}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <div className="ml-4">
+                  <Button variant="outline" onClick={handleRunBackfill}>
+                    Corregir cotizaciones Prime
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
         )}
 
         <TabsContent value="overview" className="space-y-4">
