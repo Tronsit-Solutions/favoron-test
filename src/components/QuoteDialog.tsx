@@ -18,6 +18,7 @@ import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
 import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
+import { createNormalizedQuote } from '@/lib/quoteHelpers';
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -165,38 +166,36 @@ const QuoteDialog = ({
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
-      const priceBreakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+      const normalizedQuote = createNormalizedQuote(
+        basePrice, 
+        packageDetails.delivery_method, 
+        packageDetails.shopper_trust_level,
+        message || '',
+        true
+      );
       
       clearPersistedState(); // Clear form data on successful submission
-      onSubmit({
-        price: basePrice,
-        serviceFee: priceBreakdown.serviceFee,
-        totalPrice: priceBreakdown.totalPrice,
-        message: message || '',
-        adminAssignedTipAccepted: true
-      });
+      onSubmit(normalizedQuote);
     } else {
       const basePrice = parseFloat(price);
       const shopperTrustLevel = packageDetails.shopper_trust_level;
-      const breakdown = getPriceBreakdown(basePrice, packageDetails.delivery_method, shopperTrustLevel);
+      const normalizedQuote = createNormalizedQuote(
+        basePrice,
+        packageDetails.delivery_method,
+        shopperTrustLevel,
+        message
+      );
       
-      // Temporary logging to verify correct commission calculation
+      // Logging for verification
       console.log('🔍 Quote calculation:', {
         basePrice,
         shopperTrustLevel,
-        commissionRate: breakdown.commissionRate,
-        serviceFee: breakdown.serviceFee,
-        totalPrice: breakdown.totalPrice,
-        isPrime: breakdown.isPrime
+        serviceFee: normalizedQuote.serviceFee,
+        totalPrice: normalizedQuote.totalPrice
       });
       
       clearPersistedState(); // Clear form data on successful submission
-      onSubmit({
-        price: basePrice,
-        serviceFee: breakdown.serviceFee,
-        totalPrice: breakdown.totalPrice,
-        message
-      });
+      onSubmit(normalizedQuote);
     }
   };
   const handleReject = () => {

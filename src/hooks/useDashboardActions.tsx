@@ -1,6 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRef } from 'react';
+import { normalizeQuote, shouldRecalculateQuote } from '@/lib/quoteHelpers';
 
 export const useDashboardActions = (
   packages: any[],
@@ -271,15 +272,10 @@ export const useDashboardActions = (
           if (isPaidPackage) {
             console.log('📦 Package already paid, proceeding directly and updating delivery info');
             // For paid packages, move to pending_purchase and update delivery info
+            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.shopper_trust_level);
             await updatePackage(selectedPackage.id, {
               status: 'pending_purchase',
-              quote: {
-                price: quoteData.price,
-                serviceFee: quoteData.serviceFee,
-                totalPrice: quoteData.totalPrice,
-                message: quoteData.message,
-                adminAssignedTipAccepted: true
-              },
+              quote: normalizedQuoteData,
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates
             });
@@ -291,15 +287,10 @@ export const useDashboardActions = (
           } else {
             console.log('💰 Sending quote to shopper for payment (with delivery info)');
             // For unpaid packages, send quote to shopper and include delivery info
+            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.shopper_trust_level);
             await updatePackage(selectedPackage.id, {
               status: 'quote_sent',
-              quote: {
-                price: quoteData.price,
-                serviceFee: quoteData.serviceFee,
-                totalPrice: quoteData.totalPrice,
-                message: quoteData.message,
-                adminAssignedTipAccepted: true
-              },
+              quote: normalizedQuoteData,
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates
             });
@@ -478,9 +469,10 @@ export const useDashboardActions = (
             arrival_date: matchedTrip.arrival_date
           };
 
+          const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.shopper_trust_level);
           await updatePackage(selectedPackage.id, {
             status: 'quote_sent',
-            quote: quoteData
+            quote: normalizedQuoteData
           });
           toast({
             title: "¡Cotización enviada!",

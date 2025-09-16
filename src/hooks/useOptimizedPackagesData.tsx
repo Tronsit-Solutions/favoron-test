@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCachedData } from '@/hooks/useCachedData';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { shouldRecalculateQuote, normalizeQuote } from '@/lib/quoteHelpers';
 
 export type Package = Tables<'packages'>;
 export type PackageInsert = TablesInsert<'packages'>;
@@ -221,6 +222,28 @@ export const useOptimizedPackagesData = () => {
 
   const updatePackage = useCallback(async (id: string, updates: PackageUpdate) => {
     try {
+      // Get current package data for trust level checking
+      const currentPackage = packages.find(pkg => pkg.id === id);
+      
+      // Quote validation and normalization
+      if (updates.quote && currentPackage) {
+        const shopperTrustLevel = (currentPackage as any).shopper_trust_level || 'basic';
+        const deliveryMethod = currentPackage.delivery_method || 'pickup';
+        
+        // Check if the quote needs recalculation
+        if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel)) {
+          console.warn('⚠️ Quote discrepancy detected for package', id, {
+            provided: updates.quote,
+            deliveryMethod,
+            shopperTrustLevel
+          });
+          
+          // Normalize the quote to ensure consistency
+          updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel) as any;
+          console.log('🔧 Quote normalized:', updates.quote);
+        }
+      }
+      
       // Si el shopper ya no quiere el paquete, cancelarlo y desactivar re-cotización
       if (updates.rejection_reason === 'no_longer_want') {
         updates = {

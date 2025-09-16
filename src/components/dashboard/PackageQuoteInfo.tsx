@@ -1,8 +1,7 @@
 import StatusAlert from "@/components/ui/status-alert";
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
-import { getPriceBreakdown } from "@/lib/pricing";
-import { useAuth } from "@/hooks/useAuth";
+import { getDisplayTotal } from "@/lib/quoteHelpers";
 interface PackageQuoteInfoProps {
   quote: {
     totalPrice: string;
@@ -25,10 +24,8 @@ const PackageQuoteInfo = ({
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
-  // Use the same calculation logic as QuoteDialog.tsx
-  const base = parseFloat(quote.price || String(adminTipAmount || '0')) || 0;
-  const breakdown = getPriceBreakdown(base, deliveryMethod, shopperTrustLevel);
-  const displayTotal = breakdown.totalPrice;
+  // Always recalculate total to ensure correctness with current trust level
+  const displayTotal = getDisplayTotal(quote, deliveryMethod, shopperTrustLevel);
   
   return (
     <StatusAlert variant="info" title="Cotización recibida">

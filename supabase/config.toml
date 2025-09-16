@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.migrate-avatar-paths]
 verify_jwt = true
+
+[functions.intelligent-quote-backfill]
+verify_jwt = false
