@@ -472,62 +472,42 @@ const QuoteDialog = ({
                      <div className="mt-3 pt-2 border-t border-green-200">
                        <p className="text-sm font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
                        <div className="space-y-1 text-sm text-green-700">
-                         {(() => {
-                           const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                           const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
-                           const deliveryFee = breakdown.deliveryFee;
-                           const compensationAndCommission = breakdown.totalPrice - deliveryFee;
-                           
-                            return (
-                              <>
-                                {/* Show original standard rate first */}
-                                {(() => {
-                                  const standardServiceFee = calculateServiceFee(base, 'basic');
-                                  const standardCompensationAndCommission = base + standardServiceFee;
-                                  return (
-                                    <div className="flex justify-between">
-                                      <span>Compensacion Viajero + Comision Favoron:</span>
-                                      <span>{formatCurrency(standardCompensationAndCommission)}</span>
-                                    </div>
-                                  );
-                                })()}
-                                
-                                {/* Show Prime savings if applicable */}
-                                {(() => {
-                                  if (packageDetails.shopper_trust_level === 'prime') {
-                                    const standardServiceFee = calculateServiceFee(base, 'basic');
-                                    const primeServiceFee = calculateServiceFee(base, 'prime');
-                                    const savings = standardServiceFee - primeServiceFee;
-                                    if (savings > 0) {
-                                      return (
-                                        <div className="flex justify-between text-sm text-green-600 font-medium">
-                                          <span className="flex items-center gap-1">
-                                            <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
-                                            Descuento Prime:
-                                          </span>
-                                          <span>-{formatCurrency(savings)}</span>
-                                        </div>
-                                      );
-                                    }
-                                  }
-                                  return null;
-                                })()}
-                                
-                                {/* Show delivery fee if applicable */}
-                                {deliveryFee > 0 && (
-                                  <div className="flex justify-between">
-                                    <span>Entrega a domicilio:</span>
-                                    <span>{formatCurrency(deliveryFee)}</span>
-                                  </div>
-                                )}
-                                
-                                {/* Total at the bottom */}
-                                <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
-                                  <span>Total:</span>
-                                  <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                </div>
-                              </>
-                            );
+                          {(() => {
+                            const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                            const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+                            const isPrime = packageDetails.shopper_trust_level === 'prime';
+                            
+                             return (
+                               <>
+                                 <div className="flex justify-between">
+                                   <span>Precio base:</span>
+                                   <span>{formatCurrency(breakdown.basePrice)}</span>
+                                 </div>
+                                 
+                                 <div className="flex justify-between">
+                                   <span>Service fee ({isPrime ? '20%' : '40%'}):</span>
+                                   <span>{formatCurrency(breakdown.serviceFee)}</span>
+                                 </div>
+                                 
+                                 <div className="flex justify-between">
+                                   <span>Entrega a domicilio:</span>
+                                   <span>{formatCurrency(breakdown.deliveryFee)}</span>
+                                 </div>
+                                 
+                                 {/* Show Prime benefits if applicable */}
+                                 {isPrime && (
+                                   <div className="text-xs text-green-600 italic">
+                                     ✨ {breakdown.deliveryFee === 0 && packageDetails.delivery_method === 'delivery' ? 'Entrega gratis' : 'Descuento service fee'} por ser Prime
+                                   </div>
+                                 )}
+                                 
+                                 {/* Total at the bottom */}
+                                 <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
+                                   <span>Total:</span>
+                                   <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                 </div>
+                               </>
+                             );
                          })()}
                        </div>
                      </div>
