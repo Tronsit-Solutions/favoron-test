@@ -5,6 +5,7 @@ export interface NormalizedQuote {
   serviceFee: number;
   deliveryFee: number;
   totalPrice: number;
+  completePrice: number;
   message?: string;
   adminAssignedTipAccepted?: boolean;
 }
@@ -19,12 +20,13 @@ export const normalizeQuote = (
   shopperTrustLevel?: string
 ): NormalizedQuote => {
   if (!quote) {
-  return {
-    price: 0,
-    serviceFee: 0,
-    deliveryFee: 0,
-    totalPrice: 0
-  };
+    return {
+      price: 0,
+      serviceFee: 0,
+      deliveryFee: 0,
+      totalPrice: 0,
+      completePrice: 0
+    };
   }
 
   // Get the stored values (always numeric)
@@ -34,12 +36,14 @@ export const normalizeQuote = (
   
   // Calculate totalPrice as simple sum of stored components
   const totalPrice = price + serviceFee + deliveryFee;
+  const completePrice = price + serviceFee + deliveryFee;
 
   return {
     price,
     serviceFee,
     deliveryFee,
     totalPrice,
+    completePrice,
     message: quote.message,
     adminAssignedTipAccepted: quote.adminAssignedTipAccepted
   };
@@ -62,6 +66,7 @@ export const createNormalizedQuote = (
     serviceFee: breakdown.serviceFee,
     deliveryFee: breakdown.deliveryFee,
     totalPrice: breakdown.totalPrice,
+    completePrice: breakdown.totalPrice,
     message,
     adminAssignedTipAccepted
   };

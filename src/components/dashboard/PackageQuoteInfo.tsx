@@ -24,8 +24,8 @@ const PackageQuoteInfo = ({
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
-  // Always recalculate total to ensure correctness with current trust level
-  const displayTotal = getDisplayTotal(quote, deliveryMethod, shopperTrustLevel);
+  // Use completePrice if available, otherwise recalculate
+  const displayTotal = (quote as any).completePrice || getDisplayTotal(quote, deliveryMethod, shopperTrustLevel);
   
   return (
     <StatusAlert variant="info" title="Cotización recibida">
