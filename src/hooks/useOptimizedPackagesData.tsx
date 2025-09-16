@@ -227,7 +227,7 @@ export const useOptimizedPackagesData = () => {
       
       // Quote validation and normalization
       if (updates.quote && currentPackage) {
-        const shopperTrustLevel = (currentPackage as any).shopper_trust_level || 'basic';
+        const shopperTrustLevel = (currentPackage as any).profiles?.trust_level || 'basic';
         const deliveryMethod = currentPackage.delivery_method || 'pickup';
         
         // Check if the quote needs recalculation

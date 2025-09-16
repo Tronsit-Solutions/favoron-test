@@ -98,7 +98,8 @@ serve(async (req) => {
       const correctServiceFee = basePrice * 0.20
       
       // Delivery fee: Q0 for Prime users (regardless of delivery method)
-      const deliveryFee = 0
+      const deliveryMethod = pkg.delivery_method || 'pickup'
+      const deliveryFee = 0 // Prime users always get free delivery
       
       // Total: Price + ServiceFee + DeliveryFee
       const correctTotalPrice = basePrice + correctServiceFee + deliveryFee
@@ -122,6 +123,7 @@ serve(async (req) => {
         const updatedQuote = {
           ...quote,
           serviceFee: correctServiceFee,
+          deliveryFee: deliveryFee,
           totalPrice: correctTotalPrice
         }
 

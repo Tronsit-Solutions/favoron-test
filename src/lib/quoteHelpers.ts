@@ -3,6 +3,7 @@ import { getPriceBreakdown } from './pricing';
 export interface NormalizedQuote {
   price: number;
   serviceFee: number;
+  deliveryFee: number;
   totalPrice: number;
   message?: string;
   adminAssignedTipAccepted?: boolean;
@@ -18,11 +19,12 @@ export const normalizeQuote = (
   shopperTrustLevel?: string
 ): NormalizedQuote => {
   if (!quote) {
-    return {
-      price: 0,
-      serviceFee: 0,
-      totalPrice: 0
-    };
+  return {
+    price: 0,
+    serviceFee: 0,
+    deliveryFee: 0,
+    totalPrice: 0
+  };
   }
 
   // Get the base price (always numeric)
@@ -34,6 +36,7 @@ export const normalizeQuote = (
   return {
     price: breakdown.basePrice,
     serviceFee: breakdown.serviceFee,
+    deliveryFee: breakdown.deliveryFee,
     totalPrice: breakdown.totalPrice,
     message: quote.message,
     adminAssignedTipAccepted: quote.adminAssignedTipAccepted
@@ -55,6 +58,7 @@ export const createNormalizedQuote = (
   return {
     price: breakdown.basePrice,
     serviceFee: breakdown.serviceFee,
+    deliveryFee: breakdown.deliveryFee,
     totalPrice: breakdown.totalPrice,
     message,
     adminAssignedTipAccepted
