@@ -11,7 +11,7 @@ export interface NormalizedQuote {
 
 /**
  * Normalize a quote object to ensure consistent numeric values
- * Uses the centralized pricing logic to recalculate fees and totals
+ * Uses stored values and calculates totalPrice as simple sum
  */
 export const normalizeQuote = (
   quote: any,
@@ -27,17 +27,19 @@ export const normalizeQuote = (
   };
   }
 
-  // Get the base price (always numeric)
+  // Get the stored values (always numeric)
   const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
+  const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
+  const deliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
   
-  // Recalculate using centralized pricing logic
-  const breakdown = getPriceBreakdown(price, deliveryMethod, shopperTrustLevel);
+  // Calculate totalPrice as simple sum of stored components
+  const totalPrice = price + serviceFee + deliveryFee;
 
   return {
-    price: breakdown.basePrice,
-    serviceFee: breakdown.serviceFee,
-    deliveryFee: breakdown.deliveryFee,
-    totalPrice: breakdown.totalPrice,
+    price,
+    serviceFee,
+    deliveryFee,
+    totalPrice,
     message: quote.message,
     adminAssignedTipAccepted: quote.adminAssignedTipAccepted
   };
@@ -88,7 +90,7 @@ export const shouldRecalculateQuote = (
 };
 
 /**
- * Get display total for UI - always recalculate to ensure correctness
+ * Get display total for UI - uses stored values with simple sum
  */
 export const getDisplayTotal = (
   quote: any,
