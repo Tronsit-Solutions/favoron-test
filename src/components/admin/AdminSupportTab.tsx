@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw } from "lucide-react";
+import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw, Settings, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface ClientErrorRow {
   id: string;
@@ -47,6 +48,8 @@ const AdminSupportTab = ({
   const [activeFilter, setActiveFilter] = useState("all");
   const [isSearching, setIsSearching] = useState(false);
   const [supportTab, setSupportTab] = useState("packages");
+  const [isRunningBackfill, setIsRunningBackfill] = useState(false);
+  const { toast } = useToast();
   
   // Client errors state
   const [errors, setErrors] = useState<ClientErrorRow[]>([]);
@@ -215,6 +218,36 @@ const AdminSupportTab = ({
       console.log('✅ Package marked as incident - real-time will update UI');
     } catch (error) {
       console.error('Error marking as incident:', error);
+    }
+  };
+
+  const runCompletePrice = async () => {
+    setIsRunningBackfill(true);
+    try {
+      console.log('🔧 Running completePrice backfill...');
+      
+      const { data, error } = await supabase.functions.invoke('add-complete-price-to-quotes');
+      
+      if (error) {
+        throw error;
+      }
+      
+      console.log('✅ Backfill result:', data);
+      toast({
+        title: "✅ Backfill Completado",
+        description: `Actualizados: ${data.updatedPackages}, Omitidos: ${data.skippedPackages}`,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('❌ Backfill error:', error);
+      toast({
+        title: "❌ Error en Backfill",
+        description: error.message || "Error desconocido",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRunningBackfill(false);
     }
   };
 
@@ -522,6 +555,42 @@ const AdminSupportTab = ({
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                Herramientas del Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium mb-2">Backfill CompletePrice</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Agrega el campo completePrice a todos los quotes existentes en la base de datos.
+                </p>
+                <Button 
+                  onClick={runCompletePrice}
+                  disabled={isRunningBackfill}
+                  className="w-full"
+                >
+                  {isRunningBackfill ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Ejecutando...
+                    </>
+                  ) : (
+                    <>
+                      <Database className="w-4 h-4 mr-2" />
+                      Ejecutar Backfill
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
