@@ -40,7 +40,7 @@ serve(async (req) => {
 
     console.log(`📊 Found ${primeStartDates.size} Prime users with start dates`)
 
-    // Step 2: Get packages that need potential backfill
+    // Step 2: Get ALL packages that need potential backfill
     const { data: packages, error: packagesError } = await supabaseClient
       .from('packages')
       .select(`
@@ -52,13 +52,12 @@ serve(async (req) => {
         profiles!packages_user_id_fkey(trust_level)
       `)
       .not('quote', 'is', null)
-      .in('user_id', Array.from(primeStartDates.keys()))
 
     if (packagesError) {
       throw new Error(`Failed to get packages: ${packagesError.message}`)
     }
 
-    console.log(`📦 Found ${packages.length} packages from Prime users to analyze`)
+    console.log(`📦 Found ${packages.length} packages to analyze`)
 
     let updatedCount = 0
     let skippedCount = 0
@@ -66,17 +65,6 @@ serve(async (req) => {
 
     // Step 3: Process each package
     for (const pkg of packages) {
-      const primeStartDate = primeStartDates.get(pkg.user_id)
-      const packageCreatedAt = new Date(pkg.created_at)
-      const primeStart = new Date(primeStartDate)
-      
-      // Only backfill packages created AFTER Prime membership
-      if (packageCreatedAt < primeStart) {
-        skippedCount++
-        console.log(`⏭️ Skipping package ${pkg.id} - created before Prime (${pkg.created_at} < ${primeStartDate})`)
-        continue
-      }
-
       const quote = pkg.quote as any
       if (!quote || !quote.price) {
         skippedCount++
@@ -84,46 +72,52 @@ serve(async (req) => {
       }
 
       const currentTrustLevel = pkg.profiles?.trust_level || 'basic'
-      if (currentTrustLevel !== 'prime') {
-        skippedCount++
-        continue
-      }
-
       const basePrice = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price)
       const currentServiceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0)
+      const currentDeliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0)
       const currentTotalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0)
 
-      // Recalculate using correct formula for Prime members
-      // Service fee: 20% for Prime users
-      const correctServiceFee = basePrice * 0.20
-      
-      // Delivery fee: Q0 for Prime users (regardless of delivery method)
-      const deliveryMethod = pkg.delivery_method || 'pickup'
-      const deliveryFee = 0 // Prime users always get free delivery
+      // Calculate correct fees based on trust level and delivery method
+      let correctServiceFee: number
+      let correctDeliveryFee: number
+
+      if (currentTrustLevel === 'prime') {
+        // Prime users: 20% service fee, Q0 delivery fee
+        correctServiceFee = basePrice * 0.20
+        correctDeliveryFee = 0
+      } else {
+        // Standard users: 40% service fee, Q25 delivery fee only for delivery
+        correctServiceFee = basePrice * 0.40
+        const deliveryMethod = pkg.delivery_method || 'pickup'
+        correctDeliveryFee = deliveryMethod === 'delivery' ? 25 : 0
+      }
       
       // Total: Price + ServiceFee + DeliveryFee
-      const correctTotalPrice = basePrice + correctServiceFee + deliveryFee
+      const correctTotalPrice = basePrice + correctServiceFee + correctDeliveryFee
 
       // Check if this package needs updating (tolerance of 0.01 for floating point)
       const serviceFeeNeedsUpdate = Math.abs(currentServiceFee - correctServiceFee) > 0.01
+      const deliveryFeeNeedsUpdate = Math.abs(currentDeliveryFee - correctDeliveryFee) > 0.01
       const totalPriceNeedsUpdate = Math.abs(currentTotalPrice - correctTotalPrice) > 0.01
 
-      if (serviceFeeNeedsUpdate || totalPriceNeedsUpdate) {
+      if (serviceFeeNeedsUpdate || deliveryFeeNeedsUpdate || totalPriceNeedsUpdate) {
         console.log(`🔧 Updating package ${pkg.id}:`, {
+          trustLevel: currentTrustLevel,
+          deliveryMethod: pkg.delivery_method,
           basePrice,
           currentServiceFee,
           correctServiceFee,
+          currentDeliveryFee,
+          correctDeliveryFee,
           currentTotalPrice,
-          correctTotalPrice,
-          deliveryMethod,
-          deliveryFee
+          correctTotalPrice
         })
 
         // Update the quote with correct calculations
         const updatedQuote = {
           ...quote,
           serviceFee: correctServiceFee,
-          deliveryFee: deliveryFee,
+          deliveryFee: correctDeliveryFee,
           totalPrice: correctTotalPrice
         }
 
@@ -140,15 +134,18 @@ serve(async (req) => {
           updateResults.push({ 
             packageId: pkg.id, 
             status: 'updated',
+            trustLevel: currentTrustLevel,
             oldServiceFee: currentServiceFee,
             newServiceFee: correctServiceFee,
+            oldDeliveryFee: currentDeliveryFee,
+            newDeliveryFee: correctDeliveryFee,
             oldTotalPrice: currentTotalPrice,
             newTotalPrice: correctTotalPrice
           })
         }
       } else {
         skippedCount++
-        console.log(`✅ Package ${pkg.id} already has correct Prime pricing`)
+        console.log(`✅ Package ${pkg.id} already has correct pricing`)
       }
     }
 
