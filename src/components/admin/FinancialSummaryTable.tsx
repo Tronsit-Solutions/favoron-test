@@ -197,7 +197,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       
       // Use traveler's trust level for Favoron revenue calculation (commission structure)
       const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
-      const messengerPayment = pkg.delivery_method === 'messenger' ? deliveryFee : 0;
+      const messengerPayment = pkg.delivery_method !== 'pickup' && shopperTrustLevel !== 'prime' ? 25 : 0;
 
       return {
         package: pkg,
