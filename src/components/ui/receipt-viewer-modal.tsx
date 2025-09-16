@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, X, AlertCircle, RotateCcw } from "lucide-react";
@@ -27,20 +27,75 @@ export function ReceiptViewerModal({
   const isImage = filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || receiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
   const displayUrl = signedUrl || receiptUrl;
 
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [triedBlob, setTriedBlob] = useState(false);
+
+  useEffect(() => {
+    setTriedBlob(false);
+    let toRevoke: string | null = null;
+
+    async function loadImage() {
+      // Prefer absolute signed URL if available
+      if (signedUrl && /^https?:\/\//i.test(signedUrl)) {
+        setImageSrc(signedUrl);
+        return;
+      }
+      // Otherwise, if we already have an absolute URL, use it
+      if (receiptUrl && /^https?:\/\//i.test(receiptUrl)) {
+        setImageSrc(receiptUrl);
+        return;
+      }
+      // Fallback: download blob from private storage and create an object URL
+      if (receiptUrl && receiptUrl.includes('/')) {
+        const [bucket, ...rest] = receiptUrl.split('/');
+        const filePath = rest.join('/');
+        if (bucket && filePath) {
+          try {
+            const { data, error } = await supabase.storage.from(bucket).download(filePath);
+            if (!error && data) {
+              const url = URL.createObjectURL(data);
+              toRevoke = url;
+              setImageSrc(url);
+            } else {
+              console.error('Error descargando imagen desde Storage:', error);
+            }
+          } catch (e) {
+            console.error('Error en descarga de Storage:', e);
+          }
+        }
+      }
+    }
+
+    setImageSrc(null);
+    if (isImage) loadImage();
+
+    return () => {
+      if (toRevoke) URL.revokeObjectURL(toRevoke);
+    };
+  }, [signedUrl, receiptUrl, isImage]);
   const handleDownload = async () => {
     if (!receiptUrl || !filename) return;
     
     setDownloadingFile(true);
     try {
-      // Try to download using the signed URL first
-      const downloadUrl = signedUrl || receiptUrl;
-      
-      const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      const blob = await response.blob();
+      let blob: Blob | null = null;
+
+      const absoluteSigned = signedUrl && /^https?:\/\//i.test(signedUrl) ? signedUrl : null;
+      const absoluteReceipt = receiptUrl && /^https?:\/\//i.test(receiptUrl) ? receiptUrl : null;
+
+      if (absoluteSigned || absoluteReceipt) {
+        const response = await fetch(absoluteSigned || absoluteReceipt!);
+        if (!response.ok) throw new Error('Network response was not ok');
+        blob = await response.blob();
+      } else {
+        const [bucket, ...rest] = receiptUrl.split('/');
+        const filePath = rest.join('/');
+        const { data, error } = await supabase.storage.from(bucket).download(filePath);
+        if (error || !data) throw error || new Error('No data');
+        blob = data;
+      }
+
       const blobUrl = URL.createObjectURL(blob);
-      
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = filename;
@@ -111,29 +166,33 @@ export function ReceiptViewerModal({
               {isImage ? (
                 <div className="relative">
                 <img 
-                  src={displayUrl} 
+                  src={imageSrc || displayUrl || ''} 
                   alt={title}
                   className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain"
                   onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
+                        source: imageSrc ? 'blob' : 'url',
                         displayUrl,
                         signedUrl,
                         receiptUrl,
                         filename
                       });
                     }}
-                    onError={(e) => {
-                      console.error('❌ Error al cargar imagen:', {
-                        displayUrl,
-                        signedUrl,
-                        receiptUrl,
-                        filename,
-                        event: e
-                      });
-                      // Try fallback to original URL if signed URL fails
-                      if (displayUrl !== receiptUrl && receiptUrl) {
-                        console.log('🔄 Intentando con URL original:', receiptUrl);
-                        e.currentTarget.src = receiptUrl;
+                    onError={async () => {
+                      console.error('❌ Error al cargar imagen, intentando fallback con descarga desde Storage');
+                      if (!triedBlob && receiptUrl && receiptUrl.includes('/')) {
+                        setTriedBlob(true);
+                        const [bucket, ...rest] = receiptUrl.split('/');
+                        const filePath = rest.join('/');
+                        try {
+                          const { data, error } = await supabase.storage.from(bucket).download(filePath);
+                          if (!error && data) {
+                            const url = URL.createObjectURL(data);
+                            setImageSrc(url);
+                          }
+                        } catch (err) {
+                          console.error('Fallback download failed:', err);
+                        }
                       }
                     }}
                   />
