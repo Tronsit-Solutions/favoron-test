@@ -137,14 +137,6 @@ export function ReceiptViewerModal({
                       }
                     }}
                   />
-                  {/* Debug info - remove in production */}
-                  <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                    <p><strong>Display URL:</strong> {displayUrl}</p>
-                    <p><strong>Signed URL:</strong> {signedUrl || 'No generada'}</p>
-                    <p><strong>Original URL:</strong> {receiptUrl}</p>
-                    <p><strong>Loading:</strong> {loading ? 'Sí' : 'No'}</p>
-                    <p><strong>Error:</strong> {error || 'Ninguno'}</p>
-                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
