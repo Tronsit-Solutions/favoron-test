@@ -170,6 +170,26 @@ const AdminDashboard = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  // Admin: preview quote corrections
+  const handlePreviewCorrections = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('preview-quote-corrections');
+      if (error) throw error as any;
+      console.log('Preview results:', data);
+      toast({
+        title: 'Vista previa completada',
+        description: `${data?.summary?.correctionsNeeded ?? 0} paquetes necesitan corrección de ${data?.summary?.eligiblePackages ?? 0} elegibles`,
+      });
+    } catch (e: any) {
+      console.error('Preview error', e);
+      toast({
+        title: 'Error en vista previa',
+        description: e?.message || 'No se pudo ejecutar la vista previa',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Admin: run intelligent backfill on demand
   const handleRunBackfill = async () => {
     try {
@@ -480,7 +500,10 @@ const AdminDashboard = ({
                     </TabsTrigger>
                   ))}
                 </TabsList>
-                <div className="ml-4">
+                <div className="ml-4 space-x-2">
+                  <Button variant="outline" onClick={handlePreviewCorrections}>
+                    Vista previa correcciones
+                  </Button>
                   <Button variant="outline" onClick={handleRunBackfill}>
                     Corregir cotizaciones Prime
                   </Button>

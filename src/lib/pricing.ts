@@ -14,6 +14,7 @@ export const getFavoronCommissionRate = (trustLevel?: TrustLevel | string): numb
 
 /**
  * Get the delivery fee based on delivery method and user's trust level
+ * Corrected logic: Q25 for delivery + NOT Prime, Q0 otherwise
  */
 export const getDeliveryFee = (
   deliveryMethod: string = 'pickup', 
@@ -24,10 +25,11 @@ export const getDeliveryFee = (
     return 0;
   }
   
+  // For delivery: Q25 if NOT Prime, Q0 if Prime
   if (trustLevel === 'prime') {
-    return PRICING_CONFIG.PRIME_DELIVERY_FEE;
+    return 0; // Prime users get free delivery
   }
-  return PRICING_CONFIG.STANDARD_DELIVERY_FEE;
+  return PRICING_CONFIG.STANDARD_DELIVERY_FEE; // Q25 for non-Prime
 };
 
 /**

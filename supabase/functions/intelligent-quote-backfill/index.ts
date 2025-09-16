@@ -93,18 +93,14 @@ serve(async (req) => {
       const currentServiceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0)
       const currentTotalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0)
 
-      // Calculate what the Prime service fee should be (20%)
+      // Recalculate using correct formula for Prime members
+      // Service fee: 20% for Prime users
       const correctServiceFee = basePrice * 0.20
       
-      // Calculate delivery fee (Prime users get reduced delivery fee)
-      const deliveryMethod = pkg.delivery_method || 'pickup'
-      let deliveryFee = 0
-      if (deliveryMethod === 'delivery') {
-        deliveryFee = 5.0 // Prime delivery fee
-      } else if (deliveryMethod === 'messenger') {
-        deliveryFee = 10.0 // Prime messenger fee
-      }
+      // Delivery fee: Q0 for Prime users (regardless of delivery method)
+      const deliveryFee = 0
       
+      // Total: Price + ServiceFee + DeliveryFee
       const correctTotalPrice = basePrice + correctServiceFee + deliveryFee
 
       // Check if this package needs updating (tolerance of 0.01 for floating point)
