@@ -137,18 +137,20 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     return eligiblePackages.map((pkg): EnrichedPackageData => {
       const quote = pkg.quote as any;
       
-      // Get shopper name
+      // Get shopper name and trust level
       const shopperProfile = profiles[pkg.user_id];
       const shopperName = shopperProfile 
         ? `${shopperProfile.first_name} ${shopperProfile.last_name}`.trim() || 'Usuario'
         : 'Usuario';
+      const shopperTrustLevel = shopperProfile?.trust_level || 'basic';
 
-      // Get traveler name
+      // Get traveler name and trust level
       const travelerId = pkg.matched_trip_id ? trips[pkg.matched_trip_id] : null;
       const travelerProfile = travelerId ? profiles[travelerId] : null;
       const travelerName = travelerProfile 
         ? `${travelerProfile.first_name} ${travelerProfile.last_name}`.trim() || 'Viajero'
         : 'Sin asignar';
+      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
 
       // Get product description
       let productDescription = pkg.item_description || 'Sin descripción';
@@ -185,16 +187,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 
-      // Calculate financial metrics with correct trust level
+      // Calculate financial metrics with correct trust levels
       const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
       
-      // Get traveler's trust level for correct commission calculation
-      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
+      // Use shopper's trust level for service fee and delivery fee (what shopper pays)
+      const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
+      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel);
       
-      const serviceFee = calculateServiceFee(travelerTip, travelerTrustLevel);
+      // Use traveler's trust level for Favoron revenue calculation (commission structure)
       const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
-      const deliveryFee = getDeliveryFee(pkg.delivery_method, travelerTrustLevel);
       const messengerPayment = pkg.delivery_method === 'messenger' ? deliveryFee : 0;
 
       return {
