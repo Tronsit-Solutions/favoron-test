@@ -60,7 +60,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
             <div className="relative h-16 w-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
