@@ -73,7 +73,6 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                     {trip.from_city}
                   </span>
                   <div className="flex justify-center items-center w-[60px]">
-                    <Send size={20} className="text-cyan-500" />
                   </div>
                   <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.to_city}
