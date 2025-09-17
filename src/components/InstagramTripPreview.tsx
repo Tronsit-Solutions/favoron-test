@@ -75,11 +75,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
           </div>
 
           {/* Trips List */}
-          <div className="space-y-3 max-h-[750px] overflow-hidden">
+          <div className="space-y-1 max-h-[750px] overflow-hidden">
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="group grid grid-cols-3 gap-4 py-3 px-6 hover:-translate-y-0.5 transition-all duration-300"
+                className="group grid grid-cols-3 gap-4 py-1 px-6 hover:-translate-y-0.5 transition-all duration-300"
               >
                 {/* Origin Column */}
                 <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
