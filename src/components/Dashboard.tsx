@@ -417,7 +417,11 @@ const Dashboard = ({ user }: DashboardProps) => {
         
         {activeTab !== 'profile' && (
           <div className="mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2">
+            <h2 className={`text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 ${
+              (currentUser?.trust_level === 'prime' || (currentUser?.prime_expires_at && new Date(currentUser.prime_expires_at) > new Date())) 
+                ? 'text-purple-600' 
+                : ''
+            }`}>
               ¡Hola, {currentUser?.name || currentUser?.firstName || currentUser?.first_name || 'Usuario'}! 👋
               {(currentUser?.trust_level === 'prime' || (currentUser?.prime_expires_at && new Date(currentUser.prime_expires_at) > new Date())) && (
                 <span title="Usuario Prime">
