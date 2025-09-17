@@ -83,7 +83,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {trips.map((trip, index) => (
               <article
                 key={trip.id}
-                className="group grid grid-cols-3 gap-2 py-2 px-2 hover:-translate-y-0.5 transition-all duration-300 items-center"
+                className="group grid grid-cols-3 gap-2 py-1 px-2 hover:-translate-y-0.5 transition-all duration-300 items-center"
               >
                 {/* Origin Column */}
                 <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
