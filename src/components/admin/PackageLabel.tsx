@@ -107,7 +107,7 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
           <div className="break-words space-y-1">
             <div><strong>Descripción:</strong> {pkg.item_description}</div>
             <div><strong>NO. DE SEGUIMIENTO:</strong> {getPackageId()}</div>
-            <div><strong>Precio Total:</strong> {getPackagePrice()}</div>
+            
             <div><strong>Cantidad:</strong> {getTotalQuantity()}</div>
           </div>
         </div>
