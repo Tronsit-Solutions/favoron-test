@@ -26,7 +26,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   const hasSecondPage = secondPageTrips.length > 0;
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
-    <div className="w-[400px] h-[400px] bg-background relative overflow-hidden">
+    <div className="w-full aspect-square bg-background relative overflow-hidden">
       {/* Glassmorphism Multi-Layer Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
       <div className="absolute inset-0 bg-gradient-to-tr from-accent/3 via-transparent to-primary/4 backdrop-blur-xl"></div>
