@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
+import { InstagramTripPreview } from "./InstagramTripPreview";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const instagramRef = useRef<HTMLDivElement>(null);
 
   // Check if user is admin
   React.useEffect(() => {
@@ -63,22 +65,22 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   };
 
   const generatePreview = async () => {
-    if (!modalRef.current) return;
+    if (!instagramRef.current) return;
     
     setIsGenerating(true);
     try {
-      const canvas = await html2canvas(modalRef.current, {
+      const canvas = await html2canvas(instagramRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 1,
         useCORS: true,
         allowTaint: true,
         logging: false,
-        width: modalRef.current.scrollWidth,
-        height: modalRef.current.scrollHeight
+        width: 1080,
+        height: 1080
       });
       
       // Convert canvas to data URL for preview
-      const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+      const dataURL = canvas.toDataURL('image/jpeg', 0.95);
       setPreviewImage(dataURL);
       setShowPreview(true);
     } catch (error) {
@@ -93,7 +95,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     
     // Create download link
     const link = document.createElement('a');
-    link.download = `viajes-hub-${new Date().toISOString().split('T')[0]}.jpg`;
+    link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.jpg`;
     link.href = previewImage;
     document.body.appendChild(link);
     link.click();
@@ -191,18 +193,18 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
 
       {/* Preview Modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto p-6">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>Preview del Hub de Viajes</DialogTitle>
+              <DialogTitle className="text-2xl font-bricolage">Preview para Instagram</DialogTitle>
               <div className="flex gap-2">
                 <Button 
                   onClick={handleDownloadJPEG}
                   disabled={!previewImage}
-                  className="bg-teal-600 hover:bg-teal-700"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bricolage"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Descargar JPEG
+                  Descargar para Instagram
                 </Button>
                 <Button 
                   variant="outline" 
@@ -215,23 +217,41 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             </div>
           </DialogHeader>
           
-          <div className="mt-4">
+          <div className="mt-6 flex flex-col items-center">
             {previewImage ? (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <img 
-                  src={previewImage} 
-                  alt="Preview del Hub de Viajes"
-                  className="w-full h-auto rounded-lg shadow-lg border"
-                />
-                <p className="text-sm text-gray-600 mt-2 text-center">
-                  Este es el preview exacto de cómo se verá tu imagen JPEG
-                </p>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border-2 border-gray-200">
+                  <img 
+                    src={previewImage} 
+                    alt="Preview para Instagram"
+                    className="w-full max-w-lg h-auto rounded-xl shadow-2xl border-4 border-white"
+                  />
+                </div>
+                <div className="text-center bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
+                  <p className="text-lg font-bricolage font-semibold text-gray-800 mb-1">
+                    🎨 Diseño optimizado para Instagram
+                  </p>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Formato cuadrado 1080x1080px • Colores de marca Favoron
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="bg-gray-100 p-8 text-center rounded">
-                <p className="text-gray-700">Generando preview...</p>
+              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-12 text-center rounded-xl border-2 border-dashed border-cyan-300">
+                <div className="animate-pulse">
+                  <div className="text-4xl mb-4">🎨</div>
+                  <p className="text-xl font-bricolage font-semibold text-gray-700">Generando diseño para Instagram...</p>
+                  <p className="text-sm text-gray-500 mt-2">Creando imagen con colores de marca</p>
+                </div>
               </div>
             )}
+          </div>
+
+          {/* Hidden Instagram Component for Capture */}
+          <div className="absolute -top-[10000px] left-0">
+            <div ref={instagramRef}>
+              <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
