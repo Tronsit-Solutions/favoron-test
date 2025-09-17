@@ -23,42 +23,54 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
   return (
     <div className="w-[1080px] h-[1080px] bg-background relative overflow-hidden">
-      {/* Modern Dynamic Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-muted/50"></div>
+      {/* Glassmorphism Multi-Layer Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-accent/3 via-transparent to-primary/4 backdrop-blur-3xl"></div>
       
-      {/* Animated Grid Pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.1) 0%, transparent 25%), 
-                           radial-gradient(circle at 75% 75%, hsl(var(--primary) / 0.1) 0%, transparent 25%)`
-        }}></div>
+      {/* Advanced Glass Layer with Depth */}
+      <div className="absolute inset-0 backdrop-blur-sm saturate-150 brightness-105">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/6"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-secondary/8 rounded-full blur-2xl opacity-25"></div>
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-accent/6 rounded-full blur-xl opacity-20"></div>
       </div>
 
-      {/* Header Section */}
-      <header className="relative z-10 text-center pt-6 pb-4">
-        <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-4">
-          Hub de viajes
-        </h1>
-        <div className="w-20 h-0.5 bg-primary mx-auto mb-4"></div>
+      {/* Premium Light Effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/3 via-transparent to-transparent opacity-60"></div>
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 40%), 
+                     radial-gradient(circle at 80% 70%, hsl(var(--secondary) / 0.06) 0%, transparent 35%),
+                     radial-gradient(circle at 60% 20%, hsl(var(--accent) / 0.04) 0%, transparent 30%)`
+      }}></div>
+
+      {/* Premium Glass Header */}
+      <header className="relative z-20 text-center pt-6 pb-4">
+        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-3xl mx-8 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)] shadow-primary/10">
+          <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-2 drop-shadow-lg">
+            Hub de viajes
+          </h1>
+          <div className="w-20 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-2 shadow-glow"></div>
+        </div>
       </header>
 
       {/* Main Content */}
       <main className="relative z-10 px-16">
         <section className="bg-transparent rounded-2xl p-8">
-          {/* Column Headers with Icons */}
-          <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
-            <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Origen</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Destino</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Calendar size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Fecha</span>
+          {/* Glass Column Headers */}
+          <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-2xl p-4 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
+                <MapPin size={20} className="text-primary" />
+                <span className="text-lg font-bold text-foreground">Origen</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-secondary/5 border border-secondary/20">
+                <MapPin size={20} className="text-secondary" />
+                <span className="text-lg font-bold text-foreground">Destino</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-accent/5 border border-accent/20">
+                <Calendar size={20} className="text-accent" />
+                <span className="text-lg font-bold text-foreground">Fecha</span>
+              </div>
             </div>
           </div>
 
@@ -67,20 +79,28 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="grid grid-cols-3 gap-4 py-4 px-6 bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 shadow-glow hover:shadow-md transition-all duration-300"
+                className="group grid grid-cols-3 gap-4 py-5 px-6 backdrop-blur-xl saturate-150 bg-background/25 rounded-3xl border border-border/40 shadow-[0_8px_32px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.1)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:border-primary/30 transition-all duration-500 hover:-translate-y-0.5"
+                style={{
+                  background: `linear-gradient(135deg, hsl(var(--background) / 0.3) 0%, hsl(var(--background) / 0.15) 100%)`,
+                  boxShadow: `0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 0 rgba(255,255,255,0.05)`
+                }}
               >
                 {/* Origin Column */}
-                <div className="text-lg font-semibold text-foreground text-center">
+                <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {trip.from_city}
                 </div>
                 
                 {/* Destination Column */}
-                <div className="text-lg font-semibold text-foreground text-center">
+                <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-secondary/5 border border-secondary/10 backdrop-blur-sm group-hover:bg-secondary/8 transition-colors duration-300">
                   {trip.to_city}
                 </div>
                 
                 {/* Date Column */}
-                <div className="text-sm font-medium text-muted-foreground bg-card/90 px-4 py-2 rounded-xl border border-border/30 text-center backdrop-blur-sm">
+                <div className="text-sm font-medium text-muted-foreground px-4 py-2 rounded-2xl border text-center backdrop-blur-lg group-hover:text-foreground transition-colors duration-300"
+                     style={{
+                       background: `linear-gradient(135deg, hsl(var(--accent) / 0.08) 0%, hsl(var(--accent) / 0.03) 100%)`,
+                       borderColor: `hsl(var(--accent) / 0.15)`
+                     }}>
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
