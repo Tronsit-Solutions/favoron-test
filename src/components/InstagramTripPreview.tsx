@@ -83,12 +83,12 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
               >
                 {/* Origin Column */}
                 <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
-                  {trip.from_city}
+                  {trip.from_city === "Guatemala City" ? "Cdad. de Guatemala" : trip.from_city}
                 </div>
                 
                 {/* Destination Column */}
                 <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
-                  {trip.to_city}
+                  {trip.to_city === "Guatemala City" ? "Cdad. de Guatemala" : trip.to_city}
                 </div>
                 
                 {/* Date Column */}
