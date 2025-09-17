@@ -26,7 +26,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50"></div>
 
       {/* Header Section */}
-      <header className="relative z-10 text-center pt-12 pb-8">
+      <header className="relative z-10 text-center pt-6 pb-4">
         <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
           Hub de viajes
         </h1>
