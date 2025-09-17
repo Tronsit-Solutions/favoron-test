@@ -20,76 +20,60 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   };
 
   return (
-    <div className="w-[1080px] h-[1080px] bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 relative overflow-hidden font-bricolage">
-      {/* Background Pattern */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-300/20 rounded-full translate-y-20 -translate-x-20"></div>
-        <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-      </div>
+    <div className="w-[1080px] h-[1080px] bg-white relative overflow-hidden font-bricolage">
+      {/* Minimal Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50"></div>
 
       {/* Header */}
-      <div className="relative z-10 text-center pt-16 pb-8">
-        <div className="mb-6">
-          <h1 className="text-7xl font-bold text-white mb-4 tracking-tight">
-            🌍 Favoron
-          </h1>
-          <div className="w-32 h-1 bg-gradient-to-r from-cyan-300 to-white mx-auto rounded-full"></div>
-        </div>
-        <h2 className="text-4xl font-semibold text-white/95 mb-2">
+      <div className="relative z-10 text-center pt-12 pb-8">
+        <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
+          Favoron
+        </h1>
+        <div className="w-20 h-0.5 bg-cyan-500 mx-auto mb-4"></div>
+        <h2 className="text-2xl font-medium text-gray-700">
           Hub de Viajes
         </h2>
-        <p className="text-xl text-white/80 font-medium">
-          Conectando viajeros con shoppers
-        </p>
       </div>
 
-      {/* Trips Grid */}
-      <div className="relative z-10 px-12">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20">
+      {/* Trips List */}
+      <div className="relative z-10 px-16">
+        <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
           <div className="text-center mb-8">
-            <h3 className="text-3xl font-bold text-gray-800 mb-2">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
               Viajes Disponibles
             </h3>
-            <p className="text-lg text-gray-600 font-medium">
-              {filteredTrips.length} viaje{filteredTrips.length !== 1 ? 's' : ''} esperando por ti
+            <p className="text-sm text-gray-500">
+              {filteredTrips.length} destinos activos
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 max-h-[500px] overflow-hidden">
-            {filteredTrips.slice(0, 6).map((trip, index) => (
+          <div className="space-y-3 max-h-[650px] overflow-hidden">
+            {filteredTrips.slice(0, 12).map((trip, index) => (
               <div
                 key={trip.id}
-                className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl p-6 border-l-4 border-cyan-400 shadow-lg hover:shadow-xl transition-all"
+                className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
               >
-                <div className="flex items-center justify-between">
-                  {/* Route */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-                      <span className="text-3xl">🛫</span>
-                      <span className="text-cyan-600">{trip.from_city}</span>
-                      <span className="text-blue-500 text-3xl">→</span>
-                      <span className="text-blue-600">{trip.to_city}</span>
-                      <span className="text-3xl">🛬</span>
-                    </div>
+                {/* Route */}
+                <div className="flex items-center gap-6 flex-1">
+                  <div className="text-lg font-semibold text-gray-800 min-w-[120px]">
+                    {trip.from_city}
                   </div>
-                  
-                  {/* Date Badge */}
-                  <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-lg">
-                    📅 {formatInstagramDate(trip.arrival_date)}
+                  <div className="text-cyan-500 font-bold text-xl">→</div>
+                  <div className="text-lg font-semibold text-gray-800 min-w-[120px]">
+                    {trip.to_city}
                   </div>
+                </div>
+                
+                {/* Date */}
+                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border">
+                  {formatInstagramDate(trip.arrival_date)}
                 </div>
               </div>
             ))}
             
-            {filteredTrips.length > 6 && (
-              <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-2xl p-6 text-center border-2 border-dashed border-indigo-300">
-                <p className="text-2xl font-bold text-indigo-600">
-                  +{filteredTrips.length - 6} viajes más disponibles
-                </p>
-                <p className="text-lg text-indigo-500 font-medium mt-2">
-                  ¡Únete a Favoron para ver todos!
-                </p>
+            {filteredTrips.length > 12 && (
+              <div className="text-center py-4 text-gray-500 font-medium">
+                +{filteredTrips.length - 12} viajes más
               </div>
             )}
           </div>
@@ -97,31 +81,15 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/20 to-transparent pt-8 pb-6">
+      <div className="absolute bottom-8 left-0 right-0 z-10">
         <div className="text-center">
-          <p className="text-white font-bold text-2xl mb-2">
-            💼 Shopper • 🧳 Viajero • 🤝 Conexión
+          <p className="text-gray-600 font-medium text-lg mb-2">
+            Conectando viajeros con shoppers
           </p>
-          <p className="text-white/90 text-lg font-medium">
-            Tu plataforma de confianza para envíos internacionales
+          <p className="text-gray-500 text-sm">
+            www.favoron.app
           </p>
-          <div className="mt-4">
-            <p className="text-white/80 text-base font-medium">
-              🌐 www.favoron.app
-            </p>
-          </div>
         </div>
-      </div>
-
-      {/* Floating Elements */}
-      <div className="absolute top-20 right-20 z-5">
-        <div className="w-20 h-20 bg-cyan-300/30 rounded-full animate-pulse"></div>
-      </div>
-      <div className="absolute bottom-32 right-32 z-5">
-        <div className="w-16 h-16 bg-white/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-      </div>
-      <div className="absolute top-1/3 left-12 z-5">
-        <div className="w-12 h-12 bg-blue-300/25 rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
     </div>
   );
