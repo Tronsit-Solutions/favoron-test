@@ -64,10 +64,13 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     });
   };
 
-  const generatePreview = async () => {
+  const generatePreview = () => {
+    setShowPreview(true);
+  };
+
+  const handleDownloadJPEG = async () => {
     if (!instagramRef.current) return;
     
-    setIsGenerating(true);
     try {
       const canvas = await html2canvas(instagramRef.current, {
         backgroundColor: '#ffffff',
@@ -79,28 +82,18 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         height: 1080
       });
       
-      // Convert canvas to data URL for preview
+      // Convert canvas to data URL and download
       const dataURL = canvas.toDataURL('image/jpeg', 0.95);
-      setPreviewImage(dataURL);
-      setShowPreview(true);
+      const link = document.createElement('a');
+      link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setShowPreview(false);
     } catch (error) {
-      console.error('Error generating preview:', error);
-    } finally {
-      setIsGenerating(false);
+      console.error('Error generating JPEG:', error);
     }
-  };
-
-  const handleDownloadJPEG = () => {
-    if (!previewImage) return;
-    
-    // Create download link
-    const link = document.createElement('a');
-    link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.jpg`;
-    link.href = previewImage;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setShowPreview(false);
   };
 
   return (
@@ -206,7 +199,6 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               <div className="flex gap-2">
                 <Button 
                   onClick={handleDownloadJPEG}
-                  disabled={!previewImage}
                   className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bricolage"
                 >
                   <Download className="h-4 w-4 mr-2" />
@@ -224,33 +216,21 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </DialogHeader>
           
           <div className="mt-6 flex flex-col items-center">
-            {previewImage ? (
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border-2 border-gray-200">
-                  <img 
-                    src={previewImage} 
-                    alt="Preview para Instagram"
-                    className="w-full max-w-lg h-auto rounded-xl shadow-2xl border-4 border-white"
-                  />
-                </div>
-                <div className="text-center bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
-                  <p className="text-lg font-bricolage font-semibold text-gray-800 mb-1">
-                    🎨 Diseño optimizado para Instagram
-                  </p>
-                  <p className="text-sm text-gray-600 font-medium">
-                    Formato cuadrado 1080x1080px • Colores de marca Favoron
-                  </p>
+            <div className="space-y-4">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border-2 border-gray-200">
+                <div ref={instagramRef}>
+                  <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
                 </div>
               </div>
-            ) : (
-              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-12 text-center rounded-xl border-2 border-dashed border-cyan-300">
-                <div className="animate-pulse">
-                  <div className="text-4xl mb-4">🎨</div>
-                  <p className="text-xl font-bricolage font-semibold text-gray-700">Generando diseño para Instagram...</p>
-                  <p className="text-sm text-gray-500 mt-2">Creando imagen con colores de marca</p>
-                </div>
+              <div className="text-center bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
+                <p className="text-lg font-bricolage font-semibold text-gray-800 mb-1">
+                  🎨 Diseño optimizado para Instagram
+                </p>
+                <p className="text-sm text-gray-600 font-medium">
+                  Formato cuadrado 1080x1080px • Colores de marca Favoron
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
             {/* hidden preview moved */}
