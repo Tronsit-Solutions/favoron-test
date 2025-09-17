@@ -91,14 +91,26 @@ const TripBankingConfirmationModal = ({
     });
   }, [currentBankingInfo]);
   const handleConfirmPayment = async () => {
+    console.log('🔍 TripBankingConfirmationModal - handleConfirmPayment called');
+    console.log('📋 Banking info:', bankingInfo);
+    console.log('✅ Form valid:', isFormValid);
+    
     if (!bankingInfo.bank_account_holder || !bankingInfo.bank_name || !bankingInfo.bank_account_number || !bankingInfo.bank_account_type) {
+      console.error('❌ Banking info incomplete:', {
+        holder: bankingInfo.bank_account_holder,
+        bank: bankingInfo.bank_name,
+        number: bankingInfo.bank_account_number,
+        type: bankingInfo.bank_account_type
+      });
       return;
     }
     setLoading(true);
     try {
+      console.log('🚀 Calling onConfirm with banking info');
       await onConfirm(bankingInfo);
+      console.log('✅ onConfirm completed successfully');
     } catch (error) {
-      console.error('Error confirming payment:', error);
+      console.error('❌ Error confirming payment:', error);
     } finally {
       setLoading(false);
     }
