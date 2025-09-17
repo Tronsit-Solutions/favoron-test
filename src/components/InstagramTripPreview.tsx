@@ -69,7 +69,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
               >
                 {/* Route Information */}
                 <div className="flex items-center gap-6 flex-1">
-                  <span className="text-lg font-semibold text-gray-800 min-w-[120px]">
+                  <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.from_city}
                   </span>
                   <span className="text-cyan-500 font-bold text-xl">→</span>
