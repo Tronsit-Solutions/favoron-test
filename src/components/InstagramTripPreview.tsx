@@ -21,11 +21,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
   return (
     <div className="w-[1080px] h-[1080px] bg-white relative overflow-hidden font-bricolage">
-      {/* Minimal Background */}
+      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50"></div>
 
-      {/* Header */}
-      <div className="relative z-10 text-center pt-12 pb-8">
+      {/* Header Section */}
+      <header className="relative z-10 text-center pt-12 pb-8">
         <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
           Favoron
         </h1>
@@ -33,11 +33,12 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
         <h2 className="text-2xl font-medium text-gray-700">
           Hub de Viajes
         </h2>
-      </div>
+      </header>
 
-      {/* Trips List */}
-      <div className="relative z-10 px-16">
-        <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+      {/* Main Content */}
+      <main className="relative z-10 px-16">
+        <section className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+          {/* Section Header */}
           <div className="text-center mb-8">
             <h3 className="text-2xl font-semibold text-gray-800 mb-2">
               Viajes Disponibles
@@ -47,28 +48,29 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             </p>
           </div>
 
+          {/* Trips List */}
           <div className="space-y-3 max-h-[650px] overflow-hidden">
             {filteredTrips.slice(0, 12).map((trip, index) => (
-              <div
+              <article
                 key={trip.id}
                 className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
               >
-                {/* Route */}
+                {/* Route Information */}
                 <div className="flex items-center gap-6 flex-1">
-                  <div className="text-lg font-semibold text-gray-800 min-w-[120px]">
+                  <span className="text-lg font-semibold text-gray-800 min-w-[120px]">
                     {trip.from_city}
-                  </div>
-                  <div className="text-cyan-500 font-bold text-xl">→</div>
-                  <div className="text-lg font-semibold text-gray-800 min-w-[120px]">
+                  </span>
+                  <span className="text-cyan-500 font-bold text-xl">→</span>
+                  <span className="text-lg font-semibold text-gray-800 min-w-[120px]">
                     {trip.to_city}
-                  </div>
+                  </span>
                 </div>
                 
-                {/* Date */}
+                {/* Date Badge */}
                 <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
-              </div>
+              </article>
             ))}
             
             {filteredTrips.length > 12 && (
@@ -77,11 +79,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
       {/* Footer */}
-      <div className="absolute bottom-8 left-0 right-0 z-10">
+      <footer className="absolute bottom-8 left-0 right-0 z-10">
         <div className="text-center">
           <p className="text-gray-600 font-medium text-lg mb-2">
             Conectando viajeros con shoppers
@@ -90,7 +92,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             www.favoron.app
           </p>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
