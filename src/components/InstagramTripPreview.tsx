@@ -79,7 +79,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
           </div>
 
           {/* Trips List */}
-          <div className="space-y-3 max-h-[336px] overflow-hidden">
+          <div className="max-h-[336px] overflow-hidden">
             {trips.map((trip, index) => (
               <article
                 key={trip.id}
