@@ -117,7 +117,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   );
 
   return (
-    <div className="flex">
+    <div className="flex flex-col">
       {renderTripPage(firstPageTrips, 1)}
       {hasSecondPage && renderTripPage(secondPageTrips, 2)}
     </div>
