@@ -21,7 +21,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
     });
   };
 
-  return (
+  const firstPageTrips = filteredTrips.slice(0, 8);
+  const secondPageTrips = filteredTrips.slice(8);
+  const hasSecondPage = secondPageTrips.length > 0;
+
+  const renderTripPage = (trips: any[], pageNumber: number) => (
     <div className="w-[1080px] h-[1080px] bg-background relative overflow-hidden">
       {/* Glassmorphism Multi-Layer Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
@@ -47,7 +51,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       <header className="relative z-20 text-center pt-6 pb-2">
         <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-3xl mx-8 py-6">
           <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-2">
-            Hub de viajes
+            Hub de viajes {pageNumber > 1 && `(${pageNumber})`}
           </h1>
           <div className="w-20 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-2"></div>
         </div>
@@ -76,7 +80,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
           {/* Trips List */}
           <div className="space-y-1 max-h-[750px] overflow-hidden">
-            {filteredTrips.slice(0, 12).map((trip, index) => (
+            {trips.map((trip, index) => (
               <article
                 key={trip.id}
                 className="group grid grid-cols-3 gap-4 py-1 px-6 hover:-translate-y-0.5 transition-all duration-300 items-center"
@@ -97,12 +101,6 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 </div>
               </article>
             ))}
-            
-            {filteredTrips.length > 12 && (
-              <div className="text-center py-4 text-muted-foreground font-medium">
-                +{filteredTrips.length - 12} viajes más
-              </div>
-            )}
           </div>
         </section>
       </main>
@@ -115,6 +113,13 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
           </p>
         </div>
       </footer>
+    </div>
+  );
+
+  return (
+    <div className="flex">
+      {renderTripPage(firstPageTrips, 1)}
+      {hasSecondPage && renderTripPage(secondPageTrips, 2)}
     </div>
   );
 };
