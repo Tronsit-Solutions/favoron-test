@@ -55,7 +55,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
       {/* Main Content */}
       <main className="relative z-10 px-16">
-        <section className="bg-transparent rounded-2xl p-8">
+        <section className="bg-transparent rounded-2xl px-8 pb-8">
           {/* Glass Column Headers */}
           <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-2xl p-4 mb-6">
             <div className="grid grid-cols-3 gap-4">
