@@ -32,9 +32,6 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
           Hub de viajes
         </h1>
         <div className="w-20 h-0.5 bg-cyan-500 mx-auto mb-4"></div>
-        <h2 className="text-2xl font-medium text-gray-700">
-          Favoron
-        </h2>
       </header>
 
       {/* Main Content */}
