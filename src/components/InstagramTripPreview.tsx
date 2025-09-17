@@ -41,7 +41,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
         <section className="bg-transparent rounded-2xl p-8">
 
           {/* Trips List */}
-          <div className="space-y-3 max-h-[650px] overflow-hidden">
+          <div className="space-y-3 max-h-[750px] overflow-hidden">
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
