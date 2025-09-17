@@ -68,11 +68,13 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
               >
                 {/* Route Information */}
-                <div className="flex items-center gap-6 flex-1">
+                <div className="flex items-center flex-1">
                   <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.from_city}
                   </span>
-                  <Send size={20} className="text-cyan-500" />
+                  <div className="flex justify-center items-center w-[60px]">
+                    <Send size={20} className="text-cyan-500" />
+                  </div>
                   <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.to_city}
                   </span>
