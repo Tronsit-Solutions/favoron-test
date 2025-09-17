@@ -45,20 +45,20 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
       {/* Main Content */}
       <main className="relative z-10 px-16">
-        <section className="bg-transparent rounded-2xl p-8">
+        <section className="bg-gradient-to-br from-card/80 via-card/60 to-primary/10 backdrop-blur-md rounded-3xl p-8 border border-primary/20 shadow-glow">
           {/* Column Headers with Icons */}
-          <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
-            <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Origen</span>
+          <div className="grid grid-cols-3 gap-4 py-4 px-6 mb-6 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 rounded-2xl border border-primary/20">
+            <div className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl border border-primary/30">
+              <MapPin size={20} className="text-primary" />
+              <span className="text-lg font-bold text-primary">Origen</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Destino</span>
+            <div className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-secondary/10 to-secondary/20 rounded-xl border border-secondary/30">
+              <MapPin size={20} className="text-secondary" />
+              <span className="text-lg font-bold text-secondary">Destino</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Calendar size={20} className="text-muted-foreground" />
-              <span className="text-lg font-bold text-foreground">Fecha</span>
+            <div className="flex items-center justify-center gap-2 p-3 bg-gradient-to-br from-accent/10 to-accent/20 rounded-xl border border-accent/30">
+              <Calendar size={20} className="text-accent" />
+              <span className="text-lg font-bold text-accent">Fecha</span>
             </div>
           </div>
 
@@ -67,20 +67,21 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="grid grid-cols-3 gap-4 py-4 px-6 bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 shadow-glow hover:shadow-md transition-all duration-300"
+                className="grid grid-cols-3 gap-4 py-4 px-6 bg-gradient-to-r from-card/90 via-primary/5 to-card/90 backdrop-blur-md rounded-2xl border border-primary/20 shadow-glow hover:shadow-xl hover:border-primary/40 transition-all duration-300 animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Origin Column */}
-                <div className="text-lg font-semibold text-foreground text-center">
+                <div className="text-lg font-semibold text-foreground text-center p-2 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
                   {trip.from_city}
                 </div>
                 
                 {/* Destination Column */}
-                <div className="text-lg font-semibold text-foreground text-center">
+                <div className="text-lg font-semibold text-foreground text-center p-2 bg-gradient-to-br from-secondary/5 to-transparent rounded-lg">
                   {trip.to_city}
                 </div>
                 
                 {/* Date Column */}
-                <div className="text-sm font-medium text-muted-foreground bg-card/90 px-4 py-2 rounded-xl border border-border/30 text-center backdrop-blur-sm">
+                <div className="text-sm font-medium text-accent bg-gradient-to-br from-accent/10 to-accent/20 px-4 py-3 rounded-xl border border-accent/30 text-center backdrop-blur-sm hover-scale">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
