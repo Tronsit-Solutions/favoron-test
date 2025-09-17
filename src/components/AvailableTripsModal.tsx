@@ -189,6 +189,12 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             )}
           </div>
         </div>
+        {/* Hidden Instagram Component for Capture */}
+        <div className="absolute -top-[10000px] left-0">
+          <div ref={instagramRef}>
+            <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
+          </div>
+        </div>
       </DialogContent>
 
       {/* Preview Modal */}
@@ -247,12 +253,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             )}
           </div>
 
-          {/* Hidden Instagram Component for Capture */}
-          <div className="absolute -top-[10000px] left-0">
-            <div ref={instagramRef}>
-              <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
-            </div>
-          </div>
+            {/* hidden preview moved */}
         </DialogContent>
       </Dialog>
     </Dialog>
