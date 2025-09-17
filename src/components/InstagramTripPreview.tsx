@@ -73,7 +73,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                     {trip.from_city}
                   </span>
                   <span className="text-cyan-500 font-bold text-xl">→</span>
-                  <span className="text-lg font-semibold text-gray-800 min-w-[120px] text-left">
+                  <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.to_city}
                   </span>
                 </div>
