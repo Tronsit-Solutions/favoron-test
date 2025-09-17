@@ -1,5 +1,6 @@
 import React from "react";
 import { formatDate } from "@/utils/dateHelpers";
+import { MapPin, Navigation, Calendar } from "lucide-react";
 
 interface InstagramTripPreviewProps {
   trips: any[];
@@ -39,6 +40,26 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       {/* Main Content */}
       <main className="relative z-10 px-16">
         <section className="bg-transparent rounded-2xl p-8">
+          {/* Column Headers with Icons */}
+          <div className="flex items-center justify-between py-3 px-6 mb-4">
+            <div className="flex items-center gap-6 flex-1">
+              <div className="flex items-center gap-2 min-w-[120px]">
+                <MapPin size={18} className="text-gray-500" />
+                <span className="text-sm font-medium text-gray-500">Origen</span>
+              </div>
+              <div className="flex justify-center">
+                <Navigation size={18} className="text-cyan-500" />
+              </div>
+              <div className="flex items-center gap-2 min-w-[120px]">
+                <MapPin size={18} className="text-gray-500" />
+                <span className="text-sm font-medium text-gray-500">Destino</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-[240px] justify-center">
+              <Calendar size={18} className="text-gray-500" />
+              <span className="text-sm font-medium text-gray-500">Fecha</span>
+            </div>
+          </div>
 
           {/* Trips List */}
           <div className="space-y-3 max-h-[750px] overflow-hidden">
