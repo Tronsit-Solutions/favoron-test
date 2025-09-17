@@ -45,11 +45,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
 
       {/* Premium Glass Header */}
       <header className="relative z-20 text-center pt-6 pb-4">
-        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-3xl mx-8 py-6 shadow-[0_8px_32px_rgba(0,0,0,0.1)] shadow-primary/10">
-          <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-2 drop-shadow-lg">
+        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-3xl mx-8 py-6">
+          <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-2">
             Hub de viajes
           </h1>
-          <div className="w-20 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-2 shadow-glow"></div>
+          <div className="w-20 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-2"></div>
         </div>
       </header>
 
@@ -57,7 +57,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       <main className="relative z-10 px-16">
         <section className="bg-transparent rounded-2xl p-8">
           {/* Glass Column Headers */}
-          <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-2xl p-4 mb-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-2xl p-4 mb-6">
             <div className="grid grid-cols-3 gap-4">
               <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
                 <MapPin size={20} className="text-primary" />
