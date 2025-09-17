@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { withRetry } from '@/lib/supabaseWithRetry';
 import { SecurityMonitor } from '@/lib/securityMonitoring';
+import { 
+  initializeSessionSecurity, 
+  stopSessionSecurity, 
+  SensitiveOperationLimiter 
+} from '@/lib/sessionSecurity';
 
 interface Profile {
   id: string;

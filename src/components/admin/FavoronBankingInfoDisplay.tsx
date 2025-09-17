@@ -1,4 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { maskAccountNumber, auditFinancialDataAccess } from '@/lib/financialSecurity';
+import { useEffect } from 'react';
 
 interface Props {
   account: {
@@ -10,6 +12,18 @@ interface Props {
 }
 
 export default function FavoronBankingInfoDisplay({ account }: Props) {
+  // Audit financial data access for security monitoring
+  useEffect(() => {
+    if (account?.account_number) {
+      auditFinancialDataAccess(
+        'system', // This is system/admin viewing
+        'view',
+        'banking_info',
+        true // Data is masked
+      );
+    }
+  }, [account?.account_number]);
+
   return (
     <Card>
       <CardContent className="space-y-3 pt-4">
@@ -24,7 +38,9 @@ export default function FavoronBankingInfoDisplay({ account }: Props) {
           </div>
           <div>
             <span className="text-muted-foreground">Cuenta:</span>{' '}
-            <span className="font-medium text-foreground">{account?.account_number || '—'}</span>
+            <span className="font-medium text-foreground font-mono">
+              {account?.account_number ? maskAccountNumber(account.account_number) : '—'}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Tipo:</span>{' '}

@@ -907,6 +907,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      audit_financial_data_access: {
+        Args: {
+          _access_type: string
+          _data_type: string
+          _masked?: boolean
+          _user_id: string
+        }
+        Returns: undefined
+      }
       check_all_packages_delivered: {
         Args: { _trip_id: string }
         Returns: boolean
@@ -1081,6 +1090,10 @@ export type Database = {
           _reason?: string
         }
         Returns: undefined
+      }
+      mask_account_number: {
+        Args: { _account_number: string }
+        Returns: string
       }
       send_assignment_warnings: {
         Args: Record<PropertyKey, never>
