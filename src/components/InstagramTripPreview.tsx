@@ -15,7 +15,8 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   const formatInstagramDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       day: 'numeric',
-      month: 'short'
+      month: 'long',
+      year: 'numeric'
     });
   };
 
