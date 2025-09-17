@@ -25,6 +25,7 @@ export function ReceiptViewerModal({
   const { url: signedUrl, loading, error, retryCount } = useSignedUrl(receiptUrl);
 
   const isImage = filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || receiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  const isPDF = filename?.match(/\.(pdf)$/i) || receiptUrl?.match(/\.(pdf)$/i);
   const displayUrl = signedUrl || receiptUrl;
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -165,11 +166,11 @@ export function ReceiptViewerModal({
             <div className="bg-gray-50 rounded-lg p-4">
               {isImage ? (
                 <div className="relative">
-                <img 
-                  src={imageSrc || displayUrl || ''} 
-                  alt={title}
-                  className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain"
-                  onLoad={() => {
+                  <img 
+                    src={imageSrc || displayUrl || ''} 
+                    alt={title}
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain"
+                    onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
                         source: imageSrc ? 'blob' : 'url',
                         displayUrl,
@@ -195,6 +196,14 @@ export function ReceiptViewerModal({
                         }
                       }
                     }}
+                  />
+                </div>
+              ) : isPDF ? (
+                <div className="relative">
+                  <iframe
+                    src={displayUrl || ''}
+                    title={title}
+                    className="w-full h-[70vh] rounded-lg border"
                   />
                 </div>
               ) : (

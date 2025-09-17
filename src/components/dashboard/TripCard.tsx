@@ -321,7 +321,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         onClose={() => setShowReceiptModal(false)}
         receiptUrl={paymentReceipt.receipt_url}
         title="Comprobante de Pago"
-        filename={paymentReceipt.receipt_filename || "comprobante-pago.jpg"}
+        filename={paymentReceipt.receipt_filename}
       />
     )}
     </>
