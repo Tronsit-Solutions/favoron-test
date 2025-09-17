@@ -103,8 +103,9 @@ export const useTripPayments = (tripId?: string) => {
           bank_name: bankingInfo.bank_name,
           bank_account_type: bankingInfo.bank_account_type,
           bank_account_number: bankingInfo.bank_account_number
-        })
-        .eq('user_id', user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (profileError) throw profileError;
 
