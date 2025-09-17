@@ -20,7 +20,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   };
 
   return (
-    <div className="w-[1080px] h-[1080px] bg-white relative overflow-hidden font-bricolage">
+    <div className="w-[540px] h-[540px] bg-white relative overflow-hidden font-bricolage transform scale-50 origin-top-left" style={{transformOrigin: 'top left'}}>
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50"></div>
 
