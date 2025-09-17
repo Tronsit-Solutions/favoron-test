@@ -44,7 +44,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       }}></div>
 
       {/* Premium Glass Header */}
-      <header className="relative z-20 text-center pt-6 pb-4">
+      <header className="relative z-20 text-center pt-6 pb-2">
         <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-3xl mx-8 py-6">
           <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-2">
             Hub de viajes
