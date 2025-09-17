@@ -109,7 +109,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="group relative grid grid-cols-3 gap-6 py-3 px-8 hover:-translate-y-1 transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/20"
+                className="group relative grid grid-cols-3 items-center gap-6 py-3 px-8 hover:-translate-y-1 transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/20"
               >
                 {/* Flight Path Line */}
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent group-hover:via-blue-500/60 transition-all duration-500"></div>
