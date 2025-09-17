@@ -59,7 +59,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 </div>
                 
                 {/* Date Badge */}
-                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border w-[180px] text-center">
+                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border w-[240px] text-center">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
