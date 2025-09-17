@@ -79,11 +79,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="group grid grid-cols-3 gap-4 py-5 px-6 backdrop-blur-xl saturate-150 bg-background/25 rounded-3xl border border-border/40 shadow-[0_8px_32px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.1)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:border-primary/30 transition-all duration-500 hover:-translate-y-0.5"
-                style={{
-                  background: `linear-gradient(135deg, hsl(var(--background) / 0.3) 0%, hsl(var(--background) / 0.15) 100%)`,
-                  boxShadow: `0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 0 rgba(255,255,255,0.05)`
-                }}
+                className="group grid grid-cols-3 gap-4 py-3 px-6 hover:-translate-y-0.5 transition-all duration-300"
               >
                 {/* Origin Column */}
                 <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
