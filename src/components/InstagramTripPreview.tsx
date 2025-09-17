@@ -92,7 +92,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 </div>
                 
                 {/* Date Column */}
-                <div className="text-sm font-medium text-muted-foreground px-4 py-2 rounded-2xl border text-center backdrop-blur-lg group-hover:text-foreground transition-colors duration-300 bg-primary/5 border-primary/10">
+                <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
