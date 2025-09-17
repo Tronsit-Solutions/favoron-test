@@ -49,7 +49,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
               </div>
               <div className="flex justify-center">
               </div>
-              <div className="flex items-center gap-2 min-w-[120px]">
+              <div className="flex items-center gap-2 w-[140px]">
                 <MapPin size={18} className="text-gray-500" />
                 <span className="text-sm font-medium text-gray-500">Destino</span>
               </div>
