@@ -192,7 +192,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
 
       {/* Preview Modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-auto p-4">
+        <DialogContent className="max-w-screen-lg max-h-screen w-[95vw] h-[95vh] overflow-auto p-6">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="text-2xl font-bricolage">Preview para Instagram</DialogTitle>
