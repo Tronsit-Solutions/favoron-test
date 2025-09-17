@@ -217,7 +217,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
-              <div className="rounded-2xl p-6 border-2 border-primary/30" style={{backgroundColor: '#3ab5ff'}}>
+              <div className="bg-gray-100 rounded-2xl p-6 border-2 border-gray-300">
                 <div ref={instagramRef}>
                   <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
                 </div>
