@@ -63,12 +63,12 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 <MapPin size={20} className="text-primary" />
                 <span className="text-lg font-bold text-foreground">Origen</span>
               </div>
-              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-secondary/5 border border-secondary/20">
-                <MapPin size={20} className="text-secondary" />
+              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
+                <MapPin size={20} className="text-primary" />
                 <span className="text-lg font-bold text-foreground">Destino</span>
               </div>
-              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-accent/5 border border-accent/20">
-                <Calendar size={20} className="text-accent" />
+              <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
+                <Calendar size={20} className="text-primary" />
                 <span className="text-lg font-bold text-foreground">Fecha</span>
               </div>
             </div>
@@ -91,16 +91,12 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                 </div>
                 
                 {/* Destination Column */}
-                <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-secondary/5 border border-secondary/10 backdrop-blur-sm group-hover:bg-secondary/8 transition-colors duration-300">
+                <div className="text-lg font-semibold text-foreground text-center p-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {trip.to_city}
                 </div>
                 
                 {/* Date Column */}
-                <div className="text-sm font-medium text-muted-foreground px-4 py-2 rounded-2xl border text-center backdrop-blur-lg group-hover:text-foreground transition-colors duration-300"
-                     style={{
-                       background: `linear-gradient(135deg, hsl(var(--accent) / 0.08) 0%, hsl(var(--accent) / 0.03) 100%)`,
-                       borderColor: `hsl(var(--accent) / 0.15)`
-                     }}>
+                <div className="text-sm font-medium text-muted-foreground px-4 py-2 rounded-2xl border text-center backdrop-blur-lg group-hover:text-foreground transition-colors duration-300 bg-primary/5 border-primary/10">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
