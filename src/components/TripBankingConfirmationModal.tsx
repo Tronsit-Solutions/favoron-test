@@ -9,6 +9,7 @@ import { CreditCard, Building, Shield, CheckCircle, Edit, Eye, Receipt, Package 
 import { formatCurrency } from "@/utils/priceHelpers";
 import { getPackageTipFromQuote } from "@/utils/tipHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { useFinancialData } from "@/hooks/useFinancialData";
 interface TripBankingConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +32,7 @@ const TripBankingConfirmationModal = ({
   tripId,
   travelerId
 }: TripBankingConfirmationModalProps) => {
+  const { financialData, loading: financialLoading } = useFinancialData();
   const [packageBreakdown, setPackageBreakdown] = useState<Array<{
     id: string;
     item_description: string;
@@ -41,14 +43,14 @@ const TripBankingConfirmationModal = ({
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [bankingInfo, setBankingInfo] = useState({
-    bank_account_holder: currentBankingInfo?.bank_account_holder || '',
-    bank_name: currentBankingInfo?.bank_name || '',
-    bank_account_number: currentBankingInfo?.bank_account_number || '',
-    bank_account_type: currentBankingInfo?.bank_account_type || ''
+    bank_account_holder: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_type: ''
   });
 
-  // Determinar si tiene información bancaria completa
-  const hasCompleteBankingInfo = currentBankingInfo?.bank_account_holder && currentBankingInfo?.bank_name && currentBankingInfo?.bank_account_number && currentBankingInfo?.bank_account_type;
+  // Determinar si tiene información bancaria completa desde la DB
+  const hasCompleteBankingInfo = financialData?.bank_account_holder && financialData?.bank_name && financialData?.bank_account_number && financialData?.bank_account_type;
 
   // Función para obtener paquetes del viajero
   const fetchPackageBreakdown = async () => {
@@ -81,15 +83,17 @@ const TripBankingConfirmationModal = ({
     }
   }, [isOpen, tripId, travelerId]);
 
-  // Actualizar información cuando cambie currentBankingInfo
+  // Actualizar información cuando cambie la data financiera de la DB
   useEffect(() => {
-    setBankingInfo({
-      bank_account_holder: currentBankingInfo?.bank_account_holder || '',
-      bank_name: currentBankingInfo?.bank_name || '',
-      bank_account_number: currentBankingInfo?.bank_account_number || '',
-      bank_account_type: currentBankingInfo?.bank_account_type || ''
-    });
-  }, [currentBankingInfo]);
+    if (financialData) {
+      setBankingInfo({
+        bank_account_holder: financialData.bank_account_holder || '',
+        bank_name: financialData.bank_name || '',
+        bank_account_number: financialData.bank_account_number || '',
+        bank_account_type: financialData.bank_account_type || ''
+      });
+    }
+  }, [financialData]);
   const handleConfirmPayment = async () => {
     console.log('🔍 TripBankingConfirmationModal - handleConfirmPayment called');
     console.log('📋 Banking info:', bankingInfo);
@@ -207,20 +211,20 @@ const TripBankingConfirmationModal = ({
               <div className="bg-muted/20 border rounded-lg p-2">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Titular</Label>
-                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_account_holder}</p>
+                   <Label className="text-xs text-muted-foreground">Titular</Label>
+                    <p className="font-medium truncate text-xs">{financialData?.bank_account_holder}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Banco</Label>
-                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_name}</p>
+                    <p className="font-medium truncate text-xs">{financialData?.bank_name}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Cuenta</Label>
-                    <p className="font-medium truncate text-xs">{currentBankingInfo.bank_account_number}</p>
+                    <p className="font-medium truncate text-xs">{financialData?.bank_account_number}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Tipo</Label>
-                    <p className="font-medium capitalize truncate text-xs">{currentBankingInfo.bank_account_type}</p>
+                    <p className="font-medium capitalize truncate text-xs">{financialData?.bank_account_type}</p>
                   </div>
                 </div>
               </div>
