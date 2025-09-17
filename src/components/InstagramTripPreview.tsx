@@ -35,7 +35,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-16">
+      <main className="relative z-10 px-16" style={{backgroundColor: '#3ab5ff'}}>
         <section className="bg-transparent rounded-2xl p-8">
           {/* Column Headers with Icons */}
           <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
