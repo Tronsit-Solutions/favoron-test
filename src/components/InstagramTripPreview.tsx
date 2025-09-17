@@ -92,9 +92,6 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       {/* Footer */}
       <footer className="absolute bottom-8 left-0 right-0 z-10">
         <div className="text-center">
-          <p className="text-gray-600 font-medium text-lg mb-2">
-            Conectando viajeros con shoppers
-          </p>
           <p className="text-gray-500 text-sm">
             www.favoron.app
           </p>
