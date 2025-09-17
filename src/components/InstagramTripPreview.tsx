@@ -22,34 +22,43 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   };
 
   return (
-    <div className="w-[1080px] h-[1080px] bg-white relative overflow-hidden font-bricolage">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50"></div>
+    <div className="w-[1080px] h-[1080px] bg-background relative overflow-hidden">
+      {/* Modern Dynamic Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-muted/50"></div>
+      
+      {/* Animated Grid Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5"></div>
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.1) 0%, transparent 25%), 
+                           radial-gradient(circle at 75% 75%, hsl(var(--primary) / 0.1) 0%, transparent 25%)`
+        }}></div>
+      </div>
 
       {/* Header Section */}
       <header className="relative z-10 text-center pt-6 pb-4">
-        <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight pt-4">
+        <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight pt-4">
           Hub de viajes
         </h1>
-        <div className="w-20 h-0.5 bg-cyan-500 mx-auto mb-4"></div>
+        <div className="w-20 h-0.5 bg-primary mx-auto mb-4"></div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 px-16" style={{backgroundColor: '#3ab5ff'}}>
+      <main className="relative z-10 px-16">
         <section className="bg-transparent rounded-2xl p-8">
           {/* Column Headers with Icons */}
           <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
             <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-gray-700" />
-              <span className="text-lg font-bold text-gray-800">Origen</span>
+              <MapPin size={20} className="text-muted-foreground" />
+              <span className="text-lg font-bold text-foreground">Origen</span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <MapPin size={20} className="text-gray-700" />
-              <span className="text-lg font-bold text-gray-800">Destino</span>
+              <MapPin size={20} className="text-muted-foreground" />
+              <span className="text-lg font-bold text-foreground">Destino</span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <Calendar size={20} className="text-gray-700" />
-              <span className="text-lg font-bold text-gray-800">Fecha</span>
+              <Calendar size={20} className="text-muted-foreground" />
+              <span className="text-lg font-bold text-foreground">Fecha</span>
             </div>
           </div>
 
@@ -58,27 +67,27 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="grid grid-cols-3 gap-4 py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
+                className="grid grid-cols-3 gap-4 py-4 px-6 bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 shadow-glow hover:shadow-md transition-all duration-300"
               >
                 {/* Origin Column */}
-                <div className="text-lg font-semibold text-gray-800 text-center">
+                <div className="text-lg font-semibold text-foreground text-center">
                   {trip.from_city}
                 </div>
                 
                 {/* Destination Column */}
-                <div className="text-lg font-semibold text-gray-800 text-center">
+                <div className="text-lg font-semibold text-foreground text-center">
                   {trip.to_city}
                 </div>
                 
                 {/* Date Column */}
-                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border text-center">
+                <div className="text-sm font-medium text-muted-foreground bg-card/90 px-4 py-2 rounded-xl border border-border/30 text-center backdrop-blur-sm">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
             ))}
             
             {filteredTrips.length > 12 && (
-              <div className="text-center py-4 text-gray-500 font-medium">
+              <div className="text-center py-4 text-muted-foreground font-medium">
                 +{filteredTrips.length - 12} viajes más
               </div>
             )}
@@ -89,7 +98,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       {/* Footer */}
       <footer className="absolute bottom-8 left-0 right-0 z-10">
         <div className="text-center">
-          <p className="text-gray-500 text-sm">
+          <p className="text-muted-foreground text-sm font-medium">
             www.favoron.app
           </p>
         </div>
