@@ -43,16 +43,16 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
           {/* Column Headers with Icons */}
           <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
             <div className="flex items-center justify-center gap-2">
-              <MapPin size={18} className="text-gray-500" />
-              <span className="text-sm font-medium text-gray-500">Origen</span>
+              <MapPin size={20} className="text-gray-700" />
+              <span className="text-lg font-bold text-gray-800">Origen</span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <MapPin size={18} className="text-gray-500" />
-              <span className="text-sm font-medium text-gray-500">Destino</span>
+              <MapPin size={20} className="text-gray-700" />
+              <span className="text-lg font-bold text-gray-800">Destino</span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <Calendar size={18} className="text-gray-500" />
-              <span className="text-sm font-medium text-gray-500">Fecha</span>
+              <Calendar size={20} className="text-gray-700" />
+              <span className="text-lg font-bold text-gray-800">Fecha</span>
             </div>
           </div>
 
