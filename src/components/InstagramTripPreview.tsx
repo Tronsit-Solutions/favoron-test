@@ -28,11 +28,11 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       {/* Header Section */}
       <header className="relative z-10 text-center pt-12 pb-8">
         <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">
-          Favoron
+          Hub de viajes
         </h1>
         <div className="w-20 h-0.5 bg-cyan-500 mx-auto mb-4"></div>
         <h2 className="text-2xl font-medium text-gray-700">
-          Hub de Viajes
+          Favoron
         </h2>
       </header>
 
