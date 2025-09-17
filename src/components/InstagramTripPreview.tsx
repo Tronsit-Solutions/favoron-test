@@ -41,20 +41,16 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       <main className="relative z-10 px-16">
         <section className="bg-transparent rounded-2xl p-8">
           {/* Column Headers with Icons */}
-          <div className="flex items-center justify-between py-3 px-6 mb-4">
-            <div className="flex items-center gap-6 flex-1">
-              <div className="flex items-center gap-2 min-w-[120px]">
-                <MapPin size={18} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-500">Origen</span>
-              </div>
-              <div className="flex justify-center">
-              </div>
-              <div className="flex items-center justify-center gap-2 w-[140px]">
-                <MapPin size={18} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-500">Destino</span>
-              </div>
+          <div className="grid grid-cols-3 gap-4 py-3 px-6 mb-4">
+            <div className="flex items-center justify-center gap-2">
+              <MapPin size={18} className="text-gray-500" />
+              <span className="text-sm font-medium text-gray-500">Origen</span>
             </div>
-            <div className="flex items-center gap-2 w-[240px] justify-center">
+            <div className="flex items-center justify-center gap-2">
+              <MapPin size={18} className="text-gray-500" />
+              <span className="text-sm font-medium text-gray-500">Destino</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
               <Calendar size={18} className="text-gray-500" />
               <span className="text-sm font-medium text-gray-500">Fecha</span>
             </div>
@@ -65,22 +61,20 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
             {filteredTrips.slice(0, 12).map((trip, index) => (
               <article
                 key={trip.id}
-                className="flex items-center justify-between py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
+                className="grid grid-cols-3 gap-4 py-4 px-6 bg-gray-50 rounded-lg border border-gray-200"
               >
-                {/* Route Information */}
-                <div className="flex items-center flex-1">
-                  <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
-                    {trip.from_city}
-                  </span>
-                  <div className="flex justify-center items-center w-[60px]">
-                  </div>
-                  <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
-                    {trip.to_city}
-                  </span>
+                {/* Origin Column */}
+                <div className="text-lg font-semibold text-gray-800 text-center">
+                  {trip.from_city}
                 </div>
                 
-                {/* Date Badge */}
-                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border w-[240px] text-center">
+                {/* Destination Column */}
+                <div className="text-lg font-semibold text-gray-800 text-center">
+                  {trip.to_city}
+                </div>
+                
+                {/* Date Column */}
+                <div className="text-sm font-medium text-gray-600 bg-white px-4 py-2 rounded-md border text-center">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
               </article>
