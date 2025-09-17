@@ -89,14 +89,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
                   </div>
                   
                   {/* Date and badge section - separate row on mobile */}
-                  <div className="flex items-center justify-between sm:gap-3">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3 text-teal-600 flex-shrink-0" />
-                      <span className="font-medium truncate">{formatDate(trip.arrival_date)}</span>
-                    </div>
-                    <Badge className="text-xs bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 hover:from-teal-600 hover:to-cyan-600 px-1.5 py-0.5 sm:px-2 sm:py-1 flex-shrink-0">
-                      ✨ Disponible
-                    </Badge>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 text-teal-600 flex-shrink-0" />
+                    <span className="font-medium truncate">{formatDate(trip.arrival_date)}</span>
                   </div>
                 </div>
               </div>
