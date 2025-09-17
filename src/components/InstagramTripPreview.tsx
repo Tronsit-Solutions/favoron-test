@@ -1,6 +1,6 @@
 import React from "react";
 import { formatDate } from "@/utils/dateHelpers";
-import { MapPin, Navigation, Calendar } from "lucide-react";
+import { MapPin, Calendar, PlaneTakeoff } from "lucide-react";
 
 interface InstagramTripPreviewProps {
   trips: any[];
@@ -72,7 +72,7 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
                   <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.from_city}
                   </span>
-                  <span className="text-cyan-500 font-bold text-xl">→</span>
+                  <PlaneTakeoff size={20} className="text-cyan-500" />
                   <span className="text-lg font-semibold text-gray-800 w-[140px] text-left">
                     {trip.to_city}
                   </span>
