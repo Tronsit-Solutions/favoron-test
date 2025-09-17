@@ -39,15 +39,6 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
       {/* Main Content */}
       <main className="relative z-10 px-16">
         <section className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-          {/* Section Header */}
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">
-              Viajes Disponibles
-            </h3>
-            <p className="text-sm text-gray-500">
-              {filteredTrips.length} destinos activos
-            </p>
-          </div>
 
           {/* Trips List */}
           <div className="space-y-3 max-h-[650px] overflow-hidden">
