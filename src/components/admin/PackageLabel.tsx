@@ -115,7 +115,7 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
         {/* Shopper Info */}
         <div>
           <div>
-            <span className="font-bold">SHOPPER:</span> {getShopperName()}
+            <span className="font-bold">DESTINATARIO:</span> {getShopperName()}
           </div>
         </div>
 
