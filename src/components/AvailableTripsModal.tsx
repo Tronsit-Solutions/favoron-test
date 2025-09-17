@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Plane, Calendar, Download } from "lucide-react";
+import { Search, Plane, Calendar, Download, Eye, X } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [userRoles, setUserRoles] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Check if user is admin
@@ -60,7 +62,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     });
   };
 
-  const handleDownloadJPEG = async () => {
+  const generatePreview = async () => {
     if (!modalRef.current) return;
     
     setIsGenerating(true);
@@ -75,21 +77,28 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         height: modalRef.current.scrollHeight
       });
       
-      // Convert canvas to JPEG
+      // Convert canvas to data URL for preview
       const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.download = `viajes-hub-${new Date().toISOString().split('T')[0]}.jpg`;
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      setPreviewImage(dataURL);
+      setShowPreview(true);
     } catch (error) {
-      console.error('Error generating JPEG:', error);
+      console.error('Error generating preview:', error);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadJPEG = () => {
+    if (!previewImage) return;
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `viajes-hub-${new Date().toISOString().split('T')[0]}.jpg`;
+    link.href = previewImage;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowPreview(false);
   };
 
   return (
@@ -105,12 +114,12 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleDownloadJPEG}
+                onClick={generatePreview}
                 disabled={isGenerating}
                 className="ml-4 bg-white/20 border-white/30 text-white hover:bg-white/30"
               >
-                <Download className="h-4 w-4 mr-2" />
-                {isGenerating ? "Generando..." : "Descargar JPEG"}
+                <Eye className="h-4 w-4 mr-2" />
+                {isGenerating ? "Generando..." : "Preview JPEG"}
               </Button>
             )}
           </div>
@@ -179,6 +188,53 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
       </DialogContent>
+
+      {/* Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle>Preview del Hub de Viajes</DialogTitle>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleDownloadJPEG}
+                  disabled={!previewImage}
+                  className="bg-teal-600 hover:bg-teal-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar JPEG
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowPreview(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            {previewImage ? (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <img 
+                  src={previewImage} 
+                  alt="Preview del Hub de Viajes"
+                  className="w-full h-auto rounded-lg shadow-lg border"
+                />
+                <p className="text-sm text-gray-600 mt-2 text-center">
+                  Este es el preview exacto de cómo se verá tu imagen JPEG
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gray-100 p-8 text-center rounded">
+                <p className="text-gray-700">Generando preview...</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
