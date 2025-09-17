@@ -11,7 +11,7 @@ import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
 import TripBankingConfirmationModal from "@/components/TripBankingConfirmationModal";
-import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
   trip: any;
@@ -316,10 +316,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
     {/* Payment Receipt Modal */}
     {paymentReceipt?.receipt_url && (
-      <ImageViewerModal
+      <ReceiptViewerModal
         isOpen={showReceiptModal}
         onClose={() => setShowReceiptModal(false)}
-        imageUrl={paymentReceipt.receipt_url}
+        receiptUrl={paymentReceipt.receipt_url}
         title="Comprobante de Pago"
         filename={paymentReceipt.receipt_filename || "comprobante-pago.jpg"}
       />
