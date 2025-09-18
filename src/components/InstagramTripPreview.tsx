@@ -58,14 +58,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Premium Glass Header */}
       <header className="relative z-20 text-center pt-2 pb-1">
-        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-xl mx-3 py-2">
-          <div className="flex items-center justify-center gap-3 mb-1">
+        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-xl mx-2 py-4">
+          <div className="flex items-center justify-center gap-4 mb-2">
             <img 
               src={favoronLogo} 
               alt="Favoron Logo" 
-              className="w-6 h-6 object-contain opacity-90"
+              className="w-8 h-8 object-contain opacity-90"
             />
-            <h1 className="text-xl font-bold text-foreground tracking-tight pt-1">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight pt-1">
               Hub de viajes {pageNumber > 1 && `(${pageNumber})`}
             </h1>
           </div>
