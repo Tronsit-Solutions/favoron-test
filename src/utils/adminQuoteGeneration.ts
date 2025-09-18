@@ -65,7 +65,7 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     adminAssignedTip,
     currentPackage.delivery_method || 'pickup',
     shopperProfile.trust_level,
-    `Cotización generada automáticamente por admin`,
+    undefined, // No automatic message
     true // adminAssignedTipAccepted
   );
 
