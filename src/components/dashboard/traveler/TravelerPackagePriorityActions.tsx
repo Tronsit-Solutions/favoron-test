@@ -146,8 +146,8 @@ const TravelerPackagePriorityActions = ({
           
         </div>
         
-        {/* Office Address Button */}
-        {(pkg.status === 'received_by_traveler' || pkg.status === 'pending_office_confirmation') && (
+        {/* Office Address Button - Only for received_by_traveler and later states */}
+        {['received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status) && (
           <div className="mt-3 pt-3 border-t border-muted/50">
             <Button 
               size="sm" 
