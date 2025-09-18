@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { 
   Settings, 
   FileText, 
@@ -153,18 +154,42 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('packages')
-        .update({ status: newStatus })
-        .eq('id', pkg.id);
+      // Create a mock dashboard actions with the required functions
+      const mockDashboardActions = useDashboardActions(
+        [], // packages (not used for status update)
+        () => {}, // setPackages (not used for status update)
+        [], // trips (not used for status update)
+        () => {}, // setTrips (not used for status update)
+        null, // currentUser (not used for status update)
+        () => {}, // setShowPackageForm
+        () => {}, // setShowTripForm
+        () => {}, // setShowAddressConfirmation
+        () => {}, // setSelectedPackageForAddress
+        () => {}, // setShowQuoteDialog
+        () => {}, // setSelectedPackageForQuote
+        () => {}, // setQuoteUserType
+        undefined, // createPackage
+        undefined, // createTrip
+        async (id: string, updates: any) => {
+          const { error } = await supabase
+            .from('packages')
+            .update(updates)
+            .eq('id', id);
+          if (error) throw error;
+        }, // updatePackage
+        undefined, // updateTrip
+        undefined, // setActiveTab
+        async () => { onRefresh?.(); }, // refreshPackages
+        undefined // refreshTrips
+      );
 
-      if (error) throw error;
+      await mockDashboardActions.handleStatusUpdate('package', pkg.id, newStatus);
 
       await logAction('status_changed', `Estado cambiado de ${pkg.status} a ${newStatus}`);
       
       toast({
         title: "Estado actualizado",
-        description: `El estado se cambió a ${statusOptions.find(s => s.value === newStatus)?.label}`
+        description: `El estado se cambió a ${statusOptions.find(s => s.value === newStatus)?.label}${newStatus === 'quote_sent' ? ' y se generó la cotización automáticamente' : ''}`
       });
 
       onRefresh?.();
