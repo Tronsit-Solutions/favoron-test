@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDashboardActions } from "@/hooks/useDashboardActions";
+import { generateQuoteForAdminStatusChange } from "@/utils/adminQuoteGeneration";
 import { 
   Settings, 
   FileText, 
@@ -154,36 +154,31 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
     setIsLoading(true);
     try {
-      // Create a mock dashboard actions with the required functions
-      const mockDashboardActions = useDashboardActions(
-        [], // packages (not used for status update)
-        () => {}, // setPackages (not used for status update)
-        [], // trips (not used for status update)
-        () => {}, // setTrips (not used for status update)
-        null, // currentUser (not used for status update)
-        () => {}, // setShowPackageForm
-        () => {}, // setShowTripForm
-        () => {}, // setShowAddressConfirmation
-        () => {}, // setSelectedPackageForAddress
-        () => {}, // setShowQuoteDialog
-        () => {}, // setSelectedPackageForQuote
-        () => {}, // setQuoteUserType
-        undefined, // createPackage
-        undefined, // createTrip
-        async (id: string, updates: any) => {
-          const { error } = await supabase
-            .from('packages')
-            .update(updates)
-            .eq('id', id);
-          if (error) throw error;
-        }, // updatePackage
-        undefined, // updateTrip
-        undefined, // setActiveTab
-        async () => { onRefresh?.(); }, // refreshPackages
-        undefined // refreshTrips
-      );
+      let updateData: any = { status: newStatus };
 
-      await mockDashboardActions.handleStatusUpdate('package', pkg.id, newStatus);
+      // Special handling for status change from "matched" to "quote_sent"
+      if (pkg.status === 'matched' && newStatus === 'quote_sent') {
+        console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
+        
+        const quoteData = await generateQuoteForAdminStatusChange({
+          packageId: pkg.id,
+          currentPackage: pkg,
+          trips: trips,
+          adminAssignedTip: pkg.admin_assigned_tip
+        });
+
+        updateData = {
+          status: newStatus,
+          ...quoteData
+        };
+      }
+
+      const { error } = await supabase
+        .from('packages')
+        .update(updateData)
+        .eq('id', pkg.id);
+
+      if (error) throw error;
 
       await logAction('status_changed', `Estado cambiado de ${pkg.status} a ${newStatus}`);
       
