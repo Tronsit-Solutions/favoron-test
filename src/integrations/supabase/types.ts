@@ -151,36 +151,66 @@ export type Database = {
         }
         Relationships: []
       }
-      favoron_bank_accounts: {
+      favoron_company_information: {
         Row: {
           account_holder: string
           account_number: string
           account_type: string
+          address_line_1: string | null
+          address_line_2: string | null
           bank_name: string
+          city: string | null
+          company_name: string | null
+          country: string | null
           created_at: string
+          email: string | null
           id: string
           is_active: boolean
+          phone_number: string | null
+          postal_code: string | null
+          state_department: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           account_holder: string
           account_number: string
           account_type?: string
+          address_line_1?: string | null
+          address_line_2?: string | null
           bank_name: string
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
+          phone_number?: string | null
+          postal_code?: string | null
+          state_department?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           account_holder?: string
           account_number?: string
           account_type?: string
+          address_line_1?: string | null
+          address_line_2?: string | null
           bank_name?: string
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           is_active?: boolean
+          phone_number?: string | null
+          postal_code?: string | null
+          state_department?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, CreditCard, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
+import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
 import { getPriceBreakdown } from "@/lib/pricing";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";

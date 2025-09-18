@@ -18,7 +18,7 @@ import { EmailNotificationSettings } from "./profile/EmailNotificationSettings";
 import { useAuth } from "@/hooks/useAuth";
 import FavoronBankingInfoDisplay from "./admin/FavoronBankingInfoDisplay";
 import FavoronBankingInfoForm from "./admin/FavoronBankingInfoForm";
-import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
+import { useFavoronBankingInfo } from "@/hooks";
 interface UserProfileProps {
   user: any;
   packages: any[];
@@ -397,20 +397,32 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
       {isFavoronEditing ? (
         <FavoronBankingInfoForm
           initialValues={{
+            // Banking Information
             bank_name: favoronAccount?.bank_name || '',
             account_holder: favoronAccount?.account_holder || '',
             account_number: favoronAccount?.account_number || '',
             account_type: favoronAccount?.account_type || 'Monetaria',
+            // Company Information
+            company_name: favoronAccount?.company_name || 'Favorón',
+            address_line_1: favoronAccount?.address_line_1 || '',
+            address_line_2: favoronAccount?.address_line_2 || '',
+            city: favoronAccount?.city || 'Guatemala',
+            state_department: favoronAccount?.state_department || 'Guatemala',
+            postal_code: favoronAccount?.postal_code || '',
+            country: favoronAccount?.country || 'Guatemala',
+            phone_number: favoronAccount?.phone_number || '',
+            email: favoronAccount?.email || 'info@favoron.app',
+            website: favoronAccount?.website || 'favoron.app',
           }}
           onSubmit={async (values) => {
             await saveAccount(values);
-            toast({ title: 'Datos actualizados', description: 'La información bancaria de Favorón fue guardada.' });
+            toast({ title: 'Datos actualizados', description: 'La información de la empresa fue guardada.' });
             setIsFavoronEditing(false);
           }}
           onCancel={() => setIsFavoronEditing(false)}
         />
       ) : (
-        <FavoronBankingInfoDisplay account={favoronAccount} />
+        <FavoronBankingInfoDisplay companyInfo={favoronAccount} />
       )}
     </CardContent>
   </Card>

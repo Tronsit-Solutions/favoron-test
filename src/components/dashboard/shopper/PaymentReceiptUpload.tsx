@@ -5,7 +5,7 @@ import { Upload, FileText, Check, Loader2, Eye, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Package } from "@/types";
-import { useFavoronBankingInfo } from "@/hooks/useFavoronBankingInfo";
+import { useFavoronBankingInfo } from "@/hooks";
 
 interface PaymentReceiptUploadProps {
   pkg: Package;

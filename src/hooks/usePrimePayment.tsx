@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useFavoronBankingInfo } from '@/hooks/useFavoronBankingInfo';
+import { useFavoronBankingInfo } from './useFavoronCompanyInfo';
 
 export const usePrimePayment = () => {
   const [isCreating, setIsCreating] = useState(false);

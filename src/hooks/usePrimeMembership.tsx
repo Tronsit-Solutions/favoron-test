@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
-import { useFavoronBankingInfo } from './useFavoronBankingInfo';
+import { useFavoronBankingInfo } from './useFavoronCompanyInfo';
 
 export type PrimeMembership = {
   id?: string;
