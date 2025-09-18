@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import AvailableTripsCard from "@/components/AvailableTripsCard";
 import AvailableTripsModal from "@/components/AvailableTripsModal";
 

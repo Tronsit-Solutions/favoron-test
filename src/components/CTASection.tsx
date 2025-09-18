@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
 import { useEffect, useState } from "react";
