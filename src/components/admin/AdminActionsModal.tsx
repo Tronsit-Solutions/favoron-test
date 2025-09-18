@@ -400,7 +400,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     
     if (pkg.profiles?.phone_number) {
       const phone = pkg.profiles.phone_number.replace(/[^\d]/g, '');
-      const message = `Hola! Te contacto desde Favorón respecto a tu pedido #${pkg.id.slice(0, 8)}`;
+      const message = `Hola! Te contacto desde Favorón respecto a tu pedido #${(pkg?.id || '').slice(0, 8)}`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
     }
   };
@@ -565,7 +565,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Settings className="h-5 w-5" />
-            <span>Acciones Administrativas - #{pkg.id.slice(0, 8)}</span>
+            <span>Acciones Administrativas - #{(pkg?.id || '').slice(0, 8)}</span>
           </DialogTitle>
           <DialogDescription>
             Gestiona este pedido con herramientas administrativas
@@ -584,7 +584,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                   }
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {pkg.profiles ? `${pkg.profiles.first_name} ${pkg.profiles.last_name}` : `Usuario: ${pkg.user_id.slice(0, 8)}`}
+                  {pkg.profiles ? `${pkg.profiles.first_name} ${pkg.profiles.last_name}` : `Usuario: ${(pkg?.user_id || '').slice(0, 8)}`}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -749,7 +749,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="flex items-center space-x-2 mb-2">
                                     <User className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm text-muted-foreground">
-                                      Viajero #{trip.user_id.slice(0, 8)}
+                                      Viajero #{(trip?.user_id || '').slice(0, 8)}
                                     </span>
                                   </div>
 
@@ -779,7 +779,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                       {trip.status === 'approved' ? 'Aprobado' : 'Activo'}
                                     </Badge>
                                     <Badge variant="secondary" className="text-xs">
-                                      ID: {trip.id.slice(0, 8)}
+                                      ID: {(trip?.id || '').slice(0, 8)}
                                     </Badge>
                                     {calculateTripPackagesTotal(trip.id) > 0 && (
                                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
@@ -811,7 +811,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="grid grid-cols-2 gap-4 text-xs">
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">VIAJERO</p>
-                                      <p className="text-sm">Viajero #{trip.user_id.slice(0, 8)}</p>
+                                      <p className="text-sm">Viajero #{(trip?.user_id || '').slice(0, 8)}</p>
                                     </div>
                                     <div>
                                       <p className="font-medium text-muted-foreground mb-1">MÉTODO</p>
@@ -900,7 +900,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                           <p className="font-medium">{action.description}</p>
                           <p className="text-muted-foreground">
                             {new Date(action.timestamp).toLocaleString('es-GT')} • 
-                            Admin: {action.admin_id.slice(0, 8)}
+                            Admin: {(action?.admin_id || '').slice(0, 8)}
                           </p>
                         </div>
                       ))}
@@ -946,7 +946,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                     )}
 
                     <Button 
-                      onClick={() => window.open(`mailto:${pkg.profiles.email}?subject=Favorón - Pedido #${pkg.id.slice(0, 8)}`, '_blank')}
+                      onClick={() => window.open(`mailto:${pkg.profiles.email}?subject=Favorón - Pedido #${(pkg?.id || '').slice(0, 8)}`, '_blank')}
                       variant="outline"
                       className="w-full"
                     >
