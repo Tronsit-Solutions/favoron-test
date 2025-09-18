@@ -70,7 +70,7 @@ export const InstagramCapturePreview = ({ trips, searchTerm }: InstagramCaptureP
 
       {/* Main Content */}
       <main className="relative z-10 px-6">
-        <section className="bg-transparent rounded-lg px-3 pb-6 min-h-[420px]">
+        <section className="bg-transparent rounded-lg px-3 pb-2 min-h-[380px]">
           {/* Glass Column Headers */}
           <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-lg p-2 mb-2">
             <div className="grid grid-cols-3 gap-2">
