@@ -86,13 +86,13 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
       
       const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 2,
+        backgroundColor: 'rgba(15, 23, 42, 1)',
+        scale: 1,
         useCORS: true,
         allowTaint: false,
         logging: true,
-        width: 700,
-        height: 700,
+        width: 1080,
+        height: 1080,
         scrollX: 0,
         scrollY: 0,
         foreignObjectRendering: false,
@@ -202,20 +202,20 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
         
-        {/* Hidden Simplified Component for Capture */}
+        {/* Hidden element for capture - exact same component as preview */}
         <div className="fixed -top-[5000px] left-0 z-[-1]">
           <div 
             ref={captureRef}
             style={{ 
-              width: '700px', 
-              height: '700px',
+              width: '1080px', 
+              height: '1080px',
               position: 'absolute',
               top: 0,
               left: 0,
-              backgroundColor: '#ffffff'
+              backgroundColor: 'rgba(15, 23, 42, 1)' // Solid background for better capture
             }}
           >
-            <InstagramCaptureSimplified trips={trips} searchTerm={searchTerm} />
+            <InstagramTripPreview trips={filteredTrips} searchTerm={searchTerm} forCapture={true} />
           </div>
         </div>
       </DialogContent>
