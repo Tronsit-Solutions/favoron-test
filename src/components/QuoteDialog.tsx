@@ -488,15 +488,10 @@ const QuoteDialog = ({
                                          <span>Precio total estándar:</span>
                                          <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
                                        </div>
-                                        <div className="flex justify-between items-center animate-fade-in bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 rounded-lg px-3 py-2 border border-amber-200 dark:border-amber-800">
-                                          <span className="flex items-center gap-2 font-semibold text-amber-700 dark:text-amber-300">
-                                            <span className="text-amber-500">✨</span>
-                                            Descuento Prime:
-                                          </span>
-                                          <span className="font-bold text-amber-600 dark:text-amber-400 hover-scale">
-                                            -{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}
-                                          </span>
-                                        </div>
+                                       <div className="flex justify-between text-green-600">
+                                         <span>Descuento Prime:</span>
+                                         <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
+                                       </div>
                                        <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
                                          <span>Total a pagar:</span>
                                          <span>{formatCurrency(breakdown.totalPrice)}</span>
