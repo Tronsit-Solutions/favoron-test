@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { DollarSign, CheckCircle, AlertTriangle } from "lucide-react";
+import { DollarSign, CheckCircle, AlertTriangle, MapPin } from "lucide-react";
+import { OfficeAddressModal } from "@/components/ui/office-address-modal";
 
 interface TravelerPackagePriorityActionsProps {
   pkg: any;
@@ -16,6 +17,7 @@ const TravelerPackagePriorityActions = ({
   onConfirmOfficeDelivery
 }: TravelerPackagePriorityActionsProps) => {
   const [showDeliveryConfirmation, setShowDeliveryConfirmation] = useState(false);
+  const [showOfficeModal, setShowOfficeModal] = useState(false);
   if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler' && pkg.status !== 'pending_office_confirmation') return null;
   return <div className="mb-3 space-y-2">
       {/* Tip/Compensation display - most important for travelers */}
@@ -143,7 +145,27 @@ const TravelerPackagePriorityActions = ({
           </div>
           
         </div>
+        
+        {/* Office Address Button */}
+        {(pkg.status === 'received_by_traveler' || pkg.status === 'pending_office_confirmation') && (
+          <div className="mt-3 pt-3 border-t border-muted/50">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowOfficeModal(true)}
+              className="w-full sm:w-auto"
+            >
+              <MapPin className="h-3 w-3 mr-2" />
+              Ver dirección de oficina
+            </Button>
+          </div>
+        )}
       </div>
+      
+      <OfficeAddressModal 
+        isOpen={showOfficeModal} 
+        onClose={() => setShowOfficeModal(false)} 
+      />
     </div>;
 };
 export default TravelerPackagePriorityActions;
