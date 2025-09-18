@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
 import { InstagramTripPreview } from "./InstagramTripPreview";
-import { InstagramCapturePreview } from "./InstagramCapturePreview";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -26,7 +25,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const captureRef = useRef<HTMLDivElement>(null);
+  const visibleCaptureRef = useRef<HTMLDivElement>(null);
 
   // Check if user is admin
   React.useEffect(() => {
@@ -70,12 +69,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   };
 
   const handleDownloadJPEG = async () => {
-    if (!captureRef.current) return;
+    if (!visibleCaptureRef.current) return;
     
     setIsGenerating(true);
     
     try {
-      const element = captureRef.current;
+      // Wait for fonts to load
+      await document.fonts?.ready;
+      
+      const element = visibleCaptureRef.current;
+      const rect = element.getBoundingClientRect();
       
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
@@ -83,12 +86,12 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         useCORS: true,
         allowTaint: false,
         logging: false,
-        width: 700,
-        height: 700,
+        width: rect.width,
+        height: rect.height,
         scrollX: 0,
         scrollY: 0,
-        foreignObjectRendering: false,
-        removeContainer: true
+        foreignObjectRendering: true,
+        removeContainer: false
       });
       
       // Convert canvas to data URL and download
@@ -101,7 +104,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       document.body.removeChild(link);
       setShowPreview(false);
     } catch (error) {
-      console.error('Error generating JPEG:', error);
+      console.error('Error generating PNG:', error);
     } finally {
       setIsGenerating(false);
     }
@@ -193,22 +196,6 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             )}
           </div>
         </div>
-        {/* Hidden Instagram Component for Capture */}
-        <div className="fixed -top-[5000px] left-0 z-[-1]">
-          <div 
-            ref={captureRef}
-            style={{ 
-              width: '700px', 
-              height: '700px',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              backgroundColor: '#ffffff'
-            }}
-          >
-            <InstagramCapturePreview trips={trips} searchTerm={searchTerm} />
-          </div>
-        </div>
       </DialogContent>
 
       {/* Preview Modal */}
@@ -239,7 +226,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
               <div className="bg-gray-100 rounded-2xl p-2 border-2 border-gray-300 w-full max-w-[700px]">
-                <div className="w-full aspect-square">
+                <div ref={visibleCaptureRef} className="w-full aspect-square">
                   <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={false} />
                 </div>
               </div>
