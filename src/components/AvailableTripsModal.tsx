@@ -92,7 +92,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       });
       
       // Convert canvas to data URL and download
-      const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+      const dataURL = canvas.toDataURL('image/jpeg', 1.0);
       const link = document.createElement('a');
       link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.jpg`;
       link.href = dataURL;
