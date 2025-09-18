@@ -79,7 +79,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
-        scale: 1,
+        scale: 2,
         useCORS: true,
         allowTaint: false,
         logging: false,
@@ -92,9 +92,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       });
       
       // Convert canvas to data URL and download
-      const dataURL = canvas.toDataURL('image/jpeg', 1.0);
+      const dataURL = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.jpg`;
+      link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.png`;
       link.href = dataURL;
       document.body.appendChild(link);
       link.click();
