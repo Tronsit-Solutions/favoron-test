@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
 import { InstagramTripPreview } from "./InstagramTripPreview";
+import { InstagramCaptureSimplified } from "./InstagramCaptureSimplified";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const visibleCaptureRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   // Check if user is admin
   React.useEffect(() => {
@@ -69,28 +70,32 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   };
 
   const handleDownloadJPEG = async () => {
-    if (!visibleCaptureRef.current) return;
+    if (!captureRef.current) return;
     
     setIsGenerating(true);
     
     try {
+      console.log('Starting capture process...');
+      
       // Wait for fonts to load
       await document.fonts?.ready;
+      console.log('Fonts loaded');
       
-      const element = visibleCaptureRef.current;
-      const rect = element.getBoundingClientRect();
+      const element = captureRef.current;
+      console.log('Element to capture:', element);
+      console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
       
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
         allowTaint: false,
-        logging: false,
-        width: rect.width,
-        height: rect.height,
+        logging: true,
+        width: 700,
+        height: 700,
         scrollX: 0,
         scrollY: 0,
-        foreignObjectRendering: true,
+        foreignObjectRendering: false,
         removeContainer: false
       });
       
@@ -196,6 +201,23 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             )}
           </div>
         </div>
+        
+        {/* Hidden Simplified Component for Capture */}
+        <div className="fixed -top-[5000px] left-0 z-[-1]">
+          <div 
+            ref={captureRef}
+            style={{ 
+              width: '700px', 
+              height: '700px',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              backgroundColor: '#ffffff'
+            }}
+          >
+            <InstagramCaptureSimplified trips={trips} searchTerm={searchTerm} />
+          </div>
+        </div>
       </DialogContent>
 
       {/* Preview Modal */}
@@ -226,7 +248,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
               <div className="bg-gray-100 rounded-2xl p-2 border-2 border-gray-300 w-full max-w-[700px]">
-                <div ref={visibleCaptureRef} className="w-full aspect-square">
+                <div className="w-full aspect-square">
                   <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={false} />
                 </div>
               </div>
