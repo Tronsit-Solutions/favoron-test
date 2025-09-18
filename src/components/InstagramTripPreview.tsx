@@ -6,9 +6,10 @@ import favoronLogo from "@/assets/favoron-logo.png";
 interface InstagramTripPreviewProps {
   trips: any[];
   searchTerm: string;
+  forCapture?: boolean;
 }
 
-export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreviewProps) => {
+export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: InstagramTripPreviewProps) => {
   const filteredTrips = trips.filter(trip => 
     trip.from_city.toLowerCase().includes(searchTerm.toLowerCase()) ||
     trip.to_city.toLowerCase().includes(searchTerm.toLowerCase())
@@ -27,7 +28,14 @@ export const InstagramTripPreview = ({ trips, searchTerm }: InstagramTripPreview
   const hasSecondPage = secondPageTrips.length > 0;
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
-    <div className="w-full aspect-square bg-background relative overflow-hidden">
+    <div 
+      className={`bg-background relative overflow-hidden ${
+        forCapture 
+          ? 'w-[1080px] h-[1080px]' 
+          : 'w-full aspect-square'
+      }`}
+      style={forCapture ? { width: '1080px', height: '1080px' } : undefined}
+    >
       {/* Glassmorphism Multi-Layer Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
       <div className="absolute inset-0 bg-gradient-to-tr from-accent/3 via-transparent to-primary/4 backdrop-blur-xl"></div>

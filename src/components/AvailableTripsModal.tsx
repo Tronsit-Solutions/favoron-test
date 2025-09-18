@@ -25,7 +25,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
-  const instagramRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   // Check if user is admin
   React.useEffect(() => {
@@ -69,17 +69,25 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   };
 
   const handleDownloadJPEG = async () => {
-    if (!instagramRef.current) return;
+    if (!captureRef.current) return;
+    
+    setIsGenerating(true);
     
     try {
-      const canvas = await html2canvas(instagramRef.current, {
+      const element = captureRef.current;
+      
+      const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
-        scale: 1,
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         logging: false,
         width: 1080,
-        height: 1080
+        height: 1080,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 1080,
+        windowHeight: 1080
       });
       
       // Convert canvas to data URL and download
@@ -93,6 +101,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       setShowPreview(false);
     } catch (error) {
       console.error('Error generating JPEG:', error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -183,9 +193,19 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
         {/* Hidden Instagram Component for Capture */}
-        <div className="absolute -top-[10000px] left-0">
-          <div ref={instagramRef}>
-            <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
+        <div className="fixed -top-[5000px] left-0 z-[-1]">
+          <div 
+            ref={captureRef}
+            className="w-[1080px] h-[1080px] bg-white"
+            style={{ 
+              width: '1080px', 
+              height: '1080px',
+              position: 'absolute',
+              top: 0,
+              left: 0
+            }}
+          >
+            <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={true} />
           </div>
         </div>
       </DialogContent>
@@ -217,9 +237,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
-              <div className="bg-gray-100 rounded-2xl p-2 border-2 border-gray-300 w-full">
-                <div ref={instagramRef}>
-                  <InstagramTripPreview trips={trips} searchTerm={searchTerm} />
+              <div className="bg-gray-100 rounded-2xl p-2 border-2 border-gray-300 w-full max-w-[500px]">
+                <div className="w-full aspect-square">
+                  <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={false} />
                 </div>
               </div>
               <div className="text-center bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4 border border-cyan-200">
