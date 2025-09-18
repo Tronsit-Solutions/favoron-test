@@ -83,8 +83,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         useCORS: true,
         allowTaint: false,
         logging: false,
-        width: 1080,
-        height: 1080,
+        width: 700,
+        height: 700,
         scrollX: 0,
         scrollY: 0,
         foreignObjectRendering: false,
@@ -198,8 +198,8 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           <div 
             ref={captureRef}
             style={{ 
-              width: '1080px', 
-              height: '1080px',
+              width: '700px', 
+              height: '700px',
               position: 'absolute',
               top: 0,
               left: 0,

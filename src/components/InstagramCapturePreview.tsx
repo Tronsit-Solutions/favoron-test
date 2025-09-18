@@ -29,7 +29,7 @@ export const InstagramCapturePreview = ({ trips, searchTerm }: InstagramCaptureP
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
       className="bg-background relative overflow-hidden"
-      style={{ width: '1080px', height: '1080px' }}
+      style={{ width: '700px', height: '700px' }}
     >
       {/* Glassmorphism Multi-Layer Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
