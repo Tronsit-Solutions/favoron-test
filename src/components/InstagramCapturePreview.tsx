@@ -1,4 +1,6 @@
 import React from "react";
+import { formatDate } from "@/utils/dateHelpers";
+import { MapPin, Calendar, Send } from "lucide-react";
 import favoronLogo from "@/assets/favoron-logo.png";
 
 interface InstagramCapturePreviewProps {
@@ -26,255 +28,98 @@ export const InstagramCapturePreview = ({ trips, searchTerm }: InstagramCaptureP
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
-      style={{
-        width: '1080px',
-        height: '1080px',
-        position: 'relative',
-        overflow: 'hidden',
-        backgroundColor: '#ffffff',
-        fontFamily: '"Bricolage Grotesque", "Inter", system-ui, sans-serif'
-      }}
+      className="bg-background relative overflow-hidden"
+      style={{ width: '1080px', height: '1080px' }}
     >
-      {/* Background Layers */}
-      <div style={{
-        position: 'absolute',
-        inset: '0',
-        background: 'linear-gradient(135deg, hsl(173 58% 39% / 0.05) 0%, hsl(0 0% 100% / 0.98) 30%, hsl(142 76% 36% / 0.08) 100%)'
-      }}></div>
+      {/* Glassmorphism Multi-Layer Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-accent/3 via-transparent to-primary/4 backdrop-blur-xl"></div>
       
-      <div style={{
-        position: 'absolute',
-        inset: '0',
-        background: 'linear-gradient(45deg, hsl(189 94% 43% / 0.03) 0%, transparent 40%, hsl(173 58% 39% / 0.04) 100%)'
+      {/* Advanced Glass Layer with Depth */}
+      <div className="absolute inset-0 backdrop-blur-sm saturate-150 brightness-105">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/6"></div>
+        <div className="absolute top-0 left-0 w-36 h-36 bg-primary/10 rounded-full blur-xl opacity-30"></div>
+        <div className="absolute bottom-0 right-0 w-32 h-32 bg-secondary/8 rounded-full blur-lg opacity-25"></div>
+        <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-accent/6 rounded-full blur-md opacity-20"></div>
+      </div>
+
+      {/* Premium Light Effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/3 via-transparent to-transparent opacity-60"></div>
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 40%), 
+                     radial-gradient(circle at 80% 70%, hsl(var(--secondary) / 0.06) 0%, transparent 35%),
+                     radial-gradient(circle at 60% 20%, hsl(var(--accent) / 0.04) 0%, transparent 30%)`
       }}></div>
 
-      {/* Decorative Elements */}
-      <div style={{
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '144px',
-        height: '144px',
-        background: 'hsl(173 58% 39% / 0.10)',
-        borderRadius: '50%',
-        filter: 'blur(40px)',
-        opacity: '0.3'
-      }}></div>
-      
-      <div style={{
-        position: 'absolute',
-        bottom: '0',
-        right: '0',
-        width: '128px',
-        height: '128px',
-        background: 'hsl(142 76% 36% / 0.08)',
-        borderRadius: '50%',
-        filter: 'blur(30px)',
-        opacity: '0.25'
-      }}></div>
-
-      {/* Header */}
-      <header style={{
-        position: 'relative',
-        zIndex: '20',
-        textAlign: 'center',
-        paddingTop: '24px',
-        paddingBottom: '16px'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.2)',
-          border: '1px solid rgba(203, 213, 225, 0.2)',
-          borderRadius: '12px',
-          margin: '0 24px',
-          padding: '16px',
-          backdropFilter: 'blur(12px)'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            marginBottom: '8px'
-          }}>
+      {/* Premium Glass Header */}
+      <header className="relative z-20 text-center pt-2 pb-1">
+        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-xl mx-3 py-2">
+          <div className="flex items-center justify-center gap-3 mb-1">
             <img 
               src={favoronLogo} 
               alt="Favoron Logo" 
-              style={{
-                width: '24px',
-                height: '24px',
-                objectFit: 'contain',
-                opacity: '0.9'
-              }}
+              className="w-6 h-6 object-contain opacity-90"
             />
-            <h1 style={{
-              fontSize: '24px',
-              fontWeight: '700',
-              color: '#0f172a',
-              letterSpacing: '-0.025em',
-              paddingTop: '4px',
-              margin: '0'
-            }}>
-              Hub de viajes {pageNumber > 1 ? `(${pageNumber})` : ''}
+            <h1 className="text-xl font-bold text-foreground tracking-tight pt-1">
+              Hub de viajes {pageNumber > 1 && `(${pageNumber})`}
             </h1>
           </div>
-          <div style={{
-            width: '32px',
-            height: '2px',
-            background: 'linear-gradient(to right, hsl(173 58% 39%), hsl(142 76% 36%), hsl(189 94% 43%))',
-            margin: '0 auto 8px'
-          }}></div>
+          <div className="w-8 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-1"></div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main style={{
-        position: 'relative',
-        zIndex: '10',
-        padding: '0 48px'
-      }}>
-        <section style={{
-          background: 'transparent',
-          borderRadius: '8px',
-          padding: '0 24px 48px',
-          minHeight: '420px'
-        }}>
-          {/* Column Headers */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.3)',
-            border: '1px solid rgba(203, 213, 225, 0.3)',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '16px',
-            backdropFilter: 'blur(8px)'
-          }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '16px'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '8px',
-                borderRadius: '6px',
-                background: 'hsl(173 58% 39% / 0.05)',
-                border: '1px solid hsl(173 58% 39% / 0.2)'
-              }}>
-                <span style={{ fontSize: '12px', color: 'hsl(173 58% 39%)' }}>📍</span>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>Origen</span>
+      <main className="relative z-10 px-6">
+        <section className="bg-transparent rounded-lg px-3 pb-6 min-h-[420px]">
+          {/* Glass Column Headers */}
+          <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-lg p-2 mb-2">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
+                <MapPin size={8} className="text-primary" />
+                <span className="text-xs font-bold text-foreground">Origen</span>
               </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '8px',
-                borderRadius: '6px',
-                background: 'hsl(173 58% 39% / 0.05)',
-                border: '1px solid hsl(173 58% 39% / 0.2)'
-              }}>
-                <span style={{ fontSize: '12px', color: 'hsl(173 58% 39%)' }}>📍</span>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>Destino</span>
+              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
+                <MapPin size={8} className="text-primary" />
+                <span className="text-xs font-bold text-foreground">Destino</span>
               </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '8px',
-                borderRadius: '6px',
-                background: 'hsl(173 58% 39% / 0.05)',
-                border: '1px solid hsl(173 58% 39% / 0.2)'
-              }}>
-                <span style={{ fontSize: '12px', color: 'hsl(173 58% 39%)' }}>📅</span>
-                <span style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>Fecha</span>
+              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
+                <Calendar size={8} className="text-primary" />
+                <span className="text-xs font-bold text-foreground">Fecha</span>
               </div>
             </div>
           </div>
 
           {/* Trips List */}
-          <div style={{
-            maxHeight: '336px',
-            overflow: 'hidden'
-          }}>
+          <div className="max-h-[336px] overflow-hidden">
             {trips.map((trip, index) => (
-              <div
+              <article
                 key={trip.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '16px',
-                  padding: '16px',
-                  alignItems: 'center'
-                }}
+                className="group grid grid-cols-3 gap-2 py-2 px-2 hover:-translate-y-0.5 transition-all duration-300 items-center"
               >
                 {/* Origin Column */}
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#0f172a',
-                  textAlign: 'center',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: 'hsl(173 58% 39% / 0.05)',
-                  border: '1px solid hsl(173 58% 39% / 0.1)',
-                  backdropFilter: 'blur(2px)'
-                }}>
+                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {trip.from_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.from_city}
                 </div>
                 
                 {/* Destination Column */}
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#0f172a',
-                  textAlign: 'center',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: 'hsl(173 58% 39% / 0.05)',
-                  border: '1px solid hsl(173 58% 39% / 0.1)',
-                  backdropFilter: 'blur(2px)'
-                }}>
+                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {trip.to_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.to_city}
                 </div>
                 
                 {/* Date Column */}
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#0f172a',
-                  textAlign: 'center',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: 'hsl(173 58% 39% / 0.05)',
-                  border: '1px solid hsl(173 58% 39% / 0.1)',
-                  backdropFilter: 'blur(2px)'
-                }}>
+                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
                   {formatInstagramDate(trip.arrival_date)}
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer style={{
-        position: 'absolute',
-        bottom: '24px',
-        left: '0',
-        right: '0',
-        zIndex: '10'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{
-            color: '#64748b',
-            fontSize: '12px',
-            fontWeight: '500',
-            margin: '0'
-          }}>
+      <footer className="absolute bottom-3 left-0 right-0 z-10">
+        <div className="text-center">
+          <p className="text-muted-foreground text-xs font-medium">
             www.favoron.app
           </p>
         </div>
@@ -283,7 +128,7 @@ export const InstagramCapturePreview = ({ trips, searchTerm }: InstagramCaptureP
   );
 
   return (
-    <div>
+    <div className="flex flex-col space-y-8">
       {renderTripPage(firstPageTrips, 1)}
       {hasSecondPage && renderTripPage(secondPageTrips, 2)}
     </div>
