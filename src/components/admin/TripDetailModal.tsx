@@ -13,14 +13,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import RejectionReasonModal from "./RejectionReasonModal";
+import EditTripModal from "../EditTripModal";
 
 interface TripDetailModalProps {
   modalId: string;
   onApprove: (id: string) => void;
   onReject: (id: string, reason?: string) => void;
+  onEditTrip?: (id: string, updates: any) => void;
 }
 
-const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps) => {
+const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetailModalProps) => {
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const trip = getModalData(modalId);
@@ -31,6 +33,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -109,6 +112,14 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
   // Open rejection modal
   const handleRejectClick = () => {
     setRejectionModalOpen(true);
+  };
+
+  // Handle edit trip
+  const handleEditTrip = (updates: any) => {
+    if (onEditTrip) {
+      onEditTrip(trip.id, updates);
+    }
+    setShowEditModal(false);
   };
 
   // Generate PDF with multiple package labels
@@ -203,9 +214,19 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Plane className="h-5 w-5" />
-            <span>Detalles de Viaje #{trip.id}</span>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Plane className="h-5 w-5" />
+              <span>Detalles de Viaje #{trip.id}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEditModal(true)}
+              className="ml-auto"
+            >
+              Editar
+            </Button>
           </DialogTitle>
           <DialogDescription>
             Información completa del viaje y del viajero
@@ -627,6 +648,16 @@ const TripDetailModal = ({ modalId, onApprove, onReject }: TripDetailModalProps)
         type="trip"
         itemName={`${trip?.from_city} → ${trip?.to_city}` || 'Viaje'}
       />
+
+      {/* Edit Trip Modal */}
+      {showEditModal && (
+        <EditTripModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={handleEditTrip}
+          tripData={trip}
+        />
+      )}
 
       {/* Preview Modal for Multiple Labels */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
