@@ -818,10 +818,112 @@ export const useDashboardActions = (
   const handleStatusUpdate = async (type: 'package' | 'trip', id: string, status: string) => {
     try {
       if (type === 'package' && updatePackage) {
-        await updatePackage(id, { status });
+        // Find the current package
+        const currentPackage = packages.find(pkg => pkg.id === id);
+        let updateData: any = { status };
+
+        // Special handling for status change from "matched" to "quote_sent"
+        if (currentPackage?.status === 'matched' && status === 'quote_sent') {
+          console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
+          
+          // Check if we have admin_assigned_tip
+          if (!currentPackage.admin_assigned_tip || currentPackage.admin_assigned_tip <= 0) {
+            toast({
+              title: "Error",
+              description: "No se puede enviar cotización sin un tip asignado por admin.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          try {
+            // Import quote helper
+            const { createNormalizedQuote } = await import('@/lib/quoteHelpers');
+            const { supabase } = await import('@/integrations/supabase/client');
+
+            // Fetch shopper's profile to get trust level
+            const { data: shopperProfile, error: profileError } = await supabase
+              .from('profiles')
+              .select('trust_level')
+              .eq('id', currentPackage.user_id)
+              .single();
+
+            if (profileError) {
+              console.error('Error fetching shopper profile:', profileError);
+              toast({
+                title: "Error",
+                description: "No se pudo obtener el perfil del comprador.",
+                variant: "destructive",
+              });
+              return;
+            }
+
+            // Fetch matched trip details for address and dates
+            let travelerAddress = null;
+            let matchedTripDates = null;
+
+            if (currentPackage.matched_trip_id) {
+              const matchedTrip = trips.find(trip => trip.id === currentPackage.matched_trip_id);
+              
+              if (matchedTrip) {
+                // Build traveler address from trip data
+                travelerAddress = matchedTrip.package_receiving_address ? {
+                  recipientName: matchedTrip.package_receiving_address.recipientName,
+                  streetAddress: matchedTrip.package_receiving_address.streetAddress,
+                  cityArea: matchedTrip.package_receiving_address.cityArea,
+                  postalCode: matchedTrip.package_receiving_address.postalCode,
+                  contactNumber: matchedTrip.package_receiving_address.contactNumber,
+                  hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
+                  accommodationType: matchedTrip.package_receiving_address.accommodationType
+                } : null;
+
+                // Build trip dates information
+                matchedTripDates = {
+                  first_day_packages: matchedTrip.first_day_packages,
+                  last_day_packages: matchedTrip.last_day_packages,
+                  delivery_date: matchedTrip.delivery_date,
+                  arrival_date: matchedTrip.arrival_date
+                };
+              }
+            }
+
+            // Generate quote using admin_assigned_tip as base price
+            const normalizedQuote = createNormalizedQuote(
+              currentPackage.admin_assigned_tip,
+              currentPackage.delivery_method || 'pickup',
+              shopperProfile.trust_level,
+              `Cotización generada automáticamente por admin`,
+              true // adminAssignedTipAccepted
+            );
+
+            // Update package with quote, address, and dates
+            updateData = {
+              status,
+              quote: normalizedQuote,
+              traveler_address: travelerAddress,
+              matched_trip_dates: matchedTripDates,
+              quote_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+            };
+
+            console.log('📊 Generated quote:', normalizedQuote);
+          } catch (quoteError) {
+            console.error('Error generating quote:', quoteError);
+            toast({
+              title: "Error",
+              description: "No se pudo generar la cotización automáticamente.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
+        await updatePackage(id, updateData);
+        
         toast({
           title: "Estado actualizado",
-          description: `El estado del paquete ha sido actualizado a: ${status}`,
+          description: currentPackage?.status === 'matched' && status === 'quote_sent' 
+            ? `Cotización enviada automáticamente con $${currentPackage.admin_assigned_tip}`
+            : `El estado del paquete ha sido actualizado a: ${status}`,
         });
       } else if (type === 'trip' && updateTrip) {
         await updateTrip(id, { status });
