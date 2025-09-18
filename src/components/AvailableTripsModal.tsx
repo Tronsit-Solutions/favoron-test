@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
 import { InstagramTripPreview } from "./InstagramTripPreview";
+import { InstagramCapturePreview } from "./InstagramCapturePreview";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -78,16 +79,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 1,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         logging: false,
         width: 1080,
         height: 1080,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: 1080,
-        windowHeight: 1080
+        foreignObjectRendering: false,
+        removeContainer: true
       });
       
       // Convert canvas to data URL and download
@@ -196,16 +197,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         <div className="fixed -top-[5000px] left-0 z-[-1]">
           <div 
             ref={captureRef}
-            className="w-[1080px] h-[1080px] bg-white"
             style={{ 
               width: '1080px', 
               height: '1080px',
               position: 'absolute',
               top: 0,
-              left: 0
+              left: 0,
+              backgroundColor: '#ffffff'
             }}
           >
-            <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={true} />
+            <InstagramCapturePreview trips={trips} searchTerm={searchTerm} />
           </div>
         </div>
       </DialogContent>
