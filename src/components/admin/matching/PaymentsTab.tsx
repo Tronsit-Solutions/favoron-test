@@ -47,6 +47,36 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
             <p className="text-sm text-muted-foreground">
               Precio: ${pkg.estimated_price} • Usuario: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
             </p>
+            {pkg.quote && (
+              <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
+                <p className="text-xs text-amber-800 font-medium mb-1">💰 Cotización Original del Shopper:</p>
+                {pkg.quote.price && (
+                  <p className="text-xs text-amber-700">
+                    <span className="font-medium">Precio base:</span> Q{Number(pkg.quote.price).toFixed(2)}
+                  </p>
+                )}
+                {pkg.quote.serviceFee && (
+                  <p className="text-xs text-amber-700">
+                    <span className="font-medium">Fee de servicio:</span> Q{Number(pkg.quote.serviceFee).toFixed(2)}
+                  </p>
+                )}
+                {pkg.quote.deliveryFee && Number(pkg.quote.deliveryFee) > 0 && (
+                  <p className="text-xs text-amber-700">
+                    <span className="font-medium">Fee de entrega:</span> Q{Number(pkg.quote.deliveryFee).toFixed(2)}
+                  </p>
+                )}
+                {pkg.quote.totalPrice && (
+                  <p className="text-xs text-amber-700 font-semibold border-t border-amber-300 pt-1 mt-1">
+                    <span className="font-medium">Total que debía pagar:</span> Q{Number(pkg.quote.totalPrice).toFixed(2)}
+                  </p>
+                )}
+                {pkg.quote.completePrice && pkg.quote.completePrice !== pkg.quote.totalPrice && (
+                  <p className="text-xs text-amber-700 font-semibold">
+                    <span className="font-medium">Precio completo:</span> Q{Number(pkg.quote.completePrice).toFixed(2)}
+                  </p>
+                )}
+              </div>
+            )}
             {pkg.payment_receipt && (
               <div className="mt-2 p-2 bg-blue-50 rounded">
                 <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
