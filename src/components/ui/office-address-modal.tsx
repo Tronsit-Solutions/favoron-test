@@ -104,8 +104,8 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
             <div>
               <p className="text-xs text-muted-foreground">
                 <strong>Horarios de atención:</strong><br />
-                Lunes a Viernes: 9:00 AM - 6:00 PM<br />
-                Sábados: 9:00 AM - 1:00 PM
+                Lunes a Viernes: 9:00 AM - 8:00 PM<br />
+                Fines de semana: 9:00 AM - 8:00 PM
               </p>
             </div>
             
