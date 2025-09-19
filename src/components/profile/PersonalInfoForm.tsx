@@ -63,25 +63,21 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">WhatsApp</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label htmlFor="phone">WhatsApp (incluye código de país)</Label>
+        <div className="relative">
+          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            value={formData.countryCode}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, countryCode: e.target.value }))}
-            placeholder="+502"
-            className="text-center"
+            id="phone"
+            type="tel"
+            value={formData.phoneNumber || ''}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, phoneNumber: e.target.value }))}
+            placeholder="+502 1234 5678"
+            className="pl-10"
           />
-          <div className="relative col-span-2">
-            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="phone"
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData((prev: any) => ({ ...prev, phoneNumber: e.target.value }))}
-              placeholder="1234 5678"
-              className="pl-10"
-            />
-          </div>
         </div>
+        <p className="text-sm text-muted-foreground">
+          Incluye el código de país. Ejemplo: +502 1234 5678
+        </p>
       </div>
 
       <div className="space-y-2">
