@@ -488,7 +488,7 @@ const QuoteDialog = ({
                                          <span>Precio total estándar:</span>
                                          <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
                                        </div>
-                                       <div className="flex justify-between text-green-600">
+                                       <div className="flex justify-between text-primary">
                                          <span>Descuento Prime:</span>
                                          <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
                                        </div>
