@@ -114,7 +114,7 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
                 {mode === 'pickup' ? (
                   <>
                     <strong>📦 Instrucciones para recolectar paquetes:</strong><br />
-                    Debes presentarte con tu identificación y proporcionar el código de tu paquete para recolectarlo.
+                    Debes presentarte con tu identificación y recoger el paquete con tu nombre.
                   </>
                 ) : (
                   <>
