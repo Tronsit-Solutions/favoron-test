@@ -738,7 +738,8 @@ const CollapsiblePackageCard = ({
       {showOfficeModal && (
         <OfficeAddressModal 
           isOpen={showOfficeModal} 
-          onClose={() => setShowOfficeModal(false)} 
+          onClose={() => setShowOfficeModal(false)}
+          mode="pickup"
         />
       )}
     </Collapsible>

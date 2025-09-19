@@ -7,9 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface OfficeAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'info' | 'pickup';
 }
 
-export const OfficeAddressModal = ({ isOpen, onClose }: OfficeAddressModalProps) => {
+export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAddressModalProps) => {
   const { companyInfo, loading } = useFavoronCompanyInfo();
 
   const formatAddress = () => {
@@ -110,8 +111,17 @@ export const OfficeAddressModal = ({ isOpen, onClose }: OfficeAddressModalProps)
             
             <div className="bg-red-50 p-3 rounded-lg border border-red-200 shadow-sm">
               <p className="text-xs text-red-800 font-medium">
-                <strong>📦 Instrucciones para entrega de paquetes:</strong><br />
-                Debes entregar los paquetes en una bolsa cerrada y etiquetada con tu nombre.
+                {mode === 'pickup' ? (
+                  <>
+                    <strong>📦 Instrucciones para recolectar paquetes:</strong><br />
+                    Debes presentarte con tu identificación y proporcionar el código de tu paquete para recolectarlo.
+                  </>
+                ) : (
+                  <>
+                    <strong>📦 Instrucciones para entrega de paquetes:</strong><br />
+                    Debes entregar los paquetes en una bolsa cerrada y etiquetada con tu nombre.
+                  </>
+                )}
               </p>
             </div>
           </div>
