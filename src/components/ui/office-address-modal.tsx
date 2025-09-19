@@ -108,12 +108,21 @@ export const OfficeAddressModal = ({ isOpen, onClose }: OfficeAddressModalProps)
             </div>
           )}
           
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground">
-              <strong>Horarios de atención:</strong><br />
-              Lunes a Viernes: 9:00 AM - 6:00 PM<br />
-              Sábados: 9:00 AM - 1:00 PM
-            </p>
+          <div className="pt-4 border-t space-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">
+                <strong>Horarios de atención:</strong><br />
+                Lunes a Viernes: 9:00 AM - 6:00 PM<br />
+                Sábados: 9:00 AM - 1:00 PM
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p className="text-xs text-blue-800">
+                <strong>📦 Instrucciones para entrega de paquetes:</strong><br />
+                Debes entregar los paquetes en una bolsa cerrada y etiquetada con tu nombre.
+              </p>
+            </div>
           </div>
           
           <div className="flex justify-end pt-2">
