@@ -338,9 +338,9 @@ const CollapsibleTravelerPackageCard = ({
                         </div>
                       )}
                       {pkg.status === 'delivered_to_office' && (
-                        <div className="font-medium text-green-600">
-                          🏢 Entregado en oficina - Listo para recojo
-                        </div>
+                         <div className="font-medium text-green-600">
+                           🏢 Listo para recolectar
+                         </div>
                       )}
                       {pkg.status === 'completed' && (
                         <div className="font-medium text-green-600">
