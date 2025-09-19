@@ -37,8 +37,14 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   // Use payment receipt from trip payment accumulator
   useEffect(() => {
     if (tripPayment?.payment_receipt_url) {
+      const raw = tripPayment.payment_receipt_url;
+      // Normalize old entries that might be just filenames
+      const normalized = raw && !raw.includes('/') && !raw.startsWith('http')
+        ? `payment-receipts/${raw}`
+        : raw;
+      
       setPaymentReceipt({
-        receipt_url: tripPayment.payment_receipt_url,
+        receipt_url: normalized,
         receipt_filename: tripPayment.payment_receipt_filename
       });
     } else {

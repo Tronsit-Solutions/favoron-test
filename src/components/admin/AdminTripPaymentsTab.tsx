@@ -95,7 +95,7 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
             const tableName = paymentType === 'prime_membership' ? 'prime_memberships' : 'payment_orders';
             const updateData: any = {
               status: 'approved',
-              receipt_url: fileName,
+              receipt_url: `payment-receipts/${fileName}`,
               receipt_filename: file.name,
             };
 

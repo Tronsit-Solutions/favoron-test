@@ -119,6 +119,11 @@ export function ReceiptViewerModal({
           const { data, error } = await supabase.storage.from(ref.bucket).download(ref.filePath);
           if (error || !data) throw error || new Error('No data from storage');
           blob = data;
+        } else if (receiptUrl && !receiptUrl.includes('/') && !receiptUrl.startsWith('http')) {
+          // Fallback for old entries that are just filenames - assume payment-receipts bucket
+          const { data, error } = await supabase.storage.from('payment-receipts').download(receiptUrl);
+          if (error || !data) throw error || new Error('No data from payment-receipts fallback');
+          blob = data;
         }
       }
 
