@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { FileText, Download, X, AlertCircle, RotateCcw } from "lucide-react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { parseStorageRef } from "@/lib/storageUrls";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -95,31 +96,38 @@ export function ReceiptViewerModal({
     };
   }, [signedUrl, receiptUrl, isImage]);
   const handleDownload = async () => {
-    if (!receiptUrl || !filename) return;
+    if (!receiptUrl && !signedUrl) return;
     
     setDownloadingFile(true);
     try {
       let blob: Blob | null = null;
 
-      const absoluteSigned = signedUrl && /^https?:\/\//i.test(signedUrl) ? signedUrl : null;
-      const absoluteReceipt = receiptUrl && /^https?:\/\//i.test(receiptUrl) ? receiptUrl : null;
+      const effectiveUrl = (signedUrl || displayUrl || receiptUrl) as string | null;
+      const isAbsolute = !!(effectiveUrl && /^https?:\/\//i.test(effectiveUrl));
 
-      if (absoluteSigned || absoluteReceipt) {
-        const response = await fetch(absoluteSigned || absoluteReceipt!);
-        if (!response.ok) throw new Error('Network response was not ok');
+      // 1) Intentar descargar vía URL absoluta (signed o pública)
+      if (isAbsolute && effectiveUrl) {
+        const response = await fetch(effectiveUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
         blob = await response.blob();
-      } else {
-        const [bucket, ...rest] = receiptUrl.split('/');
-        const filePath = rest.join('/');
-        const { data, error } = await supabase.storage.from(bucket).download(filePath);
-        if (error || !data) throw error || new Error('No data');
-        blob = data;
       }
+
+      // 2) Si no funcionó, intentar desde Storage usando bucket y ruta
+      if (!blob) {
+        const ref = parseStorageRef(receiptUrl || signedUrl || '');
+        if (ref) {
+          const { data, error } = await supabase.storage.from(ref.bucket).download(ref.filePath);
+          if (error || !data) throw error || new Error('No data from storage');
+          blob = data;
+        }
+      }
+
+      if (!blob) throw new Error('No se pudo obtener el archivo');
 
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = filename;
+      link.download = filename || 'archivo';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -128,7 +136,11 @@ export function ReceiptViewerModal({
       toast.success("Archivo descargado exitosamente");
     } catch (error) {
       console.error('Error downloading file:', error);
-      toast.error("Error al descargar el archivo");
+      const fallbackUrl = (signedUrl || displayUrl || receiptUrl) as string | undefined;
+      if (fallbackUrl && /^https?:\/\//i.test(fallbackUrl)) {
+        window.open(fallbackUrl, '_blank');
+      }
+      toast.error("Error al descargar el archivo. Intentamos abrirlo en otra pestaña.");
     } finally {
       setDownloadingFile(false);
     }
