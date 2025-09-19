@@ -133,7 +133,7 @@ const CollapsiblePackageCard = ({
       case 'pending_office_confirmation':
         return 'Entregado - Esperando confirmación de oficina';
       case 'delivered_to_office':
-        return 'Entregado en oficina - Listo para recojo';
+        return 'Entregado en oficina - Listo para recolectar';
       case 'completed':
         return 'Completado';
       case 'cancelled':
