@@ -110,6 +110,12 @@ export default {
 				traveler: 'hsl(var(--traveler))',
 				shopper: 'hsl(var(--shopper))',
 				admin: 'hsl(var(--admin))',
+				prime: {
+					DEFAULT: 'hsl(var(--prime))',
+					foreground: 'hsl(var(--prime-foreground))',
+					light: 'hsl(var(--prime-light))',
+					dark: 'hsl(var(--prime-dark))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
