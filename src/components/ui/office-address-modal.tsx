@@ -86,15 +86,6 @@ export const OfficeAddressModal = ({ isOpen, onClose }: OfficeAddressModalProps)
                 </div>
               )}
               
-              {companyInfo?.email && (
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.email}</p>
-                  </div>
-                </div>
-              )}
               
               {companyInfo?.website && (
                 <div className="flex items-center gap-3">
