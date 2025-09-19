@@ -163,13 +163,14 @@ export function ReceiptViewerModal({
           )}
 
           {!loading && !error && displayUrl && (
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-muted/30 rounded-lg p-4">
               {isImage ? (
                 <div className="relative">
                   <img 
                     src={imageSrc || displayUrl || ''} 
                     alt={title}
-                    className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain"
+                    className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain bg-background"
+                    crossOrigin="anonymous"
                     onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
                         source: imageSrc ? 'blob' : 'url',
@@ -179,24 +180,45 @@ export function ReceiptViewerModal({
                         filename
                       });
                     }}
-                    onError={async () => {
-                      console.error('❌ Error al cargar imagen, intentando fallback con descarga desde Storage');
-                      if (!triedBlob && receiptUrl && receiptUrl.includes('/')) {
+                    onError={async (e) => {
+                      console.error('❌ Error al cargar imagen:', e.currentTarget.src);
+                      if (!triedBlob && receiptUrl) {
                         setTriedBlob(true);
-                        const [bucket, ...rest] = receiptUrl.split('/');
-                        const filePath = rest.join('/');
-                        try {
-                          const { data, error } = await supabase.storage.from(bucket).download(filePath);
-                          if (!error && data) {
-                            const url = URL.createObjectURL(data);
-                            setImageSrc(url);
+                        // Para URLs públicas, intentar acceso directo sin signed URL
+                        if (receiptUrl.includes('public/payment-receipts/')) {
+                          const directUrl = receiptUrl.replace('/storage/v1/object/public/', '/storage/v1/object/public/');
+                          console.log('🔄 Intentando URL directa:', directUrl);
+                          setImageSrc(directUrl);
+                          return;
+                        }
+                        // Para otros casos, intentar descarga desde Storage
+                        if (receiptUrl.includes('/')) {
+                          const pathParts = receiptUrl.split('/');
+                          const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts' || part === 'receipts' || part === 'documents');
+                          if (bucketIndex > -1) {
+                            const bucket = pathParts[bucketIndex];
+                            const filePath = pathParts.slice(bucketIndex + 1).join('/');
+                            try {
+                              const { data, error } = await supabase.storage.from(bucket).download(filePath);
+                              if (!error && data) {
+                                const url = URL.createObjectURL(data);
+                                setImageSrc(url);
+                              } else {
+                                console.error('Error descargando desde Storage:', error);
+                              }
+                            } catch (err) {
+                              console.error('Fallback download failed:', err);
+                            }
                           }
-                        } catch (err) {
-                          console.error('Fallback download failed:', err);
                         }
                       }
                     }}
                   />
+                  {!imageSrc && !displayUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
+                      <p className="text-muted-foreground text-sm">No se pudo cargar la imagen</p>
+                    </div>
+                  )}
                 </div>
               ) : isPDF ? (
                 <div className="relative">
