@@ -36,32 +36,52 @@ export function ReceiptViewerModal({
     let toRevoke: string | null = null;
 
     async function loadImage() {
-      // Prefer absolute signed URL if available
+      console.log('🔄 Cargando imagen:', { receiptUrl, signedUrl });
+      
+      // Try the signed URL first if available
       if (signedUrl && /^https?:\/\//i.test(signedUrl)) {
+        console.log('✅ Usando signed URL');
         setImageSrc(signedUrl);
         return;
       }
-      // Otherwise, if we already have an absolute URL, use it
+      
+      // For public URLs, use them directly
       if (receiptUrl && /^https?:\/\//i.test(receiptUrl)) {
-        setImageSrc(receiptUrl);
+        console.log('✅ Usando URL directa');
+        // Add cache busting parameter to avoid cache issues
+        const urlWithCache = receiptUrl + (receiptUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setImageSrc(urlWithCache);
         return;
       }
-      // Fallback: download blob from private storage and create an object URL
+      
+      // Fallback: download blob from storage
       if (receiptUrl && receiptUrl.includes('/')) {
-        const [bucket, ...rest] = receiptUrl.split('/');
-        const filePath = rest.join('/');
-        if (bucket && filePath) {
+        console.log('🔄 Intentando descarga desde Storage');
+        const pathParts = receiptUrl.split('/');
+        const bucketIndex = pathParts.findIndex(part => 
+          part === 'payment-receipts' || 
+          part === 'receipts' || 
+          part === 'documents' ||
+          part === 'purchase-confirmations'
+        );
+        
+        if (bucketIndex > -1) {
+          const bucket = pathParts[bucketIndex];
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          console.log('📁 Descargando desde bucket:', bucket, 'path:', filePath);
+          
           try {
             const { data, error } = await supabase.storage.from(bucket).download(filePath);
             if (!error && data) {
               const url = URL.createObjectURL(data);
               toRevoke = url;
               setImageSrc(url);
+              console.log('✅ Blob URL creada exitosamente');
             } else {
-              console.error('Error descargando imagen desde Storage:', error);
+              console.error('❌ Error descargando imagen desde Storage:', error);
             }
           } catch (e) {
-            console.error('Error en descarga de Storage:', e);
+            console.error('❌ Error en descarga de Storage:', e);
           }
         }
       }
@@ -169,7 +189,7 @@ export function ReceiptViewerModal({
                   <img 
                     src={imageSrc || displayUrl || ''} 
                     alt={title}
-                    className="w-full h-auto rounded-lg shadow-sm max-h-[400px] object-contain bg-background"
+                    className="w-full h-auto rounded-lg shadow-sm min-h-[200px] max-h-[70vh] object-contain bg-background border border-border"
                     crossOrigin="anonymous"
                     onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
