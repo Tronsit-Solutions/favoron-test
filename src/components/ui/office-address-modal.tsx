@@ -117,8 +117,8 @@ export const OfficeAddressModal = ({ isOpen, onClose }: OfficeAddressModalProps)
               </p>
             </div>
             
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-              <p className="text-xs text-blue-800">
+            <div className="bg-red-50 p-3 rounded-lg border border-red-200 shadow-sm">
+              <p className="text-xs text-red-800 font-medium">
                 <strong>📦 Instrucciones para entrega de paquetes:</strong><br />
                 Debes entregar los paquetes en una bolsa cerrada y etiquetada con tu nombre.
               </p>
