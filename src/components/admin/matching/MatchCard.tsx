@@ -75,7 +75,7 @@ export const MatchCard = ({
   };
   
   // Check if package is confirmed (can generate label)
-  const canGenerateLabel = ['pending_purchase', 'payment_pending', 'paid', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status);
+  const canGenerateLabel = ['pending_purchase', 'payment_pending', 'paid', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status);
 
   // Check if we should show timers - including payment_pending
   const showQuoteTimer = (['quote_sent', 'payment_pending'].includes(pkg.status)) && pkg.quote_expires_at;
