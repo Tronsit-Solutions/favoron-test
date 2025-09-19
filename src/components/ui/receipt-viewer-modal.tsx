@@ -189,7 +189,7 @@ export function ReceiptViewerModal({
                   <img 
                     src={imageSrc || displayUrl || ''} 
                     alt={title}
-                    className="w-full h-auto rounded-lg shadow-sm min-h-[200px] max-h-[70vh] object-contain bg-background border border-border"
+                    className="w-full h-auto rounded-lg shadow-sm min-h-[200px] max-h-[70vh] object-contain bg-background border border-border" loading="lazy" decoding="async" referrerPolicy="no-referrer" onClick={() => { const url = imageSrc || displayUrl || ''; if (url) window.open(url, '_blank'); }}
                     crossOrigin="anonymous"
                     onLoad={() => {
                       console.log('✅ Imagen cargada exitosamente:', {
