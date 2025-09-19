@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -21,6 +21,7 @@ import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConf
 import ShopperPaymentInfoModal from "@/components/dashboard/shopper/ShopperPaymentInfoModal";
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import ShippingInfoModal from "@/components/dashboard/ShippingInfoModal";
+import { OfficeAddressModal } from "@/components/ui/office-address-modal";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,6 +83,7 @@ const CollapsiblePackageCard = ({
   });
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [showShippingInfoModal, setShowShippingInfoModal] = React.useState(false);
+  const [showOfficeModal, setShowOfficeModal] = React.useState(false);
   
   const { profile } = useAuth();
   const { getStatusBadge, getExpirationInfo } = useStatusHelpers();
@@ -311,7 +313,7 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1" />
                       Pagar
                     </Button>
-                  ) : pkg.status === 'pending_purchase' ? (
+                   ) : pkg.status === 'pending_purchase' ? (
                     <Button
                       size="sm"
                       variant="success"
@@ -322,6 +324,19 @@ const CollapsiblePackageCard = ({
                       className="text-xs font-medium w-full"
                     >
                       📦 Subir comprobante compra
+                    </Button>
+                  ) : pkg.status === 'delivered_to_office' ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowOfficeModal(true);
+                      }}
+                      className="text-xs font-medium w-full"
+                    >
+                      <MapPin className="h-3 w-3 mr-1" />
+                      Recolectar paquete
                     </Button>
                   ) : ((pkg.status === 'purchased' && !pkg.tracking_info) ||
                        (pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url)) ? (
@@ -424,7 +439,7 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
                       <span className="truncate">Pagar</span>
                     </Button>
-                  ) : pkg.status === 'pending_purchase' && (
+                   ) : pkg.status === 'pending_purchase' ? (
                      <Button
                       size="sm"
                       variant="success"
@@ -436,7 +451,20 @@ const CollapsiblePackageCard = ({
                     >
                       <span className="truncate">ver direccion y comprar</span>
                     </Button>
-                  )}
+                   ) : pkg.status === 'delivered_to_office' ? (
+                     <Button
+                      size="sm"
+                      variant="success"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowOfficeModal(true);
+                      }}
+                      className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
+                    >
+                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Recolectar paquete</span>
+                    </Button>
+                   ) : null}
                   
                   {/* Show upload tracking button for purchased items without tracking */}
                   {((pkg.status === 'purchased' && !pkg.tracking_info) ||
@@ -703,6 +731,14 @@ const CollapsiblePackageCard = ({
           isOpen={showShippingInfoModal}
           onClose={() => setShowShippingInfoModal(false)}
           onDocumentUpload={(type, data) => onUploadDocument(pkg.id, type, data)}
+        />
+      )}
+
+      {/* Office Address Modal */}
+      {showOfficeModal && (
+        <OfficeAddressModal 
+          isOpen={showOfficeModal} 
+          onClose={() => setShowOfficeModal(false)} 
         />
       )}
     </Collapsible>
