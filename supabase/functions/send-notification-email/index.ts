@@ -112,6 +112,11 @@ const getEmailTemplate = (title: string, message: string, type: string, actionUr
           ${actionButton}
         </div>
         <div class="footer">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <a href="https://favoron.app" class="action-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+              Visitar Favoron
+            </a>
+          </div>
           <p>Este es un mensaje automático de Favoron. No responder a este correo.</p>
           <p>© 2024 Favoron. Todos los derechos reservados.</p>
         </div>
