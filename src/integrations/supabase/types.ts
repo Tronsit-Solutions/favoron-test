@@ -1040,7 +1040,7 @@ export type Database = {
         }[]
       }
       get_favoron_bank_info: {
-        Args: { _package_id: string }
+        Args: { _package_id?: string }
         Returns: {
           account_holder: string
           account_number: string
