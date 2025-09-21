@@ -17,14 +17,14 @@ interface ShippingInfoModalProps {
 
 const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingInfoModalProps) => {
   const travelerAddress = pkg.traveler_address as any;
-  const tripData = (pkg as any).trips;
+  const tripDates = pkg.matched_trip_dates as any;
   
   // Debug logging
   console.log('🔍 ShippingInfoModal - Package:', pkg);
   console.log('🔍 ShippingInfoModal - travelerAddress:', travelerAddress);
-  console.log('🔍 ShippingInfoModal - tripData:', tripData);
+  console.log('🔍 ShippingInfoModal - tripDates:', tripDates);
 
-  if (!travelerAddress && !tripData) {
+  if (!travelerAddress && !tripDates) {
     return null;
   }
 
@@ -69,7 +69,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
           )}
           
           {/* Fechas Importantes */}
-          {tripData && (
+          {tripDates && (
             <div>
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -77,10 +77,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
               </h3>
               <div className="bg-info-muted border-info-border border rounded-lg p-4">
                 <div className="space-y-3">
-                  {tripData.first_day_packages && (
+                  {tripDates.first_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(tripData.first_day_packages).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-primary">{new Date(tripDates.first_day_packages).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
@@ -88,10 +88,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                       })}</p>
                     </div>
                   )}
-                  {tripData.last_day_packages && (
+                  {tripDates.last_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(tripData.last_day_packages).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-primary">{new Date(tripDates.last_day_packages).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
@@ -99,10 +99,10 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                       })}</p>
                     </div>
                   )}
-                  {tripData.delivery_date && (
+                  {tripDates.delivery_date && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
-                      <p className="text-sm font-semibold text-success">{new Date(tripData.delivery_date).toLocaleDateString('es-GT', { 
+                      <p className="text-sm font-semibold text-success">{new Date(tripDates.delivery_date).toLocaleDateString('es-GT', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
