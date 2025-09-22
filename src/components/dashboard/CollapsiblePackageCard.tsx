@@ -313,7 +313,7 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1" />
                       Pagar
                     </Button>
-                   ) : pkg.status === 'pending_purchase' ? (
+                   ) : (pkg.status === 'pending_purchase' || (pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info))) ? (
                     <Button
                       size="sm"
                       variant="success"
@@ -439,7 +439,7 @@ const CollapsiblePackageCard = ({
                       <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
                       <span className="truncate">Pagar</span>
                     </Button>
-                   ) : pkg.status === 'pending_purchase' ? (
+                   ) : (pkg.status === 'pending_purchase' || (pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info))) ? (
                      <Button
                       size="sm"
                       variant="success"
