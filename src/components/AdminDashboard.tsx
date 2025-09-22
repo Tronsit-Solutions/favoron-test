@@ -78,7 +78,14 @@ const AdminDashboard = ({
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
 }) => {
-  const [activeTab, setActiveTab] = useState("overview");
+  // Persist activeTab in sessionStorage to prevent redirection on tab visibility changes
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return sessionStorage.getItem('admin_active_tab') || "overview";
+    } catch {
+      return "overview";
+    }
+  });
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [matchingTrip, setMatchingTrip] = useState<string>("");
   const [showMatchDialog, setShowMatchDialog] = useState(false);
@@ -92,8 +99,17 @@ const AdminDashboard = ({
   
   
   // Snapshot mechanism for modal protection
-  const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[] } | null>(null);
+  const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[]; activeTab?: string } | null>(null);
   const modalStateRef = useRef(false);
+
+  // Persist activeTab changes to sessionStorage
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('admin_active_tab', activeTab);
+    } catch (error) {
+      console.warn('Failed to persist active tab:', error);
+    }
+  }, [activeTab]);
 
   // Improved snapshot synchronization to prevent emptying
   useEffect(() => {
@@ -107,11 +123,18 @@ const AdminDashboard = ({
         // Modal closed - apply pending snapshot
         console.log('🔓 Modals closed - applying pending snapshot:', {
           pendingPackages: pendingSnapshotRef.current.packages.length,
-          pendingTrips: pendingSnapshotRef.current.trips.length
+          pendingTrips: pendingSnapshotRef.current.trips.length,
+          preservedTab: pendingSnapshotRef.current.activeTab
         });
         
         setLocalPackages(pendingSnapshotRef.current.packages);
         setLocalTrips(pendingSnapshotRef.current.trips);
+        
+        // Restore active tab if it was preserved in snapshot
+        if (pendingSnapshotRef.current.activeTab) {
+          setActiveTab(pendingSnapshotRef.current.activeTab);
+        }
+        
         pendingSnapshotRef.current = null;
         
         // Process any queued realtime updates after a short delay
@@ -140,9 +163,10 @@ const AdminDashboard = ({
       if (packages.length > 0 || trips.length > 0) {
         console.log('💾 Modals open - saving to pending snapshot:', {
           packages: packages.length,
-          trips: trips.length
+          trips: trips.length,
+          currentTab: activeTab
         });
-        pendingSnapshotRef.current = { packages, trips };
+        pendingSnapshotRef.current = { packages, trips, activeTab };
       }
     }
   }, [packages, trips, hasOpenModals, localPackages.length, localTrips.length]);

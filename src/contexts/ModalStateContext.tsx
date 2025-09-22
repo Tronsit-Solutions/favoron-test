@@ -45,12 +45,12 @@ export const ModalStateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const handleVisibilityChange = () => {
       // Don't clear modal state when tab becomes hidden
       if (document.hidden) {
-        console.log('🔒 Tab hidden - protecting modal state');
+        console.log('🔒 Tab hidden - protecting modal and navigation state');
         return;
       }
       
-      // Tab is now visible again - restore modal state if needed
-      console.log('👁️ Tab visible - modal state preserved');
+      // Tab is now visible again - preserve both modal and navigation state
+      console.log('👁️ Tab visible - modal and navigation state preserved');
     };
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
