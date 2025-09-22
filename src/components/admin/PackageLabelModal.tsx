@@ -2,8 +2,9 @@ import React, { useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { PackageLabel } from './PackageLabel';
-import { Download, Printer, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Printer, X, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -17,9 +18,34 @@ interface PackageLabelModalProps {
 export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLabelModalProps) => {
   const labelRef = useRef<HTMLDivElement>(null);
   const [currentPackageIndex, setCurrentPackageIndex] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [customDescriptions, setCustomDescriptions] = useState<{ [packageIndex: number]: { [productIndex: number]: string } }>({});
   
   const packageList = packages || (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex] || pkg;
+
+  // Get or set custom descriptions for current package
+  const getCurrentCustomDescriptions = () => customDescriptions[currentPackageIndex] || {};
+  
+  const updateProductDescription = (productIndex: number, description: string) => {
+    setCustomDescriptions(prev => ({
+      ...prev,
+      [currentPackageIndex]: {
+        ...prev[currentPackageIndex],
+        [productIndex]: description
+      }
+    }));
+  };
+
+  // Get initial descriptions for editing
+  const getInitialDescriptions = () => {
+    if (currentPackage.products_data && Array.isArray(currentPackage.products_data)) {
+      return currentPackage.products_data.map((product, index) => 
+        getCurrentCustomDescriptions()[index] || product.itemDescription || ''
+      );
+    }
+    return [getCurrentCustomDescriptions()[0] || currentPackage.item_description || ''];
+  };
 
   const generatePDF = async () => {
     if (!packageList || packageList.length === 0) return;
@@ -68,7 +94,10 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         // Render PackageLabel component
         const root = ReactDOM.createRoot(tempLabelContainer);
         await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg: packageItem }));
+          root.render(React.createElement(PackageLabel, { 
+            pkg: packageItem, 
+            customDescriptions: customDescriptions[packages?.indexOf(packageItem) || 0] 
+          }));
           setTimeout(resolve, 100);
         });
 
@@ -191,9 +220,42 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
               className="transform scale-40 origin-center"
               style={{ transformOrigin: 'center center' }}
             >
-              <PackageLabel pkg={currentPackage} />
-            </div>
-          </div>
+               <PackageLabel 
+                 pkg={currentPackage} 
+                 customDescriptions={getCurrentCustomDescriptions()}
+               />
+             </div>
+           </div>
+
+           {/* Edit Mode */}
+           {isEditing && (
+             <div className="space-y-3 border rounded-lg p-3 bg-muted/30">
+               <h4 className="font-medium text-sm">Editar descripciones:</h4>
+               {getInitialDescriptions().map((description, index) => (
+                 <div key={index} className="space-y-1">
+                   <label className="text-xs font-medium">
+                     {currentPackage.products_data && Array.isArray(currentPackage.products_data) 
+                       ? `Producto ${index + 1}:` 
+                       : 'Descripción:'}
+                   </label>
+                   <Textarea
+                     value={description}
+                     onChange={(e) => updateProductDescription(index, e.target.value)}
+                     placeholder="Descripción del producto..."
+                     className="text-xs h-16 resize-none"
+                   />
+                 </div>
+               ))}
+               <div className="flex space-x-2">
+                 <Button size="sm" onClick={() => setIsEditing(false)}>
+                   Aplicar cambios
+                 </Button>
+                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                   Cancelar
+                 </Button>
+               </div>
+             </div>
+           )}
 
           {/* Package Info */}
           <div className="text-xs text-gray-600 space-y-1">
@@ -202,17 +264,26 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
             <div><strong>Estado:</strong> {currentPackage.status}</div>
           </div>
 
-          {/* Actions */}
-          <div className="flex space-x-2">
-            <Button onClick={generatePDF} className="flex-1">
-              <Download className="h-4 w-4 mr-2" />
-              Descargar PDF
-            </Button>
-            <Button onClick={handlePrint} variant="outline" className="flex-1">
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-          </div>
+           {/* Actions */}
+           <div className="flex space-x-2">
+             <Button 
+               onClick={() => setIsEditing(!isEditing)} 
+               variant="outline" 
+               size="sm"
+               className="flex-none"
+             >
+               <Edit className="h-4 w-4 mr-1" />
+               {isEditing ? 'Cancelar' : 'Editar'}
+             </Button>
+             <Button onClick={generatePDF} className="flex-1">
+               <Download className="h-4 w-4 mr-2" />
+               Descargar PDF
+             </Button>
+             <Button onClick={handlePrint} variant="outline" className="flex-1">
+               <Printer className="h-4 w-4 mr-2" />
+               Imprimir
+             </Button>
+           </div>
         </div>
       </DialogContent>
     </Dialog>

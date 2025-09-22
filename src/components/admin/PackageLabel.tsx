@@ -4,9 +4,10 @@ interface PackageLabelProps {
   pkg: any;
   trip?: any;
   className?: string;
+  customDescriptions?: { [productIndex: number]: string };
 }
 
-export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) => {
+export const PackageLabel = ({ pkg, trip, className = '', customDescriptions }: PackageLabelProps) => {
   const getShopperName = () => {
     if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
       return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
@@ -84,7 +85,7 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
       return pkg.products_data.map((product, index) => {
         const quantity = parseInt(product.quantity || '1');
-        const description = product.itemDescription || '';
+        const description = customDescriptions?.[index] || product.itemDescription || '';
         const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
         return (
           <div key={index} className="break-words">
@@ -93,7 +94,7 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
         );
       });
     }
-    return pkg.item_description;
+    return customDescriptions?.[0] || pkg.item_description;
   };
 
   return (
