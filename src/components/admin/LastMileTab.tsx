@@ -75,7 +75,8 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
               'purchased',
               'shipped',
               'in_transit', 
-              'received_by_traveler', 
+              'received_by_traveler',
+              'pending_office_confirmation', 
               'delivered_to_office', 
               'out_for_delivery', 
               'completed'
