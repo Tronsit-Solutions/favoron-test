@@ -85,10 +85,10 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
       return pkg.products_data.map((product, index) => {
         const quantity = parseInt(product.quantity || '1');
         const description = product.itemDescription || '';
-        const quantityText = quantity > 1 ? `${quantity}x ` : '';
+        const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
         return (
           <div key={index} className="break-words">
-            {quantityText}{description}
+            {index + 1}. {description}{quantityText}
           </div>
         );
       });
