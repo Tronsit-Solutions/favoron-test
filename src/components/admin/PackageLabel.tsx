@@ -80,6 +80,22 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
     return 'N/A';
   };
 
+  const getFormattedDescription = () => {
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      return pkg.products_data.map((product, index) => {
+        const quantity = parseInt(product.quantity || '1');
+        const description = product.itemDescription || '';
+        const quantityText = quantity > 1 ? `${quantity}x ` : '';
+        return (
+          <div key={index} className="break-words">
+            {quantityText}{description}
+          </div>
+        );
+      });
+    }
+    return pkg.item_description;
+  };
+
   return (
     <div className={`bg-white border-2 border-black ${className}`} 
          style={{ 
@@ -105,7 +121,11 @@ export const PackageLabel = ({ pkg, trip, className = '' }: PackageLabelProps) =
         <div>
           <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
           <div className="break-words space-y-1">
-            <div><strong>Descripción:</strong> {pkg.item_description}</div>
+            <div><strong>Descripción:</strong> 
+              <div className="mt-1">
+                {getFormattedDescription()}
+              </div>
+            </div>
             <div><strong>NO. DE SEGUIMIENTO:</strong> {getPackageId()}</div>
             
             <div><strong>Cantidad:</strong> {getTotalQuantity()}</div>
