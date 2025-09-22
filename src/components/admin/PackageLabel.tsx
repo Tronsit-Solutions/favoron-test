@@ -122,10 +122,8 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions }: 
         <div>
           <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
           <div className="break-words space-y-1">
-            <div><strong>Descripción:</strong> 
-              <div className="mt-1">
-                {getFormattedDescription()}
-              </div>
+            <div className="mt-1">
+              {getFormattedDescription()}
             </div>
             <div><strong>NO. DE SEGUIMIENTO:</strong> {getPackageId()}</div>
             
