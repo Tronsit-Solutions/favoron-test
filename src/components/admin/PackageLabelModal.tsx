@@ -38,7 +38,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
       
       let isFirstPage = true;
 
-      for (const pkg of packageList) {
+      for (const packageItem of packageList) {
         // Add new page for each label (except the first one)
         if (!isFirstPage) {
           pdf.addPage();
@@ -68,7 +68,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         // Render PackageLabel component
         const root = ReactDOM.createRoot(tempLabelContainer);
         await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg }));
+          root.render(React.createElement(PackageLabel, { pkg: packageItem }));
           setTimeout(resolve, 100);
         });
 
