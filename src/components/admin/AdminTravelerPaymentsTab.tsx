@@ -95,7 +95,7 @@ const AdminTravelerPaymentsTab = () => {
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, item_description, products_data, status, matched_trip_id')
+        .select('id, item_description, products_data, status, matched_trip_id, quote, admin_assigned_tip')
         .eq('matched_trip_id', tripId)
         .in('status', ['received_by_traveler', 'completed'])
         .not('products_data', 'is', null)
@@ -114,7 +114,11 @@ const AdminTravelerPaymentsTab = () => {
         throw error;
       }
       
-      setPackageBreakdown(data || []);
+      setPackageBreakdown((data || []).map(pkg => ({
+        ...pkg,
+        quote: typeof pkg.quote === 'object' && pkg.quote ? pkg.quote as { price?: number } : undefined,
+        admin_assigned_tip: pkg.admin_assigned_tip || undefined
+      })));
       console.log('✅ Package breakdown set:', data?.length || 0, 'packages');
     } catch (error) {
       console.error('❌ Error fetching package breakdown:', error);
@@ -628,8 +632,8 @@ const AdminTravelerPaymentsTab = () => {
                 })()}
                 {packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
-                    // Extraer el tip desde quote.price (fuente principal en historical_packages)
-                    const packageTip = pkg.quote?.price || 0;
+                    // Usar admin_assigned_tip si está disponible, sino usar quote.price
+                    const packageTip = pkg.admin_assigned_tip || pkg.quote?.price || 0;
                     
                     console.log(`📦 Package ${index}:`, {
                       id: pkg.id,
