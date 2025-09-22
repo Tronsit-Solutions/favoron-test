@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -73,6 +73,20 @@ const AdminTravelerPaymentsTab = () => {
   }>>([]);
   const { toast } = useToast();
   const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
+
+  // Fetch package breakdown when confirmation dialog opens
+  useEffect(() => {
+    if (confirmDialog.isOpen && confirmDialog.order) {
+      const { trip_id, traveler_id } = confirmDialog.order;
+      if (trip_id && traveler_id) {
+        console.log('🔍 AdminTravelerPaymentsTab - Dialog opened, fetching breakdown for:', { trip_id, traveler_id });
+        fetchPackageBreakdown(trip_id, traveler_id);
+      }
+    } else if (!confirmDialog.isOpen) {
+      // Clear breakdown when dialog closes
+      setPackageBreakdown([]);
+    }
+  }, [confirmDialog.isOpen, confirmDialog.order]);
 
   // Función para obtener el desglose de paquetes
   const fetchPackageBreakdown = async (tripId: string, travelerId: string) => {
