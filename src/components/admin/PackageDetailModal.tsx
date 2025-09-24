@@ -142,19 +142,30 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Handle save changes
   const handleSaveChanges = () => {
     if (onUpdatePackage) {
-      // If it's a single-product order, sync legacy edits to products_data for consistent UI
+      // Sync edits to products_data for consistent UI (both single and multiple products)
       let products_data: any | undefined = undefined;
-      if (Array.isArray(pkg.products_data) && pkg.products_data.length === 1) {
-        const p0 = pkg.products_data[0] || {};
-        products_data = [
-          {
-            ...p0,
-            itemDescription: editForm.item_description || p0.itemDescription,
-            itemLink: editForm.item_link || p0.itemLink || null,
-            estimatedPrice: editForm.estimated_price || p0.estimatedPrice,
-            quantity: p0.quantity || '1',
-          },
-        ];
+      
+      if (Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        if (pkg.products_data.length === 1) {
+          // Single product: sync all fields including additional_notes
+          const p0 = pkg.products_data[0] || {};
+          products_data = [
+            {
+              ...p0,
+              itemDescription: editForm.item_description || p0.itemDescription,
+              itemLink: editForm.item_link || p0.itemLink || null,
+              estimatedPrice: editForm.estimated_price || p0.estimatedPrice,
+              quantity: p0.quantity || '1',
+              additionalNotes: editForm.additional_notes || p0.additionalNotes || null,
+            },
+          ];
+        } else {
+          // Multiple products: sync additional_notes to all products
+          products_data = pkg.products_data.map((product: any) => ({
+            ...product,
+            additionalNotes: editForm.additional_notes || product.additionalNotes || null,
+          }));
+        }
       }
 
       const updates = {
