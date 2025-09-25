@@ -61,13 +61,6 @@ const PackageProductDisplay = ({
                   </div>
                 )}
                 
-                {product.adminAssignedTip && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">
-                      Tip asignado: Q{product.adminAssignedTip.toFixed(2)}
-                    </Badge>
-                  </div>
-                )}
                 
                 {product.itemLink && (
                   <div className="pt-2">
@@ -95,11 +88,6 @@ const PackageProductDisplay = ({
                 return sum + (price * quantity);
               }, 0).toFixed(2)}
             </p>
-            {products.some(p => p.adminAssignedTip) && (
-              <p className="font-medium text-green-600">
-                Tip total asignado: Q{products.reduce((sum: number, p: Product) => sum + (p.adminAssignedTip || 0), 0).toFixed(2)}
-              </p>
-            )}
           </div>
         </StatusAlert>
       </div>
