@@ -66,7 +66,7 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
                   </p>
                 )}
                 {pkg.quote.totalPrice && (
-                  <p className="text-xs text-amber-700 font-semibold border-t border-amber-300 pt-1 mt-1">
+                  <p className="text-xs text-amber-700 font-semibold">
                     <span className="font-medium">Total que debía pagar:</span> Q{Number(pkg.quote.totalPrice).toFixed(2)}
                   </p>
                 )}
