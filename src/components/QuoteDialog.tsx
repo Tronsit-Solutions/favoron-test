@@ -513,26 +513,28 @@ const QuoteDialog = ({
                                        </div>
                                      </>
                                    ) : (
-                                     <>
-                                       <div className="flex justify-between">
-                                         <span>Precio base:</span>
-                                         <span>{formatCurrency(breakdown.basePrice)}</span>
-                                       </div>
-                                       <div className="flex justify-between">
-                                         <span>Service fee (40%):</span>
-                                         <span>{formatCurrency(breakdown.serviceFee)}</span>
-                                       </div>
-                                       {packageDetails.delivery_method === 'delivery' && (
-                                         <div className="flex justify-between">
-                                           <span>Entrega a domicilio:</span>
-                                           <span>{formatCurrency(breakdown.deliveryFee)}</span>
-                                         </div>
-                                       )}
-                                       <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
-                                         <span>Total:</span>
-                                         <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                       </div>
-                                     </>
+                                      <>
+                                        <div className="flex justify-between">
+                                          <span>Precio base:</span>
+                                          <span>{formatCurrency(breakdown.basePrice)}</span>
+                                        </div>
+                                        {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
+                                          <div className="flex justify-between">
+                                            <span>Entrega a domicilio:</span>
+                                            <span>{formatCurrency(breakdown.deliveryFee)}</span>
+                                          </div>
+                                        )}
+                                        {packageDetails.delivery_method === 'delivery' && breakdown.isPrime && (
+                                          <div className="flex justify-between">
+                                            <span>Entrega a domicilio:</span>
+                                            <span className="text-green-600">Gratis (Prime)</span>
+                                          </div>
+                                        )}
+                                        <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
+                                          <span>Total:</span>
+                                          <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                        </div>
+                                      </>
                                    )}
                                 </>
                               );
