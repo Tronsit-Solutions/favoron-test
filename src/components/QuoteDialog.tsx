@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { useAuth } from "@/hooks/useAuth";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
+import PrimeModal from "./PrimeModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
@@ -85,6 +86,7 @@ const QuoteDialog = ({
   // Local state for UI components that don't need persistence
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrimeModal, setShowPrimeModal] = useState(false);
   
   // Mobile detection and input control
   const isMobile = useIsMobile();
@@ -543,6 +545,14 @@ const QuoteDialog = ({
                                                <p className="text-xs text-purple-700 mt-1">
                                                  Los usuarios Prime pagan menores comisiones y envío gratis.
                                                </p>
+                                               <Button
+                                                 onClick={() => setShowPrimeModal(true)}
+                                                 size="sm"
+                                                 className="mt-3 bg-purple-600 hover:bg-purple-700 text-white"
+                                               >
+                                                 <Crown className="w-4 h-4 mr-2" />
+                                                 Obtener Prime
+                                               </Button>
                                              </div>
                                            ) : null;
                                          })()}
@@ -724,6 +734,13 @@ const QuoteDialog = ({
         
         {/* Terms and Conditions Modal */}
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+        
+        {/* Prime Modal */}
+        <PrimeModal
+          isOpen={showPrimeModal}
+          onClose={() => setShowPrimeModal(false)}
+          user={profile}
+        />
       </DialogContent>
     </Dialog>;
 };
