@@ -535,12 +535,12 @@ const QuoteDialog = ({
                                            const primeBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'prime');
                                            const savings = breakdown.totalPrice - primeBreakdown.totalPrice;
                                            return savings > 0 ? (
-                                             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                               <p className="text-sm text-yellow-800">
+                                             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                               <p className="text-sm text-purple-800">
                                                  <span className="font-semibold">⭐ Con Prime ahorrarías:</span>{" "}
-                                                 <span className="font-bold text-yellow-900">{formatCurrency(savings)}</span>
+                                                 <span className="font-bold text-purple-900">{formatCurrency(savings)}</span>
                                                </p>
-                                               <p className="text-xs text-yellow-700 mt-1">
+                                               <p className="text-xs text-purple-700 mt-1">
                                                  Los usuarios Prime pagan menores comisiones y envío gratis.
                                                </p>
                                              </div>
