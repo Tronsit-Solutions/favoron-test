@@ -87,16 +87,6 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
                 </div>
               )}
               
-              
-              {companyInfo?.website && (
-                <div className="flex items-center gap-3">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Sitio Web</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.website}</p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
           
