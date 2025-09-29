@@ -514,10 +514,6 @@ const QuoteDialog = ({
                                      </>
                                    ) : (
                                       <>
-                                        <div className="flex justify-between">
-                                          <span>Precio base:</span>
-                                          <span>{formatCurrency(breakdown.basePrice)}</span>
-                                        </div>
                                         {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
                                           <div className="flex justify-between">
                                             <span>Entrega a domicilio:</span>
