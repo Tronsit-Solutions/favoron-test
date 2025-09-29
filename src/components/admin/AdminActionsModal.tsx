@@ -554,6 +554,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   return (
     <>
       <ProductTipAssignmentModal
+        key={pkg.id}
         isOpen={showProductTipModal}
         onClose={() => setShowProductTipModal(false)}
         onSave={handleProductTipSave}

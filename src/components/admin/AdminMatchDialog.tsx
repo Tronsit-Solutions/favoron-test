@@ -933,6 +933,7 @@ const AdminMatchDialog = ({
 
       {/* Product Tip Assignment Modal */}
       <ProductTipAssignmentModal
+        key={selectedPackage?.id || 'default'}
         isOpen={showProductTipModal}
         onClose={() => setShowProductTipModal(false)}
         onSave={handleProductTipSave}
