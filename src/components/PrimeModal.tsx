@@ -135,7 +135,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
                   </div>
                   <p className="text-sm text-muted-foreground">Membresía anual</p>
                   <p className="text-xs text-purple-600 font-medium">
-                    ¡Oferta por tiempo limitado!
+                    ¡Oferta por lanzamiento de página web!
                   </p>
                 </div>
               </div>
