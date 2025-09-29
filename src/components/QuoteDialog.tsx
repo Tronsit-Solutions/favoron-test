@@ -19,6 +19,7 @@ import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
 import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
 import { createNormalizedQuote } from '@/lib/quoteHelpers';
+import './ui/mobile-input-fix.css';
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -84,6 +85,10 @@ const QuoteDialog = ({
   // Local state for UI components that don't need persistence
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  
+  // Mobile detection and input control
+  const isMobile = useIsMobile();
+  const [mobileInputsReady, setMobileInputsReady] = useState(false);
 
   // Destructure form state for easier access
   const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms } = formState;
@@ -101,9 +106,19 @@ const QuoteDialog = ({
       if (!hasContent) {
         clearPersistedState();
       }
+      // Reset mobile inputs ready state when modal closes
+      setMobileInputsReady(false);
+    } else if (isOpen && isMobile) {
+      // Delay input focus availability on mobile to prevent auto-keyboard
+      const timer = setTimeout(() => {
+        setMobileInputsReady(true);
+      }, 300); // Small delay to prevent immediate focus
+      return () => clearTimeout(timer);
+    } else if (isOpen && !isMobile) {
+      // Desktop can focus immediately
+      setMobileInputsReady(true);
     }
-  }, [isOpen, formState.price, formState.message, formState.acceptedTerms, clearPersistedState]);
-  const isMobile = useIsMobile();
+  }, [isOpen, formState.price, formState.message, formState.acceptedTerms, clearPersistedState, isMobile]);
   const isQuoteExpired = packageDetails.quote_expires_at && new Date(packageDetails.quote_expires_at) < new Date();
   console.log('🔍 Quote Debug Info:', {
     quote_expires_at: packageDetails.quote_expires_at,
@@ -566,9 +581,23 @@ const QuoteDialog = ({
                   </p>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-sans">Q</span>
-                    <Input id="price" type="number" placeholder="0.00" value={price} onChange={e => updateFormField('price', e.target.value)} className="pl-8 w-32" style={{
-                  fontFamily: 'Arial, sans-serif'
-                }} required />
+                    <Input 
+                      id="price" 
+                      type="number" 
+                      placeholder="0.00" 
+                      value={price} 
+                      onChange={e => updateFormField('price', e.target.value)} 
+                      className={`pl-8 w-32 ${isMobile ? 'mobile-safe-form' : ''}`}
+                      style={{ fontFamily: 'Arial, sans-serif' }}
+                      autoFocus={false}
+                      readOnly={isMobile && !mobileInputsReady}
+                      onFocus={(e) => {
+                        if (isMobile && !mobileInputsReady) {
+                          e.target.blur();
+                        }
+                      }}
+                      required 
+                    />
                   </div>
                   <p className="text-xs text-amber-600 mt-1">
                     ⚠️ Asegúrate de considerar cualquier costo adicional por recibir el paquete (algunos hoteles cobran por este servicio)
@@ -577,7 +606,21 @@ const QuoteDialog = ({
                 
                 <div>
                   <Label htmlFor="message">Mensaje (opcional)</Label>
-                  <Textarea id="message" placeholder="Añade cualquier información adicional..." value={message} onChange={e => updateFormField('message', e.target.value)} rows={3} />
+                  <Textarea 
+                    id="message" 
+                    placeholder="Añade cualquier información adicional..." 
+                    value={message} 
+                    onChange={e => updateFormField('message', e.target.value)} 
+                    rows={3}
+                    className={isMobile ? 'mobile-safe-form' : ''}
+                    autoFocus={false}
+                    readOnly={isMobile && !mobileInputsReady}
+                    onFocus={(e) => {
+                      if (isMobile && !mobileInputsReady) {
+                        e.target.blur();
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>}
@@ -589,7 +632,21 @@ const QuoteDialog = ({
                 <p className="text-sm text-muted-foreground mb-2">
                   {isTravelerContext ? "Mensaje para el shopper:" : "Mensaje para el viajero:"}
                 </p>
-                <Textarea id="message" placeholder="Escribe un mensaje para el shopper..." value={message} onChange={e => updateFormField('message', e.target.value)} rows={3} />
+                <Textarea 
+                  id="message" 
+                  placeholder="Escribe un mensaje para el shopper..." 
+                  value={message} 
+                  onChange={e => updateFormField('message', e.target.value)} 
+                  rows={3}
+                  className={isMobile ? 'mobile-safe-form' : ''}
+                  autoFocus={false}
+                  readOnly={isMobile && !mobileInputsReady}
+                  onFocus={(e) => {
+                    if (isMobile && !mobileInputsReady) {
+                      e.target.blur();
+                    }
+                  }}
+                />
               </div>
             </div>}
 

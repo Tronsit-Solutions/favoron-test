@@ -1,0 +1,40 @@
+/* Mobile input autofocus prevention styles */
+.mobile-safe-form {
+  /* Prevent iOS zoom on input focus */
+  font-size: 16px;
+  
+  /* Enhanced touch targets for mobile */
+  min-height: 44px;
+  
+  /* Safari specific fixes */
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent autofocus behavior on mobile */
+@media (max-width: 768px) {
+  .mobile-safe-form:focus {
+    /* Prevent immediate keyboard popup */
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  .mobile-safe-form[readonly] {
+    /* Style readonly inputs to look normal */
+    opacity: 1;
+    background-color: hsl(var(--background));
+    cursor: text;
+  }
+  
+  .mobile-safe-form[readonly]:focus {
+    /* Remove focus styles when readonly */
+    outline: none;
+  }
+}
+
+/* Enhanced mobile textarea behavior */
+.mobile-safe-form[data-textarea] {
+  resize: vertical;
+  min-height: 44px;
+}
