@@ -462,7 +462,7 @@ const CollapsiblePackageCard = ({
                       className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full"
                     >
                       <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">Recolectar paquete</span>
+                      <span className="truncate">Recoger paquete</span>
                     </Button>
                    ) : null}
                   
