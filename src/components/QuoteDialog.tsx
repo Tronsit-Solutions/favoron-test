@@ -538,21 +538,25 @@ const QuoteDialog = ({
                                            const savings = breakdown.totalPrice - primeBreakdown.totalPrice;
                                            return savings > 0 ? (
                                              <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                               <p className="text-sm text-purple-800">
-                                                 <span className="font-semibold">⭐ Con Prime ahorrarías:</span>{" "}
-                                                 <span className="font-bold text-purple-900">{formatCurrency(savings)}</span>
-                                               </p>
-                                               <p className="text-xs text-purple-700 mt-1">
-                                                 Los usuarios Prime pagan menores comisiones y envío gratis.
-                                               </p>
-                                               <Button
-                                                 onClick={() => setShowPrimeModal(true)}
-                                                 size="sm"
-                                                 className="mt-3 bg-purple-600 hover:bg-purple-700 text-white"
-                                               >
-                                                 <Crown className="w-4 h-4 mr-2" />
-                                                 Obtener Prime
-                                               </Button>
+                                               <div className="flex items-center justify-between gap-3">
+                                                 <div>
+                                                   <p className="text-sm text-purple-800">
+                                                     <span className="font-semibold">⭐ Con Prime ahorrarías:</span>{" "}
+                                                     <span className="font-bold text-purple-900">{formatCurrency(savings)}</span>
+                                                   </p>
+                                                   <p className="text-xs text-purple-700 mt-1">
+                                                     Los usuarios Prime pagan menores comisiones y envío gratis.
+                                                   </p>
+                                                 </div>
+                                                 <Button
+                                                   onClick={() => setShowPrimeModal(true)}
+                                                   size="sm"
+                                                   className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
+                                                 >
+                                                   <Crown className="w-4 h-4 mr-2" />
+                                                   Obtener Prime
+                                                 </Button>
+                                               </div>
                                              </div>
                                            ) : null;
                                          })()}
