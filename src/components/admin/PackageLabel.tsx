@@ -168,22 +168,22 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
       </div>
 
       {/* Label Number - Bottom Right Corner */}
-      {labelNumber !== undefined && labelNumber !== null && (
-        <div 
-          style={{
-            position: 'absolute',
-            bottom: '6px',
-            right: '6px',
-            fontSize: '8px',
-            fontFamily: 'monospace',
-            color: '#999',
-            fontWeight: 'normal',
-            opacity: 0.7
-          }}
-        >
-          #{String(labelNumber).padStart(4, '0')}
-        </div>
-      )}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '6px',
+          right: '6px',
+          fontSize: '8px',
+          fontFamily: 'monospace',
+          color: '#999',
+          fontWeight: 'normal',
+          opacity: 0.7
+        }}
+      >
+        {labelNumber !== undefined && labelNumber !== null 
+          ? `#${String(labelNumber).padStart(4, '0')}`
+          : '####'}
+      </div>
     </div>
   );
 };

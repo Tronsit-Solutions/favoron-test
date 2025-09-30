@@ -28,13 +28,6 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const packageList = packages || (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex] || pkg;
 
-  // Generate label numbers when modal opens
-  useEffect(() => {
-    if (isOpen && packageList.length > 0) {
-      generateLabelNumbers();
-    }
-  }, [isOpen, packageList.length]);
-
   const generateLabelNumbers = async () => {
     console.log('🏷️ Generating label numbers for', packageList.length, 'packages');
     const newLabelNumbers: { [packageIndex: number]: number } = {};
@@ -91,6 +84,10 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     if (!packageList || packageList.length === 0) return;
 
     try {
+      // Generate label numbers only when actually downloading
+      console.log('🏷️ Generating label numbers for PDF download...');
+      await generateLabelNumbers();
+
       // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -176,8 +173,15 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!labelRef.current || !currentPackage) return;
+
+    // Generate label numbers only when actually printing
+    console.log('🏷️ Generating label numbers for printing...');
+    await generateLabelNumbers();
+
+    // Wait a moment for state to update
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -301,7 +305,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
              </div>
            )}
 
-          {/* Package Info */}
+           {/* Package Info */}
           <div className="text-xs text-gray-600 space-y-1">
             <div><strong>Pedido:</strong> {currentPackage.item_description}</div>
             <div><strong>ID:</strong> {currentPackage.id ? currentPackage.id.substring(0, 8) : 'N/A'}</div>
@@ -310,7 +314,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
               <strong>Etiqueta:</strong>{' '}
               {labelNumbers[currentPackageIndex] !== undefined && labelNumbers[currentPackageIndex] !== null
                 ? `#${String(labelNumbers[currentPackageIndex]).padStart(4, '0')}`
-                : '—'}
+                : <span className="text-muted-foreground italic">Se asignará al descargar/imprimir</span>}
             </div>
           </div>
 

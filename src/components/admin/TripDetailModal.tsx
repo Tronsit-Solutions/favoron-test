@@ -152,11 +152,9 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     setGeneratingPDF(true);
     
     try {
-      // Ensure we have label numbers
-      let numbers = labelNumbers;
-      if (numbers.length === 0) {
-        numbers = await generateLabelNumbers() || [];
-      }
+      // Generate label numbers only when actually downloading PDF
+      console.log('🏷️ Generating label numbers for PDF download...');
+      const numbers = await generateLabelNumbers() || [];
 
       // Import React and ReactDOM for rendering
       const React = await import('react');
@@ -577,12 +575,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                 </div>
                 {packages.length > 0 && (
                   <Button
-                    onClick={async () => {
-                      if (labelNumbers.length === 0) {
-                        await generateLabelNumbers();
-                      }
-                      setPreviewModalOpen(true);
-                    }}
+                    onClick={() => setPreviewModalOpen(true)}
                     variant="outline"
                     size="sm"
                     className="flex items-center space-x-2"
