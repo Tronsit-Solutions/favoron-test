@@ -29,11 +29,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const packageList = packages || (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex] || pkg;
 
+  // Reset when modal closes
   useEffect(() => {
-    if (isOpen && packageList.length > 0) {
-      generateLabelNumbers();
+    if (!isOpen) {
+      setLabelNumbers({});
     }
-  }, [isOpen, packageList.length]);
+  }, [isOpen]);
 
   const generateLabelNumbers = async () => {
     setIsGeneratingLabels(true);
@@ -103,9 +104,15 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     if (!packageList || packageList.length === 0) return;
 
     try {
+      setIsGeneratingLabels(true);
       // Generate label numbers only when actually downloading
       console.log('🏷️ Generating label numbers for PDF download...');
       await generateLabelNumbers();
+      
+      toast({
+        title: "Números asignados",
+        description: `Se asignaron ${packageList.length} número(s) de etiqueta`,
+      });
 
       // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
       const pdf = new jsPDF({
@@ -195,12 +202,19 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const handlePrint = async () => {
     if (!labelRef.current || !currentPackage) return;
 
+    setIsGeneratingLabels(true);
     // Generate label numbers only when actually printing
     console.log('🏷️ Generating label numbers for printing...');
     await generateLabelNumbers();
+    
+    toast({
+      title: "Número asignado",
+      description: "Se asignó número de etiqueta para impresión",
+    });
 
     // Wait a moment for state to update
     await new Promise(resolve => setTimeout(resolve, 100));
+    setIsGeneratingLabels(false);
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -289,17 +303,22 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
                  </div>
                </div>
              )}
-             <div 
-               ref={labelRef} 
-               className="transform scale-40 origin-center"
-               style={{ transformOrigin: 'center center' }}
-             >
-                <PackageLabel 
-                  pkg={currentPackage} 
-                  customDescriptions={getCurrentCustomDescriptions()}
-                  labelNumber={labelNumbers[currentPackageIndex]}
-                />
-              </div>
+              <div 
+                ref={labelRef} 
+                className="transform scale-40 origin-center"
+                style={{ transformOrigin: 'center center' }}
+              >
+                 <PackageLabel 
+                   pkg={currentPackage} 
+                   customDescriptions={getCurrentCustomDescriptions()}
+                   labelNumber={labelNumbers[currentPackageIndex] || (currentPackageIndex + 1)}
+                 />
+               </div>
+               {!labelNumbers[currentPackageIndex] && (
+                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500/90 text-white px-3 py-1 rounded-full text-xs font-medium">
+                   Vista previa - Número se asignará al descargar/imprimir
+                 </div>
+               )}
             </div>
 
            {/* Edit Mode */}
@@ -340,8 +359,8 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
             <div>
               <strong>Etiqueta:</strong>{' '}
               {labelNumbers[currentPackageIndex] !== undefined && labelNumbers[currentPackageIndex] !== null
-                ? `#${String(labelNumbers[currentPackageIndex]).padStart(4, '0')}`
-                : <span className="text-muted-foreground italic">Se asignará al descargar/imprimir</span>}
+                ? <span className="text-green-600 font-medium">#${String(labelNumbers[currentPackageIndex]).padStart(4, '0')} (Asignado)</span>
+                : <span className="text-blue-600 font-medium">P{String(currentPackageIndex + 1).padStart(3, '0')} (Preview - se asignará número real al descargar)</span>}
             </div>
           </div>
 
