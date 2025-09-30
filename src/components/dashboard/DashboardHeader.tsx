@@ -55,7 +55,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+      <div className="w-full px-4 py-3 sm:py-4 lg:px-8 xl:px-12 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <img 
             src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
