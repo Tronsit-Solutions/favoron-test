@@ -124,18 +124,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               <span className="text-sm sm:text-xl">🌍</span>
               <span className="truncate">Hub de Viajes</span>
             </DialogTitle>
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={generatePreview}
-                disabled={isGenerating}
-                className="ml-4 bg-white/20 border-white/30 text-white hover:bg-white/30"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                {isGenerating ? "Generando..." : "Preview JPEG"}
-              </Button>
-            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={generatePreview}
+              disabled={isGenerating}
+              className="ml-4 bg-white/20 border-white/30 text-white hover:bg-white/30"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {isGenerating ? "Generando..." : "Generar para Instagram"}
+            </Button>
           </div>
         </DialogHeader>
 
