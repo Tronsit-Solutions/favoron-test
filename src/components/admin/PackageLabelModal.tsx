@@ -28,6 +28,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const packageList = packages || (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex] || pkg;
 
+  useEffect(() => {
+    if (isOpen && packageList.length > 0) {
+      generateLabelNumbers();
+    }
+  }, [isOpen]);
+
   const generateLabelNumbers = async () => {
     console.log('🏷️ Generating label numbers for', packageList.length, 'packages');
     const newLabelNumbers: { [packageIndex: number]: number } = {};

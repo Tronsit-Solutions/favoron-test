@@ -81,6 +81,13 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     }
   }, [trip?.id, isOpen]);
 
+  // Generate label numbers when preview modal opens
+  useEffect(() => {
+    if (previewModalOpen && packages.length > 0) {
+      generateLabelNumbers();
+    }
+  }, [previewModalOpen, packages.length]);
+
   if (!trip) return null;
 
   // Debug logging to see what data we have
