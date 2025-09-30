@@ -9,6 +9,7 @@ interface PackageLabelProps {
 }
 
 export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, labelNumber }: PackageLabelProps) => {
+  console.log('PackageLabel rendering with labelNumber:', labelNumber);
   const getShopperName = () => {
     if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
       return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
@@ -167,7 +168,7 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
       </div>
 
       {/* Label Number - Bottom Right Corner */}
-      {labelNumber && (
+      {labelNumber !== undefined && labelNumber !== null && (
         <div 
           style={{
             position: 'absolute',
@@ -180,7 +181,7 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
             opacity: 0.7
           }}
         >
-          #{labelNumber.toString().padStart(4, '0')}
+          #{String(labelNumber).padStart(4, '0')}
         </div>
       )}
     </div>

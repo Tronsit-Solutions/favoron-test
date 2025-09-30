@@ -36,6 +36,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   }, [isOpen, packageList.length]);
 
   const generateLabelNumbers = async () => {
+    console.log('🏷️ Generating label numbers for', packageList.length, 'packages');
     const newLabelNumbers: { [packageIndex: number]: number } = {};
     
     for (let i = 0; i < packageList.length; i++) {
@@ -52,12 +53,14 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
           continue;
         }
         
+        console.log('✅ Label number generated for package', i, ':', data);
         newLabelNumbers[i] = data;
       } catch (error) {
         console.error('Error generating label number:', error);
       }
     }
     
+    console.log('📋 All label numbers:', newLabelNumbers);
     setLabelNumbers(newLabelNumbers);
   };
 

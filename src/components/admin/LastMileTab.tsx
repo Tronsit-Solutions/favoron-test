@@ -147,6 +147,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
       setGeneratingPDF(trip.id);
       
       // Generate label numbers for all packages first
+      console.log('🏷️ Generating label numbers for trip', trip.id, 'with', trip.packages.length, 'packages');
       const labelNumbers: number[] = [];
       for (let i = 0; i < trip.packages.length; i++) {
         try {
@@ -155,6 +156,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             console.error('Error getting label number:', error);
             labelNumbers.push(0); // fallback
           } else {
+            console.log('✅ Label number', i, ':', data);
             labelNumbers.push(data);
           }
         } catch (error) {
@@ -162,6 +164,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
           labelNumbers.push(0); // fallback
         }
       }
+      console.log('📋 All label numbers for trip:', labelNumbers);
       
       // Import React and ReactDOM for rendering
       const React = await import('react');
