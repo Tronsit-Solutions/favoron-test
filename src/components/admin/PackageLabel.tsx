@@ -157,6 +157,15 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
           </div>
         </div>
 
+        {/* Label Number under Delivery */}
+        <div>
+          <div>
+            <span className="font-bold">No. de etiqueta:</span>{' '}
+            {labelNumber !== undefined && labelNumber !== null
+              ? String(labelNumber).padStart(4, '0')
+              : '####'}
+          </div>
+        </div>
         {/* Delivery Address (only for delivery) */}
         {pkg.delivery_method === 'delivery' && getDeliveryAddress() && (
           <div>
