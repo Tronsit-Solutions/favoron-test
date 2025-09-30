@@ -305,6 +305,12 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
             <div><strong>Pedido:</strong> {currentPackage.item_description}</div>
             <div><strong>ID:</strong> {currentPackage.id ? currentPackage.id.substring(0, 8) : 'N/A'}</div>
             <div><strong>Estado:</strong> {currentPackage.status}</div>
+            <div>
+              <strong>Etiqueta:</strong>{' '}
+              {labelNumbers[currentPackageIndex] !== undefined && labelNumbers[currentPackageIndex] !== null
+                ? `#${String(labelNumbers[currentPackageIndex]).padStart(4, '0')}`
+                : '—'}
+            </div>
           </div>
 
            {/* Actions */}
