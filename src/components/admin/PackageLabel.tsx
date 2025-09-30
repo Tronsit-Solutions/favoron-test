@@ -5,9 +5,10 @@ interface PackageLabelProps {
   trip?: any;
   className?: string;
   customDescriptions?: { [productIndex: number]: string };
+  labelNumber?: number;
 }
 
-export const PackageLabel = ({ pkg, trip, className = '', customDescriptions }: PackageLabelProps) => {
+export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, labelNumber }: PackageLabelProps) => {
   const getShopperName = () => {
     if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
       return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
@@ -104,7 +105,8 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions }: 
            height: '432px', 
            fontFamily: 'monospace',
            fontSize: '12px',
-           lineHeight: '1.2'
+           lineHeight: '1.2',
+           position: 'relative'
          }}>
       {/* Header with Logo */}
       <div className="text-center py-2 border-b border-black">
@@ -163,6 +165,23 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions }: 
         )}
 
       </div>
+
+      {/* Label Number - Bottom Right Corner */}
+      {labelNumber && (
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: '8px',
+            right: '8px',
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            color: '#666',
+            fontWeight: 'bold'
+          }}
+        >
+          Etiqueta #{labelNumber.toString().padStart(4, '0')}
+        </div>
+      )}
     </div>
   );
 };

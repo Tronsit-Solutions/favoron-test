@@ -214,6 +214,27 @@ export type Database = {
         }
         Relationships: []
       }
+      label_counter: {
+        Row: {
+          created_at: string | null
+          current_count: number
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_count?: number
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_count?: number
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -1064,6 +1085,10 @@ export type Database = {
       get_monthly_reports: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
+      }
+      get_next_label_number: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       get_public_profile_data: {
         Args: { target_user_id?: string }

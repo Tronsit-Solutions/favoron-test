@@ -146,6 +146,23 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     try {
       setGeneratingPDF(trip.id);
       
+      // Generate label numbers for all packages first
+      const labelNumbers: number[] = [];
+      for (let i = 0; i < trip.packages.length; i++) {
+        try {
+          const { data, error } = await supabase.rpc('get_next_label_number');
+          if (error) {
+            console.error('Error getting label number:', error);
+            labelNumbers.push(0); // fallback
+          } else {
+            labelNumbers.push(data);
+          }
+        } catch (error) {
+          console.error('Error generating label number:', error);
+          labelNumbers.push(0); // fallback
+        }
+      }
+      
       // Import React and ReactDOM for rendering
       const React = await import('react');
       const ReactDOM = await import('react-dom/client');
@@ -159,6 +176,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
 
       for (let i = 0; i < trip.packages.length; i++) {
         const pkg = trip.packages[i];
+        const labelNumber = labelNumbers[i];
         
         // Create a temporary container for rendering (hidden off-screen)
         const tempContainer = document.createElement('div');
@@ -177,7 +195,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
         // Create and render the PackageLabel component
         const root = ReactDOM.createRoot(reactContainer);
         await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg, trip }));
+          root.render(React.createElement(PackageLabel, { pkg, trip, labelNumber }));
           // Give React time to render
           setTimeout(resolve, 100);
         });

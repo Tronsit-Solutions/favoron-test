@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { PackageLabel } from './PackageLabel';
 import { Download, Printer, X, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PackageLabelModalProps {
   isOpen: boolean;
@@ -20,9 +22,44 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const [currentPackageIndex, setCurrentPackageIndex] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [customDescriptions, setCustomDescriptions] = useState<{ [packageIndex: number]: { [productIndex: number]: string } }>({});
+  const [labelNumbers, setLabelNumbers] = useState<{ [packageIndex: number]: number }>({});
+  const { toast } = useToast();
   
   const packageList = packages || (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex] || pkg;
+
+  // Generate label numbers when modal opens
+  useEffect(() => {
+    if (isOpen && packageList.length > 0) {
+      generateLabelNumbers();
+    }
+  }, [isOpen, packageList.length]);
+
+  const generateLabelNumbers = async () => {
+    const newLabelNumbers: { [packageIndex: number]: number } = {};
+    
+    for (let i = 0; i < packageList.length; i++) {
+      try {
+        const { data, error } = await supabase.rpc('get_next_label_number');
+        
+        if (error) {
+          console.error('Error getting label number:', error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo obtener el número de etiqueta"
+          });
+          continue;
+        }
+        
+        newLabelNumbers[i] = data;
+      } catch (error) {
+        console.error('Error generating label number:', error);
+      }
+    }
+    
+    setLabelNumbers(newLabelNumbers);
+  };
 
   // Get or set custom descriptions for current package
   const getCurrentCustomDescriptions = () => customDescriptions[currentPackageIndex] || {};
@@ -92,11 +129,13 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         tempContainer.appendChild(tempLabelContainer);
 
         // Render PackageLabel component
+        const packageIndex = packages?.indexOf(packageItem) || 0;
         const root = ReactDOM.createRoot(tempLabelContainer);
         await new Promise<void>((resolve) => {
           root.render(React.createElement(PackageLabel, { 
             pkg: packageItem, 
-            customDescriptions: customDescriptions[packages?.indexOf(packageItem) || 0] 
+            customDescriptions: customDescriptions[packageIndex],
+            labelNumber: labelNumbers[packageIndex]
           }));
           setTimeout(resolve, 100);
         });
@@ -223,6 +262,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
                <PackageLabel 
                  pkg={currentPackage} 
                  customDescriptions={getCurrentCustomDescriptions()}
+                 labelNumber={labelNumbers[currentPackageIndex]}
                />
              </div>
            </div>
