@@ -15,120 +15,145 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
     trip.to_city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatInstagramDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+  const formatCalendarDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      day: date.getDate().toString().padStart(2, '0'),
+      month: date.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase(),
+      year: date.getFullYear()
+    };
   };
 
-  const firstPageTrips = filteredTrips.slice(0, 8);
-  const secondPageTrips = filteredTrips.slice(8);
+  const firstPageTrips = filteredTrips.slice(0, 6);
+  const secondPageTrips = filteredTrips.slice(6);
   const hasSecondPage = secondPageTrips.length > 0;
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
-      className={`bg-background relative overflow-hidden ${
+      className={`relative overflow-hidden ${
         forCapture 
           ? 'w-[1080px] h-[1080px]' 
           : 'w-full aspect-square'
       }`}
-      style={forCapture ? { width: '1080px', height: '1080px' } : undefined}
+      style={forCapture ? { 
+        width: '1080px', 
+        height: '1080px',
+        background: 'linear-gradient(135deg, #3ab5ff 0%, #ff6b00 100%)'
+      } : {
+        background: 'linear-gradient(135deg, hsl(204 100% 62%) 0%, hsl(24 100% 50%) 100%)'
+      }}
     >
-      {/* Glassmorphism Multi-Layer Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/98 to-secondary/8"></div>
-      <div className="absolute inset-0 bg-gradient-to-tr from-accent/3 via-transparent to-primary/4 backdrop-blur-xl"></div>
-      
-      {/* Advanced Glass Layer with Depth */}
-      <div className="absolute inset-0 backdrop-blur-sm saturate-150 brightness-105">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/6"></div>
-        <div className="absolute top-0 left-0 w-36 h-36 bg-primary/10 rounded-full blur-xl opacity-30"></div>
-        <div className="absolute bottom-0 right-0 w-32 h-32 bg-secondary/8 rounded-full blur-lg opacity-25"></div>
-        <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-accent/6 rounded-full blur-md opacity-20"></div>
+      {/* Overlay Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
       </div>
 
-      {/* Premium Light Effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-primary/3 via-transparent to-transparent opacity-60"></div>
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.08) 0%, transparent 40%), 
-                     radial-gradient(circle at 80% 70%, hsl(var(--secondary) / 0.06) 0%, transparent 35%),
-                     radial-gradient(circle at 60% 20%, hsl(var(--accent) / 0.04) 0%, transparent 30%)`
-      }}></div>
-
-      {/* Premium Glass Header */}
-      <header className="relative z-20 text-center pt-2 pb-1">
-        <div className="backdrop-blur-xl bg-background/20 border border-border/20 rounded-xl mx-2 py-4">
-          <div className="flex items-center justify-center gap-4 mb-2">
+      {/* Header with Logo */}
+      <header className="relative z-20 pt-12 pb-8">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-4 mb-4">
             <img 
               src={favoronLogo} 
               alt="Favoron Logo" 
-              className="w-8 h-8 object-contain opacity-90"
+              className="w-20 h-20 object-contain drop-shadow-2xl"
             />
-            <h1 className="text-2xl font-bold text-foreground tracking-tight pt-1">
-              Hub de viajes {pageNumber > 1 && `(${pageNumber})`}
-            </h1>
           </div>
-          <div className="w-8 h-0.5 bg-gradient-to-r from-primary via-secondary to-accent mx-auto mb-1"></div>
+          <h1 className="text-5xl font-bold text-white tracking-tight drop-shadow-lg mb-2">
+            Próximos Viajes
+          </h1>
+          <div className="flex items-center justify-center gap-2 text-white/90">
+            <Calendar className="w-5 h-5" />
+            <p className="text-lg font-medium">
+              {pageNumber > 1 ? `Página ${pageNumber}` : new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).charAt(0).toUpperCase() + new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).slice(1)}
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 px-6">
-        <section className="bg-transparent rounded-lg px-3 pb-6 min-h-[420px]">
-          {/* Glass Column Headers */}
-          <div className="backdrop-blur-lg bg-background/30 border border-border/30 rounded-lg p-2 mb-2">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
-                <MapPin size={8} className="text-primary" />
-                <span className="text-xs font-bold text-foreground">Origen</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
-                <MapPin size={8} className="text-primary" />
-                <span className="text-xs font-bold text-foreground">Destino</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 p-1 rounded-md bg-primary/5 border border-primary/20">
-                <Calendar size={8} className="text-primary" />
-                <span className="text-xs font-bold text-foreground">Fecha</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Trips List */}
-          <div className="max-h-[336px] overflow-hidden">
-            {trips.map((trip, index) => (
+      {/* Calendar Grid */}
+      <main className="relative z-10 px-8 pb-8">
+        <div className="grid grid-cols-2 gap-6">
+          {trips.map((trip, index) => {
+            const dateInfo = formatCalendarDate(trip.arrival_date);
+            return (
               <article
                 key={trip.id}
-                className="group grid grid-cols-3 gap-2 py-2 px-2 hover:-translate-y-0.5 transition-all duration-300 items-center"
+                className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-2xl transform hover:scale-105 transition-all duration-300"
+                style={{
+                  animation: `fadeIn 0.5s ease-out ${index * 0.1}s both`
+                }}
               >
-                {/* Origin Column */}
-                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
-                  {trip.from_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.from_city}
+                {/* Calendar Date Display */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="bg-gradient-to-br from-primary to-accent text-white rounded-2xl p-4 shadow-lg min-w-[80px] text-center">
+                    <div className="text-3xl font-bold leading-none mb-1">{dateInfo.day}</div>
+                    <div className="text-sm font-semibold uppercase tracking-wider">{dateInfo.month}</div>
+                    <div className="text-xs opacity-90 mt-1">{dateInfo.year}</div>
+                  </div>
+                  
+                  {/* Route Info */}
+                  <div className="flex-1">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Send className="w-4 h-4 text-primary rotate-45" />
+                        <span className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">Desde</span>
+                      </div>
+                      <p className="text-lg font-bold text-foreground leading-tight">
+                        {trip.from_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.from_city}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                
-                {/* Destination Column */}
-                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
-                  {trip.to_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.to_city}
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-gradient-to-r from-primary/20 via-primary/50 to-transparent"></div>
+                  <MapPin className="w-5 h-5 text-accent" />
+                  <div className="flex-1 h-px bg-gradient-to-l from-primary/20 via-primary/50 to-transparent"></div>
                 </div>
-                
-                {/* Date Column */}
-                <div className="text-xs font-semibold text-foreground text-center p-1 rounded-lg bg-primary/5 border border-primary/10 backdrop-blur-sm group-hover:bg-primary/8 transition-colors duration-300">
-                  {formatInstagramDate(trip.arrival_date)}
+
+                {/* Destination */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-accent" />
+                    <span className="text-sm font-semibold text-foreground/70 uppercase tracking-wide">Hacia</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground leading-tight">
+                    {trip.to_city === "Guatemala City" ? "Ciudad de Guatemala" : trip.to_city}
+                  </p>
                 </div>
               </article>
-            ))}
-          </div>
-        </section>
+            );
+          })}
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="absolute bottom-3 left-0 right-0 z-10">
+      <footer className="absolute bottom-6 left-0 right-0 z-10">
         <div className="text-center">
-          <p className="text-muted-foreground text-xs font-medium">
-            www.favoron.app
-          </p>
+          <div className="inline-block bg-white/95 backdrop-blur-sm rounded-full px-6 py-3 shadow-xl">
+            <p className="text-primary font-bold text-lg">
+              www.favoron.app
+            </p>
+          </div>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 
