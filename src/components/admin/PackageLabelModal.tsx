@@ -23,6 +23,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const [isEditing, setIsEditing] = useState(false);
   const [customDescriptions, setCustomDescriptions] = useState<{ [packageIndex: number]: { [productIndex: number]: string } }>({});
   const [labelNumbers, setLabelNumbers] = useState<{ [packageIndex: number]: number }>({});
+  const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
   const { toast } = useToast();
   
   const packageList = packages || (pkg ? [pkg] : []);
@@ -32,9 +33,10 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     if (isOpen && packageList.length > 0) {
       generateLabelNumbers();
     }
-  }, [isOpen]);
+  }, [isOpen, packageList.length]);
 
   const generateLabelNumbers = async () => {
+    setIsGeneratingLabels(true);
     console.log('🏷️ Generating label numbers for', packageList.length, 'packages');
     const newLabelNumbers: { [packageIndex: number]: number } = {};
     
@@ -52,6 +54,16 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
           continue;
         }
         
+        if (data === null) {
+          console.error('Label number is null for package', i);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo asignar el número de etiqueta"
+          });
+          continue;
+        }
+        
         console.log('✅ Label number generated for package', i, ':', data);
         newLabelNumbers[i] = data;
       } catch (error) {
@@ -61,6 +73,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     
     console.log('📋 All label numbers:', newLabelNumbers);
     setLabelNumbers(newLabelNumbers);
+    setIsGeneratingLabels(false);
   };
 
   // Get or set custom descriptions for current package
@@ -266,20 +279,28 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
               </Button>
             </div>
           )}
-          {/* Preview */}
-          <div className="flex justify-center bg-gray-50 p-2 rounded-lg">
-            <div 
-              ref={labelRef} 
-              className="transform scale-40 origin-center"
-              style={{ transformOrigin: 'center center' }}
-            >
-               <PackageLabel 
-                 pkg={currentPackage} 
-                 customDescriptions={getCurrentCustomDescriptions()}
-                 labelNumber={labelNumbers[currentPackageIndex]}
-               />
-             </div>
-           </div>
+           {/* Preview */}
+           <div className="flex justify-center bg-gray-50 p-2 rounded-lg relative">
+             {isGeneratingLabels && (
+               <div className="absolute inset-0 bg-gray-100/80 flex items-center justify-center z-10 rounded-lg">
+                 <div className="text-center">
+                   <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                   <p className="text-sm font-medium text-gray-700">Asignando números...</p>
+                 </div>
+               </div>
+             )}
+             <div 
+               ref={labelRef} 
+               className="transform scale-40 origin-center"
+               style={{ transformOrigin: 'center center' }}
+             >
+                <PackageLabel 
+                  pkg={currentPackage} 
+                  customDescriptions={getCurrentCustomDescriptions()}
+                  labelNumber={labelNumbers[currentPackageIndex]}
+                />
+              </div>
+            </div>
 
            {/* Edit Mode */}
            {isEditing && (
@@ -324,26 +345,27 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
             </div>
           </div>
 
-           {/* Actions */}
-           <div className="flex space-x-2">
-             <Button 
-               onClick={() => setIsEditing(!isEditing)} 
-               variant="outline" 
-               size="sm"
-               className="flex-none"
-             >
-               <Edit className="h-4 w-4 mr-1" />
-               {isEditing ? 'Cancelar' : 'Editar'}
-             </Button>
-             <Button onClick={generatePDF} className="flex-1">
-               <Download className="h-4 w-4 mr-2" />
-               Descargar PDF
-             </Button>
-             <Button onClick={handlePrint} variant="outline" className="flex-1">
-               <Printer className="h-4 w-4 mr-2" />
-               Imprimir
-             </Button>
-           </div>
+            {/* Actions */}
+            <div className="flex space-x-2">
+              <Button 
+                onClick={() => setIsEditing(!isEditing)} 
+                variant="outline" 
+                size="sm"
+                className="flex-none"
+                disabled={isGeneratingLabels}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                {isEditing ? 'Cancelar' : 'Editar'}
+              </Button>
+              <Button onClick={generatePDF} className="flex-1" disabled={isGeneratingLabels}>
+                <Download className="h-4 w-4 mr-2" />
+                Descargar PDF
+              </Button>
+              <Button onClick={handlePrint} variant="outline" className="flex-1" disabled={isGeneratingLabels}>
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimir
+              </Button>
+            </div>
         </div>
       </DialogContent>
     </Dialog>

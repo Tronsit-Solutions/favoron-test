@@ -35,6 +35,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [labelNumbers, setLabelNumbers] = useState<number[]>([]);
+  const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -134,11 +135,16 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
   const generateLabelNumbers = async () => {
     if (!packages || packages.length === 0) return;
     
+    setIsGeneratingLabels(true);
     try {
       const numbers: number[] = [];
       for (let i = 0; i < packages.length; i++) {
         const { data, error } = await supabase.rpc('get_next_label_number');
         if (error) throw error;
+        if (data === null) {
+          console.error('Label number is null for package', i);
+          continue;
+        }
         numbers.push(data);
       }
       setLabelNumbers(numbers);
@@ -146,6 +152,8 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     } catch (error) {
       console.error('Error generating label numbers:', error);
       return [];
+    } finally {
+      setIsGeneratingLabels(false);
     }
   };
 
