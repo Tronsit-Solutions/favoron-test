@@ -171,15 +171,16 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
         <div 
           style={{
             position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            fontSize: '10px',
+            bottom: '6px',
+            right: '6px',
+            fontSize: '8px',
             fontFamily: 'monospace',
-            color: '#666',
-            fontWeight: 'bold'
+            color: '#999',
+            fontWeight: 'normal',
+            opacity: 0.7
           }}
         >
-          Etiqueta #{labelNumber.toString().padStart(4, '0')}
+          #{labelNumber.toString().padStart(4, '0')}
         </div>
       )}
     </div>
