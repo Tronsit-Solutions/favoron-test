@@ -181,8 +181,8 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
         }}
       >
         {labelNumber !== undefined && labelNumber !== null 
-          ? `#${String(labelNumber).padStart(4, '0')}`
-          : '####'}
+          ? `No. ${String(labelNumber).padStart(4, '0')}`
+          : 'No. ####'}
       </div>
     </div>
   );
