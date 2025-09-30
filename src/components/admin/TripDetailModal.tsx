@@ -34,6 +34,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [labelNumbers, setLabelNumbers] = useState<number[]>([]);
   const { getStatusBadge } = useStatusHelpers();
 
   // Security: Only allow admin access
@@ -122,6 +123,25 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     setShowEditModal(false);
   };
 
+  // Generate unique label numbers for all packages
+  const generateLabelNumbers = async () => {
+    if (!packages || packages.length === 0) return;
+    
+    try {
+      const numbers: number[] = [];
+      for (let i = 0; i < packages.length; i++) {
+        const { data, error } = await supabase.rpc('get_next_label_number');
+        if (error) throw error;
+        numbers.push(data);
+      }
+      setLabelNumbers(numbers);
+      return numbers;
+    } catch (error) {
+      console.error('Error generating label numbers:', error);
+      return [];
+    }
+  };
+
   // Generate PDF with multiple package labels
   const generateMultipleLabelsPDF = async () => {
     if (!packages.length) {
@@ -132,6 +152,12 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     setGeneratingPDF(true);
     
     try {
+      // Ensure we have label numbers
+      let numbers = labelNumbers;
+      if (numbers.length === 0) {
+        numbers = await generateLabelNumbers() || [];
+      }
+
       // Import React and ReactDOM for rendering
       const React = await import('react');
       const ReactDOM = await import('react-dom/client');
@@ -160,10 +186,14 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
         const reactContainer = document.createElement('div');
         tempContainer.appendChild(reactContainer);
 
-        // Create and render the PackageLabel component
+        // Create and render the PackageLabel component with label number
         const root = ReactDOM.createRoot(reactContainer);
         await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg, trip }));
+          root.render(React.createElement(PackageLabel, { 
+            pkg, 
+            trip,
+            labelNumber: numbers[i]
+          }));
           // Give React time to render
           setTimeout(resolve, 100);
         });
@@ -547,7 +577,12 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                 </div>
                 {packages.length > 0 && (
                   <Button
-                    onClick={() => setPreviewModalOpen(true)}
+                    onClick={async () => {
+                      if (labelNumbers.length === 0) {
+                        await generateLabelNumbers();
+                      }
+                      setPreviewModalOpen(true);
+                    }}
                     variant="outline"
                     size="sm"
                     className="flex items-center space-x-2"
@@ -689,7 +724,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                 </div>
                 <div className="flex justify-center bg-white p-4 rounded-lg shadow-sm">
                   <div className="transform scale-75 origin-center">
-                    <PackageLabel pkg={pkg} trip={trip} />
+                    <PackageLabel pkg={pkg} trip={trip} labelNumber={labelNumbers[index]} />
                   </div>
                 </div>
               </div>

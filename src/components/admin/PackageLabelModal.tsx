@@ -104,7 +104,9 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
       
       let isFirstPage = true;
 
-      for (const packageItem of packageList) {
+      for (let i = 0; i < packageList.length; i++) {
+        const packageItem = packageList[i];
+        
         // Add new page for each label (except the first one)
         if (!isFirstPage) {
           pdf.addPage();
@@ -131,14 +133,13 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         tempLabelContainer.style.height = `${labelHeight}px`;
         tempContainer.appendChild(tempLabelContainer);
 
-        // Render PackageLabel component
-        const packageIndex = packages?.indexOf(packageItem) || 0;
+        // Render PackageLabel component with correct index
         const root = ReactDOM.createRoot(tempLabelContainer);
         await new Promise<void>((resolve) => {
           root.render(React.createElement(PackageLabel, { 
             pkg: packageItem, 
-            customDescriptions: customDescriptions[packageIndex],
-            labelNumber: labelNumbers[packageIndex]
+            customDescriptions: customDescriptions[i],
+            labelNumber: labelNumbers[i]
           }));
           setTimeout(resolve, 100);
         });
