@@ -38,35 +38,43 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#1a1a2e'
+        background: 'linear-gradient(135deg, #3ab5ff 0%, #ff6b00 100%)'
       } : {
-        background: 'hsl(240 30% 10%)'
+        background: 'linear-gradient(135deg, hsl(204 100% 62%) 0%, hsl(24 100% 50%) 100%)'
       }}
     >
-      {/* Header - Airport Style */}
-      <header className="relative z-20 border-b-4 border-amber-500 bg-black/40 backdrop-blur-sm">
-        <div className="px-8 py-6">
+      {/* Overlay Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
+      </div>
+
+      {/* Header - Airport Style with Favoron Colors */}
+      <header className="relative z-20 border-b-4 border-white/30 bg-white/10 backdrop-blur-md">
+        <div className="px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img 
                 src={favoronLogo} 
                 alt="Favoron Logo" 
-                className="w-16 h-16 object-contain"
+                className="w-16 h-16 object-contain drop-shadow-xl"
               />
               <div>
-                <h1 className="text-3xl font-bold text-amber-400 tracking-widest" style={{ fontFamily: 'monospace' }}>
+                <h1 className="text-3xl font-bold text-white tracking-widest drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
                   PRÓXIMOS VIAJES
                 </h1>
-                <p className="text-sm text-gray-400 tracking-wider mt-1" style={{ fontFamily: 'monospace' }}>
+                <p className="text-sm text-white/80 tracking-wider mt-1" style={{ fontFamily: 'monospace' }}>
                   {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase()}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-white" style={{ fontFamily: 'monospace' }}>
+              <div className="text-4xl font-bold text-white drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
               </div>
-              <div className="text-xs text-gray-400 tracking-wider" style={{ fontFamily: 'monospace' }}>
+              <div className="text-xs text-white/70 tracking-wider" style={{ fontFamily: 'monospace' }}>
                 HORA LOCAL
               </div>
             </div>
@@ -76,7 +84,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-6 pb-3">
-        <div className="grid grid-cols-12 gap-2 text-xs font-bold text-amber-400 tracking-widest border-b border-gray-700 pb-2" style={{ fontFamily: 'monospace' }}>
+        <div className="grid grid-cols-12 gap-2 text-xs font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-2" style={{ fontFamily: 'monospace' }}>
           <div className="col-span-2">FECHA</div>
           <div className="col-span-4">ORIGEN</div>
           <div className="col-span-1 text-center">→</div>
@@ -92,7 +100,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-2 items-center bg-gray-900/50 backdrop-blur-sm border border-gray-700 hover:border-amber-500/50 transition-all duration-300 py-3 px-4 rounded"
+              className="grid grid-cols-12 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-3 px-4 rounded-lg"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: 'monospace'
@@ -100,42 +108,42 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             >
               {/* Date */}
               <div className="col-span-2">
-                <div className="text-white font-bold text-lg">
+                <div className="text-primary font-bold text-lg">
                   {dateInfo.day} {dateInfo.month}
                 </div>
-                <div className="text-gray-400 text-xs">
+                <div className="text-foreground/60 text-xs">
                   {dateInfo.year}
                 </div>
               </div>
 
               {/* Origin */}
               <div className="col-span-4">
-                <div className="text-white font-bold text-base tracking-wide">
-                  {trip.from_city === "Guatemala City" ? "CIUDAD DE GUATEMALA" : trip.from_city.toUpperCase()}
+                <div className="text-foreground font-bold text-base tracking-wide">
+                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
-                <div className="text-gray-400 text-xs mt-1">
+                <div className="text-foreground/60 text-xs mt-1">
                   ORIGEN
                 </div>
               </div>
 
               {/* Arrow */}
               <div className="col-span-1 text-center">
-                <Send className="w-5 h-5 text-amber-400 mx-auto rotate-45" />
+                <Send className="w-5 h-5 text-accent mx-auto rotate-45" />
               </div>
 
               {/* Destination */}
               <div className="col-span-4">
-                <div className="text-white font-bold text-base tracking-wide">
-                  {trip.to_city === "Guatemala City" ? "CIUDAD DE GUATEMALA" : trip.to_city.toUpperCase()}
+                <div className="text-foreground font-bold text-base tracking-wide">
+                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
                 </div>
-                <div className="text-gray-400 text-xs mt-1">
+                <div className="text-foreground/60 text-xs mt-1">
                   DESTINO
                 </div>
               </div>
 
               {/* Status */}
               <div className="col-span-1 text-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mx-auto animate-pulse"></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full mx-auto animate-pulse shadow-lg"></div>
               </div>
             </article>
           );
@@ -143,14 +151,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </main>
 
       {/* Footer */}
-      <footer className="absolute bottom-0 left-0 right-0 z-10 border-t-4 border-amber-500 bg-black/40 backdrop-blur-sm">
+      <footer className="absolute bottom-0 left-0 right-0 z-10 border-t-4 border-white/30 bg-white/10 backdrop-blur-md">
         <div className="px-8 py-4 flex items-center justify-between">
-          <div className="text-amber-400 font-bold text-xl tracking-widest" style={{ fontFamily: 'monospace' }}>
+          <div className="text-white font-bold text-xl tracking-widest drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
             WWW.FAVORON.APP
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-gray-400 text-sm" style={{ fontFamily: 'monospace' }}>EN LÍNEA</span>
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+            <span className="text-white/80 text-sm" style={{ fontFamily: 'monospace' }}>EN LÍNEA</span>
           </div>
         </div>
       </footer>
