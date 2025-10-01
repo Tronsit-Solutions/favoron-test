@@ -60,8 +60,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-3xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#00FF00',
-                    textShadow: '0 0 10px #00FF00, 0 0 20px #00FF00',
+                    color: '#22D3EE',
+                    textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -73,8 +73,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#00FF41',
-                    textShadow: '0 0 8px #00FF41',
+                    color: '#22D3EE',
+                    textShadow: '0 0 8px #22D3EE',
                     fontVariantNumeric: 'tabular-nums'
                   }}
                 >
@@ -87,8 +87,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-2xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#00FF00',
-                  textShadow: '0 0 10px #00FF00, 0 0 20px #00FF00',
+                  color: '#22D3EE',
+                  textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -99,8 +99,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#00FF41',
-                  textShadow: '0 0 8px #00FF41',
+                  color: '#22D3EE',
+                  textShadow: '0 0 8px #22D3EE',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
