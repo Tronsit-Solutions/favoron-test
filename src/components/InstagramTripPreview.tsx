@@ -57,7 +57,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               />
               <div>
                 <h1 
-                  className="text-3xl font-bold tracking-[0.4em] leading-none"
+                  className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
                     color: '#22D3EE',
@@ -86,7 +86,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             </div>
             <div className="text-right">
               <div 
-                className="text-2xl font-bold tracking-[0.3em] leading-none"
+                className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
                   color: '#22D3EE',
