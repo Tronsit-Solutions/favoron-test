@@ -68,7 +68,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   PRÓXIMOS VIAJES
                 </h1>
                 <p className="text-[10px] text-white/80 tracking-wider" style={{ fontFamily: 'monospace' }}>
-                  {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase()}
+                  {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().getFullYear()}
                 </p>
               </div>
             </div>
