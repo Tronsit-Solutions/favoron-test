@@ -144,19 +144,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
         })}
       </main>
 
-      {/* Footer */}
-      <footer className="absolute bottom-0 left-0 right-0 z-10 border-t-4 border-white/30 bg-white/10 backdrop-blur-md">
-        <div className="px-8 py-4 flex items-center justify-between">
-          <div className="text-white font-bold text-xl tracking-widest drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
-            WWW.FAVORON.APP
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-            <span className="text-white/80 text-sm" style={{ fontFamily: 'monospace' }}>EN LÍNEA</span>
-          </div>
-        </div>
-      </footer>
-
       <style>{`
         @keyframes flipIn {
           from {
