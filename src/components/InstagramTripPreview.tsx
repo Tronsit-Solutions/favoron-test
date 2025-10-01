@@ -40,13 +40,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#6B7280'
+        background: 'transparent'
       } : {
-        background: '#6B7280'
+        background: 'transparent'
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20 border-b-2" style={{ borderColor: '#FFFFFF' }}>
+      <header className="relative z-20">
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -116,14 +116,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-4 pb-2">
         <div 
-          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
+          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
             color: '#FFFFFF',
             textShadow: '0 0 8px #FFFFFF',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 700,
-            borderColor: '#FFFFFF'
+            fontWeight: 700
           }}
         >
           <div className="col-span-2">FECHA</div>
@@ -139,11 +138,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center border-b py-3 px-4"
+              className="grid grid-cols-12 gap-3 items-center py-3 px-4"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                fontFamily: "'Courier New', monospace",
-                borderColor: '#333333'
+                fontFamily: "'Courier New', monospace"
               }}
             >
               {/* Date */}
