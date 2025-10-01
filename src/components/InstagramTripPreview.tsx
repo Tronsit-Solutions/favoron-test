@@ -116,7 +116,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-4 pb-2">
         <div 
-          className="grid grid-cols-10 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
+          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
             color: '#FFFFFF',
@@ -128,6 +128,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
         >
           <div className="col-span-2">FECHA</div>
           <div className="col-span-3">ORIGEN</div>
+          <div className="col-span-2"></div>
           <div className="col-span-5">DESTINO</div>
         </div>
       </div>
@@ -139,7 +140,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-10 gap-3 items-center border-b py-3 px-4"
+              className="grid grid-cols-12 gap-3 items-center border-b py-3 px-4"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: "'Courier New', monospace",
@@ -175,6 +176,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
               </div>
+
+              {/* Spacer */}
+              <div className="col-span-2"></div>
 
               {/* Destination */}
               <div className="col-span-5">
