@@ -127,8 +127,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           }}
         >
           <div className="col-span-2">FECHA</div>
-          <div className="col-span-4">ORIGEN</div>
-          <div className="col-span-1"></div>
+          <div className="col-span-5">ORIGEN</div>
           <div className="col-span-5">DESTINO</div>
         </div>
       </div>
@@ -163,7 +162,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               </div>
 
               {/* Origin */}
-              <div className="col-span-4">
+              <div className="col-span-5">
                 <div 
                   className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
@@ -176,9 +175,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
               </div>
-
-              {/* Spacer */}
-              <div className="col-span-1"></div>
 
               {/* Destination */}
               <div className="col-span-5">
