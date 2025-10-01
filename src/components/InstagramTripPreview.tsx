@@ -40,9 +40,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#2d3748'
+        background: '#000000'
       } : {
-        background: '#2d3748'
+        background: '#000000'
       }}
     >
       {/* Header - LED Airport Style */}
@@ -61,7 +61,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   style={{ 
                     fontFamily: "'Courier New', monospace",
                     color: '#22D3EE',
-                    textShadow: '0 0 4px #22D3EE',
+                    textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -75,7 +75,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                     style={{ 
                       fontFamily: "'Courier New', monospace",
                       color: '#22D3EE',
-                      textShadow: '0 0 3px #22D3EE',
+                      textShadow: '0 0 8px #22D3EE',
                       fontVariantNumeric: 'tabular-nums'
                     }}
                   >
@@ -90,7 +90,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 style={{ 
                   fontFamily: "'Courier New', monospace",
                   color: '#22D3EE',
-                  textShadow: '0 0 4px #22D3EE',
+                  textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -102,7 +102,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 style={{ 
                   fontFamily: "'Courier New', monospace",
                   color: '#22D3EE',
-                  textShadow: '0 0 3px #22D3EE',
+                  textShadow: '0 0 8px #22D3EE',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
@@ -120,7 +120,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           style={{ 
             fontFamily: "'Courier New', monospace",
             color: '#FFFFFF',
-            textShadow: '0 0 3px #FFFFFF',
+            textShadow: '0 0 8px #FFFFFF',
             fontVariantNumeric: 'tabular-nums',
             fontWeight: 700,
             borderColor: '#FFFFFF'
@@ -152,7 +152,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="font-bold text-base leading-none tracking-[0.2em]"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 4px #FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -167,7 +167,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 4px #FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -182,7 +182,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 4px #FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -198,9 +198,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       <style>{`
         @keyframes flipIn {
           from {
+            opacity: 0;
             transform: rotateX(-90deg);
           }
           to {
+            opacity: 1;
             transform: rotateX(0);
           }
         }
