@@ -40,43 +40,70 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#0B1426'
+        background: '#000000'
       } : {
-        background: '#0B1426'
+        background: '#000000'
       }}
     >
-      {/* Overlay Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }}></div>
-      </div>
-
-      {/* Header - Airport Style with Favoron Colors */}
-      <header className="relative z-20 border-b-4 border-cyan-400/40 bg-white/5 backdrop-blur-md">
+      {/* Header - LED Airport Style */}
+      <header className="relative z-20 border-b-2" style={{ borderColor: '#FFFFFF' }}>
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
                 src={favoronLogo} 
                 alt="Favoron Logo" 
-                className="w-10 h-10 object-contain drop-shadow-xl"
+                className="w-10 h-10 object-contain"
               />
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-[0.3em] drop-shadow-lg" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
+                <h1 
+                  className="text-3xl font-bold tracking-[0.4em] leading-none"
+                  style={{ 
+                    fontFamily: "'Courier New', monospace",
+                    color: '#00FF00',
+                    textShadow: '0 0 10px #00FF00, 0 0 20px #00FF00',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontStretch: 'condensed',
+                    fontWeight: 700
+                  }}
+                >
                   PRÓXIMOS VIAJES
                 </h1>
-                <p className="text-xs text-cyan-300 tracking-[0.2em] font-semibold" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
+                <p 
+                  className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
+                  style={{ 
+                    fontFamily: "'Courier New', monospace",
+                    color: '#00FF41',
+                    textShadow: '0 0 8px #00FF41',
+                    fontVariantNumeric: 'tabular-nums'
+                  }}
+                >
                   {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().getFullYear()}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white drop-shadow-lg tracking-wider" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
+              <div 
+                className="text-2xl font-bold tracking-[0.3em] leading-none"
+                style={{ 
+                  fontFamily: "'Courier New', monospace",
+                  color: '#00FF00',
+                  textShadow: '0 0 10px #00FF00, 0 0 20px #00FF00',
+                  fontVariantNumeric: 'tabular-nums',
+                  fontWeight: 700
+                }}
+              >
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
               </div>
-              <div className="text-xs text-cyan-300 tracking-[0.15em] font-semibold" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
+              <div 
+                className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
+                style={{ 
+                  fontFamily: "'Courier New', monospace",
+                  color: '#00FF41',
+                  textShadow: '0 0 8px #00FF41',
+                  fontVariantNumeric: 'tabular-nums'
+                }}
+              >
                 HORA LOCAL
               </div>
             </div>
@@ -85,8 +112,18 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pt-3 pb-2">
-        <div className="grid grid-cols-10 gap-2 text-sm font-bold text-white tracking-[0.25em] border-b-2 border-cyan-400/50 pb-1" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
+      <div className="relative z-10 px-8 pt-4 pb-2">
+        <div 
+          className="grid grid-cols-10 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
+          style={{ 
+            fontFamily: "'Courier New', monospace",
+            color: '#FFFFFF',
+            textShadow: '0 0 8px #FFFFFF',
+            fontVariantNumeric: 'tabular-nums',
+            fontWeight: 700,
+            borderColor: '#FFFFFF'
+          }}
+        >
           <div className="col-span-2">FECHA</div>
           <div className="col-span-4">ORIGEN</div>
           <div className="col-span-4">DESTINO</div>
@@ -94,35 +131,60 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pb-3 space-y-2">
+      <main className="relative z-10 px-8 pb-3 space-y-1">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-10 gap-3 items-center bg-slate-800/80 backdrop-blur-sm border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300 py-3 px-4 rounded-lg"
+              className="grid grid-cols-10 gap-3 items-center border-b py-3 px-4"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace"
+                fontFamily: "'Courier New', monospace",
+                borderColor: '#333333'
               }}
             >
               {/* Date */}
               <div className="col-span-2">
-                <div className="bg-cyan-400 text-slate-900 font-bold text-base leading-tight px-2 py-1 rounded tracking-wider">
+                <div 
+                  className="font-bold text-base leading-none tracking-[0.2em]"
+                  style={{
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontWeight: 700
+                  }}
+                >
                   {dateInfo.day} {dateInfo.month}
                 </div>
               </div>
 
               {/* Origin */}
               <div className="col-span-4">
-                <div className="text-white font-bold text-base tracking-[0.15em] leading-tight">
+                <div 
+                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  style={{
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontWeight: 700
+                  }}
+                >
                   {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
               </div>
 
               {/* Destination */}
               <div className="col-span-4">
-                <div className="text-white font-bold text-base tracking-[0.15em] leading-tight">
+                <div 
+                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  style={{
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontWeight: 700
+                  }}
+                >
                   {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
                 </div>
               </div>
