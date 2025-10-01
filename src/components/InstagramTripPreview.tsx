@@ -84,12 +84,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-6 pb-3">
-        <div className="grid grid-cols-12 gap-2 text-xs font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-2" style={{ fontFamily: 'monospace' }}>
+        <div className="grid grid-cols-11 gap-2 text-xs font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-2" style={{ fontFamily: 'monospace' }}>
           <div className="col-span-2">FECHA</div>
           <div className="col-span-4">ORIGEN</div>
           <div className="col-span-1 text-center">→</div>
           <div className="col-span-4">DESTINO</div>
-          <div className="col-span-1 text-center">✓</div>
         </div>
       </div>
 
@@ -100,7 +99,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-3 px-4 rounded-lg"
+              className="grid grid-cols-11 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-3 px-4 rounded-lg"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: 'monospace'
@@ -139,11 +138,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div className="text-foreground/60 text-xs mt-1">
                   DESTINO
                 </div>
-              </div>
-
-              {/* Status */}
-              <div className="col-span-1 text-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mx-auto animate-pulse shadow-lg"></div>
               </div>
             </article>
           );
