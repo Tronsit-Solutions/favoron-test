@@ -38,9 +38,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: 'linear-gradient(135deg, #3ab5ff 0%, #ff6b00 100%)'
+        background: '#1a2332'
       } : {
-        background: 'linear-gradient(135deg, hsl(204 100% 62%) 0%, hsl(24 100% 50%) 100%)'
+        background: 'hsl(215 30% 15%)'
       }}
     >
       {/* Overlay Pattern */}
