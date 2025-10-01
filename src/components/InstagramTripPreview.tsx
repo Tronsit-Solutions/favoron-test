@@ -132,9 +132,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div className="text-foreground font-bold text-[11px] tracking-wide leading-tight">
                   {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
                 </div>
-                <div className="text-foreground/60 text-[9px] mt-0.5">
-                  DESTINO
-                </div>
               </div>
             </article>
           );
