@@ -110,9 +110,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div className="text-primary font-bold text-xs leading-tight">
                   {dateInfo.day} {dateInfo.month}
                 </div>
-                <div className="text-foreground/60 text-[9px]">
-                  {dateInfo.year}
-                </div>
               </div>
 
               {/* Origin */}
