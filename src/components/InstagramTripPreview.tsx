@@ -127,8 +127,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           }}
         >
           <div className="col-span-2">FECHA</div>
-          <div className="col-span-3">ORIGEN</div>
-          <div className="col-span-2"></div>
+          <div className="col-span-4">ORIGEN</div>
+          <div className="col-span-1"></div>
           <div className="col-span-5">DESTINO</div>
         </div>
       </div>
@@ -163,7 +163,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               </div>
 
               {/* Origin */}
-              <div className="col-span-3">
+              <div className="col-span-4">
                 <div 
                   className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
@@ -178,7 +178,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               </div>
 
               {/* Spacer */}
-              <div className="col-span-2"></div>
+              <div className="col-span-1"></div>
 
               {/* Destination */}
               <div className="col-span-5">
