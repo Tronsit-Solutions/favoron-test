@@ -24,9 +24,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
     };
   };
 
-  const firstPageTrips = filteredTrips.slice(0, 8);
-  const secondPageTrips = filteredTrips.slice(8);
-  const hasSecondPage = secondPageTrips.length > 0;
+  const TRIPS_PER_PAGE = 8;
+  const pages = [];
+  for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
+    pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
+  }
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
@@ -146,8 +148,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
   return (
     <div className="flex flex-col space-y-8">
-      {renderTripPage(firstPageTrips, 1)}
-      {hasSecondPage && renderTripPage(secondPageTrips, 2)}
+      {pages.map((pageTrips, index) => renderTripPage(pageTrips, index + 1))}
     </div>
   );
 };
