@@ -40,9 +40,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#1a2332'
+        background: '#0B1426'
       } : {
-        background: 'hsl(215 30% 15%)'
+        background: '#0B1426'
       }}
     >
       {/* Overlay Pattern */}
@@ -54,29 +54,29 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Header - Airport Style with Favoron Colors */}
-      <header className="relative z-20 border-b-4 border-white/30 bg-white/10 backdrop-blur-md">
-        <div className="px-8 py-2">
+      <header className="relative z-20 border-b-4 border-cyan-400/40 bg-white/5 backdrop-blur-md">
+        <div className="px-8 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <img 
                 src={favoronLogo} 
                 alt="Favoron Logo" 
-                className="w-8 h-8 object-contain drop-shadow-xl"
+                className="w-10 h-10 object-contain drop-shadow-xl"
               />
               <div>
-                <h1 className="text-xl font-bold text-white tracking-widest drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
+                <h1 className="text-3xl font-bold text-white tracking-[0.3em] drop-shadow-lg" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
                   PRÓXIMOS VIAJES
                 </h1>
-                <p className="text-[10px] text-white/80 tracking-wider" style={{ fontFamily: 'monospace' }}>
+                <p className="text-xs text-cyan-300 tracking-[0.2em] font-semibold" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
                   {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().getFullYear()}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xl font-bold text-white drop-shadow-lg" style={{ fontFamily: 'monospace' }}>
+              <div className="text-2xl font-bold text-white drop-shadow-lg tracking-wider" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
               </div>
-              <div className="text-[9px] text-white/70 tracking-wider" style={{ fontFamily: 'monospace' }}>
+              <div className="text-xs text-cyan-300 tracking-[0.15em] font-semibold" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
                 HORA LOCAL
               </div>
             </div>
@@ -85,8 +85,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pt-2 pb-1">
-        <div className="grid grid-cols-10 gap-2 text-[9px] font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-0.5" style={{ fontFamily: 'monospace' }}>
+      <div className="relative z-10 px-8 pt-3 pb-2">
+        <div className="grid grid-cols-10 gap-2 text-sm font-bold text-white tracking-[0.25em] border-b-2 border-cyan-400/50 pb-1" style={{ fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace" }}>
           <div className="col-span-2">FECHA</div>
           <div className="col-span-4">ORIGEN</div>
           <div className="col-span-4">DESTINO</div>
@@ -94,35 +94,35 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pb-2 space-y-1">
+      <main className="relative z-10 px-8 pb-3 space-y-2">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-10 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-1 px-2.5 rounded-lg"
+              className="grid grid-cols-10 gap-3 items-center bg-slate-800/80 backdrop-blur-sm border-2 border-cyan-400/30 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300 py-3 px-4 rounded-lg"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                fontFamily: 'monospace'
+                fontFamily: "'Courier New', 'Monaco', 'Consolas', monospace"
               }}
             >
               {/* Date */}
               <div className="col-span-2">
-                <div className="text-primary font-bold text-xs leading-tight">
+                <div className="bg-cyan-400 text-slate-900 font-bold text-base leading-tight px-2 py-1 rounded tracking-wider">
                   {dateInfo.day} {dateInfo.month}
                 </div>
               </div>
 
               {/* Origin */}
               <div className="col-span-4">
-                <div className="text-foreground font-bold text-[11px] tracking-wide leading-tight">
+                <div className="text-white font-bold text-base tracking-[0.15em] leading-tight">
                   {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
               </div>
 
               {/* Destination */}
               <div className="col-span-4">
-                <div className="text-foreground font-bold text-[11px] tracking-wide leading-tight">
+                <div className="text-white font-bold text-base tracking-[0.15em] leading-tight">
                   {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
                 </div>
               </div>
