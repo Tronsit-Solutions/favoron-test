@@ -84,10 +84,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-2 pb-1">
-        <div className="grid grid-cols-11 gap-2 text-[9px] font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-0.5" style={{ fontFamily: 'monospace' }}>
+        <div className="grid grid-cols-10 gap-2 text-[9px] font-bold text-white/90 tracking-widest border-b-2 border-white/30 pb-0.5" style={{ fontFamily: 'monospace' }}>
           <div className="col-span-2">FECHA</div>
           <div className="col-span-4">ORIGEN</div>
-          <div className="col-span-1 text-center">→</div>
           <div className="col-span-4">DESTINO</div>
         </div>
       </div>
@@ -99,7 +98,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-11 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-1 px-2.5 rounded-lg"
+              className="grid grid-cols-10 gap-2 items-center bg-white/95 backdrop-blur-sm border-2 border-white/50 hover:border-white hover:shadow-2xl transition-all duration-300 py-1 px-2.5 rounded-lg"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: 'monospace'
@@ -117,11 +116,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div className="text-foreground font-bold text-[11px] tracking-wide leading-tight">
                   {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
-              </div>
-
-              {/* Arrow */}
-              <div className="col-span-1 text-center">
-                <Send className="w-3.5 h-3.5 text-accent mx-auto rotate-45" />
               </div>
 
               {/* Destination */}
