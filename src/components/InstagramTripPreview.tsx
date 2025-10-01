@@ -69,17 +69,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 >
                   PRÓXIMOS VIAJES
                 </h1>
-                <p 
-                  className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
-                  style={{ 
-                    fontFamily: "'Courier New', monospace",
-                    color: '#22D3EE',
-                    textShadow: '0 0 8px #22D3EE',
-                    fontVariantNumeric: 'tabular-nums'
-                  }}
-                >
-                  {pageNumber > 1 ? `PÁGINA ${pageNumber}` : new Date().getFullYear()}
-                </p>
+                {pageNumber > 1 && (
+                  <p 
+                    className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
+                    style={{ 
+                      fontFamily: "'Courier New', monospace",
+                      color: '#22D3EE',
+                      textShadow: '0 0 8px #22D3EE',
+                      fontVariantNumeric: 'tabular-nums'
+                    }}
+                  >
+                    PÁGINA {pageNumber}
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-right">
