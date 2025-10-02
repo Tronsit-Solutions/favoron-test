@@ -69,19 +69,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 >
                   PRÓXIMOS VIAJES
                 </h1>
-                {pageNumber > 1 && (
-                  <p 
-                    className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
-                    style={{ 
-                      fontFamily: "'Courier New', monospace",
-                      color: '#AAAAAA',
-                      textShadow: '0 0 6px #AAAAAA',
-                      fontVariantNumeric: 'tabular-nums'
-                    }}
-                  >
-                    PÁGINA {pageNumber}
-                  </p>
-                )}
               </div>
             </div>
             <div className="text-right">
@@ -194,6 +181,23 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           );
         })}
       </main>
+
+      {/* Page Number - Bottom Right */}
+      {pageNumber > 1 && (
+        <div className="absolute bottom-6 right-8 z-20">
+          <p 
+            className="text-sm tracking-[0.3em] font-bold leading-none"
+            style={{ 
+              fontFamily: "'Courier New', monospace",
+              color: '#AAAAAA',
+              textShadow: '0 0 6px #AAAAAA',
+              fontVariantNumeric: 'tabular-nums'
+            }}
+          >
+            PÁGINA {pageNumber}
+          </p>
+        </div>
+      )}
 
       <style>{`
         @keyframes flipIn {
