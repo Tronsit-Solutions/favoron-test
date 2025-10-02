@@ -32,7 +32,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
-      className={`relative overflow-hidden ${
+      className={`relative overflow-hidden flex flex-col ${
         forCapture 
           ? 'w-[1080px] h-[1080px]' 
           : 'w-full aspect-square'
@@ -111,13 +111,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 space-y-0">
+      <main className="relative z-10 flex-1 flex flex-col">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center py-2 px-4 font-bricolage"
+              className="grid grid-cols-12 gap-3 items-center py-2 px-4 font-bricolage flex-1"
               style={{
                 animation: forCapture ? 'none' : `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 backgroundColor: index % 2 === 0 ? '#294266' : '#0063ab'
