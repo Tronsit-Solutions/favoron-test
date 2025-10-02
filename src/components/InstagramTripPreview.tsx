@@ -117,10 +117,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center border-b py-2 px-4 font-bricolage"
+              className="grid grid-cols-12 gap-3 items-center py-2 px-4 font-bricolage"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                borderColor: '#222222',
                 backgroundColor: index % 2 === 0 ? '#294266' : '#0063ab'
               }}
             >
