@@ -57,7 +57,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               />
               <div>
                 <h1 
-                  className="text-2xl font-bold tracking-[0.4em] leading-none font-bricolage"
+                  className="text-2xl font-bold tracking-[0.1em] leading-none font-bricolage"
                   style={{ 
                     color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
