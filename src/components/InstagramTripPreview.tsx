@@ -109,7 +109,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           }}
         >
           <div className="col-span-2">FECHA</div>
-          <div className="col-span-5">ORIGEN</div>
+          <div className="col-span-1"></div>
+          <div className="col-span-4">ORIGEN</div>
           <div className="col-span-5">DESTINO</div>
         </div>
       </div>
@@ -142,8 +143,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 </div>
               </div>
 
+              {/* Empty column */}
+              <div className="col-span-1"></div>
+
               {/* Origin */}
-              <div className="col-span-5">
+              <div className="col-span-4">
                 <div 
                   className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
