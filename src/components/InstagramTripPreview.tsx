@@ -121,7 +121,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               className="grid grid-cols-12 gap-3 items-center border-b py-2 px-4 font-bricolage"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                borderColor: '#222222'
+                borderColor: '#222222',
+                backgroundColor: index % 2 === 0 ? '#294266' : '#0063ab'
               }}
             >
               {/* Date */}
@@ -129,7 +130,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm leading-none tracking-[0.15em]"
                   style={{
-                    color: '#3a8ec1',
+                    color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -146,7 +147,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
-                    color: '#3a8ec1',
+                    color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -160,7 +161,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
-                    color: '#3a8ec1',
+                    color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
