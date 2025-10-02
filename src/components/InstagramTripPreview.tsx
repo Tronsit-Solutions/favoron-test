@@ -24,7 +24,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
     };
   };
 
-  const TRIPS_PER_PAGE = 10;
+  const TRIPS_PER_PAGE = 14;
   const pages = [];
   for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
     pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
