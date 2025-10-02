@@ -52,7 +52,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             <div className="flex items-center gap-3">
               <div>
                 <h1 
-                  className="text-2xl font-bold tracking-[0.1em] leading-none font-bricolage"
+                  className="text-4xl font-bold tracking-[0.1em] leading-none font-bricolage"
                   style={{ 
                     color: '#fbbf24',
                     fontVariantNumeric: 'tabular-nums',
@@ -67,7 +67,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             </div>
             <div className="text-right">
               <div 
-                className="text-xl font-bold tracking-[0.3em] leading-none font-bricolage"
+                className="text-2xl font-bold tracking-[0.3em] leading-none font-bricolage"
                 style={{ 
                   color: '#fbbf24',
                   fontVariantNumeric: 'tabular-nums',
@@ -95,7 +95,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-4" style={{ backgroundColor: '#1a2942' }}>
         <div 
-          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
+          className="grid grid-cols-12 gap-3 text-base font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
           style={{ 
             color: '#fbbf24',
             fontVariantNumeric: 'tabular-nums',
@@ -126,7 +126,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               {/* Date */}
               <div className="col-span-2">
                 <div 
-                  className="font-bold text-sm leading-none tracking-[0.15em]"
+                  className="font-bold text-lg leading-none tracking-[0.15em]"
                   style={{
                     color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
@@ -143,7 +143,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               {/* Origin */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-sm tracking-[0.2em] leading-none"
+                  className="font-bold text-lg tracking-[0.2em] leading-none"
                   style={{
                     color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
@@ -157,7 +157,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               {/* Destination */}
               <div className="col-span-4">
                 <div 
-                  className="font-bold text-sm tracking-[0.2em] leading-none"
+                  className="font-bold text-lg tracking-[0.2em] leading-none"
                   style={{
                     color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
