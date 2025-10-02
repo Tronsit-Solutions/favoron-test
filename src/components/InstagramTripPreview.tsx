@@ -50,11 +50,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
         <div className="py-3 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img 
-                src={favoronLogo} 
-                alt="Favoron Logo" 
-                className="w-10 h-10 object-contain"
-              />
               <div>
                 <h1 
                   className="text-2xl font-bold tracking-[0.1em] leading-none font-bricolage"
