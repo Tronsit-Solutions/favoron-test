@@ -60,8 +60,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#22D3EE',
-                    textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
+                    color: '#AAAAAA',
+                    textShadow: '0 0 8px #AAAAAA',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -74,8 +74,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                     className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
                     style={{ 
                       fontFamily: "'Courier New', monospace",
-                      color: '#22D3EE',
-                      textShadow: '0 0 8px #22D3EE',
+                      color: '#AAAAAA',
+                      textShadow: '0 0 6px #AAAAAA',
                       fontVariantNumeric: 'tabular-nums'
                     }}
                   >
@@ -89,8 +89,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#22D3EE',
-                  textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
+                  color: '#AAAAAA',
+                  textShadow: '0 0 8px #AAAAAA',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -101,8 +101,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#22D3EE',
-                  textShadow: '0 0 8px #22D3EE',
+                  color: '#AAAAAA',
+                  textShadow: '0 0 6px #AAAAAA',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
@@ -116,14 +116,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-4 pb-2">
         <div 
-          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
+          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] border-b leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
-            color: '#FFFFFF',
-            textShadow: '0 0 8px #FFFFFF',
+            color: '#AAAAAA',
+            textShadow: '0 0 6px #AAAAAA',
             fontVariantNumeric: 'tabular-nums',
             fontWeight: 700,
-            borderColor: '#FFFFFF'
+            borderColor: '#555555'
           }}
         >
           <div className="col-span-2">FECHA</div>
@@ -133,26 +133,26 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pb-3 space-y-1">
+      <main className="relative z-10 px-8 pb-3 space-y-0">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center border-b py-3 px-4"
+              className="grid grid-cols-12 gap-3 items-center border-b py-2 px-4"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: "'Courier New', monospace",
-                borderColor: '#333333'
+                borderColor: '#222222'
               }}
             >
               {/* Date */}
               <div className="col-span-2">
                 <div 
-                  className="font-bold text-base leading-none tracking-[0.2em]"
+                  className="font-bold text-sm leading-none tracking-[0.15em]"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    textShadow: '0 0 8px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -164,10 +164,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               {/* Origin */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    textShadow: '0 0 8px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -179,10 +179,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               {/* Destination */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
                     color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    textShadow: '0 0 8px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
