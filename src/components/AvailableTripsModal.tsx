@@ -75,26 +75,27 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     setIsGenerating(true);
     
     try {
-      console.log('Starting capture process...');
-      
       // Wait for fonts to load
       await document.fonts?.ready;
-      console.log('Fonts loaded');
+      
+      // Additional delay to ensure complete rendering
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const element = captureRef.current;
-      console.log('Element to capture:', element);
-      console.log('Element dimensions:', element.offsetWidth, 'x', element.offsetHeight);
       
       const canvas = await html2canvas(element, {
-        backgroundColor: 'rgba(15, 23, 42, 1)',
+        backgroundColor: '#1a2942',
         scale: 1,
         useCORS: true,
         allowTaint: false,
-        logging: true,
+        logging: false,
         width: 1080,
         height: 1080,
+        windowWidth: 1080,
+        windowHeight: 1080,
         scrollX: 0,
         scrollY: 0,
+        imageTimeout: 0,
         foreignObjectRendering: false,
         removeContainer: false
       });
@@ -200,17 +201,20 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
         
-        {/* Hidden element for capture - exact same component as preview */}
-        <div className="fixed -top-[5000px] left-0 z-[-1]">
+        {/* Hidden element for capture - positioned for html2canvas */}
+        <div 
+          className="fixed top-0 left-0 z-[-1]"
+          style={{
+            opacity: 0,
+            pointerEvents: 'none'
+          }}
+        >
           <div 
             ref={captureRef}
             style={{ 
               width: '1080px', 
               height: '1080px',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              backgroundColor: 'rgba(15, 23, 42, 1)' // Solid background for better capture
+              backgroundColor: '#1a2942'
             }}
           >
             <InstagramTripPreview trips={filteredTrips} searchTerm={searchTerm} forCapture={true} />
