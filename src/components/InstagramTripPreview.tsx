@@ -40,13 +40,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#1E88E5'
+        background: '#6B7280'
       } : {
-        background: '#1E88E5'
+        background: '#6B7280'
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20" style={{ background: '#000000' }}>
+      <header className="relative z-20 border-b-2" style={{ borderColor: '#FFFFFF' }}>
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -60,8 +60,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#FF8C00',
-                    textShadow: '0 0 10px #FF8C00, 0 0 20px #FF8C00',
+                    color: '#22D3EE',
+                    textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -74,8 +74,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                     className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
                     style={{ 
                       fontFamily: "'Courier New', monospace",
-                      color: '#FF8C00',
-                      textShadow: '0 0 8px #FF8C00',
+                      color: '#22D3EE',
+                      textShadow: '0 0 8px #22D3EE',
                       fontVariantNumeric: 'tabular-nums'
                     }}
                   >
@@ -89,8 +89,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#FF8C00',
-                  textShadow: '0 0 10px #FF8C00, 0 0 20px #FF8C00',
+                  color: '#22D3EE',
+                  textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -101,8 +101,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#FF8C00',
-                  textShadow: '0 0 8px #FF8C00',
+                  color: '#22D3EE',
+                  textShadow: '0 0 8px #22D3EE',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
@@ -114,80 +114,80 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pt-4 pb-2 border-b border-gray-700">
+      <div className="relative z-10 px-8 pt-4 pb-2">
         <div 
-          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.25em] leading-none pb-2"
+          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] border-b leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
-            color: '#CCCCCC',
+            color: '#FFFFFF',
+            textShadow: '0 0 8px #FFFFFF',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 600
+            fontWeight: 700,
+            borderColor: '#FFFFFF'
           }}
         >
-          <div className="col-span-2">DEP. ↓</div>
-          <div className="col-span-5">TO</div>
-          <div className="col-span-5">FLIGHT NO.</div>
+          <div className="col-span-2">FECHA</div>
+          <div className="col-span-5">ORIGEN</div>
+          <div className="col-span-5">DESTINO</div>
         </div>
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pb-3 space-y-0.5">
+      <main className="relative z-10 px-8 pb-3 space-y-1">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
-          const flightNumber = `FR${String(index + 1001).slice(-4)}`;
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center py-2.5 px-4 border-b border-gray-800/50"
+              className="grid grid-cols-12 gap-3 items-center border-b py-3 px-4"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                fontFamily: "'Courier New', monospace"
+                fontFamily: "'Courier New', monospace",
+                borderColor: '#333333'
               }}
             >
-              {/* Time + Date */}
+              {/* Date */}
               <div className="col-span-2">
                 <div 
-                  className="font-bold text-lg leading-tight tracking-[0.15em]"
+                  className="font-bold text-base leading-none tracking-[0.2em]"
                   style={{
-                    color: '#FFA500',
-                    textShadow: '0 0 8px #FFA500',
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {dateInfo.day}/{dateInfo.month}
+                  {dateInfo.day} {dateInfo.month}
                 </div>
               </div>
 
-              {/* Route: Origin -> Destination */}
+              {/* Origin */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-base tracking-[0.2em] leading-tight uppercase"
+                  className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
-                    color: '#FFA500',
-                    textShadow: '0 0 8px #FFA500',
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.replace(" City", "").toUpperCase()}
-                  <span className="mx-1" style={{ color: '#666' }}>→</span>
-                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.replace(" City", "").toUpperCase()}
+                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
                 </div>
               </div>
 
-              {/* Flight Number */}
+              {/* Destination */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-lg tracking-[0.3em] leading-tight"
+                  className="font-bold text-base tracking-[0.25em] leading-none"
                   style={{
-                    color: '#00BFFF',
-                    textShadow: '0 0 8px #00BFFF',
+                    color: '#FFFF00',
+                    textShadow: '0 0 10px #FFFF00',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {flightNumber}
+                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
                 </div>
               </div>
             </article>
