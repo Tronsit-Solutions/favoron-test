@@ -60,7 +60,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#000000',
+                    color: '#3a8ec1',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -75,7 +75,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#000000',
+                  color: '#3a8ec1',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -86,7 +86,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#000000',
+                  color: '#3a8ec1',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
@@ -103,7 +103,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] border-b leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
-            color: '#000000',
+            color: '#3a8ec1',
             fontVariantNumeric: 'tabular-nums',
             fontWeight: 700,
             borderColor: '#555555'
@@ -134,7 +134,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm leading-none tracking-[0.15em]"
                   style={{
-                    color: '#000000',
+                    color: '#3a8ec1',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -148,7 +148,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
-                    color: '#000000',
+                    color: '#3a8ec1',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -162,7 +162,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-sm tracking-[0.2em] leading-none"
                   style={{
-                    color: '#000000',
+                    color: '#3a8ec1',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -182,7 +182,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             className="text-sm tracking-[0.3em] font-bold leading-none"
             style={{ 
               fontFamily: "'Courier New', monospace",
-              color: '#000000',
+              color: '#3a8ec1',
               fontVariantNumeric: 'tabular-nums'
             }}
           >
