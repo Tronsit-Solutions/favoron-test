@@ -46,7 +46,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20 border-b-2" style={{ borderColor: '#FFFFFF' }}>
+      <header className="relative z-20 border-b-2" style={{ borderColor: '#FFFFFF', backgroundColor: '#808080' }}>
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -60,7 +60,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#3a8ec1',
+                    color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -75,7 +75,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#3a8ec1',
+                  color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -86,7 +86,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#3a8ec1',
+                  color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
