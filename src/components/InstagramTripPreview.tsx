@@ -40,9 +40,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#1a2332'
+        background: '#ffffff'
       } : {
-        background: '#1a2332'
+        background: '#ffffff'
       }}
     >
       {/* Header - LED Airport Style */}
