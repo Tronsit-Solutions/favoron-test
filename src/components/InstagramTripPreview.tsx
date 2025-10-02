@@ -114,78 +114,80 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pt-4 pb-2">
+      <div className="relative z-10 px-8 pt-4 pb-2 border-b border-gray-700">
         <div 
-          className="grid grid-cols-12 gap-2 text-sm font-bold tracking-[0.35em] leading-none pb-2"
+          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.25em] leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
-            color: '#FFFFFF',
-            textShadow: '0 0 8px #FFFFFF',
+            color: '#CCCCCC',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 700
+            fontWeight: 600
           }}
         >
-          <div className="col-span-2">FECHA</div>
-          <div className="col-span-5">ORIGEN</div>
-          <div className="col-span-5">DESTINO</div>
+          <div className="col-span-2">DEP. ↓</div>
+          <div className="col-span-5">TO</div>
+          <div className="col-span-5">FLIGHT NO.</div>
         </div>
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pb-3 space-y-1">
+      <main className="relative z-10 px-8 pb-3 space-y-0.5">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
+          const flightNumber = `FR${String(index + 1001).slice(-4)}`;
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center py-3 px-4"
+              className="grid grid-cols-12 gap-3 items-center py-2.5 px-4 border-b border-gray-800/50"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
                 fontFamily: "'Courier New', monospace"
               }}
             >
-              {/* Date */}
+              {/* Time + Date */}
               <div className="col-span-2">
                 <div 
-                  className="font-bold text-base leading-none tracking-[0.2em]"
+                  className="font-bold text-lg leading-tight tracking-[0.15em]"
                   style={{
-                    color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    color: '#FFA500',
+                    textShadow: '0 0 8px #FFA500',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {dateInfo.day} {dateInfo.month}
+                  {dateInfo.day}/{dateInfo.month}
                 </div>
               </div>
 
-              {/* Origin */}
+              {/* Route: Origin -> Destination */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  className="font-bold text-base tracking-[0.2em] leading-tight uppercase"
                   style={{
-                    color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    color: '#FFA500',
+                    textShadow: '0 0 8px #FFA500',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
+                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.replace(" City", "").toUpperCase()}
+                  <span className="mx-1" style={{ color: '#666' }}>→</span>
+                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.replace(" City", "").toUpperCase()}
                 </div>
               </div>
 
-              {/* Destination */}
+              {/* Flight Number */}
               <div className="col-span-5">
                 <div 
-                  className="font-bold text-base tracking-[0.25em] leading-none"
+                  className="font-bold text-lg tracking-[0.3em] leading-tight"
                   style={{
-                    color: '#FFFF00',
-                    textShadow: '0 0 10px #FFFF00',
+                    color: '#00BFFF',
+                    textShadow: '0 0 8px #00BFFF',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
                 >
-                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
+                  {flightNumber}
                 </div>
               </div>
             </article>
