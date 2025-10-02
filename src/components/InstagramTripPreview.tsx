@@ -57,9 +57,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               />
               <div>
                 <h1 
-                  className="text-2xl font-bold tracking-[0.4em] leading-none"
+                  className="text-2xl font-bold tracking-[0.4em] leading-none font-bricolage"
                   style={{ 
-                    fontFamily: "'Courier New', monospace",
                     color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
@@ -72,9 +71,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             </div>
             <div className="text-right">
               <div 
-                className="text-xl font-bold tracking-[0.3em] leading-none"
+                className="text-xl font-bold tracking-[0.3em] leading-none font-bricolage"
                 style={{ 
-                  fontFamily: "'Courier New', monospace",
                   color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
@@ -83,9 +81,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
               </div>
               <div 
-                className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
+                className="text-xs tracking-[0.25em] font-bold leading-none mt-1 font-bricolage"
                 style={{ 
-                  fontFamily: "'Courier New', monospace",
                   color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums'
                 }}
@@ -100,9 +97,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pb-2" style={{ backgroundColor: '#3a8ec1' }}>
         <div 
-          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2"
+          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
           style={{ 
-            fontFamily: "'Courier New', monospace",
             color: '#ffffff',
             fontVariantNumeric: 'tabular-nums',
             fontWeight: 700
@@ -122,10 +118,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
           return (
             <article
               key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center border-b py-2 px-4"
+              className="grid grid-cols-12 gap-3 items-center border-b py-2 px-4 font-bricolage"
               style={{
                 animation: `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                fontFamily: "'Courier New', monospace",
                 borderColor: '#222222'
               }}
             >
@@ -182,9 +177,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {pageNumber > 1 && (
         <div className="absolute bottom-6 right-8 z-20">
           <p 
-            className="text-sm tracking-[0.3em] font-bold leading-none"
+            className="text-sm tracking-[0.3em] font-bold leading-none font-bricolage"
             style={{ 
-              fontFamily: "'Courier New', monospace",
               color: '#3a8ec1',
               fontVariantNumeric: 'tabular-nums'
             }}
