@@ -40,9 +40,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#6B7280'
+        background: '#000000'
       } : {
-        background: '#6B7280'
+        background: '#000000'
       }}
     >
       {/* Header - LED Airport Style */}
@@ -198,9 +198,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       <style>{`
         @keyframes flipIn {
           from {
+            opacity: 0;
             transform: rotateX(-90deg);
           }
           to {
+            opacity: 1;
             transform: rotateX(0);
           }
         }
