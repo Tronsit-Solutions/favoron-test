@@ -40,14 +40,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        background: '#ffffff'
+        background: 'transparent'
       } : {
-        background: '#ffffff'
+        background: 'transparent'
       }}
     >
       {/* Header - LED Airport Style */}
       <header className="relative z-20" style={{ backgroundColor: '#ffffff' }}>
-        <div className="px-8 py-3">
+        <div className="py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
@@ -95,7 +95,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pb-2" style={{ backgroundColor: '#ffffff' }}>
+      <div className="relative z-10 pb-2" style={{ backgroundColor: '#ffffff' }}>
         <div 
           className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
           style={{ 
@@ -112,7 +112,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Board */}
-      <main className="relative z-10 px-8 pt-3 pb-3 space-y-0">
+      <main className="relative z-10 pt-3 pb-3 space-y-0">
         {trips.map((trip, index) => {
           const dateInfo = formatCalendarDate(trip.arrival_date);
           return (
@@ -176,7 +176,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Page Number - Bottom Right */}
       {pageNumber > 1 && (
-        <div className="absolute bottom-6 right-8 z-20">
+        <div className="absolute bottom-6 right-4 z-20">
           <p 
             className="text-sm tracking-[0.3em] font-bold leading-none font-bricolage"
             style={{ 
