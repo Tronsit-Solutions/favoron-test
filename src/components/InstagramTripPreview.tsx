@@ -46,7 +46,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20">
+      <header className="relative z-20" style={{ background: '#000000' }}>
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -60,8 +60,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   className="text-2xl font-bold tracking-[0.4em] leading-none"
                   style={{ 
                     fontFamily: "'Courier New', monospace",
-                    color: '#22D3EE',
-                    textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
+                    color: '#FF8C00',
+                    textShadow: '0 0 10px #FF8C00, 0 0 20px #FF8C00',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700
@@ -74,8 +74,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                     className="text-xs tracking-[0.3em] font-bold leading-none mt-1"
                     style={{ 
                       fontFamily: "'Courier New', monospace",
-                      color: '#22D3EE',
-                      textShadow: '0 0 8px #22D3EE',
+                      color: '#FF8C00',
+                      textShadow: '0 0 8px #FF8C00',
                       fontVariantNumeric: 'tabular-nums'
                     }}
                   >
@@ -89,8 +89,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xl font-bold tracking-[0.3em] leading-none"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#22D3EE',
-                  textShadow: '0 0 10px #22D3EE, 0 0 20px #22D3EE',
+                  color: '#FF8C00',
+                  textShadow: '0 0 10px #FF8C00, 0 0 20px #FF8C00',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700
                 }}
@@ -101,8 +101,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1"
                 style={{ 
                   fontFamily: "'Courier New', monospace",
-                  color: '#22D3EE',
-                  textShadow: '0 0 8px #22D3EE',
+                  color: '#FF8C00',
+                  textShadow: '0 0 8px #FF8C00',
                   fontVariantNumeric: 'tabular-nums'
                 }}
               >
