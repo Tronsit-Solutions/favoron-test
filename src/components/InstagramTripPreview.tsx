@@ -100,13 +100,12 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       {/* Departure Board Header */}
       <div className="relative z-10 px-8 pt-4 pb-2" style={{ backgroundColor: '#808080' }}>
         <div 
-          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] border-b leading-none pb-2"
+          className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2"
           style={{ 
             fontFamily: "'Courier New', monospace",
             color: '#ffffff',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 700,
-            borderColor: '#555555'
+            fontWeight: 700
           }}
         >
           <div className="col-span-2">FECHA</div>
