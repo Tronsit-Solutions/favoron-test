@@ -46,7 +46,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20" style={{ backgroundColor: '#808080' }}>
+      <header className="relative z-20" style={{ backgroundColor: '#3a8ec1' }}>
         <div className="px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 pb-2" style={{ backgroundColor: '#808080' }}>
+      <div className="relative z-10 px-8 pb-2" style={{ backgroundColor: '#3a8ec1' }}>
         <div 
           className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2"
           style={{ 
