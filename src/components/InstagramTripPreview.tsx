@@ -46,8 +46,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - LED Airport Style */}
-      <header className="relative z-20" style={{ backgroundColor: '#ffffff' }}>
-        <div className="py-3">
+      <header className="relative z-20" style={{ backgroundColor: '#1a2942' }}>
+        <div className="py-3 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
@@ -59,10 +59,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <h1 
                   className="text-2xl font-bold tracking-[0.1em] leading-none font-bricolage"
                   style={{ 
-                    color: '#3a8ec1',
+                    color: '#fbbf24',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
-                    fontWeight: 700
+                    fontWeight: 700,
+                    textShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
                   }}
                 >
                   PRÓXIMOS VIAJES
@@ -73,9 +74,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               <div 
                 className="text-xl font-bold tracking-[0.3em] leading-none font-bricolage"
                 style={{ 
-                  color: '#3a8ec1',
+                  color: '#fbbf24',
                   fontVariantNumeric: 'tabular-nums',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  textShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
                 }}
               >
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
@@ -83,8 +85,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               <div 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1 font-bricolage"
                 style={{ 
-                  color: '#3a8ec1',
-                  fontVariantNumeric: 'tabular-nums'
+                  color: '#fbbf24',
+                  fontVariantNumeric: 'tabular-nums',
+                  opacity: 0.8
                 }}
               >
                 HORA LOCAL
@@ -95,13 +98,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 pb-2" style={{ backgroundColor: '#ffffff' }}>
+      <div className="relative z-10 pb-2 px-4" style={{ backgroundColor: '#1a2942' }}>
         <div 
           className="grid grid-cols-12 gap-3 text-xs font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
           style={{ 
-            color: '#3a8ec1',
+            color: '#fbbf24',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 700
+            fontWeight: 700,
+            opacity: 0.9
           }}
         >
           <div className="col-span-2">FECHA</div>
