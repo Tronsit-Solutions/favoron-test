@@ -205,7 +205,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
   );
 
   return (
-    <div className="flex flex-col space-y-8">
+    <div className="flex flex-col space-y-8 bg-white">
       {pages.map((pageTrips, index) => renderTripPage(pageTrips, index + 1))}
     </div>
   );
