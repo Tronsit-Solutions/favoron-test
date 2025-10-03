@@ -76,13 +76,13 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     const trustLevelLabels = {
       basic: 'Básico',
       trusted: 'Confiable', 
-      premium: 'Premium'
+      prime: 'Prime'
     };
     
     const trustLevelConfig = {
       basic: { variant: 'secondary' as const },
       trusted: { variant: 'default' as const },
-      premium: { variant: 'success' as const }
+      prime: { variant: 'prime' as const }
     };
     
     const label = trustLevelLabels[trustLevel as keyof typeof trustLevelLabels] || trustLevel;
