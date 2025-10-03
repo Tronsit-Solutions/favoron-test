@@ -136,98 +136,48 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Get current admin user ID
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        console.error('No authenticated user found');
-        return;
-      }
-
       // Map the trust level to the database enum
       const dbTrustLevel = trustLevel === 'premium' ? 'verified' :
                           trustLevel === 'trusted' ? 'earned' : 
                           trustLevel === 'prime' ? 'prime' : 'basic';
 
-      // Prepare update data for profiles
-      const updateData: any = { trust_level: dbTrustLevel };
-      
-      // If setting to prime, set expiration to 1 year from now
+      // If setting to prime, use the RPC function which handles everything
       if (dbTrustLevel === 'prime') {
-        const now = new Date();
-        const oneYearLater = new Date(now.setFullYear(now.getFullYear() + 1));
-        updateData.prime_expires_at = oneYearLater.toISOString();
+        const { error: rpcError } = await supabase.rpc('admin_assign_prime_membership', {
+          _target_user_id: user.profileId,
+          _is_paid: primePaymentInfo?.isPaid ?? false,
+          _payment_reference: primePaymentInfo?.paymentReference || null,
+          _notes: primePaymentInfo?.notes || null
+        });
+
+        if (rpcError) {
+          console.error('Error assigning Prime membership via RPC:', rpcError);
+          return;
+        }
+
+        console.log('Prime membership assigned successfully via RPC');
       } else {
-        // Clear prime expiration if not prime
-        updateData.prime_expires_at = null;
-      }
+        // For other trust levels, update the profile directly
+        const updateData: any = { 
+          trust_level: dbTrustLevel,
+          prime_expires_at: null // Clear prime expiration if not prime
+        };
 
-      // Update in Supabase profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.profileId);
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', user.profileId);
 
-      if (profileError) {
-        console.error('Error updating trust level:', profileError);
-        return;
-      }
-
-      // If upgrading to prime, create prime_memberships record
-      if (dbTrustLevel === 'prime') {
-        // Check if there's already an approved prime membership for this user
-        const { data: existingMemberships, error: checkError } = await supabase
-          .from('prime_memberships')
-          .select('id, status')
-          .eq('user_id', user.profileId)
-          .eq('status', 'approved')
-          .maybeSingle();
-
-        if (checkError) {
-          console.error('Error checking existing prime memberships:', checkError);
+        if (profileError) {
+          console.error('Error updating trust level:', profileError);
+          return;
         }
 
-        // Only create a new record if there's no approved membership
-        if (!existingMemberships) {
-          const now = new Date();
-          const oneYearLater = new Date(now.setFullYear(now.getFullYear() + 1));
-          
-          const isPaid = primePaymentInfo?.isPaid ?? false;
-          const notes = primePaymentInfo?.notes || 
-                       (isPaid 
-                         ? `Membresía Prime asignada por administrador. Referencia: ${primePaymentInfo?.paymentReference || 'N/A'}`
-                         : 'Membresía Prime asignada como cortesía administrativa');
-
-          const { error: membershipError } = await supabase
-            .from('prime_memberships')
-            .insert({
-              user_id: user.profileId,
-              amount: isPaid ? 200 : 0,
-              status: 'approved',
-              approved_by: currentUser.id,
-              approved_at: now.toISOString(),
-              expires_at: oneYearLater.toISOString(),
-              notes: notes,
-              // Banking info is optional for admin assignments
-              bank_name: user.bankName || null,
-              bank_account_holder: user.bankAccountHolder || null,
-              bank_account_number: user.bankAccountNumber || null,
-              bank_account_type: user.bankAccountType || 'monetary'
-            });
-
-          if (membershipError) {
-            console.error('Error creating prime membership record:', membershipError);
-            // Don't fail the whole operation if membership record creation fails
-          } else {
-            console.log('Prime membership record created successfully');
-          }
-        } else {
-          console.log('User already has an approved prime membership, skipping creation');
-        }
+        console.log('Trust level updated successfully to:', dbTrustLevel);
       }
 
       // Update local state
       updateUser(userId, { trustLevel });
-      console.log('Trust level updated successfully to:', dbTrustLevel);
     } catch (error) {
       console.error('Error updating trust level:', error);
     }

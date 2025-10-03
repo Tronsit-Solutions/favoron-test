@@ -891,6 +891,15 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      admin_assign_prime_membership: {
+        Args: {
+          _is_paid?: boolean
+          _notes?: string
+          _payment_reference?: string
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
       admin_confirm_office_delivery: {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
