@@ -58,7 +58,7 @@ export const useUserManagement = () => {
           registrationDate: profile.created_at,
           status: 'verified' as const, // Since they have profiles, assume verified
           trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
-                     profile.trust_level === 'prime' ? 'premium' as const :
+                     profile.trust_level === 'prime' ? 'prime' as const :
                      profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
           adminNotes: '',
           // Banking information now included
@@ -129,13 +129,28 @@ export const useUserManagement = () => {
       }
 
       // Map the trust level to the database enum
+      // Handle all trust levels including prime
       const dbTrustLevel = trustLevel === 'premium' ? 'verified' :
-                          trustLevel === 'trusted' ? 'earned' : 'basic';
+                          trustLevel === 'trusted' ? 'earned' : 
+                          trustLevel === 'prime' ? 'prime' : 'basic';
+
+      // Prepare update data
+      const updateData: any = { trust_level: dbTrustLevel };
+      
+      // If setting to prime, set expiration to 1 year from now
+      if (dbTrustLevel === 'prime') {
+        const now = new Date();
+        const oneYearLater = new Date(now.setFullYear(now.getFullYear() + 1));
+        updateData.prime_expires_at = oneYearLater.toISOString();
+      } else {
+        // Clear prime expiration if not prime
+        updateData.prime_expires_at = null;
+      }
 
       // Update in Supabase
       const { error } = await supabase
         .from('profiles')
-        .update({ trust_level: dbTrustLevel })
+        .update(updateData)
         .eq('id', user.profileId);
 
       if (error) {
@@ -145,7 +160,7 @@ export const useUserManagement = () => {
 
       // Update local state
       updateUser(userId, { trustLevel });
-      console.log('Trust level updated successfully');
+      console.log('Trust level updated successfully to:', dbTrustLevel);
     } catch (error) {
       console.error('Error updating trust level:', error);
     }
