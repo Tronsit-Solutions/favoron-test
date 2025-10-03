@@ -50,6 +50,8 @@ const UserDetailModal = ({
 }: UserDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
+  const [pendingTrustLevel, setPendingTrustLevel] = useState<User['trustLevel']>(user.trustLevel);
+  const [pendingStatus, setPendingStatus] = useState<User['status']>(user.status);
 
   const profileId = (user as any).profileId as string | undefined;
 
@@ -348,8 +350,8 @@ const UserDetailModal = ({
                   <div className="space-y-2">
                     <Label>Estado del Usuario</Label>
                     <Select 
-                      value={user.status || 'active'}
-                      onValueChange={(value) => onUpdateUser(user.id, { status: value as User['status'] })}
+                      value={pendingStatus || 'active'}
+                      onValueChange={(value) => setPendingStatus(value as User['status'])}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -365,8 +367,8 @@ const UserDetailModal = ({
                   <div className="space-y-2">
                     <Label>Nivel de Confianza</Label>
                     <Select 
-                      value={user.trustLevel || 'basic'}
-                      onValueChange={(value) => onUpdateUser(user.id, { trustLevel: value as User['trustLevel'] })}
+                      value={pendingTrustLevel || 'basic'}
+                      onValueChange={(value) => setPendingTrustLevel(value as User['trustLevel'])}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -382,6 +384,44 @@ const UserDetailModal = ({
                     </Select>
                   </div>
                 </div>
+
+                {(pendingTrustLevel !== user.trustLevel || pendingStatus !== user.status) && (
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                        Hay cambios sin guardar
+                      </p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
+                        Presiona "Guardar cambios" para aplicar los cambios
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPendingTrustLevel(user.trustLevel);
+                          setPendingStatus(user.status);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (pendingTrustLevel !== user.trustLevel) {
+                            onUpdateUser(user.id, { trustLevel: pendingTrustLevel });
+                          }
+                          if (pendingStatus !== user.status) {
+                            onUpdateUser(user.id, { status: pendingStatus });
+                          }
+                        }}
+                      >
+                        Guardar cambios
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
