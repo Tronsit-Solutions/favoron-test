@@ -45,6 +45,8 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     statusFilter,
     setStatusFilter,
     updateUser,
+    updateTrustLevel,
+    updateUserStatus,
     refreshUsers
   } = useUserManagement();
 
@@ -93,11 +95,34 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     setShowUserDetail(true);
   };
 
-  const handleUpdateUser = (userId: number, updates: Partial<User>) => {
-    updateUser(userId, updates);
+  const handleUpdateUser = async (userId: number, updates: Partial<User>) => {
+    // Handle specific updates that require database operations
+    if (updates.trustLevel !== undefined) {
+      await updateTrustLevel(userId, updates.trustLevel);
+    }
+    if (updates.status !== undefined) {
+      await updateUserStatus(userId, updates.status);
+    }
+    
+    // Update other fields locally
+    const otherUpdates = { ...updates };
+    delete otherUpdates.trustLevel;
+    delete otherUpdates.status;
+    
+    if (Object.keys(otherUpdates).length > 0) {
+      updateUser(userId, otherUpdates);
+    }
+    
+    // Update selected user in modal
     if (selectedUser && selectedUser.id === userId) {
       setSelectedUser({ ...selectedUser, ...updates });
     }
+    
+    // Show success toast
+    toast({
+      title: "Usuario actualizado",
+      description: "Los cambios se han guardado correctamente",
+    });
   };
 
   const getUserInitials = (user: any) => {
