@@ -95,10 +95,14 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     setShowUserDetail(true);
   };
 
-  const handleUpdateUser = async (userId: number, updates: Partial<User>) => {
+  const handleUpdateUser = async (
+    userId: number, 
+    updates: Partial<User>,
+    primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }
+  ) => {
     // Handle specific updates that require database operations
     if (updates.trustLevel !== undefined) {
-      await updateTrustLevel(userId, updates.trustLevel);
+      await updateTrustLevel(userId, updates.trustLevel, primeInfo);
     }
     if (updates.status !== undefined) {
       await updateUserStatus(userId, updates.status);

@@ -6,6 +6,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +46,7 @@ interface UserDetailModalProps {
   packages: Package[];
   trips: Trip[];
   allPackages: Package[]; // All packages in system for cross-reference
-  onUpdateUser: (userId: number, updates: Partial<User>) => void;
+  onUpdateUser: (userId: number, updates: Partial<User>, primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }) => void;
 }
 
 const UserDetailModal = ({ 
@@ -52,6 +62,12 @@ const UserDetailModal = ({
   const [editedUser, setEditedUser] = useState(user);
   const [pendingTrustLevel, setPendingTrustLevel] = useState<User['trustLevel']>(user.trustLevel);
   const [pendingStatus, setPendingStatus] = useState<User['status']>(user.status);
+  const [showPrimeDialog, setShowPrimeDialog] = useState(false);
+  const [primePaymentInfo, setPrimePaymentInfo] = useState({
+    isPaid: false,
+    paymentReference: '',
+    notes: ''
+  });
 
   const profileId = (user as any).profileId as string | undefined;
 
@@ -368,7 +384,16 @@ const UserDetailModal = ({
                     <Label>Nivel de Confianza</Label>
                     <Select 
                       value={pendingTrustLevel || 'basic'}
-                      onValueChange={(value) => setPendingTrustLevel(value as User['trustLevel'])}
+                      onValueChange={(value) => {
+                        const newLevel = value as User['trustLevel'];
+                        // If selecting Prime, show confirmation dialog
+                        if (newLevel === 'prime' && user.trustLevel !== 'prime') {
+                          setShowPrimeDialog(true);
+                          setPendingTrustLevel(newLevel);
+                        } else {
+                          setPendingTrustLevel(newLevel);
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -406,19 +431,24 @@ const UserDetailModal = ({
                       >
                         Cancelar
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          if (pendingTrustLevel !== user.trustLevel) {
-                            onUpdateUser(user.id, { trustLevel: pendingTrustLevel });
-                          }
-                          if (pendingStatus !== user.status) {
-                            onUpdateUser(user.id, { status: pendingStatus });
-                          }
-                        }}
-                      >
-                        Guardar cambios
-                      </Button>
+                       <Button
+                         size="sm"
+                         onClick={() => {
+                           if (pendingTrustLevel !== user.trustLevel) {
+                             // If upgrading to Prime, pass payment info
+                             if (pendingTrustLevel === 'prime') {
+                               onUpdateUser(user.id, { trustLevel: pendingTrustLevel }, primePaymentInfo);
+                             } else {
+                               onUpdateUser(user.id, { trustLevel: pendingTrustLevel });
+                             }
+                           }
+                           if (pendingStatus !== user.status) {
+                             onUpdateUser(user.id, { status: pendingStatus });
+                           }
+                         }}
+                       >
+                         Guardar cambios
+                       </Button>
                     </div>
                   </div>
                 )}
@@ -453,6 +483,104 @@ const UserDetailModal = ({
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Prime Payment Information Dialog */}
+        <AlertDialog open={showPrimeDialog} onOpenChange={setShowPrimeDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Asignar Membresía Prime ✨</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-4">
+                <p>Estás a punto de asignar nivel Prime a {user.name}. Por favor confirma:</p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="paid"
+                      name="payment"
+                      checked={primePaymentInfo.isPaid}
+                      onChange={() => setPrimePaymentInfo(prev => ({ ...prev, isPaid: true }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="paid" className="font-normal cursor-pointer">
+                      El usuario pagó la membresía (Q200)
+                    </Label>
+                  </div>
+                  
+                  {primePaymentInfo.isPaid && (
+                    <div className="ml-6 space-y-2">
+                      <Label htmlFor="reference" className="text-sm">
+                        Referencia de pago (opcional)
+                      </Label>
+                      <Input
+                        id="reference"
+                        placeholder="Ej: Transferencia #12345"
+                        value={primePaymentInfo.paymentReference}
+                        onChange={(e) => setPrimePaymentInfo(prev => ({ 
+                          ...prev, 
+                          paymentReference: e.target.value 
+                        }))}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="courtesy"
+                      name="payment"
+                      checked={!primePaymentInfo.isPaid}
+                      onChange={() => setPrimePaymentInfo(prev => ({ 
+                        ...prev, 
+                        isPaid: false,
+                        paymentReference: ''
+                      }))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="courtesy" className="font-normal cursor-pointer">
+                      Cortesía administrativa (sin pago)
+                    </Label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes" className="text-sm">
+                      Notas adicionales (opcional)
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Ej: Usuario de confianza, membresía promocional, etc."
+                      value={primePaymentInfo.notes}
+                      onChange={(e) => setPrimePaymentInfo(prev => ({ 
+                        ...prev, 
+                        notes: e.target.value 
+                      }))}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-md">
+                  <p className="text-sm text-purple-900 dark:text-purple-100">
+                    Esta acción creará un registro en prime_memberships con validez de 1 año.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setPendingTrustLevel(user.trustLevel);
+                setPrimePaymentInfo({ isPaid: false, paymentReference: '', notes: '' });
+              }}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                setShowPrimeDialog(false);
+              }}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );

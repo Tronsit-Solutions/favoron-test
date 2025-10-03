@@ -119,7 +119,15 @@ export const useUserManagement = () => {
     }
   };
 
-  const updateTrustLevel = async (userId: number, trustLevel: User['trustLevel']) => {
+  const updateTrustLevel = async (
+    userId: number, 
+    trustLevel: User['trustLevel'],
+    primePaymentInfo?: {
+      isPaid: boolean;
+      paymentReference?: string;
+      notes?: string;
+    }
+  ) => {
     try {
       // Find the user's profile ID from the users array
       const user = users.find(u => u.id === userId);
@@ -128,13 +136,19 @@ export const useUserManagement = () => {
         return;
       }
 
+      // Get current admin user ID
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        return;
+      }
+
       // Map the trust level to the database enum
-      // Handle all trust levels including prime
       const dbTrustLevel = trustLevel === 'premium' ? 'verified' :
                           trustLevel === 'trusted' ? 'earned' : 
                           trustLevel === 'prime' ? 'prime' : 'basic';
 
-      // Prepare update data
+      // Prepare update data for profiles
       const updateData: any = { trust_level: dbTrustLevel };
       
       // If setting to prime, set expiration to 1 year from now
@@ -147,15 +161,68 @@ export const useUserManagement = () => {
         updateData.prime_expires_at = null;
       }
 
-      // Update in Supabase
-      const { error } = await supabase
+      // Update in Supabase profiles
+      const { error: profileError } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', user.profileId);
 
-      if (error) {
-        console.error('Error updating trust level:', error);
+      if (profileError) {
+        console.error('Error updating trust level:', profileError);
         return;
+      }
+
+      // If upgrading to prime, create prime_memberships record
+      if (dbTrustLevel === 'prime') {
+        // Check if there's already an approved prime membership for this user
+        const { data: existingMemberships, error: checkError } = await supabase
+          .from('prime_memberships')
+          .select('id, status')
+          .eq('user_id', user.profileId)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking existing prime memberships:', checkError);
+        }
+
+        // Only create a new record if there's no approved membership
+        if (!existingMemberships) {
+          const now = new Date();
+          const oneYearLater = new Date(now.setFullYear(now.getFullYear() + 1));
+          
+          const isPaid = primePaymentInfo?.isPaid ?? false;
+          const notes = primePaymentInfo?.notes || 
+                       (isPaid 
+                         ? `Membresía Prime asignada por administrador. Referencia: ${primePaymentInfo?.paymentReference || 'N/A'}`
+                         : 'Membresía Prime asignada como cortesía administrativa');
+
+          const { error: membershipError } = await supabase
+            .from('prime_memberships')
+            .insert({
+              user_id: user.profileId,
+              amount: isPaid ? 200 : 0,
+              status: 'approved',
+              approved_by: currentUser.id,
+              approved_at: now.toISOString(),
+              expires_at: oneYearLater.toISOString(),
+              notes: notes,
+              // Banking info is optional for admin assignments
+              bank_name: user.bankName || null,
+              bank_account_holder: user.bankAccountHolder || null,
+              bank_account_number: user.bankAccountNumber || null,
+              bank_account_type: user.bankAccountType || 'monetary'
+            });
+
+          if (membershipError) {
+            console.error('Error creating prime membership record:', membershipError);
+            // Don't fail the whole operation if membership record creation fails
+          } else {
+            console.log('Prime membership record created successfully');
+          }
+        } else {
+          console.log('User already has an approved prime membership, skipping creation');
+        }
       }
 
       // Update local state
