@@ -370,6 +370,33 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
+          {/* Totals Summary Card */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Total a Pagar</p>
+                <p className="text-lg font-bold text-primary">{formatCurrency(totals.totalToPay)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Tip Viajeros</p>
+                <p className="text-lg font-bold text-blue-600">{formatCurrency(totals.travelerTip)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Ingreso Favoron</p>
+                <p className="text-lg font-bold text-green-600">{formatCurrency(totals.favoronRevenue)}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-1">Pago Mensajeros</p>
+                <p className="text-lg font-bold text-orange-600">{formatCurrency(totals.messengerPayment)}</p>
+              </div>
+            </div>
+            {selectedMonth !== "all" && (
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Totales del mes seleccionado
+              </p>
+            )}
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
