@@ -92,7 +92,7 @@ export function usePrimeMembership() {
       // Create prime membership record
       const membershipData = {
         user_id: user.id,
-        amount: 200, // Fixed amount for Prime membership
+        amount: 300, // Fixed amount for Prime membership
         status: 'pending' as const,
         receipt_url: publicUrl,
         receipt_filename: receiptFile.name,

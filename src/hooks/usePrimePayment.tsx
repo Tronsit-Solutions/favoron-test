@@ -29,7 +29,7 @@ export const usePrimePayment = () => {
         .insert({
           traveler_id: user.id,
           trip_id: '00000000-0000-0000-0000-000000000000', // Dummy trip ID for Prime payments
-          amount: 200, // Fixed Q200 for Prime membership
+          amount: 300, // Fixed Q300 for Prime membership
           payment_type: 'prime_membership',
           bank_name: favoronAccount.bank_name,
           bank_account_holder: favoronAccount.account_holder,

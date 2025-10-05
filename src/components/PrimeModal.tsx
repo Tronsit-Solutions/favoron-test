@@ -129,7 +129,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
               <div className="text-center p-4 bg-primary/5 rounded-lg border">
                 <div className="space-y-2">
                   <div className="flex items-center justify-center space-x-2">
-                    <span className="text-lg font-bold text-primary">Q200</span>
+                    <span className="text-lg font-bold text-primary">Q300</span>
                     <span className="text-sm text-muted-foreground line-through">Q500</span>
                     <Badge variant="destructive" className="text-xs">60% OFF</Badge>
                   </div>

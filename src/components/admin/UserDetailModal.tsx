@@ -503,7 +503,7 @@ const UserDetailModal = ({
                       className="h-4 w-4"
                     />
                     <Label htmlFor="paid" className="font-normal cursor-pointer">
-                      El usuario pagó la membresía (Q200)
+                      El usuario pagó la membresía (Q300)
                     </Label>
                   </div>
                   
