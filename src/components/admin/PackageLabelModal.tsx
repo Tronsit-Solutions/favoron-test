@@ -75,6 +75,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     console.log('📋 All label numbers:', newLabelNumbers);
     setLabelNumbers(newLabelNumbers);
     setIsGeneratingLabels(false);
+    return newLabelNumbers;
   };
 
   // Get or set custom descriptions for current package
@@ -107,7 +108,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
       setIsGeneratingLabels(true);
       // Generate label numbers only when actually downloading
       console.log('🏷️ Generating label numbers for PDF download...');
-      await generateLabelNumbers();
+      const newLabelNumbers = await generateLabelNumbers();
       
       toast({
         title: "Números asignados",
@@ -162,7 +163,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
           root.render(React.createElement(PackageLabel, { 
             pkg: packageItem, 
             customDescriptions: customDescriptions[i],
-            labelNumber: labelNumbers[i]
+            labelNumber: newLabelNumbers[i]
           }));
           setTimeout(resolve, 100);
         });
@@ -205,7 +206,7 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
     setIsGeneratingLabels(true);
     // Generate label numbers only when actually printing
     console.log('🏷️ Generating label numbers for printing...');
-    await generateLabelNumbers();
+    const newLabelNumbers = await generateLabelNumbers();
     
     toast({
       title: "Número asignado",
