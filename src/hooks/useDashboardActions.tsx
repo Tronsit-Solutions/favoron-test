@@ -902,7 +902,7 @@ export const useDashboardActions = (
               quote: normalizedQuote,
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates,
-              quote_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+              quote_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours from now
             };
 
             console.log('📊 Generated quote:', normalizedQuote);
