@@ -26,6 +26,8 @@ interface EnrichedPackageData {
   travelerTip: number;
   favoronRevenue: number;
   messengerPayment: number;
+  isPrimeMembership?: boolean;
+  primeAmount?: number;
 }
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
@@ -56,6 +58,20 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     );
   }, [packages]);
 
+  // Fetch approved prime memberships
+  const { data: primeMemberships } = useQuery({
+    queryKey: ['prime-memberships-for-financial-table'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('prime_memberships')
+        .select('id, user_id, amount, approved_at, created_at')
+        .eq('status', 'approved')
+        .order('approved_at', { ascending: true });
+      
+      return data || [];
+    }
+  });
+
   // Fetch profiles data for shoppers and travelers
   const { data: profiles } = useQuery({
     queryKey: ['profiles-for-financial-table'],
@@ -83,6 +99,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         });
       }
 
+      // Add prime membership user_ids
+      primeMemberships?.forEach(membership => {
+        if (membership.user_id) userIds.add(membership.user_id);
+      });
+
       // Fetch all profiles
       if (userIds.size === 0) return {};
       
@@ -102,7 +123,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
       return profilesMap;
     },
-    enabled: eligiblePackages.length > 0
+    enabled: eligiblePackages.length > 0 || (primeMemberships && primeMemberships.length > 0)
   });
 
   // Fetch trips data to get traveler IDs
@@ -134,7 +155,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const enrichedData = useMemo(() => {
     if (!profiles || !trips) return [];
 
-    return eligiblePackages.map((pkg): EnrichedPackageData => {
+    const packageData = eligiblePackages.map((pkg): EnrichedPackageData => {
       const quote = pkg.quote as any;
       
       // Get shopper name and trust level
@@ -209,10 +230,45 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         totalToPay,
         travelerTip,
         favoronRevenue,
-        messengerPayment
+        messengerPayment,
+        isPrimeMembership: false
       };
     });
-  }, [eligiblePackages, profiles, trips]);
+
+    // Add prime memberships as separate entries
+    const primeData: EnrichedPackageData[] = (primeMemberships || []).map(membership => {
+      const memberProfile = profiles?.[membership.user_id];
+      const memberName = memberProfile 
+        ? `${memberProfile.first_name} ${memberProfile.last_name}`.trim() || 'Usuario'
+        : 'Usuario';
+      
+      const paymentDate = membership.approved_at 
+        ? new Date(membership.approved_at).toLocaleDateString('es-GT')
+        : new Date(membership.created_at).toLocaleDateString('es-GT');
+
+      return {
+        package: { id: membership.id } as Package,
+        shopperName: memberName,
+        travelerName: '-',
+        productDescription: 'Membresía Prime',
+        productLink: null,
+        paymentDate,
+        totalToPay: membership.amount,
+        travelerTip: 0,
+        favoronRevenue: membership.amount,
+        messengerPayment: 0,
+        isPrimeMembership: true,
+        primeAmount: membership.amount
+      };
+    });
+
+    // Combine and sort by date
+    return [...packageData, ...primeData].sort((a, b) => {
+      const dateA = new Date(a.paymentDate.split('/').reverse().join('-'));
+      const dateB = new Date(b.paymentDate.split('/').reverse().join('-'));
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [eligiblePackages, profiles, trips, primeMemberships]);
 
   // Paginate data
   const paginatedData = useMemo(() => {
@@ -226,12 +282,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       totalToPay: acc.totalToPay + item.totalToPay,
       travelerTip: acc.travelerTip + item.travelerTip,
       favoronRevenue: acc.favoronRevenue + item.favoronRevenue,
-      messengerPayment: acc.messengerPayment + item.messengerPayment
+      messengerPayment: acc.messengerPayment + item.messengerPayment,
+      primePayments: acc.primePayments + (item.isPrimeMembership ? item.primeAmount || 0 : 0)
     }), {
       totalToPay: 0,
       travelerTip: 0,
       favoronRevenue: 0,
-      messengerPayment: 0
+      messengerPayment: 0,
+      primePayments: 0
     });
   }, [enrichedData]);
 
@@ -243,7 +301,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         <CardTitle className="flex justify-between items-center">
           <span>Tabla Resumen Financiera</span>
           <span className="text-sm font-normal text-muted-foreground">
-            {enrichedData.length} paquetes en estados avanzados
+            {enrichedData.length} transacciones ({enrichedData.filter(e => !e.isPrimeMembership).length} paquetes + {enrichedData.filter(e => e.isPrimeMembership).length} membresías Prime)
           </span>
         </CardTitle>
       </CardHeader>
@@ -265,12 +323,21 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             </TableHeader>
             <TableBody>
               {paginatedData.map((item) => (
-                <TableRow key={item.package.id}>
+                <TableRow key={item.package.id} className={item.isPrimeMembership ? 'bg-purple-50/50' : ''}>
                   <TableCell className="text-sm">{item.paymentDate}</TableCell>
-                  <TableCell className="font-medium">{item.shopperName}</TableCell>
+                  <TableCell className="font-medium">
+                    {item.shopperName}
+                    {item.isPrimeMembership && (
+                      <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-700">Prime</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>{item.travelerName}</TableCell>
                   <TableCell className="max-w-sm">
-                    {item.package.products_data && Array.isArray(item.package.products_data) ? (
+                    {item.isPrimeMembership ? (
+                      <div className="text-sm font-medium text-purple-700">
+                        💎 Membresía Prime - 1 año
+                      </div>
+                    ) : item.package.products_data && Array.isArray(item.package.products_data) ? (
                       <div className="flex flex-col gap-2">
                         <div className="text-xs text-muted-foreground">
                           {item.package.products_data.length === 1 ? '1 producto' : `${item.package.products_data.length} productos`}
@@ -318,9 +385,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
-                      {getStatusLabel(item.package.status)}
-                    </Badge>
+                    {item.isPrimeMembership ? (
+                      <Badge className="bg-purple-600">Aprobado</Badge>
+                    ) : (
+                      <Badge variant="secondary">
+                        {getStatusLabel(item.package.status)}
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.totalToPay)}
