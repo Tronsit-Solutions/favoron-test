@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Package as PackageIcon } from "lucide-react";
+import { Eye, Package as PackageIcon, Calendar } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductDetailModal from "./ProductDetailModal";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FinancialSummaryTableProps {
   packages: Package[];
@@ -36,6 +37,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     products: any[];
     description: string;
   } | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -270,15 +272,47 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     });
   }, [eligiblePackages, profiles, trips, primeMemberships]);
 
-  // Paginate data
+  // Generate available months from the data
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+    
+    enrichedData.forEach(item => {
+      // Parse date from format "dd/mm/yyyy" to get month/year
+      const dateParts = item.paymentDate.split('/');
+      if (dateParts.length === 3) {
+        const month = dateParts[1];
+        const year = dateParts[2];
+        monthsSet.add(`${year}-${month}`);
+      }
+    });
+    
+    return Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
+  }, [enrichedData]);
+
+  // Filter data by selected month
+  const filteredData = useMemo(() => {
+    if (selectedMonth === "all") return enrichedData;
+    
+    return enrichedData.filter(item => {
+      const dateParts = item.paymentDate.split('/');
+      if (dateParts.length === 3) {
+        const month = dateParts[1];
+        const year = dateParts[2];
+        return `${year}-${month}` === selectedMonth;
+      }
+      return false;
+    });
+  }, [enrichedData, selectedMonth]);
+
+  // Paginate filtered data
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return enrichedData.slice(startIndex, startIndex + itemsPerPage);
-  }, [enrichedData, currentPage]);
+    return filteredData.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredData, currentPage]);
 
-  // Calculate totals
+  // Calculate totals from filtered data
   const totals = useMemo(() => {
-    return enrichedData.reduce((acc, item) => ({
+    return filteredData.reduce((acc, item) => ({
       totalToPay: acc.totalToPay + item.totalToPay,
       travelerTip: acc.travelerTip + item.travelerTip,
       favoronRevenue: acc.favoronRevenue + item.favoronRevenue,
@@ -291,19 +325,48 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       messengerPayment: 0,
       primePayments: 0
     });
-  }, [enrichedData]);
+  }, [filteredData]);
 
-  const totalPages = Math.ceil(enrichedData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  // Reset to page 1 when month filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Tabla Resumen Financiera</span>
-          <span className="text-sm font-normal text-muted-foreground">
-            {enrichedData.length} transacciones ({enrichedData.filter(e => !e.isPrimeMembership).length} paquetes + {enrichedData.filter(e => e.isPrimeMembership).length} membresías Prime)
-          </span>
-        </CardTitle>
+        <div className="flex justify-between items-start gap-4">
+          <CardTitle className="flex flex-col gap-2">
+            <span>Tabla Resumen Financiera</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              {filteredData.length} transacciones ({filteredData.filter(e => !e.isPrimeMembership).length} paquetes + {filteredData.filter(e => e.isPrimeMembership).length} membresías Prime)
+            </span>
+          </CardTitle>
+          
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filtrar por mes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los meses</SelectItem>
+                {availableMonths.map(month => {
+                  const [year, monthNum] = month.split('-');
+                  const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                  const monthName = monthNames[parseInt(monthNum) - 1];
+                  return (
+                    <SelectItem key={month} value={month}>
+                      {monthName} {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -410,11 +473,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               
               {/* Totals row */}
               {enrichedData.length > 0 && (
-                <TableRow className="border-t-2 bg-muted/50 font-semibold">
-                  <TableCell colSpan={4} className="text-right">
-                    <strong>TOTALES:</strong>
-                  </TableCell>
-                  <TableCell></TableCell>
+              <TableRow className="border-t-2 bg-muted/50 font-semibold">
+                <TableCell colSpan={4} className="text-right">
+                  <strong>TOTALES {selectedMonth !== "all" ? "(Mes seleccionado)" : "(Todos)"}:</strong>
+                </TableCell>
+                <TableCell></TableCell>
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.totalToPay)}</strong>
                   </TableCell>
@@ -437,7 +500,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         {totalPages > 1 && (
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages} - Mostrando {paginatedData.length} de {enrichedData.length} registros
+              Página {currentPage} de {totalPages} - Mostrando {paginatedData.length} de {filteredData.length} registros
             </p>
             <div className="flex gap-2">
               <button
