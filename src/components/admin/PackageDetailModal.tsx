@@ -541,6 +541,27 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div className="flex-1 space-y-3">
                       <div>
                         <h4 className="font-semibold text-orange-900 mb-1">Viajero Rechazó la Asignación</h4>
+                        
+                        {/* Traveler Name */}
+                        {(() => {
+                          const rejectedById = (pkg.traveler_rejection as any)?.rejected_by;
+                          const rejectorTrip = trips?.find(trip => trip.user_id === rejectedById);
+                          const rejectorProfile = rejectorTrip?.profiles;
+                          
+                          if (rejectorProfile) {
+                            return (
+                              <div className="mb-2 flex items-center space-x-2">
+                                <User className="h-4 w-4 text-orange-700" />
+                                <p className="text-sm font-medium text-orange-900">
+                                  Viajero: {rejectorProfile.first_name} {rejectorProfile.last_name} 
+                                  <span className="text-orange-600 ml-1">(@{rejectorProfile.username})</span>
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                        
                         <p className="text-sm text-orange-800">
                           <span className="font-medium">Motivo: </span>
                           {translateRejectionReason((pkg.traveler_rejection as any)?.reason)}
