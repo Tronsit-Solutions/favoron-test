@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -497,22 +497,35 @@ const AdminMatchDialog = ({
                     <CardContent className="p-2 sm:p-3">
                          {/* Main Trip Info - Mobile Responsive Layout */}
                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
                                <div className="flex items-center space-x-2 min-w-fit">
                                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
                                    {trip.user_id?.toString().slice(-2) || '00'}
                                  </div>
-                                  <div>
-                                    <p 
-                                      className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTravelerClick(trip);
-                                      }}
-                                    >
-                                      {getTravelerName(trip.user_id)}
-                                    </p>
+                                  <div className="flex items-center gap-2">
+                                    <div>
+                                      <p 
+                                        className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleTravelerClick(trip);
+                                        }}
+                                      >
+                                        {getTravelerName(trip.user_id)}
+                                      </p>
+                                    </div>
+                                    {/* Rejection Indicator */}
+                                    {selectedPackage?.traveler_rejection?.rejected_by === trip.user_id && (
+                                      <Badge 
+                                        variant="outline" 
+                                        className="bg-red-50 border-red-300 text-red-700 text-xs flex items-center gap-1"
+                                        title="Este viajero rechazó previamente este paquete"
+                                      >
+                                        <XCircle className="h-3 w-3" />
+                                        Rechazó antes
+                                      </Badge>
+                                    )}
                                   </div>
                                </div>
 
