@@ -577,18 +577,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-between pt-2 border-t border-orange-300">
-                        <div className="flex items-center space-x-2">
-                          {(pkg.traveler_rejection as any)?.wants_requote ? (
-                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
-                              ✓ Solicita nueva cotización
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
-                              No solicita nueva cotización
-                            </Badge>
-                          )}
-                        </div>
+                      <div className="pt-2 border-t border-orange-300">
                         <p className="text-xs text-orange-700">
                           Rechazado el {formatSafeDateTime((pkg.traveler_rejection as any)?.rejected_at || pkg.updated_at)}
                         </p>
