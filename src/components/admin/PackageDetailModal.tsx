@@ -533,6 +533,50 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
             </CardHeader>
             <CardContent className="space-y-4">
               
+              {/* Traveler Rejection Info - Show when traveler rejected the assignment */}
+              {pkg.traveler_rejection && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <XCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <h4 className="font-semibold text-orange-900 mb-1">Viajero Rechazó la Asignación</h4>
+                        <p className="text-sm text-orange-800">
+                          <span className="font-medium">Motivo: </span>
+                          {translateRejectionReason((pkg.traveler_rejection as any)?.reason)}
+                        </p>
+                      </div>
+                      
+                      {(pkg.traveler_rejection as any)?.additional_comments && (
+                        <div className="bg-orange-100 rounded-md p-3">
+                          <p className="text-xs font-medium text-orange-900 mb-1">Comentarios del viajero:</p>
+                          <p className="text-xs text-orange-800">
+                            {(pkg.traveler_rejection as any).additional_comments}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-orange-300">
+                        <div className="flex items-center space-x-2">
+                          {(pkg.traveler_rejection as any)?.wants_requote ? (
+                            <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+                              ✓ Solicita nueva cotización
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                              No solicita nueva cotización
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-orange-700">
+                          Rechazado el {formatSafeDateTime((pkg.traveler_rejection as any)?.rejected_at || pkg.updated_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Quote Rejection Info - Show when quote was rejected */}
               {pkg.quote_rejection && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
