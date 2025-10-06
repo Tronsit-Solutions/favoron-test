@@ -120,7 +120,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               className="grid grid-cols-12 gap-3 items-center py-2 px-4 font-bricolage flex-1"
               style={{
                 animation: forCapture ? 'none' : `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                backgroundColor: index % 2 === 0 ? '#294266' : '#0063ab'
+                backgroundColor: index % 2 === 0 ? '#ffffff' : '#d4ebf7'
               }}
             >
               {/* Date */}
