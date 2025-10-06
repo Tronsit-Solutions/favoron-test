@@ -484,16 +484,21 @@ const AdminMatchDialog = ({
 
             <ScrollArea className="flex-1 w-full min-h-0">
               <div className="space-y-2 pr-4 pb-4">
-                {validTrips.map((trip) => (
-                  <Card 
-                    key={trip.id} 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      selectedTripId === trip.id 
-                        ? 'ring-2 ring-primary bg-primary/5' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => handleTripSelection(trip.id)}
-                  >
+                {validTrips.map((trip) => {
+                  const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                  
+                  return (
+                    <Card 
+                      key={trip.id} 
+                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                        selectedTripId === trip.id 
+                          ? 'ring-2 ring-primary bg-primary/5' 
+                          : wasPreviouslyRejected
+                            ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
+                            : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleTripSelection(trip.id)}
+                    >
                     <CardContent className="p-2 sm:p-3">
                          {/* Main Trip Info - Mobile Responsive Layout */}
                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -503,29 +508,16 @@ const AdminMatchDialog = ({
                                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
                                    {trip.user_id?.toString().slice(-2) || '00'}
                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <div>
-                                      <p 
-                                        className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleTravelerClick(trip);
-                                        }}
-                                      >
-                                        {getTravelerName(trip.user_id)}
-                                      </p>
-                                    </div>
-                                    {/* Rejection Indicator */}
-                                    {selectedPackage?.traveler_rejection?.rejected_by === trip.user_id && (
-                                      <Badge 
-                                        variant="outline" 
-                                        className="bg-red-50 border-red-300 text-red-700 text-xs flex items-center gap-1"
-                                        title="Este viajero rechazó previamente este paquete"
-                                      >
-                                        <XCircle className="h-3 w-3" />
-                                        Rechazó antes
-                                      </Badge>
-                                    )}
+                                  <div>
+                                    <p 
+                                      className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleTravelerClick(trip);
+                                      }}
+                                    >
+                                      {getTravelerName(trip.user_id)}
+                                    </p>
                                   </div>
                                </div>
 
@@ -672,7 +664,8 @@ const AdminMatchDialog = ({
                        )}
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
           </div>
