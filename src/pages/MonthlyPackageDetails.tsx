@@ -638,53 +638,6 @@ const MonthlyPackageDetails = () => {
                       </Button>
                     </TableHead>
                   </TableRow>
-                  <TableRow className="border-b-2">
-                    <TableHead className="h-9 py-1"></TableHead>
-                    <TableHead className="h-9 py-1">
-                      <Input
-                        placeholder="Filtrar..."
-                        value={filters.item_description}
-                        onChange={(e) => setFilters({ ...filters, item_description: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    </TableHead>
-                    <TableHead className="h-9 py-1">
-                      <Input
-                        placeholder="Filtrar..."
-                        value={filters.customer}
-                        onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    </TableHead>
-                    <TableHead className="h-9 py-1">
-                      <Input
-                        placeholder="Filtrar..."
-                        value={filters.traveler}
-                        onChange={(e) => setFilters({ ...filters, traveler: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    </TableHead>
-                    <TableHead className="h-9 py-1">
-                      <Input
-                        placeholder="Filtrar..."
-                        value={filters.route}
-                        onChange={(e) => setFilters({ ...filters, route: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    </TableHead>
-                    <TableHead className="h-9 py-1">
-                      <Input
-                        placeholder="Filtrar..."
-                        value={filters.status}
-                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                        className="h-7 text-xs"
-                      />
-                    </TableHead>
-                    <TableHead className="h-9 py-1"></TableHead>
-                    <TableHead className="h-9 py-1"></TableHead>
-                    <TableHead className="h-9 py-1"></TableHead>
-                    <TableHead className="h-9 py-1"></TableHead>
-                  </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayedPackages.map((pkg) => (
