@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatDollarPrice } from "@/lib/formatters";
 
 interface Product {
   itemDescription: string;
@@ -54,7 +54,7 @@ const ProductDetailModal = ({ isOpen, onClose, products, packageDescription }: P
               <span className="font-medium">Total de items:</span> {totalItems}
             </div>
             <div className="col-span-2">
-              <span className="font-medium">Valor total estimado:</span> {formatCurrency(calculateTotal())}
+              <span className="font-medium">Valor total estimado:</span> {formatDollarPrice(calculateTotal())}
             </div>
           </div>
 
@@ -71,13 +71,13 @@ const ProductDetailModal = ({ isOpen, onClose, products, packageDescription }: P
                 
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div>
-                    <span className="font-medium">Precio unitario:</span> {formatCurrency(parseFloat(product.estimatedPrice || '0'))}
+                    <span className="font-medium">Precio unitario:</span> {formatDollarPrice(parseFloat(product.estimatedPrice || '0'))}
                   </div>
                   <div>
                     <span className="font-medium">Cantidad:</span> {product.quantity || '1'}
                   </div>
                   <div className="col-span-2">
-                    <span className="font-medium">Subtotal:</span> {formatCurrency(parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1'))}
+                    <span className="font-medium">Subtotal:</span> {formatDollarPrice(parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1'))}
                   </div>
                   {product.adminAssignedTip && (
                     <div className="col-span-2">
