@@ -128,7 +128,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-lg leading-none tracking-[0.15em]"
                   style={{
-                    color: '#ffffff',
+                    color: index % 2 === 0 ? '#1a2942' : '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -145,7 +145,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-lg tracking-[0.2em] leading-none"
                   style={{
-                    color: '#ffffff',
+                    color: index % 2 === 0 ? '#1a2942' : '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
@@ -159,7 +159,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="font-bold text-lg tracking-[0.2em] leading-none"
                   style={{
-                    color: '#ffffff',
+                    color: index % 2 === 0 ? '#1a2942' : '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontWeight: 700
                   }}
