@@ -229,14 +229,10 @@ const MonthlyPackageDetails = () => {
   };
 
   const getFavoronIncome = (pkg: PackageData) => {
-    // Ingreso de Favoron es el 40% del tip del viajero (o 20% si es prime)
-    // Por ahora usamos 40% por defecto
-    const tip = pkg.admin_assigned_tip || 0;
-    const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-    const validTip = Number.isFinite(numTip) ? numTip : 0;
-    
-    // Favoron se queda con 40% del tip del viajero
-    return validTip * 0.40;
+    // El ingreso de Favorón es el serviceFee del quote
+    const serviceFee = pkg.quote?.serviceFee || 0;
+    const numServiceFee = typeof serviceFee === 'string' ? parseFloat(serviceFee) : Number(serviceFee);
+    return Number.isFinite(numServiceFee) ? numServiceFee : 0;
   };
 
   const getMessengerCost = (pkg: PackageData) => {
@@ -454,7 +450,7 @@ const MonthlyPackageDetails = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ingresos Favorón (40% de Tips)
+              Ingresos Favorón (Service Fee)
             </CardTitle>
           </CardHeader>
           <CardContent>
