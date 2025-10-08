@@ -615,16 +615,32 @@ const MonthlyPackageDetails = () => {
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <h4 className="font-semibold text-sm">Filtrar por estado</h4>
-                                {selectedStatuses.length > 0 && (
+                                <div className="flex gap-2">
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setSelectedStatuses([])}
+                                    onClick={() => {
+                                      if (selectedStatuses.length === statusOptions.length) {
+                                        setSelectedStatuses([]);
+                                      } else {
+                                        setSelectedStatuses(statusOptions.map(s => s.value));
+                                      }
+                                    }}
                                     className="h-auto p-0 text-xs"
                                   >
-                                    Limpiar
+                                    {selectedStatuses.length === statusOptions.length ? 'Deseleccionar' : 'Seleccionar'} todas
                                   </Button>
-                                )}
+                                  {selectedStatuses.length > 0 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setSelectedStatuses([])}
+                                      className="h-auto p-0 text-xs"
+                                    >
+                                      Limpiar
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                               <div className="space-y-2">
                                 {statusOptions.map((status) => (
