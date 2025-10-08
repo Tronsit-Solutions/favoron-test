@@ -28,6 +28,12 @@ interface PackageData {
     first_name: string;
     last_name: string;
   };
+  trips?: {
+    profiles: {
+      first_name: string;
+      last_name: string;
+    };
+  };
 }
 
 interface TripData {
@@ -42,7 +48,7 @@ interface TripData {
   };
 }
 
-type SortField = 'created_at' | 'item_description' | 'customer' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger';
+type SortField = 'created_at' | 'item_description' | 'customer' | 'traveler' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger';
 type SortDirection = 'asc' | 'desc' | null;
 
 const MonthlyPackageDetails = () => {
@@ -58,6 +64,7 @@ const MonthlyPackageDetails = () => {
   const [filters, setFilters] = useState({
     item_description: '',
     customer: '',
+    traveler: '',
     route: '',
     status: '',
   });
@@ -101,6 +108,12 @@ const MonthlyPackageDetails = () => {
           profiles:user_id (
             first_name,
             last_name
+          ),
+          trips:matched_trip_id (
+            profiles:user_id (
+              first_name,
+              last_name
+            )
           )
         `)
         .gte('created_at', startDate.toISOString())
@@ -240,6 +253,11 @@ const MonthlyPackageDetails = () => {
         `${pkg.profiles?.first_name} ${pkg.profiles?.last_name}`.toLowerCase().includes(filters.customer.toLowerCase())
       );
     }
+    if (filters.traveler) {
+      filtered = filtered.filter(pkg => 
+        `${pkg.trips?.profiles?.first_name || ''} ${pkg.trips?.profiles?.last_name || ''}`.toLowerCase().includes(filters.traveler.toLowerCase())
+      );
+    }
     if (filters.route) {
       filtered = filtered.filter(pkg => 
         `${pkg.purchase_origin} ${pkg.package_destination}`.toLowerCase().includes(filters.route.toLowerCase())
@@ -269,6 +287,10 @@ const MonthlyPackageDetails = () => {
           case 'customer':
             aValue = `${a.profiles?.first_name} ${a.profiles?.last_name}`.toLowerCase();
             bValue = `${b.profiles?.first_name} ${b.profiles?.last_name}`.toLowerCase();
+            break;
+          case 'traveler':
+            aValue = `${a.trips?.profiles?.first_name || ''} ${a.trips?.profiles?.last_name || ''}`.toLowerCase();
+            bValue = `${b.trips?.profiles?.first_name || ''} ${b.trips?.profiles?.last_name || ''}`.toLowerCase();
             break;
           case 'route':
             aValue = `${a.purchase_origin} ${a.package_destination}`.toLowerCase();
@@ -522,6 +544,20 @@ const MonthlyPackageDetails = () => {
                         variant="ghost"
                         size="sm"
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('traveler')}
+                      >
+                        Viajero
+                        {sortField === 'traveler' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'traveler' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
                         onClick={() => handleSort('route')}
                       >
                         Ruta
@@ -623,6 +659,14 @@ const MonthlyPackageDetails = () => {
                     <TableHead className="h-9 py-1">
                       <Input
                         placeholder="Filtrar..."
+                        value={filters.traveler}
+                        onChange={(e) => setFilters({ ...filters, traveler: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="h-9 py-1">
+                      <Input
+                        placeholder="Filtrar..."
                         value={filters.route}
                         onChange={(e) => setFilters({ ...filters, route: e.target.value })}
                         className="h-7 text-xs"
@@ -639,6 +683,7 @@ const MonthlyPackageDetails = () => {
                     <TableHead className="h-9 py-1"></TableHead>
                     <TableHead className="h-9 py-1"></TableHead>
                     <TableHead className="h-9 py-1"></TableHead>
+                    <TableHead className="h-9 py-1"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -652,6 +697,12 @@ const MonthlyPackageDetails = () => {
                       </TableCell>
                       <TableCell className="py-2 text-xs">
                         {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {pkg.trips?.profiles ? 
+                          `${pkg.trips.profiles.first_name} ${pkg.trips.profiles.last_name}` 
+                          : '-'
+                        }
                       </TableCell>
                       <TableCell className="py-2 text-xs">
                         {pkg.purchase_origin} → {pkg.package_destination}
