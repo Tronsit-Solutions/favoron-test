@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import CustomsRegulation from "./pages/CustomsRegulation";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import Dashboard from "./pages/Dashboard";
+import MonthlyPackageDetails from "./pages/MonthlyPackageDetails";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,11 @@ const App = () => (
             <Route path="/dashboard/*" element={
               <RequireAuth>
                 <Dashboard />
+              </RequireAuth>
+            } />
+            <Route path="/admin/reports/month/:month" element={
+              <RequireAuth>
+                <MonthlyPackageDetails />
               </RequireAuth>
             } />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />

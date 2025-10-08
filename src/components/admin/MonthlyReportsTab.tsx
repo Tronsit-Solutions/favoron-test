@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface MonthlyReport {
 }
 
 const MonthlyReportsTab = () => {
+  const navigate = useNavigate();
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
@@ -500,7 +502,7 @@ const MonthlyReportsTab = () => {
               <Card key={monthKey} className="overflow-hidden">
                 <CardHeader 
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => toggleMonthExpansion(monthKey)}
+                  onClick={() => navigate(`/admin/reports/month/${monthKey}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
