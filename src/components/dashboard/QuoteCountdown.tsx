@@ -47,11 +47,18 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false, micro = false }:
 
   if (micro) {
     return (
-      <div className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded font-mono ${
-        isUrgent ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
-      }`}>
-        <Clock className="h-4 w-4" />
-        <span>{String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}</span>
+      <div className="flex flex-col gap-1">
+        <p className="text-xs text-muted-foreground font-medium">Cotización expira en:</p>
+        <div className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded font-mono ${
+          isUrgent ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+        }`}>
+          <Clock className="h-4 w-4" />
+          <span>
+            {String(timeLeft.hours).padStart(2, '0')}:
+            {String(timeLeft.minutes).padStart(2, '0')}:
+            {String(timeLeft.seconds).padStart(2, '0')}
+          </span>
+        </div>
       </div>
     );
   }
