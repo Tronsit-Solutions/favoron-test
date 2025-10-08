@@ -79,7 +79,11 @@ const MonthlyReportsTab = () => {
         throw error;
       }
       
-      setReports(Array.isArray(data) ? data as unknown as MonthlyReport[] : []);
+      // Sort reports from newest to oldest (descending by month)
+      const sortedData = Array.isArray(data) 
+        ? (data as unknown as MonthlyReport[]).sort((a, b) => b.month.localeCompare(a.month))
+        : [];
+      setReports(sortedData);
     } catch (error) {
       console.error('Error fetching monthly reports:', error);
       toast({
