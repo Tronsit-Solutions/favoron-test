@@ -11,6 +11,7 @@ interface Product {
   quantity?: string;
   itemLink?: string;
   adminAssignedTip?: number;
+  favoronFee?: number;
 }
 
 interface ProductDetailModalProps {
@@ -82,6 +83,11 @@ const ProductDetailModal = ({ isOpen, onClose, products, packageDescription }: P
                   {product.adminAssignedTip && (
                     <div className="col-span-2">
                       <span className="font-medium">Tip asignado:</span> {formatCurrency(product.adminAssignedTip)}
+                    </div>
+                  )}
+                  {product.favoronFee && (
+                    <div className="col-span-2">
+                      <span className="font-medium">Fee Favorón:</span> {formatCurrency(product.favoronFee)}
                     </div>
                   )}
                 </div>
