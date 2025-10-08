@@ -4,13 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Package as PackageIcon, Calendar } from "lucide-react";
+import { Eye, Package as PackageIcon, Calendar, Download } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductDetailModal from "./ProductDetailModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import * as XLSX from 'xlsx';
+import { useToast } from "@/hooks/use-toast";
 
 interface FinancialSummaryTableProps {
   packages: Package[];
@@ -32,6 +34,7 @@ interface EnrichedPackageData {
 }
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
+  const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProductData, setSelectedProductData] = useState<{
     products: any[];
@@ -345,16 +348,77 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     setCurrentPage(1);
   }, [selectedMonth]);
 
+  const handleDownloadExcel = () => {
+    // Prepare data for Excel
+    const excelData = filteredData.map(item => ({
+      'Fecha Pago': item.paymentDate,
+      'Shopper': item.shopperName,
+      'Viajero': item.travelerName,
+      'Producto': item.productDescription,
+      'Tipo': item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
+      'Estado': item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
+      'Total a Pagar (Q)': item.totalToPay.toFixed(2),
+      'Tip Viajero (Q)': item.travelerTip.toFixed(2),
+      'Ingreso Favorón (Q)': item.favoronRevenue.toFixed(2),
+      'Pago Mensajero (Q)': item.messengerPayment.toFixed(2),
+    }));
+
+    // Add totals row
+    excelData.push({
+      'Fecha Pago': '',
+      'Shopper': '',
+      'Viajero': '',
+      'Producto': '',
+      'Tipo': '',
+      'Estado': 'TOTAL',
+      'Total a Pagar (Q)': totals.totalToPay.toFixed(2),
+      'Tip Viajero (Q)': totals.travelerTip.toFixed(2),
+      'Ingreso Favorón (Q)': totals.favoronRevenue.toFixed(2),
+      'Pago Mensajero (Q)': totals.messengerPayment.toFixed(2),
+    });
+
+    // Create worksheet and workbook
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    
+    const monthLabel = selectedMonth === 'all' ? 'Todos' : (() => {
+      const [year, monthNum] = selectedMonth.split('-');
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return `${monthNames[parseInt(monthNum) - 1]}_${year}`;
+    })();
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Resumen Financiero');
+
+    // Download
+    XLSX.writeFile(wb, `Resumen_Financiero_${monthLabel}.xlsx`);
+    
+    toast({
+      title: "Descarga exitosa",
+      description: "Se descargó el resumen financiero",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start gap-4">
-          <CardTitle className="flex flex-col gap-2">
-            <span>Tabla Resumen Financiera</span>
-            <span className="text-sm font-normal text-muted-foreground">
-              {filteredData.length} transacciones ({filteredData.filter(e => !e.isPrimeMembership).length} paquetes + {filteredData.filter(e => e.isPrimeMembership).length} membresías Prime)
-            </span>
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadExcel}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Descargar
+            </Button>
+            <div className="flex flex-col gap-2">
+              <CardTitle>Tabla Resumen Financiera</CardTitle>
+              <span className="text-sm font-normal text-muted-foreground">
+                {filteredData.length} transacciones ({filteredData.filter(e => !e.isPrimeMembership).length} paquetes + {filteredData.filter(e => e.isPrimeMembership).length} membresías Prime)
+              </span>
+            </div>
+          </div>
           
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
