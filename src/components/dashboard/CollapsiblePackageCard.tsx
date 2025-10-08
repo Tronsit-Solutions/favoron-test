@@ -207,6 +207,13 @@ const CollapsiblePackageCard = ({
                   </div>
                 </CardDescription>
 
+                {/* Quote countdown timer for mobile */}
+                {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
+                  <div className="flex justify-center">
+                    <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                  </div>
+                )}
+
                 {/* Action buttons - stacked vertically on mobile */}
                 <div className="space-y-2 w-full">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
