@@ -74,6 +74,10 @@ const MonthlyPackageDetails = () => {
     status: '',
   });
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [statusFilterType, setStatusFilterType] = useState<'all' | 'paid'>('all');
+  
+  // Paid statuses group
+  const paidStatuses = ['paid', 'pending_purchase', 'in_transit', 'delivered_to_office', 'completed'];
 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente aprobación' },
@@ -280,8 +284,13 @@ const MonthlyPackageDetails = () => {
   const getSortedAndFilteredPackages = () => {
     let filtered = [...packages];
 
-    // Apply status filter first (multiple selection)
-    if (selectedStatuses.length > 0) {
+    // Apply status filter type (Pagado or Todos)
+    if (statusFilterType === 'paid') {
+      filtered = filtered.filter(pkg => paidStatuses.includes(pkg.status));
+    }
+
+    // Apply additional status filter (multiple selection) - only if 'all' mode
+    if (statusFilterType === 'all' && selectedStatuses.length > 0) {
       filtered = filtered.filter(pkg => selectedStatuses.includes(pkg.status));
     }
 
@@ -705,63 +714,32 @@ const MonthlyPackageDetails = () => {
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                              <Filter className={`h-3 w-3 ${selectedStatuses.length > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <Filter className={`h-3 w-3 ${statusFilterType === 'paid' || selectedStatuses.length > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-64" align="start">
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-semibold text-sm">Filtrar por estado</h4>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      if (selectedStatuses.length === statusOptions.length) {
-                                        setSelectedStatuses([]);
-                                      } else {
-                                        setSelectedStatuses(statusOptions.map(s => s.value));
-                                      }
-                                    }}
-                                    className="h-auto p-0 text-xs"
-                                  >
-                                    {selectedStatuses.length === statusOptions.length ? 'Deseleccionar' : 'Seleccionar'} todas
-                                  </Button>
-                                  {selectedStatuses.length > 0 && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setSelectedStatuses([])}
-                                      className="h-auto p-0 text-xs"
-                                    >
-                                      Limpiar
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                {statusOptions.map((status) => (
-                                  <div key={status.value} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={status.value}
-                                      checked={selectedStatuses.includes(status.value)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setSelectedStatuses([...selectedStatuses, status.value]);
-                                        } else {
-                                          setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
-                                        }
-                                      }}
-                                    />
-                                    <Label
-                                      htmlFor={status.value}
-                                      className="text-sm font-normal cursor-pointer"
-                                    >
-                                      {status.label}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
+                          <PopoverContent className="w-56" align="start">
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-sm mb-3">Filtrar por estado</h4>
+                              <Button
+                                variant={statusFilterType === 'all' ? 'default' : 'ghost'}
+                                className="w-full justify-start"
+                                onClick={() => {
+                                  setStatusFilterType('all');
+                                  setSelectedStatuses([]);
+                                }}
+                              >
+                                Todos
+                              </Button>
+                              <Button
+                                variant={statusFilterType === 'paid' ? 'default' : 'ghost'}
+                                className="w-full justify-start"
+                                onClick={() => {
+                                  setStatusFilterType('paid');
+                                  setSelectedStatuses([]);
+                                }}
+                              >
+                                Pagado
+                              </Button>
                             </div>
                           </PopoverContent>
                         </Popover>
