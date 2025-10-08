@@ -557,20 +557,20 @@ const MonthlyReportsTab = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Ingresos brutos</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.gross_revenue)}</p>
+                              <p className="text-sm text-muted-foreground">Ingresos brutos (Q)</p>
+                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.gross_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Tips viajeros</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.net_revenue)}</p>
+                              <p className="text-sm text-muted-foreground">Tips viajeros (Q)</p>
+                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.net_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
-                              <p className="text-sm text-muted-foreground">Ingresos Favorón</p>
-                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.service_fees)}</p>
+                              <p className="text-sm text-muted-foreground">Ingresos Favorón (Q)</p>
+                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.service_fees)}</p>
                             </CardContent>
                           </Card>
                         </div>
