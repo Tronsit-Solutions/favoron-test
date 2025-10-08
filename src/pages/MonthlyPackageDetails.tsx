@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar } from "lucide-react";
@@ -213,63 +214,58 @@ const MonthlyPackageDetails = () => {
         </Card>
       </div>
 
-      {/* Packages List */}
+      {/* Packages Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>Paquetes del Mes</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {packages.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No hay paquetes en este mes
-              </p>
-            ) : (
-              packages.map((pkg) => (
-                <Card key={pkg.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Paquete</p>
-                        <p className="font-medium">{pkg.item_description}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {format(new Date(pkg.created_at), "d 'de' MMMM, yyyy", { locale: es })}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Cliente</p>
-                        <p className="font-medium">
-                          {pkg.profiles?.first_name} {pkg.profiles?.last_name}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-xs text-muted-foreground">
-                            {pkg.purchase_origin} → {pkg.package_destination}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Estado</p>
-                        {getStatusBadge(pkg.status)}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Precio: Q{getTotalPrice(pkg).toFixed(2)}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Tip Viajero</p>
-                        <p className="font-bold text-lg text-blue-600">
-                          {pkg.admin_assigned_tip ? `Q${pkg.admin_assigned_tip.toFixed(2)}` : "No asignado"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+        <CardContent className="p-0">
+          {packages.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No hay paquetes en este mes
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="h-9 text-xs font-semibold">Fecha</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold">Paquete</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold">Cliente</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold">Ruta</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold">Estado</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold text-right">Precio</TableHead>
+                  <TableHead className="h-9 text-xs font-semibold text-right">Tip Viajero</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {packages.map((pkg) => (
+                  <TableRow key={pkg.id} className="hover:bg-muted/30">
+                    <TableCell className="py-2 text-xs">
+                      {format(new Date(pkg.created_at), "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs max-w-[200px] truncate">
+                      {pkg.item_description}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs">
+                      {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs">
+                      {pkg.purchase_origin} → {pkg.package_destination}
+                    </TableCell>
+                    <TableCell className="py-2">
+                      {getStatusBadge(pkg.status)}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs text-right font-medium">
+                      Q{getTotalPrice(pkg).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
+                      {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
