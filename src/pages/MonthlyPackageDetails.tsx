@@ -729,6 +729,32 @@ const MonthlyPackageDetails = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {/* Totals Row */}
+                  <TableRow className="bg-muted/50 font-semibold border-b-2">
+                    <TableCell className="py-2 text-xs">Total</TableCell>
+                    <TableCell className="py-2 text-xs"></TableCell>
+                    <TableCell className="py-2 text-xs"></TableCell>
+                    <TableCell className="py-2 text-xs"></TableCell>
+                    <TableCell className="py-2 text-xs"></TableCell>
+                    <TableCell className="py-2 text-xs"></TableCell>
+                    <TableCell className="py-2 text-xs text-right">
+                      ${displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs text-right text-blue-600">
+                      Q{displayedPackages.reduce((sum, pkg) => {
+                        const tip = pkg.admin_assigned_tip || 0;
+                        const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+                        return sum + (Number.isFinite(numTip) ? numTip : 0);
+                      }, 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs text-right text-purple-600">
+                      Q{displayedPackages.reduce((sum, pkg) => sum + getFavoronIncome(pkg), 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-2 text-xs text-right text-green-600">
+                      Q{displayedPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                  {/* Data Rows */}
                   {displayedPackages.map((pkg) => (
                     <TableRow key={pkg.id} className="hover:bg-muted/30">
                       <TableCell className="py-2 text-xs">
