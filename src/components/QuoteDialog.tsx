@@ -77,7 +77,8 @@ const QuoteDialog = ({
       rejectionReason: '',
       wantsRequote: false,
       additionalComments: '',
-      acceptedTerms: false
+      acceptedTerms: false,
+      confirmedDeliveryTime: false
     },
     ttl: 24 * 60 * 60 * 1000, // 24 hours
     encrypt: true // Encrypt since this contains financial data
@@ -93,7 +94,7 @@ const QuoteDialog = ({
   const [mobileInputsReady, setMobileInputsReady] = useState(false);
 
   // Destructure form state for easier access
-  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms } = formState;
+  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms, confirmedDeliveryTime } = formState;
 
   // Helper functions to update form state
   const updateFormField = (field: string, value: any) => {
@@ -690,19 +691,30 @@ const QuoteDialog = ({
 
           {/* Terms and Conditions Checkbox - Only for shoppers accepting quotes */}
           {existingQuote && userType === 'user' && <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => updateFormField('acceptedTerms', !!checked)} className="mt-1" />
-                <div className="flex-1">
-                  <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
-                    Entiendo y acepto los términos y condiciones de Favorón
-                  </Label>
-                  <p className="text-xs text-blue-700 mt-1">
-                    Al aceptar esta cotización, confirmas que has leído y aceptas nuestros términos de servicio.
-                  </p>
-                  <Button type="button" variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800" onClick={() => setShowTermsModal(true)}>
-                    <FileText className="h-3 w-3 mr-1" />
-                    Leer términos y condiciones
-                  </Button>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Checkbox id="acceptTerms" checked={acceptedTerms} onCheckedChange={checked => updateFormField('acceptedTerms', !!checked)} className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
+                      Entiendo y acepto los términos y condiciones de Favorón
+                    </Label>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Al aceptar esta cotización, confirmas que has leído y aceptas nuestros términos de servicio.
+                    </p>
+                    <Button type="button" variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800" onClick={() => setShowTermsModal(true)}>
+                      <FileText className="h-3 w-3 mr-1" />
+                      Leer términos y condiciones
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-3">
+                  <Checkbox id="confirmedDeliveryTime" checked={confirmedDeliveryTime} onCheckedChange={checked => updateFormField('confirmedDeliveryTime', !!checked)} className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="confirmedDeliveryTime" className="text-sm font-medium text-blue-900 cursor-pointer">
+                      He revisado que el paquete llega a tiempo a la dirección proporcionada
+                    </Label>
+                  </div>
                 </div>
               </div>
             </div>}
@@ -731,7 +743,7 @@ const QuoteDialog = ({
                     <Button variant="destructive" onClick={handleReject} className="flex-1 sm:flex-none">
                       Rechazar
                     </Button>
-                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && !acceptedTerms || isQuoteExpired} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 disabled:opacity-50">
+                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && (!acceptedTerms || !confirmedDeliveryTime) || isQuoteExpired} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 disabled:opacity-50">
                       {isQuoteExpired ? 'Cotización Expirada' : 'Aceptar Cotización'}
                     </Button>
                   </> : <>
