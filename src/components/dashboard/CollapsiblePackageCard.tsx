@@ -22,6 +22,7 @@ import ShopperPaymentInfoModal from "@/components/dashboard/shopper/ShopperPayme
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import ShippingInfoModal from "@/components/dashboard/ShippingInfoModal";
 import { OfficeAddressModal } from "@/components/ui/office-address-modal";
+import QuoteCountdown from "@/components/dashboard/QuoteCountdown";
 
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { useAuth } from "@/hooks/useAuth";
@@ -374,7 +375,13 @@ const CollapsiblePackageCard = ({
                       </span>
                     </CardTitle>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
+                      <QuoteCountdown 
+                        expiresAt={pkg.quote_expires_at}
+                        micro={true}
+                      />
+                    )}
                     {needsAction && (
                       <NotificationBadge count={1} />
                     )}
