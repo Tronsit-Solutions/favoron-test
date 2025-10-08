@@ -247,11 +247,6 @@ const CollapsiblePackageCard = ({
                       📦 Subir comprobante compra
                     </Button> : null}
                 </div>
-                
-                {/* Status badge in bottom right corner */}
-                <div className="flex justify-end">
-                  {getStatusBadge(pkg.status)}
-                </div>
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
