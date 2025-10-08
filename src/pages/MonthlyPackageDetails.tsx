@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -27,6 +28,9 @@ interface PackageData {
   };
 }
 
+type SortField = 'created_at' | 'item_description' | 'customer' | 'route' | 'status' | 'price' | 'tip';
+type SortDirection = 'asc' | 'desc' | null;
+
 const MonthlyPackageDetails = () => {
   const { month } = useParams<{ month: string }>();
   const navigate = useNavigate();
@@ -34,6 +38,14 @@ const MonthlyPackageDetails = () => {
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [loading, setLoading] = useState(true);
   const [monthName, setMonthName] = useState("");
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [filters, setFilters] = useState({
+    item_description: '',
+    customer: '',
+    route: '',
+    status: '',
+  });
 
   useEffect(() => {
     if (month) {
@@ -138,6 +150,96 @@ const MonthlyPackageDetails = () => {
     };
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedAndFilteredPackages = () => {
+    let filtered = [...packages];
+
+    // Apply filters
+    if (filters.item_description) {
+      filtered = filtered.filter(pkg => 
+        pkg.item_description.toLowerCase().includes(filters.item_description.toLowerCase())
+      );
+    }
+    if (filters.customer) {
+      filtered = filtered.filter(pkg => 
+        `${pkg.profiles?.first_name} ${pkg.profiles?.last_name}`.toLowerCase().includes(filters.customer.toLowerCase())
+      );
+    }
+    if (filters.route) {
+      filtered = filtered.filter(pkg => 
+        `${pkg.purchase_origin} ${pkg.package_destination}`.toLowerCase().includes(filters.route.toLowerCase())
+      );
+    }
+    if (filters.status) {
+      filtered = filtered.filter(pkg => 
+        pkg.status.toLowerCase().includes(filters.status.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    if (sortField && sortDirection) {
+      filtered.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortField) {
+          case 'created_at':
+            aValue = new Date(a.created_at).getTime();
+            bValue = new Date(b.created_at).getTime();
+            break;
+          case 'item_description':
+            aValue = a.item_description.toLowerCase();
+            bValue = b.item_description.toLowerCase();
+            break;
+          case 'customer':
+            aValue = `${a.profiles?.first_name} ${a.profiles?.last_name}`.toLowerCase();
+            bValue = `${b.profiles?.first_name} ${b.profiles?.last_name}`.toLowerCase();
+            break;
+          case 'route':
+            aValue = `${a.purchase_origin} ${a.package_destination}`.toLowerCase();
+            bValue = `${b.purchase_origin} ${b.package_destination}`.toLowerCase();
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          case 'price':
+            aValue = getTotalPrice(a);
+            bValue = getTotalPrice(b);
+            break;
+          case 'tip':
+            aValue = a.admin_assigned_tip || 0;
+            bValue = b.admin_assigned_tip || 0;
+            break;
+        }
+
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    }
+
+    return filtered;
+  };
+
+  const displayedPackages = getSortedAndFilteredPackages();
+
   const { totalRevenue, totalTips, totalServiceFees } = calculateTotals();
 
   if (loading) {
@@ -164,7 +266,7 @@ const MonthlyPackageDetails = () => {
         <div>
           <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
           <p className="text-muted-foreground">
-            {packages.length} paquetes en total
+            {packages.length} paquetes en total • {displayedPackages.length} mostrados
           </p>
         </div>
       </div>
@@ -225,46 +327,176 @@ const MonthlyPackageDetails = () => {
               No hay paquetes en este mes
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="h-9 text-xs font-semibold">Fecha</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold">Paquete</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold">Cliente</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold">Ruta</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold">Estado</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold text-right">Precio</TableHead>
-                  <TableHead className="h-9 text-xs font-semibold text-right">Tip Viajero</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {packages.map((pkg) => (
-                  <TableRow key={pkg.id} className="hover:bg-muted/30">
-                    <TableCell className="py-2 text-xs">
-                      {format(new Date(pkg.created_at), "dd/MM/yyyy")}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs max-w-[200px] truncate">
-                      {pkg.item_description}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs">
-                      {pkg.profiles?.first_name} {pkg.profiles?.last_name}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs">
-                      {pkg.purchase_origin} → {pkg.package_destination}
-                    </TableCell>
-                    <TableCell className="py-2">
-                      {getStatusBadge(pkg.status)}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs text-right font-medium">
-                      Q{getTotalPrice(pkg).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
-                      {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('created_at')}
+                      >
+                        Fecha
+                        {sortField === 'created_at' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'created_at' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('item_description')}
+                      >
+                        Paquete
+                        {sortField === 'item_description' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'item_description' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('customer')}
+                      >
+                        Cliente
+                        {sortField === 'customer' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'customer' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('route')}
+                      >
+                        Ruta
+                        {sortField === 'route' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'route' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                        onClick={() => handleSort('status')}
+                      >
+                        Estado
+                        {sortField === 'status' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'status' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
+                        onClick={() => handleSort('price')}
+                      >
+                        Precio
+                        {sortField === 'price' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'price' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
+                        onClick={() => handleSort('tip')}
+                      >
+                        Tip
+                        {sortField === 'tip' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'tip' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  <TableRow className="border-b-2">
+                    <TableHead className="h-9 py-1"></TableHead>
+                    <TableHead className="h-9 py-1">
+                      <Input
+                        placeholder="Filtrar..."
+                        value={filters.item_description}
+                        onChange={(e) => setFilters({ ...filters, item_description: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="h-9 py-1">
+                      <Input
+                        placeholder="Filtrar..."
+                        value={filters.customer}
+                        onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="h-9 py-1">
+                      <Input
+                        placeholder="Filtrar..."
+                        value={filters.route}
+                        onChange={(e) => setFilters({ ...filters, route: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="h-9 py-1">
+                      <Input
+                        placeholder="Filtrar..."
+                        value={filters.status}
+                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                        className="h-7 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="h-9 py-1"></TableHead>
+                    <TableHead className="h-9 py-1"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedPackages.map((pkg) => (
+                    <TableRow key={pkg.id} className="hover:bg-muted/30">
+                      <TableCell className="py-2 text-xs">
+                        {format(new Date(pkg.created_at), "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs max-w-[200px] truncate">
+                        {pkg.item_description}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {pkg.purchase_origin} → {pkg.package_destination}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(pkg.status)}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs text-right font-medium">
+                        Q{getTotalPrice(pkg).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
+                        {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
           )}
         </CardContent>
       </Card>
