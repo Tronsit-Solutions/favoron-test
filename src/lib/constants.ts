@@ -13,9 +13,10 @@ export const PRICING_CONFIG = {
   STANDARD_COMMISSION_RATE: 0.40, // 40% for standard users
   PRIME_COMMISSION_RATE: 0.20, // 20% for Prime users
   
-  // Delivery fees by trust level
-  STANDARD_DELIVERY_FEE: 25, // Q25 for standard users
-  PRIME_DELIVERY_FEE: 0, // Free for Prime users
+  // Delivery fees by trust level and location
+  STANDARD_DELIVERY_FEE: 25,        // Q25 for Guatemala City
+  OUTSIDE_CITY_DELIVERY_FEE: 60,    // Q60 for other cities
+  PRIME_DISCOUNT: 25,                // Q25 discount for Prime users outside Guatemala City
   
   // Service fee calculation by trust level
   SERVICE_FEE_RATE_STANDARD: 0.40, // 40% for standard users

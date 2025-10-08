@@ -57,9 +57,10 @@ export const createNormalizedQuote = (
   deliveryMethod: string = 'pickup',
   shopperTrustLevel?: string,
   message?: string,
-  adminAssignedTipAccepted?: boolean
+  adminAssignedTipAccepted?: boolean,
+  destination?: string
 ): NormalizedQuote => {
-  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel);
+  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel, destination);
 
   return {
     price: breakdown.basePrice,

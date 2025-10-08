@@ -66,7 +66,8 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     currentPackage.delivery_method || 'pickup',
     shopperProfile.trust_level,
     undefined, // No automatic message
-    true // adminAssignedTipAccepted
+    true, // adminAssignedTipAccepted
+    currentPackage.package_destination // Pass destination for correct delivery fee
   );
 
   console.log('📊 Generated quote:', normalizedQuote);

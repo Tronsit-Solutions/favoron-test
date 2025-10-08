@@ -229,13 +229,15 @@ export const useOptimizedPackagesData = () => {
       if (updates.quote && currentPackage) {
         const shopperTrustLevel = (currentPackage as any).profiles?.trust_level || 'basic';
         const deliveryMethod = currentPackage.delivery_method || 'pickup';
+        const destination = currentPackage.package_destination;
         
         // Check if the quote needs recalculation
         if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel)) {
           console.warn('⚠️ Quote discrepancy detected for package', id, {
             provided: updates.quote,
             deliveryMethod,
-            shopperTrustLevel
+            shopperTrustLevel,
+            destination
           });
           
           // Normalize the quote to ensure consistency

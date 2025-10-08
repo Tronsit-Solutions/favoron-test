@@ -216,11 +216,22 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       
       // Use shopper's trust level for service fee and delivery fee (what shopper pays)
       const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
-      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel);
+      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, pkg.package_destination);
       
       // Favoron revenue = Total a pagar - tip viajero - delivery fee
       const favoronRevenue = totalToPay - travelerTip - deliveryFee;
-      const messengerPayment = pkg.delivery_method !== 'pickup' && shopperTrustLevel !== 'prime' ? 25 : 0;
+      
+      // Messenger payment calculation based on destination
+      const isGuatemalaCity = pkg.package_destination?.toLowerCase().includes('guatemala city') || 
+                              pkg.package_destination?.toLowerCase().includes('ciudad de guatemala');
+      let messengerPayment = 0;
+      if (pkg.delivery_method !== 'pickup') {
+        if (shopperTrustLevel === 'prime') {
+          messengerPayment = isGuatemalaCity ? 0 : 35; // Q35 for Prime outside Guatemala City
+        } else {
+          messengerPayment = isGuatemalaCity ? 25 : 60; // Q25 for Guatemala City, Q60 outside
+        }
+      }
 
       return {
         package: pkg,

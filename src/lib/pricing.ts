@@ -13,23 +13,39 @@ export const getFavoronCommissionRate = (trustLevel?: TrustLevel | string): numb
 };
 
 /**
- * Get the delivery fee based on delivery method and user's trust level
- * Corrected logic: Q25 for delivery + NOT Prime, Q0 otherwise
+ * Get the delivery fee based on delivery method, user's trust level, and destination
+ * - Guatemala City: Q25 for standard users, Q0 for Prime users
+ * - Other cities: Q60 for standard users, Q35 for Prime users (Q60 - Q25 discount)
+ * - Pickup: Q0 for everyone
  */
 export const getDeliveryFee = (
   deliveryMethod: string = 'pickup', 
-  trustLevel?: TrustLevel | string
+  trustLevel?: TrustLevel | string,
+  destination?: string
 ): number => {
-  // No delivery fee for pickup regardless of trust level
+  // No delivery fee for pickup regardless of trust level or destination
   if (deliveryMethod === 'pickup') {
     return 0;
   }
   
-  // For delivery: Q25 if NOT Prime, Q0 if Prime
-  if (trustLevel === 'prime') {
-    return 0; // Prime users get free delivery
+  // Check if destination is Guatemala City
+  const isGuatemalaCity = destination?.toLowerCase().includes('guatemala city') || 
+                          destination?.toLowerCase().includes('ciudad de guatemala');
+  
+  // Prime users in Guatemala City get free delivery
+  if (trustLevel === 'prime' && isGuatemalaCity) {
+    return 0;
   }
-  return PRICING_CONFIG.STANDARD_DELIVERY_FEE; // Q25 for non-Prime
+  
+  // Prime users outside Guatemala City get Q25 discount (Q60 - Q25 = Q35)
+  if (trustLevel === 'prime' && !isGuatemalaCity) {
+    return PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE - PRICING_CONFIG.PRIME_DISCOUNT; // Q35
+  }
+  
+  // Standard users: Q25 for Guatemala City, Q60 for other cities
+  return isGuatemalaCity 
+    ? PRICING_CONFIG.STANDARD_DELIVERY_FEE // Q25
+    : PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE; // Q60
 };
 
 /**
@@ -48,10 +64,11 @@ export const calculateServiceFee = (basePrice: number, trustLevel?: TrustLevel |
 export const calculateQuoteTotal = (
   basePrice: number,
   deliveryMethod: string = 'pickup',
-  trustLevel?: TrustLevel | string
+  trustLevel?: TrustLevel | string,
+  destination?: string
 ): number => {
   const serviceFee = calculateServiceFee(basePrice, trustLevel);
-  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel);
+  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination);
   return basePrice + serviceFee + deliveryFee;
 };
 
@@ -88,10 +105,11 @@ export const calculateTravelerTip = (
 export const getPriceBreakdown = (
   basePrice: number,
   deliveryMethod: string = 'pickup',
-  trustLevel?: TrustLevel | string
+  trustLevel?: TrustLevel | string,
+  destination?: string
 ) => {
   const serviceFee = calculateServiceFee(basePrice, trustLevel);
-  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel);
+  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination);
   const totalPrice = basePrice + serviceFee + deliveryFee;
   const favoronRevenue = calculateFavoronRevenue(basePrice, serviceFee, trustLevel);
   const travelerTip = calculateTravelerTip(totalPrice, basePrice, serviceFee, deliveryFee, trustLevel);

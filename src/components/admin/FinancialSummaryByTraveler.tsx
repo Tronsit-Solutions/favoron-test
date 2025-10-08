@@ -112,7 +112,7 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
       const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
       
       const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
-      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel);
+      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel, pkg.package_destination);
 
       if (!travelerData[travelerId]) {
         const profile = profilesMap[travelerId];

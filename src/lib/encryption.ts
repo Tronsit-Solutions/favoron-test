@@ -20,7 +20,7 @@ class StorageEncryption {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt,
+        salt: salt.buffer as ArrayBuffer,
         iterations: 100000,
         hash: 'SHA-256'
       },
@@ -81,7 +81,7 @@ class StorageEncryption {
       combined.set(new Uint8Array(encryptedData), salt.length + iv.length);
       
       // Convert to base64 for storage
-      return btoa(String.fromCharCode(...combined));
+      return btoa(String.fromCharCode(...Array.from(combined)));
     } catch (error) {
       console.warn('Encryption failed, storing data unencrypted:', error);
       return data; // Fallback to unencrypted

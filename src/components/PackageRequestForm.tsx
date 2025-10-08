@@ -601,13 +601,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               {isGuatemalaCityDestination ? (
                 <div className="bg-blue-50 border border-blue-200 rounded p-3">
                   <p className="text-sm text-blue-800">
-                    📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25.
+                    📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25 (gratis para usuarios Prime).
                   </p>
                 </div>
               ) : (
                 <div className="bg-blue-50 border border-blue-200 rounded p-3">
                   <p className="text-sm text-blue-800">
-                    📌 <strong>Nota:</strong> El costo de envío a domicilio varía según la ubicación y distancia. Te proporcionaremos el costo exacto en la cotización.
+                    📌 <strong>Nota:</strong> El costo de envío a domicilio fuera de Ciudad de Guatemala es de Q60 (Q35 para usuarios Prime).
                   </p>
                 </div>
               )}
