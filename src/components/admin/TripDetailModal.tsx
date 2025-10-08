@@ -645,6 +645,12 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                           <p className="font-medium text-muted-foreground">Precio estimado:</p>
                           <p className="font-semibold text-green-600">${pkg.estimated_price}</p>
                         </div>
+                        {pkg.admin_assigned_tip && (
+                          <div>
+                            <p className="font-medium text-muted-foreground">Tip asignado:</p>
+                            <p className="font-semibold">Q{pkg.admin_assigned_tip}</p>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="mt-3 pt-3 border-t border-muted-foreground/20">
