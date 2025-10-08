@@ -153,10 +153,14 @@ const MonthlyPackageDetails = () => {
   };
 
   const getFavoronIncome = (pkg: PackageData) => {
-    const totalPrice = getTotalPrice(pkg);
+    // Ingreso de Favoron es el 40% del tip del viajero (o 20% si es prime)
+    // Por ahora usamos 40% por defecto
     const tip = pkg.admin_assigned_tip || 0;
     const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-    return totalPrice - (Number.isFinite(numTip) ? numTip : 0);
+    const validTip = Number.isFinite(numTip) ? numTip : 0;
+    
+    // Favoron se queda con 40% del tip del viajero
+    return validTip * 0.40;
   };
 
   const getMessengerCost = (pkg: PackageData) => {
@@ -460,7 +464,7 @@ const MonthlyPackageDetails = () => {
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
                         onClick={() => handleSort('favoron_income')}
                       >
-                        Ingreso Favorón ($)
+                        Ingreso Favorón (Q)
                         {sortField === 'favoron_income' && (
                           sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
                         )}
@@ -546,7 +550,7 @@ const MonthlyPackageDetails = () => {
                         {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-medium text-purple-600">
-                        ${getFavoronIncome(pkg).toFixed(2)}
+                        Q{getFavoronIncome(pkg).toFixed(2)}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-medium text-green-600">
                         {getMessengerCost(pkg) > 0 ? `Q${getMessengerCost(pkg).toFixed(2)}` : "-"}
