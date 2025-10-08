@@ -408,7 +408,7 @@ const MonthlyPackageDetails = () => {
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
                         onClick={() => handleSort('price')}
                       >
-                        Precio
+                        Precio ($)
                         {sortField === 'price' && (
                           sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
                         )}
@@ -422,7 +422,7 @@ const MonthlyPackageDetails = () => {
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
                         onClick={() => handleSort('tip')}
                       >
-                        Tip
+                        Tip (Q)
                         {sortField === 'tip' && (
                           sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
                         )}
@@ -487,7 +487,7 @@ const MonthlyPackageDetails = () => {
                         {getStatusBadge(pkg.status)}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-medium">
-                        Q{getTotalPrice(pkg).toFixed(2)}
+                        ${getTotalPrice(pkg).toFixed(2)}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
                         {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
