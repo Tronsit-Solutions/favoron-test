@@ -23,6 +23,19 @@ interface PackageData {
   quote: any;
   admin_assigned_tip: number;
   delivery_method: string;
+  matched_trip_id: string | null;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+interface TripData {
+  id: string;
+  from_city: string;
+  to_city: string;
+  arrival_date: string;
+  user_id: string;
   profiles: {
     first_name: string;
     last_name: string;
@@ -37,6 +50,7 @@ const MonthlyPackageDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [packages, setPackages] = useState<PackageData[]>([]);
+  const [trips, setTrips] = useState<TripData[]>([]);
   const [loading, setLoading] = useState(true);
   const [monthName, setMonthName] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -83,6 +97,7 @@ const MonthlyPackageDetails = () => {
           quote,
           admin_assigned_tip,
           delivery_method,
+          matched_trip_id,
           profiles:user_id (
             first_name,
             last_name
@@ -95,6 +110,28 @@ const MonthlyPackageDetails = () => {
       if (error) throw error;
 
       setPackages(data || []);
+
+      // Fetch trips for the month (based on arrival_date)
+      const { data: tripsData, error: tripsError } = await supabase
+        .from('trips')
+        .select(`
+          id,
+          from_city,
+          to_city,
+          arrival_date,
+          user_id,
+          profiles:user_id (
+            first_name,
+            last_name
+          )
+        `)
+        .gte('arrival_date', startDate.toISOString())
+        .lte('arrival_date', endDate.toISOString())
+        .order('arrival_date', { ascending: false });
+
+      if (tripsError) throw tripsError;
+
+      setTrips(tripsData || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
       toast({
@@ -272,6 +309,38 @@ const MonthlyPackageDetails = () => {
 
   const displayedPackages = getSortedAndFilteredPackages();
 
+  const getTopEarningTrip = () => {
+    if (trips.length === 0 || packages.length === 0) return null;
+
+    // Calculate earnings for each trip
+    const tripEarnings = trips.map(trip => {
+      const tripPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+      const paidStatuses = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+      const paidPackages = tripPackages.filter(pkg => paidStatuses.includes(pkg.status));
+      
+      const totalTips = paidPackages.reduce((sum, pkg) => {
+        const tip = pkg.admin_assigned_tip || 0;
+        const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+        return sum + (Number.isFinite(numTip) ? numTip : 0);
+      }, 0);
+
+      return {
+        trip,
+        totalTips,
+        packageCount: paidPackages.length
+      };
+    });
+
+    // Find trip with highest earnings
+    const topTrip = tripEarnings.reduce((max, current) => 
+      current.totalTips > max.totalTips ? current : max
+    , tripEarnings[0]);
+
+    return topTrip.totalTips > 0 ? topTrip : null;
+  };
+
+  const topEarningTrip = getTopEarningTrip();
+
   const { totalRevenue, totalTips, totalServiceFees } = calculateTotals();
 
   if (loading) {
@@ -347,6 +416,49 @@ const MonthlyPackageDetails = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Top Earning Trip */}
+      {topEarningTrip && (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-green-600" />
+              Viaje con Mayor Ganancia del Mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Viajero</p>
+                <p className="font-semibold">
+                  {topEarningTrip.trip.profiles?.first_name} {topEarningTrip.trip.profiles?.last_name}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ruta</p>
+                <p className="font-semibold">
+                  {topEarningTrip.trip.from_city} → {topEarningTrip.trip.to_city}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Llegada a Guatemala</p>
+                <p className="font-semibold">
+                  {format(new Date(topEarningTrip.trip.arrival_date), "dd/MM/yyyy")}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ganancia Total</p>
+                <p className="text-2xl font-bold text-green-600">
+                  Q{topEarningTrip.totalTips.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {topEarningTrip.packageCount} paquete{topEarningTrip.packageCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Packages Table */}
       <Card>
