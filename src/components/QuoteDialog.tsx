@@ -529,12 +529,6 @@ const QuoteDialog = ({
                                           <span>Total a pagar:</span>
                                           <span>{formatCurrency(breakdown.totalPrice)}</span>
                                         </div>
-                                        {packageDetails.delivery_method === 'delivery' && breakdown.deliveryFee > 0 && (
-                                          <div className="flex justify-between text-sm">
-                                            <span className="ml-3">• Envío a domicilio:</span>
-                                            <span>{formatCurrency(breakdown.deliveryFee)}</span>
-                                          </div>
-                                        )}
                                       </>
                                     ) : (
                                         <>
