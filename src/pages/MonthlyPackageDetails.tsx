@@ -77,7 +77,7 @@ const MonthlyPackageDetails = () => {
   const [statusFilterType, setStatusFilterType] = useState<'all' | 'paid'>('all');
   
   // Paid statuses group
-  const paidStatuses = ['paid', 'pending_purchase', 'in_transit', 'delivered_to_office', 'completed'];
+  const paidStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'];
 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente aprobación' },
