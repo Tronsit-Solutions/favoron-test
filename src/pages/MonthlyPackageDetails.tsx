@@ -111,15 +111,30 @@ const MonthlyPackageDetails = () => {
   };
 
   const getTotalPrice = (pkg: PackageData) => {
-    return pkg.quote?.totalPrice || pkg.quote?.price || pkg.estimated_price || 0;
+    const price = pkg.quote?.totalPrice || pkg.quote?.price || pkg.estimated_price || 0;
+    const numPrice = typeof price === 'string' ? parseFloat(price) : Number(price);
+    return Number.isFinite(numPrice) ? numPrice : 0;
   };
 
   const calculateTotals = () => {
-    const totalRevenue = packages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0);
-    const totalTips = packages.reduce((sum, pkg) => sum + (pkg.admin_assigned_tip || 0), 0);
+    const totalRevenue = packages.reduce((sum, pkg) => {
+      const price = getTotalPrice(pkg);
+      return sum + price;
+    }, 0);
+    
+    const totalTips = packages.reduce((sum, pkg) => {
+      const tip = pkg.admin_assigned_tip || 0;
+      const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+      return sum + (Number.isFinite(numTip) ? numTip : 0);
+    }, 0);
+    
     const totalServiceFees = totalRevenue - totalTips;
 
-    return { totalRevenue, totalTips, totalServiceFees };
+    return { 
+      totalRevenue: Number(totalRevenue) || 0, 
+      totalTips: Number(totalTips) || 0, 
+      totalServiceFees: Number(totalServiceFees) || 0 
+    };
   };
 
   const { totalRevenue, totalTips, totalServiceFees } = calculateTotals();
