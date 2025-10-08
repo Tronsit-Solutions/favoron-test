@@ -207,24 +207,20 @@ const MonthlyPackageDetails = () => {
     return Number.isFinite(numPrice) ? numPrice : 0;
   };
 
-  const calculateTotals = () => {
-    // Solo considerar paquetes pagados (pending_purchase en adelante)
-    const paidStatuses = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
-    const paidPackages = packages.filter(pkg => paidStatuses.includes(pkg.status));
-    
-    const totalRevenue = paidPackages.reduce((sum, pkg) => {
+  const calculateTotals = (packagesToCalculate: PackageData[] = packages) => {
+    // Usar los paquetes que se le pasen (por defecto todos, pero puede ser displayedPackages)
+    const totalRevenue = packagesToCalculate.reduce((sum, pkg) => {
       const price = getTotalPrice(pkg);
       return sum + price;
     }, 0);
     
-    const totalTips = paidPackages.reduce((sum, pkg) => {
+    const totalTips = packagesToCalculate.reduce((sum, pkg) => {
       const tip = pkg.admin_assigned_tip || 0;
       const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
       return sum + (Number.isFinite(numTip) ? numTip : 0);
     }, 0);
     
-    // Ingreso de Favorón es 40% de los tips totales
-    const totalFavoronIncome = paidPackages.reduce((sum, pkg) => {
+    const totalFavoronIncome = packagesToCalculate.reduce((sum, pkg) => {
       return sum + getFavoronIncome(pkg);
     }, 0);
 
@@ -414,8 +410,9 @@ const MonthlyPackageDetails = () => {
   };
 
   const topEarningTrip = getTopEarningTrip();
-
-  const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals();
+  
+  // Calculate totals based on displayed packages (respects filters)
+  const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals(displayedPackages);
 
   const handleDownloadExcel = () => {
     const displayed = getSortedAndFilteredPackages();
