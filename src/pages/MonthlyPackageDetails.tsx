@@ -132,12 +132,16 @@ const MonthlyPackageDetails = () => {
   };
 
   const calculateTotals = () => {
-    const totalRevenue = packages.reduce((sum, pkg) => {
+    // Solo considerar paquetes pagados (pending_purchase en adelante)
+    const paidStatuses = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+    const paidPackages = packages.filter(pkg => paidStatuses.includes(pkg.status));
+    
+    const totalRevenue = paidPackages.reduce((sum, pkg) => {
       const price = getTotalPrice(pkg);
       return sum + price;
     }, 0);
     
-    const totalTips = packages.reduce((sum, pkg) => {
+    const totalTips = paidPackages.reduce((sum, pkg) => {
       const tip = pkg.admin_assigned_tip || 0;
       const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
       return sum + (Number.isFinite(numTip) ? numTip : 0);
