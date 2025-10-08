@@ -249,7 +249,7 @@ const CollapsiblePackageCard = ({
                 <div className="flex items-start justify-between gap-2 w-full">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                    <CardTitle className="text-sm font-semibold leading-tight truncate">
+                    <CardTitle className="text-base font-semibold leading-tight truncate">
                       {getPackageName()}
                     </CardTitle>
                   </div>
