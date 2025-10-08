@@ -316,7 +316,7 @@ const CollapsiblePackageCard = ({
                 e.stopPropagation();
                 setShowShippingInfoModal(true);
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
-                      <span className="truncate">ver direccion y comprar</span>
+                      <span className="truncate">Ver dirección y comprar</span>
                     </Button> : pkg.status === 'delivered_to_office' ? <Button size="sm" variant="success" onClick={e => {
                 e.stopPropagation();
                 setShowOfficeModal(true);
