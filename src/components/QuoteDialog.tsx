@@ -499,35 +499,53 @@ const QuoteDialog = ({
                              
                                return (
                                  <>
-                                   {isPrime ? (
-                                     <>
-                                       <div className="flex justify-between font-medium">
-                                         <span>Precio total estándar:</span>
-                                         <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
-                                       </div>
-                                       <div className="flex justify-between text-prime">
-                                         <span>Descuento Prime:</span>
-                                         <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
-                                       </div>
-                                       <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
-                                         <span>Total a pagar:</span>
-                                         <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                       </div>
-                                     </>
-                                   ) : (
-                                       <>
-                                         {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
-                                           <div className="flex justify-between">
-                                             <span>Entrega a domicilio:</span>
-                                             <span>{formatCurrency(breakdown.deliveryFee)}</span>
-                                           </div>
-                                         )}
-                                         {packageDetails.delivery_method === 'delivery' && breakdown.isPrime && (
-                                           <div className="flex justify-between">
-                                             <span>Entrega a domicilio:</span>
-                                             <span className="text-green-600">Gratis (Prime)</span>
-                                           </div>
-                                         )}
+                                    {isPrime ? (
+                                      <>
+                                        <div className="flex justify-between font-medium">
+                                          <span>Precio total estándar:</span>
+                                          <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
+                                        </div>
+                                        {packageDetails.delivery_method === 'delivery' && (
+                                          <div className="flex justify-between text-sm">
+                                            <span className="ml-3">• Envío a domicilio:</span>
+                                            <span>Q60.00</span>
+                                          </div>
+                                        )}
+                                        <div className="flex justify-between text-prime font-medium">
+                                          <span>Descuento Prime:</span>
+                                          <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
+                                        </div>
+                                        {packageDetails.delivery_method === 'delivery' && standardBreakdown.deliveryFee > breakdown.deliveryFee && (
+                                          <div className="flex justify-between text-sm text-prime">
+                                            <span className="ml-3">• Envío a domicilio:</span>
+                                            <span>-Q{(standardBreakdown.deliveryFee - breakdown.deliveryFee).toFixed(2)}</span>
+                                          </div>
+                                        )}
+                                        <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
+                                          <span>Total a pagar:</span>
+                                          <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                        </div>
+                                        {packageDetails.delivery_method === 'delivery' && breakdown.deliveryFee > 0 && (
+                                          <div className="flex justify-between text-sm">
+                                            <span className="ml-3">• Envío a domicilio:</span>
+                                            <span>{formatCurrency(breakdown.deliveryFee)}</span>
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                        <>
+                                          {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
+                                            <div className="flex justify-between">
+                                              <span>Entrega a domicilio:</span>
+                                              <span>{formatCurrency(breakdown.deliveryFee)}</span>
+                                            </div>
+                                          )}
+                                          {packageDetails.delivery_method === 'delivery' && breakdown.isPrime && (
+                                            <div className="flex justify-between">
+                                              <span>Entrega a domicilio:</span>
+                                              <span className="text-green-600">Gratis (Prime)</span>
+                                            </div>
+                                          )}
                                          <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
                                            <span>Total:</span>
                                            <span>{formatCurrency(breakdown.totalPrice)}</span>
