@@ -22,13 +22,14 @@ interface PackageData {
   user_id: string;
   quote: any;
   admin_assigned_tip: number;
+  delivery_method: string;
   profiles: {
     first_name: string;
     last_name: string;
   };
 }
 
-type SortField = 'created_at' | 'item_description' | 'customer' | 'route' | 'status' | 'price' | 'tip';
+type SortField = 'created_at' | 'item_description' | 'customer' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger';
 type SortDirection = 'asc' | 'desc' | null;
 
 const MonthlyPackageDetails = () => {
@@ -81,6 +82,7 @@ const MonthlyPackageDetails = () => {
           user_id,
           quote,
           admin_assigned_tip,
+          delivery_method,
           profiles:user_id (
             first_name,
             last_name
@@ -148,6 +150,19 @@ const MonthlyPackageDetails = () => {
       totalTips: Number(totalTips) || 0, 
       totalServiceFees: Number(totalServiceFees) || 0 
     };
+  };
+
+  const getFavoronIncome = (pkg: PackageData) => {
+    const totalPrice = getTotalPrice(pkg);
+    const tip = pkg.admin_assigned_tip || 0;
+    const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+    return totalPrice - (Number.isFinite(numTip) ? numTip : 0);
+  };
+
+  const getMessengerCost = (pkg: PackageData) => {
+    // Asumiendo que el costo de mensajería está en el delivery_method
+    // Si es 'mensajero', tiene un costo adicional, si no es 0
+    return pkg.delivery_method === 'messenger' ? 5 : 0; // Ajustar según tu lógica de negocio
   };
 
   const handleSort = (field: SortField) => {
@@ -224,6 +239,14 @@ const MonthlyPackageDetails = () => {
           case 'tip':
             aValue = a.admin_assigned_tip || 0;
             bValue = b.admin_assigned_tip || 0;
+            break;
+          case 'favoron_income':
+            aValue = getFavoronIncome(a);
+            bValue = getFavoronIncome(b);
+            break;
+          case 'messenger':
+            aValue = getMessengerCost(a);
+            bValue = getMessengerCost(b);
             break;
         }
 
@@ -429,6 +452,34 @@ const MonthlyPackageDetails = () => {
                         {sortField !== 'tip' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
                       </Button>
                     </TableHead>
+                    <TableHead className="h-9 py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
+                        onClick={() => handleSort('favoron_income')}
+                      >
+                        Ingreso Favorón ($)
+                        {sortField === 'favoron_income' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'favoron_income' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
+                        onClick={() => handleSort('messenger')}
+                      >
+                        Mensajería (Q)
+                        {sortField === 'messenger' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'messenger' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
                   </TableRow>
                   <TableRow className="border-b-2">
                     <TableHead className="h-9 py-1"></TableHead>
@@ -466,6 +517,7 @@ const MonthlyPackageDetails = () => {
                     </TableHead>
                     <TableHead className="h-9 py-1"></TableHead>
                     <TableHead className="h-9 py-1"></TableHead>
+                    <TableHead className="h-9 py-1"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -491,6 +543,12 @@ const MonthlyPackageDetails = () => {
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
                         {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs text-right font-medium text-purple-600">
+                        ${getFavoronIncome(pkg).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs text-right font-medium text-green-600">
+                        {getMessengerCost(pkg) > 0 ? `Q${getMessengerCost(pkg).toFixed(2)}` : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
