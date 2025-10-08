@@ -193,14 +193,18 @@ const CollapsiblePackageCard = ({
                   </div>
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
-                      <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                    )}
                     {needsAction && <div className="absolute -top-1 right-1 z-20">
                         <NotificationBadge count={1} />
                       </div>}
                   </div>
                 </div>
+                
+                {/* Timer positioned below title for better mobile layout */}
+                {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
+                  <div className="-mt-1">
+                    <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                  </div>
+                )}
 
                 {/* Description */}
                 <CardDescription className="text-xs leading-tight text-muted-foreground">
