@@ -54,11 +54,11 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <h1 
                   className="text-4xl font-bold tracking-[0.1em] leading-none font-bricolage"
                   style={{ 
-                    color: '#fbbf24',
+                    color: '#ffffff',
                     fontVariantNumeric: 'tabular-nums',
                     fontStretch: 'condensed',
                     fontWeight: 700,
-                    textShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+                    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)'
                   }}
                 >
                   PRÓXIMOS VIAJES
@@ -69,10 +69,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               <div 
                 className="text-2xl font-bold tracking-[0.3em] leading-none font-bricolage"
                 style={{ 
-                  color: '#fbbf24',
+                  color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums',
                   fontWeight: 700,
-                  textShadow: '0 0 10px rgba(251, 191, 36, 0.5)'
+                  textShadow: '0 0 10px rgba(255, 255, 255, 0.3)'
                 }}
               >
                 {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
@@ -80,7 +80,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               <div 
                 className="text-xs tracking-[0.25em] font-bold leading-none mt-1 font-bricolage"
                 style={{ 
-                  color: '#fbbf24',
+                  color: '#ffffff',
                   fontVariantNumeric: 'tabular-nums',
                   opacity: 0.8
                 }}
