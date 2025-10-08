@@ -402,77 +402,20 @@ const MonthlyPackageDetails = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
-            <p className="text-muted-foreground">
-              {packages.length} paquetes en total • {displayedPackages.length} mostrados
-            </p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
+          <p className="text-muted-foreground">
+            {packages.length} paquetes en total • {displayedPackages.length} mostrados
+          </p>
         </div>
-        
-        {/* Status Filter */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filtrar Estados
-              {selectedStatuses.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {selectedStatuses.length}
-                </Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64" align="end">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-sm">Filtrar por estado</h4>
-                {selectedStatuses.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedStatuses([])}
-                    className="h-auto p-0 text-xs"
-                  >
-                    Limpiar
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-2">
-                {statusOptions.map((status) => (
-                  <div key={status.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={status.value}
-                      checked={selectedStatuses.includes(status.value)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedStatuses([...selectedStatuses, status.value]);
-                        } else {
-                          setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
-                        }
-                      }}
-                    />
-                    <Label
-                      htmlFor={status.value}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {status.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
 
       {/* Summary Cards */}
@@ -649,18 +592,67 @@ const MonthlyPackageDetails = () => {
                       </Button>
                     </TableHead>
                     <TableHead className="h-9 py-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-xs font-semibold hover:bg-muted"
-                        onClick={() => handleSort('status')}
-                      >
-                        Estado
-                        {sortField === 'status' && (
-                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
-                        )}
-                        {sortField !== 'status' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs font-semibold hover:bg-muted"
+                          onClick={() => handleSort('status')}
+                        >
+                          Estado
+                          {sortField === 'status' && (
+                            sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                          )}
+                          {sortField !== 'status' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                              <Filter className={`h-3 w-3 ${selectedStatuses.length > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64" align="start">
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-semibold text-sm">Filtrar por estado</h4>
+                                {selectedStatuses.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSelectedStatuses([])}
+                                    className="h-auto p-0 text-xs"
+                                  >
+                                    Limpiar
+                                  </Button>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                {statusOptions.map((status) => (
+                                  <div key={status.value} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={status.value}
+                                      checked={selectedStatuses.includes(status.value)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedStatuses([...selectedStatuses, status.value]);
+                                        } else {
+                                          setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={status.value}
+                                      className="text-sm font-normal cursor-pointer"
+                                    >
+                                      {status.label}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </TableHead>
                     <TableHead className="h-9 py-2 text-right">
                       <Button
