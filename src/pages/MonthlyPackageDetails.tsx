@@ -229,10 +229,27 @@ const MonthlyPackageDetails = () => {
   };
 
   const getFavoronIncome = (pkg: PackageData) => {
-    // El ingreso de Favorón es el serviceFee del quote
+    // Primero intentar usar el serviceFee del quote
     const serviceFee = pkg.quote?.serviceFee || 0;
     const numServiceFee = typeof serviceFee === 'string' ? parseFloat(serviceFee) : Number(serviceFee);
-    return Number.isFinite(numServiceFee) ? numServiceFee : 0;
+    
+    if (Number.isFinite(numServiceFee) && numServiceFee > 0) {
+      return numServiceFee;
+    }
+    
+    // Si serviceFee es 0 o no existe, calcular la diferencia entre quote total y admin_assigned_tip
+    const quote = pkg.quote;
+    if (!quote) return 0;
+    
+    const total = quote.totalPrice ?? quote.price ?? quote.completePrice ?? 0;
+    const numTotal = typeof total === 'string' ? parseFloat(total) : Number(total);
+    const validTotal = Number.isFinite(numTotal) ? numTotal : 0;
+    
+    const tip = pkg.admin_assigned_tip || 0;
+    const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+    const validTip = Number.isFinite(numTip) ? numTip : 0;
+    
+    return validTotal - validTip;
   };
 
   const getMessengerCost = (pkg: PackageData) => {
