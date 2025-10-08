@@ -519,16 +519,6 @@ const QuoteDialog = ({
                                           <span>Descuento Prime:</span>
                                           <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
                                         </div>
-                                        <div className="flex justify-between text-sm text-prime">
-                                          <span className="ml-3">• Tarifa Prime:</span>
-                                          <span>-{formatCurrency((standardBreakdown.serviceFee - breakdown.serviceFee))}</span>
-                                        </div>
-                                        {packageDetails.delivery_method === 'delivery' && standardBreakdown.deliveryFee > breakdown.deliveryFee && (
-                                          <div className="flex justify-between text-sm text-prime">
-                                            <span className="ml-3">• Envío a domicilio:</span>
-                                            <span>-Q{(standardBreakdown.deliveryFee - breakdown.deliveryFee).toFixed(2)}</span>
-                                          </div>
-                                        )}
                                         <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
                                           <span>Total a pagar:</span>
                                           <span>{formatCurrency(breakdown.totalPrice)}</span>
