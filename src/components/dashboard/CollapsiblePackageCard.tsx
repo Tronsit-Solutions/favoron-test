@@ -193,6 +193,9 @@ const CollapsiblePackageCard = ({
                   </div>
                   
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
+                      <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                    )}
                     {needsAction && <div className="absolute -top-1 right-1 z-20">
                         <NotificationBadge count={1} />
                       </div>}
@@ -206,13 +209,6 @@ const CollapsiblePackageCard = ({
                     <span className="block">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
-
-                {/* Quote countdown timer for mobile */}
-                {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
-                  <div className="flex justify-center">
-                    <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                  </div>
-                )}
 
                 {/* Action buttons - stacked vertically on mobile */}
                 <div className="space-y-2 w-full">
