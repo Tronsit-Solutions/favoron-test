@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -62,6 +63,7 @@ const MonthlyPackageDetails = () => {
   const [trips, setTrips] = useState<TripData[]>([]);
   const [loading, setLoading] = useState(true);
   const [monthName, setMonthName] = useState("");
+  const [year, setYear] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [filters, setFilters] = useState({
@@ -101,9 +103,10 @@ const MonthlyPackageDetails = () => {
       setLoading(true);
       
       // Parse month string (format: YYYY-MM)
-      const [year, monthNum] = month.split('-');
-      const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
-      const endDate = new Date(parseInt(year), parseInt(monthNum), 0, 23, 59, 59);
+      const [yearStr, monthNum] = month.split('-');
+      setYear(yearStr);
+      const startDate = new Date(parseInt(yearStr), parseInt(monthNum) - 1, 1);
+      const endDate = new Date(parseInt(yearStr), parseInt(monthNum), 0, 23, 59, 59);
 
       // Format month name
       setMonthName(format(startDate, 'MMMM yyyy', { locale: es }));
@@ -405,6 +408,73 @@ const MonthlyPackageDetails = () => {
 
   const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals();
 
+  const handleDownloadExcel = () => {
+    const displayed = getSortedAndFilteredPackages();
+    
+    // Prepare data for Excel
+    const excelData = displayed.map(pkg => ({
+      'Fecha': format(new Date(pkg.created_at), 'dd/MM/yyyy', { locale: es }),
+      'Paquete': pkg.item_description,
+      'Shopper': `${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || ''}`.trim() || 'N/A',
+      'Viajero': pkg.trips?.profiles 
+        ? `${pkg.trips.profiles.first_name || ''} ${pkg.trips.profiles.last_name || ''}`.trim() 
+        : 'Sin asignar',
+      'Origen': pkg.purchase_origin,
+      'Destino': pkg.package_destination,
+      'Estado': getStatusBadgeText(pkg.status),
+      'Precio Total': getTotalPrice(pkg),
+      'Tip Viajero': pkg.admin_assigned_tip || 0,
+      'Ingreso Favorón': getFavoronIncome(pkg),
+      'Costo Mensajero': getMessengerCost(pkg),
+    }));
+
+    // Add totals row
+    excelData.push({
+      'Fecha': '',
+      'Paquete': '',
+      'Shopper': '',
+      'Viajero': '',
+      'Origen': '',
+      'Destino': '',
+      'Estado': 'TOTAL',
+      'Precio Total': totalRevenue,
+      'Tip Viajero': totalTips,
+      'Ingreso Favorón': totalFavoronIncome,
+      'Costo Mensajero': displayed.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0),
+    });
+
+    // Create worksheet and workbook
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, monthName);
+
+    // Download
+    XLSX.writeFile(wb, `Paquetes_${monthName}_${year}.xlsx`);
+    
+    toast({
+      title: "Descarga exitosa",
+      description: `Se descargó la tabla de ${monthName}`,
+    });
+  };
+
+  const getStatusBadgeText = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'pending_approval': 'Pendiente Aprobación',
+      'approved': 'Aprobado',
+      'matched': 'Asignado',
+      'quote_sent': 'Cotización Enviada',
+      'payment_pending': 'Pago Pendiente',
+      'pending_purchase': 'Compra Pendiente',
+      'in_transit': 'En Tránsito',
+      'received_by_traveler': 'Recibido',
+      'delivered_to_office': 'En Oficina',
+      'completed': 'Completado',
+      'quote_expired': 'Cotización Expirada',
+      'rejected': 'Rechazado',
+    };
+    return statusMap[status] || status;
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -525,7 +595,18 @@ const MonthlyPackageDetails = () => {
       {/* Packages Table */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>Paquetes del Mes</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Paquetes del Mes</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadExcel}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Descargar Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {packages.length === 0 ? (
