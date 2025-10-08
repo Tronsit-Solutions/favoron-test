@@ -7,9 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface PackageData {
   id: string;
@@ -68,6 +71,22 @@ const MonthlyPackageDetails = () => {
     route: '',
     status: '',
   });
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
+  const statusOptions = [
+    { value: 'pending_approval', label: 'Pendiente aprobación' },
+    { value: 'approved', label: 'Aprobado' },
+    { value: 'matched', label: 'Asignado' },
+    { value: 'quote_sent', label: 'Cotización enviada' },
+    { value: 'payment_pending', label: 'Pago pendiente' },
+    { value: 'paid', label: 'Pagado' },
+    { value: 'pending_purchase', label: 'Pendiente compra' },
+    { value: 'in_transit', label: 'En tránsito' },
+    { value: 'delivered_to_office', label: 'En oficina' },
+    { value: 'completed', label: 'Completado' },
+    { value: 'rejected', label: 'Rechazado' },
+    { value: 'quote_expired', label: 'Cotización expirada' },
+  ];
 
   useEffect(() => {
     if (month) {
@@ -242,6 +261,11 @@ const MonthlyPackageDetails = () => {
   const getSortedAndFilteredPackages = () => {
     let filtered = [...packages];
 
+    // Apply status filter first (multiple selection)
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter(pkg => selectedStatuses.includes(pkg.status));
+    }
+
     // Apply filters
     if (filters.item_description) {
       filtered = filtered.filter(pkg => 
@@ -378,20 +402,77 @@ const MonthlyPackageDetails = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
-          <p className="text-muted-foreground">
-            {packages.length} paquetes en total • {displayedPackages.length} mostrados
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
+            <p className="text-muted-foreground">
+              {packages.length} paquetes en total • {displayedPackages.length} mostrados
+            </p>
+          </div>
         </div>
+        
+        {/* Status Filter */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Filtrar Estados
+              {selectedStatuses.length > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {selectedStatuses.length}
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64" align="end">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-sm">Filtrar por estado</h4>
+                {selectedStatuses.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedStatuses([])}
+                    className="h-auto p-0 text-xs"
+                  >
+                    Limpiar
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {statusOptions.map((status) => (
+                  <div key={status.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={status.value}
+                      checked={selectedStatuses.includes(status.value)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedStatuses([...selectedStatuses, status.value]);
+                        } else {
+                          setSelectedStatuses(selectedStatuses.filter(s => s !== status.value));
+                        }
+                      }}
+                    />
+                    <Label
+                      htmlFor={status.value}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {status.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Summary Cards */}
