@@ -586,6 +586,16 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                   </CardTitle>
                   <CardDescription>
                     Paquetes que lleva este viajero en su viaje
+                    {packages.length > 0 && (() => {
+                      const totalTips = packages.reduce((sum, pkg) => {
+                        return sum + (pkg.admin_assigned_tip || 0);
+                      }, 0);
+                      return totalTips > 0 ? (
+                        <span className="block mt-1 font-semibold text-foreground">
+                          Total de tips: Q{totalTips.toFixed(2)}
+                        </span>
+                      ) : null;
+                    })()}
                   </CardDescription>
                 </div>
                 {packages.length > 0 && (
