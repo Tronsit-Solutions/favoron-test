@@ -506,12 +506,8 @@ const QuoteDialog = ({
                                           <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                          <span className="ml-3">• Tip viajero:</span>
-                                          <span>{formatCurrency(base)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="ml-3">• Tarifa Favoron:</span>
-                                          <span>{formatCurrency(standardBreakdown.serviceFee)}</span>
+                                          <span className="ml-3">• Tip viajero + Tarifa Favoron:</span>
+                                          <span>{formatCurrency(base + standardBreakdown.serviceFee)}</span>
                                         </div>
                                         {packageDetails.delivery_method === 'delivery' && (
                                           <div className="flex justify-between text-sm">
