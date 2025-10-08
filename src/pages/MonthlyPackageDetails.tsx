@@ -216,12 +216,15 @@ const MonthlyPackageDetails = () => {
       return sum + (Number.isFinite(numTip) ? numTip : 0);
     }, 0);
     
-    const totalServiceFees = totalRevenue - totalTips;
+    // Ingreso de Favorón es 40% de los tips totales
+    const totalFavoronIncome = paidPackages.reduce((sum, pkg) => {
+      return sum + getFavoronIncome(pkg);
+    }, 0);
 
     return { 
       totalRevenue: Number(totalRevenue) || 0, 
       totalTips: Number(totalTips) || 0, 
-      totalServiceFees: Number(totalServiceFees) || 0 
+      totalFavoronIncome: Number(totalFavoronIncome) || 0 
     };
   };
 
@@ -387,7 +390,7 @@ const MonthlyPackageDetails = () => {
 
   const topEarningTrip = getTopEarningTrip();
 
-  const { totalRevenue, totalTips, totalServiceFees } = calculateTotals();
+  const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals();
 
   if (loading) {
     return (
@@ -451,13 +454,13 @@ const MonthlyPackageDetails = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ingresos Favorón
+              Ingresos Favorón (40% de Tips)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-purple-600" />
-              <p className="text-2xl font-bold">Q{totalServiceFees.toFixed(2)}</p>
+              <p className="text-2xl font-bold">Q{totalFavoronIncome.toFixed(2)}</p>
             </div>
           </CardContent>
         </Card>
