@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
 import RejectionReasonModal from "./RejectionReasonModal";
+import { getDeliveryFee } from "@/lib/pricing";
 
 interface AdminApprovalsTabProps {
   packages: any[];
@@ -249,7 +250,9 @@ const AdminApprovalsTab = ({
                              Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Método de entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                             Método de entrega: {pkg.delivery_method === 'delivery' 
+                               ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, pkg.package_destination)})` 
+                               : '🏢 Recojo en zona 14'}
                            </p>
                           {pkg.item_link && (
                             <p className="text-xs sm:text-sm break-words">
