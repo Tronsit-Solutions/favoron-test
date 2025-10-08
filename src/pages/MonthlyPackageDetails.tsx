@@ -160,9 +160,10 @@ const MonthlyPackageDetails = () => {
   };
 
   const getMessengerCost = (pkg: PackageData) => {
-    // Asumiendo que el costo de mensajería está en el delivery_method
-    // Si es 'mensajero', tiene un costo adicional, si no es 0
-    return pkg.delivery_method === 'messenger' ? 5 : 0; // Ajustar según tu lógica de negocio
+    // El costo de delivery/mensajería está en quote.deliveryFee
+    const deliveryFee = pkg.quote?.deliveryFee || 0;
+    const numDeliveryFee = typeof deliveryFee === 'string' ? parseFloat(deliveryFee) : Number(deliveryFee);
+    return Number.isFinite(numDeliveryFee) ? numDeliveryFee : 0;
   };
 
   const handleSort = (field: SortField) => {
