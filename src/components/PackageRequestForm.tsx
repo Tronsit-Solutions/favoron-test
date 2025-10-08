@@ -170,9 +170,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       return;
     }
 
-    // Validar delivery method si destino es Guatemala
-    if (finalDestination.toLowerCase().includes('guatemala') && !formData.deliveryMethod) {
-      alert('Por favor selecciona cómo quieres recibir tu paquete en Guatemala');
+    // Validar delivery method para cualquier destino
+    if (finalDestination && !formData.deliveryMethod) {
+      alert('Por favor selecciona cómo quieres recibir tu paquete');
       setIsSubmitting(false);
       return;
     }
@@ -314,13 +314,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Get the actual destination value
   const actualDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
   
-  // List of Guatemalan cities from destinationCities array
-  const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla'];
-  
-  // Check if destination is any Guatemalan city
-  const isGuatemalaDestination = actualDestination && guatemalanCities.some(city => 
-    actualDestination.toLowerCase().includes(city.toLowerCase())
-  );
+  // Show delivery options for ANY destination selected (not just Guatemalan cities)
+  const isGuatemalaDestination = !!actualDestination;
   
   // Check specifically for Guatemala City (to enable pickup option)
   const isGuatemalaCityDestination = actualDestination?.toLowerCase().includes('guatemala city') || 
@@ -521,7 +516,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </p>
           </div>
 
-          {/* Delivery method for Guatemala only */}
+          {/* Delivery method - shown for any destination */}
           {isGuatemalaDestination && (
             <div className="space-y-4">
               <Label className="text-base font-medium">
@@ -552,7 +547,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                    </div>
                  )}
                  
-                 {/* Opción de delivery siempre disponible para Guatemala */}
+                 {/* Opción de delivery siempre disponible */}
                  <div 
                    onClick={() => handleInputChange('deliveryMethod', 'delivery')}
                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
@@ -564,6 +559,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                    <div className="flex items-center justify-between">
                      <div>
                        <p className="font-medium">Enviarlo a mi domicilio</p>
+                       {!isGuatemalaCityDestination && (
+                         <p className="text-sm text-muted-foreground">El costo varía según ubicación</p>
+                       )}
                      </div>
                      {formData.deliveryMethod === 'delivery' && (
                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
@@ -600,11 +598,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 </div>
               )}
               
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <p className="text-sm text-blue-800">
-                  📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25. Para envíos fuera de la capital, el costo puede variar según la ubicación y distancia.
-                </p>
-              </div>
+              {isGuatemalaCityDestination ? (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-sm text-blue-800">
+                    📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <p className="text-sm text-blue-800">
+                    📌 <strong>Nota:</strong> El costo de envío a domicilio varía según la ubicación y distancia. Te proporcionaremos el costo exacto en la cotización.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
