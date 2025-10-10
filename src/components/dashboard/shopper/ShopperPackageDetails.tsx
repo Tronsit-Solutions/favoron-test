@@ -111,6 +111,15 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
       <div className="space-y-3">
         {renderProducts()}
         
+        {(pkg as any).is_personal_order && (pkg as any).personal_order_instructions && (
+          <div className="bg-muted/50 border border-muted rounded-lg p-3">
+            <p className="text-sm">
+              <strong>Instrucciones del pedido personal:</strong>
+            </p>
+            <p className="text-sm mt-2 whitespace-pre-wrap">{(pkg as any).personal_order_instructions}</p>
+          </div>
+        )}
+        
         {pkg.additional_notes && (
           <p className="text-sm">
             <strong>Notas adicionales:</strong> {pkg.additional_notes}
