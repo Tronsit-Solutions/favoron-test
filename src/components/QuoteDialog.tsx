@@ -21,6 +21,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
 import { createNormalizedQuote } from '@/lib/quoteHelpers';
 import './ui/mobile-input-fix.css';
+import { resolveSignedUrl } from "@/lib/storageUrls";
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -48,6 +49,27 @@ interface QuoteDialogProps {
     arrival_date: string;
   };
 }
+const ResolvedImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+  const [url, setUrl] = useState<string>(src);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const resolved = await resolveSignedUrl(src);
+      if (active && resolved) setUrl(resolved);
+    })();
+    return () => { active = false; };
+  }, [src]);
+  return (
+    <img
+      src={url}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onClick={() => window.open(url, '_blank')}
+    />
+  );
+};
+
 const QuoteDialog = ({
   isOpen,
   onClose,
@@ -313,12 +335,11 @@ const QuoteDialog = ({
                                     <p className="text-sm font-medium text-foreground mb-2"><strong>Fotos del producto:</strong></p>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                       {product.productPhotos.map((photo: string, photoIndex: number) => (
-                                        <img 
+                                        <ResolvedImage 
                                           key={photoIndex}
                                           src={photo}
                                           alt={`Foto ${photoIndex + 1} del producto`}
                                           className="w-full h-24 object-cover rounded border border-muted cursor-pointer hover:opacity-80 transition-opacity"
-                                          onClick={() => window.open(photo, '_blank')}
                                         />
                                       ))}
                                     </div>
