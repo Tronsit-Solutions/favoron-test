@@ -233,7 +233,7 @@ const AdminApprovalsTab = ({
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
                           <h4 className={`font-medium text-sm sm:text-base break-words ${
-                            pkg.products_data?.[0]?.requestType === 'personal' ? 'text-purple-600 dark:text-purple-400' : ''
+                            pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600 dark:text-blue-400' : ''
                           }`}>
                             {pkg.item_description}
                           </h4>
