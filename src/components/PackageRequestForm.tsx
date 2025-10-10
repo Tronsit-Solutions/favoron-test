@@ -129,6 +129,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string>('');
 
   // Sync local state with persisted state (only in create mode)
   useEffect(() => {
@@ -168,6 +169,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     'Escuintla',
     'Otra ciudad'
   ];
+
+  const destinationCountries = [
+    { value: 'Guatemala', label: 'Guatemala' },
+    { value: 'USA', label: 'USA' },
+    { value: 'España', label: 'España' },
+    { value: 'México', label: 'México' },
+    { value: 'Otro', label: 'Otro país' }
+  ];
+
+  const citiesByCountry: Record<string, string[]> = {
+    'Guatemala': ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'],
+    'USA': ['Miami', 'New York', 'Los Angeles', 'Houston', 'Otra ciudad'],
+    'España': ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Otra ciudad'],
+    'México': ['Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún', 'Otra ciudad'],
+    'Otro': ['Otra ciudad']
+  };
 
   const purchaseOrigins = [
     { value: 'USA', label: 'USA' },
@@ -622,33 +639,94 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="packageDestination">Destino del paquete *</Label>
-            <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona el destino del paquete" />
-              </SelectTrigger>
-              <SelectContent>
-                {destinationCities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{city}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.packageDestination === 'Otra ciudad' && (
-              <Input
-                placeholder="Escribe la ciudad de destino"
-                value={formData.packageDestinationOther}
-                onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
-                className="mt-2"
-                required
-              />
-            )}
-          </div>
+          {/* Destination selection - different for personal orders */}
+          {formRequestType === 'personal' ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="destinationCountry">País de destino *</Label>
+                <Select 
+                  value={selectedCountry} 
+                  onValueChange={(value) => {
+                    setSelectedCountry(value);
+                    handleInputChange('packageDestination', '');
+                    handleInputChange('packageDestinationOther', '');
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona el país" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {destinationCountries.map((country) => (
+                      <SelectItem key={country.value} value={country.value}>
+                        <div className="flex items-center space-x-2">
+                          <Globe className="h-4 w-4" />
+                          <span>{country.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedCountry && (
+                <div className="space-y-2">
+                  <Label htmlFor="packageDestination">Ciudad de destino *</Label>
+                  <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona la ciudad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {citiesByCountry[selectedCountry]?.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{city}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.packageDestination === 'Otra ciudad' && (
+                    <Input
+                      placeholder="Escribe la ciudad de destino"
+                      value={formData.packageDestinationOther}
+                      onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+                      className="mt-2"
+                      required
+                    />
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="packageDestination">Destino del paquete *</Label>
+              <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el destino del paquete" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinationCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{city}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.packageDestination === 'Otra ciudad' && (
+                <Input
+                  placeholder="Escribe la ciudad de destino"
+                  value={formData.packageDestinationOther}
+                  onChange={(e) => handleInputChange('packageDestinationOther', e.target.value)}
+                  className="mt-2"
+                  required
+                />
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="purchaseOrigin">Origen del paquete *</Label>
