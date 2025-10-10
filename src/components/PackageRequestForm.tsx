@@ -408,22 +408,24 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             
             <div className="space-y-3">
               {products.map((product, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Producto #{index + 1}</Label>
-                    {products.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeProduct(index)}
-                        className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        <span className="text-xs">Eliminar</span>
-                      </Button>
-                    )}
-                  </div>
+                <div key={index} className={formRequestType === 'online' ? "border border-gray-200 rounded-lg p-3 space-y-3" : "space-y-3"}>
+                  {formRequestType === 'online' && (
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Producto #{index + 1}</Label>
+                      {products.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeProduct(index)}
+                          className="flex items-center space-x-1 text-red-600 hover:text-red-700 h-7 px-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span className="text-xs">Eliminar</span>
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 gap-3">
                     {/* Conditional fields based on requestType */}
