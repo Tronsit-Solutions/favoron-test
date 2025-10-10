@@ -44,6 +44,18 @@ export interface Product {
   itemDescription: string;
   estimatedPrice: string;
   itemLink?: string;
+  requestType?: 'online' | 'personal';
+  instructions?: string;
+  weight?: number;
+  declaredValue?: number;
+  productPhotos?: Array<{
+    filename: string;
+    filePath: string;
+    bucket: string;
+    uploadedAt: string;
+    previewUrl?: string;
+  }>;
+  quantity?: string;
 }
 
 export interface Quote {
