@@ -272,55 +272,118 @@ const QuoteDialog = ({
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const totalPrice = quantity * unitPrice;
                         const adminTip = parseFloat(product.adminAssignedTip || '0');
+                        const isPersonalOrder = product.requestType === 'personal';
                         
                         return (
                           <div key={index} className="border border-muted rounded-lg p-3 bg-muted/20">
                             <p className="text-sm font-medium text-foreground mb-3">
-                              Producto {index + 1}: {product.itemDescription}
+                              {isPersonalOrder ? 'Pedido' : 'Producto'} {index + 1}: {product.itemDescription}
                             </p>
-                            <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
-                              <div className="text-sm text-foreground space-y-2 flex-1 min-w-0">
-                                <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
-                                <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
-                                {quantity > 1 && (
-                                  <p className="text-sm text-primary font-medium">
-                                    ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
-                                  </p>
-                                )}
-                                {product.itemLink && (
-                                  <p className="text-sm">
-                                    <strong>Link:</strong>{' '}
-                                    <a 
-                                      href={product.itemLink} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-primary hover:underline break-all"
-                                    >
-                                      Ver producto
-                                    </a>
-                                  </p>
-                                )}
-                                <p className="text-sm text-foreground font-medium">
-                                  <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
-                                </p>
-                              </div>
-                              <div className="text-right flex-shrink-0">
-                                {adminTip > 0 ? (
+                            
+                            {isPersonalOrder ? (
+                              /* Vista para pedidos personales */
+                              <div className="space-y-3">
+                                {/* Descripción */}
+                                {product.itemDescription && (
                                   <div>
-                                    {isTravelerContext ? (
-                                      <>
-                                        <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                        <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                      </>
-                                    ) : (
-                                      <></>
-                                    )}
+                                    <p className="text-sm font-medium text-foreground"><strong>Descripción:</strong></p>
+                                    <p className="text-sm text-foreground">{product.itemDescription}</p>
                                   </div>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">Sin tip</p>
                                 )}
+                                
+                                {/* Instrucción */}
+                                {product.instruction && (
+                                  <div>
+                                    <p className="text-sm font-medium text-foreground"><strong>Instrucción:</strong></p>
+                                    <p className="text-sm text-foreground">{product.instruction}</p>
+                                  </div>
+                                )}
+                                
+                                {/* Peso */}
+                                {product.weight && (
+                                  <div>
+                                    <p className="text-sm font-medium text-foreground"><strong>Peso estimado:</strong></p>
+                                    <p className="text-sm text-foreground">{product.weight} lbs</p>
+                                  </div>
+                                )}
+                                
+                                {/* Fotos del paquete */}
+                                {product.productPhotos && product.productPhotos.length > 0 && (
+                                  <div>
+                                    <p className="text-sm font-medium text-foreground mb-2"><strong>Fotos del producto:</strong></p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                      {product.productPhotos.map((photo: string, photoIndex: number) => (
+                                        <img 
+                                          key={photoIndex}
+                                          src={photo}
+                                          alt={`Foto ${photoIndex + 1} del producto`}
+                                          className="w-full h-24 object-cover rounded border border-muted cursor-pointer hover:opacity-80 transition-opacity"
+                                          onClick={() => window.open(photo, '_blank')}
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Precio */}
+                                <div className="flex justify-between items-center pt-2 border-t">
+                                  <p className="text-sm text-foreground font-medium">
+                                    <strong>Precio estimado:</strong> ${unitPrice.toFixed(2)}
+                                  </p>
+                                  {adminTip > 0 && isTravelerContext && (
+                                    <div className="text-right">
+                                      <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                      <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              /* Vista para pedidos online normales */
+                              <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+                                <div className="text-sm text-foreground space-y-2 flex-1 min-w-0">
+                                  <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
+                                  <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
+                                  {quantity > 1 && (
+                                    <p className="text-sm text-primary font-medium">
+                                      ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
+                                    </p>
+                                  )}
+                                  {product.itemLink && (
+                                    <p className="text-sm">
+                                      <strong>Link:</strong>{' '}
+                                      <a 
+                                        href={product.itemLink} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-primary hover:underline break-all"
+                                      >
+                                        Ver producto
+                                      </a>
+                                    </p>
+                                  )}
+                                  <p className="text-sm text-foreground font-medium">
+                                    <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
+                                  </p>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  {adminTip > 0 ? (
+                                    <div>
+                                      {isTravelerContext ? (
+                                        <>
+                                          <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
+                                          <p className="text-xs text-muted-foreground">Tip asignado</p>
+                                        </>
+                                      ) : (
+                                        <></>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">Sin tip</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
