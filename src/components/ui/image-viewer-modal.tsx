@@ -160,7 +160,7 @@ export const ImageViewerModal = ({
                   transformOrigin: 'center',
                   transition: 'transform 0.2s ease-in-out'
                 }}
-                className="max-w-full h-auto rounded-lg shadow-lg"
+                className="max-w-full max-h-[70vh] md:max-h-[80vh] object-contain h-auto rounded-lg shadow-lg"
                 onError={handleImageError}
                 onDoubleClick={resetZoom}
               />
