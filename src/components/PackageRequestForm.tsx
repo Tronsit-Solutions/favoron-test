@@ -654,7 +654,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="purchaseOrigin">Origen de la compra *</Label>
+            <Label htmlFor="purchaseOrigin">Origen del paquete *</Label>
             <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="¿Desde qué país estás comprando?" />
