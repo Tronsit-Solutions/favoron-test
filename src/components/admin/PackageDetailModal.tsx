@@ -17,6 +17,57 @@ import RejectionReasonModal from "./RejectionReasonModal";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+
+// Component to display a single product photo with signed URL resolution
+const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
+  photo: string; 
+  idx: number; 
+  productId: number; 
+  productDescription: string;
+  onImageClick: (url: string, title: string, filename: string) => void;
+}) => {
+  const { url: resolvedPhotoUrl, loading } = useSignedUrl(photo);
+  
+  if (loading) {
+    return (
+      <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100 animate-pulse">
+        <div className="w-full h-full flex items-center justify-center">
+          <Camera className="h-8 w-8 text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (!resolvedPhotoUrl) {
+    return (
+      <div className="relative aspect-square rounded-lg overflow-hidden border border-red-200 bg-red-50">
+        <div className="w-full h-full flex items-center justify-center text-xs text-red-600">
+          Error al cargar
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div 
+      className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={() => onImageClick(
+        resolvedPhotoUrl,
+        `Foto ${idx + 1} - ${productDescription}`,
+        `producto_${productId}_foto_${idx + 1}`
+      )}
+    >
+      <img 
+        src={resolvedPhotoUrl} 
+        alt={`Foto ${idx + 1}`}
+        className="w-full h-full object-cover"
+      />
+      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 text-center">
+        Foto {idx + 1}
+      </div>
+    </div>
+  );
+};
 interface PackageDetailModalProps {
   modalId: string;
   trips: any[];
@@ -780,27 +831,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                             <p className="font-medium text-muted-foreground text-xs mb-2">Fotos del producto:</p>
                             <div className="grid grid-cols-3 gap-2">
                               {product.productPhotos.map((photo: string, idx: number) => (
-                                <div 
-                                  key={idx} 
-                                  className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
-                                  onClick={() => {
-                                    setSelectedImage({
-                                      url: photo,
-                                      title: `Foto ${idx + 1} - ${product.description}`,
-                                      filename: `producto_${product.id}_foto_${idx + 1}`
-                                    });
+                                <ProductPhoto
+                                  key={idx}
+                                  photo={photo}
+                                  idx={idx}
+                                  productId={product.id}
+                                  productDescription={product.description}
+                                  onImageClick={(url, title, filename) => {
+                                    setSelectedImage({ url, title, filename });
                                     setImageViewerOpen(true);
                                   }}
-                                >
-                                  <img 
-                                    src={photo} 
-                                    alt={`Foto ${idx + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 text-center">
-                                    Foto {idx + 1}
-                                  </div>
-                                </div>
+                                />
                               ))}
                             </div>
                           </div>
