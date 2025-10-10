@@ -16,7 +16,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
           <div className="flex items-center space-x-2">
             <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-              Solicitar Paquete
+              Solicitar Favorón
             </CardTitle>
           </div>
           <CardDescription className="text-sm">
