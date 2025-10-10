@@ -778,6 +778,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
           <div className="space-y-2">
             <Label>Fecha límite de entrega</Label>
+            <p className="text-xs text-muted-foreground">
+              ¿Para cuándo necesitas el producto? (opcional)
+            </p>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -803,9 +806,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 />
               </PopoverContent>
             </Popover>
-            <p className="text-xs text-muted-foreground">
-              ¿Para cuándo necesitas el producto? (opcional)
-            </p>
           </div>
 
           <div className="space-y-2">
