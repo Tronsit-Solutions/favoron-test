@@ -648,9 +648,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 required
               />
             )}
-            <p className="text-xs text-muted-foreground">
-              ¿Dónde quieres recibir tu compra?
-            </p>
           </div>
 
           <div className="space-y-2">
