@@ -278,6 +278,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         link: product.itemLink,
         instructions: product.instructions || null,
         requestType: product.requestType || 'online',
+        productPhotos: product.productPhotos || [],
         adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
         subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
       }));
@@ -770,6 +771,38 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                             <p className="text-xs bg-blue-50 dark:bg-blue-950 p-2 rounded border border-blue-200 dark:border-blue-800">
                               {product.instructions}
                             </p>
+                          </div>
+                        )}
+                        
+                        {/* Show photos for personal orders */}
+                        {product.requestType === 'personal' && product.productPhotos && product.productPhotos.length > 0 && (
+                          <div className="mt-2 pt-2 border-t">
+                            <p className="font-medium text-muted-foreground text-xs mb-2">Fotos del producto:</p>
+                            <div className="grid grid-cols-3 gap-2">
+                              {product.productPhotos.map((photo: string, idx: number) => (
+                                <div 
+                                  key={idx} 
+                                  className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => {
+                                    setSelectedImage({
+                                      url: photo,
+                                      title: `Foto ${idx + 1} - ${product.description}`,
+                                      filename: `producto_${product.id}_foto_${idx + 1}`
+                                    });
+                                    setImageViewerOpen(true);
+                                  }}
+                                >
+                                  <img 
+                                    src={photo} 
+                                    alt={`Foto ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 text-center">
+                                    Foto {idx + 1}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </CardContent>
