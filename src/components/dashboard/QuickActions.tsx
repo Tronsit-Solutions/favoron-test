@@ -20,7 +20,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
             </CardTitle>
           </div>
           <CardDescription className="text-sm">
-            ¿Necesitas algo del extranjero? Crea una solicitud
+            ¿Necesitas algo del extranjero? Pide un Favorón
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
