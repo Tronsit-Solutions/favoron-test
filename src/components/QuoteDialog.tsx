@@ -303,7 +303,7 @@ const QuoteDialog = ({
                                 {product.weight && (
                                   <div>
                                     <p className="text-sm font-medium text-foreground"><strong>Peso estimado:</strong></p>
-                                    <p className="text-sm text-foreground">{product.weight} lbs</p>
+                                    <p className="text-sm text-foreground">{product.weight} kg</p>
                                   </div>
                                 )}
                                 
