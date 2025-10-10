@@ -54,7 +54,7 @@ const TravelerPackagePriorityActions = ({
             <div className="flex-1 min-w-0 sm:flex sm:items-start sm:justify-between">
               <div className="flex-1">
                 {pkg.status === 'matched' && <div>
-                    <p className="text-sm font-semibold mb-1">¿Aceptas el tip asignado por Favorón?</p>
+                    <p className="text-sm font-semibold mb-1">Revisa el pedido y acéptalo si te parece bien</p>
                     
                   </div>}
                 {pkg.status === 'in_transit' && <div>
