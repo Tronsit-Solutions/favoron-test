@@ -20,13 +20,16 @@ import { useSignedUrl } from "@/hooks/useSignedUrl";
 
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
-  photo: string; 
+  photo: string | { bucket: string; filePath: string; previewUrl?: string };
   idx: number; 
   productId: number; 
   productDescription: string;
   onImageClick: (url: string, title: string, filename: string) => void;
 }) => {
-  const { url: resolvedPhotoUrl, loading } = useSignedUrl(photo);
+  // Support both plain URLs and storage refs { bucket, filePath }
+  const isObj = typeof photo === 'object' && photo !== null && 'bucket' in photo && 'filePath' in photo;
+  const rawInput = isObj ? `${(photo as { bucket: string; filePath: string }).bucket}/${(photo as { bucket: string; filePath: string }).filePath}` : (photo as string);
+  const { url: resolvedPhotoUrl, loading } = useSignedUrl(rawInput);
   
   if (loading) {
     return (
