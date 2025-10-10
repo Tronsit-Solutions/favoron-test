@@ -256,7 +256,9 @@ const QuoteDialog = ({
               <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
                 {/* Product Description */}
                 <div>
-                  <p className="font-medium text-foreground mb-2"><strong>Producto:</strong></p>
+                  <p className="font-medium text-foreground mb-2">
+                    <strong>{packageDetails.products_data?.[0]?.requestType === 'personal' ? 'Pedido:' : 'Producto:'}</strong>
+                  </p>
                   <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
                 </div>
 
