@@ -54,6 +54,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }];
   };
 
+  const getInitialRequestType = (): 'online' | 'personal' => {
+    if (editMode && initialData?.products_data) {
+      if (Array.isArray(initialData.products_data) && initialData.products_data.length > 0) {
+        return initialData.products_data[0].requestType || 'online';
+      }
+    }
+    return 'online';
+  };
+
   const getInitialFormData = () => {
     if (editMode && initialData) {
       return {
@@ -63,7 +72,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         packageDestinationOther: '',
         purchaseOrigin: initialData.purchase_origin || '',
         purchaseOriginOther: '',
-        deliveryMethod: initialData.delivery_method || ''
+        deliveryMethod: initialData.delivery_method || '',
+        requestType: getInitialRequestType()
       };
     }
     return {
@@ -73,7 +83,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       packageDestinationOther: '',
       purchaseOrigin: '',
       purchaseOriginOther: '',
-      deliveryMethod: ''
+      deliveryMethod: '',
+      requestType: 'online' as 'online' | 'personal'
     };
   };
 
@@ -99,7 +110,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       packageDestinationOther: '',
       purchaseOrigin: '',
       purchaseOriginOther: '',
-      deliveryMethod: ''
+      deliveryMethod: '',
+      requestType: 'online' as 'online' | 'personal'
     },
     encrypt: false // Disable encryption for faster, more reliable form restoration
   });
@@ -113,6 +125,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Local state for non-critical UI state
   const [products, setProducts] = useState<Product[]>(editMode ? getInitialProducts() : persistedProducts);
   const [formData, setFormData] = useState(editMode ? getInitialFormData() : persistedFormData);
+  const [formRequestType, setFormRequestType] = useState<'online' | 'personal'>(editMode ? getInitialRequestType() : (persistedFormData.requestType || 'online'));
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -135,6 +148,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       setPersistedAddressData(addressData);
     }
   }, [addressData, setPersistedAddressData, editMode]);
+
+  // Sync all products' requestType when formRequestType changes
+  useEffect(() => {
+    setProducts(prev => prev.map(p => ({ ...p, requestType: formRequestType })));
+  }, [formRequestType]);
 
   const destinationCities = [
     'Guatemala City',
@@ -164,7 +182,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     
     // Validate products based on requestType
     const isValidProduct = (p: Product) => {
-      if (p.requestType === 'personal') {
+      if (formRequestType === 'personal') {
         return p.itemDescription && p.instructions && p.weight && p.estimatedPrice && p.productPhotos && p.productPhotos.length > 0;
       } else {
         return p.itemLink && p.itemDescription && p.estimatedPrice;
@@ -174,7 +192,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     if (!products.every(isValidProduct) || !finalDestination || !finalOrigin) {
       const invalidProduct = products.find(p => !isValidProduct(p));
       if (invalidProduct) {
-        if (invalidProduct.requestType === 'personal') {
+        if (formRequestType === 'personal') {
           alert('Para pedidos personales: completa descripción, instrucciones, peso, valor y sube al menos 1 foto');
         } else {
           alert('Para compras online: completa link, descripción y precio estimado');
@@ -231,11 +249,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           packageDestinationOther: '',
           purchaseOrigin: '',
           purchaseOriginOther: '',
-          deliveryMethod: ''
+          deliveryMethod: '',
+          requestType: 'online' as 'online' | 'personal'
         };
         
         setProducts(initialProducts);
         setFormData(initialFormData);
+        setFormRequestType('online');
         setShowAddressForm(false);
         setAddressData(null);
         
@@ -286,7 +306,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         itemDescription: '',
         estimatedPrice: '',
         quantity: '1',
-        requestType: 'online'
+        requestType: formRequestType
       }]);
     }
   };
@@ -356,9 +376,36 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Request Type Selector - Applies to entire form */}
+          <div className="border-b pb-4">
+            <Label className="text-base font-medium">Tipo de solicitud *</Label>
+            <RadioGroup
+              value={formRequestType}
+              onValueChange={(value: 'online' | 'personal') => setFormRequestType(value)}
+              className="flex gap-6 mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="online" id="type-online" />
+                <Label htmlFor="type-online" className="cursor-pointer">
+                  <div className="font-medium">Compra Online</div>
+                  <div className="text-xs text-muted-foreground">Productos con link de tienda online</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="personal" id="type-personal" />
+                <Label htmlFor="type-personal" className="cursor-pointer">
+                  <div className="font-medium">Pedido Personal</div>
+                  <div className="text-xs text-muted-foreground">Favores personales sin link</div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           <div className="space-y-4">
             <div>
-              <Label className="text-base font-medium">Productos * ({products.length}/5)</Label>
+              <Label className="text-base font-medium">
+                {formRequestType === 'online' ? 'Productos' : 'Detalles del pedido'} * ({products.length}/5)
+              </Label>
             </div>
             
             <div className="space-y-3">
@@ -380,32 +427,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     )}
                   </div>
 
-                  {/* Request Type Selector */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Tipo de pedido *</Label>
-                    <RadioGroup
-                      value={product.requestType || 'online'}
-                      onValueChange={(value: 'online' | 'personal') => updateProduct(index, 'requestType', value)}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="online" id={`online-${index}`} />
-                        <Label htmlFor={`online-${index}`} className="text-sm font-normal cursor-pointer">
-                          Compra Online
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="personal" id={`personal-${index}`} />
-                        <Label htmlFor={`personal-${index}`} className="text-sm font-normal cursor-pointer">
-                          Pedido Personal
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
                   <div className="grid grid-cols-1 gap-3">
                     {/* Conditional fields based on requestType */}
-                    {product.requestType === 'online' ? (
+                    {formRequestType === 'online' ? (
                       <>
                         {/* Online Purchase Fields */}
                         <div>
