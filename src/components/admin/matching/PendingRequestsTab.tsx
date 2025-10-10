@@ -156,7 +156,11 @@ const PendingRequestsTab = ({
             <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4 hover:shadow-md transition-shadow">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium">{pkg.item_description || "Sin descripción"}</p>
+                  <p className={`font-medium ${
+                    pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600' : ''
+                  }`}>
+                    {pkg.item_description || "Sin descripción"}
+                  </p>
                   {getStatusBadge(pkg.status, { 
                     packageDestination: pkg.package_destination,
                     rejectionReason: pkg.rejection_reason 
