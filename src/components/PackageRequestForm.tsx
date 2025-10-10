@@ -676,9 +676,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 required
               />
             )}
-            <p className="text-xs text-muted-foreground">
-              ¿Desde qué país estás comprando tu producto?
-            </p>
           </div>
 
           {/* Delivery method - shown for any destination */}
