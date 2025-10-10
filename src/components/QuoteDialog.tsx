@@ -49,23 +49,44 @@ interface QuoteDialogProps {
     arrival_date: string;
   };
 }
-const ResolvedImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
-  const [url, setUrl] = useState<string>(src);
+const ResolvedImage = ({ src, alt, className }: { src: any; alt: string; className?: string }) => {
+  const [url, setUrl] = useState<string>("");
+
   useEffect(() => {
     let active = true;
+
+    const getRawUrl = (input: any): string | null => {
+      if (!input) return null;
+      if (typeof input === 'string') return input;
+      if (typeof input === 'object') {
+        if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+        if (input.filePath) return input.filePath;
+        if (input.url) return input.url;
+        if (input.image_url?.url) return input.image_url.url;
+      }
+      return null;
+    };
+
     (async () => {
-      const resolved = await resolveSignedUrl(src);
+      const raw = getRawUrl(src);
+      if (!raw) return;
+      setUrl(raw);
+      const resolved = await resolveSignedUrl(raw);
       if (active && resolved) setUrl(resolved);
     })();
+
     return () => { active = false; };
   }, [src]);
+
+  if (!url) return null;
+
   return (
     <img
       src={url}
       alt={alt}
       className={className}
       loading="lazy"
-      onClick={() => window.open(url, '_blank')}
+      onClick={() => url && window.open(url, '_blank')}
     />
   );
 };
@@ -334,7 +355,7 @@ const QuoteDialog = ({
                                   <div>
                                     <p className="text-sm font-medium text-foreground mb-2"><strong>Fotos del producto:</strong></p>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                      {product.productPhotos.map((photo: string, photoIndex: number) => (
+                                      {product.productPhotos.map((photo: any, photoIndex: number) => (
                                         <ResolvedImage 
                                           key={photoIndex}
                                           src={photo}
