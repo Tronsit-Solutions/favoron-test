@@ -386,16 +386,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="online" id="type-online" />
-                <Label htmlFor="type-online" className="cursor-pointer">
-                  <div className="font-medium">Compra Online</div>
-                  <div className="text-xs text-muted-foreground">Productos con link de tienda online</div>
+                <Label htmlFor="type-online" className="cursor-pointer font-medium">
+                  Compra Online
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="personal" id="type-personal" />
-                <Label htmlFor="type-personal" className="cursor-pointer">
-                  <div className="font-medium">Pedido Personal</div>
-                  <div className="text-xs text-muted-foreground">Favores personales sin link</div>
+                <Label htmlFor="type-personal" className="cursor-pointer font-medium">
+                  Pedido Personal
                 </Label>
               </div>
             </RadioGroup>
