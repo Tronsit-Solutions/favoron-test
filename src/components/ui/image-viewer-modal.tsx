@@ -151,7 +151,7 @@ export const ImageViewerModal = ({
               </div>
             </div>
           ) : (
-            <div className="flex justify-center">
+            <div className="flex justify-center max-h-[70vh] md:max-h-[80vh] overflow-auto">
               <img
                 src={currentImageUrl}
                 alt={title}
