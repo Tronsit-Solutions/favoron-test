@@ -566,20 +566,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                           </div>
                         </div>
 
-                        <div>
-                          <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link de referencia (opcional)</Label>
-                          <div className="relative">
-                            <Link2 className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
-                            <Input
-                              id={`itemLink-${index}`}
-                              type="url"
-                              placeholder="Link opcional si hiciste una compra durante un viaje"
-                              value={product.itemLink || ''}
-                              onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
-                              className="pl-7 h-8 text-sm"
-                            />
-                          </div>
-                        </div>
 
                         <div>
                           <Label className="text-xs text-muted-foreground">Fotos del producto (1-5) *</Label>
