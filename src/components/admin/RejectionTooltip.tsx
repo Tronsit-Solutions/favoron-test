@@ -44,12 +44,12 @@ const RejectionTooltip = ({
               <div className="space-y-2">
                 <div className="text-sm">
                   <span className="font-medium">💰 Tip anterior asignado:</span>
-                  <span className="ml-2">${adminAssignedTip}</span>
+                  <span className="ml-2">Q{adminAssignedTip}</span>
                 </div>
                 <div className="bg-orange-50 border border-orange-200 p-2 rounded text-xs">
                   <span className="font-medium text-orange-800">💡 Sugerencia:</span>
                   <span className="text-orange-700 ml-1">
-                    Asignar un tip menor a ${adminAssignedTip}
+                    Asignar un tip menor a Q{adminAssignedTip}
                   </span>
                 </div>
               </div>
