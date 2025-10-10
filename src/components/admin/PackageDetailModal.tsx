@@ -276,6 +276,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         price: parseFloat(product.estimatedPrice || '0'),
         quantity: parseInt(product.quantity || '1'),
         link: product.itemLink,
+        instructions: product.instructions || null,
+        requestType: product.requestType || 'online',
         adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
         subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
       }));
@@ -760,6 +762,16 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                             </div>
                           )}
                         </div>
+                        
+                        {/* Show instructions for personal orders */}
+                        {product.requestType === 'personal' && product.instructions && (
+                          <div className="mt-2 pt-2 border-t">
+                            <p className="font-medium text-muted-foreground text-xs mb-1">Instrucciones:</p>
+                            <p className="text-xs bg-blue-50 dark:bg-blue-950 p-2 rounded border border-blue-200 dark:border-blue-800">
+                              {product.instructions}
+                            </p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
