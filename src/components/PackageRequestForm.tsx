@@ -151,7 +151,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Sync all products' requestType when formRequestType changes
   useEffect(() => {
-    setProducts(prev => prev.map(p => ({ ...p, requestType: formRequestType })));
+    setProducts(prev => {
+      const updated = prev.map(p => ({ ...p, requestType: formRequestType }));
+      // If switching to personal, keep only the first product
+      if (formRequestType === 'personal' && updated.length > 1) {
+        return [updated[0]];
+      }
+      return updated;
+    });
   }, [formRequestType]);
 
   const destinationCities = [
@@ -590,7 +597,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               ))}
             </div>
 
-            {products.length < 5 && (
+            {formRequestType === 'online' && products.length < 5 && (
               <Button
                 type="button"
                 variant="shopper"
