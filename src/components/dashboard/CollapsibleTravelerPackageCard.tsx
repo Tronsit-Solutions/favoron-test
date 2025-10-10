@@ -91,12 +91,15 @@ const CollapsibleTravelerPackageCard = ({
   };
 
   const getPackageName = () => {
+    const isPersonalOrder = pkg.products_data?.[0]?.requestType === 'personal';
+    const prefix = isPersonalOrder ? 'Pedido personal: ' : '';
+    
     if (pkg.products && pkg.products.length > 0) {
       return pkg.products.length > 1 
-        ? `Pedido con ${pkg.products.length} productos` 
-        : pkg.products[0].itemDescription;
+        ? `${prefix}Pedido con ${pkg.products.length} productos` 
+        : `${prefix}${pkg.products[0].itemDescription}`;
     }
-    return pkg.item_description || 'Pedido';
+    return `${prefix}${pkg.item_description || 'Pedido'}`;
   };
 
   const getPackageDescription = () => {
