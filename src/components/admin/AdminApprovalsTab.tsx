@@ -232,7 +232,9 @@ const AdminApprovalsTab = ({
                     <div key={pkg.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
-                          <h4 className="font-medium text-sm sm:text-base break-words">
+                          <h4 className={`font-medium text-sm sm:text-base break-words ${
+                            pkg.products_data?.[0]?.requestType === 'personal' ? 'text-purple-600 dark:text-purple-400' : ''
+                          }`}>
                             {pkg.item_description}
                           </h4>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
