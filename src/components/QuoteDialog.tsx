@@ -292,10 +292,10 @@ const QuoteDialog = ({
                                 )}
                                 
                                 {/* Instrucción */}
-                                {product.instruction && (
+                                {product.instructions && (
                                   <div>
-                                    <p className="text-sm font-medium text-foreground"><strong>Instrucción:</strong></p>
-                                    <p className="text-sm text-foreground">{product.instruction}</p>
+                                    <p className="text-sm font-medium text-foreground"><strong>Instrucciones de compra:</strong></p>
+                                    <p className="text-sm text-foreground">{product.instructions}</p>
                                   </div>
                                 )}
                                 
