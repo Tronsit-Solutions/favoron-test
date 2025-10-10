@@ -573,7 +573,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                             <Input
                               id={`itemLink-${index}`}
                               type="url"
-                              placeholder="Link opcional si hiciste una compra durante un viaje"
+                              placeholder=""
                               value={product.itemLink || ''}
                               onChange={(e) => updateProduct(index, 'itemLink', e.target.value)}
                               className="pl-7 h-8 text-sm"
