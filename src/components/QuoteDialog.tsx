@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,7 @@ interface QuoteDialogProps {
     arrival_date: string;
   };
 }
-const ResolvedImage = ({ src, alt, className }: { src: any; alt: string; className?: string }) => {
+const ResolvedImage = ({ src, alt, className, onClick }: { src: any; alt: string; className?: string; onClick?: () => void }) => {
   const [url, setUrl] = useState<string>("");
 
   useEffect(() => {
@@ -86,7 +87,7 @@ const ResolvedImage = ({ src, alt, className }: { src: any; alt: string; classNa
       alt={alt}
       className={className}
       loading="lazy"
-      onClick={() => url && window.open(url, '_blank')}
+      onClick={onClick}
     />
   );
 };
@@ -101,6 +102,11 @@ const QuoteDialog = ({
   tripDates
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
+  const [imageModalState, setImageModalState] = useState<{ isOpen: boolean; imageUrl: string; title: string }>({
+    isOpen: false,
+    imageUrl: '',
+    title: ''
+  });
   
   // Create unique storage key based on package details
   const getPackageId = () => {
@@ -361,6 +367,26 @@ const QuoteDialog = ({
                                           src={photo}
                                           alt={`Foto ${photoIndex + 1} del producto`}
                                           className="w-full h-24 object-cover rounded border border-muted cursor-pointer hover:opacity-80 transition-opacity"
+                                          onClick={() => {
+                                            const getRawUrl = (input: any): string | null => {
+                                              if (!input) return null;
+                                              if (typeof input === 'string') return input;
+                                              if (typeof input === 'object') {
+                                                if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+                                                if (input.filePath) return input.filePath;
+                                                if (input.url) return input.url;
+                                              }
+                                              return null;
+                                            };
+                                            const url = getRawUrl(photo);
+                                            if (url) {
+                                              setImageModalState({
+                                                isOpen: true,
+                                                imageUrl: url,
+                                                title: `Foto ${photoIndex + 1} del producto`
+                                              });
+                                            }
+                                          }}
                                         />
                                       ))}
                                     </div>
@@ -875,6 +901,13 @@ const QuoteDialog = ({
           user={profile}
         />
       </DialogContent>
+
+      <ImageViewerModal 
+        isOpen={imageModalState.isOpen}
+        onClose={() => setImageModalState({ isOpen: false, imageUrl: '', title: '' })}
+        imageUrl={imageModalState.imageUrl}
+        title={imageModalState.title}
+      />
     </Dialog>;
 };
 export default QuoteDialog;
