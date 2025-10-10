@@ -641,36 +641,33 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
           {/* Destination selection - different for personal orders */}
           {formRequestType === 'personal' ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="destinationCountry">País de destino *</Label>
-                <Select 
-                  value={selectedCountry} 
-                  onValueChange={(value) => {
-                    setSelectedCountry(value);
-                    handleInputChange('packageDestination', '');
-                    handleInputChange('packageDestinationOther', '');
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el país" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {destinationCountries.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
-                        <div className="flex items-center space-x-2">
-                          <Globe className="h-4 w-4" />
-                          <span>{country.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Destino del paquete *</Label>
+              <Select 
+                value={selectedCountry} 
+                onValueChange={(value) => {
+                  setSelectedCountry(value);
+                  handleInputChange('packageDestination', '');
+                  handleInputChange('packageDestinationOther', '');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el país" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinationCountries.map((country) => (
+                    <SelectItem key={country.value} value={country.value}>
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4" />
+                        <span>{country.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {selectedCountry && (
-                <div className="space-y-2">
-                  <Label htmlFor="packageDestination">Ciudad de destino *</Label>
+                <>
                   <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona la ciudad" />
@@ -695,9 +692,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       required
                     />
                   )}
-                </div>
+                </>
               )}
-            </>
+            </div>
           ) : (
             <div className="space-y-2">
               <Label htmlFor="packageDestination">Destino del paquete *</Label>
