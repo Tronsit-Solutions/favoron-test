@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, X, ZoomIn, ZoomOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { resolveSignedUrl } from "@/lib/storageUrls";
 
 interface ImageViewerModalProps {
@@ -82,7 +82,7 @@ export const ImageViewerModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col overflow-hidden">
         <DialogHeader className="p-6 pb-2">
           <div className="flex items-center justify-between">
             <DialogTitle>{title}</DialogTitle>
@@ -131,7 +131,7 @@ export const ImageViewerModal = ({
           </div>
         </DialogHeader>
         
-        <div className="flex-1 overflow-auto p-6 pt-2">
+        <div className="flex-1 min-h-0 overflow-auto p-6 pt-2">
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-muted-foreground">Cargando imagen...</div>
@@ -151,16 +151,16 @@ export const ImageViewerModal = ({
               </div>
             </div>
           ) : (
-            <div className="flex justify-center max-h-[70vh] md:max-h-[80vh] overflow-auto">
+            <div className="relative h-full w-full overflow-auto flex items-center justify-center">
               <img
                 src={currentImageUrl}
                 alt={title}
                 style={{
-                  transform: `scale(${zoom})`,
-                  transformOrigin: 'center',
-                  transition: 'transform 0.2s ease-in-out'
+                  width: `${zoom * 100}%`,
+                  height: 'auto',
+                  maxWidth: 'none'
                 }}
-                className="max-w-full max-h-[70vh] md:max-h-[80vh] object-contain h-auto rounded-lg shadow-lg"
+                className="max-h-full object-contain rounded-lg shadow-lg"
                 onError={handleImageError}
                 onDoubleClick={resetZoom}
               />
