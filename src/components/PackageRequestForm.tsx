@@ -409,7 +409,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <div className="space-y-4">
             <div>
               <Label className="text-base font-medium">
-                {formRequestType === 'online' ? 'Productos' : 'Detalles del pedido'} * ({products.length}/5)
+                {formRequestType === 'online' ? `Productos * (${products.length}/5)` : 'Detalles del pedido *'}
               </Label>
             </div>
             
