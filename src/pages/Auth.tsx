@@ -59,40 +59,48 @@ const Auth = () => {
     }
 
     // Check if this is a password reset redirect from email link
-    // Supabase sends recovery tokens in the URL hash fragment
+    // Supabase sends recovery tokens in both hash fragment and query params
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get('type');
+    const searchParams = new URLSearchParams(window.location.search);
+    const type = hashParams.get('type') || searchParams.get('type');
     
     if (type === 'recovery') {
-      console.log('Password recovery detected');
-      // This is a password recovery from email link
+      console.log('Password recovery detected from URL');
+      // This is a password recovery from email link - activate reset mode
       setIsResettingPassword(true);
+      
+      // Clean the URL to prevent re-detection on re-renders
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
       toast({
         title: "Restablecer contraseña",
         description: "Ingresa tu nueva contraseña para completar el proceso",
         duration: 6000,
       });
-    } else {
-      // Check if user is already logged in and redirect appropriately
-      console.log('Checking for existing session...');
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        console.log('Existing session check result:', session);
-        if (session && !isResettingPassword) {
-          const from = (location.state as any)?.from;
-          console.log('Existing session found. From state:', from);
-          if (from?.pathname) {
-            const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
-            console.log('Redirecting back to previous location:', target);
-            navigate(target, { replace: true });
-          } else {
-            console.log('No previous location. Redirecting to /dashboard');
-            navigate('/dashboard', { replace: true });
-          }
-        } else {
-          console.log('No existing session, staying on auth page');
-        }
-      });
+      
+      // IMPORTANT: Exit early to prevent session check that would redirect away
+      return;
     }
+    
+    // Only check for existing session if NOT in recovery mode
+    console.log('Checking for existing session...');
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Existing session check result:', session);
+      if (session && !isResettingPassword) {
+        const from = (location.state as any)?.from;
+        console.log('Existing session found. From state:', from);
+        if (from?.pathname) {
+          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
+          console.log('Redirecting back to previous location:', target);
+          navigate(target, { replace: true });
+        } else {
+          console.log('No previous location. Redirecting to /dashboard');
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        console.log('No existing session, staying on auth page');
+      }
+    });
 
     // Set up auth state listener for other auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -342,7 +350,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: 'https://favoron.app/auth',
+        redirectTo: 'https://favoron.app/auth#type=recovery',
       });
 
       if (error) throw error;
