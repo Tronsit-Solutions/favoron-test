@@ -85,9 +85,9 @@ const CollapsiblePackageCard = ({
       case 'pending_approval':
         return 'Esperando aprobación del administrador';
       case 'approved':
-        return "Aprobado - Esperando emparejamiento con viajero";
+        return "Aprobado - Esperando match con viajero";
       case 'matched':
-        return "Emparejado con viajero - Esperando cotización";
+        return "Match con viajero - Esperando cotización";
       case 'quote_sent':
         const isExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date();
         if (isExpired) {
