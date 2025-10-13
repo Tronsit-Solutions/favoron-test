@@ -117,13 +117,11 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
           </p>
           
           {pkg.delivery_method === 'delivery' && pkg.confirmed_delivery_address && (
-            <div className="text-sm bg-muted/30 p-3 rounded-md border border-muted">
-              <p className="font-semibold mb-1">Dirección de entrega:</p>
-              <p>{(pkg.confirmed_delivery_address as any).streetAddress}</p>
-              <p>{(pkg.confirmed_delivery_address as any).cityArea}</p>
-              {(pkg.confirmed_delivery_address as any).contactNumber && (
-                <p className="mt-1">Tel: {(pkg.confirmed_delivery_address as any).contactNumber}</p>
-              )}
+            <div className="text-sm bg-muted/30 p-2 rounded-md border border-muted">
+              <p>
+                <strong>Dirección:</strong> {(pkg.confirmed_delivery_address as any).streetAddress}, {(pkg.confirmed_delivery_address as any).cityArea}
+                {(pkg.confirmed_delivery_address as any).contactNumber && ` • Tel: ${(pkg.confirmed_delivery_address as any).contactNumber}`}
+              </p>
             </div>
           )}
         </div>
