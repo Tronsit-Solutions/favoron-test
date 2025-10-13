@@ -107,7 +107,7 @@ const CollapsiblePackageCard = ({
       case 'purchased':
         return pkg.tracking_info ? 'Producto comprado - En camino' : 'Producto comprado - Esperando envío';
       case 'in_transit':
-        return 'En tránsito hacia Guatemala';
+        return 'En tránsito - Esperando confirmación de recepción por parte del viajero';
       case 'received_by_traveler':
         return "Recibido por viajero";
       case 'pending_office_confirmation':
