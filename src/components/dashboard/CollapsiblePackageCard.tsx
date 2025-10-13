@@ -85,7 +85,7 @@ const CollapsiblePackageCard = ({
       case 'pending_approval':
         return 'Esperando aprobación del administrador';
       case 'approved':
-        return "Aprobado - Esperando match con viajero";
+        return "Aprobado - Esperando match con un viajero";
       case 'matched':
         return "Match con viajero - Esperando cotización";
       case 'quote_sent':
