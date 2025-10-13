@@ -111,9 +111,22 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
       <div className="space-y-3">
         {renderProducts()}
         
-        <p className="text-sm">
-          <strong>Método de entrega:</strong> {pkg.delivery_method === 'delivery' ? 'Envío a domicilio' : 'Pick-up en oficina'}
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm">
+            <strong>Método de entrega:</strong> {pkg.delivery_method === 'delivery' ? 'Envío a domicilio' : 'Pick-up en oficina'}
+          </p>
+          
+          {pkg.delivery_method === 'delivery' && pkg.confirmed_delivery_address && (
+            <div className="text-sm bg-muted/30 p-3 rounded-md border border-muted">
+              <p className="font-semibold mb-1">Dirección de entrega:</p>
+              <p>{(pkg.confirmed_delivery_address as any).streetAddress}</p>
+              <p>{(pkg.confirmed_delivery_address as any).cityArea}</p>
+              {(pkg.confirmed_delivery_address as any).contactNumber && (
+                <p className="mt-1">Tel: {(pkg.confirmed_delivery_address as any).contactNumber}</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {(pkg as any).is_personal_order && (pkg as any).personal_order_instructions && (
           <div className="bg-muted/50 border border-muted rounded-lg p-3">
