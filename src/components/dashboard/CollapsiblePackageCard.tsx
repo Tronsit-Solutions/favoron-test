@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -55,6 +55,7 @@ const CollapsiblePackageCard = ({
   const [activeTab, setActiveTab] = React.useState("producto");
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
+  const [quoteInfoOpen, setQuoteInfoOpen] = React.useState(false);
   const [showPaymentModal, setShowPaymentModal] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
@@ -417,14 +418,26 @@ const CollapsiblePackageCard = ({
                 <TravelerConfirmationDisplay pkg={pkg} />
                 
                 {/* Quote Information */}
-                {hasValidQuote(pkg) && <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
-                    <div className="p-3 border-b border-muted/50">
-                      <h3 className="text-sm font-medium text-foreground">Cotización del Pedido</h3>
+                {hasValidQuote(pkg) && <Collapsible open={quoteInfoOpen} onOpenChange={setQuoteInfoOpen}>
+                    <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                      <CollapsibleTrigger asChild>
+                        <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <DollarSign className="h-4 w-4 text-primary" />
+                              Cotización del Pedido
+                            </h3>
+                            {quoteInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="p-3">
+                          <PackageQuoteInfo quote={pkg.quote as any} quoteExpiresAt={pkg.quote_expires_at} deliveryMethod={pkg.delivery_method} shopperTrustLevel={(pkg as any).shopper_trust_level} adminTipAmount={pkg.admin_assigned_tip} />
+                        </div>
+                      </CollapsibleContent>
                     </div>
-                    <div className="p-3">
-                      <PackageQuoteInfo quote={pkg.quote as any} quoteExpiresAt={pkg.quote_expires_at} deliveryMethod={pkg.delivery_method} shopperTrustLevel={(pkg as any).shopper_trust_level} adminTipAmount={pkg.admin_assigned_tip} />
-                    </div>
-                  </div>}
+                  </Collapsible>}
                 
                 {/* Priority Actions Section */}
                 <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
