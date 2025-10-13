@@ -111,6 +111,10 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
       <div className="space-y-3">
         {renderProducts()}
         
+        <p className="text-sm">
+          <strong>Método de entrega:</strong> {pkg.delivery_method === 'delivery' ? 'Envío a domicilio' : 'Pick-up en oficina'}
+        </p>
+
         {(pkg as any).is_personal_order && (pkg as any).personal_order_instructions && (
           <div className="bg-muted/50 border border-muted rounded-lg p-3">
             <p className="text-sm">
