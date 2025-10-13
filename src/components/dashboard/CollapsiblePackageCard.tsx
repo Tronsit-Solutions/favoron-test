@@ -138,7 +138,15 @@ const CollapsiblePackageCard = ({
 
   // Helper function to check if the package has valid quote
   const hasValidQuote = (pkg: any): boolean => {
-    return pkg.quote && pkg.quote.total_price && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date());
+    // If there's no quote at all, return false
+    if (!pkg.quote) return false;
+    
+    // States where quote was already accepted/paid - always show quote
+    const paidStates = ['payment_pending', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+    if (paidStates.includes(pkg.status)) return true;
+    
+    // For earlier states, check if quote hasn't expired
+    return pkg.quote && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date());
   };
 
   // Helper function to get package name
