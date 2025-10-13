@@ -416,6 +416,16 @@ const CollapsiblePackageCard = ({
                 {/* Traveler Confirmation Section */}
                 <TravelerConfirmationDisplay pkg={pkg} />
                 
+                {/* Quote Information */}
+                {hasValidQuote(pkg) && <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                    <div className="p-3 border-b border-muted/50">
+                      <h3 className="text-sm font-medium text-foreground">Cotización del Pedido</h3>
+                    </div>
+                    <div className="p-3">
+                      <PackageQuoteInfo quote={pkg.quote as any} quoteExpiresAt={pkg.quote_expires_at} deliveryMethod={pkg.delivery_method} shopperTrustLevel={(pkg as any).shopper_trust_level} adminTipAmount={pkg.admin_assigned_tip} />
+                    </div>
+                  </div>}
+                
                 {/* Priority Actions Section */}
                 <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
                   <div className="p-3 border-b border-muted/50">
@@ -428,16 +438,6 @@ const CollapsiblePackageCard = ({
                     <ShopperPackagePriorityActions pkg={pkg} onQuote={onQuote} />
                   </div>
                 </div>
-                
-                {/* Quote Information */}
-                {hasValidQuote(pkg) && <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
-                    <div className="p-3 border-b border-muted/50">
-                      <h3 className="text-sm font-medium text-foreground">Información de Cotización</h3>
-                    </div>
-                    <div className="p-3">
-                      <PackageQuoteInfo quote={pkg.quote as any} quoteExpiresAt={pkg.quote_expires_at} deliveryMethod={pkg.delivery_method} shopperTrustLevel={(pkg as any).shopper_trust_level} adminTipAmount={pkg.admin_assigned_tip} />
-                    </div>
-                  </div>}
                 
                 {/* Shipping Instructions - For later stages */}
                 {isShipmentReadyStatus(pkg) && <Collapsible open={shippingInfoOpen} onOpenChange={setShippingInfoOpen}>
