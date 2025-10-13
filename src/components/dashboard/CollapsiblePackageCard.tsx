@@ -441,7 +441,14 @@ const CollapsiblePackageCard = ({
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <div className="p-3">
-                          <PackageQuoteInfo quote={pkg.quote as any} quoteExpiresAt={pkg.quote_expires_at} deliveryMethod={pkg.delivery_method} shopperTrustLevel={(pkg as any).shopper_trust_level} adminTipAmount={pkg.admin_assigned_tip} />
+                          <PackageQuoteInfo 
+                            quote={pkg.quote as any} 
+                            quoteExpiresAt={pkg.quote_expires_at} 
+                            deliveryMethod={pkg.delivery_method} 
+                            shopperTrustLevel={(pkg as any).shopper_trust_level} 
+                            adminTipAmount={pkg.admin_assigned_tip}
+                            packageStatus={pkg.status}
+                          />
                         </div>
                       </CollapsibleContent>
                     </div>

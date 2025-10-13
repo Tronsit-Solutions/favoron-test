@@ -13,6 +13,7 @@ interface PackageQuoteInfoProps {
   deliveryMethod?: string;
   shopperTrustLevel?: string;
   adminTipAmount?: number;
+  packageStatus?: string; // Add package status to determine if we should show countdown
 }
 const PackageQuoteInfo = ({
   quote,
@@ -20,12 +21,16 @@ const PackageQuoteInfo = ({
   onQuoteExpire,
   deliveryMethod = 'pickup',
   shopperTrustLevel,
-  adminTipAmount
+  adminTipAmount,
+  packageStatus
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
   // Use completePrice if available, otherwise recalculate
   const displayTotal = (quote as any).completePrice || getDisplayTotal(quote, deliveryMethod, shopperTrustLevel);
+  
+  // Only show countdown for states where quote is still pending acceptance/payment
+  const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);
   
   return (
     <StatusAlert variant="info" title="Cotización recibida">
@@ -34,7 +39,7 @@ const PackageQuoteInfo = ({
         {quote.message && (
           <p className="text-sm text-muted-foreground">Mensaje del viajero: "{quote.message}"</p>
         )}
-        {quoteExpiresAt && (
+        {quoteExpiresAt && shouldShowCountdown && (
           <QuoteCountdown 
             expiresAt={quoteExpiresAt} 
             onExpire={onQuoteExpire}
