@@ -601,7 +601,7 @@ const QuoteDialog = ({
                      <p className="font-medium text-lg">
                        {(() => {
                          const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                         const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+                         const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
                          return (
                            <>
                              <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
@@ -623,7 +623,7 @@ const QuoteDialog = ({
                         <div className="space-y-1 text-sm text-green-700">
                            {(() => {
                              const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                             const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+                             const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
                              const isPrime = packageDetails.shopper_trust_level === 'prime';
                              
                               // Calculate standard pricing (40% fee) to show original price
@@ -681,7 +681,7 @@ const QuoteDialog = ({
                                          </div>
                                          {/* Prime savings message for non-Prime users */}
                                          {!breakdown.isPrime && (() => {
-                                           const primeBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'prime');
+                                           const primeBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'prime', packageDetails.package_destination);
                                            const savings = breakdown.totalPrice - primeBreakdown.totalPrice;
                                            return savings > 0 ? (
                                              <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
