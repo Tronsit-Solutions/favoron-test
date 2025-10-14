@@ -326,7 +326,7 @@ const QuoteDialog = ({
                         return (
                           <div key={index} className="border border-muted rounded-lg p-3 bg-muted/20">
                             <p className="text-sm font-medium text-foreground mb-3">
-                              {isPersonalOrder ? 'Pedido personal' : `Producto ${index + 1}`}: {product.itemDescription}
+                              {isPersonalOrder ? 'Pedido personal' : `Producto ${index + 1}`} {product.itemDescription}
                             </p>
                             
                             {isPersonalOrder ? (
