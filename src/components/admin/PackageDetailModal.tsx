@@ -877,7 +877,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground">Método de Entrega</p>
                       <p className="text-xs font-medium">
-                        {pkg.office_delivery ? "Recoger en Z14" : "Pickup"}
+                        {pkg.delivery_method === 'delivery' ? "Envío a domicilio" : "Recoger en oficina"}
                       </p>
                     </div>
                     <div className="text-center">
