@@ -928,6 +928,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             status: selectedPackageForQuote.status,
             traveler_address: selectedPackageForQuote.traveler_address || undefined,
             shopper_trust_level: (selectedPackageForQuote as any).profiles?.trust_level || 'basic',
+            package_destination: selectedPackageForQuote.package_destination,
           }}
           userType={quoteUserType}
           existingQuote={selectedPackageForQuote.quote as any}

@@ -893,7 +893,8 @@ export const useDashboardActions = (
               currentPackage.delivery_method || 'pickup',
               shopperProfile.trust_level,
               `Cotización generada automáticamente por admin`,
-              true // adminAssignedTipAccepted
+              true, // adminAssignedTipAccepted
+              currentPackage.package_destination
             );
 
             // Update package with quote, address, and dates
