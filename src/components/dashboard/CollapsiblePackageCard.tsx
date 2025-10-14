@@ -250,13 +250,24 @@ const CollapsiblePackageCard = ({
                 setShowShippingInfoModal(true);
               }} className="text-xs font-medium w-full">
                       📦 Subir comprobante compra
-                    </Button> : pkg.status === 'delivered_to_office' ? <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                setShowOfficeModal(true);
-              }} className="text-xs font-medium w-full">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      Recolectar paquete
-                    </Button> : pkg.status === 'purchased' && !pkg.tracking_info || pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url ? <Button size="sm" variant="success" onClick={e => {
+                     </Button> : pkg.status === 'delivered_to_office' ? (
+                      pkg.delivery_method === 'delivery' ? (
+                        <div className="text-xs font-medium w-full p-3 bg-success/10 border border-success/20 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <Truck className="h-4 w-4 text-success flex-shrink-0" />
+                            <span className="text-success">Tu paquete será entregado a domicilio</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="success" onClick={e => {
+                          e.stopPropagation();
+                          setShowOfficeModal(true);
+                        }} className="text-xs font-medium w-full">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          Recolectar paquete
+                        </Button>
+                      )
+                    ) : pkg.status === 'purchased' && !pkg.tracking_info || pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url ? <Button size="sm" variant="success" onClick={e => {
                 e.stopPropagation();
                 setShowShippingInfoModal(true);
               }} className="text-xs font-medium w-full">
@@ -326,13 +337,24 @@ const CollapsiblePackageCard = ({
                 setShowShippingInfoModal(true);
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
                       <span className="truncate">Ver dirección y comprar</span>
-                    </Button> : pkg.status === 'delivered_to_office' ? <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                setShowOfficeModal(true);
-              }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
-                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">Recoger paquete</span>
-                    </Button> : null}
+                     </Button> : pkg.status === 'delivered_to_office' ? (
+                      pkg.delivery_method === 'delivery' ? (
+                        <div className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full p-2 bg-success/10 border border-success/20 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <Truck className="h-3 w-3 text-success flex-shrink-0" />
+                            <span className="truncate text-success">Será entregado a domicilio</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="success" onClick={e => {
+                          e.stopPropagation();
+                          setShowOfficeModal(true);
+                        }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">Recoger paquete</span>
+                        </Button>
+                      )
+                    ) : null}
                   
                   {/* Show upload tracking button for purchased items without tracking */}
                   {(pkg.status === 'purchased' && !pkg.tracking_info || pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) && <Button size="sm" variant="success" onClick={e => {
