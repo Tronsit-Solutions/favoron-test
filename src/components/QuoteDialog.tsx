@@ -40,6 +40,7 @@ interface QuoteDialogProps {
     traveler_address?: any;
     additional_notes?: string;
     shopper_trust_level?: string;
+    package_destination?: string;
   };
   userType: 'user' | 'admin';
   existingQuote?: any;
@@ -625,8 +626,13 @@ const QuoteDialog = ({
                              const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
                              const isPrime = packageDetails.shopper_trust_level === 'prime';
                              
-                             // Calculate standard pricing (40% fee) to show original price
-                             const standardBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'basic');
+                              // Calculate standard pricing (40% fee) to show original price
+                              const standardBreakdown = getPriceBreakdown(
+                                base, 
+                                packageDetails.delivery_method, 
+                                'basic',
+                                packageDetails.package_destination
+                              );
                              
                                return (
                                  <>
