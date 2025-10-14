@@ -347,6 +347,7 @@ export type Database = {
           internal_notes: string | null
           item_description: string
           item_link: string | null
+          label_number: number | null
           matched_assignment_expires_at: string | null
           matched_trip_dates: Json | null
           matched_trip_id: string | null
@@ -384,6 +385,7 @@ export type Database = {
           internal_notes?: string | null
           item_description: string
           item_link?: string | null
+          label_number?: number | null
           matched_assignment_expires_at?: string | null
           matched_trip_dates?: Json | null
           matched_trip_id?: string | null
@@ -421,6 +423,7 @@ export type Database = {
           internal_notes?: string | null
           item_description?: string
           item_link?: string | null
+          label_number?: number | null
           matched_assignment_expires_at?: string | null
           matched_trip_dates?: Json | null
           matched_trip_id?: string | null

@@ -146,22 +146,44 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     try {
       setGeneratingPDF(trip.id);
       
-      // Generate label numbers for all packages first
-      console.log('🏷️ Generating label numbers for trip', trip.id, 'with', trip.packages.length, 'packages');
+      // Get or generate label numbers for all packages
+      console.log('🏷️ Processing label numbers for trip', trip.id, 'with', trip.packages.length, 'packages');
       const labelNumbers: number[] = [];
+      
       for (let i = 0; i < trip.packages.length; i++) {
-        try {
-          const { data, error } = await supabase.rpc('get_next_label_number');
-          if (error) {
-            console.error('Error getting label number:', error);
+        const pkg = trip.packages[i];
+        
+        // Check if package already has a label number
+        if (pkg.label_number) {
+          console.log('✅ Package', i, 'already has label number:', pkg.label_number);
+          labelNumbers.push(pkg.label_number);
+        } else {
+          // Generate new label number
+          try {
+            const { data, error } = await supabase.rpc('get_next_label_number');
+            if (error) {
+              console.error('Error getting label number:', error);
+              labelNumbers.push(0); // fallback
+            } else {
+              console.log('🆕 Generated new label number', i, ':', data);
+              labelNumbers.push(data);
+              
+              // Save the label number to the package
+              const { error: updateError } = await supabase
+                .from('packages')
+                .update({ label_number: data })
+                .eq('id', pkg.id);
+              
+              if (updateError) {
+                console.error('Error saving label number:', updateError);
+              } else {
+                console.log('💾 Saved label number to package', pkg.id);
+              }
+            }
+          } catch (error) {
+            console.error('Error generating label number:', error);
             labelNumbers.push(0); // fallback
-          } else {
-            console.log('✅ Label number', i, ':', data);
-            labelNumbers.push(data);
           }
-        } catch (error) {
-          console.error('Error generating label number:', error);
-          labelNumbers.push(0); // fallback
         }
       }
       console.log('📋 All label numbers for trip:', labelNumbers);
