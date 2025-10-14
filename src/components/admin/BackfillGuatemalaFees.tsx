@@ -1,38 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { useGuatemalaDeliveryBackfill } from "@/hooks/useGuatemalaDeliveryBackfill";
 
 export const BackfillGuatemalaFees = () => {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-
-  const executeBackfill = async () => {
-    setLoading(true);
-    setResult(null);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('fix-guatemala-delivery-fees', {
-        body: {}
-      });
-
-      if (error) throw error;
-
-      setResult(data);
-      
-      if (data.success) {
-        toast.success(`Backfill completado: ${data.stats.updated} paquetes actualizados`);
-      } else {
-        toast.error('Error en el backfill');
-      }
-    } catch (error: any) {
-      console.error('Error executing backfill:', error);
-      toast.error(error.message || 'Error al ejecutar el backfill');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { executeBackfill, loading, result } = useGuatemalaDeliveryBackfill();
 
   return (
     <div className="p-6 border rounded-lg space-y-4">

@@ -213,11 +213,11 @@ const QuoteDialog = ({
     if (isShopperViewingQuote && existingQuote) {
       // Shopper sees quote total recalculated with shopper trust level
       const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-      return calculateQuoteTotal(base, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+      return calculateQuoteTotal(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
     }
     if (adminTipAmount && isShopperViewingQuote) {
       // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
-      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, packageDetails.shopper_trust_level);
+      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
     }
     return adminTipAmount;
   };
@@ -239,7 +239,8 @@ const QuoteDialog = ({
         packageDetails.delivery_method, 
         packageDetails.shopper_trust_level,
         message || '',
-        true
+        true,
+        packageDetails.package_destination
       );
       
       clearPersistedState(); // Clear form data on successful submission
@@ -251,7 +252,9 @@ const QuoteDialog = ({
         basePrice,
         packageDetails.delivery_method,
         shopperTrustLevel,
-        message
+        message,
+        undefined,
+        packageDetails.package_destination
       );
       
       // Logging for verification
@@ -600,11 +603,11 @@ const QuoteDialog = ({
                   <div className="mt-2 pt-2 border-t border-green-300">
                      <p className="font-medium text-lg">
                        {(() => {
-                         const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                         const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
-                         return (
-                           <>
-                             <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
+                    const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                    const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+                    return (
+                      <>
+                        <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
                            </>
                          );
                        })()}

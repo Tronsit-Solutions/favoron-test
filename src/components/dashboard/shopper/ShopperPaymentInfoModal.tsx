@@ -29,14 +29,18 @@ export default function ShopperPaymentInfoModal({
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   
-  // Calculate correct amount including Prime discount
-  const basePrice = parseFloat((pkg.quote as any)?.price || '0');
-  const breakdown = getPriceBreakdown(
-    basePrice, 
-    pkg.delivery_method || 'pickup', 
-    profile?.trust_level
-  );
-  const totalAmount = breakdown.totalPrice;
+  // Use stored quote total (preferred) or recalculate if needed
+  const quoteData = pkg.quote as any;
+  const totalAmount = quoteData?.completePrice || quoteData?.totalPrice || (() => {
+    const basePrice = parseFloat(quoteData?.price || '0');
+    const breakdown = getPriceBreakdown(
+      basePrice, 
+      pkg.delivery_method || 'pickup', 
+      profile?.trust_level,
+      pkg.package_destination
+    );
+    return breakdown.totalPrice;
+  })();
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
