@@ -30,7 +30,7 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
   };
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -70,8 +70,8 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Dirección</p>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                  <p className="font-medium text-base">Dirección</p>
+                  <p className="text-base text-muted-foreground whitespace-pre-line">
                     {formatAddress()}
                   </p>
                 </div>
@@ -81,8 +81,8 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">Teléfono</p>
-                    <p className="text-sm text-muted-foreground">{companyInfo.phone_number}</p>
+                    <p className="font-medium text-base">Teléfono</p>
+                    <p className="text-base text-muted-foreground">{companyInfo.phone_number}</p>
                   </div>
                 </div>
               )}
@@ -92,7 +92,7 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
           
           <div className="pt-4 border-t space-y-3">
             <div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 <strong>Horarios de atención:</strong><br />
                 Lunes a Viernes: 9:00 AM - 8:00 PM<br />
                 Fines de semana: 9:00 AM - 8:00 PM
@@ -100,7 +100,7 @@ export const OfficeAddressModal = ({ isOpen, onClose, mode = 'info' }: OfficeAdd
             </div>
             
             <div className="bg-red-50 p-3 rounded-lg border border-red-200 shadow-sm">
-              <p className="text-xs text-red-800 font-medium">
+              <p className="text-sm text-red-800 font-medium">
                 {mode === 'pickup' ? (
                   <>
                     <strong>📦 Instrucciones para recolectar paquetes:</strong><br />
