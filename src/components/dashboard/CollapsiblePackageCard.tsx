@@ -255,7 +255,7 @@ const CollapsiblePackageCard = ({
                         <div className="text-xs font-medium w-full p-3 bg-success/10 border border-success/20 rounded-md">
                           <div className="flex items-center gap-2">
                             <Truck className="h-4 w-4 text-success flex-shrink-0" />
-                            <span className="text-success">Tu paquete será entregado a domicilio</span>
+                            <span className="text-foreground">Tu paquete será entregado a domicilio</span>
                           </div>
                         </div>
                       ) : (
@@ -342,7 +342,7 @@ const CollapsiblePackageCard = ({
                         <div className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full p-2 bg-success/10 border border-success/20 rounded-md">
                           <div className="flex items-center gap-2">
                             <Truck className="h-3 w-3 text-success flex-shrink-0" />
-                            <span className="truncate text-success">Será entregado a domicilio</span>
+                            <span className="truncate text-foreground">Será entregado a domicilio</span>
                           </div>
                         </div>
                       ) : (
