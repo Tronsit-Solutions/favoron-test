@@ -32,6 +32,7 @@ import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
+import { BackfillGuatemalaFees } from "./admin/BackfillGuatemalaFees";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminDashboardProps {
@@ -489,6 +490,7 @@ const AdminDashboard = ({
         )}
 
         <TabsContent value="overview" className="space-y-4">
+          <BackfillGuatemalaFees />
           <AdminOverviewTab 
             packages={localPackages}
             trips={localTrips}
