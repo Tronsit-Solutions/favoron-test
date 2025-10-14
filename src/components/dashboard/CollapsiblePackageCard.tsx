@@ -114,8 +114,8 @@ const CollapsiblePackageCard = ({
         return 'Entregado - Esperando confirmación de oficina';
       case 'delivered_to_office':
         return pkg.delivery_method === 'delivery' 
-          ? 'El paquete está en camino a tu domicilio' 
-          : 'Entregado en oficina - Listo para recolectar';
+          ? 'Recibirás tu paquete en tu domicilio' 
+          : 'Ya puedes recoger el paquete';
       case 'completed':
         return 'Completado';
       case 'cancelled':
