@@ -643,7 +643,7 @@ const QuoteDialog = ({
                                         {packageDetails.delivery_method === 'delivery' && (
                                           <div className="flex justify-between text-sm">
                                             <span className="ml-3">• Envío a domicilio:</span>
-                                            <span>Q60.00</span>
+                                            <span>{formatCurrency(standardBreakdown.deliveryFee)}</span>
                                           </div>
                                         )}
                                         <div className="flex justify-between text-prime font-medium">
