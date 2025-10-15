@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles } from 'lucide-react';
 import { usePrimeMembership } from '@/hooks';
 import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
+import { getPriceBreakdown } from '@/lib/pricing';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -33,50 +34,57 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
     membership.status === 'approved' || membership.status === 'rejected'
   );
 
-  const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => (
-    <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-      <CardContent className="p-2 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-2 gap-1 sm:gap-0">
-              <h4 className="font-medium truncate pr-2">{pkg.item_description}</h4>
-              <div className="flex-shrink-0">
-                {getStatusBadge(pkg.status)}
+  const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => {
+    // Recalculate the correct pricing based on shopper's trust level
+    const isPrime = pkg.profiles?.trust_level === 'prime';
+    const basePrice = Number(pkg.quote?.price || pkg.estimated_price || 0);
+    
+    const correctPricing = getPriceBreakdown(
+      basePrice,
+      pkg.delivery_method || 'pickup',
+      pkg.profiles?.trust_level,
+      pkg.package_destination
+    );
+
+    return (
+      <Card key={pkg.id} className="hover:shadow-md transition-shadow">
+        <CardContent className="p-2 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-2 gap-1 sm:gap-0">
+                <h4 className="font-medium truncate pr-2">{pkg.item_description}</h4>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {isPrime && (
+                    <Badge variant="prime" className="flex items-center gap-1">
+                      <Crown className="h-3 w-3" />
+                      Prime
+                    </Badge>
+                  )}
+                  {getStatusBadge(pkg.status)}
+                </div>
               </div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Precio: ${pkg.estimated_price} • Usuario: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
-            </p>
-            {pkg.quote && (
+              <p className="text-sm text-muted-foreground">
+                Precio: ${pkg.estimated_price} • Usuario: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
+              </p>
               <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
-                <p className="text-xs text-amber-800 font-medium mb-1">💰 Cotización Original del Shopper:</p>
-                {pkg.quote.price && (
+                <p className="text-xs text-amber-800 font-medium mb-1">
+                  💰 Cotización Original del Shopper {isPrime && '(Prime)'}:
+                </p>
+                <p className="text-xs text-amber-700">
+                  <span className="font-medium">Precio base:</span> Q{correctPricing.basePrice.toFixed(2)}
+                </p>
+                <p className="text-xs text-amber-700">
+                  <span className="font-medium">Fee de servicio ({isPrime ? '20%' : '40%'}):</span> Q{correctPricing.serviceFee.toFixed(2)}
+                </p>
+                {correctPricing.deliveryFee > 0 && (
                   <p className="text-xs text-amber-700">
-                    <span className="font-medium">Precio base:</span> Q{Number(pkg.quote.price).toFixed(2)}
+                    <span className="font-medium">Fee de entrega:</span> Q{correctPricing.deliveryFee.toFixed(2)}
                   </p>
                 )}
-                {pkg.quote.serviceFee && (
-                  <p className="text-xs text-amber-700">
-                    <span className="font-medium">Fee de servicio:</span> Q{Number(pkg.quote.serviceFee).toFixed(2)}
-                  </p>
-                )}
-                {pkg.quote.deliveryFee && Number(pkg.quote.deliveryFee) > 0 && (
-                  <p className="text-xs text-amber-700">
-                    <span className="font-medium">Fee de entrega:</span> Q{Number(pkg.quote.deliveryFee).toFixed(2)}
-                  </p>
-                )}
-                {pkg.quote.totalPrice && (
-                  <p className="text-xs text-amber-700 font-semibold">
-                    <span className="font-medium">Total que debía pagar:</span> Q{Number(pkg.quote.totalPrice).toFixed(2)}
-                  </p>
-                )}
-                {pkg.quote.completePrice && pkg.quote.completePrice !== pkg.quote.totalPrice && (
-                  <p className="text-xs text-amber-700 font-semibold">
-                    <span className="font-medium">Precio completo:</span> Q{Number(pkg.quote.completePrice).toFixed(2)}
-                  </p>
-                )}
+                <p className="text-xs text-amber-700 font-semibold mt-1 pt-1 border-t border-amber-300">
+                  <span className="font-medium">Total que debía pagar:</span> Q{correctPricing.totalPrice.toFixed(2)}
+                </p>
               </div>
-            )}
             {pkg.payment_receipt && (
               <div className="mt-2 p-2 bg-blue-50 rounded">
                 <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
@@ -138,7 +146,8 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
         </div>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const renderPrimeMembershipCard = (membership: any, showConfirmButton: boolean = false) => (
     <Card key={membership.id} className="hover:shadow-md transition-shadow border-purple-200">
