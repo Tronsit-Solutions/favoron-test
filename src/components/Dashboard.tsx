@@ -512,7 +512,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
             {userPackages.filter(pkg => {
               // Excluir paquetes cancelados, completados y archivados por el shopper
-              if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
+            if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
               
               // Excluir paquetes que pertenecen a viajes completados y pagados
               if (pkg.matched_trip_id) {
@@ -526,7 +526,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div className="grid gap-6">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes cancelados, completados y archivados por el shopper
-                   if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
+                   if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
                    
                    // Excluir paquetes que pertenecen a viajes completados y pagados
                    if (pkg.matched_trip_id) {
