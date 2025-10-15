@@ -85,6 +85,7 @@ const ActiveMatchesTab = ({
     const matchesSearch = 
       (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (pkg.user_id || '').toString().includes(searchTerm) ||
+      (pkg.label_number || '').toString().includes(searchTerm) ||
       (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       // Búsqueda por nombres del dueño del paquete (shopper)
