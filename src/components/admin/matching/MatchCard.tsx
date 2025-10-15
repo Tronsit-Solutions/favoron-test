@@ -143,6 +143,11 @@ export const MatchCard = ({
                 </div>
                 <h4 className={`font-medium truncate ${isMobile ? "text-base" : "text-sm"}`}>{pkg.item_description}</h4>
                 <MatchStatusBadge status={pkg.status} />
+                {pkg.label_number && (
+                  <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
+                    🏷️ #{pkg.label_number}
+                  </Badge>
+                )}
               </div>
               
               {/* Mobile: Stack info vertically */}
