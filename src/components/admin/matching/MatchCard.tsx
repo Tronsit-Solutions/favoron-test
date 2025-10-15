@@ -364,9 +364,16 @@ export const MatchCard = ({
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gray-700">Estado Actual</span>
-                <span className="text-xs text-gray-500 font-mono">
-                  ID: {pkg.id}
-                </span>
+                <div className="flex items-center gap-2">
+                  {pkg.label_number && (
+                    <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
+                      🏷️ #{pkg.label_number}
+                    </Badge>
+                  )}
+                  <span className="text-xs text-gray-500 font-mono">
+                    ID: {pkg.id}
+                  </span>
+                </div>
               </div>
               
               <div className="flex items-center space-x-3">
