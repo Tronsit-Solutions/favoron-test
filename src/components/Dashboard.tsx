@@ -347,10 +347,20 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const handleArchivePackage = async (pkg: any) => {
     try {
-      // Placeholder - AdminDashboard handles package operations
-      console.log('📦 Archive package request - handled by AdminDashboard');
+      console.log('📦 Archiving package:', pkg.id);
+      await updatePackage(pkg.id, { status: 'cancelled' });
+      toast({
+        title: "Paquete archivado",
+        description: "El paquete ha sido archivado exitosamente.",
+      });
+      await refreshPackages();
     } catch (error) {
-      // Error silently handled
+      console.error('Error archiving package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo archivar el paquete. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
     }
   };
 
