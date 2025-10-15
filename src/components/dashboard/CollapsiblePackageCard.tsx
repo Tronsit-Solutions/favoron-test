@@ -182,13 +182,13 @@ const CollapsiblePackageCard = ({
                       <Archive className="mr-2 h-4 w-4" />
                       Archivar
                     </DropdownMenuItem>}
-                  <DropdownMenuItem onClick={e => {
+                  {onDeletePackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_accepted', 'payment_pending', 'payment_pending_approval', 'quote_rejected', 'quote_expired'].includes(pkg.status) && <DropdownMenuItem onClick={e => {
                 e.stopPropagation();
                 setShowDeleteDialog(true);
               }} className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Cancelar pedido
-                  </DropdownMenuItem>
+                  </DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>}
             
