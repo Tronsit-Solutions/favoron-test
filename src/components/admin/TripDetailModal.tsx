@@ -139,15 +139,41 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
     try {
       const numbers: number[] = [];
       for (let i = 0; i < packages.length; i++) {
-        const { data, error } = await supabase.rpc('get_next_label_number');
-        if (error) throw error;
-        if (data === null) {
-          console.error('Label number is null for package', i);
-          continue;
+        const p = packages[i];
+        try {
+          // Reuse if already assigned
+          if (p.label_number) {
+            numbers.push(p.label_number);
+            continue;
+          }
+
+          // Generate new if missing
+          const { data, error } = await supabase.rpc('get_next_label_number');
+          if (error || data === null) {
+            console.error('Error getting label number for package', i, error);
+            continue;
+          }
+
+          // Persist to DB
+          const { error: updateError } = await supabase
+            .from('packages')
+            .update({ label_number: data })
+            .eq('id', p.id);
+          
+          if (updateError) {
+            console.error('Error saving label number to package', p.id, updateError);
+          } else {
+            p.label_number = data; // update local reference
+          }
+
+          numbers.push(data);
+        } catch (innerErr) {
+          console.error('Error processing label number for package', i, innerErr);
         }
-        numbers.push(data);
       }
       setLabelNumbers(numbers);
+      // Trigger UI refresh with updated label_number values
+      setPackages([...packages]);
       return numbers;
     } catch (error) {
       console.error('Error generating label numbers:', error);

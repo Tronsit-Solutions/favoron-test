@@ -38,14 +38,22 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
 
   const generateLabelNumbers = async () => {
     setIsGeneratingLabels(true);
-    console.log('🏷️ Generating label numbers for', packageList.length, 'packages');
+    console.log('🏷️ Processing label numbers for', packageList.length, 'packages');
     const newLabelNumbers: { [packageIndex: number]: number } = {};
     
     for (let i = 0; i < packageList.length; i++) {
+      const p = packageList[i];
       try {
+        // Reuse existing label number if present
+        if (p.label_number) {
+          console.log('✅ Package already has label number:', p.label_number);
+          newLabelNumbers[i] = p.label_number;
+          continue;
+        }
+
+        // Generate a new label number only if missing
         const { data, error } = await supabase.rpc('get_next_label_number');
-        
-        if (error) {
+        if (error || data === null) {
           console.error('Error getting label number:', error);
           toast({
             variant: "destructive",
@@ -54,21 +62,24 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
           });
           continue;
         }
-        
-        if (data === null) {
-          console.error('Label number is null for package', i);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo asignar el número de etiqueta"
-          });
-          continue;
+
+        // Persist the label number to the package
+        const { error: updateError } = await supabase
+          .from('packages')
+          .update({ label_number: data })
+          .eq('id', p.id);
+
+        if (updateError) {
+          console.error('Error saving label number:', updateError);
+        } else {
+          // Update local reference so subsequent calls reuse it
+          p.label_number = data;
         }
-        
-        console.log('✅ Label number generated for package', i, ':', data);
+
+        console.log('🆕 Assigned label number for package', p.id, ':', data);
         newLabelNumbers[i] = data;
       } catch (error) {
-        console.error('Error generating label number:', error);
+        console.error('Error generating/saving label number:', error);
       }
     }
     
@@ -312,14 +323,14 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
                  <PackageLabel 
                    pkg={currentPackage} 
                    customDescriptions={getCurrentCustomDescriptions()}
-                   labelNumber={labelNumbers[currentPackageIndex] || (currentPackageIndex + 1)}
+                   labelNumber={labelNumbers[currentPackageIndex] ?? currentPackage?.label_number ?? (currentPackageIndex + 1)}
                  />
                </div>
-               {!labelNumbers[currentPackageIndex] && (
-                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500/90 text-white px-3 py-1 rounded-full text-xs font-medium">
-                   Vista previa - Número se asignará al descargar/imprimir
-                 </div>
-               )}
+                {!(labelNumbers[currentPackageIndex] ?? currentPackage?.label_number) && (
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500/90 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    Vista previa - Número se asignará al descargar/imprimir
+                  </div>
+                )}
             </div>
 
            {/* Edit Mode */}
@@ -359,8 +370,8 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
             <div><strong>Estado:</strong> {currentPackage.status}</div>
             <div>
               <strong>Etiqueta:</strong>{' '}
-              {labelNumbers[currentPackageIndex] !== undefined && labelNumbers[currentPackageIndex] !== null
-                ? <span className="text-green-600 font-medium">#${String(labelNumbers[currentPackageIndex]).padStart(4, '0')} (Asignado)</span>
+              {(labelNumbers[currentPackageIndex] ?? currentPackage?.label_number) != null
+                ? <span className="text-green-600 font-medium">#{String((labelNumbers[currentPackageIndex] ?? currentPackage?.label_number) as number).padStart(4, '0')} (Asignado)</span>
                 : <span className="text-blue-600 font-medium">P{String(currentPackageIndex + 1).padStart(3, '0')} (Preview - se asignará número real al descargar)</span>}
             </div>
           </div>
