@@ -178,7 +178,10 @@ const CollapsiblePackageCard = ({
                       <Edit className="mr-2 h-4 w-4" />
                       Editar pedido
                     </DropdownMenuItem>}
-                  {onArchivePackage && <DropdownMenuItem onClick={() => onArchivePackage(pkg)}>
+                  {onArchivePackage && <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                onArchivePackage(pkg);
+              }}>
                       <Archive className="mr-2 h-4 w-4" />
                       Archivar
                     </DropdownMenuItem>}
