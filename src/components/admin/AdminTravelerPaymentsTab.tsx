@@ -14,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/utils/priceHelpers";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -64,6 +65,9 @@ const AdminTravelerPaymentsTab = () => {
   const [notes, setNotes] = useState("");
   const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [viewingReceiptUrl, setViewingReceiptUrl] = useState<string>("");
+  const [viewingReceiptFilename, setViewingReceiptFilename] = useState<string>("");
   const [packageBreakdown, setPackageBreakdown] = useState<Array<{
     id: string;
     item_description: string;
@@ -407,16 +411,20 @@ const AdminTravelerPaymentsTab = () => {
                     size="sm"
                     onClick={async () => {
                       const url = order.receipt_url;
-                      if (url?.startsWith('http')) {
-                        window.open(url, '_blank');
-                      } else if (url) {
+                      let receiptUrl = url;
+                      
+                      if (url && !url.startsWith('http')) {
                         const { data, error } = await supabase.storage
                           .from('payment-receipts')
                           .createSignedUrl(url, 3600);
                         if (!error && data?.signedUrl) {
-                          window.open(data.signedUrl, '_blank');
+                          receiptUrl = data.signedUrl;
                         }
                       }
+                      
+                      setViewingReceiptUrl(receiptUrl || url);
+                      setViewingReceiptFilename(order.receipt_filename || 'Comprobante de Pago');
+                      setImageViewerOpen(true);
                     }}
                     className="flex items-center gap-2"
                   >
@@ -800,6 +808,15 @@ const AdminTravelerPaymentsTab = () => {
         order={selectedOrder} 
         isOpen={!!selectedOrder} 
         onClose={() => setSelectedOrder(null)} 
+      />
+
+      {/* Image Viewer Modal */}
+      <ImageViewerModal
+        isOpen={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        imageUrl={viewingReceiptUrl}
+        title="Comprobante de Pago"
+        filename={viewingReceiptFilename}
       />
     </div>
   );
