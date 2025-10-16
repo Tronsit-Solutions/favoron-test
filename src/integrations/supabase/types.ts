@@ -907,32 +907,6 @@ export type Database = {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
       }
-      admin_view_all_users: {
-        Args: { _access_reason?: string }
-        Returns: {
-          avatar_url: string
-          bank_account_holder: string
-          bank_account_number: string
-          bank_account_type: string
-          bank_name: string
-          bank_swift_code: string
-          country_code: string
-          created_at: string
-          document_number: string
-          document_type: string
-          email: string
-          email_notifications: boolean
-          first_name: string
-          id: string
-          last_name: string
-          phone_number: string
-          prime_expires_at: string
-          trust_level: Database["public"]["Enums"]["trust_level"]
-          updated_at: string
-          user_role: string
-          username: string
-        }[]
-      }
       admin_view_profile_banking: {
         Args: { access_reason: string; target_user_id: string }
         Returns: {
@@ -1197,7 +1171,7 @@ export type Database = {
       }
     }
     Enums: {
-      trust_level: "basic" | "earned" | "verified" | "prime"
+      trust_level: "basic" | "confiable" | "prime"
       user_role: "admin" | "user"
     }
     CompositeTypes: {
@@ -1326,7 +1300,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      trust_level: ["basic", "earned", "verified", "prime"],
+      trust_level: ["basic", "confiable", "prime"],
       user_role: ["admin", "user"],
     },
   },
