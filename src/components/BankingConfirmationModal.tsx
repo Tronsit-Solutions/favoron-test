@@ -109,7 +109,7 @@ const BankingConfirmationModal = ({
           .rpc('create_notification', {
             _user_id: adminUsers[0].user_id,
             _title: 'Solicitud de pago pendiente',
-            _message: `Viaje completado. Confirmar pago a ${bankingInfo.bankAccountHolder} por $${amount.toFixed(2)}`,
+            _message: `Viaje completado. Confirmar pago a ${bankingInfo.bankAccountHolder} por Q${amount.toFixed(2)}`,
             _type: 'payment_request',
             _priority: 'high',
             _action_url: `/admin/payments`,
