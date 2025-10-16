@@ -96,8 +96,8 @@ const UserDetailModal = ({
   const getTrustLevelBadge = (level: string | undefined) => {
     const levelConfig = {
       basic: { label: 'Básico', variant: 'secondary' as const },
-      trusted: { label: 'Confiable', variant: 'default' as const },
-      premium: { label: 'Premium', variant: 'default' as const }
+      confiable: { label: 'Confiable', variant: 'default' as const },
+      prime: { label: 'Prime', variant: 'prime' as const }
     };
     const config = levelConfig[level as keyof typeof levelConfig] || levelConfig.basic;
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -400,8 +400,7 @@ const UserDetailModal = ({
                       </SelectTrigger>
                        <SelectContent>
                          <SelectItem value="basic">Básico</SelectItem>
-                         <SelectItem value="earned">Ganado</SelectItem>
-                         <SelectItem value="verified">Verificado</SelectItem>
+                         <SelectItem value="confiable">Confiable</SelectItem>
                          <SelectItem value="prime" className="text-purple-600 font-semibold">
                            Prime ✨
                          </SelectItem>

@@ -75,13 +75,13 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
   const getTrustLevelBadge = (trustLevel: string) => {
     const trustLevelLabels = {
       basic: 'Básico',
-      trusted: 'Confiable', 
+      confiable: 'Confiable', 
       prime: 'Prime'
     };
     
     const trustLevelConfig = {
       basic: { variant: 'secondary' as const },
-      trusted: { variant: 'default' as const },
+      confiable: { variant: 'default' as const },
       prime: { variant: 'prime' as const }
     };
     

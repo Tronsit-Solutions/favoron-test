@@ -36,7 +36,7 @@ const UserLevelCard = ({ userLevel }: UserLevelCardProps) => {
         </CardDescription>
         {trustLevel && trustLevel !== 'basic' && !isPrime && (
           <Badge variant="outline" className="w-fit">
-            Confianza: {trustLevel === 'earned' ? 'Ganada' : trustLevel === 'verified' ? 'Verificada' : trustLevel}
+            Confianza: {trustLevel === 'confiable' ? 'Confiable' : trustLevel}
           </Badge>
         )}
       </CardHeader>
