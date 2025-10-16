@@ -1,4 +1,4 @@
-import { getPriceBreakdown } from './pricing';
+import { getPriceBreakdown, getDeliveryFee } from './pricing';
 
 export interface NormalizedQuote {
   price: number;
@@ -12,12 +12,13 @@ export interface NormalizedQuote {
 
 /**
  * Normalize a quote object to ensure consistent numeric values
- * Uses stored values and calculates totalPrice as simple sum
+ * Recalculates deliveryFee based on destination to fix any incorrect values
  */
 export const normalizeQuote = (
   quote: any,
   deliveryMethod: string = 'pickup',
-  shopperTrustLevel?: string
+  shopperTrustLevel?: string,
+  destination?: string
 ): NormalizedQuote => {
   if (!quote) {
     return {
@@ -32,9 +33,19 @@ export const normalizeQuote = (
   // Get the stored values (always numeric)
   const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
   const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
-  const deliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
   
-  // Calculate totalPrice as simple sum of stored components
+  // Recalculate deliveryFee based on destination to ensure correctness
+  const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, destination);
+  const storedDeliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
+  
+  // Use the correct delivery fee and log if there's a discrepancy
+  if (Math.abs(correctDeliveryFee - storedDeliveryFee) > 0.01) {
+    console.warn(`🔧 DeliveryFee corrected: Q${storedDeliveryFee} → Q${correctDeliveryFee} for destination: ${destination}`);
+  }
+  
+  const deliveryFee = correctDeliveryFee;
+  
+  // Calculate totalPrice with corrected deliveryFee
   const totalPrice = price + serviceFee + deliveryFee;
   const completePrice = price + serviceFee + deliveryFee;
 
@@ -80,11 +91,12 @@ export const shouldRecalculateQuote = (
   quote: any,
   deliveryMethod: string = 'pickup',
   shopperTrustLevel?: string,
+  destination?: string,
   tolerance: number = 0.01
 ): boolean => {
   if (!quote) return false;
 
-  const normalized = normalizeQuote(quote, deliveryMethod, shopperTrustLevel);
+  const normalized = normalizeQuote(quote, deliveryMethod, shopperTrustLevel, destination);
   const storedTotal = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
   const storedServiceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
 
@@ -101,10 +113,11 @@ export const shouldRecalculateQuote = (
 export const getDisplayTotal = (
   quote: any,
   deliveryMethod: string = 'pickup',
-  shopperTrustLevel?: string
+  shopperTrustLevel?: string,
+  destination?: string
 ): number => {
   if (!quote) return 0;
   
-  const normalized = normalizeQuote(quote, deliveryMethod, shopperTrustLevel);
+  const normalized = normalizeQuote(quote, deliveryMethod, shopperTrustLevel, destination);
   return normalized.totalPrice;
 };

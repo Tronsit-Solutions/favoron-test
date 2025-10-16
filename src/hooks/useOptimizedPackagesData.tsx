@@ -232,7 +232,7 @@ export const useOptimizedPackagesData = () => {
         const destination = currentPackage.package_destination;
         
         // Check if the quote needs recalculation
-        if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel)) {
+        if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination)) {
           console.warn('⚠️ Quote discrepancy detected for package', id, {
             provided: updates.quote,
             deliveryMethod,
@@ -240,8 +240,8 @@ export const useOptimizedPackagesData = () => {
             destination
           });
           
-          // Normalize the quote to ensure consistency
-          updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel) as any;
+          // Normalize the quote to ensure consistency (with corrected deliveryFee)
+          updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination) as any;
           console.log('🔧 Quote normalized:', updates.quote);
         }
       }
