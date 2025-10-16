@@ -16,7 +16,7 @@ interface Profile {
   last_name: string | null;
   phone_number: string | null;
   avatar_url: string | null;
-  trust_level: 'basic' | 'earned' | 'verified' | 'prime';
+  trust_level: 'basic' | 'confiable' | 'prime';
   created_at: string;
   updated_at: string;
   username: string | null;
