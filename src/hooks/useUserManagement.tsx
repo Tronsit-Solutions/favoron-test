@@ -57,9 +57,8 @@ export const useUserManagement = () => {
           whatsappNumber: profile.phone_number || undefined,
           registrationDate: profile.created_at,
           status: 'verified' as const, // Since they have profiles, assume verified
-          trustLevel: profile.trust_level === 'verified' ? 'premium' as const : 
-                     profile.trust_level === 'prime' ? 'prime' as const :
-                     profile.trust_level === 'earned' ? 'trusted' as const : 'basic' as const,
+          trustLevel: profile.trust_level === 'confiable' ? 'confiable' as const : 
+                     profile.trust_level === 'prime' ? 'prime' as const : 'basic' as const,
           adminNotes: '',
           // Banking information now included
           bankAccountHolder: profile.bank_account_holder || undefined,
@@ -136,9 +135,8 @@ export const useUserManagement = () => {
         return;
       }
 
-      // Map the trust level to the database enum
-      const dbTrustLevel = trustLevel === 'premium' ? 'verified' :
-                          trustLevel === 'trusted' ? 'earned' : 
+      // Map the trust level to the database enum (confiable consolidates trusted and premium)
+      const dbTrustLevel = trustLevel === 'confiable' ? 'confiable' :
                           trustLevel === 'prime' ? 'prime' : 'basic';
 
       // If setting to prime, use the RPC function which handles everything

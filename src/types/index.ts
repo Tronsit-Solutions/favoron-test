@@ -10,7 +10,7 @@ export interface User {
   preferredLanguage?: string;
   registrationDate?: string;
   status?: 'active' | 'verified' | 'blocked';
-  trustLevel?: 'basic' | 'trusted' | 'premium' | 'prime';
+  trustLevel?: 'basic' | 'confiable' | 'prime';
   adminNotes?: string;
   documents?: Document[];
   // Banking information

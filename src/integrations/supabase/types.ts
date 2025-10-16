@@ -907,6 +907,18 @@ export type Database = {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
       }
+      admin_view_all_users: {
+        Args: { _access_reason: string }
+        Returns: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          trust_level: string
+          username: string
+        }[]
+      }
       admin_view_profile_banking: {
         Args: { access_reason: string; target_user_id: string }
         Returns: {
