@@ -20,12 +20,22 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
 
-  // Separate payments by status - updated to use payment_pending_approval
+  // Separate payments by status
   const pendingPayments = packages.filter(pkg => 
-    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
+    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && 
+    pkg.payment_receipt &&
+    !(pkg.payment_receipt as any)?.auto_approved
   );
+  
+  const auditPayments = packages.filter(pkg =>
+    pkg.payment_receipt &&
+    (pkg.payment_receipt as any)?.auto_approved
+  );
+  
   const approvedPayments = packages.filter(pkg => 
-    pkg.payment_receipt && !(pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed')
+    pkg.payment_receipt && 
+    pkg.status === 'pending_purchase' &&
+    !(pkg.payment_receipt as any)?.auto_approved
   );
 
   // Prime membership payments
@@ -287,12 +297,20 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
 
       {/* Payment Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" className="relative">
-            ⏳ Pendientes de Aprobar
+            ⏳ Pendientes
             {(pendingPayments.length + pendingPrimeMemberships.length) > 0 && (
               <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
                 {pendingPayments.length + pendingPrimeMemberships.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="relative">
+            🔍 Auditoría
+            {auditPayments.length > 0 && (
+              <Badge variant="outline" className="ml-2 min-w-[20px] h-5 rounded-full flex items-center justify-center text-xs px-1.5">
+                {auditPayments.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -345,6 +363,79 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="audit" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>🔍 Pagos Auto-Aprobados</CardTitle>
+              <CardDescription>
+                Pagos aprobados automáticamente por nivel de confianza. 
+                Revisar solo si detectas algo inusual.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {auditPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500" />
+                  <p className="text-muted-foreground">No hay pagos para auditar</p>
+                  <p className="text-xs text-muted-foreground mt-1">Todos los pagos auto-aprobados han sido revisados</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {auditPayments.map(pkg => (
+                    <Card key={pkg.id} className="border-green-200 bg-green-50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <Badge className="bg-green-600 mb-2">
+                              ✅ {(pkg.payment_receipt as any)?.trust_level_at_upload || 'confiable'}
+                            </Badge>
+                            <h4 className="font-medium">{pkg.item_description}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Monto: Q{pkg.quote?.totalPrice || pkg.estimated_price}
+                            </p>
+                            <p className="text-xs text-green-700 mt-1">
+                              📄 {pkg.payment_receipt?.filename}
+                            </p>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              if (pkg.payment_receipt) {
+                                let filePath = pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '';
+                                if (filePath.startsWith('http')) {
+                                  try {
+                                    const url = new URL(filePath);
+                                    const pathParts = url.pathname.split('/');
+                                    const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+                                    if (bucketIndex !== -1) {
+                                      filePath = pathParts.slice(bucketIndex + 1).join('/');
+                                    }
+                                  } catch (e) {
+                                    console.error('Error parsing receipt URL:', e);
+                                  }
+                                }
+                                setSelectedReceipt({
+                                  url: `payment-receipts/${filePath}`,
+                                  filename: pkg.payment_receipt.filename || 'comprobante.jpg',
+                                  title: `Comprobante auto-aprobado - ${pkg.item_description}`
+                                });
+                              }
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>

@@ -124,12 +124,30 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
     setUploadState('confirming');
 
     try {
+      // 1. Obtener trust_level del usuario
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('trust_level')
+        .eq('id', pkg.user_id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const trustLevel = userProfile?.trust_level || 'basic';
+      
+      // 2. Auto-aprobar si es 'confiable' o 'prime'
+      const autoApprove = ['confiable', 'prime'].includes(trustLevel);
+      const newStatus = autoApprove ? 'pending_purchase' : 'payment_pending_approval';
+
+      // 3. Metadata de auditoría
       const paymentReceiptData = {
         filename: pendingFile.fileName,
         filePath: pendingFile.filePath,
         uploadedAt: new Date().toISOString(),
         fileSize: pendingFile.fileSize,
-        fileType: pendingFile.fileType
+        fileType: pendingFile.fileType,
+        auto_approved: autoApprove,
+        trust_level_at_upload: trustLevel
       };
 
       // Get traveler address and trip dates from package data to save permanently
@@ -143,7 +161,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: 'payment_pending_approval',
+          status: newStatus,
           // Save traveler shipping information permanently
           ...(travelerShippingInfo && {
             traveler_address: travelerShippingInfo.travelerAddress,
@@ -163,15 +181,19 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
       const updatedPkg = {
         ...pkg,
         payment_receipt: paymentReceiptData,
-        status: 'payment_pending_approval' as const
+        status: newStatus
       };
       
       // Call onUploadComplete with updated package
       onUploadComplete(updatedPkg);
 
       toast({
-        title: "Comprobante confirmado exitosamente",
-        description: "Tu pago ha sido registrado y está pendiente de verificación por el administrador.",
+        title: autoApprove 
+          ? "¡Pago confirmado automáticamente! ✨" 
+          : "Comprobante confirmado exitosamente",
+        description: autoApprove 
+          ? "Tu pago ha sido aprobado automáticamente. Ya puedes compartir la información de envío con el viajero."
+          : "Tu comprobante está pendiente de verificación por el administrador.",
       });
 
     } catch (error: any) {
