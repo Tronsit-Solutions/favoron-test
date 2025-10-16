@@ -652,7 +652,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el país" />
+                  <SelectValue placeholder={
+                    formRequestType === 'personal' 
+                      ? "¿Cuál es el destino final del paquete?" 
+                      : "Selecciona el país"
+                  } />
                 </SelectTrigger>
                 <SelectContent>
                   {destinationCountries.map((country) => (
