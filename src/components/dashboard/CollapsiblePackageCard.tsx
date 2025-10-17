@@ -174,7 +174,7 @@ const CollapsiblePackageCard = ({
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="absolute top-1 right-1 h-7 w-7 p-0 z-10 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
+            <Button variant="ghost" size="sm" className="absolute top-2 right-2 h-7 w-7 p-0 z-20 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
               <MoreHorizontal className="h-4 w-4" />
               <span className="sr-only">Opciones del paquete</span>
             </Button>
