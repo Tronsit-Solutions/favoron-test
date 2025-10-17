@@ -211,6 +211,12 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+
+  /* Prevent horizontal overflow globally */
+  html, body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
 }
 
 /* Enhanced Design System Components */

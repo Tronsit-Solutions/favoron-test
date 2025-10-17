@@ -421,7 +421,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowPrime={() => setShowPrimeModal(true)}
         />
 
-      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full">
+      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
         <PhoneNumberBannerSection />
         
         
@@ -448,21 +448,21 @@ const Dashboard = ({ user }: DashboardProps) => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {activeTab !== 'profile' && (
             <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-5 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
-              <TabsTrigger value="overview">Home</TabsTrigger>
-              <TabsTrigger value="packages" className="relative flex items-center gap-2">
+              <TabsTrigger value="overview" className="whitespace-normal">Home</TabsTrigger>
+              <TabsTrigger value="packages" className="relative flex items-center gap-2 whitespace-normal">
                 Mis Pedidos
                 {pendingActions.shopperTotal > 0 && (
                   <NotificationBadge count={pendingActions.shopperTotal} />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="trips" className="relative flex items-center gap-2">
+              <TabsTrigger value="trips" className="relative flex items-center gap-2 whitespace-normal">
                 Mis Viajes
                 {pendingActions.travelerTotal > 0 && (
                   <NotificationBadge count={pendingActions.travelerTotal} />
                  )}
                </TabsTrigger>
                {isAdmin && (
-                 <TabsTrigger value="admin" className="relative flex items-center gap-2">
+                 <TabsTrigger value="admin" className="relative flex items-center gap-2 whitespace-normal">
                    Admin
                    {pendingActions.adminTotal > 0 && (
                      <NotificationBadge count={pendingActions.adminTotal} />
@@ -470,7 +470,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                  </TabsTrigger>
                )}
                {isAdmin && (
-                 <TabsTrigger value="ultima-milla" className="relative flex items-center gap-2">
+                 <TabsTrigger value="ultima-milla" className="relative flex items-center gap-2 whitespace-normal">
                    Última Milla
                  </TabsTrigger>
                )}
