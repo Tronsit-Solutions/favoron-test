@@ -532,14 +532,17 @@ const CollapsiblePackageCard = ({
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {isMobile && viewMode === 'user' ? (
-          <SwipeableCard
-            onArchive={onArchivePackage ? () => onArchivePackage(pkg) : undefined}
-            onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}
-            canDelete={canDelete}
-            canArchive={true}
-          >
-            {cardContent}
-          </SwipeableCard>
+          <div className="w-full max-w-full overflow-hidden">
+            <SwipeableCard
+              onArchive={onArchivePackage ? () => onArchivePackage(pkg) : undefined}
+              onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}
+              canDelete={canDelete}
+              canArchive={true}
+              className="w-full"
+            >
+              {cardContent}
+            </SwipeableCard>
+          </div>
         ) : (
           cardContent
         )}

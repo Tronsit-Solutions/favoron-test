@@ -85,7 +85,7 @@ export const SwipeableCard = ({
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden", className)}
+      className={cn("relative overflow-hidden w-full", className)}
       {...handlers}
     >
       {/* Action buttons - positioned absolutely behind the card */}
@@ -131,7 +131,7 @@ export const SwipeableCard = ({
 
       {/* Card content - slides left to reveal buttons */}
       <div
-        className="relative z-10 bg-background"
+        className="relative z-10 bg-background w-full"
         style={{
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",

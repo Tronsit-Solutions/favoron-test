@@ -499,6 +499,16 @@
   }
 
   /* Mobile-specific utility classes */
+  @media (max-width: 768px) {
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      overflow-x: hidden;
+    }
+  }
+
   .mobile-safe-touch {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
