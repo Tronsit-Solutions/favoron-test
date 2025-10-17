@@ -29,6 +29,7 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package as PackageType, UserType, DocumentType } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { SwipeableCard } from "@/components/ui/swipeable-card";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -160,10 +161,14 @@ const CollapsiblePackageCard = ({
   const getPackageDescription = () => {
     return `Precio: $${pkg.estimated_price}`;
   };
-  return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`transition-all duration-200 w-full max-w-full overflow-hidden ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
-        <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden relative ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
+  // Determine if delete is available for this package
+  const canDelete = ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_accepted', 'payment_pending', 'payment_pending_approval', 'quote_rejected', 'quote_expired'].includes(pkg.status);
+  
+  // Card content wrapper
+  const cardContent = (
+    <Card className={`transition-all duration-200 w-full max-w-full overflow-hidden ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+      <CollapsibleTrigger asChild>
+        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden relative ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
             
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
@@ -521,24 +526,42 @@ const CollapsiblePackageCard = ({
           </CardContent>
         </CollapsibleContent>
       </Card>
+  );
+
+  return (
+    <>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        {isMobile && viewMode === 'user' ? (
+          <SwipeableCard
+            onArchive={onArchivePackage ? () => onArchivePackage(pkg) : undefined}
+            onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}
+            canDelete={canDelete}
+            canArchive={true}
+          >
+            {cardContent}
+          </SwipeableCard>
+        ) : (
+          cardContent
+        )}
+      </Collapsible>
 
       {/* Edit Package Modal */}
       {showEditModal && onEditPackage && <PackageRequestForm isOpen={showEditModal} onClose={() => setShowEditModal(false)} onSubmit={data => {
-      onEditPackage(data);
-      setShowEditModal(false);
-    }} initialData={pkg} />}
+        onEditPackage(data);
+        setShowEditModal(false);
+      }} initialData={pkg} />}
 
       {/* Edit Document Modal */}
       {editDocumentModal.isOpen && pkg && <EditDocumentModal isOpen={editDocumentModal.isOpen} onClose={() => setEditDocumentModal({
-      isOpen: false,
-      documentType: null
-    })} pkg={pkg} documentType={editDocumentModal.documentType} onUpdate={(type, data) => {
-      onUploadDocument(pkg.id, type === 'purchase_confirmation' ? 'confirmation' : 'tracking', data);
-      setEditDocumentModal({
         isOpen: false,
         documentType: null
-      });
-    }} />}
+      })} pkg={pkg} documentType={editDocumentModal.documentType} onUpdate={(type, data) => {
+        onUploadDocument(pkg.id, type === 'purchase_confirmation' ? 'confirmation' : 'tracking', data);
+        setEditDocumentModal({
+          isOpen: false,
+          documentType: null
+        });
+      }} />}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -552,11 +575,11 @@ const CollapsiblePackageCard = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-            if (onDeletePackage) {
-              onDeletePackage(pkg);
-              setShowDeleteDialog(false);
-            }
-          }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              if (onDeletePackage) {
+                onDeletePackage(pkg);
+                setShowDeleteDialog(false);
+              }
+            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Cancelar pedido
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -565,19 +588,20 @@ const CollapsiblePackageCard = ({
 
       {/* Payment Modal */}
       {showPaymentModal && <ShopperPaymentInfoModal pkg={pkg} isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} onUploadComplete={updatedPkg => {
-      // The PaymentReceiptUpload component already updates the package in Supabase
-      // We just need to call onUploadDocument to trigger any additional state updates
-      if (onUploadDocument && updatedPkg.payment_receipt) {
-        onUploadDocument(pkg.id, 'payment_receipt', updatedPkg.payment_receipt);
-      }
-      setShowPaymentModal(false);
-    }} />}
+        // The PaymentReceiptUpload component already updates the package in Supabase
+        // We just need to call onUploadDocument to trigger any additional state updates
+        if (onUploadDocument && updatedPkg.payment_receipt) {
+          onUploadDocument(pkg.id, 'payment_receipt', updatedPkg.payment_receipt);
+        }
+        setShowPaymentModal(false);
+      }} />}
 
       {/* Shipping Info Modal */}
       {showShippingInfoModal && <ShippingInfoModal pkg={pkg} isOpen={showShippingInfoModal} onClose={() => setShowShippingInfoModal(false)} onDocumentUpload={(type, data) => onUploadDocument(pkg.id, type, data)} />}
 
       {/* Office Address Modal */}
       {showOfficeModal && <OfficeAddressModal isOpen={showOfficeModal} onClose={() => setShowOfficeModal(false)} mode="pickup" />}
-    </Collapsible>;
+    </>
+  );
 };
 export default React.memo(CollapsiblePackageCard);
