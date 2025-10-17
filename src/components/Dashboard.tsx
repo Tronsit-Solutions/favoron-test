@@ -421,7 +421,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowPrime={() => setShowPrimeModal(true)}
         />
 
-      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-hidden">
+      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
         <PhoneNumberBannerSection />
         
         
@@ -523,7 +523,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             }).length === 0 ? (
               <ProtectedEmptyState type="packages" onAction={() => navigateToForm('package')} />
             ) : (
-              <div className="grid gap-6">
+              <div className="grid gap-6 w-full max-w-full overflow-x-hidden">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes cancelados, completados y archivados por el shopper
                    if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;

@@ -504,8 +504,13 @@
       box-sizing: border-box;
     }
     
-    body {
+    html, body, #root {
       overflow-x: hidden;
+      max-width: 100vw;
+    }
+
+    .container {
+      max-width: 100vw;
     }
   }
 
