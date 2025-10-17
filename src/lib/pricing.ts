@@ -28,9 +28,10 @@ export const getDeliveryFee = (
     return 0;
   }
   
-  // Check if destination is Guatemala City
-  const isGuatemalaCity = destination?.toLowerCase().includes('guatemala city') || 
-                          destination?.toLowerCase().includes('ciudad de guatemala');
+  // Check if destination is Guatemala City (detects multiple variations)
+  const isGuatemalaCity = destination?.toLowerCase().match(
+    /guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$|ciudad\s*guatemala/
+  );
   
   // Prime users in Guatemala City get free delivery
   if (trustLevel === 'prime' && isGuatemalaCity) {
