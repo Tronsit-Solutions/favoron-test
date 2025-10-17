@@ -90,7 +90,7 @@ export const SwipeableCard = ({
       {...handlers}
     >
       {/* Action buttons - positioned absolutely behind the card */}
-      <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2 pointer-events-none" style={{ right: '-100px' }}>
+      <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2 pointer-events-none" style={{ right: `-${ACTION_WIDTH}px` }}>
         {canArchive && onArchive && (
           <Button
             variant="ghost"
@@ -138,7 +138,7 @@ export const SwipeableCard = ({
           maxWidth: '100%',
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          contain: 'layout paint size',
+          contain: 'layout paint',
         }}
       >
         {children}
