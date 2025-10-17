@@ -85,7 +85,7 @@ export const SwipeableCard = ({
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden w-full max-w-full max-w-[100vw]", className)}
+      className={cn("relative overflow-hidden w-full max-w-full", className)}
       {...handlers}
     >
       {/* Action buttons - positioned absolutely behind the card */}
