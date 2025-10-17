@@ -54,6 +54,7 @@ export const SwipeableCard = ({
     trackTouch: true,
     preventScrollOnSwipe: true,
     delta: 10,
+    touchEventOptions: { passive: false }, // Permite preventDefault en touch events
   });
 
   // Close when clicking outside
@@ -86,7 +87,7 @@ export const SwipeableCard = ({
     <div
       ref={containerRef}
       className={cn("relative w-full max-w-full min-w-0", className)}
-      style={{ overflow: 'hidden', isolation: 'isolate' }}
+      style={{ overflow: 'hidden', isolation: 'isolate', touchAction: 'pan-y' }}
       {...handlers}
     >
       {/* Action buttons - positioned absolutely behind the card */}
@@ -139,6 +140,7 @@ export const SwipeableCard = ({
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           contain: 'layout paint',
+          touchAction: 'pan-y',
         }}
       >
         {children}

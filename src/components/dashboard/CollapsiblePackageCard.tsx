@@ -167,9 +167,9 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
-      <CollapsibleTrigger asChild>
-        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3' : 'px-4 py-4 sm:px-6 sm:py-6'}`}>
+    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+      <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
+        <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
             
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
@@ -538,7 +538,7 @@ const CollapsiblePackageCard = ({
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {isMobile && viewMode === 'user' ? (
-          <div className="w-full max-w-full min-w-0 overflow-hidden">
+          <div className="w-full max-w-full min-w-0" data-swipeable="true">
             <SwipeableCard
               onArchive={onArchivePackage ? () => onArchivePackage(pkg) : undefined}
               onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}

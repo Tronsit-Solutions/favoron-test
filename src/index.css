@@ -600,3 +600,15 @@
   word-break: break-word;
   hyphens: auto;
 }
+
+/* Swipeable cards touch optimization */
+@media (max-width: 768px) {
+  [data-swipeable="true"] {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  [data-swipeable="true"] * {
+    touch-action: inherit;
+  }
+}
