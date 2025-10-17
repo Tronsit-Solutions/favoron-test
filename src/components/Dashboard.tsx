@@ -580,8 +580,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                         onConfirmAddress={handleAddressConfirmation}
                         onUploadDocument={handleUploadDocument}
                          onEditPackage={handleEditPackage}
-                         onDeletePackage={() => console.log('Delete package - handled by AdminDashboard')}
-                        onArchivePackage={handleArchivePackage}
+                         onDeletePackage={handleDiscardPackage}
+                         onArchivePackage={handleArchivePackage}
                          onRequestRequote={handleRequestRequote}
                         viewMode="user"
                       />
