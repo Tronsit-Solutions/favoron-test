@@ -461,7 +461,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               )}
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Gestiona tus solicitudes de paquetes y viajes desde aquí
+              Gestiona tus Favorones y viajes desde aquí
             </p>
           </div>
         )}
@@ -517,7 +517,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           <TabsContent value="packages" className="space-y-6 min-w-0 w-full max-w-full overflow-x-hidden">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold">Mis Solicitudes de Paquetes</h3>
+                <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
                 <p className="text-muted-foreground text-sm sm:text-base">
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>

@@ -9,9 +9,9 @@ interface StatsCardsProps {
 const StatsCards = ({ userPackages, userTrips, assignedPackages }: StatsCardsProps) => {
   const stats = [
     {
-      title: "Mis Solicitudes",
+      title: "Mis Favorones",
       value: userPackages.length,
-      description: "Paquetes solicitados"
+      description: "Favorones solicitados"
     },
     {
       title: "Mis Viajes", 

@@ -12,9 +12,9 @@ const EmptyState = ({ type, onAction }: EmptyStateProps) => {
   const config = {
     packages: {
       icon: Package,
-      title: "No tienes solicitudes de paquetes",
-      description: "Crea tu primera solicitud para comenzar a recibir productos del extranjero",
-      buttonText: "Crear Primera Solicitud"
+      title: "No tienes Favorones",
+      description: "Crea tu primer Favorón para comenzar a recibir productos del extranjero",
+      buttonText: "Crear Primer Favorón"
     },
     trips: {
       icon: Plane,
