@@ -125,20 +125,20 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`transition-all duration-200 ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+      <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-all duration-200 ${
+          <CardHeader className={`cursor-pointer transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${
             hasPendingAction 
               ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
               : "hover:bg-muted/30"
-          } ${isMobile ? 'p-3' : 'py-4'}`}>
+          } ${isMobile ? 'px-2 py-3' : 'px-4 py-4'}`}>
             
             {/* Mobile optimized header layout */}
             {isMobile ? (
-              <div className="space-y-3">
+              <div className="space-y-3 w-full max-w-full">
                 {/* Product name and status in single row */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 w-full max-w-full">
+                  <div className="flex items-center gap-2 flex-1 min-w-0 max-w-full overflow-hidden">
                     <div className="relative flex-shrink-0">
                       <Package className="h-4 w-4 text-primary" />
                       {hasPendingAction && (
@@ -148,7 +148,7 @@ const CollapsibleTravelerPackageCard = ({
                         />
                       )}
                     </div>
-                    <CardTitle className="text-sm font-semibold leading-tight truncate">
+                    <CardTitle className="text-xs sm:text-sm font-semibold leading-tight break-words line-clamp-2 max-w-full">
                       {getPackageName()}
                     </CardTitle>
                   </div>
@@ -160,7 +160,7 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
 
                 {/* Description */}
-                <CardDescription className="text-xs leading-tight text-muted-foreground">
+                <CardDescription className="text-xs leading-tight text-muted-foreground break-words max-w-full">
                   {getPackageDescription()}
                 </CardDescription>
 

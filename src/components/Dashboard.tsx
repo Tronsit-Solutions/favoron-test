@@ -514,7 +514,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             />
           </TabsContent>
 
-          <TabsContent value="packages" className="space-y-6 min-w-0 w-full max-w-full overflow-x-hidden">
+          <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-hidden px-0 sm:px-2">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
@@ -544,7 +544,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             }).length === 0 ? (
               <ProtectedEmptyState type="packages" onAction={() => navigateToForm('package')} />
             ) : (
-              <div className="grid gap-6 w-full max-w-full min-w-0 overflow-hidden">
+              <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes cancelados, completados y archivados por el shopper
                    if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;

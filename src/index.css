@@ -550,3 +550,53 @@
     padding-right: env(safe-area-inset-right, 0);
   }
 }
+
+/* ==========================================
+   MOBILE RESPONSIVE OVERFLOW PROTECTION
+   ========================================== */
+
+/* Prevenir overflow horizontal en todos los dispositivos móviles */
+@media (max-width: 768px) {
+  /* Utility class para cards seguros en móvil */
+  .mobile-card-safe {
+    max-width: 100vw !important;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+  /* Proteger todos los elementos hijos de cards */
+  .mobile-card-safe *,
+  [data-card-content] *,
+  [data-mobile-safe] * {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  
+  /* Asegurar que imágenes y media respeten límites */
+  .mobile-card-safe img,
+  .mobile-card-safe video,
+  .mobile-card-safe iframe {
+    max-width: 100% !important;
+    height: auto;
+  }
+  
+  /* Prevenir que botones y inputs causen overflow */
+  .mobile-card-safe button,
+  .mobile-card-safe input,
+  .mobile-card-safe textarea,
+  .mobile-card-safe select {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Utility para forzar wrapping de texto largo */
+.force-text-wrap {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}

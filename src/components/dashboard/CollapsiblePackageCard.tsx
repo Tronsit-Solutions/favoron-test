@@ -167,9 +167,9 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden pr-4 md:pr-6 ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
       <CollapsibleTrigger asChild>
-        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
+        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3' : 'px-4 py-4 sm:px-6 sm:py-6'}`}>
             
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
@@ -207,12 +207,12 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full max-w-full min-w-0 overflow-hidden">
+            {isMobile ? <div className="space-y-3 w-full max-w-full">
                 {/* Product name and status in single row */}
-                <div className="flex items-start justify-between gap-2 w-full min-w-0">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 w-full max-w-full">
+                  <div className="flex items-center gap-2 flex-1 min-w-0 max-w-full overflow-hidden">
                     <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                    <CardTitle className="font-semibold leading-tight truncate text-xl min-w-0">
+                    <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 max-w-full">
                       {getPackageName()}
                     </CardTitle>
                   </div>
@@ -232,15 +232,15 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Description */}
-                <CardDescription className="text-xs leading-tight text-muted-foreground">
-                  <div className="space-y-1">
-                    <span className="block">{getPackageDescription()}</span>
-                    <span className="block">{getStatusDescription(pkg)}</span>
+                <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full">
+                  <div className="space-y-1 max-w-full">
+                    <span className="block break-words max-w-full">{getPackageDescription()}</span>
+                    <span className="block break-words max-w-full">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
 
                 {/* Action buttons - stacked vertically on mobile */}
-                <div className="space-y-2 w-full">
+                <div className="space-y-2 w-full max-w-full">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
                 e.stopPropagation();
                 onRequestRequote(pkg);
