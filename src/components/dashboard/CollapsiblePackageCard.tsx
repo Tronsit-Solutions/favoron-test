@@ -174,10 +174,10 @@ const CollapsiblePackageCard = ({
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="absolute top-2 right-2 h-6 w-6 p-0 z-10" onClick={e => e.stopPropagation()}>
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Opciones del paquete</span>
-                  </Button>
+            <Button variant="ghost" size="sm" className="absolute top-1 right-1 h-7 w-7 p-0 z-10 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Opciones del paquete</span>
+            </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50" onClick={e => e.stopPropagation()}>
                   {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
@@ -207,21 +207,20 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full max-w-full">
+            {isMobile ? <div className="space-y-3 w-full max-w-full pr-8">
                 {/* Product name and status in single row */}
-                <div className="flex items-start justify-between gap-2 w-full max-w-full">
-                  <div className="flex items-center gap-2 flex-1 min-w-0 max-w-full overflow-hidden">
-                    <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                    <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 max-w-full">
+                <div className="flex items-start gap-2 w-full">
+                  <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
                       {getPackageName()}
                     </CardTitle>
                   </div>
-                  
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {needsAction && <div className="absolute -top-1 right-1 z-20">
-                        <NotificationBadge count={1} />
-                      </div>}
-                  </div>
+                  {needsAction && (
+                    <div className="absolute top-1 right-9 z-20">
+                      <NotificationBadge count={1} />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Timer positioned below title for better mobile layout */}
@@ -232,15 +231,15 @@ const CollapsiblePackageCard = ({
                 )}
 
                 {/* Description */}
-                <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full">
-                  <div className="space-y-1 max-w-full">
+                <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full text-left">
+                  <div className="space-y-1 max-w-full pl-6">
                     <span className="block break-words max-w-full">{getPackageDescription()}</span>
                     <span className="block break-words max-w-full">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
 
                 {/* Action buttons - stacked vertically on mobile */}
-                <div className="space-y-2 w-full max-w-full">
+                <div className="space-y-2 w-full max-w-full pl-6">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
                 e.stopPropagation();
                 onRequestRequote(pkg);
