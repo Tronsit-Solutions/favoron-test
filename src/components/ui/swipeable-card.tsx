@@ -132,7 +132,7 @@ export const SwipeableCard = ({
 
       {/* Card content - slides left to reveal buttons */}
       <div
-        className="relative z-10 bg-background min-w-0"
+        className="relative z-10 bg-background w-full max-w-full min-w-0 overflow-x-hidden"
         style={{
           width: '100%',
           maxWidth: '100%',

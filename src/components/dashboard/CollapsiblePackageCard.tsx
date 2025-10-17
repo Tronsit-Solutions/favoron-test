@@ -404,12 +404,12 @@ const CollapsiblePackageCard = ({
         <CollapsibleContent>
           <CardContent className={`pt-0 pb-1 overflow-hidden ${isMobile ? 'px-2' : 'px-4'}`}>
             {/* Main Content Layout - 2 Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-0 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-0 overflow-hidden min-w-0">
               
               {/* Left Column: Horizontal Tabs */}
-              <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
+              <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden min-w-0 max-w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
+                  <TabsList className="grid w-full max-w-full min-w-0 grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
                     <TabsTrigger value="producto" className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background">
                       <Package className="h-3 w-3" />
                       <span className="text-[10px]">Producto</span>
@@ -428,7 +428,7 @@ const CollapsiblePackageCard = ({
                     </TabsTrigger>
                   </TabsList>
                   
-                  <div className="p-3 max-h-64 overflow-y-auto">
+                  <div className="p-3 max-h-64 overflow-y-auto max-w-full min-w-0 overflow-x-hidden">
                     <TabsContent value="producto" className="mt-0">
                       <ShopperPackageDetails pkg={pkg} />
                       {pkg.rejection_reason && <div className="mt-3">
@@ -452,7 +452,7 @@ const CollapsiblePackageCard = ({
               </div>
               
               {/* Right Column: Package Actions and Info */}
-              <div className="md:col-span-3 space-y-3 order-1 md:order-2 px-0 md:px-3">
+              <div className="md:col-span-3 space-y-3 order-1 md:order-2 px-0 md:px-3 min-w-0 max-w-full">
                 
                 {/* Traveler Confirmation Section */}
                 <TravelerConfirmationDisplay pkg={pkg} />
