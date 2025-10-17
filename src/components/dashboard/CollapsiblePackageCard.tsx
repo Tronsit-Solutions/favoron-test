@@ -30,6 +30,7 @@ import { Package as PackageType, UserType, DocumentType } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { SwipeableCard } from "@/components/ui/swipeable-card";
+import { canCancelPackage } from "@/lib/permissions";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -162,7 +163,7 @@ const CollapsiblePackageCard = ({
     return `Precio: $${pkg.estimated_price}`;
   };
   // Determine if delete is available for this package
-  const canDelete = ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_accepted', 'payment_pending', 'payment_pending_approval', 'quote_rejected', 'quote_expired'].includes(pkg.status);
+  const canDelete = canCancelPackage(pkg, pkg.user_id);
   
   // Card content wrapper
   const cardContent = (
@@ -190,12 +191,17 @@ const CollapsiblePackageCard = ({
                       <Archive className="mr-2 h-4 w-4" />
                       Archivar
                     </DropdownMenuItem>}
-                  {onDeletePackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_accepted', 'payment_pending', 'payment_pending_approval', 'quote_rejected', 'quote_expired'].includes(pkg.status) && <DropdownMenuItem onClick={e => {
+                  {onDeletePackage && canDelete && <DropdownMenuItem onClick={e => {
                 e.stopPropagation();
                 setShowDeleteDialog(true);
               }} className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Cancelar pedido
+                  </DropdownMenuItem>}
+                  {onDeletePackage && !canDelete && <DropdownMenuItem disabled className="opacity-50">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Cancelar pedido
+                    <span className="ml-2 text-xs">(No disponible)</span>
                   </DropdownMenuItem>}
                 </DropdownMenuContent>
               </DropdownMenu>}

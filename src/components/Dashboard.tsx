@@ -48,6 +48,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { canCancelPackage } from "@/lib/permissions";
 
 interface DashboardProps {
   user: any;
@@ -327,6 +328,16 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
   const handleDiscardPackage = async (pkg: any) => {
+    // Validar si se puede cancelar
+    if (!canCancelPackage(pkg, currentUser.id)) {
+      toast({
+        title: "No se puede cancelar",
+        description: "Este pedido no puede ser cancelado porque el pago ya fue procesado o el proceso está muy avanzado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       console.log('📦 Cancelling package:', pkg.id);
       await updatePackage(pkg.id, { status: 'cancelled' });
@@ -346,6 +357,16 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
   const handleArchivePackage = async (pkg: any) => {
+    // Validar si se puede cancelar (archivar = cancelar)
+    if (!canCancelPackage(pkg, currentUser.id)) {
+      toast({
+        title: "No se puede archivar",
+        description: "Este pedido no puede ser archivado porque el pago ya fue procesado o el proceso está muy avanzado.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       console.log('📦 Archiving package:', pkg.id);
       await updatePackage(pkg.id, { status: 'cancelled' });

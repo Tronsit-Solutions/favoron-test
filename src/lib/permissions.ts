@@ -8,9 +8,23 @@ export const canEditPackage = (pkg: Package, userId: string): boolean => {
 };
 
 export const canCancelPackage = (pkg: Package, userId: string): boolean => {
-  // Only the shopper can cancel, and only if not delivered or cancelled
-  return pkg.user_id === userId && 
-         !['delivered', 'cancelled'].includes(pkg.status);
+  // Solo el shopper puede cancelar
+  if (pkg.user_id !== userId) return false;
+  
+  // Estados que NO permiten cancelación (pago procesado o proceso avanzado)
+  const nonCancellableStatuses = [
+    'payment_pending_approval',  // Pago subido
+    'pending_purchase',          // Pago aprobado
+    'purchased',                 // Ya comprado
+    'in_transit',                // En tránsito
+    'pending_office_confirmation', // Esperando oficina
+    'delivered_to_office',       // En oficina
+    'completed',                 // Completado
+    'cancelled',                 // Ya cancelado
+    'delivered'                  // Ya entregado
+  ];
+  
+  return !nonCancellableStatuses.includes(pkg.status);
 };
 
 export const canViewPackageDetails = (pkg: Package, userId: string, userRole?: string): boolean => {
