@@ -209,9 +209,14 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
                 return (
                   <div key={trip.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">
-                        Viaje: {trip.from_city} → {trip.to_city}
-                      </h4>
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-medium">
+                          Viaje: {trip.from_city} → {trip.to_city}
+                        </h4>
+                        <span className="text-xs text-muted-foreground/50 font-mono">
+                          #{trip.id.slice(0, 8)}
+                        </span>
+                      </div>
                       <Badge variant="outline">{assignedPackages.length} paquetes</Badge>
                     </div>
                     
