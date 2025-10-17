@@ -28,7 +28,7 @@ export const SwipeableCard = ({
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Action buttons width (total width of visible buttons)
-  const ACTION_WIDTH = 140; // Width for both buttons
+  const ACTION_WIDTH = 160; // Width for both buttons
   const SWIPE_THRESHOLD = 60; // Minimum swipe to reveal buttons
 
   const handlers = useSwipeable({
@@ -102,11 +102,11 @@ export const SwipeableCard = ({
     <div
       ref={containerRef}
       className={cn("relative w-full max-w-full min-w-0", className)}
-      style={{ overflow: 'hidden', isolation: 'isolate', touchAction: isExpanded ? 'auto' : 'pan-y' }}
+      style={{ overflow: 'visible', isolation: 'isolate', touchAction: isExpanded ? 'auto' : 'pan-y' }}
       {...(!isExpanded ? handlers : {})}
     >
       {/* Action buttons - positioned absolutely behind the card */}
-      <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2 pointer-events-none" style={{ right: `-${ACTION_WIDTH}px` }}>
+      <div className="absolute top-0 right-0 h-full flex items-center gap-2 pr-2 pointer-events-none">
         {canArchive && onArchive && (
           <Button
             variant="ghost"
@@ -148,7 +148,7 @@ export const SwipeableCard = ({
 
       {/* Card content - slides left to reveal buttons */}
       <div
-        className="relative z-10 bg-background w-full max-w-full min-w-0 overflow-x-hidden"
+        className="relative z-10 bg-background w-full max-w-full min-w-0 overflow-hidden"
         style={{
           width: '100%',
           maxWidth: '100%',
