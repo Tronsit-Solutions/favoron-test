@@ -543,6 +543,7 @@ const CollapsiblePackageCard = ({
               onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}
               canDelete={canDelete}
               canArchive={true}
+              isExpanded={isOpen}
               className="w-full"
             >
               {cardContent}

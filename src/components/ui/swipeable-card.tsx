@@ -11,6 +11,7 @@ interface SwipeableCardProps {
   canDelete?: boolean;
   canArchive?: boolean;
   className?: string;
+  isExpanded?: boolean;
 }
 
 export const SwipeableCard = ({
@@ -20,6 +21,7 @@ export const SwipeableCard = ({
   canDelete = false,
   canArchive = true,
   className,
+  isExpanded = false,
 }: SwipeableCardProps) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
@@ -31,6 +33,9 @@ export const SwipeableCard = ({
 
   const handlers = useSwipeable({
     onSwiping: (eventData) => {
+      // No permitir swipe cuando está expandido
+      if (isExpanded) return;
+      
       // Only allow left swipe (negative delta)
       if (eventData.deltaX < 0) {
         setIsSwiping(true);
@@ -40,6 +45,9 @@ export const SwipeableCard = ({
       }
     },
     onSwiped: (eventData) => {
+      // No permitir swipe cuando está expandido
+      if (isExpanded) return;
+      
       setIsSwiping(false);
       
       // If swiped left past threshold, reveal buttons
@@ -52,10 +60,17 @@ export const SwipeableCard = ({
     },
     trackMouse: false,
     trackTouch: true,
-    preventScrollOnSwipe: true,
+    preventScrollOnSwipe: !isExpanded,
     delta: 10,
-    touchEventOptions: { passive: false }, // Permite preventDefault en touch events
+    touchEventOptions: { passive: !isExpanded },
   });
+
+  // Close swipe when card expands
+  useEffect(() => {
+    if (isExpanded && swipeOffset !== 0) {
+      setSwipeOffset(0);
+    }
+  }, [isExpanded, swipeOffset]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -87,8 +102,8 @@ export const SwipeableCard = ({
     <div
       ref={containerRef}
       className={cn("relative w-full max-w-full min-w-0", className)}
-      style={{ overflow: 'hidden', isolation: 'isolate', touchAction: 'pan-y' }}
-      {...handlers}
+      style={{ overflow: 'hidden', isolation: 'isolate', touchAction: isExpanded ? 'auto' : 'pan-y' }}
+      {...(!isExpanded ? handlers : {})}
     >
       {/* Action buttons - positioned absolutely behind the card */}
       <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2 pointer-events-none" style={{ right: `-${ACTION_WIDTH}px` }}>
@@ -140,7 +155,7 @@ export const SwipeableCard = ({
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           contain: 'layout paint',
-          touchAction: 'pan-y',
+          touchAction: isExpanded ? 'auto' : 'pan-y',
         }}
       >
         {children}
