@@ -409,20 +409,20 @@ const CollapsiblePackageCard = ({
               {/* Left Column: Horizontal Tabs */}
               <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden min-w-0 max-w-full">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
-                  <TabsList className="grid w-full max-w-full min-w-0 grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1">
-                    <TabsTrigger value="producto" className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background">
+                  <TabsList className="!grid w-full max-w-full min-w-0 grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1 overflow-hidden">
+                    <TabsTrigger value="producto" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <Package className="h-3 w-3" />
                       <span className="text-[10px]">Producto</span>
                     </TabsTrigger>
-                    <TabsTrigger value="estado" className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background">
+                    <TabsTrigger value="estado" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <Activity className="h-3 w-3" />
                       <span className="text-[10px]">Estado</span>
                     </TabsTrigger>
-                    <TabsTrigger value="documentos" className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background">
+                    <TabsTrigger value="documentos" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <FileText className="h-3 w-3" />
                       <span className="text-[10px]">Docs</span>
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex flex-col items-center gap-1 px-2 py-2 text-xs data-[state=active]:bg-background">
+                    <TabsTrigger value="chat" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <MessageCircle className="h-3 w-3" />
                       <span className="text-[10px]">Chat</span>
                     </TabsTrigger>
