@@ -120,7 +120,7 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                       <TableHead>Producto</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Valor</TableHead>
-                      <TableHead>Propina</TableHead>
+                      <TableHead>Tip</TableHead>
                       <TableHead>Progreso</TableHead>
                       <TableHead>Última Actualización</TableHead>
                     </TableRow>
