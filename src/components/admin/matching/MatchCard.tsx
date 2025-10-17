@@ -402,7 +402,7 @@ export const MatchCard = ({
                   {/* Status-specific details */}
                   {pkg.status === 'quote_sent' && pkg.quote && (
                     <p className="text-xs text-gray-600 mt-1">
-                      💰 Cotización: Q{(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
+                      💰 Cotización: Q{(parseFloat(pkg.quote.price || '0') + parseFloat(pkg.quote.serviceFee || '0')).toFixed(2)}
                     </p>
                   )}
                   
@@ -510,7 +510,7 @@ export const MatchCard = ({
             <div className="flex flex-wrap items-center gap-2 text-xs">
               {pkg.quote && (
                 <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
-                  💰 Cotización: Q{(parseFloat(pkg.quote.price || 0) + parseFloat(pkg.quote.serviceFee || 0)).toFixed(2)}
+                  💰 Cotización: Q{(parseFloat(pkg.quote.price || '0') + parseFloat(pkg.quote.serviceFee || '0')).toFixed(2)}
                 </span>
               )}
               

@@ -86,19 +86,19 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
               <div className="text-xs text-gray-600 space-y-1">
                 <div className="flex justify-between">
                   <span>Tip del viajero:</span>
-                  <span className="font-medium">Q{quote.price.toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.price || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee:</span>
-                  <span className="font-medium">Q{(quote.serviceFee || (quote.price * 0.4)).toFixed(2)}</span>
+                  <span className="font-medium">Q{(parseFloat(String(quote.serviceFee || '0')) || (parseFloat(String(quote.price || '0')) * 0.4)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee:</span>
-                  <span className="font-medium">Q{(quote.deliveryFee || 0).toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.deliveryFee || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-1 font-semibold">
                   <span>Total a pagar:</span>
-                  <span>Q{quote.totalPrice.toFixed(2)}</span>
+                  <span>Q{parseFloat(String(quote.totalPrice || '0')).toFixed(2)}</span>
                 </div>
                 {quote.message && (
                   <div className="mt-2 pt-2 border-t border-gray-200">
@@ -191,19 +191,19 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
               <div className="text-xs text-green-600 space-y-1">
                 <div className="flex justify-between">
                   <span>Tip del viajero:</span>
-                  <span className="font-medium">Q{quote.price.toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.price || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee:</span>
-                  <span className="font-medium">Q{(quote.serviceFee || (quote.price * 0.4)).toFixed(2)}</span>
+                  <span className="font-medium">Q{(parseFloat(String(quote.serviceFee || '0')) || (parseFloat(String(quote.price || '0')) * 0.4)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee:</span>
-                  <span className="font-medium">Q{(quote.deliveryFee || 0).toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.deliveryFee || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between border-t border-green-200 pt-1 font-semibold">
                   <span>Total a pagar:</span>
-                  <span>Q{quote.totalPrice.toFixed(2)}</span>
+                  <span>Q{parseFloat(String(quote.totalPrice || '0')).toFixed(2)}</span>
                 </div>
                 {quote.message && (
                   <div className="mt-2 pt-2 border-t border-green-200">
