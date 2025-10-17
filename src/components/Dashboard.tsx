@@ -523,7 +523,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             }).length === 0 ? (
               <ProtectedEmptyState type="packages" onAction={() => navigateToForm('package')} />
             ) : (
-              <div className="grid gap-6 w-full max-w-full">
+              <div className="grid gap-6 w-full max-w-full overflow-hidden">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes cancelados, completados y archivados por el shopper
                    if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;

@@ -85,20 +85,21 @@ export const SwipeableCard = ({
   return (
     <div
       ref={containerRef}
-      className={cn("relative overflow-hidden w-full max-w-full min-w-0", className)}
+      className={cn("relative w-full max-w-full min-w-0", className)}
+      style={{ overflow: 'hidden', isolation: 'isolate' }}
       {...handlers}
     >
       {/* Action buttons - positioned absolutely behind the card */}
-      <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2">
+      <div className="absolute top-0 right-0 h-full flex items-center gap-1 pr-2 pointer-events-none" style={{ right: '-100px' }}>
         {canArchive && onArchive && (
           <Button
             variant="ghost"
             size="sm"
+            className="h-16 px-3 bg-muted hover:bg-muted/80 flex flex-col items-center justify-center gap-1 rounded-md transition-all pointer-events-auto"
             onClick={(e) => {
               e.stopPropagation();
               handleAction(onArchive);
             }}
-            className="h-16 px-3 bg-muted hover:bg-muted/80 flex flex-col items-center justify-center gap-1 rounded-md transition-all"
             style={{
               opacity: Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1),
               transform: `scale(${Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1)})`,
@@ -117,7 +118,7 @@ export const SwipeableCard = ({
               e.stopPropagation();
               handleAction(onDelete);
             }}
-            className="h-16 px-3 bg-destructive/10 hover:bg-destructive/20 text-destructive flex flex-col items-center justify-center gap-1 rounded-md transition-all"
+            className="h-16 px-3 bg-destructive/10 hover:bg-destructive/20 text-destructive flex flex-col items-center justify-center gap-1 rounded-md transition-all pointer-events-auto"
             style={{
               opacity: Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1),
               transform: `scale(${Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1)})`,
@@ -131,11 +132,13 @@ export const SwipeableCard = ({
 
       {/* Card content - slides left to reveal buttons */}
       <div
-        className="relative z-10 bg-background w-full max-w-full min-w-0"
+        className="relative z-10 bg-background min-w-0"
         style={{
+          width: '100%',
+          maxWidth: '100%',
           transform: `translateX(${swipeOffset}px)`,
           transition: isSwiping ? "none" : "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          contain: 'layout paint',
+          contain: 'layout paint size',
         }}
       >
         {children}
