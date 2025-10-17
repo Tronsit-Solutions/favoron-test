@@ -168,7 +168,7 @@ const CollapsiblePackageCard = ({
   const cardContent = (
     <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
       <CollapsibleTrigger asChild>
-        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full overflow-hidden relative ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
+        <CardHeader className={`cursor-pointer hover:bg-muted/50 transition-colors w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'p-3' : 'p-4 sm:p-6'}`}>
             
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
@@ -201,7 +201,7 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full">
+            {isMobile ? <div className="space-y-3 w-full max-w-full min-w-0 overflow-hidden">
                 {/* Product name and status in single row */}
                 <div className="flex items-start justify-between gap-2 w-full min-w-0">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
