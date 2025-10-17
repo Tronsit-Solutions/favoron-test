@@ -54,7 +54,12 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
           {/* Trip Summary */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Resumen del Viaje</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Resumen del Viaje</CardTitle>
+                <span className="text-xs text-muted-foreground/50 font-mono">
+                  #{trip.id.slice(0, 8)}
+                </span>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
