@@ -582,14 +582,19 @@ const CollapsiblePackageCard = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (onDeletePackage) {
-                onDeletePackage(pkg);
+            <AlertDialogCancel onClick={e => e.stopPropagation()}>No cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log('🗑️ Delete dialog confirmed for package:', pkg.id);
+                if (onDeletePackage) {
+                  onDeletePackage(pkg);
+                }
                 setShowDeleteDialog(false);
-              }
-            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Cancelar pedido
+              }} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sí, cancelar pedido
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
