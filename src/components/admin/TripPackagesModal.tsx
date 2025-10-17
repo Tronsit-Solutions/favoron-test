@@ -76,7 +76,7 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                   <div className="text-sm text-muted-foreground">Valor Total</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">${totalTips.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-yellow-600">Q{totalTips.toFixed(2)}</div>
                   <div className="text-sm text-muted-foreground">Propinas Ganadas</div>
                 </div>
               </div>
