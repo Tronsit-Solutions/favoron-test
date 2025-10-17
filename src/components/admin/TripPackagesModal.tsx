@@ -163,9 +163,9 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                           
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3 text-green-600" />
+                              <span className="text-green-600 font-semibold text-xs">Q</span>
                               <span className={`font-medium ${tipAmount > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                                ${Number(tipAmount).toFixed(2)}
+                                {Number(tipAmount).toFixed(2)}
                               </span>
                             </div>
                           </TableCell>
