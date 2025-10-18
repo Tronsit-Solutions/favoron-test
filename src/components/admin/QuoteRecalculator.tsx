@@ -87,6 +87,38 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
   
   return (
     <div className="space-y-3">
+      {pkg.profiles?.trust_level === 'prime' && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-purple-600 text-white">
+                USUARIO PRIME
+              </Badge>
+              <span className="text-sm font-medium text-purple-900">
+                Beneficios aplicados
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="bg-white rounded p-2 border border-purple-100">
+              <p className="text-xs text-muted-foreground">Comisión Favorón</p>
+              <p className="font-semibold text-purple-700">20% (vs 40% estándar)</p>
+            </div>
+            <div className="bg-white rounded p-2 border border-purple-100">
+              <p className="text-xs text-muted-foreground">Envío</p>
+              <p className="font-semibold text-purple-700">
+                {pkg.delivery_method === 'pickup' 
+                  ? 'Pickup (Q0)' 
+                  : pkg.package_destination?.toLowerCase().match(/guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$/)
+                    ? 'Gratis en Guate City'
+                    : 'Q35 (vs Q60 estándar)'
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {hasIssue && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -96,7 +128,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
               <div className="text-sm space-y-1">
                 {serviceFeeWrong && (
                   <p>
-                    • Service Fee: Q{currentServiceFee.toFixed(2)} → 
+                    • Service Fee (Comisión): Q{currentServiceFee.toFixed(2)} → 
                     <span className="font-bold text-green-600"> Q{correctServiceFee.toFixed(2)}</span>
                     {pkg.profiles?.trust_level === 'prime' && ' (Prime: 20%)'}
                   </p>
@@ -105,13 +137,16 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
                   <p>
                     • Delivery Fee: Q{currentDeliveryFee.toFixed(2)} → 
                     <span className="font-bold text-green-600"> Q{correctDeliveryFee.toFixed(2)}</span>
-                    {pkg.profiles?.trust_level === 'prime' && ' (Prime: gratis en Guate)'}
+                    {pkg.profiles?.trust_level === 'prime' && correctDeliveryFee === 0 && ' (Prime: gratis en Guatemala City)'}
                   </p>
                 )}
                 {totalWrong && (
-                  <p className="font-semibold">
-                    • Total: Q{currentTotal.toFixed(2)} → 
+                  <p className="font-semibold pt-1 border-t">
+                    • <strong>Total:</strong> Q{currentTotal.toFixed(2)} → 
                     <span className="font-bold text-green-600"> Q{correctTotal.toFixed(2)}</span>
+                    <span className="text-xs text-red-600 block mt-1">
+                      Diferencia: Q{Math.abs(currentTotal - correctTotal).toFixed(2)}
+                    </span>
                   </p>
                 )}
               </div>
@@ -120,6 +155,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
                 onClick={handleRecalculate}
                 disabled={recalculating}
                 className="mt-2"
+                variant="destructive"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
                 {recalculating ? 'Recalculando...' : 'Recalcular Cotización'}
@@ -130,18 +166,17 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
       )}
       
       {!hasIssue && pkg.profiles?.trust_level === 'prime' && (
-        <Alert>
+        <Alert className="border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-green-700">✓ Cotización correcta para usuario Prime</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Service Fee: 20% • Delivery: {pkg.delivery_method === 'pickup' ? 'N/A' : correctDeliveryFee === 0 ? 'Gratis' : `Q${correctDeliveryFee}`}
+              <p className="text-sm text-green-600 mt-1">
+                Service Fee: 20% (Q{correctServiceFee.toFixed(2)}) • 
+                Delivery: {correctDeliveryFee === 0 ? 'Gratis' : `Q${correctDeliveryFee.toFixed(2)}`} •
+                Total: Q{correctTotal.toFixed(2)}
               </p>
             </div>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-              PRIME
-            </Badge>
           </AlertDescription>
         </Alert>
       )}
