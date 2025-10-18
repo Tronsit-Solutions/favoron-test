@@ -992,11 +992,12 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Service Fee ({pkg.profiles?.trust_level === 'prime' ? '20%' : '40%'})</p>
-                      <p className="text-sm text-muted-foreground">Q{(() => {
-                        const serviceFee = parseFloat(pkg.quote.serviceFee || '0') || (parseFloat(pkg.quote.price || '0') * (pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40));
-                        return serviceFee.toFixed(2);
-                      })()}</p>
+                      <p className="text-sm font-medium">
+                        Service Fee ({pkg.profiles?.trust_level === 'prime' ? '20%' : '40%'})
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Q{parseFloat(pkg.quote.serviceFee || '0').toFixed(2)}
+                      </p>
                     </div>
                   </div>
 
@@ -1004,10 +1005,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Delivery Fee</p>
-                      <p className="text-sm text-muted-foreground">Q{(() => {
-                        const deliveryFee = parseFloat(pkg.quote.deliveryFee || '0') || (pkg.delivery_method === 'delivery' && pkg.profiles?.trust_level !== 'prime' ? 25 : 0);
-                        return deliveryFee.toFixed(2);
-                      })()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Q{parseFloat(pkg.quote.deliveryFee || '0').toFixed(2)}
+                      </p>
                     </div>
                   </div>
 
@@ -1015,12 +1015,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <DollarSign className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
-                      <p className="text-lg font-bold text-primary">Q{(() => {
-                        const travelerTip = parseFloat(pkg.quote.price || '0');
-                        const serviceFee = parseFloat(pkg.quote.serviceFee || '0') || (travelerTip * (pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40));
-                        const deliveryFee = parseFloat(pkg.quote.deliveryFee || '0') || (pkg.delivery_method === 'delivery' && pkg.profiles?.trust_level !== 'prime' ? 25 : 0);
-                        return (travelerTip + serviceFee + deliveryFee).toFixed(2);
-                      })()}</p>
+                      <p className="text-lg font-bold text-primary">
+                        Q{parseFloat(pkg.quote.totalPrice || '0').toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 </div>
