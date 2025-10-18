@@ -119,51 +119,6 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
         </div>
       )}
       
-      {hasIssue && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="space-y-2">
-              <p className="font-semibold">⚠️ Cotización incorrecta detectada</p>
-              <div className="text-sm space-y-1">
-                {serviceFeeWrong && (
-                  <p>
-                    • Service Fee (Comisión): Q{currentServiceFee.toFixed(2)} → 
-                    <span className="font-bold text-green-600"> Q{correctServiceFee.toFixed(2)}</span>
-                    {pkg.profiles?.trust_level === 'prime' && ' (Prime: 20%)'}
-                  </p>
-                )}
-                {deliveryFeeWrong && (
-                  <p>
-                    • Delivery Fee: Q{currentDeliveryFee.toFixed(2)} → 
-                    <span className="font-bold text-green-600"> Q{correctDeliveryFee.toFixed(2)}</span>
-                    {pkg.profiles?.trust_level === 'prime' && correctDeliveryFee === 0 && ' (Prime: gratis en Guatemala City)'}
-                  </p>
-                )}
-                {totalWrong && (
-                  <p className="font-semibold pt-1 border-t">
-                    • <strong>Total:</strong> Q{currentTotal.toFixed(2)} → 
-                    <span className="font-bold text-green-600"> Q{correctTotal.toFixed(2)}</span>
-                    <span className="text-xs text-red-600 block mt-1">
-                      Diferencia: Q{Math.abs(currentTotal - correctTotal).toFixed(2)}
-                    </span>
-                  </p>
-                )}
-              </div>
-              <Button
-                size="sm"
-                onClick={handleRecalculate}
-                disabled={recalculating}
-                className="mt-2"
-                variant="destructive"
-              >
-                <RefreshCw className={`mr-2 h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
-                {recalculating ? 'Recalculando...' : 'Recalcular Cotización'}
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
       
       {!hasIssue && pkg.profiles?.trust_level === 'prime' && (
         <Alert className="border-green-200 bg-green-50">
