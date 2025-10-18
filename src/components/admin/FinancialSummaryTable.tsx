@@ -215,14 +215,17 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
       // Calculate financial metrics with correct trust levels
       const totalToPay = parseFloat(quote?.totalPrice || '0');
-      const travelerTip = parseFloat(quote?.price || '0');
+      const basePrice = parseFloat(quote?.price || '0');
       
       // Use shopper's trust level for service fee and delivery fee (what shopper pays)
-      const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
+      const serviceFee = calculateServiceFee(basePrice, shopperTrustLevel);
       const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, pkg.package_destination);
       
-      // Favoron revenue = Total a pagar - tip viajero - delivery fee
-      const favoronRevenue = totalToPay - travelerTip - deliveryFee;
+      // Traveler tip IS the service fee (this identifies if Prime 20% or normal 40%)
+      const travelerTip = serviceFee;
+      
+      // Favoron revenue = Total a pagar - base price - service fee - delivery fee
+      const favoronRevenue = totalToPay - basePrice - serviceFee - deliveryFee;
       
       // Messenger payment calculation based on destination
       const isGuatemalaCity = pkg.package_destination?.toLowerCase().includes('guatemala city') || 
