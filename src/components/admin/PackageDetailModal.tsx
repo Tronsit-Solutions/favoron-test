@@ -1007,9 +1007,33 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Delivery Fee</p>
-                      <p className="text-sm text-muted-foreground">
-                        Q{parseFloat(pkg.quote.deliveryFee || '0').toFixed(2)}
-                      </p>
+                      <p className="text-sm text-muted-foreground">Q{(() => {
+                        // Si es pickup, siempre Q0
+                        if (pkg.delivery_method === 'pickup') return '0.00';
+                        
+                        // Detectar si es Guatemala City
+                        const isGuatemalaCity = pkg.package_destination?.toLowerCase().match(
+                          /guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$/
+                        );
+                        
+                        // Prime en Guatemala City = gratis
+                        if (pkg.profiles?.trust_level === 'prime' && isGuatemalaCity) {
+                          return '0.00';
+                        }
+                        
+                        // Prime fuera de Guatemala City = Q35
+                        if (pkg.profiles?.trust_level === 'prime' && !isGuatemalaCity) {
+                          return '35.00';
+                        }
+                        
+                        // Standard en Guatemala City = Q25
+                        if (isGuatemalaCity) {
+                          return '25.00';
+                        }
+                        
+                        // Standard fuera de Guatemala City = Q60
+                        return '60.00';
+                      })()}</p>
                     </div>
                   </div>
 
