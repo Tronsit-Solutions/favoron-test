@@ -214,12 +214,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       }
 
       // Calculate financial metrics with correct trust levels
-      const totalToPay = parseFloat(quote?.totalPrice || '0');
       const travelerTip = parseFloat(quote?.price || '0');
       
       // Use shopper's trust level for service fee and delivery fee (what shopper pays)
       const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
       const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, pkg.package_destination);
+      
+      // Total to pay = service fee + traveler tip + delivery fee
+      const totalToPay = serviceFee + travelerTip + deliveryFee;
       
       // Favoron revenue is the service fee
       const favoronRevenue = serviceFee;
