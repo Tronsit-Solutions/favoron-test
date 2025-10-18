@@ -41,6 +41,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     description: string;
   } | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<{
+    url: string;
+    filename: string;
+  } | null>(null);
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -486,6 +490,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead className="text-right">Tip Viajero</TableHead>
                 <TableHead className="text-right">Ingreso Favoron</TableHead>
                 <TableHead className="text-right">Pago Mensajero</TableHead>
+                <TableHead className="text-center">Comprobante Pago</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -572,6 +577,39 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.messengerPayment)}
                   </TableCell>
+                  <TableCell className="text-center">
+                    {!item.isPrimeMembership && item.package.matched_trip_id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          // Buscar el payment_order para este viaje
+                          const { data: paymentOrder } = await supabase
+                            .from('payment_orders')
+                            .select('receipt_url, receipt_filename')
+                            .eq('trip_id', item.package.matched_trip_id)
+                            .eq('status', 'completed')
+                            .single();
+                          
+                          if (paymentOrder?.receipt_url) {
+                            setSelectedPaymentReceipt({
+                              url: paymentOrder.receipt_url,
+                              filename: paymentOrder.receipt_filename || 'comprobante.jpg'
+                            });
+                          } else {
+                            toast({
+                              title: "Sin comprobante",
+                              description: "No hay comprobante de pago disponible",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               
@@ -594,6 +632,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.messengerPayment)}</strong>
                   </TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -631,6 +670,28 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           products={selectedProductData?.products || []}
           packageDescription={selectedProductData?.description || ''}
         />
+
+        {/* Modal para ver comprobante de pago */}
+        {selectedPaymentReceipt && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedPaymentReceipt(null)}>
+            <div className="bg-background p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Comprobante de Pago al Viajero</h3>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedPaymentReceipt(null)}>
+                  ✕
+                </Button>
+              </div>
+              <img 
+                src={selectedPaymentReceipt.url} 
+                alt={selectedPaymentReceipt.filename}
+                className="max-w-full h-auto rounded-lg"
+              />
+              <div className="mt-4 text-sm text-muted-foreground text-center">
+                {selectedPaymentReceipt.filename}
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
