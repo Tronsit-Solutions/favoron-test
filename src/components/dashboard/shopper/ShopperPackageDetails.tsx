@@ -109,6 +109,10 @@ const ShopperPackageDetails = ({ pkg }: ShopperPackageDetailsProps) => {
   return (
     <>
       <div className="space-y-3">
+        <p className="text-xs text-muted-foreground font-mono">
+          <strong>ID:</strong> {pkg.id}
+        </p>
+        
         {renderProducts()}
         
         <div className="space-y-2">
