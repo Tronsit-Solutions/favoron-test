@@ -221,8 +221,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
       const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, pkg.package_destination);
       
-      // Favoron revenue = Total a pagar - tip viajero - delivery fee
-      const favoronRevenue = totalToPay - travelerTip - deliveryFee;
+      // Favoron revenue is the service fee
+      const favoronRevenue = serviceFee;
       
       // Messenger payment calculation based on destination
       const isGuatemalaCity = pkg.package_destination?.toLowerCase().includes('guatemala city') || 
