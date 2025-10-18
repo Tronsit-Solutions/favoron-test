@@ -490,7 +490,6 @@ const AdminDashboard = ({
         )}
 
         <TabsContent value="overview" className="space-y-4">
-          <BackfillGuatemalaFees />
           <AdminOverviewTab 
             packages={localPackages}
             trips={localTrips}
