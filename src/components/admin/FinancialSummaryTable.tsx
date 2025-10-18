@@ -578,23 +578,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     {formatCurrency(item.messengerPayment)}
                   </TableCell>
                   <TableCell className="text-center">
-                    {!item.isPrimeMembership && item.package.matched_trip_id && (
+                    {!item.isPrimeMembership && item.package.payment_receipt && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={async () => {
-                          // Buscar el payment_order para este viaje
-                          const { data: paymentOrder } = await supabase
-                            .from('payment_orders')
-                            .select('receipt_url, receipt_filename')
-                            .eq('trip_id', item.package.matched_trip_id)
-                            .eq('status', 'completed')
-                            .single();
-                          
-                          if (paymentOrder?.receipt_url) {
+                        onClick={() => {
+                          const receipt = item.package.payment_receipt as any;
+                          if (receipt?.filePath || receipt?.receipt_url) {
                             setSelectedPaymentReceipt({
-                              url: paymentOrder.receipt_url,
-                              filename: paymentOrder.receipt_filename || 'comprobante.jpg'
+                              url: receipt.filePath || receipt.receipt_url,
+                              filename: receipt.fileName || receipt.filename || 'comprobante.jpg'
                             });
                           } else {
                             toast({
@@ -676,7 +669,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedPaymentReceipt(null)}>
             <div className="bg-background p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Comprobante de Pago al Viajero</h3>
+                <h3 className="text-lg font-semibold">Comprobante de Pago del Shopper</h3>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedPaymentReceipt(null)}>
                   ✕
                 </Button>
