@@ -17,6 +17,7 @@ import RejectionReasonModal from "./RejectionReasonModal";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { QuoteRecalculator } from "./QuoteRecalculator";
 
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
@@ -977,6 +978,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <QuoteRecalculator pkg={pkg} onRecalculated={() => window.location.reload()} />
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
