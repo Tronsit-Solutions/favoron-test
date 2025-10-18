@@ -124,30 +124,13 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
     setUploadState('confirming');
 
     try {
-      // 1. Obtener trust_level del usuario
-      const { data: userProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('trust_level')
-        .eq('id', pkg.user_id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      const trustLevel = userProfile?.trust_level || 'basic';
-      
-      // 2. Auto-aprobar si es 'confiable' o 'prime'
-      const autoApprove = ['confiable', 'prime'].includes(trustLevel);
-      const newStatus = autoApprove ? 'pending_purchase' : 'payment_pending_approval';
-
-      // 3. Metadata de auditoría
+      // Metadata básica - el trigger determinará el status y auto_approved
       const paymentReceiptData = {
         filename: pendingFile.fileName,
         filePath: pendingFile.filePath,
         uploadedAt: new Date().toISOString(),
         fileSize: pendingFile.fileSize,
-        fileType: pendingFile.fileType,
-        auto_approved: autoApprove,
-        trust_level_at_upload: trustLevel
+        fileType: pendingFile.fileType
       };
 
       // Get traveler address and trip dates from package data to save permanently
@@ -161,7 +144,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
         .from('packages')
         .update({
           payment_receipt: paymentReceiptData,
-          status: newStatus,
+          // NO establecer status aquí - el trigger lo hará
           // Save traveler shipping information permanently
           ...(travelerShippingInfo && {
             traveler_address: travelerShippingInfo.travelerAddress,
@@ -172,26 +155,33 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
 
       if (updateError) throw updateError;
 
+      // Esperar un momento para que el trigger y realtime se sincronicen
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Obtener el paquete actualizado con el status que el trigger asignó
+      const { data: updatedPackage, error: fetchError } = await supabase
+        .from('packages')
+        .select('*')
+        .eq('id', pkg.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const wasAutoApproved = (updatedPackage.payment_receipt as any)?.auto_approved === true;
+
       // Update local state
-      setConfirmedFile(paymentReceiptData);
+      setConfirmedFile(updatedPackage.payment_receipt);
       setPendingFile(null);
       setUploadState('confirmed');
       
-      // Create updated package for parent
-      const updatedPkg = {
-        ...pkg,
-        payment_receipt: paymentReceiptData,
-        status: newStatus
-      };
-      
-      // Call onUploadComplete with updated package
-      onUploadComplete(updatedPkg);
+      // Call onUploadComplete with the package from DB (with correct status)
+      onUploadComplete(updatedPackage as Package);
 
       toast({
-        title: autoApprove 
+        title: wasAutoApproved 
           ? "¡Pago confirmado automáticamente! ✨" 
           : "Comprobante confirmado exitosamente",
-        description: autoApprove 
+        description: wasAutoApproved 
           ? "Tu pago ha sido aprobado automáticamente. Ya puedes compartir la información de envío con el viajero."
           : "Tu comprobante está pendiente de verificación por el administrador.",
       });
