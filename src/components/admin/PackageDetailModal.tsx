@@ -1041,9 +1041,31 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <DollarSign className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
-                      <p className="text-lg font-bold text-primary">
-                        Q{parseFloat(pkg.quote.totalPrice || '0').toFixed(2)}
-                      </p>
+                      <p className="text-lg font-bold text-primary">Q{(() => {
+                        const travelerTip = parseFloat(pkg.quote.price || '0');
+                        const serviceRate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
+                        const serviceFee = travelerTip * serviceRate;
+                        
+                        // Calcular delivery fee
+                        let deliveryFee = 0;
+                        if (pkg.delivery_method !== 'pickup') {
+                          const isGuatemalaCity = pkg.package_destination?.toLowerCase().match(
+                            /guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$/
+                          );
+                          
+                          if (pkg.profiles?.trust_level === 'prime' && isGuatemalaCity) {
+                            deliveryFee = 0;
+                          } else if (pkg.profiles?.trust_level === 'prime' && !isGuatemalaCity) {
+                            deliveryFee = 35;
+                          } else if (isGuatemalaCity) {
+                            deliveryFee = 25;
+                          } else {
+                            deliveryFee = 60;
+                          }
+                        }
+                        
+                        return (travelerTip + serviceFee + deliveryFee).toFixed(2);
+                      })()}</p>
                     </div>
                   </div>
                 </div>
