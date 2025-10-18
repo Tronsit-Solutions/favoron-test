@@ -995,9 +995,11 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                       <p className="text-sm font-medium">
                         Service Fee ({pkg.profiles?.trust_level === 'prime' ? '20%' : '40%'})
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Q{parseFloat(pkg.quote.serviceFee || '0').toFixed(2)}
-                      </p>
+                      <p className="text-sm text-muted-foreground">Q{(() => {
+                        const travelerTip = parseFloat(pkg.quote.price || '0');
+                        const rate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
+                        return (travelerTip * rate).toFixed(2);
+                      })()}</p>
                     </div>
                   </div>
 
