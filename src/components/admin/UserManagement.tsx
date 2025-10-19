@@ -100,33 +100,34 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     updates: Partial<User>,
     primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }
   ) => {
-    // Handle specific updates that require database operations
-    if (updates.trustLevel !== undefined) {
-      await updateTrustLevel(userId, updates.trustLevel, primeInfo);
+    try {
+      // Handle specific updates that require database operations
+      if (updates.trustLevel !== undefined) {
+        await updateTrustLevel(userId, updates.trustLevel, primeInfo);
+      }
+      if (updates.status !== undefined) {
+        await updateUserStatus(userId, updates.status);
+      }
+      
+      // Users already refreshed by updateTrustLevel via fetchUsers()
+      // Update selected user in modal with refreshed data
+      const refreshedUser = users.find(u => u.id === userId);
+      if (selectedUser && selectedUser.id === userId && refreshedUser) {
+        setSelectedUser(refreshedUser);
+      }
+      
+      // Show success toast
+      toast({
+        title: "Usuario actualizado",
+        description: "Los cambios se han guardado correctamente",
+      });
+    } catch (error) {
+      toast({
+        title: "Error al actualizar",
+        description: "No se pudieron guardar los cambios. Intenta de nuevo.",
+        variant: "destructive"
+      });
     }
-    if (updates.status !== undefined) {
-      await updateUserStatus(userId, updates.status);
-    }
-    
-    // Update other fields locally
-    const otherUpdates = { ...updates };
-    delete otherUpdates.trustLevel;
-    delete otherUpdates.status;
-    
-    if (Object.keys(otherUpdates).length > 0) {
-      updateUser(userId, otherUpdates);
-    }
-    
-    // Update selected user in modal
-    if (selectedUser && selectedUser.id === userId) {
-      setSelectedUser({ ...selectedUser, ...updates });
-    }
-    
-    // Show success toast
-    toast({
-      title: "Usuario actualizado",
-      description: "Los cambios se han guardado correctamente",
-    });
   };
 
   const getUserInitials = (user: any) => {

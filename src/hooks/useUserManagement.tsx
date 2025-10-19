@@ -132,7 +132,7 @@ export const useUserManagement = () => {
       const user = users.find(u => u.id === userId);
       if (!user || !user.profileId) {
         console.error('User or profile ID not found');
-        return;
+        throw new Error('User or profile ID not found');
       }
 
       // Map the trust level to the database enum (confiable consolidates trusted and premium)
@@ -150,7 +150,7 @@ export const useUserManagement = () => {
 
         if (rpcError) {
           console.error('Error assigning Prime membership via RPC:', rpcError);
-          return;
+          throw rpcError;
         }
 
         console.log('Prime membership assigned successfully via RPC');
@@ -168,16 +168,18 @@ export const useUserManagement = () => {
 
         if (profileError) {
           console.error('Error updating trust level:', profileError);
-          return;
+          throw profileError;
         }
 
         console.log('Trust level updated successfully to:', dbTrustLevel);
       }
 
-      // Update local state
-      updateUser(userId, { trustLevel });
+      // Refresh users from database after successful update
+      await fetchUsers();
+      
     } catch (error) {
       console.error('Error updating trust level:', error);
+      throw error;
     }
   };
 

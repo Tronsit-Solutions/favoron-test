@@ -908,14 +908,25 @@ export type Database = {
         Returns: undefined
       }
       admin_view_all_users: {
-        Args: { _access_reason: string }
+        Args: { _access_reason?: string }
         Returns: {
+          avatar_url: string
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          bank_swift_code: string
+          country_code: string
           created_at: string
+          document_number: string
+          document_type: string
           email: string
           first_name: string
           id: string
           last_name: string
+          phone_number: string
           trust_level: string
+          user_role: string
           username: string
         }[]
       }
