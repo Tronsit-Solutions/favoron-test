@@ -907,6 +907,13 @@ export type Database = {
         Args: { _admin_id: string; _package_id: string }
         Returns: undefined
       }
+      admin_update_trust_level: {
+        Args: {
+          _target_user_id: string
+          _trust_level: Database["public"]["Enums"]["trust_level"]
+        }
+        Returns: undefined
+      }
       admin_view_all_users: {
         Args: { _access_reason?: string }
         Returns: {

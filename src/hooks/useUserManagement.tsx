@@ -155,20 +155,15 @@ export const useUserManagement = () => {
 
         console.log('Prime membership assigned successfully via RPC');
       } else {
-        // For other trust levels, update the profile directly
-        const updateData: any = { 
-          trust_level: dbTrustLevel,
-          prime_expires_at: null // Clear prime expiration if not prime
-        };
+        // For other trust levels (basic/confiable), use secure admin function
+        const { error: rpcError } = await supabase.rpc('admin_update_trust_level', {
+          _target_user_id: user.profileId,
+          _trust_level: dbTrustLevel
+        });
 
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('id', user.profileId);
-
-        if (profileError) {
-          console.error('Error updating trust level:', profileError);
-          throw profileError;
+        if (rpcError) {
+          console.error('Error updating trust level via RPC:', rpcError);
+          throw rpcError;
         }
 
         console.log('Trust level updated successfully to:', dbTrustLevel);
