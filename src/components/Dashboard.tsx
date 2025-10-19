@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
@@ -468,33 +469,67 @@ const Dashboard = ({ user }: DashboardProps) => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {activeTab !== 'profile' && (
-            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-5 text-[10px] sm:text-xs' : 'grid-cols-3 text-xs sm:text-sm'} gap-0.5 sm:gap-1`}>
-              <TabsTrigger value="overview" className="whitespace-normal">Home</TabsTrigger>
-              <TabsTrigger value="packages" className="relative flex items-center gap-2 whitespace-normal">
-                Mis Pedidos
+            <TabsList className={cn(
+              "w-full h-auto min-h-10",
+              "flex flex-wrap sm:grid",
+              isAdmin ? "sm:grid-cols-5" : "sm:grid-cols-3",
+              "gap-1 p-1"
+            )}>
+              <TabsTrigger 
+                value="overview" 
+                className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-2"
+              >
+                Home
+              </TabsTrigger>
+              <TabsTrigger 
+                value="packages" 
+                className="relative flex-1 min-w-[90px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+              >
+                <span className="hidden sm:inline">Mis Pedidos</span>
+                <span className="sm:hidden">Pedidos</span>
                 {pendingActions.shopperTotal > 0 && (
-                  <NotificationBadge count={pendingActions.shopperTotal} />
+                  <NotificationBadge 
+                    count={pendingActions.shopperTotal} 
+                    className="ml-0.5 sm:ml-1"
+                  />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="trips" className="relative flex items-center gap-2 whitespace-normal">
-                Mis Viajes
+              <TabsTrigger 
+                value="trips" 
+                className="relative flex-1 min-w-[80px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+              >
+                <span className="hidden sm:inline">Mis Viajes</span>
+                <span className="sm:hidden">Viajes</span>
                 {pendingActions.travelerTotal > 0 && (
-                  <NotificationBadge count={pendingActions.travelerTotal} />
-                 )}
-               </TabsTrigger>
-               {isAdmin && (
-                 <TabsTrigger value="admin" className="relative flex items-center gap-2 whitespace-normal">
-                   Admin
-                   {pendingActions.adminTotal > 0 && (
-                     <NotificationBadge count={pendingActions.adminTotal} />
-                   )}
-                 </TabsTrigger>
-               )}
-               {isAdmin && (
-                 <TabsTrigger value="ultima-milla" className="relative flex items-center gap-2 whitespace-normal">
-                   Última Milla
-                 </TabsTrigger>
-               )}
+                  <NotificationBadge 
+                    count={pendingActions.travelerTotal} 
+                    className="ml-0.5 sm:ml-1"
+                  />
+                )}
+              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger 
+                  value="admin" 
+                  className="relative flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+                >
+                  Admin
+                  {pendingActions.adminTotal > 0 && (
+                    <NotificationBadge 
+                      count={pendingActions.adminTotal} 
+                      className="ml-0.5 sm:ml-1"
+                    />
+                  )}
+                </TabsTrigger>
+              )}
+              {isAdmin && (
+                <TabsTrigger 
+                  value="ultima-milla" 
+                  className="relative flex-1 min-w-[90px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+                >
+                  <span className="hidden sm:inline">Última Milla</span>
+                  <span className="sm:hidden">Ú. Milla</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           )}
 
