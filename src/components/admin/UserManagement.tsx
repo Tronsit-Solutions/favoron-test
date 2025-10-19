@@ -109,22 +109,31 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
         await updateUserStatus(userId, updates.status);
       }
       
-      // Users already refreshed by updateTrustLevel via fetchUsers()
-      // Update selected user in modal with refreshed data
-      const refreshedUser = users.find(u => u.id === userId);
-      if (selectedUser && selectedUser.id === userId && refreshedUser) {
-        setSelectedUser(refreshedUser);
+      // Update selected user in modal immediately with pending changes
+      if (selectedUser && selectedUser.id === userId) {
+        setSelectedUser(prev => prev ? {
+          ...prev,
+          trustLevel: updates.trustLevel ?? prev.trustLevel,
+          status: updates.status ?? prev.status
+        } : prev);
       }
       
-      // Show success toast
+      // Show success toast with details
+      const changeDetails = [];
+      if (updates.trustLevel) changeDetails.push(`Nivel de Confianza: ${updates.trustLevel}`);
+      if (updates.status) changeDetails.push(`Estado: ${updates.status}`);
+      
       toast({
         title: "Usuario actualizado",
-        description: "Los cambios se han guardado correctamente",
+        description: changeDetails.length > 0 
+          ? `Los cambios se han guardado: ${changeDetails.join(', ')}`
+          : "Los cambios se han guardado correctamente",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error updating user:', error);
       toast({
         title: "Error al actualizar",
-        description: "No se pudieron guardar los cambios. Intenta de nuevo.",
+        description: error?.message || "No se pudieron guardar los cambios. Intenta de nuevo.",
         variant: "destructive"
       });
     }

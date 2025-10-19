@@ -63,6 +63,7 @@ const UserDetailModal = ({
   const [pendingTrustLevel, setPendingTrustLevel] = useState<User['trustLevel']>(user.trustLevel);
   const [pendingStatus, setPendingStatus] = useState<User['status']>(user.status);
   const [showPrimeDialog, setShowPrimeDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [primePaymentInfo, setPrimePaymentInfo] = useState({
     isPaid: false,
     paymentReference: '',
@@ -428,25 +429,49 @@ const UserDetailModal = ({
                           setPendingStatus(user.status);
                         }}
                       >
-                        Cancelar
+                       Cancelar
                       </Button>
                        <Button
                          size="sm"
-                         onClick={() => {
-                           if (pendingTrustLevel !== user.trustLevel) {
-                             // If upgrading to Prime, pass payment info
-                             if (pendingTrustLevel === 'prime') {
-                               onUpdateUser(user.id, { trustLevel: pendingTrustLevel }, primePaymentInfo);
-                             } else {
-                               onUpdateUser(user.id, { trustLevel: pendingTrustLevel });
+                         disabled={isSaving}
+                         onClick={async () => {
+                           try {
+                             setIsSaving(true);
+                             
+                             if (pendingTrustLevel !== user.trustLevel) {
+                               // If upgrading to Prime, pass payment info
+                               if (pendingTrustLevel === 'prime') {
+                                 await onUpdateUser(user.id, { trustLevel: pendingTrustLevel }, primePaymentInfo);
+                               } else {
+                                 await onUpdateUser(user.id, { trustLevel: pendingTrustLevel });
+                               }
                              }
-                           }
-                           if (pendingStatus !== user.status) {
-                             onUpdateUser(user.id, { status: pendingStatus });
+                             if (pendingStatus !== user.status) {
+                               await onUpdateUser(user.id, { status: pendingStatus });
+                             }
+                             
+                             // Reset pending states after successful save
+                             setPendingTrustLevel(user.trustLevel);
+                             setPendingStatus(user.status);
+                             
+                             // Close Prime dialog if it was open
+                             setShowPrimeDialog(false);
+                             setPrimePaymentInfo({ isPaid: false, paymentReference: '', notes: '' });
+                           } catch (error) {
+                             console.error('Error saving changes:', error);
+                           } finally {
+                             setIsSaving(false);
                            }
                          }}
                        >
-                         Guardar cambios
+                         {isSaving ? (
+                           <>
+                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                             Guardando...
+                           </>
+                         ) : (
+                           'Guardar cambios'
+                         )}
                        </Button>
                     </div>
                   </div>

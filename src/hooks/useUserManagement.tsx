@@ -169,6 +169,9 @@ export const useUserManagement = () => {
         console.log('Trust level updated successfully to:', dbTrustLevel);
       }
 
+      // Optimistic local update
+      updateUser(userId, { trustLevel });
+
       // Refresh users from database after successful update
       await fetchUsers();
       
