@@ -585,7 +585,9 @@ export const useDashboardActions = (
         // Tracking upload doesn't change status - only confirmation does
       } else if (type === 'payment_receipt') {
         updatedData.payment_receipt = data;
-        newStatus = 'payment_pending_approval';
+        // Don't set status here - let the database trigger handle it based on trust_level
+        // For 'confiable' and 'prime' users: trigger sets status = 'pending_purchase'
+        // For 'basic' users: trigger sets status = 'payment_pending_approval'
       }
 
       // Update status if it changed
