@@ -31,16 +31,12 @@ export default function ShopperPaymentInfoModal({
   
   // Use stored quote total (preferred) or recalculate if needed
   const quoteData = pkg.quote as any;
-  const totalAmount = quoteData?.completePrice || quoteData?.totalPrice || (() => {
-    const basePrice = parseFloat(quoteData?.price || '0');
-    const breakdown = getPriceBreakdown(
-      basePrice, 
-      pkg.delivery_method || 'pickup', 
-      profile?.trust_level,
-      pkg.package_destination
-    );
-    return breakdown.totalPrice;
-  })();
+  const totalAmount = quoteData?.completePrice || quoteData?.totalPrice || getPriceBreakdown(
+    parseFloat(quoteData?.price || '0'), 
+    pkg.delivery_method || 'pickup', 
+    profile?.trust_level,
+    pkg.package_destination
+  ).totalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
