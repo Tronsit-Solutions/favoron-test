@@ -7,7 +7,10 @@ export const canEditPackage = (pkg: Package, userId: string): boolean => {
          ['pending_approval', 'approved'].includes(pkg.status);
 };
 
-export const canCancelPackage = (pkg: Package, userId: string): boolean => {
+export const canCancelPackage = (pkg: Package, userId: string, userRole?: string): boolean => {
+  // Admins pueden cancelar cualquier paquete
+  if (userRole === 'admin') return true;
+  
   // Solo el shopper puede cancelar
   if (pkg.user_id !== userId) return false;
   

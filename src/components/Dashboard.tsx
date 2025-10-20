@@ -329,8 +329,8 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
   const handleDiscardPackage = async (pkg: any) => {
-    // Validar si se puede cancelar
-    if (!canCancelPackage(pkg, currentUser.id)) {
+    // Validar si se puede cancelar (admins pueden cancelar cualquier paquete)
+    if (!canCancelPackage(pkg, currentUser.id, currentUser?.role)) {
       toast({
         title: "No se puede cancelar",
         description: "Este pedido no puede ser cancelado porque el pago ya fue procesado o el proceso está muy avanzado.",
@@ -340,7 +340,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
     
     try {
-      console.log('📦 Cancelling package:', pkg.id);
+      console.log('📦 Cancelling package:', pkg.id, 'by admin:', currentUser?.role === 'admin');
       await updatePackage(pkg.id, { status: 'cancelled' });
       toast({
         title: "Solicitud cancelada",
