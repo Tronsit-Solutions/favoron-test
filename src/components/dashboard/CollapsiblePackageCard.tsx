@@ -292,12 +292,6 @@ const CollapsiblePackageCard = ({
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
-                {/* ID row - subtle */}
-                <div className="flex justify-end">
-                  <span className="text-[10px] text-muted-foreground/50 font-mono">
-                    #{pkg.id.substring(0, 6)}
-                  </span>
-                </div>
                 {/* Title row */}
                 <div className="flex items-start justify-between w-full min-w-0 gap-2">
                   <div className="flex-1 min-w-0">
@@ -320,6 +314,9 @@ const CollapsiblePackageCard = ({
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full min-w-0">
                   <CardDescription className="text-xs sm:text-sm min-w-0 flex-1">
                     <div className="flex flex-col gap-1 w-full min-w-0">
+                      <span className="truncate max-w-full text-muted-foreground/60">
+                        ID: #{pkg.id.substring(0, 6)}
+                      </span>
                       <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
                       <span className="truncate max-w-full text-muted-foreground">
                         {getStatusDescription(pkg)}
