@@ -11,6 +11,8 @@ import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
+import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
+import PurchaseConfirmationUpload from "@/components/PurchaseConfirmationUpload";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
 import RejectionReasonDisplay from "./RejectionReasonDisplay";
 import RejectionReasonModal from "./RejectionReasonModal";
@@ -18,6 +20,8 @@ import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { QuoteRecalculator } from "./QuoteRecalculator";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
@@ -83,6 +87,7 @@ interface PackageDetailModalProps {
 const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePackage }: PackageDetailModalProps) => {
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
+  const { toast } = useToast();
   const pkg = getModalData(modalId);
   const isOpen = isModalOpen(modalId);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
@@ -320,6 +325,11 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const hasPurchaseConfirmation = pkg.purchase_confirmation && (pkg.purchase_confirmation.receipt_url || pkg.purchase_confirmation.filePath || pkg.purchase_confirmation.filename);
   const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
   const hasTravelerConfirmation = pkg.traveler_confirmation && (pkg.traveler_confirmation.confirmedAt || pkg.traveler_confirmation.confirmed_at);
+  
+  // Allow admin uploads based on package status
+  const canUploadPaymentReceipt = ['payment_pending', 'payment_pending_approval', 'quote_sent', 'approved'].includes(pkg.status);
+  const canUploadPurchaseConfirmation = ['pending_purchase', 'purchased', 'payment_confirmed'].includes(pkg.status);
+  
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
   
   // Enhanced product information processing
@@ -1191,128 +1201,194 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
           )}
 
           {/* Documents Section */}
-          {hasAnyDocuments && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <FileText className="h-4 w-4" />
-                  <span>Documentos Subidos</span>
-                </CardTitle>
-                <CardDescription>
-                  Documentos relacionados con este paquete
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* Payment Receipt */}
-                  {hasPaymentReceipt && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-2">
-                        <Receipt className="h-4 w-4" />
-                        Comprobante de Pago
-                      </h4>
-                      <PaymentReceiptViewer 
-                        paymentReceipt={pkg.payment_receipt}
-                        packageId={pkg.id}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-
-                  {/* Purchase Confirmation */}
-                  {hasPurchaseConfirmation && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Comprobante de Compra
-                      </h4>
-                      <PurchaseConfirmationViewer 
-                        purchaseConfirmation={pkg.purchase_confirmation}
-                        packageId={pkg.id}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-
-                  {/* Tracking Information */}
-                  {hasTrackingInfo && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-2">
-                        <Truck className="h-4 w-4" />
-                        Información de Seguimiento
-                      </h4>
-                      <TrackingInfoViewer 
-                        trackingInfo={pkg.tracking_info}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-
-                </div>
-
-                {/* Office Delivery Information */}
-                {pkg.office_delivery && (
-                  <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm flex items-center gap-2 mb-3">
-                      <Package className="h-4 w-4" />
-                      Información de Entrega en Oficina
-                    </h4>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
-                      {pkg.office_delivery.traveler_declaration && (
-                        <div>
-                          <p className="text-sm font-medium text-blue-800">Declaración del Viajero:</p>
-                          <p className="text-sm text-blue-700">
-                            Confirmado el {formatSafeDateTime(pkg.office_delivery.traveler_declaration.delivered_at)}
-                          </p>
-                          {pkg.office_delivery.traveler_declaration.notes && (
-                            <p className="text-sm text-blue-700 mt-1">
-                              <strong>Notas:</strong> {pkg.office_delivery.traveler_declaration.notes}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      
-                      {pkg.office_delivery.admin_confirmation && (
-                        <div>
-                          <p className="text-sm font-medium text-green-800">Confirmación Administrativa:</p>
-                          <p className="text-sm text-green-700">
-                            Confirmado el {formatSafeDateTime(pkg.office_delivery.admin_confirmation.confirmed_at)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-lg">
+                <FileText className="h-4 w-4" />
+                <span>Documentos</span>
+                <Badge variant="outline" className="ml-2">Admin</Badge>
+              </CardTitle>
+              <CardDescription>
+                Documentos relacionados con este paquete
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Payment Receipt Section */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Comprobante de Pago
+                </h4>
+                
+                {hasPaymentReceipt ? (
+                  <PaymentReceiptViewer 
+                    paymentReceipt={pkg.payment_receipt}
+                    packageId={pkg.id}
+                    className="w-full"
+                  />
+                ) : canUploadPaymentReceipt ? (
+                  <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">
+                    <p className="text-xs text-blue-600 mb-3">
+                      ℹ️ Como admin, puedes subir el comprobante en nombre del shopper
+                    </p>
+                    <PaymentReceiptUpload 
+                      pkg={pkg}
+                      onUploadComplete={async (updatedPkg) => {
+                        // Refresh package data
+                        if (onUpdatePackage) {
+                          const { data: refreshedPkg } = await supabase
+                            .from('packages')
+                            .select('*')
+                            .eq('id', pkg.id)
+                            .single();
+                          
+                          if (refreshedPkg) {
+                            onUpdatePackage(pkg.id, refreshedPkg);
+                          }
+                        }
+                        closeModal(modalId);
+                      }}
+                    />
                   </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Sin comprobante de pago
+                  </p>
                 )}
+              </div>
+              
+              {/* Purchase Confirmation Section */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Comprobante de Compra
+                </h4>
+                
+                {hasPurchaseConfirmation ? (
+                  <PurchaseConfirmationViewer 
+                    purchaseConfirmation={pkg.purchase_confirmation}
+                    packageId={pkg.id}
+                    className="w-full"
+                  />
+                ) : canUploadPurchaseConfirmation ? (
+                  <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">
+                    <p className="text-xs text-blue-600 mb-3">
+                      ℹ️ Como admin, puedes subir la confirmación de compra
+                    </p>
+                    <PurchaseConfirmationUpload 
+                      packageId={pkg.id}
+                      onUpload={async (confirmationData) => {
+                        try {
+                          const { error } = await supabase
+                            .from('packages')
+                            .update({ 
+                              purchase_confirmation: confirmationData,
+                              status: 'purchased'
+                            })
+                            .eq('id', pkg.id);
+                            
+                          if (error) throw error;
+                          
+                          toast({
+                            title: "Comprobante subido exitosamente",
+                            description: "El comprobante de compra ha sido registrado"
+                          });
+                          
+                          closeModal(modalId);
+                          
+                        } catch (error: any) {
+                          toast({
+                            title: "Error",
+                            description: "No se pudo guardar el comprobante",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Sin comprobante de compra
+                  </p>
+                )}
+              </div>
+              
+              {/* Tracking Info (mantener como está) */}
+              {hasTrackingInfo && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    Información de Seguimiento
+                  </h4>
+                  <TrackingInfoViewer 
+                    trackingInfo={pkg.tracking_info}
+                    className="w-full"
+                  />
+                </div>
+              )}
 
-                {/* Rejection Reason */}
-                {(() => {
-                  const reason = (pkg?.quote_rejection as any)?.reason 
-                    || (pkg?.admin_rejection as any)?.reason 
-                    || (typeof pkg?.rejection_reason === 'string' 
-                        ? pkg.rejection_reason 
-                        : (pkg?.rejection_reason as any)?.value);
-                  if (!reason) return null;
-                  const wantsRequote = (pkg?.quote_rejection as any)?.wants_requote 
-                    ?? (pkg as any)?.wants_requote 
-                    ?? (pkg?.rejection_reason as any)?.wantsRequote;
-                  const additionalComments = (pkg?.quote_rejection as any)?.additional_notes 
-                    ?? (pkg as any)?.additional_notes 
-                    ?? (pkg?.rejection_reason as any)?.additionalComments;
-                  return (
-                    <div className="mt-4 pt-4 border-t">
-                      <RejectionReasonDisplay 
-                        rejectionReason={reason}
-                        wantsRequote={wantsRequote}
-                        additionalComments={additionalComments}
-                      />
-                    </div>
-                  );
-                })()}
+              {/* Office Delivery Information */}
+              {pkg.office_delivery && (
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Información de Entrega en Oficina
+                  </h4>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                    {pkg.office_delivery.traveler_declaration && (
+                      <div>
+                        <p className="text-sm font-medium text-blue-800">Declaración del Viajero:</p>
+                        <p className="text-sm text-blue-700">
+                          Confirmado el {formatSafeDateTime(pkg.office_delivery.traveler_declaration.delivered_at)}
+                        </p>
+                        {pkg.office_delivery.traveler_declaration.notes && (
+                          <p className="text-sm text-blue-700 mt-1">
+                            <strong>Notas:</strong> {pkg.office_delivery.traveler_declaration.notes}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {pkg.office_delivery.admin_confirmation && (
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Confirmación Administrativa:</p>
+                        <p className="text-sm text-green-700">
+                          Confirmado el {formatSafeDateTime(pkg.office_delivery.admin_confirmation.confirmed_at)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-              </CardContent>
-            </Card>
-          )}
+              {/* Rejection Reason */}
+              {(() => {
+                const reason = (pkg?.quote_rejection as any)?.reason 
+                  || (pkg?.admin_rejection as any)?.reason 
+                  || (typeof pkg?.rejection_reason === 'string' 
+                      ? pkg.rejection_reason 
+                      : (pkg?.rejection_reason as any)?.value);
+                if (!reason) return null;
+                const wantsRequote = (pkg?.quote_rejection as any)?.wants_requote 
+                  ?? (pkg as any)?.wants_requote 
+                  ?? (pkg?.rejection_reason as any)?.wantsRequote;
+                const additionalComments = (pkg?.quote_rejection as any)?.additional_notes 
+                  ?? (pkg as any)?.additional_notes 
+                  ?? (pkg?.rejection_reason as any)?.additionalComments;
+                return (
+                  <div className="space-y-3 pt-4 border-t">
+                    <RejectionReasonDisplay 
+                      rejectionReason={reason}
+                      wantsRequote={wantsRequote}
+                      additionalComments={additionalComments}
+                    />
+                  </div>
+                );
+              })()}
+
+            </CardContent>
+          </Card>
 
           {/* Action Buttons */}
           {pkg.status === 'pending_approval' && (
