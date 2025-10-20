@@ -143,6 +143,7 @@ const AdminSupportTab = ({
         `)
         .or(`
           id.ilike.%${searchTerm}%,
+          item_name.ilike.%${searchTerm}%,
           item_description.ilike.%${searchTerm}%,
           additional_notes.ilike.%${searchTerm}%,
           user_id.in.(
