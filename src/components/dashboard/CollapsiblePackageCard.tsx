@@ -106,8 +106,6 @@ const CollapsiblePackageCard = ({
         return "Pago confirmado - Viajero comprará el producto";
       case 'pending_purchase':
         return 'Pendiente de compra - Sube el comprobante';
-      case 'purchased':
-        return pkg.tracking_info ? 'Producto comprado - En camino' : 'Producto comprado - Esperando envío';
       case 'in_transit':
         return 'Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete';
       case 'received_by_traveler':
@@ -137,7 +135,7 @@ const CollapsiblePackageCard = ({
     });
   };
   const isShipmentReadyStatus = (pkg: any): boolean => {
-    return pkg.status === 'purchased' || pkg.status === 'in_transit' || pkg.status === 'received_by_traveler' || pkg.status === 'pending_office_confirmation' || pkg.status === 'delivered_to_office' || pkg.status === 'completed';
+    return pkg.status === 'in_transit' || pkg.status === 'received_by_traveler' || pkg.status === 'pending_office_confirmation' || pkg.status === 'delivered_to_office' || pkg.status === 'completed';
   };
 
   // Helper function to check if the package has valid quote
@@ -146,7 +144,7 @@ const CollapsiblePackageCard = ({
     if (!pkg.quote) return false;
     
     // States where quote was already accepted/paid - always show quote
-    const paidStates = ['payment_pending', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+    const paidStates = ['payment_pending', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
     if (paidStates.includes(pkg.status)) return true;
     
     // For earlier states, check if quote hasn't expired
@@ -282,12 +280,7 @@ const CollapsiblePackageCard = ({
                           Recolectar paquete
                         </Button>
                       )
-                    ) : pkg.status === 'purchased' && !pkg.tracking_info || pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url ? <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                setShowShippingInfoModal(true);
-              }} className="text-xs font-medium w-full">
-                      📦 Subir comprobante compra
-                    </Button> : null}
+                    ) : null}
                 </div>
               </div> :
           // Desktop layout (original)
@@ -375,12 +368,6 @@ const CollapsiblePackageCard = ({
                     ) : null}
                   
                   {/* Show upload tracking button for purchased items without tracking */}
-                  {(pkg.status === 'purchased' && !pkg.tracking_info || pkg.status === 'purchased' && pkg.tracking_info && typeof pkg.tracking_info === 'object' && !(pkg.tracking_info as any)?.tracking_url) && <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                setShowShippingInfoModal(true);
-              }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
-                      <span className="truncate">📦 Subir info de envío</span>
-                    </Button>}
    
                   {/* Badge showing admin notes if any */}
                   {((pkg as any).admin_notes || (pkg as any).estimated_price_note) && <TooltipProvider>

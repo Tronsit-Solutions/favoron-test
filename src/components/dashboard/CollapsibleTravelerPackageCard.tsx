@@ -186,11 +186,6 @@ const CollapsibleTravelerPackageCard = ({
                       💳 Pago confirmado - El cliente ya pagó la cotización y debes comprar el producto
                     </div>
                   )}
-                  {pkg.status === 'purchased' && (
-                    <div className="text-green-600 bg-green-50 p-2 rounded-md">
-                      🛒 Producto comprado - Esperando envío del paquete
-                    </div>
-                  )}
                   {pkg.status === 'pending_purchase' && (
                     <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
                       🛍️ Pendiente de compra - El cliente ya pagó la cotización y debe comprar el producto
@@ -308,11 +303,6 @@ const CollapsibleTravelerPackageCard = ({
                       {pkg.status === 'payment_confirmed' && (
                         <div className="font-medium text-blue-600">
                           💳 Pago confirmado - El cliente ya pagó la cotización y debes comprar el producto
-                        </div>
-                      )}
-                      {pkg.status === 'purchased' && (
-                        <div className="font-medium text-green-600">
-                          🛒 Producto comprado - Esperando envío del paquete
                         </div>
                       )}
                       {pkg.status === 'pending_purchase' && (

@@ -723,7 +723,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 if (matchedTrip && matchedTrip.status === 'completed_paid') {
                                   return false;
                                 }
-                                return ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
+                                return ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
                               })
                               .reduce((sum, pkg) => {
                                 const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
@@ -743,7 +743,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 if (matchedTrip && matchedTrip.status === 'completed_paid') {
                                   return false;
                                 }
-                                return ['pending_purchase', 'purchased', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
+                                return ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
                               })
                               .reduce((sum, pkg) => {
                                 if ((pkg as any).products && (pkg as any).products.length > 0) {
@@ -788,7 +788,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                              'pending_purchase',
                              'payment_pending_approval',
                              'paid',
-                             'purchased',
+                             
                              'shipped',
                              'in_transit',
                              'received_by_traveler',

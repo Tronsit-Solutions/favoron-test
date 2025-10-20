@@ -181,7 +181,7 @@ const AdminDashboard = ({
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
       'paid': { label: 'Pagado', variant: 'default' as const },
-      'purchased': { label: 'Comprado', variant: 'default' as const },
+      
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'success' as const },
       'received_by_traveler': { label: 'Recibido por viajero', variant: 'default' as const },

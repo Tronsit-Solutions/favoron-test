@@ -101,7 +101,7 @@ export const useOptimizedRealtime = ({
       // Status changed to payment_pending_approval (payment uploaded)
       (payload.new.status === 'payment_pending_approval' && payload.old?.status === 'payment_pending') ||
       // Other critical status changes
-      (payload.new.status !== payload.old?.status && ['purchased', 'shipped', 'in_transit', 'delivered'].includes(payload.new.status))
+      (payload.new.status !== payload.old?.status && ['in_transit', 'delivered'].includes(payload.new.status))
     );
 
     debounceTimeoutRef.current = setTimeout(() => {

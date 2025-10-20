@@ -72,7 +72,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
             .in('status', [
               'paid', 
               'pending_purchase', 
-              'purchased',
+              
               'shipped',
               'in_transit', 
               'received_by_traveler',

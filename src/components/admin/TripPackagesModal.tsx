@@ -32,7 +32,7 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
   const getPackageProgress = (pkg: Package) => {
     const statusOrder = [
       'pending_approval', 'approved', 'matched', 'quote_sent', 'payment_pending', 
-      'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 
+      'paid', 'pending_purchase', 'in_transit', 
       'delivered_to_office', 'completed'
     ];
     const currentIndex = statusOrder.indexOf(pkg.status);

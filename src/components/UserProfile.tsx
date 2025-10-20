@@ -219,7 +219,7 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
       'paid': { label: 'Pagado', variant: 'default' as const },
-      'purchased': { label: 'Comprado', variant: 'default' as const },
+      
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },

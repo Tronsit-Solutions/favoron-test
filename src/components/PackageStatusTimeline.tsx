@@ -51,12 +51,6 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
       description: 'Debes realizar la compra del producto'
     },
     { 
-      key: 'purchased', 
-      label: 'Comprado', 
-      icon: Package,
-      description: 'El producto fue comprado'
-    },
-    { 
       key: 'in_transit', 
       label: 'En tránsito', 
       icon: Truck,

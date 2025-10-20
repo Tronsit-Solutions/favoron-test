@@ -119,7 +119,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     { value: 'awaiting_payment', label: 'Esperando Pago' },
     { value: 'payment_confirmed', label: 'Pago Confirmado' },
     { value: 'pending_purchase', label: 'Pendiente de Compra' },
-    { value: 'purchased', label: 'Comprado' },
+    
     { value: 'in_transit', label: 'En Tránsito' },
     { value: 'received_by_traveler', label: 'Recibido por Viajero' },
     { value: 'pending_office_confirmation', label: 'Esperando Confirmación Oficina' },
@@ -289,7 +289,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
     // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
-    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'purchased', 'shipped', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
+    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
     
     const tripPackages = pkg?.packages?.filter(pkg => 
       pkg.matched_trip_id === tripId && 

@@ -18,7 +18,7 @@ export const canCancelPackage = (pkg: Package, userId: string, userRole?: string
   const nonCancellableStatuses = [
     'payment_pending_approval',  // Pago subido
     'pending_purchase',          // Pago aprobado
-    'purchased',                 // Ya comprado
+    
     'in_transit',                // En tránsito
     'pending_office_confirmation', // Esperando oficina
     'delivered_to_office',       // En oficina

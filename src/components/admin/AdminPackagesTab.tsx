@@ -74,7 +74,7 @@ const AdminPackagesTab = ({
                     </Button>
                   )}
                   
-                  {(pkg.status === 'paid' || pkg.status === 'purchased') && (
+                  {pkg.status === 'paid' && (
                     <Button 
                       size="sm" 
                       onClick={() => onUpdateStatus('package', pkg.id, 'in_transit')}

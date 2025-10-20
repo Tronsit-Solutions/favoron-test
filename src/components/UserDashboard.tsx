@@ -84,7 +84,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },
       'paid': { label: 'Pagado', variant: 'default' as const },
-      'purchased': { label: 'Comprado', variant: 'default' as const },
+      
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
       'completed_paid': { label: 'Finalizado y Pagado', variant: 'default' as const },

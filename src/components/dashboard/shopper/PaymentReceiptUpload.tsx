@@ -250,7 +250,7 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
   };
 
   // Don't show upload form if payment has been approved by admin
-  const paymentApprovedStatuses = ['payment_confirmed', 'paid', 'pending_purchase', 'purchased', 'shipped', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'];
+  const paymentApprovedStatuses = ['payment_confirmed', 'paid', 'pending_purchase', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'];
   
   if (paymentApprovedStatuses.includes(pkg.status)) {
     return null; // Don't show anything - payment already processed
