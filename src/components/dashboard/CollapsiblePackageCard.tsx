@@ -314,7 +314,7 @@ const CollapsiblePackageCard = ({
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full min-w-0">
                   <CardDescription className="text-xs sm:text-sm min-w-0 flex-1">
                     <div className="flex flex-col gap-1 w-full min-w-0">
-                      <span className="truncate max-w-full text-muted-foreground/60">
+                      <span className="truncate max-w-full text-muted-foreground">
                         ID: #{pkg.id.substring(0, 6)}
                       </span>
                       <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
