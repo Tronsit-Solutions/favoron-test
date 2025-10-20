@@ -1274,17 +1274,18 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                 ) : canUploadPurchaseConfirmation ? (
                   <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">
                     <p className="text-xs text-blue-600 mb-3">
-                      ℹ️ Como admin, puedes subir la confirmación de compra
+                      ℹ️ Como admin, puedes subir la confirmación de compra (mismo comportamiento que usuario)
                     </p>
                     <PurchaseConfirmationUpload 
                       packageId={pkg.id}
                       onUpload={async (confirmationData) => {
                         try {
+                          // Same behavior as user upload: save to purchase_confirmation and change status to in_transit
                           const { error } = await supabase
                             .from('packages')
                             .update({ 
                               purchase_confirmation: confirmationData,
-                              status: 'purchased'
+                              status: 'in_transit' // Changed from 'purchased' to match user upload behavior
                             })
                             .eq('id', pkg.id);
                             
