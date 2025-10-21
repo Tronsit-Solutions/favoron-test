@@ -73,15 +73,15 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       <div className="relative z-10 px-8 py-4">
         <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col items-center">
-            <Package className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <Package className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
             <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>ORIGEN</span>
           </div>
           <div className="flex flex-col items-center">
-            <MapPin className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <MapPin className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
             <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>DESTINO</span>
           </div>
           <div className="flex flex-col items-center">
-            <Plane className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <Plane className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
             <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>SALIDA</span>
           </div>
         </div>
