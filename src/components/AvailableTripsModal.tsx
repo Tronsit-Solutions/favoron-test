@@ -216,7 +216,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             style={{ 
               width: '1080px', 
               height: '1080px',
-              backgroundColor: '#1a2942'
+              backgroundColor: '#1a2942',
+              overflow: 'hidden',
+              position: 'relative'
             }}
           >
             <InstagramTripPreview trips={filteredTrips} searchTerm={searchTerm} forCapture={true} />
