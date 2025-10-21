@@ -88,8 +88,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Cards */}
-      <main className="relative z-10 flex-1 px-8 py-4">
-        <div className="flex flex-col gap-3">
+      <main className="relative z-10 flex-1 px-8 py-2">
+        <div className="flex flex-col gap-2">
           {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
@@ -99,13 +99,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               >
                 {/* Origin */}
                 <div 
-                  className="py-4 px-4 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -117,13 +117,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Destination */}
                 <div 
-                  className="py-4 px-4 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -135,13 +135,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Date */}
                 <div 
-                  className="py-4 px-4 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
