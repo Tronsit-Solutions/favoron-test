@@ -94,9 +94,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Departure Board Header */}
-      <div className="relative z-10 px-8 py-2" style={{ backgroundColor: '#1a2942' }}>
+      <div className="relative z-10 px-8 py-4" style={{ backgroundColor: '#1a2942' }}>
         <div 
-          className="grid grid-cols-12 gap-3 text-base font-bold tracking-[0.3em] leading-none pb-2 font-bricolage"
+          className="grid grid-cols-12 gap-3 text-lg font-bold tracking-[0.3em] leading-none pb-3 font-bricolage"
           style={{ 
             color: '#fbbf24',
             fontVariantNumeric: 'tabular-nums',
