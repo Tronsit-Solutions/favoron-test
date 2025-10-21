@@ -1,6 +1,6 @@
 import React from "react";
 import { formatDate } from "@/utils/dateHelpers";
-import { MapPin, Calendar, Send } from "lucide-react";
+import { MapPin, Package, Plane } from "lucide-react";
 import favoronLogo from "@/assets/favoron-logo.png";
 
 interface InstagramTripPreviewProps {
@@ -18,9 +18,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
   const formatCalendarDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
-      day: date.getDate().toString().padStart(2, '0'),
-      month: date.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase(),
-      year: date.getFullYear()
+      day: date.getDate().toString(),
+      month: date.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase()
     };
   };
 
@@ -40,166 +39,136 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       style={forCapture ? { 
         width: '1080px', 
         height: '1080px',
-        backgroundColor: '#1a2942',
+        backgroundColor: '#f5f5f5',
         position: 'relative'
       } : {
-        background: 'transparent'
+        backgroundColor: '#f5f5f5'
       }}
     >
-      {/* Header - LED Airport Style */}
-      <header className="relative z-20" style={{ backgroundColor: '#1a2942' }}>
-        <div className="py-6 px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 
-                  className="text-4xl font-bold tracking-[0.1em] leading-none font-bricolage"
-                  style={{ 
-                    color: '#ffffff',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontStretch: 'condensed',
-                    fontWeight: 700,
-                    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)'
-                  }}
-                >
-                  PRÓXIMOS VIAJES
-                </h1>
-              </div>
-            </div>
-            <div className="text-right">
-              <div 
-                className="text-2xl font-bold tracking-[0.3em] leading-none font-bricolage"
-                style={{ 
-                  color: '#ffffff',
-                  fontVariantNumeric: 'tabular-nums',
-                  fontWeight: 700,
-                  textShadow: '0 0 10px rgba(255, 255, 255, 0.3)'
-                }}
-              >
-                {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </div>
-              <div 
-                className="text-xs tracking-[0.25em] font-bold leading-none mt-1 font-bricolage"
-                style={{ 
-                  color: '#ffffff',
-                  fontVariantNumeric: 'tabular-nums',
-                  opacity: 0.8
-                }}
-              >
-                HORA LOCAL
-              </div>
-            </div>
-          </div>
+      {/* Header - Promotional Title */}
+      <header className="relative z-20 py-8 px-8">
+        <div className="text-center">
+          <h1 
+            className="text-4xl font-bold leading-tight font-bricolage"
+            style={{ 
+              color: '#1a1a1a',
+              fontWeight: 700
+            }}
+          >
+            Pide un <span style={{ color: '#3498db' }}>FAVORÓN</span> con los
+          </h1>
+          <h2 
+            className="text-4xl font-bold leading-tight font-bricolage mt-1"
+            style={{ 
+              color: '#3498db',
+              fontWeight: 700
+            }}
+          >
+            PRÓXIMOS VIAJEROS
+          </h2>
         </div>
       </header>
 
-      {/* Departure Board Header */}
-      <div className="relative z-10 px-8 py-4" style={{ backgroundColor: '#1a2942' }}>
-        <div 
-          className="grid grid-cols-12 gap-3 text-lg font-bold tracking-[0.3em] leading-none pb-3 font-bricolage"
-          style={{ 
-            color: '#fbbf24',
-            fontVariantNumeric: 'tabular-nums',
-            fontWeight: 700,
-            opacity: 0.9
-          }}
-        >
-          <div className="col-span-2">FECHA</div>
-          <div className="col-span-1"></div>
-          <div className="col-span-5">ORIGEN</div>
-          <div className="col-span-4">DESTINO</div>
+      {/* Icons with Labels */}
+      <div className="relative z-10 px-8 py-4">
+        <div className="grid grid-cols-3 gap-6">
+          <div className="flex flex-col items-center">
+            <Package className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>ORIGEN</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <MapPin className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>DESTINO</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Plane className="w-12 h-12 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>SALIDA</span>
+          </div>
         </div>
       </div>
 
-      {/* Trips Board */}
-      <main className="relative z-10 flex-1 flex flex-col">
-        {trips.map((trip, index) => {
-          const dateInfo = formatCalendarDate(trip.arrival_date);
-          return (
-            <article
-              key={trip.id}
-              className="grid grid-cols-12 gap-3 items-center py-2 px-4 font-bricolage flex-1"
-              style={{
-                animation: forCapture ? 'none' : `flipIn 0.6s ease-out ${index * 0.1}s both`,
-                backgroundColor: index % 2 === 0 ? '#ffffff' : '#d4ebf7'
-              }}
-            >
-              {/* Date */}
-              <div className="col-span-2">
+      {/* Trips Cards */}
+      <main className="relative z-10 flex-1 px-8 py-4">
+        <div className="flex flex-col gap-3">
+          {trips.map((trip, index) => {
+            const dateInfo = formatCalendarDate(trip.arrival_date);
+            return (
+              <article
+                key={trip.id}
+                className="grid grid-cols-3 gap-4 font-bricolage"
+              >
+                {/* Origin */}
                 <div 
-                  className="font-bold text-lg leading-none tracking-[0.15em]"
+                  className="py-4 px-4 rounded-lg"
                   style={{
-                    color: '#1a2942',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontWeight: 700
+                    backgroundColor: '#4A90E2'
                   }}
                 >
-                  {dateInfo.day} {dateInfo.month}
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: 700
+                    }}
+                  >
+                    {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
+                  </div>
                 </div>
-              </div>
 
-              {/* Empty column */}
-              <div className="col-span-1"></div>
-
-              {/* Origin */}
-              <div className="col-span-5">
+                {/* Destination */}
                 <div 
-                  className="font-bold text-lg tracking-[0.2em] leading-none"
+                  className="py-4 px-4 rounded-lg"
                   style={{
-                    color: '#1a2942',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontWeight: 700
+                    backgroundColor: '#4A90E2'
                   }}
                 >
-                  {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: 700
+                    }}
+                  >
+                    {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
+                  </div>
                 </div>
-              </div>
 
-              {/* Destination */}
-              <div className="col-span-4">
+                {/* Date */}
                 <div 
-                  className="font-bold text-lg tracking-[0.2em] leading-none"
+                  className="py-4 px-4 rounded-lg"
                   style={{
-                    color: '#1a2942',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontWeight: 700
+                    backgroundColor: '#4A90E2'
                   }}
                 >
-                  {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: 700
+                    }}
+                  >
+                    {dateInfo.day} {dateInfo.month}
+                  </div>
                 </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })}
+        </div>
       </main>
 
       {/* Page Number - Bottom Right */}
       {pageNumber > 1 && (
-        <div className="absolute bottom-6 right-4 z-20">
+        <div className="absolute bottom-6 right-8 z-20">
           <p 
-            className="text-sm tracking-[0.3em] font-bold leading-none font-bricolage"
+            className="text-sm font-bold leading-none font-bricolage"
             style={{ 
-              color: '#3a8ec1',
-              fontVariantNumeric: 'tabular-nums'
+              color: '#666666'
             }}
           >
             PÁGINA {pageNumber}
           </p>
         </div>
       )}
-
-      <style>{`
-        @keyframes flipIn {
-          from {
-            opacity: 0;
-            transform: rotateX(-90deg);
-          }
-          to {
-            opacity: 1;
-            transform: rotateX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 
