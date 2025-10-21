@@ -23,7 +23,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
     };
   };
 
-  const TRIPS_PER_PAGE = 12;
+  const TRIPS_PER_PAGE = 10;
   const pages = [];
   for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
     pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
@@ -46,7 +46,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - Promotional Title */}
-      <header className="relative z-20 py-8 px-8">
+      <header className="relative z-20 py-6 px-8">
         <div className="text-center">
           <h1 
             className="text-4xl font-bold leading-tight font-bricolage"
@@ -70,7 +70,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Icons with Labels */}
-      <div className="relative z-10 px-8 py-4">
+      <div className="relative z-10 px-8 py-3">
         <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col items-center">
             <Package className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
