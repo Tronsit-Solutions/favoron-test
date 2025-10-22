@@ -72,8 +72,22 @@ const UserDetailModal = ({
 
   const profileId = (user as any).profileId as string | undefined;
 
+  console.log('🔍 UserDetailModal - Debug Info:', {
+    userName: user.name,
+    userEmail: user.email,
+    profileId,
+    totalTripsAvailable: trips.length,
+    totalPackagesAvailable: packages.length
+  });
+
   const userPackages = packages.filter(pkg => pkg.user_id === (profileId || ''));
   const userTrips = trips.filter(trip => trip.user_id === (profileId || ''));
+  
+  console.log('🔍 UserDetailModal - Filtered Results:', {
+    userPackagesCount: userPackages.length,
+    userTripsCount: userTrips.length,
+    userTripStatuses: userTrips.map(t => ({ id: t.id.slice(0, 8), status: t.status }))
+  });
 
   const derivedUsername = useMemo(() => {
     if (user.username && user.username.trim()) return user.username;

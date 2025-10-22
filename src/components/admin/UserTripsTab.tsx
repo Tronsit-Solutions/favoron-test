@@ -20,6 +20,17 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
   const { getStatusBadge } = useStatusHelpers();
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showPackagesModal, setShowPackagesModal] = useState(false);
+  
+  console.log('🚗 UserTripsTab - Received trips:', {
+    count: trips.length,
+    trips: trips.map(t => ({ 
+      id: t.id.slice(0, 8), 
+      status: t.status, 
+      from: t.from_city,
+      to: t.to_city,
+      user_id: t.user_id.slice(0, 8)
+    }))
+  });
 
   const getAssignedPackages = (tripId: string) => {
     return allPackages.filter(pkg => pkg.matched_trip_id === tripId);
