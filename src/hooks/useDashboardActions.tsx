@@ -62,7 +62,11 @@ export const useDashboardActions = (
         item_link: products[0]?.itemLink || null,
         estimated_price: totalEstimatedPrice || null,
         products_data: productsWithNotes, // Store all products with notes in the new field
-        delivery_deadline: packageData.deliveryDeadline ? packageData.deliveryDeadline.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
+        delivery_deadline: packageData.deliveryDeadline 
+          ? (typeof packageData.deliveryDeadline === 'string' 
+              ? packageData.deliveryDeadline 
+              : packageData.deliveryDeadline.toISOString())
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,

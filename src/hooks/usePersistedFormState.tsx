@@ -31,12 +31,45 @@ export function usePersistedFormState<T>(
         return initialState;
       }
       
-      return parsed.data || initialState;
+      // Deserialize dates from strings
+      const deserializedData = deserializeDates(parsed.data || initialState);
+      return deserializedData;
     } catch (error) {
       console.warn('Failed to load persisted form state:', error);
       return initialState;
     }
   });
+
+  // Helper function to recursively convert date strings back to Date objects
+  const deserializeDates = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj;
+    
+    // If it's a date string in ISO format, convert to Date
+    if (typeof obj === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(obj)) {
+      return new Date(obj);
+    }
+    
+    // If it's an object, recursively process its properties
+    if (typeof obj === 'object' && !Array.isArray(obj)) {
+      const result: any = {};
+      for (const key in obj) {
+        if (key === 'deliveryDeadline' && obj[key]) {
+          // Specifically handle deliveryDeadline field
+          result[key] = typeof obj[key] === 'string' ? new Date(obj[key]) : obj[key];
+        } else {
+          result[key] = deserializeDates(obj[key]);
+        }
+      }
+      return result;
+    }
+    
+    // If it's an array, recursively process its items
+    if (Array.isArray(obj)) {
+      return obj.map(item => deserializeDates(item));
+    }
+    
+    return obj;
+  };
 
   // Handle async decryption on mount
   useEffect(() => {
@@ -56,7 +89,9 @@ export function usePersistedFormState<T>(
           return;
         }
         
-        setState(parsed.data || initialState);
+        // Deserialize dates from strings
+        const deserializedData = deserializeDates(parsed.data || initialState);
+        setState(deserializedData);
       } catch (error) {
         console.warn('Failed to decrypt form data:', error);
         localStorage.removeItem(key);

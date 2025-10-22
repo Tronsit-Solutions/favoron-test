@@ -244,6 +244,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
     const submitData = {
       ...formData,
+      deliveryDeadline: formData.deliveryDeadline 
+        ? (formData.deliveryDeadline instanceof Date 
+            ? formData.deliveryDeadline 
+            : new Date(formData.deliveryDeadline))
+        : null,
       products: products,
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin,
