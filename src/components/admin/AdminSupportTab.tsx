@@ -132,31 +132,45 @@ const AdminSupportTab = ({
 
     setIsSearching(true);
     try {
-      // Search in packages and join with profiles
-      const { data: results, error } = await supabase
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Get all packages with profiles
+      const { data: allPackages, error } = await supabase
         .from('packages')
         .select(`
           *,
           profiles!packages_user_id_fkey (
             id, first_name, last_name, email, phone_number
           )
-        `)
-        .or(`
-          id.ilike.%${searchTerm}%,
-          item_name.ilike.%${searchTerm}%,
-          item_description.ilike.%${searchTerm}%,
-          additional_notes.ilike.%${searchTerm}%,
-          user_id.in.(
-            select id from profiles where 
-            first_name.ilike.%${searchTerm}% or 
-            last_name.ilike.%${searchTerm}% or 
-            email.ilike.%${searchTerm}% or 
-            phone_number.ilike.%${searchTerm}%
-          )
         `);
 
       if (error) throw error;
-      setSearchResults(results || []);
+
+      // Filter client-side for better name matching
+      const results = (allPackages || []).filter(pkg => {
+        // Search in package fields
+        const matchesPackageId = pkg.id?.toLowerCase().includes(searchLower);
+        const matchesItemDesc = pkg.item_description?.toLowerCase().includes(searchLower);
+        const matchesNotes = pkg.additional_notes?.toLowerCase().includes(searchLower);
+        
+        // Search in user profile fields
+        const firstName = pkg.profiles?.first_name?.toLowerCase() || '';
+        const lastName = pkg.profiles?.last_name?.toLowerCase() || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        const email = pkg.profiles?.email?.toLowerCase() || '';
+        const phone = pkg.profiles?.phone_number?.toLowerCase() || '';
+        
+        const matchesFirstName = firstName.includes(searchLower);
+        const matchesLastName = lastName.includes(searchLower);
+        const matchesFullName = fullName.includes(searchLower);
+        const matchesEmail = email.includes(searchLower);
+        const matchesPhone = phone.includes(searchLower);
+        
+        return matchesPackageId || matchesItemDesc || matchesNotes ||
+               matchesFirstName || matchesLastName || matchesFullName || matchesEmail || matchesPhone;
+      });
+      
+      setSearchResults(results);
     } catch (error) {
       console.error('Error searching:', error);
       setSearchResults([]);
