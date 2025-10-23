@@ -1,8 +1,8 @@
 import StatusAlert from "@/components/ui/status-alert";
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
-import { getDisplayTotal } from "@/lib/quoteHelpers";
 import { calculateServiceFee, getDeliveryFee } from "@/lib/pricing";
+import { useAuth } from "@/hooks/useAuth";
 interface PackageQuoteInfoProps {
   quote: {
     totalPrice: string;
@@ -31,16 +31,20 @@ const PackageQuoteInfo = ({
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
+  const { profile } = useAuth();
+  const effectiveTrust = shopperTrustLevel ?? profile?.trust_level;
+  
   // Calculate base from products_data admin tips
   const products = productsData || [];
   const sumOfAdminTips = products.reduce((sum, product) => {
-    const tip = parseFloat(product.adminAssignedTip || '0');
-    return sum + tip;
+    const raw = product?.adminAssignedTip;
+    const tip = typeof raw === 'string' ? parseFloat(raw) : Number(raw || 0);
+    return sum + (Number.isFinite(tip) ? tip : 0);
   }, 0);
   
   // Recalculate fees correctly based on trust level and delivery method
-  const serviceFee = calculateServiceFee(sumOfAdminTips, shopperTrustLevel);
-  const deliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, packageDestination);
+  const serviceFee = calculateServiceFee(sumOfAdminTips, effectiveTrust);
+  const deliveryFee = getDeliveryFee(deliveryMethod, effectiveTrust, packageDestination);
   
   const favoronTotal = sumOfAdminTips + serviceFee;
   const displayTotal = sumOfAdminTips + serviceFee + deliveryFee;
