@@ -46,115 +46,151 @@ const Auth = () => {
   const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
 
   useEffect(() => {
-    console.log('🔐 Auth component mounted, location.state:', location.state);
-    
-    // Check for OAuth errors in URL
-    detectAuthErrorFromUrl();
-    
-    // Check for mode from navigation state
-    const mode = location.state?.mode;
-    console.log('Navigation mode:', mode);
-    if (mode === 'register') {
-      console.log('Setting currentTab to signup');
-      setCurrentTab('signup');
-    }
-
-    // Check if password recovery was previously active (from localStorage)
-    const recoveryActive = localStorage.getItem('password_recovery_active');
-    if (recoveryActive === 'true') {
-      console.log('🔄 Recovering password reset state from localStorage');
-      setIsResettingPassword(true);
-    }
-
-    // Check if this is a password reset redirect from email link
-    // Supabase sends recovery tokens in both hash fragment and query params
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const searchParams = new URLSearchParams(window.location.search);
-    const type = hashParams.get('type') || searchParams.get('type');
-    const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
-    
-    console.log('🔍 Checking URL params:', {
-      hash: window.location.hash,
-      search: window.location.search,
-      type: type,
-      hasAccessToken: !!accessToken
-    });
-    
-    if (type === 'recovery') {
-      if (accessToken) {
-        console.log('✅ Valid password recovery link detected');
-        localStorage.setItem('password_recovery_active', 'true');
-        setIsResettingPassword(true);
-        
-        // Clean the URL to prevent re-detection on re-renders
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        toast({
-          title: "Restablecer contraseña",
-          description: "Ingresa tu nueva contraseña para completar el proceso",
-          duration: 6000,
-        });
-        
-        // IMPORTANT: Exit early to prevent session check that would redirect away
-        return;
-      } else {
-        console.error('❌ Recovery type detected but no access token');
-        toast({
-          title: "Enlace inválido o expirado",
-          description: "Por favor solicita un nuevo enlace de recuperación",
-          variant: "destructive",
-        });
+    const initAuth = async () => {
+      console.log('🔐 Auth component mounted, location.state:', location.state);
+      
+      // Check for OAuth errors in URL
+      detectAuthErrorFromUrl();
+      
+      // Check for mode from navigation state
+      const mode = location.state?.mode;
+      console.log('Navigation mode:', mode);
+      if (mode === 'register') {
+        console.log('Setting currentTab to signup');
+        setCurrentTab('signup');
       }
-    }
-    
-    // Only check for existing session if NOT in recovery mode
-    console.log('Checking for existing session...');
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Existing session check result:', session);
-      if (session && !isResettingPassword) {
-        const from = (location.state as any)?.from;
-        console.log('Existing session found. From state:', from);
-        if (from?.pathname) {
-          const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
-          console.log('Redirecting back to previous location:', target);
-          navigate(target, { replace: true });
+
+      // Check if password recovery was previously active (from localStorage)
+      const recoveryActive = localStorage.getItem('password_recovery_active');
+      if (recoveryActive === 'true') {
+        console.log('🔄 Recovering password reset state from localStorage');
+        setIsResettingPassword(true);
+      }
+
+      // Check if this is a password reset redirect from email link
+      // Supabase sends recovery tokens in both hash fragment and query params
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      const type = hashParams.get('type') || searchParams.get('type');
+      const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      
+      console.log('🔍 Checking URL params:', {
+        hash: window.location.hash,
+        search: window.location.search,
+        type: type,
+        hasAccessToken: !!accessToken
+      });
+      
+      if (type === 'recovery') {
+        if (accessToken) {
+          console.log('✅ Valid password recovery link detected');
+          
+          // Extract refresh token as well
+          const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+          
+          if (refreshToken) {
+            try {
+              // Establish the session with the recovery tokens BEFORE cleaning URL
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
+              });
+              
+              if (error) throw error;
+              
+              console.log('✅ Recovery session established successfully');
+              localStorage.setItem('password_recovery_active', 'true');
+              setIsResettingPassword(true);
+              
+              // NOW we can clean the URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+              
+              toast({
+                title: "Restablecer contraseña",
+                description: "Ingresa tu nueva contraseña para completar el proceso",
+                duration: 6000,
+              });
+              
+              // IMPORTANT: Exit early to prevent session check that would redirect away
+              return;
+            } catch (error: any) {
+              console.error('❌ Failed to establish recovery session:', error);
+              toast({
+                title: "Error de sesión",
+                description: "El enlace es inválido o ha expirado. Solicita uno nuevo.",
+                variant: "destructive",
+              });
+              return;
+            }
+          } else {
+            console.error('❌ Recovery access token found but no refresh token');
+            toast({
+              title: "Enlace incompleto",
+              description: "Por favor solicita un nuevo enlace de recuperación",
+              variant: "destructive",
+            });
+          }
         } else {
-          console.log('No previous location. Redirecting to /dashboard');
-          navigate('/dashboard', { replace: true });
+          console.error('❌ Recovery type detected but no access token');
+          toast({
+            title: "Enlace inválido o expirado",
+            description: "Por favor solicita un nuevo enlace de recuperación",
+            variant: "destructive",
+          });
         }
-      } else {
-        console.log('No existing session, staying on auth page');
       }
-    });
+      
+      // Only check for existing session if NOT in recovery mode
+      console.log('Checking for existing session...');
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        console.log('Existing session check result:', session);
+        if (session && !isResettingPassword) {
+          const from = (location.state as any)?.from;
+          console.log('Existing session found. From state:', from);
+          if (from?.pathname) {
+            const target = `${from.pathname}${from.search || ''}${from.hash || ''}`;
+            console.log('Redirecting back to previous location:', target);
+            navigate(target, { replace: true });
+          } else {
+            console.log('No previous location. Redirecting to /dashboard');
+            navigate('/dashboard', { replace: true });
+          }
+        } else {
+          console.log('No existing session, staying on auth page');
+        }
+      });
 
-    // Set up auth state listener for other auth events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state change:', event, 'Session:', !!session);
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('✅ PASSWORD_RECOVERY event detected');
-        localStorage.setItem('password_recovery_active', 'true');
-        setIsResettingPassword(true);
-        toast({
-          title: 'Restablecer contraseña',
-          description: 'Ingresa tu nueva contraseña para continuar',
-          duration: 6000,
-        });
-        return;
-      }
-      
-      if (event === 'SIGNED_IN' && session) {
-        // Clean recovery flag after successful login
-        localStorage.removeItem('password_recovery_active');
+      // Set up auth state listener for other auth events
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log('🔐 Auth state change:', event, 'Session:', !!session);
         
-        if (!isResettingPassword) {
-          // Always redirect to production dashboard after successful login
-          window.location.href = `${APP_URL}/dashboard`;
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('✅ PASSWORD_RECOVERY event detected');
+          localStorage.setItem('password_recovery_active', 'true');
+          setIsResettingPassword(true);
+          toast({
+            title: 'Restablecer contraseña',
+            description: 'Ingresa tu nueva contraseña para continuar',
+            duration: 6000,
+          });
+          return;
         }
-      }
-    });
+        
+        if (event === 'SIGNED_IN' && session) {
+          // Clean recovery flag after successful login
+          localStorage.removeItem('password_recovery_active');
+          
+          if (!isResettingPassword) {
+            // Always redirect to production dashboard after successful login
+            window.location.href = `${APP_URL}/dashboard`;
+          }
+        }
+      });
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    };
+
+    initAuth();
   }, [navigate, toast, isResettingPassword, location.state]);
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -439,6 +475,13 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Verify we have an active session first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No hay una sesión activa. Por favor solicita un nuevo enlace de recuperación.');
+      }
+      
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -465,9 +508,17 @@ const Auth = () => {
       }, 1000);
 
     } catch (error: any) {
+      console.error('❌ Password update failed:', error);
+      
+      let errorMessage = error.message;
+      
+      if (error.message?.includes('session') || error.message?.includes('Auth session missing')) {
+        errorMessage = 'Tu sesión de recuperación ha expirado. Por favor solicita un nuevo enlace.';
+      }
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error al actualizar contraseña",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
