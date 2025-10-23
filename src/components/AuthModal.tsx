@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { logAuthError, getEmailDomain } from "@/lib/authErrorLogger";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { APP_URL } from "@/lib/constants";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -79,7 +80,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
           description: "Has iniciado sesión correctamente"
         });
       } else {
-        const redirectUrl = `${window.location.origin}/`;
+        const redirectUrl = `${APP_URL}/`;
         
         // Validate WhatsApp before registration
         if (mode === 'register') {
@@ -135,7 +136,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
           emailDomain: getEmailDomain(formData.email),
           supabaseErrorCode: error.name || error.code,
           supabaseErrorMsg: error.message,
-          redirectUrl: window.location.origin
+          redirectUrl: APP_URL
         }
       );
 
@@ -151,7 +152,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
 
   const handleGoogleSignIn = async () => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${APP_URL}/`;
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -181,7 +182,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
           provider: 'google',
           supabaseErrorCode: error.name || error.code,
           supabaseErrorMsg: error.message,
-          redirectUrl: window.location.origin
+          redirectUrl: APP_URL
         }
       );
 

@@ -1,4 +1,6 @@
 // Application constants
+export const APP_URL = import.meta.env.VITE_APP_URL || 'https://favoron.app';
+
 export const APP_CONFIG = {
   DEFAULT_LOCALE: 'es-GT',
   PRICE_CURRENCY: 'Q',

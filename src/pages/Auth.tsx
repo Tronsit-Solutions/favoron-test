@@ -15,6 +15,7 @@ import AvatarUploadPreview from '@/components/auth/AvatarUploadPreview';
 import { supabaseWithRetry } from '@/lib/supabaseWithRetry';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { logAuthError, getEmailDomain, detectAuthErrorFromUrl } from '@/lib/authErrorLogger';
+import { APP_URL } from '@/lib/constants';
 
 
 const Auth = () => {
@@ -147,8 +148,8 @@ const Auth = () => {
         localStorage.removeItem('password_recovery_active');
         
         if (!isResettingPassword) {
-          // Always redirect to favoron.app dashboard after successful login
-          window.location.href = 'https://favoron.app/dashboard';
+          // Always redirect to production dashboard after successful login
+          window.location.href = `${APP_URL}/dashboard`;
         }
       }
     });
@@ -187,7 +188,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://favoron.app/',
+          emailRedirectTo: `${APP_URL}/`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -339,8 +340,8 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Always redirect to favoron.app dashboard after successful login
-        window.location.href = 'https://favoron.app/dashboard';
+        // Always redirect to production dashboard
+        window.location.href = `${APP_URL}/dashboard`;
       }
     } catch (error: any) {
       // Log signin error
@@ -383,7 +384,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${APP_URL}/auth`,
       });
 
       if (error) throw error;
@@ -480,7 +481,7 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://favoron.app/dashboard'
+          redirectTo: `${APP_URL}/dashboard`
         }
       });
 
