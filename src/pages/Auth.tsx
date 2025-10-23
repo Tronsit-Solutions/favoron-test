@@ -45,7 +45,7 @@ const Auth = () => {
   const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
 
   useEffect(() => {
-    console.log('Auth component mounted, location.state:', location.state);
+    console.log('🔐 Auth component mounted, location.state:', location.state);
     
     // Check for OAuth errors in URL
     detectAuthErrorFromUrl();
@@ -58,28 +58,52 @@ const Auth = () => {
       setCurrentTab('signup');
     }
 
+    // Check if password recovery was previously active (from localStorage)
+    const recoveryActive = localStorage.getItem('password_recovery_active');
+    if (recoveryActive === 'true') {
+      console.log('🔄 Recovering password reset state from localStorage');
+      setIsResettingPassword(true);
+    }
+
     // Check if this is a password reset redirect from email link
     // Supabase sends recovery tokens in both hash fragment and query params
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const searchParams = new URLSearchParams(window.location.search);
     const type = hashParams.get('type') || searchParams.get('type');
+    const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+    
+    console.log('🔍 Checking URL params:', {
+      hash: window.location.hash,
+      search: window.location.search,
+      type: type,
+      hasAccessToken: !!accessToken
+    });
     
     if (type === 'recovery') {
-      console.log('Password recovery detected from URL');
-      // This is a password recovery from email link - activate reset mode
-      setIsResettingPassword(true);
-      
-      // Clean the URL to prevent re-detection on re-renders
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      toast({
-        title: "Restablecer contraseña",
-        description: "Ingresa tu nueva contraseña para completar el proceso",
-        duration: 6000,
-      });
-      
-      // IMPORTANT: Exit early to prevent session check that would redirect away
-      return;
+      if (accessToken) {
+        console.log('✅ Valid password recovery link detected');
+        localStorage.setItem('password_recovery_active', 'true');
+        setIsResettingPassword(true);
+        
+        // Clean the URL to prevent re-detection on re-renders
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        toast({
+          title: "Restablecer contraseña",
+          description: "Ingresa tu nueva contraseña para completar el proceso",
+          duration: 6000,
+        });
+        
+        // IMPORTANT: Exit early to prevent session check that would redirect away
+        return;
+      } else {
+        console.error('❌ Recovery type detected but no access token');
+        toast({
+          title: "Enlace inválido o expirado",
+          description: "Por favor solicita un nuevo enlace de recuperación",
+          variant: "destructive",
+        });
+      }
     }
     
     // Only check for existing session if NOT in recovery mode
@@ -104,8 +128,11 @@ const Auth = () => {
 
     // Set up auth state listener for other auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event, 'Session:', !!session);
+      console.log('🔐 Auth state change:', event, 'Session:', !!session);
+      
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('✅ PASSWORD_RECOVERY event detected');
+        localStorage.setItem('password_recovery_active', 'true');
         setIsResettingPassword(true);
         toast({
           title: 'Restablecer contraseña',
@@ -114,9 +141,15 @@ const Auth = () => {
         });
         return;
       }
-      if (event === 'SIGNED_IN' && session && !isResettingPassword) {
-        // Always redirect to favoron.app dashboard after successful login
-        window.location.href = 'https://favoron.app/dashboard';
+      
+      if (event === 'SIGNED_IN' && session) {
+        // Clean recovery flag after successful login
+        localStorage.removeItem('password_recovery_active');
+        
+        if (!isResettingPassword) {
+          // Always redirect to favoron.app dashboard after successful login
+          window.location.href = 'https://favoron.app/dashboard';
+        }
       }
     });
 
@@ -350,7 +383,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: 'https://favoron.app/auth#type=recovery',
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) throw error;
@@ -410,6 +443,9 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // ✅ Clean recovery flag after successful password update
+      localStorage.removeItem('password_recovery_active');
 
       toast({
         title: "Contraseña actualizada ✅",
