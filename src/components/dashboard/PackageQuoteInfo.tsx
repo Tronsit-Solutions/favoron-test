@@ -13,7 +13,8 @@ interface PackageQuoteInfoProps {
   deliveryMethod?: string;
   shopperTrustLevel?: string;
   adminTipAmount?: number;
-  packageStatus?: string; // Add package status to determine if we should show countdown
+  packageStatus?: string;
+  packageDestination?: string;
 }
 const PackageQuoteInfo = ({
   quote,
@@ -22,12 +23,13 @@ const PackageQuoteInfo = ({
   deliveryMethod = 'pickup',
   shopperTrustLevel,
   adminTipAmount,
-  packageStatus
+  packageStatus,
+  packageDestination
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
   // Use completePrice if available, otherwise recalculate
-  const displayTotal = (quote as any).completePrice || getDisplayTotal(quote, deliveryMethod, shopperTrustLevel);
+  const displayTotal = (quote as any).completePrice || getDisplayTotal(quote, deliveryMethod, shopperTrustLevel, packageDestination);
   
   // Only show countdown for states where quote is still pending acceptance/payment
   const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);

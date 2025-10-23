@@ -475,6 +475,7 @@ const CollapsiblePackageCard = ({
                             shopperTrustLevel={(pkg as any).shopper_trust_level} 
                             adminTipAmount={pkg.admin_assigned_tip}
                             packageStatus={pkg.status}
+                            packageDestination={pkg.package_destination}
                           />
                         </div>
                       </CollapsibleContent>
