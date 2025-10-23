@@ -886,10 +886,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_quote: {
-        Args: { _package_id: string }
-        Returns: undefined
-      }
+      accept_quote: { Args: { _package_id: string }; Returns: undefined }
       activate_prime_membership: {
         Args: { _user_id: string }
         Returns: undefined
@@ -970,10 +967,7 @@ export type Database = {
           phone_number: string
         }[]
       }
-      archive_old_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      archive_old_data: { Args: never; Returns: undefined }
       audit_financial_data_access: {
         Args: {
           _access_type: string
@@ -987,10 +981,7 @@ export type Database = {
         Args: { _trip_id: string }
         Returns: boolean
       }
-      complete_past_trips_without_packages: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      complete_past_trips_without_packages: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
           _action_url?: string
@@ -1027,20 +1018,11 @@ export type Database = {
         }
         Returns: string
       }
-      expire_old_quotes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      expire_prime_memberships: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      expire_unresponded_assignments: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      expire_old_quotes: { Args: never; Returns: undefined }
+      expire_prime_memberships: { Args: never; Returns: undefined }
+      expire_unresponded_assignments: { Args: never; Returns: undefined }
       get_admin_trips_with_user: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           arrival_date: string
           available_space: number
@@ -1068,7 +1050,7 @@ export type Database = {
         }[]
       }
       get_database_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           index_size: string
           row_count: number
@@ -1102,10 +1084,7 @@ export type Database = {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
       }
-      get_next_label_number: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      get_next_label_number: { Args: never; Returns: number }
       get_public_profile_data: {
         Args: { target_user_id?: string }
         Returns: {
@@ -1118,7 +1097,7 @@ export type Database = {
         }[]
       }
       get_public_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           total_packages_completed: number
           total_tips_distributed: number
@@ -1127,7 +1106,7 @@ export type Database = {
         }[]
       }
       get_public_trips: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           arrival_date: string
           departure_date: string
@@ -1166,14 +1145,8 @@ export type Database = {
         Args: { _account_number: string }
         Returns: string
       }
-      send_assignment_warnings: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      send_quote_reminders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      send_assignment_warnings: { Args: never; Returns: undefined }
+      send_quote_reminders: { Args: never; Returns: undefined }
       traveler_reject_assignment: {
         Args: {
           _additional_comments?: string
@@ -1191,14 +1164,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      verify_admin_access: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      verify_authenticated: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      verify_admin_access: { Args: never; Returns: boolean }
+      verify_authenticated: { Args: never; Returns: boolean }
     }
     Enums: {
       trust_level: "basic" | "confiable" | "prime"
