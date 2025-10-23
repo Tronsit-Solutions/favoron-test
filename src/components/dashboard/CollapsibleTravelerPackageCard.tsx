@@ -125,11 +125,7 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${
-        hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : 
-        pkg.status === 'quote_sent' ? "ring-2 ring-amber-400/50 border-amber-300" :
-        "hover:shadow-md"
-      }`}>
+      <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
         <CollapsibleTrigger asChild>
           <CardHeader className={`cursor-pointer transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${
             hasPendingAction 
@@ -175,11 +171,11 @@ const CollapsibleTravelerPackageCard = ({
                       🔗 Paquete emparejado - Envía tu cotización
                     </div>
                   )}
-          {pkg.status === 'quote_sent' && (
-            <div className="text-amber-700 bg-amber-50 p-3 rounded-md border border-amber-200 font-medium">
-              ⏳ Cotización enviada - Esperando respuesta del shopper
-            </div>
-          )}
+                  {pkg.status === 'quote_sent' && (
+                    <div className="text-muted-foreground bg-muted/50 p-2 rounded-md">
+                      📝 Cotización enviada - Esperando respuesta del shopper
+                    </div>
+                  )}
                   {pkg.status === 'quote_accepted' && (
                     <div className="text-green-600 bg-green-50 p-2 rounded-md">
                       ✅ Cotización aceptada - Esperando pago
