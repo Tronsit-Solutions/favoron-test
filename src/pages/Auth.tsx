@@ -593,6 +593,53 @@ const Auth = () => {
                 </div>
               </form>
             </div>
+          ) : showForgotPassword ? (
+            /* Forgot Password Form */
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-foreground">¿Olvidaste tu contraseña?</h3>
+                <p className="text-sm text-muted-foreground">
+                  Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
+                </p>
+              </div>
+              
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-password-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="forgot-password-email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordEmail('');
+                    }}
+                    disabled={loading}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Volver
+                  </Button>
+                  <Button type="submit" className="flex-1" disabled={loading || !networkStatus.isOnline}>
+                    {loading ? 'Enviando...' : 'Enviar enlace'}
+                  </Button>
+                </div>
+              </form>
+            </div>
           ) : (
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -891,35 +938,6 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
-          )}
-
-          {/* Forgot Password Modal */}
-          {showForgotPassword && (
-            <div className="mt-4 p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">Restablecer contraseña</h3>
-              <form onSubmit={handleForgotPassword} className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder="Ingresa tu email"
-                  value={forgotPasswordEmail}
-                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                  required
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowForgotPassword(false)}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={loading} className="flex-1">
-                    {loading ? "Enviando..." : "Enviar"}
-                  </Button>
-                </div>
-              </form>
-            </div>
           )}
         </CardContent>
       </Card>
