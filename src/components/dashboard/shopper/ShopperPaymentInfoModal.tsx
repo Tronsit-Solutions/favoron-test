@@ -29,14 +29,21 @@ export default function ShopperPaymentInfoModal({
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   
-  // Use stored quote total (preferred) or recalculate if needed
-  const quoteData = pkg.quote as any;
-  const totalAmount = quoteData?.completePrice || quoteData?.totalPrice || getPriceBreakdown(
-    parseFloat(quoteData?.price || '0'), 
+  // Calculate total from products_data admin tips + fees
+  const productsData = (pkg.products_data as any[]) || [];
+  const sumOfAdminTips = productsData.reduce((sum, product) => {
+    const tip = parseFloat(product.adminAssignedTip || '0');
+    return sum + tip;
+  }, 0);
+  
+  const breakdown = getPriceBreakdown(
+    sumOfAdminTips,
     pkg.delivery_method || 'pickup', 
     profile?.trust_level,
     pkg.package_destination
-  ).totalPrice;
+  );
+  
+  const totalAmount = breakdown.totalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
