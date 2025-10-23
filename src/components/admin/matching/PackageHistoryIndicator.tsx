@@ -50,7 +50,7 @@ export const PackageHistoryIndicator = ({ package: pkg }: PackageHistoryIndicato
       badgeText = 'Cotización expirada';
       badgeVariant = 'secondary';
       Icon = Clock;
-      tooltipContent = 'Sin respuesta del shopper en 24 horas';
+      tooltipContent = 'Sin respuesta del shopper en 48 horas';
     }
   }
 
