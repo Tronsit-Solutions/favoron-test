@@ -9,12 +9,15 @@ interface UserFinancialSummaryProps {
 }
 
 const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSummaryProps) => {
-  // Calculate total paid as shopper
-  const totalPaidAsShopper = packages.reduce((total, pkg) => {
-    const quote = pkg.quote as any;
-    const price = parseFloat(quote?.totalPrice || pkg.estimated_price?.toString() || '0');
-    return total + (isNaN(price) ? 0 : price);
-  }, 0);
+  // Calculate total paid as shopper (only paid packages)
+  const paidStatuses = ['pending_purchase', 'in_transit', 'delivered_to_office', 'received_by_traveler'];
+  const totalPaidAsShopper = packages
+    .filter(pkg => paidStatuses.includes(pkg.status))
+    .reduce((total, pkg) => {
+      const quote = pkg.quote as any;
+      const price = parseFloat(quote?.totalPrice || pkg.estimated_price?.toString() || '0');
+      return total + (isNaN(price) ? 0 : price);
+    }, 0);
 
   // Calculate tips earned as traveler (from packages assigned to user's trips)
   const tipsEarned = trips.reduce((total, trip) => {
@@ -42,9 +45,9 @@ const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSum
 
   const financialMetrics = [
     {
-      title: "Total Pagado (como Comprador)",
-      value: `$${totalPaidAsShopper.toFixed(2)}`,
-      description: `En ${packages.length} pedidos`,
+      title: "Total Pagado (como Shopper)",
+      value: `Q${totalPaidAsShopper.toFixed(2)}`,
+      description: `En ${packages.filter(pkg => paidStatuses.includes(pkg.status)).length} pedidos pagados`,
       icon: DollarSign,
       color: "text-red-600"
     },
