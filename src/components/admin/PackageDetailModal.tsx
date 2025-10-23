@@ -1052,11 +1052,18 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
                       <p className="text-lg font-bold text-primary">Q{(() => {
-                        const travelerTip = parseFloat(pkg.quote.price || '0');
-                        const serviceRate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
-                        const serviceFee = travelerTip * serviceRate;
+                        // Calculate from products_data admin tips instead of quote.price
+                        const productsData = pkg.products_data || pkg.products || [];
+                        const sumOfAdminTips = productsData.reduce((sum: number, product: any) => {
+                          const raw = product?.adminAssignedTip;
+                          const tip = typeof raw === 'string' ? parseFloat(raw) : Number(raw || 0);
+                          return sum + (Number.isFinite(tip) ? tip : 0);
+                        }, 0);
                         
-                        // Calcular delivery fee
+                        const serviceRate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
+                        const serviceFee = sumOfAdminTips * serviceRate;
+                        
+                        // Calculate delivery fee
                         let deliveryFee = 0;
                         if (pkg.delivery_method !== 'pickup') {
                           const isGuatemalaCity = pkg.package_destination?.toLowerCase().match(
@@ -1074,7 +1081,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                           }
                         }
                         
-                        return (travelerTip + serviceFee + deliveryFee).toFixed(2);
+                        return (sumOfAdminTips + serviceFee + deliveryFee).toFixed(2);
                       })()}</p>
                     </div>
                   </div>

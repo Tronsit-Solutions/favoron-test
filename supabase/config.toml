@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.security-scan]
 verify_jwt = true
+
+[functions.fix-guatemala-city-delivery-fees-v2]
+verify_jwt = true

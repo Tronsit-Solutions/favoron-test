@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, Zap, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
+import { getDeliveryFee } from "@/lib/pricing";
 
 interface AdminOverviewTabProps {
   packages: any[];
@@ -74,7 +75,9 @@ const AdminOverviewTab = ({
                       📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                      Entrega: {pkg.delivery_method === 'delivery' 
+                        ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, pkg.package_destination)})` 
+                        : '🏢 Recojo en zona 14'}
                     </div>
                   </div>
 
@@ -171,7 +174,9 @@ const AdminOverviewTab = ({
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Entrega: {pkg.delivery_method === 'delivery' ? '🚚 Envío a domicilio (+Q25)' : '🏢 Recojo en zona 14'}
+                      Entrega: {pkg.delivery_method === 'delivery' 
+                        ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, pkg.package_destination)})` 
+                        : '🏢 Recojo en zona 14'}
                     </div>
                     {pkg.payment_receipt && (
                       <div className="text-xs text-blue-600 break-words">
