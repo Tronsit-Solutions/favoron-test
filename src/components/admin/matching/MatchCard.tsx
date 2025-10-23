@@ -127,10 +127,16 @@ export const MatchCard = ({
            (pkg.profiles?.prime_expires_at && new Date(pkg.profiles.prime_expires_at) > new Date());
   };
 
+  const isPersonalOrder = () => {
+    if (!pkg.products_data) return false;
+    const products = Array.isArray(pkg.products_data) ? pkg.products_data : [pkg.products_data];
+    return products.some((product: any) => product.requestType === 'personal');
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
-        <CardContent className="p-4">
+        <CardContent className={`p-4 ${isPersonalOrder() ? 'bg-sky-50' : ''}`}>
           {/* Header */}
           <div className={isMobile ? "space-y-3" : "flex items-center justify-between"}>
             <div className={`cursor-pointer ${isMobile ? "space-y-2" : "flex-1 min-w-0"}`} onClick={onToggle}>
