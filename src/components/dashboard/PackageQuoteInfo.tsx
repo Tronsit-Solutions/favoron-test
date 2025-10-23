@@ -2,6 +2,7 @@ import StatusAlert from "@/components/ui/status-alert";
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
 import { getDisplayTotal } from "@/lib/quoteHelpers";
+import { calculateServiceFee, getDeliveryFee } from "@/lib/pricing";
 interface PackageQuoteInfoProps {
   quote: {
     totalPrice: string;
@@ -37,9 +38,9 @@ const PackageQuoteInfo = ({
     return sum + tip;
   }, 0);
   
-  // Use stored fees or recalculate
-  const serviceFee = parseFloat((quote as any).serviceFee || '0');
-  const deliveryFee = parseFloat((quote as any).deliveryFee || '0');
+  // Recalculate fees correctly based on trust level and delivery method
+  const serviceFee = calculateServiceFee(sumOfAdminTips, shopperTrustLevel);
+  const deliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, packageDestination);
   
   const favoronTotal = sumOfAdminTips + serviceFee;
   const displayTotal = sumOfAdminTips + serviceFee + deliveryFee;
