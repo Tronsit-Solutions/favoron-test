@@ -15,6 +15,7 @@ interface PackageQuoteInfoProps {
   adminTipAmount?: number;
   packageStatus?: string;
   packageDestination?: string;
+  productsData?: any[];
 }
 const PackageQuoteInfo = ({
   quote,
@@ -24,21 +25,27 @@ const PackageQuoteInfo = ({
   shopperTrustLevel,
   adminTipAmount,
   packageStatus,
-  packageDestination
+  packageDestination,
+  productsData
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
-  // Use completePrice if available, otherwise recalculate
-  const displayTotal = (quote as any).completePrice || getDisplayTotal(quote, deliveryMethod, shopperTrustLevel, packageDestination);
+  // Calculate base from products_data admin tips
+  const products = productsData || [];
+  const sumOfAdminTips = products.reduce((sum, product) => {
+    const tip = parseFloat(product.adminAssignedTip || '0');
+    return sum + tip;
+  }, 0);
+  
+  // Use stored fees or recalculate
+  const serviceFee = parseFloat((quote as any).serviceFee || '0');
+  const deliveryFee = parseFloat((quote as any).deliveryFee || '0');
+  
+  const favoronTotal = sumOfAdminTips + serviceFee;
+  const displayTotal = sumOfAdminTips + serviceFee + deliveryFee;
   
   // Only show countdown for states where quote is still pending acceptance/payment
   const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);
-  
-  // Calculate breakdown
-  const basePrice = parseFloat((quote as any).price || quote.totalPrice || '0');
-  const serviceFee = parseFloat((quote as any).serviceFee || '0');
-  const deliveryFee = parseFloat((quote as any).deliveryFee || '0');
-  const favoronTotal = basePrice + serviceFee; // Tip del viajero + Fee de Favorón
   
   return (
     <StatusAlert variant="info" title="Cotización recibida">
