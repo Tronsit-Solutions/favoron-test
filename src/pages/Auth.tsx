@@ -33,6 +33,7 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [recoveryRequested, setRecoveryRequested] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -73,70 +74,79 @@ const Auth = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const type = hashParams.get('type') || searchParams.get('type');
       const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+      const modeParam = searchParams.get('mode');
       
-      console.log('🔍 Checking URL params:', {
-        hash: window.location.hash,
-        search: window.location.search,
-        type: type,
-        hasAccessToken: !!accessToken
+      console.log('🔍 Auth URL params:', { 
+        type, 
+        mode: modeParam,
+        accessToken: accessToken ? '✅ present' : '❌ missing',
+        refreshToken: refreshToken ? '✅ present' : '❌ missing'
       });
       
-      if (type === 'recovery') {
-        if (accessToken) {
-          console.log('✅ Valid password recovery link detected');
+      // Detect recovery intent from either type=recovery or mode=recovery
+      const isRecoveryIntent = type === 'recovery' || modeParam === 'recovery';
+      
+      if (isRecoveryIntent) {
+        console.log('🔐 Recovery intent detected');
+        setRecoveryRequested(true);
+        
+        if (accessToken && refreshToken) {
+          console.log('✅ Valid password recovery tokens found');
           
-          // Extract refresh token as well
-          const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
-          
-          if (refreshToken) {
-            try {
-              // Establish the session with the recovery tokens BEFORE cleaning URL
-              const { data, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken
-              });
-              
-              if (error) throw error;
-              
-              console.log('✅ Recovery session established successfully');
-              localStorage.setItem('password_recovery_active', 'true');
-              setIsResettingPassword(true);
-              
-              // NOW we can clean the URL
-              window.history.replaceState({}, document.title, window.location.pathname);
-              
-              toast({
-                title: "Restablecer contraseña",
-                description: "Ingresa tu nueva contraseña para completar el proceso",
-                duration: 6000,
-              });
-              
-              // IMPORTANT: Exit early to prevent session check that would redirect away
-              return;
-            } catch (error: any) {
-              console.error('❌ Failed to establish recovery session:', error);
-              toast({
-                title: "Error de sesión",
-                description: "El enlace es inválido o ha expirado. Solicita uno nuevo.",
-                variant: "destructive",
-              });
-              return;
-            }
-          } else {
-            console.error('❌ Recovery access token found but no refresh token');
+          try {
+            // Establish the session with the recovery tokens BEFORE cleaning URL
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            
+            if (error) throw error;
+            
+            console.log('✅ Recovery session established successfully');
+            localStorage.setItem('password_recovery_active', 'true');
+            setIsResettingPassword(true);
+            
+            // NOW we can clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             toast({
-              title: "Enlace incompleto",
-              description: "Por favor solicita un nuevo enlace de recuperación",
+              title: "Restablecer contraseña",
+              description: "Ingresa tu nueva contraseña para completar el proceso",
+              duration: 6000,
+            });
+            
+            // IMPORTANT: Exit early to prevent session check that would redirect away
+            return;
+          } catch (error: any) {
+            console.error('❌ Failed to establish recovery session:', error);
+            setRecoveryRequested(true);
+            setIsResettingPassword(false);
+            
+            toast({
+              title: "Error de sesión",
+              description: "El enlace es inválido o ha expirado.",
               variant: "destructive",
             });
+            
+            // Clean the URL but keep recovery state
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
           }
         } else {
-          console.error('❌ Recovery type detected but no access token');
+          console.error('❌ Recovery intent but missing tokens');
+          setRecoveryRequested(true);
+          setIsResettingPassword(false);
+          
           toast({
             title: "Enlace inválido o expirado",
             description: "Por favor solicita un nuevo enlace de recuperación",
             variant: "destructive",
           });
+          
+          // Clean the URL but keep recovery state
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
         }
       }
       
@@ -420,7 +430,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${APP_URL}/auth`,
+        redirectTo: `${APP_URL}/auth?mode=recovery`,
       });
 
       if (error) throw error;
@@ -572,6 +582,48 @@ const Auth = () => {
   const handleAvatarUpload = (file: File | null) => {
     setAvatarFile(file);
   };
+
+  // Render invalid recovery link screen
+  if (recoveryRequested && !isResettingPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-destructive/10">
+                <Lock className="h-8 w-8 text-destructive" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold">Enlace inválido o expirado</CardTitle>
+            <CardDescription>
+              El enlace de recuperación que usaste ya no es válido. Por favor solicita uno nuevo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={() => {
+                setRecoveryRequested(false);
+                setShowForgotPassword(true);
+              }}
+              className="w-full"
+            >
+              Solicitar nuevo enlace
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setRecoveryRequested(false);
+                setShowForgotPassword(false);
+              }}
+              className="w-full"
+            >
+              Volver al inicio de sesión
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
