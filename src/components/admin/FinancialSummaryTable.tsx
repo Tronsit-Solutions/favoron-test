@@ -23,6 +23,7 @@ interface EnrichedPackageData {
   package: Package;
   shopperName: string;
   travelerName: string;
+  tripId: string | null;
   productDescription: string;
   productLink?: string | null;
   paymentDate: string;
@@ -247,6 +248,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         package: pkg,
         shopperName,
         travelerName,
+        tripId: pkg.matched_trip_id || null,
         productDescription,
         productLink,
         paymentDate,
@@ -273,6 +275,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         package: { id: membership.id } as Package,
         shopperName: memberName,
         travelerName: '-',
+        tripId: null,
         productDescription: 'Membresía Prime',
         productLink: null,
         paymentDate,
@@ -361,6 +364,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Fecha Pago': item.paymentDate,
       'Shopper': item.shopperName,
       'Viajero': item.travelerName,
+      'ID Viaje': item.tripId || '-',
       'Producto': item.productDescription,
       'Tipo': item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
       'Estado': item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
@@ -375,6 +379,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Fecha Pago': '',
       'Shopper': '',
       'Viajero': '',
+      'ID Viaje': '',
       'Producto': '',
       'Tipo': '',
       'Estado': 'TOTAL',
@@ -485,6 +490,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead>Fecha Pago</TableHead>
                 <TableHead>Shopper</TableHead>
                 <TableHead>Viajero</TableHead>
+                <TableHead>ID Viaje</TableHead>
                 <TableHead>Productos</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Total a Pagar</TableHead>
@@ -505,6 +511,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     )}
                   </TableCell>
                   <TableCell>{item.travelerName}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {item.tripId ? item.tripId.slice(0, 8) + '...' : '-'}
+                  </TableCell>
                   <TableCell className="max-w-sm">
                     {item.isPrimeMembership ? (
                       <div className="text-sm font-medium text-purple-700">
@@ -610,7 +619,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               {/* Totals row */}
               {enrichedData.length > 0 && (
               <TableRow className="border-t-2 bg-muted/50 font-semibold">
-                <TableCell colSpan={4} className="text-right">
+                <TableCell colSpan={5} className="text-right">
                   <strong>TOTALES {selectedMonth !== "all" ? "(Mes seleccionado)" : "(Todos)"}:</strong>
                 </TableCell>
                 <TableCell></TableCell>
