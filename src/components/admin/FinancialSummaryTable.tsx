@@ -13,6 +13,7 @@ import ProductDetailModal from "./ProductDetailModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 
 interface FinancialSummaryTableProps {
   packages: Package[];
@@ -664,31 +665,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           packageDescription={selectedProductData?.description || ''}
         />
 
-        {/* Modal para ver comprobante de pago */}
-        {selectedPaymentReceipt && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setSelectedPaymentReceipt(null)}>
-            <div className="bg-background rounded-lg max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center p-4 border-b">
-                <h3 className="text-lg font-semibold">Comprobante de Pago del Shopper</h3>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedPaymentReceipt(null)}>
-                  ✕
-                </Button>
-              </div>
-              <div className="flex-1 overflow-auto p-6 bg-muted/20">
-                <div className="flex items-center justify-center min-h-full">
-                  <img 
-                    src={selectedPaymentReceipt.url} 
-                    alt={selectedPaymentReceipt.filename}
-                    className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg"
-                  />
-                </div>
-              </div>
-              <div className="p-4 border-t bg-muted/30 text-sm text-muted-foreground text-center">
-                {selectedPaymentReceipt.filename}
-              </div>
-            </div>
-          </div>
-        )}
+        <ImageViewerModal
+          isOpen={!!selectedPaymentReceipt}
+          onClose={() => setSelectedPaymentReceipt(null)}
+          imageUrl={selectedPaymentReceipt?.url || ''}
+          title="Comprobante de Pago del Shopper"
+          filename={selectedPaymentReceipt?.filename || 'comprobante.jpg'}
+        />
       </CardContent>
     </Card>
   );
