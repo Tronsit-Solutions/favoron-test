@@ -168,35 +168,55 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     };
   }, [isOpen, editMode, initialData, openModal, closeModal]);
 
-  // Restore persisted data when modal reopens (after tab switch)
+  // Force restore from localStorage when tab becomes visible again
   useEffect(() => {
-    if (!isOpen) return;
-
-    const hasPersistedProducts =
-      Array.isArray(persistedProducts) &&
-      persistedProducts.length > 0 &&
-      persistedProducts.some(p => p.itemDescription || p.itemLink || p.estimatedPrice);
-
-    const hasPersistedForm =
-      !!(persistedFormData &&
-        (persistedFormData.packageDestination ||
-         persistedFormData.purchaseOrigin ||
-         persistedFormData.requestType));
-
-    const hasPersistedAddress = !!persistedAddressData;
-
-    console.log('🔄 Restore check (package):', { isOpen, editMode, hasPersistedProducts, hasPersistedForm, hasPersistedAddress });
-
-    // Avoid overwriting edit mode data
-    if (editMode) return;
-
-    if (hasPersistedProducts) setProducts(persistedProducts);
-    if (hasPersistedForm) {
-      setFormData(persistedFormData);
-      setFormRequestType(persistedFormData.requestType || 'online');
-    }
-    if (hasPersistedAddress) setAddressData(persistedAddressData);
-  }, [isOpen, editMode, persistedProducts, persistedFormData, persistedAddressData]);
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isOpen && !editMode) {
+        console.log('👁️ Tab visible - forcing restore from localStorage');
+        
+        // Force re-read from localStorage
+        const productsKey = 'package-form-products';
+        const formDataKey = 'package-form-data';
+        const addressKey = 'package-form-address';
+        
+        try {
+          const productsItem = localStorage.getItem(productsKey);
+          const formDataItem = localStorage.getItem(formDataKey);
+          const addressItem = localStorage.getItem(addressKey);
+          
+          if (productsItem) {
+            const parsed = JSON.parse(productsItem);
+            if (parsed.data && Array.isArray(parsed.data)) {
+              console.log('📦 Restoring products:', parsed.data);
+              setProducts(parsed.data);
+            }
+          }
+          
+          if (formDataItem) {
+            const parsed = JSON.parse(formDataItem);
+            if (parsed.data) {
+              console.log('📝 Restoring form data:', parsed.data);
+              setFormData(parsed.data);
+              setFormRequestType(parsed.data.requestType || 'online');
+            }
+          }
+          
+          if (addressItem) {
+            const parsed = JSON.parse(addressItem);
+            if (parsed.data) {
+              console.log('📍 Restoring address:', parsed.data);
+              setAddressData(parsed.data);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to restore from localStorage:', error);
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isOpen, editMode]);
 
   // Sync all products' requestType when formRequestType changes
   useEffect(() => {

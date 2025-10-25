@@ -122,18 +122,44 @@ const TripForm = ({
     };
   }, [isOpen, openModal, closeModal]);
 
-  // Restore form data when modal reopens (after tab switch)
+  // Force restore from localStorage when tab becomes visible again
   useEffect(() => {
-    if (!isOpen) return;
-
-    const hasPersistedForm = !!(persistedFormData?.fromCity || persistedFormData?.toCity || persistedFormData?.arrivalDate);
-    const hasPersistedMessenger = !!persistedMessengerData;
-
-    console.log('🔄 Restore check (trip):', { isOpen, hasPersistedForm, hasPersistedMessenger });
-
-    if (hasPersistedForm) setFormData(persistedFormData);
-    if (hasPersistedMessenger) setMessengerData(persistedMessengerData);
-  }, [isOpen, persistedFormData, persistedMessengerData]);
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isOpen) {
+        console.log('👁️ Tab visible - forcing restore from localStorage (trip)');
+        
+        // Force re-read from localStorage
+        const formDataKey = 'trip-form-data';
+        const messengerKey = 'trip-form-messenger';
+        
+        try {
+          const formDataItem = localStorage.getItem(formDataKey);
+          const messengerItem = localStorage.getItem(messengerKey);
+          
+          if (formDataItem) {
+            const parsed = JSON.parse(formDataItem);
+            if (parsed.data) {
+              console.log('📝 Restoring trip form data:', parsed.data);
+              setFormData(parsed.data);
+            }
+          }
+          
+          if (messengerItem) {
+            const parsed = JSON.parse(messengerItem);
+            if (parsed.data) {
+              console.log('🚗 Restoring messenger data:', parsed.data);
+              setMessengerData(parsed.data);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to restore from localStorage:', error);
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isOpen]);
 
   // Sync local state with persisted state
   useEffect(() => {
