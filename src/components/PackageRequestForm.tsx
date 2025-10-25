@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { useModalState } from "@/contexts/ModalStateContext";
+import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,7 @@ interface PackageRequestFormProps {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   const { openModal, closeModal } = useModalState();
+  useTabVisibilityProtection({ preventNavigationWithModals: true });
 
   // Initialize data based on mode
   const getInitialProducts = (): Product[] => {
@@ -168,20 +170,33 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Restore persisted data when modal reopens (after tab switch)
   useEffect(() => {
-    if (isOpen && !editMode) {
-      console.log('🔄 Restoring form data from localStorage', { 
-        hasPersistedProducts: persistedProducts.length > 0,
-        hasPersistedFormData: !!persistedFormData.packageDestination 
-      });
-      // Force sync with persisted state
-      setProducts(persistedProducts);
+    if (!isOpen) return;
+
+    const hasPersistedProducts =
+      Array.isArray(persistedProducts) &&
+      persistedProducts.length > 0 &&
+      persistedProducts.some(p => p.itemDescription || p.itemLink || p.estimatedPrice);
+
+    const hasPersistedForm =
+      !!(persistedFormData &&
+        (persistedFormData.packageDestination ||
+         persistedFormData.purchaseOrigin ||
+         persistedFormData.requestType));
+
+    const hasPersistedAddress = !!persistedAddressData;
+
+    console.log('🔄 Restore check (package):', { isOpen, editMode, hasPersistedProducts, hasPersistedForm, hasPersistedAddress });
+
+    // Avoid overwriting edit mode data
+    if (editMode) return;
+
+    if (hasPersistedProducts) setProducts(persistedProducts);
+    if (hasPersistedForm) {
       setFormData(persistedFormData);
       setFormRequestType(persistedFormData.requestType || 'online');
-      if (persistedAddressData) {
-        setAddressData(persistedAddressData);
-      }
     }
-  }, [isOpen, editMode]);
+    if (hasPersistedAddress) setAddressData(persistedAddressData);
+  }, [isOpen, editMode, persistedProducts, persistedFormData, persistedAddressData]);
 
   // Sync all products' requestType when formRequestType changes
   useEffect(() => {
@@ -422,7 +437,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     actualDestination?.toLowerCase().includes('ciudad de guatemala');
 
   const renderPackageForm = () => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto px-6 md:px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">

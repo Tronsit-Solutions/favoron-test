@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { useModalState } from "@/contexts/ModalStateContext";
+import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ const TripForm = ({
   onSubmit
 }: TripFormProps) => {
   const { openModal, closeModal } = useModalState();
+  useTabVisibilityProtection({ preventNavigationWithModals: true });
 
   // Auto-persist form open state to maintain modal across tab switches
   const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
@@ -122,20 +124,16 @@ const TripForm = ({
 
   // Restore form data when modal reopens (after tab switch)
   useEffect(() => {
-    if (isOpen) {
-      console.log('🔄 Restoring form data from localStorage', { 
-        hasPersistedFormData: !!persistedFormData.fromCity,
-        hasPersistedMessengerData: !!persistedMessengerData 
-      });
-      // Force sync with persisted state
-      if (persistedFormData && persistedFormData.fromCity) {
-        setFormData(persistedFormData);
-      }
-      if (persistedMessengerData) {
-        setMessengerData(persistedMessengerData);
-      }
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+
+    const hasPersistedForm = !!(persistedFormData?.fromCity || persistedFormData?.toCity || persistedFormData?.arrivalDate);
+    const hasPersistedMessenger = !!persistedMessengerData;
+
+    console.log('🔄 Restore check (trip):', { isOpen, hasPersistedForm, hasPersistedMessenger });
+
+    if (hasPersistedForm) setFormData(persistedFormData);
+    if (hasPersistedMessenger) setMessengerData(persistedMessengerData);
+  }, [isOpen, persistedFormData, persistedMessengerData]);
 
   // Sync local state with persisted state
   useEffect(() => {
@@ -362,7 +360,7 @@ const TripForm = ({
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
   
   const renderTripForm = () => (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto px-6 md:px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
