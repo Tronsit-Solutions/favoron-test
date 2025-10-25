@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { usePersistedFormState } from "@/hooks/usePersistedFormState";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { openModal, closeModal } = useModalState();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
 
-  // Initialize data based on mode
+  // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
       // Handle both old format (single product) and new format (array)
@@ -93,22 +93,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     };
   };
 
-  // Only use persisted state in create mode - disable encryption for this form
-  const { state: persistedProducts, setState: setPersistedProducts, clearPersistedState: clearProducts } = usePersistedFormState({
-    key: 'package-form-products',
-    initialState: [{
+  // Define el estado inicial del formulario completo
+  const getInitialFormState = () => ({
+    products: editMode ? getInitialProducts() : [{
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
       quantity: '1',
-      requestType: 'online'
-    }] as Product[],
-    encrypt: false // Disable encryption for faster, more reliable form restoration
-  });
-
-  const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
-    key: 'package-form-data',
-    initialState: {
+      requestType: 'online' as 'online' | 'personal'
+    }],
+    formData: editMode ? getInitialFormData() : {
       deliveryDeadline: null as Date | null,
       additionalNotes: '',
       packageDestination: '',
@@ -118,105 +112,66 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       deliveryMethod: '',
       requestType: 'online' as 'online' | 'personal'
     },
-    encrypt: false // Disable encryption for faster, more reliable form restoration
+    addressData: (editMode && initialData?.delivery_address) ? initialData.delivery_address : null,
+    formRequestType: editMode ? getInitialRequestType() : 'online' as 'online' | 'personal',
+    selectedCountry: '' as string,
+    showAddressForm: false
   });
 
-  const { state: persistedAddressData, setState: setPersistedAddressData, clearPersistedState: clearAddress } = usePersistedFormState({
-    key: 'package-form-address',
-    initialState: null,
-    encrypt: false // Disable encryption for faster, more reliable form restoration
-  });
+  // Auto-guardado del formulario completo (solo en modo create)
+  const formKey = editMode ? `package-form-edit-${initialData?.id}` : `package-form-create:${window.location.pathname}`;
+  const { values: formState, setValues: setFormState, updateField, reset: resetFormDraft, isDirty } = useFormAutosave(
+    formKey,
+    getInitialFormState(),
+    { debounceMs: 400, storage: 'local' }
+  );
 
-  // Local state for non-critical UI state
-  const [products, setProducts] = useState<Product[]>(editMode ? getInitialProducts() : persistedProducts);
-  const [formData, setFormData] = useState(editMode ? getInitialFormData() : persistedFormData);
-  const [formRequestType, setFormRequestType] = useState<'online' | 'personal'>(editMode ? getInitialRequestType() : (persistedFormData.requestType || 'online'));
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressData, setAddressData] = useState(editMode && initialData?.delivery_address ? initialData.delivery_address : persistedAddressData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
+  // Desestructurar estado para facilitar acceso
+  const products = formState.products;
+  const formData = formState.formData;
+  const addressData = formState.addressData;
+  const formRequestType = formState.formRequestType;
+  const selectedCountry = formState.selectedCountry;
+  const showAddressForm = formState.showAddressForm;
 
-  // Sync local state with persisted state (only in create mode)
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedProducts(products);
-    }
-  }, [products, setPersistedProducts, editMode]);
-
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedFormData(formData);
-    }
-  }, [formData, setPersistedFormData, editMode]);
-
-  useEffect(() => {
-    if (!editMode) {
-      setPersistedAddressData(addressData);
-    }
-  }, [addressData, setPersistedAddressData, editMode]);
-
-  // Register modal with ModalStateContext for tab protection
-  useEffect(() => {
-    if (isOpen) {
-      openModal('package-request-form', 'form', { editMode, initialData });
+  // Helpers para actualizar partes específicas del estado (soportan callbacks)
+  const setProducts = (newProducts: typeof products | ((prev: typeof products) => typeof products)) => {
+    if (typeof newProducts === 'function') {
+      setFormState(prev => ({ ...prev, products: newProducts(prev.products) }));
     } else {
-      closeModal('package-request-form');
+      updateField('products', newProducts);
     }
-    
-    return () => {
-      closeModal('package-request-form');
-    };
-  }, [isOpen, editMode, initialData, openModal, closeModal]);
+  };
+  
+  const setFormData = (newFormData: typeof formData | ((prev: typeof formData) => typeof formData)) => {
+    if (typeof newFormData === 'function') {
+      setFormState(prev => ({ ...prev, formData: newFormData(prev.formData) }));
+    } else {
+      updateField('formData', newFormData);
+    }
+  };
+  
+  const setAddressData = (newAddress: typeof addressData) => updateField('addressData', newAddress);
+  const setFormRequestType = (newType: typeof formRequestType) => updateField('formRequestType', newType);
+  const setSelectedCountry = (country: string) => updateField('selectedCountry', country);
+  const setShowAddressForm = (show: boolean) => updateField('showAddressForm', show);
 
-  // Force restore from localStorage when tab becomes visible again
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirmar salida si hay cambios sin guardar (solo en modo create)
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && isOpen && !editMode) {
-        console.log('👁️ Tab visible - forcing restore from localStorage');
-        
-        // Force re-read from localStorage
-        const productsKey = 'package-form-products';
-        const formDataKey = 'package-form-data';
-        const addressKey = 'package-form-address';
-        
-        try {
-          const productsItem = localStorage.getItem(productsKey);
-          const formDataItem = localStorage.getItem(formDataKey);
-          const addressItem = localStorage.getItem(addressKey);
-          
-          if (productsItem) {
-            const parsed = JSON.parse(productsItem);
-            if (parsed.data && Array.isArray(parsed.data)) {
-              console.log('📦 Restoring products:', parsed.data);
-              setProducts(parsed.data);
-            }
-          }
-          
-          if (formDataItem) {
-            const parsed = JSON.parse(formDataItem);
-            if (parsed.data) {
-              console.log('📝 Restoring form data:', parsed.data);
-              setFormData(parsed.data);
-              setFormRequestType(parsed.data.requestType || 'online');
-            }
-          }
-          
-          if (addressItem) {
-            const parsed = JSON.parse(addressItem);
-            if (parsed.data) {
-              console.log('📍 Restoring address:', parsed.data);
-              setAddressData(parsed.data);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to restore from localStorage:', error);
-        }
+    if (editMode) return;
+
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'Tienes cambios sin guardar. ¿Estás seguro que quieres salir?';
       }
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isOpen, editMode]);
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isDirty, editMode]);
 
   // Sync all products' requestType when formRequestType changes
   useEffect(() => {
@@ -356,10 +311,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setShowAddressForm(false);
         setAddressData(null);
         
-        // Clear persisted states
-        clearProducts();
-        clearFormData();
-        clearAddress();
+        // Clear form draft
+        resetFormDraft();
       }
       
       // Close modal

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { usePersistedFormState } from "@/hooks/usePersistedFormState";
+import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
 import { Button } from "@/components/ui/button";
@@ -35,38 +35,9 @@ const TripForm = ({
   const { openModal, closeModal } = useModalState();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
 
-  // Auto-persist form open state to maintain modal across tab switches
-  const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
-    key: 'trip-form-open',
-    initialState: false,
-    encrypt: false // Disable encryption for faster, more reliable form restoration
-  });
-
-  // Sync modal state with URL/persistence
-  useEffect(() => {
-    if (isOpen && !isFormOpen) {
-      setIsFormOpen(true);
-    } else if (!isOpen && isFormOpen) {
-      setIsFormOpen(false);
-    }
-  }, [isOpen, isFormOpen, setIsFormOpen]);
-
-  // Generate a client request id each time the modal opens
-  useEffect(() => {
-    if (isOpen) {
-      try {
-        setRequestId(crypto.randomUUID());
-      } catch {
-        // Fallback simple id
-        setRequestId(String(Date.now()));
-      }
-    }
-  }, [isOpen]);
-
-  // Use persisted form state to maintain data across tab switches
-  const { state: persistedFormData, setState: setPersistedFormData, clearPersistedState: clearFormData } = usePersistedFormState({
-    key: 'trip-form-data',
-    initialState: {
+  // Estado inicial del formulario completo
+  const getInitialFormState = () => ({
+    formData: {
       fromCity: '',
       fromCountry: '',
       toCity: '',
@@ -91,84 +62,68 @@ const TripForm = ({
       lastDayPackages: null as Date | null,
       messengerPickupLocation: ''
     },
-    encrypt: false // Disable encryption for faster, more reliable form restoration
+    messengerData: null as any,
+    acceptedTerms: false,
+    showTermsModal: false,
+    showMessengerForm: false
   });
 
-  const { state: persistedMessengerData, setState: setPersistedMessengerData, clearPersistedState: clearMessenger } = usePersistedFormState({
-    key: 'trip-form-messenger',
-    initialState: null,
-    encrypt: false // Disable encryption for faster, more reliable form restoration
-  });
+  // Auto-guardado del formulario completo
+  const formKey = `trip-form-create:${window.location.pathname}`;
+  const { values: formState, setValues: setFormState, updateField, reset: resetFormDraft, isDirty } = useFormAutosave(
+    formKey,
+    getInitialFormState(),
+    { debounceMs: 400, storage: 'local' }
+  );
 
-  // Local state
-  const [formData, setFormData] = useState(persistedFormData);
-  const [showMessengerForm, setShowMessengerForm] = useState(false);
-  const [messengerData, setMessengerData] = useState(persistedMessengerData);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
+  // Desestructurar estado para facilitar acceso
+  const formData = formState.formData;
+  const messengerData = formState.messengerData;
+  const acceptedTerms = formState.acceptedTerms;
+  const showTermsModal = formState.showTermsModal;
+  const showMessengerForm = formState.showMessengerForm;
+
+  // Helpers para actualizar partes específicas del estado (soportan callbacks)
+  const setFormData = (newFormData: typeof formData | ((prev: typeof formData) => typeof formData)) => {
+    if (typeof newFormData === 'function') {
+      setFormState(prev => ({ ...prev, formData: newFormData(prev.formData) }));
+    } else {
+      updateField('formData', newFormData);
+    }
+  };
+
+  const setMessengerData = (newData: typeof messengerData) => updateField('messengerData', newData);
+  const setAcceptedTerms = (value: boolean) => updateField('acceptedTerms', value);
+  const setShowTermsModal = (show: boolean) => updateField('showTermsModal', show);
+  const setShowMessengerForm = (show: boolean) => updateField('showMessengerForm', show);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
 
-  // Register modal with ModalStateContext for tab protection
+  // Generate a client request id each time the modal opens
   useEffect(() => {
     if (isOpen) {
-      openModal('trip-form', 'form');
-    } else {
-      closeModal('trip-form');
-    }
-    
-    return () => {
-      closeModal('trip-form');
-    };
-  }, [isOpen, openModal, closeModal]);
-
-  // Force restore from localStorage when tab becomes visible again
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && isOpen) {
-        console.log('👁️ Tab visible - forcing restore from localStorage (trip)');
-        
-        // Force re-read from localStorage
-        const formDataKey = 'trip-form-data';
-        const messengerKey = 'trip-form-messenger';
-        
-        try {
-          const formDataItem = localStorage.getItem(formDataKey);
-          const messengerItem = localStorage.getItem(messengerKey);
-          
-          if (formDataItem) {
-            const parsed = JSON.parse(formDataItem);
-            if (parsed.data) {
-              console.log('📝 Restoring trip form data:', parsed.data);
-              setFormData(parsed.data);
-            }
-          }
-          
-          if (messengerItem) {
-            const parsed = JSON.parse(messengerItem);
-            if (parsed.data) {
-              console.log('🚗 Restoring messenger data:', parsed.data);
-              setMessengerData(parsed.data);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to restore from localStorage:', error);
-        }
+      try {
+        setRequestId(crypto.randomUUID());
+      } catch {
+        // Fallback simple id
+        setRequestId(String(Date.now()));
       }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
   }, [isOpen]);
 
-  // Sync local state with persisted state
+  // Confirmar salida si hay cambios sin guardar
   useEffect(() => {
-    setPersistedFormData(formData);
-  }, [formData, setPersistedFormData]);
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'Tienes cambios sin guardar. ¿Estás seguro que quieres salir?';
+      }
+    };
 
-  useEffect(() => {
-    setPersistedMessengerData(messengerData);
-  }, [messengerData, setPersistedMessengerData]);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isDirty]);
   
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
@@ -308,9 +263,8 @@ const TripForm = ({
       setAcceptedTerms(false);
       setShowTermsModal(false);
       
-      // Clear persisted states
-      clearFormData();
-      clearMessenger();
+      // Clear form draft
+      resetFormDraft();
       
     } catch (error) {
       console.error('💥 Error submitting traveler form:', error);
