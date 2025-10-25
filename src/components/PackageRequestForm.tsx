@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
+import { useModalState } from "@/contexts/ModalStateContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +29,8 @@ interface PackageRequestFormProps {
 // Product interface is now imported from types
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
+  const { openModal, closeModal } = useModalState();
+
   // Initialize data based on mode
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
@@ -149,6 +152,36 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       setPersistedAddressData(addressData);
     }
   }, [addressData, setPersistedAddressData, editMode]);
+
+  // Register modal with ModalStateContext for tab protection
+  useEffect(() => {
+    if (isOpen) {
+      openModal('package-request-form', 'form', { editMode, initialData });
+    } else {
+      closeModal('package-request-form');
+    }
+    
+    return () => {
+      closeModal('package-request-form');
+    };
+  }, [isOpen, editMode, initialData, openModal, closeModal]);
+
+  // Restore persisted data when modal reopens (after tab switch)
+  useEffect(() => {
+    if (isOpen && !editMode) {
+      console.log('🔄 Restoring form data from localStorage', { 
+        hasPersistedProducts: persistedProducts.length > 0,
+        hasPersistedFormData: !!persistedFormData.packageDestination 
+      });
+      // Force sync with persisted state
+      setProducts(persistedProducts);
+      setFormData(persistedFormData);
+      setFormRequestType(persistedFormData.requestType || 'online');
+      if (persistedAddressData) {
+        setAddressData(persistedAddressData);
+      }
+    }
+  }, [isOpen, editMode]);
 
   // Sync all products' requestType when formRequestType changes
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
+import { useModalState } from "@/contexts/ModalStateContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,8 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
+  const { openModal, closeModal } = useModalState();
+
   // Auto-persist form open state to maintain modal across tab switches
   const { state: isFormOpen, setState: setIsFormOpen } = usePersistedFormState({
     key: 'trip-form-open',
@@ -104,23 +107,35 @@ const TripForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
 
-  // Restore form data when modal opens and persisted data is available
+  // Register modal with ModalStateContext for tab protection
   useEffect(() => {
-    if (isOpen && persistedFormData && Object.keys(persistedFormData).length > 0) {
-      const hasFormDataChanged = JSON.stringify(persistedFormData) !== JSON.stringify(formData);
-      if (hasFormDataChanged && formData.fromCity === '') {
-        console.log('🔄 Restoring trip form data from persistence');
+    if (isOpen) {
+      openModal('trip-form', 'form');
+    } else {
+      closeModal('trip-form');
+    }
+    
+    return () => {
+      closeModal('trip-form');
+    };
+  }, [isOpen, openModal, closeModal]);
+
+  // Restore form data when modal reopens (after tab switch)
+  useEffect(() => {
+    if (isOpen) {
+      console.log('🔄 Restoring form data from localStorage', { 
+        hasPersistedFormData: !!persistedFormData.fromCity,
+        hasPersistedMessengerData: !!persistedMessengerData 
+      });
+      // Force sync with persisted state
+      if (persistedFormData && persistedFormData.fromCity) {
         setFormData(persistedFormData);
       }
+      if (persistedMessengerData) {
+        setMessengerData(persistedMessengerData);
+      }
     }
-  }, [isOpen, persistedFormData]);
-
-  useEffect(() => {
-    if (isOpen && persistedMessengerData && persistedMessengerData !== messengerData) {
-      console.log('🔄 Restoring messenger data from persistence');
-      setMessengerData(persistedMessengerData);
-    }
-  }, [isOpen, persistedMessengerData]);
+  }, [isOpen]);
 
   // Sync local state with persisted state
   useEffect(() => {
