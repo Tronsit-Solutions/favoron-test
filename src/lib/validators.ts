@@ -137,8 +137,8 @@ export const validateWhatsAppNumber = (phone: string): { isValid: boolean; error
   const digitsOnly = cleanPhone.replace(/[^\d]/g, '');
   
   // Must include country code (+ or direct digits)
-  if (!cleanPhone.startsWith('+') && digitsOnly.length < 10) {
-    return { isValid: false, error: 'Incluye el código de país (ej: +502)' };
+  if (!cleanPhone.startsWith('+') && digitsOnly.length < 8) {
+    return { isValid: false, error: 'Incluye el código de país (ej: +502 o 502)' };
   }
   
   // Must have sufficient digits

@@ -76,7 +76,7 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
           />
         </div>
         <p className="text-sm text-muted-foreground">
-          Incluye el código de país. Ejemplo: +502 1234 5678
+          Incluye código de país (ej: +502 1234 5678 o 502 1234 5678). Mínimo 8, máximo 15 dígitos
         </p>
       </div>
 
