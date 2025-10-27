@@ -62,6 +62,23 @@ export const useTripPayments = (tripId?: string) => {
 
         console.log('💳 useTripPayments - Payment order data:', paymentOrder);
 
+        // Auto-corregir inconsistencia: payment_order_created=true pero no hay payment_order
+        if (data.payment_order_created && !paymentOrder) {
+          console.warn('⚠️ useTripPayments - Inconsistencia detectada: payment_order_created=true pero no hay payment_order. Corrigiendo...');
+          
+          const { error: updateError } = await supabase
+            .from('trip_payment_accumulator')
+            .update({ payment_order_created: false, updated_at: new Date().toISOString() })
+            .eq('id', data.id);
+            
+          if (!updateError) {
+            data.payment_order_created = false;
+            console.log('✅ useTripPayments - Inconsistencia corregida automáticamente');
+          } else {
+            console.error('❌ useTripPayments - Error corrigiendo inconsistencia:', updateError);
+          }
+        }
+
         if (!paymentError && paymentOrder) {
           // Crear un nuevo objeto con la información del estado del pago
           const extendedData = { ...data, payment_status: paymentOrder.status };
@@ -87,12 +104,30 @@ export const useTripPayments = (tripId?: string) => {
   };
 
   const createPaymentOrder = async (bankingInfo: any) => {
-    if (!tripPayment || tripPayment.payment_order_created || isCreating) return;
+    if (!tripPayment || isCreating) return;
 
     setIsCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
+
+      // Verificar si existe una payment order real antes de crear una nueva
+      const { data: existingOrder } = await supabase
+        .from('payment_orders')
+        .select('id, status')
+        .eq('trip_id', tripId)
+        .eq('traveler_id', user.id)
+        .in('status', ['pending', 'completed'])
+        .maybeSingle();
+
+      if (existingOrder) {
+        toast({
+          title: "Orden ya existe",
+          description: "Ya existe una solicitud de pago activa para este viaje",
+        });
+        setIsCreating(false);
+        return existingOrder.id;
+      }
 
       // Actualizar información bancaria del usuario
       const { error: profileError } = await supabase

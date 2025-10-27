@@ -212,14 +212,14 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
               accumulated_amount: tripPayment.accumulated_amount,
               isAllPackagesDelivered,
               all_packages_delivered: tripPayment.all_packages_delivered,
-              payment_order_created: tripPayment.payment_order_created,
+              payment_status: tripPayment.payment_status,
               shouldShowSection: hasAccumulatedAmount,
-              shouldShowButton: isAllPackagesDelivered && !tripPayment.payment_order_created
+              shouldShowButton: isAllPackagesDelivered && !tripPayment.payment_status
             });
             return hasAccumulatedAmount;
           })() && (
             <div className="border-t pt-1">
-              {!tripPayment.payment_order_created ? (
+              {!tripPayment.payment_status ? (
                 <>
                   {isAllPackagesDelivered ? (
                     <div className="space-y-1">
