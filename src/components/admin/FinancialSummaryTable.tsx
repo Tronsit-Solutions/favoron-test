@@ -33,6 +33,7 @@ interface EnrichedPackageData {
   messengerPayment: number;
   isPrimeMembership?: boolean;
   primeAmount?: number;
+  isFromPrimeShopper?: boolean;
 }
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
@@ -256,7 +257,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         travelerTip,
         favoronRevenue,
         messengerPayment,
-        isPrimeMembership: false
+        isPrimeMembership: false,
+        isFromPrimeShopper: shopperTrustLevel === 'prime'
       };
     });
 
@@ -502,12 +504,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             </TableHeader>
             <TableBody>
               {paginatedData.map((item) => (
-                <TableRow key={item.package.id} className={item.isPrimeMembership ? 'bg-purple-50/50' : ''}>
+                <TableRow key={item.package.id} className={item.isPrimeMembership || item.isFromPrimeShopper ? 'bg-purple-50/50 hover:bg-purple-100/50' : ''}>
                   <TableCell className="text-sm">{item.paymentDate}</TableCell>
                   <TableCell className="font-medium">
                     {item.shopperName}
-                    {item.isPrimeMembership && (
-                      <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-700">Prime</Badge>
+                    {(item.isPrimeMembership || item.isFromPrimeShopper) && (
+                      <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-700 border-purple-300">💎 Prime</Badge>
                     )}
                   </TableCell>
                   <TableCell>{item.travelerName}</TableCell>
