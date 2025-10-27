@@ -6,9 +6,9 @@ import Dashboard from "@/components/Dashboard";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
+import TravelsHubSection from "@/components/TravelsHubSection";
 
 // Lazy load heavy components to speed up initial load
-const TravelsHubSection = lazy(() => import("@/components/TravelsHubSection"));
 const PlatformDescriptionSection = lazy(() => import("@/components/PlatformDescriptionSection"));
 const HowItWorksSection = lazy(() => import("@/components/HowItWorksSection"));
 const BenefitsSection = lazy(() => import("@/components/BenefitsSection"));
@@ -55,9 +55,7 @@ const Index = () => {
           <PlatformDescriptionSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
-          <TravelsHubSection />
-        </Suspense>
+        <TravelsHubSection />
         
         <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
           <HowItWorksSection />
