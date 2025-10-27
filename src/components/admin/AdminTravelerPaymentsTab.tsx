@@ -77,58 +77,6 @@ const AdminTravelerPaymentsTab = () => {
   }>>([]);
   const { toast } = useToast();
   const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
-
-  // Fetch package breakdown when confirmation dialog opens
-  useEffect(() => {
-    if (confirmDialog.isOpen && confirmDialog.order) {
-      const { trip_id, traveler_id } = confirmDialog.order;
-      if (trip_id && traveler_id) {
-        console.log('🔍 AdminTravelerPaymentsTab - Dialog opened, fetching breakdown for:', { trip_id, traveler_id });
-        fetchPackageBreakdown(trip_id, traveler_id);
-      }
-    } else if (!confirmDialog.isOpen) {
-      // Clear breakdown when dialog closes
-      setPackageBreakdown([]);
-    }
-  }, [confirmDialog.isOpen, confirmDialog.order]);
-
-  // Función para obtener el desglose de paquetes
-  const fetchPackageBreakdown = async (tripId: string, travelerId: string) => {
-    console.log('🔍 AdminTravelerPaymentsTab - Fetching package breakdown:', { tripId, travelerId });
-    
-    try {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('id, item_description, products_data, status, matched_trip_id, quote, admin_assigned_tip')
-        .eq('matched_trip_id', tripId)
-        .in('status', ['received_by_traveler', 'completed'])
-        .not('products_data', 'is', null)
-        .order('updated_at', { ascending: false });
-      
-      console.log('📦 AdminTravelerPaymentsTab - Package query result:', { 
-        data, 
-        error, 
-        tripId,
-        dataLength: data?.length || 0,
-        statuses: data?.map(p => p.status) || []
-      });
-      
-      if (error) {
-        console.error('❌ Supabase error:', error);
-        throw error;
-      }
-      
-      setPackageBreakdown((data || []).map(pkg => ({
-        ...pkg,
-        quote: typeof pkg.quote === 'object' && pkg.quote ? pkg.quote as { price?: number } : undefined,
-        admin_assigned_tip: pkg.admin_assigned_tip || undefined
-      })));
-      console.log('✅ Package breakdown set:', data?.length || 0, 'packages');
-    } catch (error) {
-      console.error('❌ Error fetching package breakdown:', error);
-      setPackageBreakdown([]);
-    }
-  };
   
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
   const processedOrders = orders.filter(order => order && order.status !== 'pending');
@@ -568,24 +516,21 @@ const AdminTravelerPaymentsTab = () => {
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
-        // Obtener desglose desde packages con travelerId y tripId cuando se abre el dialog
+        
         if (open && confirmDialog.order) {
+          // Usar historical_packages como fuente principal al abrir el dialog
           console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
             order: confirmDialog.order,
-            orderKeys: Object.keys(confirmDialog.order || {}),
             trip_id: confirmDialog.order?.trip_id,
             traveler_id: confirmDialog.order?.traveler_id,
             historical_packages: confirmDialog.order?.historical_packages,
-            historical_packages_type: typeof confirmDialog.order?.historical_packages,
             historical_packages_length: Array.isArray(confirmDialog.order?.historical_packages) ? confirmDialog.order.historical_packages.length : 'not array'
           });
           
-          // Usar historical_packages como fuente principal
           if (confirmDialog.order?.historical_packages) {
             console.log('✅ Historical packages found:', {
               raw: confirmDialog.order.historical_packages,
-              isArray: Array.isArray(confirmDialog.order.historical_packages),
-              stringified: JSON.stringify(confirmDialog.order.historical_packages)
+              isArray: Array.isArray(confirmDialog.order.historical_packages)
             });
             
             let packagesArray = confirmDialog.order.historical_packages;
@@ -610,6 +555,9 @@ const AdminTravelerPaymentsTab = () => {
             console.error('❌ No historical_packages available');
             setPackageBreakdown([]);
           }
+        } else if (!open) {
+          // Limpiar breakdown cuando se cierra el dialog
+          setPackageBreakdown([]);
         }
       }}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">`
