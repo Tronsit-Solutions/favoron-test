@@ -211,18 +211,23 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             pointerEvents: 'none'
           }}
         >
-          <div 
-            ref={captureRef}
-            style={{ 
-              width: '1080px', 
-              height: '1080px',
-              backgroundColor: '#1a2942',
-              overflow: 'hidden',
-              position: 'relative'
-            }}
-          >
+        <div 
+          ref={captureRef}
+          className="rounded-2xl p-2 border-2"
+          style={{ 
+            width: '1080px', 
+            height: '1080px',
+            backgroundColor: '#3a8ec1',
+            borderColor: '#ffffff',
+            overflow: 'hidden',
+            position: 'relative',
+            boxSizing: 'border-box'
+          }}
+        >
+          <div style={{ width: '100%', height: '100%' }}>
             <InstagramTripPreview trips={filteredTrips} searchTerm={searchTerm} forCapture={true} />
           </div>
+        </div>
         </div>
       </DialogContent>
 
