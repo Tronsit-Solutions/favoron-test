@@ -89,7 +89,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Trips Cards */}
       <main className="relative z-10 flex-1 px-8 py-4">
-        <div className="flex flex-col gap-3 mb-16">
+        <div className="flex flex-col gap-3 mb-6">
           {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
@@ -99,13 +99,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               >
                 {/* Origin */}
                 <div 
-                  className="py-3 px-3 rounded-lg flex items-center justify-center"
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
-                    className="font-bold text-3xl text-center leading-tight"
+                    className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -117,13 +117,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Destination */}
                 <div 
-                  className="py-3 px-3 rounded-lg flex items-center justify-center"
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
-                    className="font-bold text-3xl text-center leading-tight"
+                    className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -135,13 +135,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Date */}
                 <div 
-                  className="py-3 px-3 rounded-lg flex items-center justify-center"
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
-                    className="font-bold text-3xl text-center leading-tight"
+                    className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
