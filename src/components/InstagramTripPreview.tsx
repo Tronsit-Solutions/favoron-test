@@ -89,7 +89,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Trips Cards */}
       <main className="relative z-10 flex-1 px-8 py-4">
-        <div className="flex flex-col gap-3 mb-6">
+        <div className="flex flex-col gap-3 mb-16">
           {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
