@@ -7,9 +7,10 @@ interface InstagramTripPreviewProps {
   trips: any[];
   searchTerm: string;
   forCapture?: boolean;
+  currentPage?: number; // Renderizar solo una página específica para captura
 }
 
-export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: InstagramTripPreviewProps) => {
+export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, currentPage }: InstagramTripPreviewProps) => {
   const filteredTrips = trips.filter(trip => 
     trip.from_city.toLowerCase().includes(searchTerm.toLowerCase()) ||
     trip.to_city.toLowerCase().includes(searchTerm.toLowerCase())
@@ -172,6 +173,16 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
     </div>
   );
 
+  // Si currentPage está definido, renderizar solo esa página específica
+  if (currentPage !== undefined) {
+    const pageIndex = currentPage - 1;
+    if (pageIndex >= 0 && pageIndex < pages.length) {
+      return renderTripPage(pages[pageIndex], currentPage);
+    }
+    return null;
+  }
+
+  // Si no, renderizar todas las páginas
   return (
     <div className="flex flex-col space-y-8 bg-white">
       {pages.map((pageTrips, index) => renderTripPage(pageTrips, index + 1))}

@@ -25,6 +25,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [userRoles, setUserRoles] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [currentCapturePage, setCurrentCapturePage] = useState<number>(1);
   const modalRef = useRef<HTMLDivElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -75,40 +76,60 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     setIsGenerating(true);
     
     try {
+      // Calcular el número total de páginas
+      const TRIPS_PER_PAGE = 10;
+      const totalPages = Math.ceil(filteredTrips.length / TRIPS_PER_PAGE);
+      
       // Wait for fonts to load
       await document.fonts?.ready;
       
-      // Additional delay to ensure complete rendering
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Capturar cada página secuencialmente
+      for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+        // Actualizar el estado para renderizar la página actual
+        setCurrentCapturePage(pageNumber);
+        
+        // Esperar a que React renderice la nueva página
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        const element = captureRef.current;
+        
+        const canvas = await html2canvas(element, {
+          backgroundColor: '#f5f5f5',
+          scale: 1,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          width: 1080,
+          height: 1080,
+          windowWidth: 1080,
+          windowHeight: 1080,
+          scrollX: 0,
+          scrollY: 0,
+          imageTimeout: 0,
+          foreignObjectRendering: false,
+          removeContainer: false
+        });
+        
+        // Convert canvas to data URL and download
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const fileName = totalPages > 1 
+          ? `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}-pagina-${pageNumber}.png`
+          : `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.png`;
+        link.download = fileName;
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Delay entre descargas
+        if (pageNumber < totalPages) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
       
-      const element = captureRef.current;
-      
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#1a2942',
-        scale: 1,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        width: 1080,
-        height: 1080,
-        windowWidth: 1080,
-        windowHeight: 1080,
-        scrollX: 0,
-        scrollY: 0,
-        imageTimeout: 0,
-        foreignObjectRendering: false,
-        removeContainer: false
-      });
-      
-      // Convert canvas to data URL and download
-      const dataURL = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}.png`;
-      link.href = dataURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
       setShowPreview(false);
+      setCurrentCapturePage(1); // Reset
     } catch (error) {
       console.error('Error generating PNG:', error);
     } finally {
@@ -223,7 +244,12 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           }}
         >
           <div style={{ width: '100%', height: '100%' }}>
-            <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={true} />
+            <InstagramTripPreview 
+              trips={trips} 
+              searchTerm={searchTerm} 
+              forCapture={true}
+              currentPage={currentCapturePage}
+            />
           </div>
         </div>
         </div>
