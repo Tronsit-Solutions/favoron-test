@@ -46,10 +46,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - Promotional Title */}
-      <header className="relative z-20 py-6 px-8">
+      <header className="relative z-20 py-8 px-8">
         <div className="text-center">
           <h1 
-            className="text-4xl font-bold leading-tight font-bricolage"
+            className="text-5xl font-bold leading-tight font-bricolage"
             style={{ 
               color: '#1a1a1a',
               fontWeight: 700
@@ -58,7 +58,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
             Pide un <span style={{ color: '#3498db' }}>FAVORÓN</span> con los
           </h1>
           <h2 
-            className="text-4xl font-bold leading-tight font-bricolage mt-1"
+            className="text-5xl font-bold leading-tight font-bricolage mt-2"
             style={{ 
               color: '#3498db',
               fontWeight: 700
@@ -70,26 +70,26 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Icons with Labels */}
-      <div className="relative z-10 px-8 py-3">
+      <div className="relative z-10 px-8 py-6">
         <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col items-center">
-            <Package className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>ORIGEN</span>
+            <Package className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>ORIGEN</span>
           </div>
           <div className="flex flex-col items-center">
-            <MapPin className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>DESTINO</span>
+            <MapPin className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>DESTINO</span>
           </div>
           <div className="flex flex-col items-center">
-            <Plane className="w-8 h-8 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-lg font-bold" style={{ color: '#1a1a1a' }}>SALIDA</span>
+            <Plane className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>SALIDA</span>
           </div>
         </div>
       </div>
 
       {/* Trips Cards */}
-      <main className="relative z-10 flex-1 px-8 py-1">
-        <div className="flex flex-col gap-1.5">
+      <main className="relative z-10 flex-1 px-8 py-4">
+        <div className="flex flex-col gap-3">
           {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
@@ -99,13 +99,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               >
                 {/* Origin */}
                 <div 
-                  className="py-2 px-2 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-base text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -117,13 +117,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Destination */}
                 <div 
-                  className="py-2 px-2 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-base text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -135,13 +135,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Date */}
                 <div 
-                  className="py-2 px-2 rounded-lg"
+                  className="py-3 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-base text-center leading-tight"
+                    className="font-bold text-lg text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -158,9 +158,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
       {/* Page Number - Bottom Right */}
       {pageNumber > 1 && (
-        <div className="absolute bottom-6 right-8 z-20">
+        <div className="absolute bottom-8 right-8 z-20">
           <p 
-            className="text-sm font-bold leading-none font-bricolage"
+            className="text-base font-bold leading-none font-bricolage"
             style={{ 
               color: '#666666'
             }}
