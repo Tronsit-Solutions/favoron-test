@@ -46,7 +46,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       }}
     >
       {/* Header - Promotional Title */}
-      <header className="relative z-20 py-8 px-8">
+      <header className="relative z-20 py-6 px-8">
         <div className="text-center">
           <h1 
             className="text-5xl font-bold leading-tight font-bricolage"
@@ -70,7 +70,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </header>
 
       {/* Icons with Labels */}
-      <div className="relative z-10 px-8 py-6">
+      <div className="relative z-10 px-8 py-4">
         <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col items-center">
             <Package className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
@@ -88,8 +88,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
       </div>
 
       {/* Trips Cards */}
-      <main className="relative z-10 flex-1 px-8 py-4">
-        <div className="flex flex-col gap-3">
+      <main className="relative z-10 flex-1 px-8 py-6">
+        <div className="flex flex-col gap-4">
           {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
@@ -99,13 +99,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               >
                 {/* Origin */}
                 <div 
-                  className="py-3 px-3 rounded-lg"
+                  className="py-5 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-lg text-center leading-tight"
+                    className="font-bold text-2xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -117,13 +117,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Destination */}
                 <div 
-                  className="py-3 px-3 rounded-lg"
+                  className="py-5 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-lg text-center leading-tight"
+                    className="font-bold text-2xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -135,13 +135,13 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Date */}
                 <div 
-                  className="py-3 px-3 rounded-lg"
+                  className="py-5 px-3 rounded-lg"
                   style={{
                     backgroundColor: '#4A90E2'
                   }}
                 >
                   <div 
-                    className="font-bold text-lg text-center leading-tight"
+                    className="font-bold text-2xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
