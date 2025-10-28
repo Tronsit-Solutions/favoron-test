@@ -105,7 +105,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-3xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -123,7 +123,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-3xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
@@ -141,7 +141,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                   }}
                 >
                   <div 
-                    className="font-bold text-xl text-center leading-tight"
+                    className="font-bold text-3xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
                       fontWeight: 700
