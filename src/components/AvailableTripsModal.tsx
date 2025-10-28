@@ -225,7 +225,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           }}
         >
           <div style={{ width: '100%', height: '100%' }}>
-            <InstagramTripPreview trips={filteredTrips} searchTerm={searchTerm} forCapture={true} />
+            <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={true} />
           </div>
         </div>
         </div>
