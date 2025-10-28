@@ -213,12 +213,10 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         >
         <div 
           ref={captureRef}
-          className="rounded-2xl p-2 border-2"
           style={{ 
             width: '1080px', 
             height: '1080px',
-            backgroundColor: '#3a8ec1',
-            borderColor: '#ffffff',
+            backgroundColor: '#f5f5f5',
             overflow: 'hidden',
             position: 'relative',
             boxSizing: 'border-box'
@@ -258,7 +256,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
-              <div className="rounded-2xl p-2 border-2 w-full max-w-[700px]" style={{ backgroundColor: '#3a8ec1', borderColor: '#ffffff' }}>
+              <div className="w-full max-w-[700px]" style={{ backgroundColor: '#f5f5f5' }}>
                 <div className="w-full aspect-square">
                   <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={false} />
                 </div>
