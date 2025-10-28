@@ -32,6 +32,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
 
   const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
+      data-capture-element="true"
       className={`relative overflow-hidden flex flex-col ${
         forCapture 
           ? 'w-[1080px] h-[1080px]' 
@@ -53,16 +54,20 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
             className="text-5xl font-bold leading-tight font-bricolage"
             style={{ 
               color: '#1a1a1a',
-              fontWeight: 700
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              fontFamily: '"Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
             }}
           >
-            Pide un <span style={{ color: '#3a8ec1' }}>FAVORÓN</span> con los
+            Pide un <span style={{ color: '#3a8ec1', letterSpacing: '0.02em' }}>FAVORÓN</span> con los
           </h1>
           <h2 
             className="text-5xl font-bold leading-tight font-bricolage mt-2"
             style={{ 
               color: '#3a8ec1',
-              fontWeight: 700
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              fontFamily: '"Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
             }}
           >
             PRÓXIMOS VIAJEROS
@@ -75,15 +80,15 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col items-center">
             <Package className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>ORIGEN</span>
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>ORIGEN</span>
           </div>
           <div className="flex flex-col items-center">
             <MapPin className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>DESTINO</span>
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>DESTINO</span>
           </div>
           <div className="flex flex-col items-center">
             <Plane className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
-            <span className="text-xl font-bold" style={{ color: '#1a1a1a' }}>SALIDA</span>
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>SALIDA</span>
           </div>
         </div>
       </div>
@@ -109,7 +114,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                     className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
                     }}
                   >
                     {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
@@ -127,7 +134,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                     className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
                     }}
                   >
                     {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
@@ -145,7 +154,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                     className="font-bold text-xl text-center leading-tight"
                     style={{
                       color: '#ffffff',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
                     }}
                   >
                     {dateInfo.day} {dateInfo.month}

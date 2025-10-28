@@ -80,8 +80,10 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       const TRIPS_PER_PAGE = 10;
       const totalPages = Math.ceil(filteredTrips.length / TRIPS_PER_PAGE);
       
-      // Wait for fonts to load
+      // Enhanced font loading - wait longer on mobile
       await document.fonts?.ready;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      await new Promise(resolve => setTimeout(resolve, isMobile ? 1500 : 800));
       
       // Capturar cada página secuencialmente
       for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
@@ -89,13 +91,13 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         setCurrentCapturePage(pageNumber);
         
         // Esperar a que React renderice la nueva página
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, isMobile ? 1500 : 800));
         
         const element = captureRef.current;
         
         const canvas = await html2canvas(element, {
           backgroundColor: '#f5f5f5',
-          scale: 1,
+          scale: 2,
           useCORS: true,
           allowTaint: false,
           logging: false,
@@ -107,11 +109,28 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           scrollY: 0,
           imageTimeout: 0,
           foreignObjectRendering: false,
-          removeContainer: false
+          removeContainer: false,
+          onclone: (clonedDoc) => {
+            // Force consistent font rendering in cloned document
+            const clonedElement = clonedDoc.querySelector('[data-capture-element]');
+            if (clonedElement) {
+              const element = clonedElement as HTMLElement;
+              element.style.transform = 'scale(1)';
+              (element.style as any).webkitFontSmoothing = 'antialiased';
+              (element.style as any).mozOsxFontSmoothing = 'grayscale';
+            }
+          }
         });
         
+        // Ensure final image is exactly 1080x1080 regardless of device
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = 1080;
+        finalCanvas.height = 1080;
+        const ctx = finalCanvas.getContext('2d');
+        ctx?.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1080, 1080);
+        
         // Convert canvas to data URL and download
-        const dataURL = canvas.toDataURL('image/png');
+        const dataURL = finalCanvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         const fileName = totalPages > 1 
           ? `favoron-hub-viajes-${new Date().toISOString().split('T')[0]}-pagina-${pageNumber}.png`
