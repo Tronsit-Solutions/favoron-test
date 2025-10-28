@@ -55,12 +55,12 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               fontWeight: 700
             }}
           >
-            Pide un <span style={{ color: '#3498db' }}>FAVORÓN</span> con los
+            Pide un <span style={{ color: '#3a8ec1' }}>FAVORÓN</span> con los
           </h1>
           <h2 
             className="text-5xl font-bold leading-tight font-bricolage mt-2"
             style={{ 
-              color: '#3498db',
+              color: '#3a8ec1',
               fontWeight: 700
             }}
           >
@@ -101,7 +101,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
-                    backgroundColor: '#4A90E2'
+                    backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
@@ -119,7 +119,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
-                    backgroundColor: '#4A90E2'
+                    backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
@@ -137,7 +137,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
                 <div 
                   className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
-                    backgroundColor: '#4A90E2'
+                    backgroundColor: '#3a8ec1'
                   }}
                 >
                   <div 
