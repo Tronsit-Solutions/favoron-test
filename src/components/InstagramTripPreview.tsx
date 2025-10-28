@@ -99,7 +99,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
               >
                 {/* Origin */}
                 <div 
-                  className="py-4 px-3 rounded-lg flex items-center justify-center"
+                  className="py-3 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
@@ -117,7 +117,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Destination */}
                 <div 
-                  className="py-4 px-3 rounded-lg flex items-center justify-center"
+                  className="py-3 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
@@ -135,7 +135,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false }: 
 
                 {/* Date */}
                 <div 
-                  className="py-4 px-3 rounded-lg flex items-center justify-center"
+                  className="py-3 px-3 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: '#3a8ec1'
                   }}
