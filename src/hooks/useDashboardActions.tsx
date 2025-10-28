@@ -828,8 +828,36 @@ export const useDashboardActions = (
         const currentPackage = packages.find(pkg => pkg.id === id);
         let updateData: any = { status };
 
+        // Special handling when moving back to "approved", "pending_approval", or "rejected" (un-matching)
+        if (status === 'approved' || status === 'pending_approval' || status === 'rejected') {
+          if (currentPackage?.matched_trip_id) {
+            console.log('🔄 Admin un-matching package, clearing match data...');
+          }
+          
+          // Clear all match-related data to allow fresh matching
+          updateData = {
+            status,
+            matched_trip_id: null,
+            admin_assigned_tip: null,
+            traveler_address: null,
+            matched_trip_dates: null,
+            matched_assignment_expires_at: null,
+            quote: null,
+            quote_expires_at: null,
+            quote_rejection: null
+          };
+          
+          // Also clear adminAssignedTip from products_data if present
+          if (currentPackage?.products_data && Array.isArray(currentPackage.products_data)) {
+            const cleanedProducts = currentPackage.products_data.map((product: any) => {
+              const { adminAssignedTip, ...productWithoutTip } = product;
+              return productWithoutTip;
+            });
+            updateData.products_data = cleanedProducts;
+          }
+        }
         // Special handling for status change from "matched" to "quote_sent"
-        if (currentPackage?.status === 'matched' && status === 'quote_sent') {
+        else if (currentPackage?.status === 'matched' && status === 'quote_sent') {
           console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
           
           // Check if we have admin_assigned_tip
@@ -928,9 +956,11 @@ export const useDashboardActions = (
         
         toast({
           title: "Estado actualizado",
-          description: currentPackage?.status === 'matched' && status === 'quote_sent' 
-            ? `Cotización enviada automáticamente con $${currentPackage.admin_assigned_tip}`
-            : `El estado del paquete ha sido actualizado a: ${status}`,
+          description: (status === 'approved' || status === 'pending_approval' || status === 'rejected') && currentPackage?.matched_trip_id
+            ? "Paquete desmatcheado y listo para nuevo emparejamiento"
+            : currentPackage?.status === 'matched' && status === 'quote_sent' 
+              ? `Cotización enviada automáticamente con $${currentPackage.admin_assigned_tip}`
+              : `El estado del paquete ha sido actualizado a: ${status}`,
         });
       } else if (type === 'trip' && updateTrip) {
         await updateTrip(id, { status });
