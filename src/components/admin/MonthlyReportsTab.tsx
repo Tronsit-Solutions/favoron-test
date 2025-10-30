@@ -97,10 +97,10 @@ const MonthlyReportsTab = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return `Q${new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(amount);
+    }).format(amount)}`;
   };
 
   const formatPercentage = (value: number) => {
@@ -197,12 +197,12 @@ const MonthlyReportsTab = () => {
         'Mes': report.month_name,
         'Total Paquetes': report.total_packages,
         'Total Viajes': report.total_trips,
-        'Ingresos Totales (USD)': Number(report.total_revenue).toFixed(2),
-        'Valor Promedio Paquete (USD)': Number(report.average_package_value).toFixed(2),
+        'Ingresos Totales (Q)': Number(report.total_revenue).toFixed(2),
+        'Valor Promedio Paquete (Q)': Number(report.average_package_value).toFixed(2),
         'Tasa de Completación (%)': Number(report.completion_rate).toFixed(1),
-        'Ingresos Brutos (USD)': Number(report.financial_metrics.gross_revenue).toFixed(2),
-        'Ingresos Netos (USD)': Number(report.financial_metrics.net_revenue).toFixed(2),
-        'Comisiones de Servicio (USD)': Number(report.financial_metrics.service_fees).toFixed(2)
+        'Ingresos Brutos (Q)': Number(report.financial_metrics.gross_revenue).toFixed(2),
+        'Ingresos Netos (Q)': Number(report.financial_metrics.net_revenue).toFixed(2),
+        'Comisiones de Servicio (Q)': Number(report.financial_metrics.service_fees).toFixed(2)
       }));
 
       // Preparar datos detallados por estado
@@ -214,7 +214,7 @@ const MonthlyReportsTab = () => {
               'Mes': report.month_name,
               'Estado': status,
               'Cantidad': Number(data.count),
-              'Ingresos (USD)': Number(data.revenue).toFixed(2)
+              'Ingresos (Q)': Number(data.revenue).toFixed(2)
             });
           });
         }
@@ -563,19 +563,19 @@ const MonthlyReportsTab = () => {
                           <Card>
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Ingresos brutos (Q)</p>
-                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.gross_revenue)}</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.gross_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Tips viajeros (Q)</p>
-                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.net_revenue)}</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.net_revenue)}</p>
                             </CardContent>
                           </Card>
                           <Card>
                             <CardContent className="p-4">
                               <p className="text-sm text-muted-foreground">Ingresos Favorón (Q)</p>
-                              <p className="text-xl font-bold">Q{formatCurrency(report.financial_metrics.service_fees)}</p>
+                              <p className="text-xl font-bold">{formatCurrency(report.financial_metrics.service_fees)}</p>
                             </CardContent>
                           </Card>
                         </div>
