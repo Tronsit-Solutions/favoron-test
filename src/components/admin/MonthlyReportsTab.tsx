@@ -17,7 +17,7 @@ import {
   Package, 
   Plane, 
   CheckCircle, 
-  DollarSign, 
+  Coins, 
   Calendar as CalendarIcon,
   BarChart3,
   MapPin,
@@ -542,7 +542,7 @@ const MonthlyReportsTab = () => {
                       <p className="text-xs text-muted-foreground">Total viajes</p>
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <DollarSign className="h-6 w-6 text-green-600 mx-auto mb-2" />
+                      <Coins className="h-6 w-6 text-green-600 mx-auto mb-2" />
                       <p className="text-2xl font-bold text-green-600">{formatCurrency(report.total_revenue)}</p>
                       <p className="text-xs text-muted-foreground">Ingresos totales</p>
                     </div>
