@@ -601,10 +601,10 @@ const MonthlyPackageDetails = () => {
           <CardContent>
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
-              <p className="text-2xl font-bold">Q{paidRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold">Q{(paidRevenue + totalPrimeIncome).toFixed(2)}</p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {paidPackages.length} paquetes pagados
+              {paidPackages.length} paquetes • {approvedPrimeMembers.length} Prime
             </p>
           </CardContent>
         </Card>
