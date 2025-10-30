@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download, Crown } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -52,6 +52,22 @@ interface TripData {
   };
 }
 
+interface PrimeMembershipData {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+type TableRowType = 
+  | { type: 'package'; data: PackageData }
+  | { type: 'prime'; data: PrimeMembershipData };
+
 type SortField = 'created_at' | 'item_description' | 'customer' | 'traveler' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger';
 type SortDirection = 'asc' | 'desc' | null;
 
@@ -61,6 +77,7 @@ const MonthlyPackageDetails = () => {
   const { toast } = useToast();
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [trips, setTrips] = useState<TripData[]>([]);
+  const [primeMembers, setPrimeMembers] = useState<PrimeMembershipData[]>([]);
   const [loading, setLoading] = useState(true);
   const [monthName, setMonthName] = useState("");
   const [year, setYear] = useState("");
@@ -171,6 +188,28 @@ const MonthlyPackageDetails = () => {
       if (tripsError) throw tripsError;
 
       setTrips(tripsData || []);
+
+      // Fetch prime memberships for the month
+      const { data: primeData, error: primeError } = await supabase
+        .from('prime_memberships')
+        .select(`
+          id,
+          user_id,
+          amount,
+          status,
+          created_at,
+          profiles!prime_memberships_user_id_fkey (
+            first_name,
+            last_name
+          )
+        `)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (primeError) throw primeError;
+
+      setPrimeMembers(primeData || []);
     } catch (error) {
       console.error('Error fetching packages:', error);
       toast({
@@ -202,9 +241,15 @@ const MonthlyPackageDetails = () => {
   };
 
   const getTotalPrice = (pkg: PackageData) => {
-    const price = pkg.quote?.totalPrice || pkg.quote?.price || pkg.estimated_price || 0;
-    const numPrice = typeof price === 'string' ? parseFloat(price) : Number(price);
-    return Number.isFinite(numPrice) ? numPrice : 0;
+    // Dynamic calculation to match what shoppers see
+    const tip = pkg.admin_assigned_tip || 0;
+    const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+    const validTip = Number.isFinite(numTip) ? numTip : 0;
+    
+    const serviceFee = getFavoronIncome(pkg);
+    const deliveryFee = getMessengerCost(pkg);
+    
+    return validTip + serviceFee + deliveryFee;
   };
 
   const calculateTotals = (packagesToCalculate: PackageData[] = packages) => {
@@ -416,17 +461,22 @@ const MonthlyPackageDetails = () => {
   const { totalRevenue: paidRevenue, totalTips: paidTips, totalFavoronIncome: paidFavoronIncome } = calculateTotals(paidPackages);
   const totalDeliveryFees = paidPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0);
   
+  // Calculate Prime income (approved memberships only)
+  const approvedPrimeMembers = primeMembers.filter(pm => pm.status === 'approved');
+  const totalPrimeIncome = approvedPrimeMembers.reduce((sum, pm) => sum + pm.amount, 0);
+  
   // Calculate totals based on displayed packages (respects filters for table)
   const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals(displayedPackages);
 
   const handleDownloadExcel = () => {
     const displayed = getSortedAndFilteredPackages();
     
-    // Prepare data for Excel
-    const excelData = displayed.map(pkg => ({
+    // Prepare data for Excel - Packages
+    const packageData = displayed.map(pkg => ({
+      'Tipo': 'Paquete',
       'Fecha': format(new Date(pkg.created_at), 'dd/MM/yyyy', { locale: es }),
-      'Paquete': pkg.item_description,
-      'Shopper': `${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || ''}`.trim() || 'N/A',
+      'Descripción': pkg.item_description,
+      'Cliente': `${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || ''}`.trim() || 'N/A',
       'Viajero': pkg.trips?.profiles 
         ? `${pkg.trips.profiles.first_name || ''} ${pkg.trips.profiles.last_name || ''}`.trim() 
         : 'Sin asignar',
@@ -439,19 +489,44 @@ const MonthlyPackageDetails = () => {
       'Costo Mensajero': getMessengerCost(pkg),
     }));
 
+    // Prepare data for Excel - Prime Memberships
+    const primeData = primeMembers.map(pm => ({
+      'Tipo': 'Membresía Prime',
+      'Fecha': format(new Date(pm.created_at), 'dd/MM/yyyy', { locale: es }),
+      'Descripción': 'Membresía Prime',
+      'Cliente': `${pm.profiles?.first_name || ''} ${pm.profiles?.last_name || ''}`.trim() || 'N/A',
+      'Viajero': 'N/A',
+      'Origen': 'N/A',
+      'Destino': 'N/A',
+      'Estado': pm.status === 'approved' ? 'Aprobada' : pm.status === 'rejected' ? 'Rechazada' : 'Pendiente',
+      'Precio Total': pm.amount,
+      'Tip Viajero': 0,
+      'Ingreso Favorón': pm.status === 'approved' ? pm.amount : 0,
+      'Costo Mensajero': 0,
+    }));
+
+    // Combine both arrays
+    const excelData = [...packageData, ...primeData];
+
     // Add totals row
+    const totalMessenger = displayed.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0);
+    const totalPrimeIncomeForExcel = primeMembers
+      .filter(pm => pm.status === 'approved')
+      .reduce((sum, pm) => sum + pm.amount, 0);
+
     excelData.push({
+      'Tipo': '',
       'Fecha': '',
-      'Paquete': '',
-      'Shopper': '',
+      'Descripción': '',
+      'Cliente': '',
       'Viajero': '',
       'Origen': '',
       'Destino': '',
       'Estado': 'TOTAL',
-      'Precio Total': totalRevenue,
+      'Precio Total': totalRevenue + totalPrimeIncomeForExcel,
       'Tip Viajero': totalTips,
-      'Ingreso Favorón': totalFavoronIncome,
-      'Costo Mensajero': displayed.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0),
+      'Ingreso Favorón': totalFavoronIncome + totalPrimeIncomeForExcel,
+      'Costo Mensajero': totalMessenger,
     });
 
     // Create worksheet and workbook
@@ -460,11 +535,11 @@ const MonthlyPackageDetails = () => {
     XLSX.utils.book_append_sheet(wb, ws, monthName);
 
     // Download
-    XLSX.writeFile(wb, `Paquetes_${monthName}_${year}.xlsx`);
+    XLSX.writeFile(wb, `Reporte_${monthName}_${year}.xlsx`);
     
     toast({
       title: "Descarga exitosa",
-      description: `Se descargó la tabla de ${monthName}`,
+      description: `Se descargó el reporte completo de ${monthName}`,
     });
   };
 
@@ -510,13 +585,13 @@ const MonthlyPackageDetails = () => {
         <div>
           <h1 className="text-3xl font-bold capitalize">{monthName}</h1>
           <p className="text-muted-foreground">
-            {packages.length} paquetes en total • {displayedPackages.length} mostrados
+            {packages.length} paquetes • {primeMembers.length} membresías Prime • {displayedPackages.length + primeMembers.length} registros totales
           </p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -581,6 +656,23 @@ const MonthlyPackageDetails = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {paidPackages.length} paquetes pagados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Ingresos Prime (Aprobadas)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-amber-500" />
+              <p className="text-2xl font-bold">Q{totalPrimeIncome.toFixed(2)}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {approvedPrimeMembers.length} membresía{approvedPrimeMembers.length !== 1 ? 's' : ''} aprobada{approvedPrimeMembers.length !== 1 ? 's' : ''}
             </p>
           </CardContent>
         </Card>
@@ -832,45 +924,51 @@ const MonthlyPackageDetails = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Totals Row */}
-                  <TableRow className="bg-muted/50 font-semibold border-b-2">
-                    <TableCell className="py-2 text-xs">Total</TableCell>
-                    <TableCell className="py-2 text-xs"></TableCell>
-                    <TableCell className="py-2 text-xs"></TableCell>
-                    <TableCell className="py-2 text-xs"></TableCell>
-                    <TableCell className="py-2 text-xs"></TableCell>
-                    <TableCell className="py-2 text-xs"></TableCell>
-                    <TableCell className="py-2 text-xs text-right">
-                      ${displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs text-right text-blue-600">
-                      Q{displayedPackages.reduce((sum, pkg) => {
-                        const tip = pkg.admin_assigned_tip || 0;
-                        const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-                        return sum + (Number.isFinite(numTip) ? numTip : 0);
-                      }, 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs text-right text-purple-600">
-                      Q{displayedPackages.reduce((sum, pkg) => sum + getFavoronIncome(pkg), 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="py-2 text-xs text-right text-green-600">
-                      Q{displayedPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0).toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                  {/* Data Rows */}
-                  {displayedPackages.map((pkg) => (
-                    <TableRow key={pkg.id} className="hover:bg-muted/30">
-                      <TableCell className="py-2 text-xs">
-                        {format(new Date(pkg.created_at), "dd/MM/yyyy")}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs max-w-[200px] truncate">
-                        {pkg.item_description}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {pkg.profiles?.first_name} {pkg.profiles?.last_name}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {pkg.trips?.profiles ? 
+                   {/* Totals Row */}
+                   <TableRow className="bg-muted/50 font-semibold border-b-2">
+                     <TableCell className="py-2 text-xs">Total</TableCell>
+                     <TableCell className="py-2 text-xs"></TableCell>
+                     <TableCell className="py-2 text-xs"></TableCell>
+                     <TableCell className="py-2 text-xs"></TableCell>
+                     <TableCell className="py-2 text-xs"></TableCell>
+                     <TableCell className="py-2 text-xs"></TableCell>
+                     <TableCell className="py-2 text-xs text-right">
+                       ${(
+                         displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0) +
+                         primeMembers.reduce((sum, pm) => sum + pm.amount, 0)
+                       ).toFixed(2)}
+                     </TableCell>
+                     <TableCell className="py-2 text-xs text-right text-blue-600">
+                       Q{displayedPackages.reduce((sum, pkg) => {
+                         const tip = pkg.admin_assigned_tip || 0;
+                         const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
+                         return sum + (Number.isFinite(numTip) ? numTip : 0);
+                       }, 0).toFixed(2)}
+                     </TableCell>
+                     <TableCell className="py-2 text-xs text-right text-purple-600">
+                       Q{(
+                         displayedPackages.reduce((sum, pkg) => sum + getFavoronIncome(pkg), 0) +
+                         primeMembers.filter(pm => pm.status === 'approved').reduce((sum, pm) => sum + pm.amount, 0)
+                       ).toFixed(2)}
+                     </TableCell>
+                     <TableCell className="py-2 text-xs text-right text-green-600">
+                       Q{displayedPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0).toFixed(2)}
+                     </TableCell>
+                   </TableRow>
+                   {/* Data Rows - Packages */}
+                   {displayedPackages.map((pkg) => (
+                     <TableRow key={`pkg-${pkg.id}`} className="hover:bg-muted/30">
+                       <TableCell className="py-2 text-xs">
+                         {format(new Date(pkg.created_at), "dd/MM/yyyy")}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs max-w-[200px] truncate">
+                         {pkg.item_description}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs">
+                         {pkg.profiles?.first_name} {pkg.profiles?.last_name}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs">
+                         {pkg.trips?.profiles ?
                           `${pkg.trips.profiles.first_name} ${pkg.trips.profiles.last_name}` 
                           : '-'
                         }
@@ -893,9 +991,49 @@ const MonthlyPackageDetails = () => {
                       <TableCell className="py-2 text-xs text-right font-medium text-green-600">
                         {getMessengerCost(pkg) > 0 ? `Q${getMessengerCost(pkg).toFixed(2)}` : "-"}
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                     </TableRow>
+                   ))}
+                   {/* Data Rows - Prime Memberships */}
+                   {primeMembers.map((pm) => (
+                     <TableRow key={`prime-${pm.id}`} className="hover:bg-muted/30 bg-amber-50/30 dark:bg-amber-950/20">
+                       <TableCell className="py-2 text-xs">
+                         {format(new Date(pm.created_at), "dd/MM/yyyy")}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs">
+                         <div className="flex items-center gap-2">
+                           <Crown className="h-3 w-3 text-amber-500" />
+                           <span>Membresía Prime</span>
+                         </div>
+                       </TableCell>
+                       <TableCell className="py-2 text-xs">
+                         {pm.profiles?.first_name} {pm.profiles?.last_name}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-muted-foreground">
+                         N/A
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-muted-foreground">
+                         N/A
+                       </TableCell>
+                       <TableCell className="py-2">
+                         <Badge variant={pm.status === 'approved' ? 'default' : pm.status === 'rejected' ? 'destructive' : 'secondary'}>
+                           {pm.status === 'approved' ? 'Aprobada' : pm.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
+                         </Badge>
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-right font-medium">
+                         ${pm.amount.toFixed(2)}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-right text-muted-foreground">
+                         Q0.00
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-right font-medium text-purple-600">
+                         {pm.status === 'approved' ? `Q${pm.amount.toFixed(2)}` : 'Q0.00'}
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-right text-muted-foreground">
+                         Q0.00
+                       </TableCell>
+                     </TableRow>
+                   ))}
+                 </TableBody>
               </Table>
             </>
           )}
