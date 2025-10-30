@@ -411,7 +411,11 @@ const MonthlyPackageDetails = () => {
 
   const topEarningTrip = getTopEarningTrip();
   
-  // Calculate totals based on displayed packages (respects filters)
+  // Calculate totals for summary cards (only paid packages)
+  const paidPackages = packages.filter(pkg => paidStatuses.includes(pkg.status));
+  const { totalRevenue: paidRevenue, totalTips: paidTips, totalFavoronIncome: paidFavoronIncome } = calculateTotals(paidPackages);
+  
+  // Calculate totals based on displayed packages (respects filters for table)
   const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals(displayedPackages);
 
   const handleDownloadExcel = () => {
@@ -515,42 +519,51 @@ const MonthlyPackageDetails = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ingresos Totales
+              Ingresos Totales (Pagados)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-600" />
-              <p className="text-2xl font-bold">Q{totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold">Q{paidRevenue.toFixed(2)}</p>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {paidPackages.length} paquetes pagados
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tips Viajeros
+              Tips Viajeros (Pagados)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-blue-600" />
-              <p className="text-2xl font-bold">Q{totalTips.toFixed(2)}</p>
+              <p className="text-2xl font-bold">Q{paidTips.toFixed(2)}</p>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {paidPackages.length} paquetes pagados
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ingresos Favorón (Service Fee)
+              Ingresos Favorón (Pagados)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-purple-600" />
-              <p className="text-2xl font-bold">Q{totalFavoronIncome.toFixed(2)}</p>
+              <p className="text-2xl font-bold">Q{paidFavoronIncome.toFixed(2)}</p>
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {paidPackages.length} paquetes pagados
+            </p>
           </CardContent>
         </Card>
       </div>
