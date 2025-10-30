@@ -631,7 +631,7 @@ const MonthlyPackageDetails = () => {
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted"
                         onClick={() => handleSort('created_at')}
                       >
-                        Fecha
+                        Fecha de solicitud
                         {sortField === 'created_at' && (
                           sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
                         )}
