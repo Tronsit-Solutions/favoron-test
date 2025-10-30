@@ -499,7 +499,7 @@ const MonthlyPackageDetails = () => {
       'Origen': 'N/A',
       'Destino': 'N/A',
       'Estado': pm.status === 'approved' ? 'Aprobada' : pm.status === 'rejected' ? 'Rechazada' : 'Pendiente',
-      'Precio Total': pm.amount,
+      'Precio Total': 'N/A',
       'Tip Viajero': 0,
       'Ingreso Favorón': pm.status === 'approved' ? pm.amount : 0,
       'Costo Mensajero': 0,
@@ -523,7 +523,7 @@ const MonthlyPackageDetails = () => {
       'Origen': '',
       'Destino': '',
       'Estado': 'TOTAL',
-      'Precio Total': totalRevenue + totalPrimeIncomeForExcel,
+      'Precio Total': totalRevenue,
       'Tip Viajero': totalTips,
       'Ingreso Favorón': totalFavoronIncome + totalPrimeIncomeForExcel,
       'Costo Mensajero': totalMessenger,
@@ -933,10 +933,7 @@ const MonthlyPackageDetails = () => {
                      <TableCell className="py-2 text-xs"></TableCell>
                      <TableCell className="py-2 text-xs"></TableCell>
                      <TableCell className="py-2 text-xs text-right">
-                       ${(
-                         displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0) +
-                         primeMembers.reduce((sum, pm) => sum + pm.amount, 0)
-                       ).toFixed(2)}
+                       ${displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0).toFixed(2)}
                      </TableCell>
                      <TableCell className="py-2 text-xs text-right text-blue-600">
                        Q{displayedPackages.reduce((sum, pkg) => {
@@ -1019,8 +1016,8 @@ const MonthlyPackageDetails = () => {
                            {pm.status === 'approved' ? 'Aprobada' : pm.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
                          </Badge>
                        </TableCell>
-                       <TableCell className="py-2 text-xs text-right font-medium">
-                         ${pm.amount.toFixed(2)}
+                       <TableCell className="py-2 text-xs text-right text-muted-foreground">
+                         N/A
                        </TableCell>
                        <TableCell className="py-2 text-xs text-right text-muted-foreground">
                          Q0.00
