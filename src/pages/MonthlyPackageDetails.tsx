@@ -414,6 +414,7 @@ const MonthlyPackageDetails = () => {
   // Calculate totals for summary cards (only paid packages)
   const paidPackages = packages.filter(pkg => paidStatuses.includes(pkg.status));
   const { totalRevenue: paidRevenue, totalTips: paidTips, totalFavoronIncome: paidFavoronIncome } = calculateTotals(paidPackages);
+  const totalDeliveryFees = paidPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0);
   
   // Calculate totals based on displayed packages (respects filters for table)
   const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals(displayedPackages);
@@ -515,7 +516,7 @@ const MonthlyPackageDetails = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -560,6 +561,23 @@ const MonthlyPackageDetails = () => {
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-purple-600" />
               <p className="text-2xl font-bold">Q{paidFavoronIncome.toFixed(2)}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {paidPackages.length} paquetes pagados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Ingresos por Delivery (Pagados)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <p className="text-2xl font-bold">Q{totalDeliveryFees.toFixed(2)}</p>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {paidPackages.length} paquetes pagados
