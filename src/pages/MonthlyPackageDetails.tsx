@@ -684,7 +684,7 @@ const MonthlyPackageDetails = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5 text-green-600" />
-              Viaje con Mayor Ganancia del Mes
+              Viajero del Mes
             </CardTitle>
           </CardHeader>
           <CardContent>
