@@ -591,18 +591,25 @@ const Dashboard = ({ user }: DashboardProps) => {
                    }
                    return true;
                  })
-                 .sort((a, b) => {
-                   // Ordenar: completados/entregados al final
-                   const completedStatuses = ['delivered', 'completed'];
-                   const aCompleted = completedStatuses.includes(a.status);
-                   const bCompleted = completedStatuses.includes(b.status);
-                   
-                   if (aCompleted && !bCompleted) return 1;
-                   if (!aCompleted && bCompleted) return -1;
-                   
-                   // Si ambos son completados o ambos no son completados, ordenar por fecha de creación (más recientes primero)
-                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                 })
+                  .sort((a, b) => {
+                    // 1. PRIMERO: Paquetes listos para recoger (delivered_to_office)
+                    const aReadyForPickup = a.status === 'delivered_to_office';
+                    const bReadyForPickup = b.status === 'delivered_to_office';
+                    
+                    if (aReadyForPickup && !bReadyForPickup) return -1;
+                    if (!aReadyForPickup && bReadyForPickup) return 1;
+                    
+                    // 2. LUEGO: Completados al final
+                    const completedStatuses = ['delivered', 'completed'];
+                    const aCompleted = completedStatuses.includes(a.status);
+                    const bCompleted = completedStatuses.includes(b.status);
+                    
+                    if (aCompleted && !bCompleted) return 1;
+                    if (!aCompleted && bCompleted) return -1;
+                    
+                    // 3. FINALMENTE: Por fecha de creación (más recientes primero)
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  })
                  .map((pkg) => (
                       <CollapsiblePackageCard
                         key={pkg.id}

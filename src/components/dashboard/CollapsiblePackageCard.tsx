@@ -165,7 +165,7 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"} ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''}`}>
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
         <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
             
