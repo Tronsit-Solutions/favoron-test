@@ -906,6 +906,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                       <p className="text-xs text-foreground bg-muted/30 p-2 rounded">{pkg.additional_notes}</p>
                     </div>
                   )}
+
+                  {/* Internal Notes for Favoron Team */}
+                  {pkg.internal_notes && (
+                    <div className="mt-3 pt-3 border-t border-primary/20">
+                      <h5 className="font-medium text-xs text-amber-700 mb-2">Notas Internas (solo para Favorón):</h5>
+                      <p className="text-xs text-foreground bg-amber-50 p-2 rounded border border-amber-200">{pkg.internal_notes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
