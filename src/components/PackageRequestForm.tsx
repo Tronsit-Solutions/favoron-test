@@ -923,7 +923,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="additionalNotes">Notas adicionales</Label>
+            <Label htmlFor="additionalNotes">Notas adicionales para viajeros</Label>
             <Textarea
               id="additionalNotes"
               placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
