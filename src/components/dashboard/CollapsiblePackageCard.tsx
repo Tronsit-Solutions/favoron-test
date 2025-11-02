@@ -386,11 +386,11 @@ const CollapsiblePackageCard = ({
                       </Tooltip>
                     </TooltipProvider>}
 
-                 </div>
-                 
-                 {/* Status badge in bottom right corner */}
-                 <div className="flex justify-end mt-2">
-                   {getStatusBadge(pkg.status)}
+                  {/* Status badge aligned with action buttons */}
+                  <div className="flex items-center ml-auto flex-shrink-0">
+                    {getStatusBadge(pkg.status)}
+                  </div>
+
                  </div>
                </div>}
           </CardHeader>
