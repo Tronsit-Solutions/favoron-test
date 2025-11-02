@@ -934,7 +934,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="internalNotes">Notas adicionales para Favoron</Label>
+            <Label htmlFor="internalNotes">Notas adicionales para el equipo de Favorón</Label>
             <Textarea
               id="internalNotes"
               placeholder="Información interna que solo Favoron verá (opcional)"
