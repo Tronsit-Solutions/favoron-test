@@ -73,6 +73,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       return {
         deliveryDeadline: initialData.delivery_deadline ? new Date(initialData.delivery_deadline) : null,
         additionalNotes: initialData.additional_notes || '',
+        internalNotes: initialData.internal_notes || '',
         packageDestination: initialData.package_destination || '',
         packageDestinationOther: '',
         purchaseOrigin: initialData.purchase_origin || '',
@@ -84,6 +85,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return {
       deliveryDeadline: null as Date | null,
       additionalNotes: '',
+      internalNotes: '',
       packageDestination: '',
       packageDestinationOther: '',
       purchaseOrigin: '',
@@ -105,6 +107,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     formData: editMode ? getInitialFormData() : {
       deliveryDeadline: null as Date | null,
       additionalNotes: '',
+      internalNotes: '',
       packageDestination: '',
       packageDestinationOther: '',
       purchaseOrigin: '',
@@ -276,7 +279,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       packageDestination: finalDestination,
       purchaseOrigin: finalOrigin,
       deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
-      deliveryMethod: formData.deliveryMethod
+      deliveryMethod: formData.deliveryMethod,
+      internal_notes: formData.internalNotes
     };
 
     console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
@@ -297,6 +301,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         const initialFormData = {
           deliveryDeadline: null as Date | null,
           additionalNotes: '',
+          internalNotes: '',
           packageDestination: '',
           packageDestinationOther: '',
           purchaseOrigin: '',
@@ -924,6 +929,17 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               placeholder="Información adicional, instrucciones especiales, preferencias de entrega, etc."
               value={formData.additionalNotes}
               onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+              className="min-h-[80px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="internalNotes">Notas adicionales para Favoron</Label>
+            <Textarea
+              id="internalNotes"
+              placeholder="Información interna que solo Favoron verá (opcional)"
+              value={formData.internalNotes}
+              onChange={(e) => handleInputChange('internalNotes', e.target.value)}
               className="min-h-[80px]"
             />
           </div>
