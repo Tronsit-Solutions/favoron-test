@@ -70,7 +70,7 @@ export const useDashboardActions = (
         package_destination: packageData.packageDestination,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
-        internal_notes: packageData.internal_notes || null,
+        internal_notes: (packageData.internal_notes ?? packageData.internalNotes)?.trim() || null,
         delivery_method: packageData.deliveryMethod || 'pickup',
         confirmed_delivery_address: packageData.deliveryAddress || null,
         status: 'pending_approval'

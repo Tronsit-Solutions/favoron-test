@@ -268,7 +268,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       return;
     }
 
-    const submitData = {
+    const submitData: any = {
       ...formData,
       deliveryDeadline: formData.deliveryDeadline 
         ? (formData.deliveryDeadline instanceof Date 
@@ -282,6 +282,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       deliveryMethod: formData.deliveryMethod,
       internal_notes: formData.internalNotes
     };
+
+    // Include id for edit mode
+    if (editMode && initialData?.id) {
+      submitData.id = initialData.id;
+    }
 
     console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
     
