@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Package as PackageIcon, Calendar, Download } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
+import { format } from "date-fns";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,7 +44,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     products: any[];
     description: string;
   } | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  // Default to current month in YYYY-MM format
+  const currentMonth = format(new Date(), "yyyy-MM");
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<string | null>(null);
   const [selectedReceiptFilename, setSelectedReceiptFilename] = useState<string | null>(null);
   const itemsPerPage = 50;
