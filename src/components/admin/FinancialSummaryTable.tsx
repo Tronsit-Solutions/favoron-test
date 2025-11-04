@@ -13,7 +13,7 @@ import ProductDetailModal from "./ProductDetailModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
-import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface FinancialSummaryTableProps {
   packages: Package[];
@@ -44,10 +44,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     description: string;
   } | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
-  const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<{
-    url: string;
-    filename: string;
-  } | null>(null);
+  const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<string | null>(null);
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -596,11 +593,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                         size="sm"
                         onClick={() => {
                           const receipt = item.package.payment_receipt as any;
-                          if (receipt?.filePath || receipt?.receipt_url) {
-                            setSelectedPaymentReceipt({
-                              url: receipt.filePath || receipt.receipt_url,
-                              filename: receipt.fileName || receipt.filename || 'comprobante.jpg'
-                            });
+                          const receiptPath = receipt?.filePath || receipt?.receipt_url;
+                          if (receiptPath) {
+                            setSelectedPaymentReceipt(receiptPath);
                           } else {
                             toast({
                               title: "Sin comprobante",
@@ -676,12 +671,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           packageDescription={selectedProductData?.description || ''}
         />
 
-        <ImageViewerModal
+        <ReceiptViewerModal
           isOpen={!!selectedPaymentReceipt}
           onClose={() => setSelectedPaymentReceipt(null)}
-          imageUrl={selectedPaymentReceipt?.url || ''}
+          receiptUrl={selectedPaymentReceipt || ''}
           title="Comprobante de Pago del Shopper"
-          filename={selectedPaymentReceipt?.filename || 'comprobante.jpg'}
+          filename="comprobante-pago-shopper"
         />
       </CardContent>
     </Card>
