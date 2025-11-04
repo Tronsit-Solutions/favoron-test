@@ -387,55 +387,66 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {auditPayments.map(pkg => (
-                    <Card key={pkg.id} className="border-green-200 bg-green-50">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <Badge className="bg-green-600 mb-2">
-                              ✅ {(pkg.payment_receipt as any)?.trust_level_at_upload || 'confiable'}
-                            </Badge>
-                            <h4 className="font-medium">{pkg.item_description}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Monto: Q{pkg.quote?.totalPrice || pkg.estimated_price}
-                            </p>
-                            <p className="text-xs text-green-700 mt-1">
-                              📄 {pkg.payment_receipt?.filename}
-                            </p>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              if (pkg.payment_receipt) {
-                                let filePath = pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '';
-                                if (filePath.startsWith('http')) {
-                                  try {
-                                    const url = new URL(filePath);
-                                    const pathParts = url.pathname.split('/');
-                                    const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
-                                    if (bucketIndex !== -1) {
-                                      filePath = pathParts.slice(bucketIndex + 1).join('/');
+                  {auditPayments.map(pkg => {
+                    // Calculate correct total price
+                    const basePrice = Number(pkg.quote?.price || pkg.estimated_price || 0);
+                    const correctPricing = getPriceBreakdown(
+                      basePrice,
+                      pkg.delivery_method || 'pickup',
+                      pkg.profiles?.trust_level,
+                      pkg.package_destination
+                    );
+                    
+                    return (
+                      <Card key={pkg.id} className="border-green-200 bg-green-50">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <Badge className="bg-green-600 mb-2">
+                                ✅ {(pkg.payment_receipt as any)?.trust_level_at_upload || 'confiable'}
+                              </Badge>
+                              <h4 className="font-medium">{pkg.item_description}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Monto Total: Q{correctPricing.totalPrice.toFixed(2)}
+                              </p>
+                              <p className="text-xs text-green-700 mt-1">
+                                📄 {pkg.payment_receipt?.filename}
+                              </p>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                if (pkg.payment_receipt) {
+                                  let filePath = pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '';
+                                  if (filePath.startsWith('http')) {
+                                    try {
+                                      const url = new URL(filePath);
+                                      const pathParts = url.pathname.split('/');
+                                      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+                                      if (bucketIndex !== -1) {
+                                        filePath = pathParts.slice(bucketIndex + 1).join('/');
+                                      }
+                                    } catch (e) {
+                                      console.error('Error parsing receipt URL:', e);
                                     }
-                                  } catch (e) {
-                                    console.error('Error parsing receipt URL:', e);
                                   }
+                                  setSelectedReceipt({
+                                    url: `payment-receipts/${filePath}`,
+                                    filename: pkg.payment_receipt.filename || 'comprobante.jpg',
+                                    title: `Comprobante auto-aprobado - ${pkg.item_description}`
+                                  });
                                 }
-                                setSelectedReceipt({
-                                  url: `payment-receipts/${filePath}`,
-                                  filename: pkg.payment_receipt.filename || 'comprobante.jpg',
-                                  title: `Comprobante auto-aprobado - ${pkg.item_description}`
-                                });
-                              }
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
