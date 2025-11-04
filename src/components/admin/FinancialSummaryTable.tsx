@@ -45,6 +45,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   } | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<string | null>(null);
+  const [selectedReceiptFilename, setSelectedReceiptFilename] = useState<string | null>(null);
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -593,16 +594,27 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                         size="sm"
                         onClick={() => {
                           const receipt = item.package.payment_receipt as any;
-                          const receiptPath = receipt?.filePath || receipt?.receipt_url;
-                          if (receiptPath) {
-                            setSelectedPaymentReceipt(receiptPath);
-                          } else {
+                          const raw = receipt?.fileUrl || receipt?.receipt_url || receipt?.filePath || receipt?.file_path || '';
+                          
+                          if (!raw) {
                             toast({
                               title: "Sin comprobante",
                               description: "No hay comprobante de pago disponible",
                               variant: "destructive"
                             });
+                            return;
                           }
+                          
+                          // Normalize path: add bucket if not a full URL and bucket not already present
+                          let normalized = raw;
+                          if (!raw.startsWith('http') && !raw.includes('/storage/v1/object')) {
+                            if (!raw.startsWith('payment-receipts/')) {
+                              normalized = `payment-receipts/${raw}`;
+                            }
+                          }
+                          
+                          setSelectedPaymentReceipt(normalized);
+                          setSelectedReceiptFilename(receipt?.filename || receipt?.fileName || 'comprobante.jpg');
                         }}
                       >
                         <Eye className="h-3 w-3 mr-1" />
@@ -673,10 +685,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
         <ReceiptViewerModal
           isOpen={!!selectedPaymentReceipt}
-          onClose={() => setSelectedPaymentReceipt(null)}
+          onClose={() => {
+            setSelectedPaymentReceipt(null);
+            setSelectedReceiptFilename(null);
+          }}
           receiptUrl={selectedPaymentReceipt || ''}
           title="Comprobante de Pago del Shopper"
-          filename="comprobante-pago-shopper"
+          filename={selectedReceiptFilename || 'comprobante-pago-shopper'}
         />
       </CardContent>
     </Card>
