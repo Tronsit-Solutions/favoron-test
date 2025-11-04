@@ -407,7 +407,7 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
                               </Badge>
                               <h4 className="font-medium">{pkg.item_description}</h4>
                               <p className="text-sm text-muted-foreground">
-                                Monto Total: Q{correctPricing.totalPrice.toFixed(2)}
+                                Monto Total: Q{correctPricing.totalPrice.toFixed(2)} • Shopper: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
                               </p>
                               <p className="text-xs text-green-700 mt-1">
                                 📄 {pkg.payment_receipt?.filename}
