@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag } from "lucide-react";
+import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PackageLabel } from './PackageLabel';
 import { PackageLabelModal } from './PackageLabelModal';
@@ -9,6 +9,15 @@ import { TripDetailModal } from '../dashboard/TripDetailModal';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
+
+// Helper function to check if delivery is overdue
+const isDeliveryOverdue = (deliveryDate: string): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset to midnight for accurate day comparison
+  const delivery = new Date(deliveryDate);
+  delivery.setHours(0, 0, 0, 0);
+  return delivery < today; // True if delivery date has passed
+};
 
 interface LastMileTabProps {
   trips: any[];
@@ -301,7 +310,14 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
           ) : (
             <div className="space-y-4">
               {filteredTrips.map(trip => (
-                <Card key={trip.id} className="border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent">
+                <Card 
+                  key={trip.id} 
+                  className={`border-l-4 ${
+                    isDeliveryOverdue(trip.delivery_date)
+                      ? 'border-l-red-600 bg-gradient-to-r from-red-50 to-red-100/30 border-red-200'
+                      : 'border-l-primary bg-gradient-to-r from-primary/5 to-transparent'
+                  }`}
+                >
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="space-y-2">
@@ -322,9 +338,13 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                           </span>
                          </div>
                          
-                         {trip.delivery_date && (
+                         <div className="flex items-center gap-2">
                            <div className="text-sm">
-                             <span className="font-medium text-primary">
+                             <span className={`font-medium ${
+                               isDeliveryOverdue(trip.delivery_date)
+                                 ? 'text-red-600 font-bold'
+                                 : 'text-primary'
+                             }`}>
                                Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString('es-ES', {
                                  year: 'numeric',
                                  month: 'long', 
@@ -332,7 +352,13 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                                })}
                              </span>
                            </div>
-                         )}
+                           {isDeliveryOverdue(trip.delivery_date) && (
+                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white animate-pulse">
+                               <AlertTriangle className="h-3 w-3" />
+                               ATRASADO
+                             </span>
+                           )}
+                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
