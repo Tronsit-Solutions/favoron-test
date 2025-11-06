@@ -1,5 +1,8 @@
 project_id = "dfhoduirmqbarjnspbdh"
 
+[functions.migrate-phone-numbers]
+verify_jwt = true
+
 [functions.expire-quotes]
 verify_jwt = false
 
