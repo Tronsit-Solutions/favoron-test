@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SecurityDashboard from '@/components/security/SecurityDashboard';
+import PhoneMigrationPanel from './PhoneMigrationPanel';
 import { SecurityMonitor } from '@/lib/securityMonitoring';
 import { getSessionInfo } from '@/lib/sessionSecurity';
 import { Shield, AlertTriangle, RefreshCw, Download, Settings } from 'lucide-react';
@@ -103,6 +104,7 @@ export default function SecurityTab() {
           <TabsTrigger value="dashboard">Security Dashboard</TabsTrigger>
           <TabsTrigger value="settings">Security Settings</TabsTrigger>
           <TabsTrigger value="policies">Access Policies</TabsTrigger>
+          <TabsTrigger value="migrations">Migraciones</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
@@ -232,6 +234,10 @@ export default function SecurityTab() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="migrations">
+          <PhoneMigrationPanel />
         </TabsContent>
       </Tabs>
     </div>
