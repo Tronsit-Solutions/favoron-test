@@ -49,6 +49,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { parsePhoneNumber } from "@/lib/phoneUtils";
 import { canCancelPackage } from "@/lib/permissions";
 
 interface DashboardProps {
@@ -252,28 +253,46 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const handleUpdateUser = async (userData: any) => {
     try {
-      // Update in Supabase
+      // Normalize phone fields
+      let country_code = userData.country_code ?? userData.countryCode ?? null;
+      let phone_number = userData.phone_number ?? null;
+
+      // Fallback: parse combined phone if needed
+      if (!phone_number && userData.phone) {
+        const parsed = parsePhoneNumber(userData.phone);
+        phone_number = parsed.phoneNumber;
+        if (!country_code) country_code = parsed.countryCode;
+      }
+
+      const updates = {
+        first_name: userData.firstName || userData.first_name,
+        last_name: userData.lastName || userData.last_name,
+        username: userData.username,
+        country_code,
+        phone_number,
+        avatar_url: userData.avatarUrl || userData.avatar_url,
+        bank_account_holder: userData.bank_account_holder || userData.bankAccountHolder,
+        bank_name: userData.bank_name || userData.bankName,
+        bank_account_type: userData.bank_account_type || userData.bankAccountType,
+        bank_account_number: userData.bank_account_number || userData.bankAccountNumber
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          first_name: userData.firstName || userData.first_name,
-          last_name: userData.lastName || userData.last_name,
-          username: userData.username,
-          phone_number: userData.phone || userData.phone_number,
-          avatar_url: userData.avatarUrl || userData.avatar_url,
-          bank_account_holder: userData.bank_account_holder || userData.bankAccountHolder,
-          bank_name: userData.bank_name || userData.bankName,
-          bank_account_type: userData.bank_account_type || userData.bankAccountType,
-          bank_account_number: userData.bank_account_number || userData.bankAccountNumber
-        })
+        .update(updates)
         .eq('id', currentUser.id);
 
       if (error) {
         return;
       }
 
-      // Update local state
-      setCurrentUser(userData);
+      // Update local state with normalized values
+      setCurrentUser((prev: any) => ({
+        ...prev,
+        ...userData,
+        ...updates,
+        name: `${updates.first_name ?? ''} ${updates.last_name ?? ''}`.trim(),
+      }));
     } catch (error) {
       // Error silently handled
     }
