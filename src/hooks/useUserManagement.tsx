@@ -56,8 +56,10 @@ export const useUserManagement = () => {
           phoneNumber: profile.phone_number || undefined,
           whatsappNumber: profile.phone_number || undefined,
           registrationDate: profile.created_at,
-          status: 'verified' as const, // Since they have profiles, assume verified
-          trustLevel: profile.trust_level === 'confiable' ? 'confiable' as const : 
+          status: (profile.is_banned && (!profile.banned_until || new Date(profile.banned_until) > new Date())) 
+            ? 'blocked' as const 
+            : 'verified' as const,
+          trustLevel: profile.trust_level === 'confiable' ? 'confiable' as const :
                      profile.trust_level === 'prime' ? 'prime' as const : 'basic' as const,
           adminNotes: '',
           // Banking information now included

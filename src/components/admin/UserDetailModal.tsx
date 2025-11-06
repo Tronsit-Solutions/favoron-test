@@ -404,7 +404,7 @@ const UserDetailModal = ({
                   <div className="space-y-2">
                     <Label>Estado del Usuario</Label>
                     <Select 
-                      value={isBanned ? 'blocked' : (pendingStatus || 'active')}
+                      value={pendingStatus || user.status || 'active'}
                       onValueChange={handleStatusChange}
                     >
                       <SelectTrigger>
