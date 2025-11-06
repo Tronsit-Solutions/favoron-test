@@ -121,6 +121,16 @@ const UserDetailModal = ({
     setIsEditing(false);
   };
 
+  const handleStatusChange = (newStatus: User['status']) => {
+    if (newStatus === 'blocked') {
+      // Open ban dialog instead of directly updating status
+      setShowBanDialog(true);
+    } else {
+      // For other statuses, update directly
+      setPendingStatus(newStatus);
+    }
+  };
+
   const getTrustLevelBadge = (level: string | undefined) => {
     const levelConfig = {
       basic: { label: 'Básico', variant: 'secondary' as const },
@@ -394,8 +404,8 @@ const UserDetailModal = ({
                   <div className="space-y-2">
                     <Label>Estado del Usuario</Label>
                     <Select 
-                      value={pendingStatus || 'active'}
-                      onValueChange={(value) => setPendingStatus(value as User['status'])}
+                      value={isBanned ? 'blocked' : (pendingStatus || 'active')}
+                      onValueChange={handleStatusChange}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -584,6 +594,9 @@ const UserDetailModal = ({
                             try {
                               setIsBanning(true);
                               await onUnbanUser(user.id);
+                              // Update status to active after unbanning
+                              await onUpdateUser(user.id, { status: 'active' });
+                              setPendingStatus('active');
                             } catch (error) {
                               console.error('Error unbanning user:', error);
                             } finally {
@@ -699,6 +712,9 @@ const UserDetailModal = ({
                     setIsBanning(true);
                     if (onBanUser) {
                       await onBanUser(user.id, banDuration, customBanDate, banReason);
+                      // Update status to blocked after banning
+                      await onUpdateUser(user.id, { status: 'blocked' });
+                      setPendingStatus('blocked');
                     }
                     setShowBanDialog(false);
                     setBanDuration('24h');
