@@ -8,6 +8,7 @@ import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import PersonalInfoForm from "./profile/PersonalInfoForm";
 import { useToast } from "@/hooks/use-toast";
 import { validateWhatsAppNumber } from "@/lib/validators";
+import { parsePhoneNumber, combinePhoneNumber } from "@/lib/phoneUtils";
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
@@ -29,11 +30,13 @@ const ProfileCompletionModal = ({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const initialPhone = parsePhoneNumber(profile?.phone_number || '');
+  
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
-    countryCode: profile?.country_code || '+502',
-    phoneNumber: profile?.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
+    countryCode: profile?.country_code || initialPhone.countryCode,
+    phoneNumber: initialPhone.phoneNumber,
     username: profile?.username || '',
     idNumber: '',
     avatarUrl: profile?.avatar_url || ''
@@ -44,11 +47,12 @@ const ProfileCompletionModal = ({
   // Update form data when profile changes
   useEffect(() => {
     if (profile) {
+      const parsedPhone = parsePhoneNumber(profile.phone_number || '');
       const newFormData = {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
-        countryCode: profile.country_code || '+502',
-        phoneNumber: profile.phone_number ? profile.phone_number.replace(profile?.country_code || '+502', '').trim() : '',
+        countryCode: profile.country_code || parsedPhone.countryCode,
+        phoneNumber: parsedPhone.phoneNumber,
         username: profile.username || '',
         idNumber: '',
         avatarUrl: profile.avatar_url || ''
@@ -56,8 +60,8 @@ const ProfileCompletionModal = ({
       setFormData(newFormData);
       
       // Validate phone number on load
-      const fullPhone = `${newFormData.countryCode} ${newFormData.phoneNumber}`.trim();
       if (newFormData.phoneNumber) {
+        const fullPhone = combinePhoneNumber(newFormData.countryCode, newFormData.phoneNumber);
         const validation = validateWhatsAppNumber(fullPhone);
         setPhoneValidation(validation);
         console.log('📱 Initial phone validation:', { fullPhone, validation });
@@ -67,8 +71,8 @@ const ProfileCompletionModal = ({
   
   // Real-time phone validation
   useEffect(() => {
-    const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
     if (formData.phoneNumber) {
+      const fullPhone = combinePhoneNumber(formData.countryCode, formData.phoneNumber);
       const validation = validateWhatsAppNumber(fullPhone);
       setPhoneValidation(validation);
       console.log('📱 Real-time phone validation:', { fullPhone, validation });
@@ -107,7 +111,7 @@ const ProfileCompletionModal = ({
     }
     
     // Validate WhatsApp number specifically
-    const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
+    const fullPhone = combinePhoneNumber(formData.countryCode, formData.phoneNumber);
     const phoneValidationResult = validateWhatsAppNumber(fullPhone);
     if (!phoneValidationResult.isValid) {
       toast({
@@ -121,14 +125,12 @@ const ProfileCompletionModal = ({
     setIsSubmitting(true);
     
     try {
-      const fullPhone = `${formData.countryCode} ${formData.phoneNumber}`.trim();
       await updateProfile({
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         country_code: formData.countryCode.trim(),
-        phone_number: fullPhone,
+        phone_number: formData.phoneNumber.trim(),
         username: formData.username.trim() || null,
-        
         avatar_url: formData.avatarUrl || null
       });
 
