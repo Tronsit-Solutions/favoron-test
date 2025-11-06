@@ -22,6 +22,7 @@ import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { QuoteRecalculator } from "./QuoteRecalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneDisplay } from "@/lib/phoneUtils";
 
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
@@ -458,7 +459,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div>
                       <p className="text-sm font-medium">Teléfono</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.profiles?.phone_number || 'Sin teléfono registrado'}
+                        {pkg.profiles?.country_code && pkg.profiles?.phone_number 
+                          ? formatPhoneDisplay(pkg.profiles.country_code, pkg.profiles.phone_number)
+                          : 'Sin teléfono registrado'}
                       </p>
                     </div>
                   </div>
