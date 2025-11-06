@@ -1,0 +1,180 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { tripId } = await req.json();
+
+    if (!tripId) {
+      throw new Error('Trip ID is required');
+    }
+
+    console.log('🔄 Recalculating trip payment accumulator for trip:', tripId);
+
+    // Get traveler ID from trip
+    const { data: trip, error: tripError } = await supabase
+      .from('trips')
+      .select('user_id')
+      .eq('id', tripId)
+      .single();
+
+    if (tripError || !trip) {
+      throw new Error(`Trip not found: ${tripError?.message}`);
+    }
+
+    const travelerId = trip.user_id;
+    console.log('👤 Traveler ID:', travelerId);
+
+    // Get all packages for this trip with quotes
+    const { data: completedPackages, error: packagesError } = await supabase
+      .from('packages')
+      .select('id, quote, status, office_delivery')
+      .eq('matched_trip_id', tripId)
+      .in('status', ['completed', 'delivered_to_office'])
+      .not('quote', 'is', null);
+
+    if (packagesError) {
+      throw packagesError;
+    }
+
+    console.log('📦 Found packages:', completedPackages?.length || 0);
+
+    // Calculate accumulated amount and delivered count
+    let accumulatedAmount = 0;
+    let deliveredEligibleCount = 0;
+
+    completedPackages?.forEach((pkg: any) => {
+      const isCompleted = pkg.status === 'completed';
+      const isDeliveredToOffice = pkg.status === 'delivered_to_office' && 
+        pkg.office_delivery?.admin_confirmation;
+      
+      if (!isCompleted && !isDeliveredToOffice) {
+        console.log('⏭️ Skipping package (not delivered):', pkg.id, 'status:', pkg.status);
+        return;
+      }
+      
+      deliveredEligibleCount += 1;
+      
+      if (pkg.quote) {
+        const tip = Number(pkg.quote?.price ?? 0);
+        if (tip > 0) {
+          accumulatedAmount += tip;
+          console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
+        }
+      }
+    });
+
+    console.log('📊 Delivered packages:', deliveredEligibleCount, 'Amount:', accumulatedAmount);
+
+    // Get total packages count (in_transit or later)
+    const eligibleStatuses = ['in_transit', 'received_by_traveler', 'delivered_to_office', 'completed', 'delivered'];
+    const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
+      .from('packages')
+      .select('id, status')
+      .eq('matched_trip_id', tripId)
+      .in('status', eligibleStatuses);
+
+    if (eligiblePkgsError) {
+      throw eligiblePkgsError;
+    }
+
+    const totalPackagesCount = inTransitOrLaterPackages?.length || 0;
+    const allDelivered = totalPackagesCount > 0 && deliveredEligibleCount === totalPackagesCount;
+
+    console.log('📊 Total packages:', totalPackagesCount, 'All delivered:', allDelivered);
+
+    // Check if accumulator exists
+    const { data: existingAccumulator, error: checkError } = await supabase
+      .from('trip_payment_accumulator')
+      .select('*')
+      .eq('trip_id', tripId)
+      .eq('traveler_id', travelerId)
+      .maybeSingle();
+
+    if (checkError) {
+      throw checkError;
+    }
+
+    if (existingAccumulator) {
+      console.log('🔄 Updating existing accumulator:', existingAccumulator.id);
+      // Update existing accumulator
+      const { error: updateError } = await supabase
+        .from('trip_payment_accumulator')
+        .update({
+          accumulated_amount: accumulatedAmount,
+          delivered_packages_count: deliveredEligibleCount,
+          total_packages_count: totalPackagesCount,
+          all_packages_delivered: allDelivered,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingAccumulator.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      console.log('✅ Accumulator updated successfully');
+    } else {
+      console.log('➕ Creating new accumulator');
+      // Create new accumulator
+      if (accumulatedAmount > 0) {
+        const { error: insertError } = await supabase
+          .from('trip_payment_accumulator')
+          .insert({
+            trip_id: tripId,
+            traveler_id: travelerId,
+            accumulated_amount: accumulatedAmount,
+            delivered_packages_count: deliveredEligibleCount,
+            total_packages_count: totalPackagesCount,
+            all_packages_delivered: allDelivered,
+            payment_order_created: false
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        console.log('✅ Accumulator created successfully');
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        tripId,
+        travelerId,
+        deliveredPackagesCount: deliveredEligibleCount,
+        totalPackagesCount,
+        accumulatedAmount,
+        allDelivered,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error('❌ Error recalculating trip payment accumulator:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    );
+  }
+});
