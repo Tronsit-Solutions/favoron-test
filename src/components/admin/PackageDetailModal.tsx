@@ -459,8 +459,10 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div>
                       <p className="text-sm font-medium">Teléfono</p>
                       <p className="text-sm text-muted-foreground">
-                        {pkg.profiles?.country_code && pkg.profiles?.phone_number 
-                          ? formatPhoneDisplay(pkg.profiles.country_code, pkg.profiles.phone_number)
+                        {pkg.profiles?.phone_number
+                          ? (pkg.profiles?.country_code 
+                              ? formatPhoneDisplay(pkg.profiles.country_code, pkg.profiles.phone_number)
+                              : pkg.profiles.phone_number)
                           : 'Sin teléfono registrado'}
                       </p>
                     </div>

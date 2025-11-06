@@ -1,6 +1,7 @@
 
 import { User, Mail, Phone, CreditCard, AtSign, Hash } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatPhoneDisplay } from "@/lib/phoneUtils";
 
 interface PersonalInfoDisplayProps {
   user: any;
@@ -32,7 +33,11 @@ const PersonalInfoDisplay = ({ user }: PersonalInfoDisplayProps) => {
     {
       icon: Phone,
       label: "WhatsApp",
-      value: user.phone || user.phone_number || 'No registrado'
+      value: user.phone_number
+        ? (user.country_code 
+            ? formatPhoneDisplay(user.country_code, user.phone_number)
+            : user.phone_number)
+        : (user.phone || 'No registrado')
     },
     {
       icon: CreditCard,
