@@ -38,11 +38,13 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized: Invalid user');
     }
 
-    // Check if user has admin role
+    // Check if user has admin role - filter specifically for admin to avoid multiple rows
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .limit(1)
       .maybeSingle();
 
     console.log('Role check:', { userId: user.id, roleData, roleError });
@@ -52,7 +54,7 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized: Failed to verify admin role');
     }
 
-    if (!roleData || roleData.role !== 'admin') {
+    if (!roleData) {
       throw new Error('Unauthorized: Admin access required');
     }
 
