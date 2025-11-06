@@ -2,8 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AtSign, Phone, CreditCard, Save } from "lucide-react";
 import AvatarUpload from "./AvatarUpload";
+import { PHONE_CONFIG } from "@/lib/constants";
 
 interface PersonalInfoFormProps {
   formData: any;
@@ -63,20 +65,41 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">WhatsApp (incluye código de país)</Label>
-        <div className="relative">
-          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="phone"
-            type="tel"
-            value={formData.phoneNumber || ''}
-            onChange={(e) => setFormData((prev: any) => ({ ...prev, phoneNumber: e.target.value }))}
-            placeholder="+502 1234 5678"
-            className="pl-10"
-          />
+        <Label htmlFor="phone">WhatsApp</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <Select
+            value={formData.countryCode || '+502'}
+            onValueChange={(value) => 
+              setFormData((prev: any) => ({ ...prev, countryCode: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Código" />
+            </SelectTrigger>
+            <SelectContent>
+              {PHONE_CONFIG.SUPPORTED_COUNTRIES.map((country) => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.flag} {country.code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="col-span-2 relative">
+            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phoneNumber || ''}
+              onChange={(e) => 
+                setFormData((prev: any) => ({ ...prev, phoneNumber: e.target.value }))
+              }
+              placeholder="12345678"
+              className="pl-10"
+            />
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Incluye código de país (ej: +502 1234 5678 o 502 1234 5678). Mínimo 8, máximo 15 dígitos
+          Tu número de WhatsApp para notificaciones
         </p>
       </div>
 

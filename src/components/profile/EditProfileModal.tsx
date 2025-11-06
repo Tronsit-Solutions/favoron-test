@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Save } from "lucide-react";
 import { validateWhatsAppNumber } from "@/lib/validators";
+import { parsePhoneNumber, combinePhoneNumber } from "@/lib/phoneUtils";
 import PersonalInfoForm from "./PersonalInfoForm";
 
 interface EditProfileModalProps {
@@ -14,11 +15,15 @@ interface EditProfileModalProps {
 }
 
 const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileModalProps) => {
+  // Parse phone number al inicializar
+  const initialPhone = parsePhoneNumber(user.phone_number || user.phone || '');
+  
   const [formData, setFormData] = useState({
     firstName: user.first_name || user.firstName || '',
     lastName: user.last_name || user.lastName || '',
     username: user.username || '',
-    phoneNumber: user.phone_number || user.phone || '',
+    countryCode: user.country_code || initialPhone.countryCode,
+    phoneNumber: initialPhone.phoneNumber,
     idNumber: user.idNumber || '',
     avatarUrl: user.avatar_url || user.avatarUrl || '',
   });
@@ -36,7 +41,8 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileMo
 
     // Validate phone number format if provided
     if (formData.phoneNumber?.trim()) {
-      const validation = validateWhatsAppNumber(formData.phoneNumber);
+      const fullPhone = combinePhoneNumber(formData.countryCode, formData.phoneNumber);
+      const validation = validateWhatsAppNumber(fullPhone);
       if (!validation.isValid) {
         toast({
           title: "Error",
@@ -47,18 +53,23 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileMo
       }
     }
 
+    const fullPhoneNumber = formData.phoneNumber?.trim() 
+      ? combinePhoneNumber(formData.countryCode, formData.phoneNumber)
+      : null;
+
     const updatedUser = {
       ...user,
       firstName: formData.firstName,
       lastName: formData.lastName,
       name: `${formData.firstName} ${formData.lastName}`,
       username: formData.username,
-      phone: formData.phoneNumber?.trim() || null,
+      phone: fullPhoneNumber,
       idNumber: formData.idNumber,
       avatarUrl: formData.avatarUrl,
       // Database fields
       first_name: formData.firstName,
       last_name: formData.lastName,
+      country_code: formData.countryCode,
       phone_number: formData.phoneNumber?.trim() || null,
       avatar_url: formData.avatarUrl
     };
@@ -73,11 +84,13 @@ const EditProfileModal = ({ user, isOpen, onClose, onUpdateUser }: EditProfileMo
 
   const handleCancel = () => {
     // Reset form data to original values
+    const initialPhone = parsePhoneNumber(user.phone_number || user.phone || '');
     setFormData({
       firstName: user.first_name || user.firstName || '',
       lastName: user.last_name || user.lastName || '',
       username: user.username || '',
-      phoneNumber: user.phone_number || user.phone || '',
+      countryCode: user.country_code || initialPhone.countryCode,
+      phoneNumber: initialPhone.phoneNumber,
       idNumber: user.idNumber || '',
       avatarUrl: user.avatar_url || user.avatarUrl || '',
     });
