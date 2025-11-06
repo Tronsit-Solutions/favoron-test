@@ -1367,6 +1367,24 @@ export const useDashboardActions = (
         description: 'Has confirmado la recepción del paquete en oficina.',
       });
 
+      // Actualizar trip payment accumulator después de confirmar en oficina
+      const packageForAccumulator = packages?.find(pkg => pkg.id === packageId);
+      if (packageForAccumulator?.matched_trip_id) {
+        try {
+          const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
+          const tripId = packageForAccumulator.matched_trip_id;
+          const travelerId = packageForAccumulator.trips?.user_id || packageForAccumulator.trips?.profiles?.id;
+          
+          if (travelerId) {
+            console.log('🔄 Updating trip payment accumulator for trip:', tripId);
+            await createOrUpdateTripPaymentAccumulator(tripId, travelerId);
+          }
+        } catch (accError) {
+          console.error('⚠️ Error updating trip payment accumulator:', accError);
+          // No bloqueamos la operación principal si falla el acumulador
+        }
+      }
+
     } catch (error: any) {
       console.error('❌ Error confirming office delivery:', error);
       // Revert optimistic update on error

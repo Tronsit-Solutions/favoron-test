@@ -15,23 +15,34 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     // Calcular el monto acumulado de tips sumando el tip base de cada paquete (quote.price)
     let accumulatedAmount = 0;
     let deliveredEligibleCount = 0;
+    
+    console.log('📊 Processing packages for trip:', tripId);
     completedPackages?.forEach((pkg: any) => {
-      // Considerar paquetes completamente finalizados o entregados en oficina con confirmación de admin
-      const isDelivered = pkg.status === 'completed' || (pkg.status === 'delivered_to_office' && pkg.office_delivery && pkg.office_delivery.admin_confirmation);
-      if (isDelivered) {
-        deliveredEligibleCount += 1;
-      } else {
-        return;
+      const isCompleted = pkg.status === 'completed';
+      const isDeliveredToOffice = pkg.status === 'delivered_to_office' && 
+        pkg.office_delivery?.admin_confirmation;
+      
+      if (!isCompleted && !isDeliveredToOffice) {
+        console.log('⏭️ Skipping package (not delivered):', pkg.id, 'status:', pkg.status);
+        return; // Skip paquetes sin confirmación
       }
-
+      
+      deliveredEligibleCount += 1;
+      
       if (pkg.quote) {
-        const quote = pkg.quote as any;
-        const tip = Number(quote?.price ?? 0);
+        const tip = Number(pkg.quote?.price ?? 0);
         if (tip > 0) {
           accumulatedAmount += tip;
+          console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
+        } else {
+          console.log('⚠️ Package has no tip:', pkg.id, 'status:', pkg.status);
         }
+      } else {
+        console.log('⚠️ Package has no quote:', pkg.id, 'status:', pkg.status);
       }
     });
+    
+    console.log('📊 Summary: delivered_count =', deliveredEligibleCount, 'accumulated =', accumulatedAmount);
 
     // Obtener total de paquetes del viaje con estado igual o posterior a 'in_transit'
     const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered'];
