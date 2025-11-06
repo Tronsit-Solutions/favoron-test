@@ -530,17 +530,27 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                        </div>
                      </div>
                      
-                     <div className="flex items-center space-x-2">
-                       <Package className="h-4 w-4 text-muted-foreground" />
-                       <div>
-                         <p className="text-sm font-medium">Usuario ID</p>
-                         <p className="text-sm text-muted-foreground">
-                           {matchedTrip?.user_id}
-                         </p>
-                       </div>
-                     </div>
+                      <div className="flex items-center space-x-2">
+                        <Package className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Usuario ID</p>
+                          <p className="text-sm text-muted-foreground">
+                            {matchedTrip?.user_id}
+                          </p>
+                        </div>
+                      </div>
 
-                      <Accordion type="single" collapsible className="border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Trip ID</p>
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {pkg.matched_trip_id || 'Sin viaje asignado'}
+                          </p>
+                        </div>
+                      </div>
+
+                       <Accordion type="single" collapsible className="border border-blue-200 rounded-lg">
                         <AccordionItem value="trip-info" className="border-none">
                           <AccordionTrigger className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-t-lg">
                             <div className="flex items-center gap-2">
