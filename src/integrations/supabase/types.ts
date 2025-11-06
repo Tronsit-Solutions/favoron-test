@@ -930,11 +930,15 @@ export type Database = {
         Args: { _access_reason?: string }
         Returns: {
           avatar_url: string
+          ban_reason: string
           bank_account_holder: string
           bank_account_number: string
           bank_account_type: string
           bank_name: string
           bank_swift_code: string
+          banned_at: string
+          banned_by: string
+          banned_until: string
           country_code: string
           created_at: string
           document_number: string
@@ -942,6 +946,7 @@ export type Database = {
           email: string
           first_name: string
           id: string
+          is_banned: boolean
           last_name: string
           phone_number: string
           trust_level: string
