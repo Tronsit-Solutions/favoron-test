@@ -69,7 +69,13 @@ export const useUserManagement = () => {
           // Additional sensitive data
           documentType: profile.document_type || undefined,
           documentNumber: profile.document_number || undefined,
-          countryCode: profile.country_code || '+502'
+          countryCode: profile.country_code || '+502',
+          // Ban information
+          is_banned: profile.is_banned || false,
+          banned_until: profile.banned_until || undefined,
+          ban_reason: profile.ban_reason || undefined,
+          banned_by: profile.banned_by || undefined,
+          banned_at: profile.banned_at || undefined
         };
       }) || [];
 
@@ -192,6 +198,76 @@ export const useUserManagement = () => {
     }
   };
 
+  const banUser = async (
+    userId: number,
+    duration: 'permanent' | '24h' | '7d' | '30d' | 'custom',
+    customDate?: string,
+    reason?: string
+  ) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user || !user.profileId) {
+        throw new Error('User or profile ID not found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('ban-user', {
+        body: {
+          userId: user.profileId,
+          duration,
+          customDate,
+          reason,
+          action: 'ban'
+        }
+      });
+
+      if (error) {
+        console.error('Error banning user:', error);
+        throw error;
+      }
+
+      console.log('User banned successfully:', data);
+      
+      // Refresh users to get updated ban status
+      await fetchUsers();
+      
+      return data;
+    } catch (error) {
+      console.error('Error banning user:', error);
+      throw error;
+    }
+  };
+
+  const unbanUser = async (userId: number) => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user || !user.profileId) {
+        throw new Error('User or profile ID not found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('ban-user', {
+        body: {
+          userId: user.profileId,
+          action: 'unban'
+        }
+      });
+
+      if (error) {
+        console.error('Error unbanning user:', error);
+        throw error;
+      }
+
+      console.log('User unbanned successfully:', data);
+      
+      // Refresh users to get updated ban status
+      await fetchUsers();
+      
+      return data;
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      throw error;
+    }
+  };
+
   return {
     users: filteredUsers,
     loading,
@@ -205,6 +281,8 @@ export const useUserManagement = () => {
     updateUserStatus,
     updateTrustLevel,
     updateAdminNotes,
+    banUser,
+    unbanUser,
     refreshUsers: fetchUsers
   };
 };

@@ -47,6 +47,8 @@ interface UserDetailModalProps {
   trips: Trip[];
   allPackages: Package[]; // All packages in system for cross-reference
   onUpdateUser: (userId: number, updates: Partial<User>, primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }) => void;
+  onBanUser?: (userId: number, duration: 'permanent' | '24h' | '7d' | '30d' | 'custom', customDate?: string, reason?: string) => Promise<void>;
+  onUnbanUser?: (userId: number) => Promise<void>;
 }
 
 const UserDetailModal = ({ 
@@ -56,7 +58,9 @@ const UserDetailModal = ({
   packages, 
   trips, 
   allPackages,
-  onUpdateUser 
+  onUpdateUser,
+  onBanUser,
+  onUnbanUser
 }: UserDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
@@ -69,8 +73,17 @@ const UserDetailModal = ({
     paymentReference: '',
     notes: ''
   });
+  const [showBanDialog, setShowBanDialog] = useState(false);
+  const [banDuration, setBanDuration] = useState<'permanent' | '24h' | '7d' | '30d' | 'custom'>('24h');
+  const [customBanDate, setCustomBanDate] = useState('');
+  const [banReason, setBanReason] = useState('');
+  const [isBanning, setIsBanning] = useState(false);
 
   const profileId = (user as any).profileId as string | undefined;
+  const userBanInfo = (user as any);
+  const isBanned = userBanInfo?.is_banned || false;
+  const bannedUntil = userBanInfo?.banned_until;
+  const banReasonStored = userBanInfo?.ban_reason;
 
   console.log('🔍 UserDetailModal - Debug Info:', {
     userName: user.name,
@@ -517,10 +530,193 @@ const UserDetailModal = ({
                     <p className="text-2xl font-bold text-secondary">{userTrips.length}</p>
                   </div>
                 </div>
+
+                {/* Ban Management Section */}
+                <div className="border-t pt-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Control de Acceso
+                  </h4>
+                  
+                  {isBanned ? (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-medium text-red-900 dark:text-red-100">
+                              ⛔ Usuario Bloqueado
+                            </p>
+                            {bannedUntil ? (
+                              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                                Hasta: {new Date(bannedUntil).toLocaleDateString('es-ES', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                                Bloqueo permanente
+                              </p>
+                            )}
+                          </div>
+                          <Badge variant="destructive">Bloqueado</Badge>
+                        </div>
+                        {banReasonStored && (
+                          <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
+                            <p className="text-xs font-medium text-red-900 dark:text-red-100 mb-1">
+                              Razón:
+                            </p>
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                              {banReasonStored}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {onUnbanUser && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={async () => {
+                            try {
+                              setIsBanning(true);
+                              await onUnbanUser(user.id);
+                            } catch (error) {
+                              console.error('Error unbanning user:', error);
+                            } finally {
+                              setIsBanning(false);
+                            }
+                          }}
+                          disabled={isBanning}
+                        >
+                          {isBanning ? 'Desbloqueando...' : '✅ Desbloquear Usuario'}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                        <p className="font-medium text-green-900 dark:text-green-100">
+                          ✅ Usuario Activo
+                        </p>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          Este usuario tiene acceso completo a la plataforma
+                        </p>
+                      </div>
+                      
+                      {onBanUser && (
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => setShowBanDialog(true)}
+                        >
+                          🚫 Bloquear Usuario
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Ban User Dialog */}
+        <AlertDialog open={showBanDialog} onOpenChange={setShowBanDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>🚫 Bloquear Usuario</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-4">
+                <p>Estás a punto de bloquear a <strong>{user.name}</strong>. El usuario no podrá acceder a la plataforma.</p>
+                
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>Duración del bloqueo</Label>
+                    <Select value={banDuration} onValueChange={(value: any) => setBanDuration(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24h">24 horas</SelectItem>
+                        <SelectItem value="7d">7 días</SelectItem>
+                        <SelectItem value="30d">30 días</SelectItem>
+                        <SelectItem value="custom">Fecha personalizada</SelectItem>
+                        <SelectItem value="permanent">Permanente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {banDuration === 'custom' && (
+                    <div className="space-y-2">
+                      <Label>Fecha de desbloqueo</Label>
+                      <Input
+                        type="datetime-local"
+                        value={customBanDate}
+                        onChange={(e) => setCustomBanDate(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Razón del bloqueo</Label>
+                    <Textarea
+                      placeholder="Ej: Spam, comportamiento abusivo, violación de términos..."
+                      value={banReason}
+                      onChange={(e) => setBanReason(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-red-50 dark:bg-red-950 p-3 rounded-md">
+                  <p className="text-sm text-red-900 dark:text-red-100">
+                    ⚠️ Esta acción bloqueará inmediatamente el acceso del usuario a la plataforma.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setBanDuration('24h');
+                setCustomBanDate('');
+                setBanReason('');
+              }}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={async () => {
+                  if (banDuration === 'custom' && !customBanDate) {
+                    alert('Por favor selecciona una fecha de desbloqueo');
+                    return;
+                  }
+                  
+                  try {
+                    setIsBanning(true);
+                    if (onBanUser) {
+                      await onBanUser(user.id, banDuration, customBanDate, banReason);
+                    }
+                    setShowBanDialog(false);
+                    setBanDuration('24h');
+                    setCustomBanDate('');
+                    setBanReason('');
+                  } catch (error) {
+                    console.error('Error banning user:', error);
+                  } finally {
+                    setIsBanning(false);
+                  }
+                }}
+                disabled={isBanning}
+              >
+                {isBanning ? 'Bloqueando...' : 'Confirmar Bloqueo'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Prime Payment Information Dialog */}
         <AlertDialog open={showPrimeDialog} onOpenChange={setShowPrimeDialog}>

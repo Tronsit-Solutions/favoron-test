@@ -47,6 +47,8 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     updateUser,
     updateTrustLevel,
     updateUserStatus,
+    banUser,
+    unbanUser,
     refreshUsers
   } = useUserManagement();
 
@@ -136,6 +138,67 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
         description: error?.message || "No se pudieron guardar los cambios. Intenta de nuevo.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleBanUser = async (
+    userId: number,
+    duration: 'permanent' | '24h' | '7d' | '30d' | 'custom',
+    customDate?: string,
+    reason?: string
+  ) => {
+    try {
+      await banUser(userId, duration, customDate, reason);
+      
+      toast({
+        title: "Usuario bloqueado",
+        description: `El usuario ha sido bloqueado exitosamente${duration === 'permanent' ? ' de forma permanente' : ''}.`,
+      });
+
+      // Update selected user to reflect ban status
+      if (selectedUser && selectedUser.id === userId) {
+        await refreshUsers();
+        const updatedUser = users.find(u => u.id === userId);
+        if (updatedUser) {
+          setSelectedUser(updatedUser);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error banning user:', error);
+      toast({
+        title: "Error al bloquear",
+        description: error?.message || "No se pudo bloquear el usuario. Intenta de nuevo.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  const handleUnbanUser = async (userId: number) => {
+    try {
+      await unbanUser(userId);
+      
+      toast({
+        title: "Usuario desbloqueado",
+        description: "El usuario ha sido desbloqueado exitosamente y puede acceder a la plataforma.",
+      });
+
+      // Update selected user to reflect unban status
+      if (selectedUser && selectedUser.id === userId) {
+        await refreshUsers();
+        const updatedUser = users.find(u => u.id === userId);
+        if (updatedUser) {
+          setSelectedUser(updatedUser);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error unbanning user:', error);
+      toast({
+        title: "Error al desbloquear",
+        description: error?.message || "No se pudo desbloquear el usuario. Intenta de nuevo.",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
@@ -401,6 +464,8 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           trips={trips}
           allPackages={packages}
           onUpdateUser={handleUpdateUser}
+          onBanUser={handleBanUser}
+          onUnbanUser={handleUnbanUser}
         />
       )}
     </div>

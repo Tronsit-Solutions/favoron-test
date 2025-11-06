@@ -23,6 +23,12 @@ export interface User {
   documentType?: string;
   documentNumber?: string;
   countryCode?: string;
+  // Ban information
+  is_banned?: boolean;
+  banned_until?: string;
+  ban_reason?: string;
+  banned_by?: string;
+  banned_at?: string;
 }
 
 export interface Document {

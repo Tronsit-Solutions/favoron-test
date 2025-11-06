@@ -613,6 +613,10 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_until: string | null
           country_code: string | null
           created_at: string | null
           email: string | null
@@ -620,6 +624,7 @@ export type Database = {
           email_notifications: boolean | null
           first_name: string | null
           id: string
+          is_banned: boolean | null
           last_name: string | null
           phone_number: string | null
           prime_expires_at: string | null
@@ -629,6 +634,10 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_until?: string | null
           country_code?: string | null
           created_at?: string | null
           email?: string | null
@@ -636,6 +645,7 @@ export type Database = {
           email_notifications?: boolean | null
           first_name?: string | null
           id: string
+          is_banned?: boolean | null
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
@@ -645,6 +655,10 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_until?: string | null
           country_code?: string | null
           created_at?: string | null
           email?: string | null
@@ -652,6 +666,7 @@ export type Database = {
           email_notifications?: boolean | null
           first_name?: string | null
           id?: string
+          is_banned?: boolean | null
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
@@ -1123,6 +1138,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { _user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           _action_description: string
@@ -1138,6 +1154,16 @@ export type Database = {
           _access_type: string
           _accessed_profile_id: string
           _reason?: string
+        }
+        Returns: undefined
+      }
+      log_ban_action: {
+        Args: {
+          _action: string
+          _admin_id: string
+          _duration: string
+          _reason: string
+          _target_user_id: string
         }
         Returns: undefined
       }
