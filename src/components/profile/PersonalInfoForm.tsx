@@ -2,10 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AtSign, Phone, CreditCard, Save } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { AtSign, Phone, CreditCard, Save, Globe } from "lucide-react";
 import AvatarUpload from "./AvatarUpload";
 import { PHONE_CONFIG } from "@/lib/constants";
+import { useState } from "react";
 
 interface PersonalInfoFormProps {
   formData: any;
@@ -15,6 +17,8 @@ interface PersonalInfoFormProps {
 }
 
 const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true }: PersonalInfoFormProps) => {
+  const [countryCodeOpen, setCountryCodeOpen] = useState(false);
+  
   const handleAvatarChange = (url: string | null) => {
     setFormData((prev: any) => ({ ...prev, avatarUrl: url }));
   };
@@ -67,23 +71,53 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
       <div className="space-y-2">
         <Label htmlFor="phone">WhatsApp</Label>
         <div className="grid grid-cols-3 gap-2">
-          <Select
-            value={formData.countryCode || '+502'}
-            onValueChange={(value) => 
-              setFormData((prev: any) => ({ ...prev, countryCode: value }))
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Código" />
-            </SelectTrigger>
-            <SelectContent>
-              {PHONE_CONFIG.SUPPORTED_COUNTRIES.map((country) => (
-                <SelectItem key={country.code} value={country.code}>
-                  {country.flag} {country.code}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="relative flex gap-1">
+            <Input
+              type="text"
+              value={formData.countryCode || '+502'}
+              onChange={(e) => 
+                setFormData((prev: any) => ({ ...prev, countryCode: e.target.value }))
+              }
+              placeholder="+502"
+              className="pr-8"
+            />
+            <Popover open={countryCodeOpen} onOpenChange={setCountryCodeOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
+                  type="button"
+                >
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 z-50 bg-popover" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar país..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontró el país</CommandEmpty>
+                    <CommandGroup>
+                      {PHONE_CONFIG.SUPPORTED_COUNTRIES.map((country) => (
+                        <CommandItem
+                          key={country.code}
+                          value={`${country.name} ${country.code}`}
+                          onSelect={() => {
+                            setFormData((prev: any) => ({ ...prev, countryCode: country.code }));
+                            setCountryCodeOpen(false);
+                          }}
+                        >
+                          <span className="mr-2">{country.flag}</span>
+                          <span className="font-medium">{country.code}</span>
+                          <span className="ml-2 text-muted-foreground">{country.name}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
           <div className="col-span-2 relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
