@@ -174,10 +174,28 @@ const AdminTravelerPaymentsTab = () => {
 
   const CompactOrderRow = ({ order }: { order: any }) => {
     const isExpanded = expandedRows.has(order.id);
-    // Usar historical_packages por defecto, fallback a live packages
-    const packages = order.historical_packages || (order as any).trips?.packages?.filter((pkg: any) => 
-      ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status)
-    ) || [];
+    
+    // Parse historical_packages correctamente
+    const normalizedHistorical = (() => {
+      const h = order.historical_packages;
+      if (!h) return [];
+      try {
+        const parsed = typeof h === 'string' ? JSON.parse(h) : h;
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        console.warn('historical_packages no es JSON válido', h);
+        return [];
+      }
+    })();
+    
+    // Estados válidos para pago
+    const eligibleStatuses = ['in_transit', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
+    const fallbackTripPackages = ((order as any).trips?.packages || []).filter((pkg: any) => 
+      eligibleStatuses.includes(pkg.status)
+    );
+    
+    // Usar historical_packages si tiene contenido, sino usar fallback
+    const packages = normalizedHistorical.length > 0 ? normalizedHistorical : fallbackTripPackages;
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0);
 
     return (
@@ -556,15 +574,10 @@ const AdminTravelerPaymentsTab = () => {
                 console.error('❌ Error fetching packages:', error);
               } else if (tripPackages) {
                 console.log('📦 All packages found:', tripPackages.length, tripPackages);
-                // Filtrar paquetes que tienen propina asignada y están en estado válido para pago
-                packagesArray = tripPackages.filter(pkg => {
-                  const quote = pkg.quote as any;
-                  const hasTip = pkg.admin_assigned_tip || quote?.price;
-                  const validStatus = ['in_transit', 'delivered_to_office', 'completed'].includes(pkg.status);
-                  console.log(`Package ${pkg.id}:`, { status: pkg.status, hasTip, validStatus });
-                  return hasTip && validStatus;
-                });
-                console.log('✅ Loaded packages from database:', packagesArray.length);
+                // Filtrar solo por estados válidos para pago
+                const eligibleStatuses = ['in_transit', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
+                packagesArray = tripPackages.filter(pkg => eligibleStatuses.includes(pkg.status));
+                console.log('✅ Loaded packages from database:', packagesArray.length, 'packages');
               }
             } catch (err) {
               console.error('❌ Exception fetching packages:', err);
@@ -638,10 +651,7 @@ const AdminTravelerPaymentsTab = () => {
                   })
                 ) : (
                   <div className="text-xs text-muted-foreground py-2">
-                    {packageBreakdown.length === 0 ? 
-                      'No se encontraron paquetes entregados para este viaje' : 
-                      'Cargando desglose de paquetes...'
-                    }
+                    No se encontraron paquetes para este viaje
                   </div>
                 )}
               </div>
