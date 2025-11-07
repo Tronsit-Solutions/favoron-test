@@ -114,7 +114,7 @@ const AdminTravelerPaymentsTab = () => {
         
         const { data, error } = await supabase
           .from('packages')
-          .select('id, item_description, status, quote, admin_assigned_tip')
+          .select('id, item_description, status, quote, admin_assigned_tip, products_data')
           .eq('matched_trip_id', confirmDialog.order.trip_id)
           .in('status', eligibleStatuses)
           .order('created_at', { ascending: true });
@@ -617,7 +617,53 @@ const AdminTravelerPaymentsTab = () => {
                   </div>
                 ) : packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
-                    // Usar admin_assigned_tip si está disponible, sino usar quote.price
+                    // Parse products_data if it exists
+                    let productsArray: any[] = [];
+                    try {
+                      if (pkg.products_data) {
+                        if (typeof pkg.products_data === 'string') {
+                          productsArray = JSON.parse(pkg.products_data);
+                        } else if (Array.isArray(pkg.products_data)) {
+                          productsArray = pkg.products_data;
+                        }
+                      }
+                    } catch (e) {
+                      console.error('Error parsing products_data:', e);
+                    }
+
+                    // Si hay múltiples productos, mostrar desglose por producto
+                    if (productsArray.length > 1) {
+                      return (
+                        <div key={pkg.id || index} className="space-y-1">
+                          {/* Header del paquete con múltiples productos */}
+                          <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground px-2 py-1 bg-muted/20 rounded-t">
+                            <Package className="h-3 w-3" />
+                            <span className="truncate">{pkg.item_description}</span>
+                          </div>
+                          {/* Desglose de cada producto */}
+                          {productsArray.map((product: any, prodIndex: number) => {
+                            const productTip = product.adminAssignedTip || 0;
+                            const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
+                            
+                            return (
+                              <div key={`${pkg.id}-${prodIndex}`} className="flex justify-between items-center text-xs py-1 px-2 pl-6 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
+                                <div className="flex items-center gap-1 flex-1 min-w-0">
+                                  <span className="text-muted-foreground/60 mr-1">•</span>
+                                  <span className="text-muted-foreground truncate">
+                                    {productDesc}
+                                  </span>
+                                </div>
+                                <span className="font-medium text-green-600 ml-2 flex-shrink-0">
+                                  {formatCurrency(productTip)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    
+                    // Si es un solo producto o no hay products_data, mostrar como antes
                     const packageTip = pkg.admin_assigned_tip || pkg.quote?.price || 0;
                     
                     return (
