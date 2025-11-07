@@ -931,8 +931,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             
             <UserProfile 
               user={currentUser}
-              packages={packages}
-              trips={trips}
+              packages={isAdmin ? packages.filter(pkg => pkg.user_id === currentUser.id) : packages}
+              trips={isAdmin ? trips.filter(trip => trip.user_id === currentUser.id) : trips}
               onUpdateUser={handleUpdateUser}
             />
           </TabsContent>
