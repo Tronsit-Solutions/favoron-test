@@ -550,13 +550,20 @@ const AdminTravelerPaymentsTab = () => {
               const { data: tripPackages, error } = await supabase
                 .from('packages')
                 .select('*')
-                .eq('matched_trip_id', confirmDialog.order.trip_id)
-                .in('status', ['delivered_to_office', 'completed']);
+                .eq('matched_trip_id', confirmDialog.order.trip_id);
               
               if (error) {
                 console.error('❌ Error fetching packages:', error);
-              } else if (tripPackages && tripPackages.length > 0) {
-                packagesArray = tripPackages;
+              } else if (tripPackages) {
+                console.log('📦 All packages found:', tripPackages.length, tripPackages);
+                // Filtrar paquetes que tienen propina asignada y están en estado válido para pago
+                packagesArray = tripPackages.filter(pkg => {
+                  const quote = pkg.quote as any;
+                  const hasTip = pkg.admin_assigned_tip || quote?.price;
+                  const validStatus = ['in_transit', 'delivered_to_office', 'completed'].includes(pkg.status);
+                  console.log(`Package ${pkg.id}:`, { status: pkg.status, hasTip, validStatus });
+                  return hasTip && validStatus;
+                });
                 console.log('✅ Loaded packages from database:', packagesArray.length);
               }
             } catch (err) {
