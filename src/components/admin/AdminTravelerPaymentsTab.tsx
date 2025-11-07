@@ -542,27 +542,10 @@ const AdminTravelerPaymentsTab = () => {
             traveler_id: confirmDialog.order?.traveler_id,
           });
           
-          // Primero intentar cargar desde historical_packages
+          // Siempre cargar desde la base de datos para tener datos actualizados
           let packagesArray: any[] = [];
           
-          if (confirmDialog.order?.historical_packages) {
-            let historical = confirmDialog.order.historical_packages;
-            if (typeof historical === 'string') {
-              try {
-                historical = JSON.parse(historical);
-              } catch (e) {
-                console.error('❌ Failed to parse historical_packages:', e);
-              }
-            }
-            
-            if (Array.isArray(historical) && historical.length > 0) {
-              packagesArray = historical;
-              console.log('✅ Loaded from historical_packages:', packagesArray.length);
-            }
-          }
-          
-          // Si no hay historical_packages, cargar desde la base de datos
-          if (packagesArray.length === 0 && confirmDialog.order?.trip_id) {
+          if (confirmDialog.order?.trip_id) {
             try {
               console.log('📡 Fetching packages from database for trip:', confirmDialog.order.trip_id);
               const { data: tripPackages, error } = await supabase
@@ -573,11 +556,12 @@ const AdminTravelerPaymentsTab = () => {
               if (error) {
                 console.error('❌ Error fetching packages:', error);
               } else if (tripPackages) {
-                console.log('📦 All packages found:', tripPackages.length, tripPackages);
-                // Filtrar solo por estados válidos para pago
-                const eligibleStatuses = ['in_transit', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
+                console.log('📦 All packages found for trip:', tripPackages.length, tripPackages);
+                // Filtrar solo paquetes en delivered_to_office o estados posteriores
+                const eligibleStatuses = ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
                 packagesArray = tripPackages.filter(pkg => eligibleStatuses.includes(pkg.status));
-                console.log('✅ Loaded packages from database:', packagesArray.length, 'packages');
+                console.log('✅ Filtered packages (delivered_to_office or later):', packagesArray.length, 'packages');
+                console.log('📋 Package statuses:', packagesArray.map(p => ({ id: p.id.slice(0,8), status: p.status })));
               }
             } catch (err) {
               console.error('❌ Exception fetching packages:', err);
@@ -651,7 +635,7 @@ const AdminTravelerPaymentsTab = () => {
                   })
                 ) : (
                   <div className="text-xs text-muted-foreground py-2">
-                    No se encontraron paquetes para este viaje
+                    No se encontraron paquetes en estado "entregado a oficina" o posteriores para este viaje
                   </div>
                 )}
               </div>
