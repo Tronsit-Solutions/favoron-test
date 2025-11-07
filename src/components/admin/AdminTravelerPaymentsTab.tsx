@@ -574,6 +574,13 @@ const AdminTravelerPaymentsTab = () => {
                 <span className="font-medium text-sm">Desglose de pago:</span>
               </div>
               
+              {/* Trip ID */}
+              <div className="mb-3 pb-2 border-b border-muted/20">
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-medium">ID del viaje:</span> {confirmDialog.order?.trip_id || 'N/A'}
+                </div>
+              </div>
+              
               {/* Desglose de paquetes */}
               <div className="space-y-2 mb-3">
                 {(() => {
