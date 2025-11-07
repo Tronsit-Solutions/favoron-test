@@ -75,6 +75,7 @@ const AdminTravelerPaymentsTab = () => {
     quote?: { price?: number };
     admin_assigned_tip?: number;
   }>>([]);
+  const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
   const { toast } = useToast();
   const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
   
@@ -90,6 +91,53 @@ const AdminTravelerPaymentsTab = () => {
     }
     setExpandedRows(newExpanded);
   };
+
+  // Fetch packages when dialog opens
+  useEffect(() => {
+    const fetchPackages = async () => {
+      if (!confirmDialog.isOpen || !confirmDialog.order?.trip_id) {
+        return;
+      }
+
+      setPackageBreakdownLoading(true);
+      
+      try {
+        console.log('📡 Fetching packages from database for trip:', confirmDialog.order.trip_id);
+        const eligibleStatuses = [
+          'delivered_to_office',
+          'ready_for_pickup',
+          'ready_for_delivery',
+          'out_for_delivery',
+          'delivered',
+          'completed'
+        ];
+        
+        const { data, error } = await supabase
+          .from('packages')
+          .select('id, item_description, status, quote, admin_assigned_tip')
+          .eq('matched_trip_id', confirmDialog.order.trip_id)
+          .in('status', eligibleStatuses)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('❌ Error fetching packages:', error);
+          setPackageBreakdown([]);
+          return;
+        }
+
+        console.log('📦 Packages fetched:', (data || []).length, 'packages');
+        console.log('📋 Package statuses:', (data || []).map(p => ({ id: p.id.slice(0, 8), status: p.status })));
+        setPackageBreakdown((data || []) as any);
+      } catch (err) {
+        console.error('❌ Exception fetching packages:', err);
+        setPackageBreakdown([]);
+      } finally {
+        setPackageBreakdownLoading(false);
+      }
+    };
+
+    fetchPackages();
+  }, [confirmDialog.isOpen, confirmDialog.order?.trip_id]);
 
   const handlePaymentAction = async () => {
     if (!confirmDialog.order) return;
@@ -532,48 +580,14 @@ const AdminTravelerPaymentsTab = () => {
       </Tabs>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onOpenChange={async (open) => {
+      <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
-        
-        if (open && confirmDialog.order) {
-          console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
-            order: confirmDialog.order,
-            trip_id: confirmDialog.order?.trip_id,
-            traveler_id: confirmDialog.order?.traveler_id,
-          });
-          
-          // Siempre cargar desde la base de datos para tener datos actualizados
-          let packagesArray: any[] = [];
-          
-          if (confirmDialog.order?.trip_id) {
-            try {
-              console.log('📡 Fetching packages from database for trip:', confirmDialog.order.trip_id);
-              const { data: tripPackages, error } = await supabase
-                .from('packages')
-                .select('*')
-                .eq('matched_trip_id', confirmDialog.order.trip_id);
-              
-              if (error) {
-                console.error('❌ Error fetching packages:', error);
-              } else if (tripPackages) {
-                console.log('📦 All packages found for trip:', tripPackages.length, tripPackages);
-                // Filtrar solo paquetes en delivered_to_office o estados posteriores
-                const eligibleStatuses = ['delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
-                packagesArray = tripPackages.filter(pkg => eligibleStatuses.includes(pkg.status));
-                console.log('✅ Filtered packages (delivered_to_office or later):', packagesArray.length, 'packages');
-                console.log('📋 Package statuses:', packagesArray.map(p => ({ id: p.id.slice(0,8), status: p.status })));
-              }
-            } catch (err) {
-              console.error('❌ Exception fetching packages:', err);
-            }
-          }
-          
-          setPackageBreakdown(packagesArray);
-        } else if (!open) {
+        if (!open) {
           setPackageBreakdown([]);
+          setPackageBreakdownLoading(false);
         }
       }}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">`
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
@@ -596,31 +610,18 @@ const AdminTravelerPaymentsTab = () => {
               
               {/* Desglose de paquetes */}
               <div className="space-y-2 mb-3">
-                {(() => {
-                  console.log('🎯 AdminTravelerPaymentsTab - Rendering breakdown:', {
-                    packageBreakdownLength: packageBreakdown.length,
-                    packageBreakdown: packageBreakdown,
-                    confirmDialogOrder: confirmDialog.order?.id,
-                    firstPackage: packageBreakdown[0],
-                    availableKeys: packageBreakdown[0] ? Object.keys(packageBreakdown[0]) : []
-                  });
-                  return null;
-                })()}
-                {packageBreakdown.length > 0 ? (
+                {packageBreakdownLoading ? (
+                  <div className="text-xs text-muted-foreground py-2 flex items-center justify-center gap-2">
+                    <Clock className="h-3 w-3 animate-spin" />
+                    Cargando paquetes...
+                  </div>
+                ) : packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
                     // Usar admin_assigned_tip si está disponible, sino usar quote.price
                     const packageTip = pkg.admin_assigned_tip || pkg.quote?.price || 0;
                     
-                    console.log(`📦 Package ${index}:`, {
-                      id: pkg.id,
-                      package_id: (pkg as any).package_id,
-                      item_description: pkg.item_description,
-                      quote: pkg.quote,
-                      packageTip
-                    });
-                    
                     return (
-                      <div key={(pkg as any).package_id || pkg.id || index} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
+                      <div key={pkg.id || index} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
                         <div className="flex items-center gap-1 flex-1 min-w-0">
                           <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground truncate">
