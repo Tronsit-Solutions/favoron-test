@@ -514,49 +514,58 @@ const AdminTravelerPaymentsTab = () => {
       </Tabs>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => {
+      <Dialog open={confirmDialog.isOpen} onOpenChange={async (open) => {
         setConfirmDialog(prev => ({ ...prev, isOpen: open }));
         
         if (open && confirmDialog.order) {
-          // Usar historical_packages como fuente principal al abrir el dialog
           console.log('🔍 AdminTravelerPaymentsTab - Dialog opened with order:', {
             order: confirmDialog.order,
             trip_id: confirmDialog.order?.trip_id,
             traveler_id: confirmDialog.order?.traveler_id,
-            historical_packages: confirmDialog.order?.historical_packages,
-            historical_packages_length: Array.isArray(confirmDialog.order?.historical_packages) ? confirmDialog.order.historical_packages.length : 'not array'
           });
           
+          // Primero intentar cargar desde historical_packages
+          let packagesArray: any[] = [];
+          
           if (confirmDialog.order?.historical_packages) {
-            console.log('✅ Historical packages found:', {
-              raw: confirmDialog.order.historical_packages,
-              isArray: Array.isArray(confirmDialog.order.historical_packages)
-            });
-            
-            let packagesArray = confirmDialog.order.historical_packages;
-            if (typeof packagesArray === 'string') {
+            let historical = confirmDialog.order.historical_packages;
+            if (typeof historical === 'string') {
               try {
-                packagesArray = JSON.parse(packagesArray);
-                console.log('📝 Parsed JSON packages:', packagesArray);
+                historical = JSON.parse(historical);
               } catch (e) {
-                console.error('❌ Failed to parse historical_packages as JSON:', e);
-                packagesArray = [];
+                console.error('❌ Failed to parse historical_packages:', e);
               }
             }
             
-            if (Array.isArray(packagesArray) && packagesArray.length > 0) {
-              console.log('✅ Setting package breakdown:', packagesArray);
-              setPackageBreakdown(packagesArray);
-            } else {
-              console.error('❌ No valid packages in historical_packages');
-              setPackageBreakdown([]);
+            if (Array.isArray(historical) && historical.length > 0) {
+              packagesArray = historical;
+              console.log('✅ Loaded from historical_packages:', packagesArray.length);
             }
-          } else {
-            console.error('❌ No historical_packages available');
-            setPackageBreakdown([]);
           }
+          
+          // Si no hay historical_packages, cargar desde la base de datos
+          if (packagesArray.length === 0 && confirmDialog.order?.trip_id) {
+            try {
+              console.log('📡 Fetching packages from database for trip:', confirmDialog.order.trip_id);
+              const { data: tripPackages, error } = await supabase
+                .from('packages')
+                .select('*')
+                .eq('matched_trip_id', confirmDialog.order.trip_id)
+                .in('status', ['delivered_to_office', 'completed']);
+              
+              if (error) {
+                console.error('❌ Error fetching packages:', error);
+              } else if (tripPackages && tripPackages.length > 0) {
+                packagesArray = tripPackages;
+                console.log('✅ Loaded packages from database:', packagesArray.length);
+              }
+            } catch (err) {
+              console.error('❌ Exception fetching packages:', err);
+            }
+          }
+          
+          setPackageBreakdown(packagesArray);
         } else if (!open) {
-          // Limpiar breakdown cuando se cierra el dialog
           setPackageBreakdown([]);
         }
       }}>
