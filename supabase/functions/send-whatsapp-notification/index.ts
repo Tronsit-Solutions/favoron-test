@@ -18,7 +18,8 @@ interface WhatsAppNotificationRequest {
 const isValidOrigin = (origin: string | null): boolean => {
   const allowedOrigins = [
     'https://favoron.app',
-    'https://dfhoduirmqbarjnspbdh.supabase.co'
+    'https://dfhoduirmqbarjnspbdh.supabase.co',
+    'lovableproject.com' // Lovable preview domains
   ];
   return origin ? allowedOrigins.some(allowed => origin.includes(allowed)) : false;
 };
