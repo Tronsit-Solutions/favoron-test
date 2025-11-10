@@ -1,5 +1,11 @@
 project_id = "dfhoduirmqbarjnspbdh"
 
+[functions.send-whatsapp-notification]
+verify_jwt = false
+
+[functions.test-whatsapp]
+verify_jwt = true
+
 [functions.recalculate-trip-accumulator]
 verify_jwt = false
 

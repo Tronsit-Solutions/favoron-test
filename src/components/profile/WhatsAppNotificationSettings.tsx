@@ -1,97 +1,96 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Smartphone, Package, Plane, CreditCard, Bell } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Bell, Package, Plane, CreditCard, Info } from "lucide-react";
 
 interface WhatsAppNotificationSettingsProps {
   userId: string;
   whatsappNotifications: boolean;
-  whatsappNotificationPreferences: Record<string, boolean>;
+  whatsappNotificationPreferences: {
+    package?: boolean;
+    trip?: boolean;
+    payment?: boolean;
+    general?: boolean;
+  };
   onUpdate: (enabled: boolean) => void;
-  onPreferencesUpdate: (preferences: Record<string, boolean>) => void;
+  onPreferencesUpdate: (preferences: any) => void;
 }
 
 const notificationTypes = [
-  { key: "package", label: "Paquetes", description: "Actualizaciones de paquetes", icon: Package },
-  { key: "trip", label: "Viajes", description: "Actualizaciones de viajes", icon: Plane },
-  { key: "payment", label: "Pagos", description: "Notificaciones de pagos", icon: CreditCard },
-  { key: "general", label: "General", description: "Notificaciones generales", icon: Bell },
+  { key: 'package', label: 'Paquetes', description: 'Actualizaciones sobre tus paquetes', icon: Package },
+  { key: 'trip', label: 'Viajes', description: 'Actualizaciones sobre tus viajes', icon: Plane },
+  { key: 'payment', label: 'Pagos', description: 'Confirmaciones de pago y transacciones', icon: CreditCard },
+  { key: 'general', label: 'General', description: 'Notificaciones generales de la plataforma', icon: Info },
 ];
 
-export function WhatsAppNotificationSettings({
+export const WhatsAppNotificationSettings = ({
   userId,
   whatsappNotifications,
   whatsappNotificationPreferences,
   onUpdate,
   onPreferencesUpdate,
-}: WhatsAppNotificationSettingsProps) {
-  const { toast } = useToast();
+}: WhatsAppNotificationSettingsProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
 
-  const handleToggle = async (enabled: boolean) => {
-    if (isUpdating) return;
-
+  const handleToggle = async (checked: boolean) => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
-        .from("profiles")
-        .update({ whatsapp_notifications: enabled })
-        .eq("id", userId);
+        .from('profiles')
+        .update({ whatsapp_notifications: checked })
+        .eq('id', userId);
 
       if (error) throw error;
 
-      onUpdate(enabled);
+      onUpdate(checked);
       toast({
-        title: enabled ? "WhatsApp habilitado" : "WhatsApp deshabilitado",
-        description: enabled
-          ? "Recibirás notificaciones por WhatsApp"
-          : "Ya no recibirás notificaciones por WhatsApp",
+        title: checked ? "WhatsApp activado" : "WhatsApp desactivado",
+        description: checked 
+          ? "Recibirás notificaciones por WhatsApp según tus preferencias" 
+          : "No recibirás notificaciones por WhatsApp",
       });
     } catch (error) {
-      console.error("Error updating WhatsApp notifications:", error);
+      console.error('Error updating WhatsApp settings:', error);
       toast({
-        title: "Error",
-        description: "No se pudo actualizar la configuración de WhatsApp",
         variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar la configuración",
       });
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handlePreferenceToggle = async (key: string, enabled: boolean) => {
-    if (isUpdating) return;
-
+  const handlePreferenceToggle = async (key: string, checked: boolean) => {
     setIsUpdating(true);
     try {
       const newPreferences = {
         ...whatsappNotificationPreferences,
-        [key]: enabled,
+        [key]: checked,
       };
 
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({ whatsapp_notification_preferences: newPreferences })
-        .eq("id", userId);
+        .eq('id', userId);
 
       if (error) throw error;
 
       onPreferencesUpdate(newPreferences);
       toast({
         title: "Preferencia actualizada",
-        description: `Notificaciones de ${
-          notificationTypes.find((t) => t.key === key)?.label
-        } ${enabled ? "habilitadas" : "deshabilitadas"}`,
+        description: `Notificaciones de ${notificationTypes.find(t => t.key === key)?.label} ${checked ? 'activadas' : 'desactivadas'}`,
       });
     } catch (error) {
-      console.error("Error updating WhatsApp preferences:", error);
+      console.error('Error updating WhatsApp preferences:', error);
       toast({
-        title: "Error",
-        description: "No se pudo actualizar las preferencias de WhatsApp",
         variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar la preferencia",
       });
     } finally {
       setIsUpdating(false);
@@ -99,51 +98,54 @@ export function WhatsAppNotificationSettings({
   };
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5 text-primary" />
-            <Label htmlFor="whatsapp-notifications" className="text-base font-semibold">
-              Notificaciones de WhatsApp
-            </Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Recibe actualizaciones importantes por WhatsApp
-          </p>
-        </div>
-        <Switch
-          id="whatsapp-notifications"
-          checked={whatsappNotifications}
-          onCheckedChange={handleToggle}
-          disabled={isUpdating}
-        />
-      </div>
-
-      {whatsappNotifications && (
-        <div className="space-y-4 pt-4 border-t">
-          <p className="text-sm font-medium">Tipos de notificaciones</p>
-          {notificationTypes.map(({ key, label, description, icon: Icon }) => (
-            <div key={key} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <Label htmlFor={`whatsapp-${key}`} className="text-sm font-medium">
-                    {label}
-                  </Label>
-                  <p className="text-xs text-muted-foreground">{description}</p>
-                </div>
-              </div>
-              <Switch
-                id={`whatsapp-${key}`}
-                checked={whatsappNotificationPreferences[key] ?? true}
-                onCheckedChange={(enabled) => handlePreferenceToggle(key, enabled)}
-                disabled={isUpdating}
-              />
+    <Card className="p-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              <Label className="text-base font-semibold">Notificaciones WhatsApp</Label>
             </div>
-          ))}
+            <p className="text-sm text-muted-foreground">
+              Recibe actualizaciones importantes por WhatsApp
+            </p>
+          </div>
+          <Switch
+            checked={whatsappNotifications}
+            onCheckedChange={handleToggle}
+            disabled={isUpdating}
+          />
         </div>
-      )}
+
+        {whatsappNotifications && (
+          <div className="space-y-4 pt-4 border-t">
+            <p className="text-sm font-medium text-muted-foreground">
+              Selecciona qué notificaciones deseas recibir:
+            </p>
+            {notificationTypes.map((type) => {
+              const Icon = type.icon;
+              return (
+                <div key={type.key} className="flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <Icon className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">{type.label}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {type.description}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={whatsappNotificationPreferences[type.key as keyof typeof whatsappNotificationPreferences] ?? true}
+                    onCheckedChange={(checked) => handlePreferenceToggle(type.key, checked)}
+                    disabled={isUpdating}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </Card>
   );
-}
+};
