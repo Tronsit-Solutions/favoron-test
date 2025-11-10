@@ -43,7 +43,7 @@ export const WhatsAppTemplates = {
   // Para shoppers
   quoteReceived: (amount: string, packageDescription: string) => ({
     title: '💰 Nueva cotización recibida',
-    message: `Has recibido una cotización de ${amount} para tu pedido "${packageDescription}". Revisa los detalles en tu dashboard.`,
+    message: `Has recibido una cotización de ${amount} para tu pedido "${packageDescription}".\n\n⏰ Tienes 48 horas para aceptar o rechazar esta cotización.\n\nRevisa los detalles en tu dashboard.`,
     type: 'package' as const,
     priority: 'high' as const
   }),
@@ -65,7 +65,7 @@ export const WhatsAppTemplates = {
   // Para viajeros
   newPackageRequest: (packageDescription: string, from: string, to: string) => ({
     title: '📦 Nuevo pedido disponible',
-    message: `Hay un nuevo pedido "${packageDescription}" para tu viaje de ${from} a ${to}. Revisa y acepta si te interesa.`,
+    message: `Hay un nuevo pedido "${packageDescription}" para tu viaje de ${from} a ${to}.\n\n⏰ Tienes 24 horas para aceptar este pedido.\n\nRevisa los detalles en tu dashboard.`,
     type: 'trip' as const,
     priority: 'high' as const
   }),
