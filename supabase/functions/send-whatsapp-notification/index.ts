@@ -35,13 +35,16 @@ const sendWhatsAppMessage = async (
     throw new Error("Twilio credentials not configured");
   }
 
-  // Format phone number for WhatsApp
+  // Format phone numbers for WhatsApp - ADD PREFIX TO BOTH NUMBERS
+  const fromWhatsApp = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
   const toWhatsApp = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+
+  console.log(`📞 Sending WhatsApp from ${fromWhatsApp} to ${toWhatsApp}`);
 
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
   
   const body = new URLSearchParams({
-    From: fromNumber,
+    From: fromWhatsApp,
     To: toWhatsApp,
     Body: message,
   });
