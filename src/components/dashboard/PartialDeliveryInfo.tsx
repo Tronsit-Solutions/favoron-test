@@ -22,17 +22,17 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
     );
   }
 
-  // Mask address - only show city and country
-  const getMaskedAddress = () => {
+  // Get partial address info - first line and city
+  const getPartialAddressInfo = () => {
     if (!travelerAddress) return null;
     
+    const addressLine1 = travelerAddress.address_line_1 || travelerAddress.street_address || travelerAddress.direccion || null;
     const city = travelerAddress.city || travelerAddress.ciudad || '***';
-    const country = travelerAddress.country || travelerAddress.pais || '***';
     
-    return `${city}, ${country}`;
+    return { addressLine1, city };
   };
 
-  const maskedAddress = getMaskedAddress();
+  const partialAddress = getPartialAddressInfo();
 
   return (
     <div className="space-y-3">
@@ -44,18 +44,23 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
       </Alert>
 
       {/* Partial Address */}
-      {maskedAddress && (
+      {partialAddress && (
         <div className="space-y-2">
           <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
             Ubicación de Entrega
           </h4>
-          <div className="bg-muted/30 rounded-md p-2.5 space-y-1">
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Ciudad: </span>
-              {maskedAddress}
+          <div className="bg-muted/30 rounded-md p-2.5 space-y-1.5">
+            {partialAddress.addressLine1 && (
+              <p className="text-xs text-foreground">
+                {partialAddress.addressLine1}
+              </p>
+            )}
+            <p className="text-xs text-foreground">
+              <span className="font-medium">Ciudad: </span>
+              {partialAddress.city}
             </p>
-            <p className="text-xs text-muted-foreground italic">
+            <p className="text-xs text-muted-foreground italic border-t border-muted pt-1.5 mt-1.5">
               La dirección completa estará disponible después del pago
             </p>
           </div>
