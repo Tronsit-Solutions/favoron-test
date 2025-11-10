@@ -96,5 +96,34 @@ export const WhatsAppTemplates = {
     message: `Se ha subido el comprobante de pago por ${amount}. Verifica en tu perfil.`,
     type: 'payment' as const,
     priority: 'high' as const
+  }),
+  
+  // Para mensajes del chat
+  newChatMessageFromShopper: (shopperName: string, packageDescription: string) => ({
+    title: '💬 Nuevo mensaje del comprador',
+    message: `${shopperName} te envió un mensaje sobre el paquete "${packageDescription}".\n\nResponde en el chat del paquete.`,
+    type: 'package' as const,
+    priority: 'medium' as const
+  }),
+
+  newChatMessageFromTraveler: (travelerName: string, packageDescription: string) => ({
+    title: '💬 Nuevo mensaje del viajero',
+    message: `${travelerName} te envió un mensaje sobre tu paquete "${packageDescription}".\n\nResponde en el chat del paquete.`,
+    type: 'package' as const,
+    priority: 'medium' as const
+  }),
+
+  newFileFromShopper: (shopperName: string, packageDescription: string) => ({
+    title: '📎 Nuevo archivo del comprador',
+    message: `${shopperName} subió un archivo sobre el paquete "${packageDescription}".\n\nRevísalo en el chat del paquete.`,
+    type: 'package' as const,
+    priority: 'medium' as const
+  }),
+
+  newFileFromTraveler: (travelerName: string, packageDescription: string) => ({
+    title: '📎 Nuevo archivo del viajero',
+    message: `${travelerName} subió un archivo sobre tu paquete "${packageDescription}".\n\nRevísalo en el chat del paquete.`,
+    type: 'package' as const,
+    priority: 'medium' as const
   })
 };
