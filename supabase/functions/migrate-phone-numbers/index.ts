@@ -132,15 +132,24 @@ Deno.serve(async (req) => {
     }
 
     // Verify the user is an admin
-    const { data: userRole, error: roleError } = await supabaseClient
+    const { data: userRoles, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
 
-    if (roleError || userRole?.role !== 'admin') {
+    if (roleError) {
+      console.error('❌ Error fetching user roles:', roleError);
+      throw new Error('Error verifying user permissions');
+    }
+
+    const isAdmin = userRoles?.some(role => role.role === 'admin');
+    
+    if (!isAdmin) {
+      console.log('❌ User is not admin. Roles:', userRoles);
       throw new Error('Only admins can run this migration');
     }
+
+    console.log('✅ Admin verification passed for user:', user.id);
 
     // Parse request body
     const { dry_run = true } = await req.json();
