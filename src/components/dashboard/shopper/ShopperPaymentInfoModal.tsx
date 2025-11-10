@@ -237,7 +237,7 @@ export default function ShopperPaymentInfoModal({
                 <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong></p>
                 <p>2. Utiliza los datos bancarios de Favorón mostrados arriba</p>
                 <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
-                <p>4. Nuestro equipo verificará tu pago en las próximas 48 horas</p>
+                <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
               </div>
             </CardContent>
           </Card>
