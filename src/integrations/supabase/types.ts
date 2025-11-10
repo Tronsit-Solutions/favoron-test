@@ -631,6 +631,8 @@ export type Database = {
           trust_level: Database["public"]["Enums"]["trust_level"] | null
           updated_at: string | null
           username: string | null
+          whatsapp_notification_preferences: Json | null
+          whatsapp_notifications: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -652,6 +654,8 @@ export type Database = {
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
+          whatsapp_notification_preferences?: Json | null
+          whatsapp_notifications?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -673,6 +677,8 @@ export type Database = {
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
+          whatsapp_notification_preferences?: Json | null
+          whatsapp_notifications?: boolean | null
         }
         Relationships: []
       }
