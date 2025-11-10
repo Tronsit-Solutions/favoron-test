@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag, AlertTriangle, MessageCircle } from "lucide-react";
+import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PackageLabel } from './PackageLabel';
 import { PackageLabelModal } from './PackageLabelModal';
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
+import { WhatsAppTestButton } from './WhatsAppTestButton';
 
 // Helper function to check if delivery is overdue
 const isDeliveryOverdue = (deliveryDate: string): boolean => {
@@ -35,7 +36,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
   const [loading, setLoading] = useState(true);
   const [previewPackage, setPreviewPackage] = useState<any>(null);
   const [selectedTripDetail, setSelectedTripDetail] = useState<any>(null);
-  const [isTestingWhatsApp, setIsTestingWhatsApp] = useState(false);
 
   useEffect(() => {
     fetchTripsWithPackages();
@@ -155,82 +155,6 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     }
   };
 
-  const handleTestWhatsApp = async () => {
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "No se encontró usuario",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsTestingWhatsApp(true);
-    try {
-      console.log('🧪 Testing WhatsApp for user:', user.id);
-      
-      // First get the user's phone number from the profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('country_code, phone_number')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError || !profile?.phone_number) {
-        toast({
-          title: "Error",
-          description: "No se encontró número de teléfono en tu perfil. Por favor actualiza tu perfil primero.",
-          variant: "destructive",
-        });
-        setIsTestingWhatsApp(false);
-        return;
-      }
-
-      const fullPhoneNumber = `${profile.country_code || ''}${profile.phone_number}`;
-
-      const { data, error } = await supabase.functions.invoke('test-whatsapp', {
-        body: { 
-          phone_number: fullPhoneNumber,
-          title: 'Prueba de WhatsApp desde Favoron',
-          message: 'Este es un mensaje de prueba. Si recibes esto, la integración está funcionando correctamente.'
-        }
-      });
-
-      if (error) {
-        console.error('❌ Test WhatsApp error:', error);
-        toast({
-          title: "Error al enviar WhatsApp de prueba",
-          description: error.message || "Error desconocido",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('✅ Test WhatsApp response:', data);
-      
-      if (data.success) {
-        toast({
-          title: "✅ WhatsApp de prueba enviado",
-          description: `Mensaje enviado a ${fullPhoneNumber}`,
-        });
-      } else {
-        toast({
-          title: "❌ Error en WhatsApp",
-          description: data.error || "Error al enviar mensaje",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error('❌ Unexpected error:', error);
-      toast({
-        title: "Error inesperado",
-        description: error.message || "Error al probar WhatsApp",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTestingWhatsApp(false);
-    }
-  };
 
   const generateTripLabels = async (trip: any) => {
     if (!trip.packages || trip.packages.length === 0) return;
@@ -386,16 +310,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                 Viajes con paquetes asignados listos para procesamiento en oficina
               </CardDescription>
             </div>
-            <Button
-              onClick={handleTestWhatsApp}
-              variant="outline"
-              size="sm"
-              disabled={isTestingWhatsApp}
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              {isTestingWhatsApp ? "Enviando..." : "Test WhatsApp"}
-            </Button>
+            <WhatsAppTestButton />
           </div>
         </CardHeader>
         <CardContent>
