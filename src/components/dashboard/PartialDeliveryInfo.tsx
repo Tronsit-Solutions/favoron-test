@@ -26,8 +26,8 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
   const getPartialAddressInfo = () => {
     if (!travelerAddress) return null;
     
-    const addressLine1 = travelerAddress.address_line_1 || travelerAddress.street_address || travelerAddress.direccion || null;
-    const city = travelerAddress.city || travelerAddress.ciudad || '***';
+    const addressLine1 = travelerAddress.streetAddress || travelerAddress.address_line_1 || travelerAddress.street_address || travelerAddress.direccion || null;
+    const city = travelerAddress.cityArea || travelerAddress.city || travelerAddress.ciudad || '***';
     
     return { addressLine1, city };
   };
@@ -75,20 +75,21 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
             Ventana de Recepción
           </h4>
           <div className="bg-muted/30 rounded-md p-2.5 space-y-2">
-            {tripDates.packageReceptionStart && tripDates.packageReceptionEnd && (
+            {(tripDates.first_day_packages || tripDates.packageReceptionStart) && 
+             (tripDates.last_day_packages || tripDates.packageReceptionEnd) && (
               <div>
                 <p className="text-xs font-medium text-foreground mb-1">
                   Fechas para enviar el paquete:
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Desde: {new Date(tripDates.packageReceptionStart).toLocaleDateString('es-GT', { 
+                  Desde: {new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
                   })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Hasta: {new Date(tripDates.packageReceptionEnd).toLocaleDateString('es-GT', { 
+                  Hasta: {new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
@@ -97,13 +98,13 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
               </div>
             )}
             
-            {tripDates.officeDeliveryDate && (
+            {(tripDates.delivery_date || tripDates.officeDeliveryDate) && (
               <div className="pt-2 border-t border-muted/50">
                 <p className="text-xs font-medium text-foreground mb-1">
                   Fecha estimada de entrega en oficina:
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(tripDates.officeDeliveryDate).toLocaleDateString('es-GT', { 
+                  {new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
