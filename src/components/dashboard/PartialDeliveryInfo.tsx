@@ -60,9 +60,6 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
               <span className="font-medium">Ciudad: </span>
               {partialAddress.city}
             </p>
-            <p className="text-xs text-muted-foreground italic border-t border-muted pt-1.5 mt-1.5">
-              La dirección completa estará disponible después del pago
-            </p>
           </div>
         </div>
       )}
