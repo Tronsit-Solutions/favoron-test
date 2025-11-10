@@ -79,6 +79,12 @@ const formatWhatsAppMessage = (
   return formattedMessage;
 };
 
+// 🧪 TESTING MODE - Only send to whitelisted users
+const TESTING_MODE = true; // Set to false to enable for all users
+const WHITELISTED_USER_IDS = [
+  '5e3c944e-9130-4ea7-8165-b8ec9d5abf6f' // Admin - lucas@unfavoron.com (+34699591457)
+];
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -97,6 +103,22 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { user_id, title, message, type, priority, action_url }: WhatsAppNotificationRequest = await req.json();
+
+    // Check if testing mode is enabled and user is whitelisted
+    if (TESTING_MODE && !WHITELISTED_USER_IDS.includes(user_id)) {
+      console.log(`⏭️ Testing mode enabled: Skipping notification for user ${user_id}`);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          skipped: true, 
+          reason: 'Testing mode - user not whitelisted',
+          user_id 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log('✅ Testing mode: User is whitelisted, proceeding with notification');
 
     if (!user_id || !title || !message) {
       return new Response(
