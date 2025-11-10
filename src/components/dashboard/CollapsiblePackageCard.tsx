@@ -59,6 +59,7 @@ const CollapsiblePackageCard = ({
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
   const [quoteInfoOpen, setQuoteInfoOpen] = React.useState(false);
+  const [deliveryInfoOpen, setDeliveryInfoOpen] = React.useState(false);
   const [showPaymentModal, setShowPaymentModal] = React.useState(false);
   const [editDocumentModal, setEditDocumentModal] = React.useState<{
     isOpen: boolean;
@@ -511,6 +512,39 @@ const CollapsiblePackageCard = ({
                       </CollapsibleContent>
                     </div>
                   </Collapsible>}
+
+                {/* Delivery Information - Shows partial info before payment, full info after */}
+                {shouldShowPartialDeliveryInfo(pkg) && (
+                  <Collapsible open={deliveryInfoOpen} onOpenChange={setDeliveryInfoOpen}>
+                    <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
+                      <CollapsibleTrigger asChild>
+                        <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-primary" />
+                              Información de Entrega
+                            </h3>
+                            {deliveryInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="p-3 space-y-3">
+                          {/* Show partial info for payment_pending and payment_pending_approval */}
+                          {['payment_pending', 'payment_pending_approval', 'payment_confirmed'].includes(pkg.status) ? (
+                            <PartialDeliveryInfo pkg={pkg} />
+                          ) : (
+                            /* Show full info for pending_purchase and later stages */
+                            <>
+                              <ShippingInstructions pkg={pkg} />
+                              <ShippingInfoRegistry pkg={pkg} />
+                            </>
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                )}
                 
                 {/* Priority Actions Section */}
                 <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
@@ -525,28 +559,6 @@ const CollapsiblePackageCard = ({
                   </div>
                 </div>
                 
-                {/* Shipping Instructions - For later stages */}
-                {isShipmentReadyStatus(pkg) && <Collapsible open={shippingInfoOpen} onOpenChange={setShippingInfoOpen}>
-                    <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
-                      <CollapsibleTrigger asChild>
-                        <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                              <Truck className="h-4 w-4 text-primary" />
-                              Información de Envío
-                            </h3>
-                            {shippingInfoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </div>
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="p-3 space-y-3">
-                          <ShippingInstructions pkg={pkg} />
-                          <ShippingInfoRegistry pkg={pkg} />
-                        </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>}
               </div>
             </div>
           </CardContent>
