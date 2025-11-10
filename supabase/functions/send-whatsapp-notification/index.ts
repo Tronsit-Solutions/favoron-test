@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get user profile with WhatsApp preferences
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('phone, whatsapp_notifications, whatsapp_notification_preferences')
+      .select('country_code, phone_number, whatsapp_notifications, whatsapp_notification_preferences')
       .eq('id', user_id)
       .single();
 
@@ -126,7 +126,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log('👤 User profile:', {
-      phone: profile.phone,
+      country_code: profile.country_code,
+      phone_number: profile.phone_number,
       whatsapp_enabled: profile.whatsapp_notifications,
       preferences: profile.whatsapp_notification_preferences
     });
@@ -140,8 +141,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if user has a phone number
-    if (!profile.phone) {
+    // Check if user has both country code and phone number
+    if (!profile.country_code || !profile.phone_number) {
       console.log('⏭️ No phone number registered for user');
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: 'No phone number' }),
@@ -161,18 +162,21 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Combine country code and phone number
+    const fullPhoneNumber = `${profile.country_code}${profile.phone_number}`;
+    
     // Format and send WhatsApp message
     const formattedMessage = formatWhatsAppMessage(title, message, action_url);
-    console.log('📤 Sending WhatsApp message to:', profile.phone);
+    console.log('📤 Sending WhatsApp message to:', fullPhoneNumber);
     
-    const twilioResponse = await sendWhatsAppMessage(profile.phone, formattedMessage);
+    const twilioResponse = await sendWhatsAppMessage(fullPhoneNumber, formattedMessage);
     console.log('✅ WhatsApp message sent successfully:', twilioResponse.sid);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message_sid: twilioResponse.sid,
-        to: profile.phone
+        to: fullPhoneNumber
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

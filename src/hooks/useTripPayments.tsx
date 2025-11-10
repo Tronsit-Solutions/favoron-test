@@ -161,6 +161,21 @@ export const useTripPayments = (tripId?: string) => {
       // Actualizar estado local
       setTripPayment(prev => prev ? { ...prev, payment_order_created: true } : null);
 
+      // Notificar al viajero que su solicitud de pago fue creada
+      if (user?.id) {
+        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
+        const { formatCurrency } = await import('@/lib/formatters');
+        const template = WhatsAppTemplates.tipPaymentReceiptUploaded(
+          formatCurrency(tripPayment.accumulated_amount || 0)
+        );
+        
+        await sendWhatsAppNotification({
+          userId: user.id,
+          ...template,
+          actionUrl: 'https://favoron.app/dashboard?tab=viajes'
+        });
+      }
+
       toast({
         title: "¡Éxito!",
         description: "Solicitud de pago creada correctamente",

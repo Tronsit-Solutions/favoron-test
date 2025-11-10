@@ -145,6 +145,20 @@ export const AdminTripPaymentsTab: React.FC<AdminTripPaymentsTabProps> = ({
 
         onUpdatePaymentStatus(orderId, newStatus, paymentType);
         
+        // Notificar al viajero cuando admin sube comprobante de pago de tips
+        if (action === 'approve' && paymentType === 'trip_payment' && confirmAction.order?.traveler_id) {
+          const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
+          const template = WhatsAppTemplates.tipPaymentReceiptUploaded(
+            formatCurrency(confirmAction.order.amount || 0)
+          );
+          
+          await sendWhatsAppNotification({
+            userId: confirmAction.order.traveler_id,
+            ...template,
+            actionUrl: 'https://favoron.app/dashboard'
+          });
+        }
+        
         toast({
           title: paymentType === 'prime_membership' ? "Membresía rechazada" : "Pago rechazado",
           description: paymentType === 'prime_membership' 
