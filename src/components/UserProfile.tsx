@@ -15,6 +15,7 @@ import BankingInfoDisplay from "./profile/BankingInfoDisplay";
 import TripHistory from "./profile/TripHistory";
 import PackageHistory from "./profile/PackageHistory";
 import { EmailNotificationSettings } from "./profile/EmailNotificationSettings";
+import { WhatsAppNotificationSettings } from "./profile/WhatsAppNotificationSettings";
 import { useAuth } from "@/hooks/useAuth";
 import FavoronBankingInfoDisplay from "./admin/FavoronBankingInfoDisplay";
 import FavoronBankingInfoForm from "./admin/FavoronBankingInfoForm";
@@ -337,6 +338,15 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
         emailNotificationPreferences={user.email_notification_preferences || {}}
         onUpdate={(value) => onUpdateUser({ ...user, email_notifications: value })}
         onPreferencesUpdate={(preferences) => onUpdateUser({ ...user, email_notification_preferences: preferences })}
+      />
+
+      {/* WhatsApp Notification Settings */}
+      <WhatsAppNotificationSettings 
+        userId={user.id}
+        whatsappNotifications={user.whatsapp_notifications ?? false}
+        whatsappNotificationPreferences={user.whatsapp_notification_preferences || {}}
+        onUpdate={(value) => onUpdateUser({ ...user, whatsapp_notifications: value })}
+        onPreferencesUpdate={(preferences) => onUpdateUser({ ...user, whatsapp_notification_preferences: preferences })}
       />
 
       {/* Banking Information */}
