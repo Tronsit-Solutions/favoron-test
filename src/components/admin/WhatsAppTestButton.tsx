@@ -94,6 +94,14 @@ export const WhatsAppTestButton = () => {
           ...WhatsAppTemplates.packageReadyAtOffice("MacBook Pro", "pickup")
         },
         {
+          name: "Mensaje de viajero (Shopper)",
+          ...WhatsAppTemplates.newChatMessageFromTraveler("María López", "iPhone 15 Pro Max")
+        },
+        {
+          name: "Archivo de viajero (Shopper)",
+          ...WhatsAppTemplates.newFileFromTraveler("María López", "iPhone 15 Pro Max")
+        },
+        {
           name: "Nuevo pedido disponible (Viajero)",
           ...WhatsAppTemplates.newPackageRequest("iPhone 15 Pro Max", "Miami", "Guatemala")
         },
@@ -112,6 +120,14 @@ export const WhatsAppTestButton = () => {
         {
           name: "Comprobante de tips subido (Viajero)",
           ...WhatsAppTemplates.tipPaymentReceiptUploaded("Q150.00")
+        },
+        {
+          name: "Mensaje de comprador (Viajero)",
+          ...WhatsAppTemplates.newChatMessageFromShopper("Pedro García", "iPhone 15 Pro Max")
+        },
+        {
+          name: "Archivo de comprador (Viajero)",
+          ...WhatsAppTemplates.newFileFromShopper("Pedro García", "iPhone 15 Pro Max")
         }
       ];
 
@@ -227,7 +243,7 @@ export const WhatsAppTestButton = () => {
           ) : (
             <Mail className="h-4 w-4" />
           )}
-          {isSendingAll ? 'Enviando...' : 'Probar Todas (9 notificaciones)'}
+          {isSendingAll ? 'Enviando...' : 'Probar Todas (13 notificaciones)'}
         </Button>
       </div>
       
