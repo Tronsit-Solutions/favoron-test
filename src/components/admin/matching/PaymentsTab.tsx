@@ -27,10 +27,17 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
     !(pkg.payment_receipt as any)?.auto_approved
   );
   
-  const auditPayments = packages.filter(pkg =>
-    pkg.payment_receipt &&
-    (pkg.payment_receipt as any)?.auto_approved
-  );
+  const auditPayments = packages
+    .filter(pkg =>
+      pkg.payment_receipt &&
+      (pkg.payment_receipt as any)?.auto_approved
+    )
+    .sort((a, b) => {
+      // Sort by upload date (most recent first)
+      const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
+      const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
+      return dateB - dateA;
+    });
   
   const approvedPayments = packages.filter(pkg => 
     pkg.payment_receipt && 
