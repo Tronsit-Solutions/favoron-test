@@ -35,7 +35,7 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
   const partialAddress = getPartialAddressInfo();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <Alert className="bg-blue-50/50 border-blue-200">
         <AlertCircle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-xs text-blue-900">
@@ -45,12 +45,12 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
 
       {/* Partial Address */}
       {partialAddress && (
-        <div className="space-y-2">
+        <div className="space-y-1">
           <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
             Ubicación de Entrega
           </h4>
-          <div className="bg-muted/30 rounded-md p-2.5 space-y-1.5">
+          <div className="bg-muted/30 rounded-md p-2 space-y-1">
             {partialAddress.addressLine1 && (
               <p className="text-xs text-foreground">
                 {partialAddress.addressLine1}
@@ -66,16 +66,16 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
 
       {/* Reception Window */}
       {tripDates && (
-        <div className="space-y-2">
+        <div className="space-y-1">
           <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-primary" />
             Ventana de Recepción
           </h4>
-          <div className="bg-muted/30 rounded-md p-2.5 space-y-2">
+          <div className="bg-muted/30 rounded-md p-2 space-y-1">
             {(tripDates.first_day_packages || tripDates.packageReceptionStart) && 
              (tripDates.last_day_packages || tripDates.packageReceptionEnd) && (
               <div>
-                <p className="text-xs font-medium text-foreground mb-1">
+                <p className="text-xs font-medium text-foreground mb-0.5">
                   Fechas para enviar el paquete:
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -97,7 +97,7 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
             
             {(tripDates.delivery_date || tripDates.officeDeliveryDate) && (
               <div className="pt-2 border-t border-muted/50">
-                <p className="text-xs font-medium text-foreground mb-1">
+                <p className="text-xs font-medium text-foreground mb-0.5">
                   Fecha estimada de entrega en oficina:
                 </p>
                 <p className="text-xs text-muted-foreground">
