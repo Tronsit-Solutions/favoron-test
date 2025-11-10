@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PackageLabel } from './PackageLabel';
 import { PackageLabelModal } from './PackageLabelModal';
 import { TripDetailModal } from '../dashboard/TripDetailModal';
+import PhoneMigrationPanel from './PhoneMigrationPanel';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import jsPDF from 'jspdf';
@@ -562,6 +563,9 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
           packages={selectedTripDetail.packages}
         />
       )}
+
+      {/* Phone Number Migration Panel */}
+      <PhoneMigrationPanel />
     </div>
   );
 };
