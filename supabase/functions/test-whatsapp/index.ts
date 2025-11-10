@@ -17,12 +17,15 @@ const sendWhatsAppMessage = async (
     throw new Error("Twilio credentials not configured");
   }
 
+  const fromWhatsApp = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
   const toWhatsApp = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+
+  console.log(`📞 Sending WhatsApp from ${fromWhatsApp} to ${toWhatsApp}`);
 
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
   
   const body = new URLSearchParams({
-    From: fromNumber,
+    From: fromWhatsApp,
     To: toWhatsApp,
     Body: message,
   });

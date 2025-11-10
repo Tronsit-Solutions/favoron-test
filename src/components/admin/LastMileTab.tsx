@@ -172,7 +172,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
       // First get the user's phone number from the profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('phone_number')
+        .select('country_code, phone_number')
         .eq('id', user.id)
         .single();
 
@@ -186,9 +186,11 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
         return;
       }
 
+      const fullPhoneNumber = `${profile.country_code || ''}${profile.phone_number}`;
+
       const { data, error } = await supabase.functions.invoke('test-whatsapp', {
         body: { 
-          phone_number: profile.phone_number,
+          phone_number: fullPhoneNumber,
           title: 'Prueba de WhatsApp desde Favoron',
           message: 'Este es un mensaje de prueba. Si recibes esto, la integración está funcionando correctamente.'
         }
@@ -209,7 +211,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
       if (data.success) {
         toast({
           title: "✅ WhatsApp de prueba enviado",
-          description: `Mensaje enviado a ${profile.phone_number}`,
+          description: `Mensaje enviado a ${fullPhoneNumber}`,
         });
       } else {
         toast({
