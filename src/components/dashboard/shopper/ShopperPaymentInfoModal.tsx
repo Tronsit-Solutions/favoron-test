@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getPriceBreakdown } from "@/lib/pricing";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import { Package } from "@/types";
+import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
 
 interface ShopperPaymentInfoModalProps {
   isOpen: boolean;
@@ -239,6 +240,16 @@ export default function ShopperPaymentInfoModal({
                 <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
                 <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Partial Delivery Information */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Información de Entrega</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PartialDeliveryInfo pkg={currentPkg} />
             </CardContent>
           </Card>
 
