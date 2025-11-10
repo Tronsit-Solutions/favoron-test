@@ -128,14 +128,31 @@ Deno.serve(async (req) => {
     );
 
     if (userError || !user) {
+      console.error('❌ Authentication failed:', userError);
       throw new Error('Unauthorized');
     }
 
+    console.log('🔍 Authenticated user:', {
+      id: user.id,
+      email: user.email,
+      created_at: user.created_at
+    });
+
     // Verify the user is an admin
+    console.log('🔍 Checking user roles for user_id:', user.id);
+    
     const { data: userRoles, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
+
+    console.log('🔍 User roles query result:', {
+      user_id: user.id,
+      roles: userRoles,
+      error: roleError,
+      roles_length: userRoles?.length || 0,
+      roles_array: JSON.stringify(userRoles)
+    });
 
     if (roleError) {
       console.error('❌ Error fetching user roles:', roleError);
@@ -144,12 +161,18 @@ Deno.serve(async (req) => {
 
     const isAdmin = userRoles?.some(role => role.role === 'admin');
     
+    console.log('🔍 Admin check:', {
+      isAdmin,
+      has_roles: userRoles && userRoles.length > 0,
+      roles_found: userRoles?.map(r => r.role)
+    });
+    
     if (!isAdmin) {
-      console.log('❌ User is not admin. Roles:', userRoles);
+      console.log('❌ User is not admin. User:', user.email, 'Roles:', userRoles);
       throw new Error('Only admins can run this migration');
     }
 
-    console.log('✅ Admin verification passed for user:', user.id);
+    console.log('✅ Admin verification passed for user:', user.email, '(', user.id, ')');
 
     // Parse request body
     const { dry_run = true } = await req.json();
