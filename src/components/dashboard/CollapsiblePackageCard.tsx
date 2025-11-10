@@ -21,6 +21,7 @@ import ShopperPaymentInfoModal from "@/components/dashboard/shopper/ShopperPayme
 import RejectionReasonDisplay from "@/components/admin/RejectionReasonDisplay";
 import ShippingInfoModal from "@/components/dashboard/ShippingInfoModal";
 import { OfficeAddressModal } from "@/components/ui/office-address-modal";
+import { PartialDeliveryInfo } from "@/components/dashboard/PartialDeliveryInfo";
 import QuoteCountdown from "@/components/dashboard/QuoteCountdown";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { useAuth } from "@/hooks/useAuth";
@@ -136,6 +137,22 @@ const CollapsiblePackageCard = ({
   };
   const isShipmentReadyStatus = (pkg: any): boolean => {
     return pkg.status === 'in_transit' || pkg.status === 'received_by_traveler' || pkg.status === 'pending_office_confirmation' || pkg.status === 'delivered_to_office' || pkg.status === 'completed';
+  };
+
+  // Helper to check if partial delivery info should be shown (payment_pending and later)
+  const shouldShowPartialDeliveryInfo = (pkg: any): boolean => {
+    const eligibleStatuses = [
+      'payment_pending',
+      'payment_pending_approval', 
+      'payment_confirmed',
+      'pending_purchase',
+      'in_transit',
+      'received_by_traveler',
+      'pending_office_confirmation',
+      'delivered_to_office',
+      'completed'
+    ];
+    return eligibleStatuses.includes(pkg.status);
   };
 
   // Helper function to check if the package has valid quote
@@ -404,7 +421,7 @@ const CollapsiblePackageCard = ({
               {/* Left Column: Horizontal Tabs */}
               <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden min-w-0 max-w-full">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
-                  <TabsList className="!grid w-full max-w-full min-w-0 grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1 overflow-hidden">
+                  <TabsList className={`!grid w-full max-w-full min-w-0 ${shouldShowPartialDeliveryInfo(pkg) ? 'grid-cols-5' : 'grid-cols-4'} bg-muted/50 rounded-none rounded-t-lg h-auto p-1 overflow-hidden`}>
                     <TabsTrigger value="producto" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <Package className="h-3 w-3" />
                       <span className="text-[10px]">Producto</span>
@@ -413,6 +430,12 @@ const CollapsiblePackageCard = ({
                       <Activity className="h-3 w-3" />
                       <span className="text-[10px]">Estado</span>
                     </TabsTrigger>
+                    {shouldShowPartialDeliveryInfo(pkg) && (
+                      <TabsTrigger value="entrega" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
+                        <Truck className="h-3 w-3" />
+                        <span className="text-[10px]">Entrega</span>
+                      </TabsTrigger>
+                    )}
                     <TabsTrigger value="documentos" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <FileText className="h-3 w-3" />
                       <span className="text-[10px]">Docs</span>
@@ -434,6 +457,12 @@ const CollapsiblePackageCard = ({
                     <TabsContent value="estado" className="mt-0">
                       <PackageStatusTimeline currentStatus={pkg.status} />
                     </TabsContent>
+                    
+                    {shouldShowPartialDeliveryInfo(pkg) && (
+                      <TabsContent value="entrega" className="mt-0">
+                        <PartialDeliveryInfo pkg={pkg} />
+                      </TabsContent>
+                    )}
                     
                     <TabsContent value="documentos" className="mt-0">
                       <UploadedDocumentsRegistry pkg={pkg} onEditDocument={handleDeleteDocument} />
