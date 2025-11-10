@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, Plane, CheckCircle, Zap } from "lucide-react";
+import { WhatsAppTestButton } from "./WhatsAppTestButton";
 
 interface AdminStatsOverviewProps {
   packages: any[];
@@ -8,7 +9,8 @@ interface AdminStatsOverviewProps {
 
 const AdminStatsOverview = ({ packages, trips }: AdminStatsOverviewProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center space-x-2">
@@ -68,6 +70,11 @@ const AdminStatsOverview = ({ packages, trips }: AdminStatsOverviewProps) => {
         </CardContent>
       </Card>
     </div>
+    
+    <div className="mt-4 flex justify-end">
+      <WhatsAppTestButton />
+    </div>
+    </>
   );
 };
 
