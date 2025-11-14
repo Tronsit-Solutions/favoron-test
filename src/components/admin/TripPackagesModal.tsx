@@ -186,10 +186,14 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                           
                           <TableCell>
                             <div className="text-sm text-muted-foreground">
-                              {formatDistanceToNow(new Date(pkg.updated_at), { 
-                                addSuffix: true, 
-                                locale: es 
-                              })}
+                              {pkg.updated_at && !isNaN(new Date(pkg.updated_at).getTime()) ? (
+                                formatDistanceToNow(new Date(pkg.updated_at), { 
+                                  addSuffix: true, 
+                                  locale: es 
+                                })
+                              ) : (
+                                "Fecha no disponible"
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
