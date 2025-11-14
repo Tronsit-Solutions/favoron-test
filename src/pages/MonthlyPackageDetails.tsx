@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download, Crown } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, MapPin, User, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download, Crown, Eye } from "lucide-react";
+import TripPackagesModal from "@/components/admin/TripPackagesModal";
 import * as XLSX from 'xlsx';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -92,9 +93,18 @@ const MonthlyPackageDetails = () => {
   });
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [statusFilterType, setStatusFilterType] = useState<'all' | 'paid'>('all');
+  const [selectedTripForModal, setSelectedTripForModal] = useState<any>(null);
+  const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   
   // Paid statuses group
   const paidStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'];
+
+  const handleViewTripPackages = () => {
+    if (topEarningTrip) {
+      setSelectedTripForModal(topEarningTrip.trip);
+      setIsTripModalOpen(true);
+    }
+  };
 
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente aprobación' },
@@ -717,6 +727,17 @@ const MonthlyPackageDetails = () => {
                 </p>
               </div>
             </div>
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleViewTripPackages}
+                className="gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                Ver Paquetes
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1036,6 +1057,13 @@ const MonthlyPackageDetails = () => {
           )}
         </CardContent>
       </Card>
+
+      <TripPackagesModal
+        trip={selectedTripForModal}
+        packages={packages as any}
+        isOpen={isTripModalOpen}
+        onClose={() => setIsTripModalOpen(false)}
+      />
     </div>
   );
 };
