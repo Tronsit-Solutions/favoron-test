@@ -763,10 +763,7 @@ export const useDashboardActions = (
       // Notificar al viajero del pago confirmado
       if (matchedTrip?.user_id) {
         const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const { formatCurrency } = await import('@/lib/formatters');
-        const quoteAmount = pkg.quote ? formatCurrency(parseFloat(pkg.quote.totalPrice || '0')) : 'el monto acordado';
         const template = WhatsAppTemplates.quoteAcceptedByShopper(
-          quoteAmount,
           pkg.item_description || 'el paquete'
         );
         

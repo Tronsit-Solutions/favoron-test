@@ -107,7 +107,7 @@ export const WhatsAppTestButton = () => {
         },
         {
           name: "Cotización aceptada (Viajero)",
-          ...WhatsAppTemplates.quoteAcceptedByShopper("Q450.00", "iPhone 15 Pro Max")
+          ...WhatsAppTemplates.quoteAcceptedByShopper("iPhone 15 Pro Max")
         },
         {
           name: "Comprobante de compra subido (Viajero)",
