@@ -57,7 +57,7 @@ export const WhatsAppTemplates = {
   
   packageReadyAtOffice: (packageDescription: string, deliveryMethod: string) => ({
     title: '📦 Paquete listo en oficina Favorón',
-    message: `Tu paquete "${packageDescription}" está listo ${deliveryMethod === 'delivery' ? 'para entrega a domicilio' : 'para recoger en nuestra oficina'}. ¡Ya puedes pasar por él!`,
+    message: `Tu paquete "${packageDescription}" está listo ${deliveryMethod === 'delivery' ? 'para entrega a domicilio. Pronto la recibirás' : 'para recoger en nuestra oficina. ¡Ya puedes pasar por él'}!`,
     type: 'package' as const,
     priority: 'high' as const
   }),
