@@ -372,7 +372,7 @@ export const useDashboardActions = (
               // Legacy fields for backward compatibility
               rejection_reason: quoteData.rejectionReason || null,
               wants_requote: !!quoteData.wantsRequote,
-              additional_notes: quoteData.additionalNotes || null,
+              internal_notes: quoteData.additionalNotes || null,
               // Reset match/quote context
               quote: null,
               matched_trip_id: null,
