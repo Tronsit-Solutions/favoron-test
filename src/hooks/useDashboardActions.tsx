@@ -765,7 +765,7 @@ export const useDashboardActions = (
         const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
         const { formatCurrency } = await import('@/lib/formatters');
         const quoteAmount = pkg.quote ? formatCurrency(parseFloat(pkg.quote.totalPrice || '0')) : 'el monto acordado';
-        const template = WhatsAppTemplates.paymentConfirmed(
+        const template = WhatsAppTemplates.quoteAcceptedByShopper(
           quoteAmount,
           pkg.item_description || 'el paquete'
         );
