@@ -106,8 +106,8 @@ export const WhatsAppTestButton = () => {
           ...WhatsAppTemplates.newPackageRequest("iPhone 15 Pro Max", "Miami", "Guatemala")
         },
         {
-          name: "Pago confirmado (Viajero)",
-          ...WhatsAppTemplates.paymentConfirmed("Q450.00", "iPhone 15 Pro Max")
+          name: "Cotización aceptada (Viajero)",
+          ...WhatsAppTemplates.quoteAcceptedByShopper("Q450.00", "iPhone 15 Pro Max")
         },
         {
           name: "Comprobante de compra subido (Viajero)",

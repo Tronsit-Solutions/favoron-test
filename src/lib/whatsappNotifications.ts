@@ -70,9 +70,9 @@ export const WhatsAppTemplates = {
     priority: 'high' as const
   }),
   
-  paymentConfirmed: (amount: string, packageDescription: string) => ({
-    title: '💳 Pago confirmado',
-    message: `El shopper ha pagado ${amount} por el paquete "${packageDescription}". Ya puedes proceder con la compra.`,
+  quoteAcceptedByShopper: (amount: string, packageDescription: string) => ({
+    title: '💳 Cotización aceptada',
+    message: `El shopper ha aceptado y pagado ${amount} por el paquete "${packageDescription}".\n\nPronto compartirá el comprobante de compra del producto y el tracking para que puedas estar atento a la llegada del paquete.`,
     type: 'payment' as const,
     priority: 'high' as const
   }),
