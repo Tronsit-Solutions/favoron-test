@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -160,7 +160,49 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Payment Request Button - More prominent */}
+          {/* Trip Information - Horizontal Layout */}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 border border-border/50">
+            {/* Recipient Name */}
+            {trip.package_receiving_address?.recipient_name && (
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3 shrink-0" />
+                <span className="font-medium">{trip.package_receiving_address.recipient_name}</span>
+              </div>
+            )}
+            
+            {/* Address */}
+            {trip.package_receiving_address && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span>
+                  {[
+                    trip.package_receiving_address.address_line_1,
+                    trip.package_receiving_address.address_line_2,
+                    trip.package_receiving_address.city,
+                    trip.package_receiving_address.state,
+                    trip.package_receiving_address.postal_code
+                  ].filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
+            
+            {/* Phone */}
+            {trip.package_receiving_address?.phone && (
+              <div className="flex items-center gap-1">
+                <Phone className="h-3 w-3 shrink-0" />
+                <span>{trip.package_receiving_address.phone}</span>
+              </div>
+            )}
+            
+            {/* Reception Window */}
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3 shrink-0" />
+              <span>
+                {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+          </div>
+
           {shouldShowPaymentButton && (
             <div className="flex justify-start">
               <Button
