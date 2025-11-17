@@ -62,7 +62,7 @@ export const TripSelector = ({ trips, selectedTripId, onTripSelect, getStatusBad
   const DesktopSelector = () => (
     <div className="hidden md:block">
       <Select value={selectedTripId || "all"} onValueChange={(value) => onTripSelect(value === "all" ? null : value)}>
-        <SelectTrigger className="w-[300px]">
+        <SelectTrigger className="w-[380px]">
           <SelectValue placeholder="Seleccionar viaje" />
         </SelectTrigger>
         <SelectContent>
