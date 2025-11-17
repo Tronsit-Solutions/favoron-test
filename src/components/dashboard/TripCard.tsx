@@ -165,10 +165,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             {/* Date and Reception Window - Cards with Icons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* Arrival Date Card */}
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
+              <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg p-3 border border-border">
                 <div className="flex items-start gap-2">
-                  <div className="bg-primary/20 rounded-lg p-2 shrink-0">
-                    <Calendar className="h-4 w-4 text-primary" />
+                  <div className="bg-muted rounded-lg p-2 shrink-0">
+                    <Calendar className="h-4 w-4 text-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground font-medium mb-1">Fecha de llegada</p>
@@ -185,10 +185,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </div>
 
               {/* Reception Window Card */}
-              <div className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-lg p-3 border border-amber-500/20">
+              <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg p-3 border border-border">
                 <div className="flex items-start gap-2">
-                  <div className="bg-amber-500/20 rounded-lg p-2 shrink-0">
-                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                  <div className="bg-secondary/30 rounded-lg p-2 shrink-0">
+                    <Clock className="h-4 w-4 text-secondary-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground font-medium mb-1">Ventana de recepción</p>
