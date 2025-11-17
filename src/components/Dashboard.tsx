@@ -24,6 +24,7 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
+import { TripSelector } from "./dashboard/TripSelector";
 
 import AvailableTripsCard from "./AvailableTripsCard";
 import AvailableTripsModal from "./AvailableTripsModal";
@@ -119,6 +120,10 @@ const Dashboard = ({ user }: DashboardProps) => {
     setSelectedPackageForQuote,
     quoteUserType,
     setQuoteUserType,
+    selectedTripFilter,
+    setSelectedTripFilter,
+    selectedTripId,
+    setSelectedTripId,
     packages,
     trips,
     createPackage,
@@ -136,9 +141,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     ...(profile || user),
     role: userRole?.role || 'user'
   });
-   
-  // Local trip filter state (temporary fix)
-  const { selectedTripFilter, setSelectedTripFilter } = useLocalTripFilter();
 
   const {
     handlePackageSubmit,
@@ -688,18 +690,30 @@ const Dashboard = ({ user }: DashboardProps) => {
                 {filteredUserTrips.length === 0 ? (
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
-                  <div className="grid gap-4">
-                    {filteredUserTrips.map((trip) => (
-                      <TripCard
-                        key={trip.id}
-                        trip={trip}
+                  <>
+                    {filteredUserTrips.length > 1 && (
+                      <TripSelector
+                        trips={filteredUserTrips}
+                        selectedTripId={selectedTripId}
+                        onTripSelect={setSelectedTripId}
                         getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
-                        onEditTrip={handleEditTrip}
-                        currentUser={currentUser}
-                        travelerProfile={currentUser} // Pasar el perfil actual como travelerProfile
                       />
-                    ))}
-                  </div>
+                    )}
+                    <div className="grid gap-4">
+                      {filteredUserTrips
+                        .filter(trip => !selectedTripId || trip.id === selectedTripId)
+                        .map((trip) => (
+                          <TripCard
+                            key={trip.id}
+                            trip={trip}
+                            getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
+                            onEditTrip={handleEditTrip}
+                            currentUser={currentUser}
+                            travelerProfile={currentUser}
+                          />
+                        ))}
+                    </div>
+                  </>
                 )}
               </div>
 
