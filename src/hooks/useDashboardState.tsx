@@ -33,6 +33,7 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
   const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   
   // Check if user is admin to decide which data hooks to use
   const isAdminTab = activeTab === 'admin' || activeTab === 'ultima-milla';
@@ -193,6 +194,8 @@ export const useDashboardState = (user: any) => {
     setQuoteUserType,
     selectedTripFilter,
     setSelectedTripFilter,
+    selectedTripId,
+    setSelectedTripId,
     packages,
     trips,
     packagesLoading,
