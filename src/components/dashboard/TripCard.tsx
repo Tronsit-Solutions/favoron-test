@@ -140,9 +140,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           </div>
         </div>
       )}
-      <CardHeader className="pb-3 md:pb-6">
-        <div className="flex flex-col gap-4">
-          {/* Trip Route - Mobile Optimized */}
+      <CardHeader className="pb-2 md:pb-3">
+        <div className="flex flex-col gap-2">{/* Trip Route - Mobile Optimized */}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
@@ -162,11 +161,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           </div>
 
           {/* Trip Details - Reorganized for better mobile experience */}
-          <div className="space-y-3">
+          <div className="space-y-2">
           {/* Date and Reception Window - Redesigned */}
-          <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-3 border border-border/50">
-            <div className="flex flex-col sm:flex-row gap-3">
-              {/* Trip Date */}
+          <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-2 border border-border/50">
+            <div className="flex flex-col sm:flex-row gap-2">{/* Trip Date */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
@@ -258,14 +256,14 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         </div>
       </CardHeader>
       {hasDeliveredPackages && (
-        <CardContent className="pt-0">
-          <div className="space-y-4">
+        <CardContent className="pt-0 pb-2">
+          <div className="space-y-2">
             {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
             {(() => {
               const shouldShow = currentUser?.id === trip.user_id;
               return shouldShow;
             })() && (
-              <div className="bg-muted/30 rounded-lg p-3 animate-fade-in">
+              <div className="bg-muted/30 rounded-lg p-2 animate-fade-in">
                 <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
               </div>
             )}
