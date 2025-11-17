@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, Calendar, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -160,62 +160,67 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Trip Details - Reorganized for better mobile experience */}
+          {/* Trip Details - Improved Design with Icons */}
           <div className="space-y-2">
-          {/* Date and Reception Window - Redesigned */}
-          <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-2 border border-border/50">
-            <div className="flex flex-col sm:flex-row gap-2">{/* Trip Date */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                  <span className="text-xs font-medium text-primary">Fecha de llegada</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground">
-                  {new Date(trip.arrival_date).toLocaleDateString('es-GT', {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
+            {/* Date and Reception Window - Cards with Icons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* Arrival Date Card */}
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
+                <div className="flex items-start gap-2">
+                  <div className="bg-primary/20 rounded-lg p-2 shrink-0">
+                    <Calendar className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Fecha de llegada</p>
+                    <div className="text-base font-semibold text-foreground leading-tight">
+                      {new Date(trip.arrival_date).toLocaleDateString('es-GT', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="hidden sm:block w-px bg-border/50 mx-2"></div>
-
-              {/* Reception Window */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                  <span className="text-xs font-medium text-secondary">Ventana de recepción</span>
-                </div>
-                <div className="text-sm font-semibold text-foreground">
-                  {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
+              {/* Reception Window Card */}
+              <div className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-lg p-3 border border-amber-500/20">
+                <div className="flex items-start gap-2">
+                  <div className="bg-amber-500/20 rounded-lg p-2 shrink-0">
+                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Ventana de recepción</p>
+                    <div className="text-sm font-semibold text-foreground leading-tight">
+                      {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-            {/* Payment Request Button - More prominent */}
-            {shouldShowPaymentButton && (
-              <div className="flex justify-start">
-                <Button 
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowBankingModal(true)}
-                  disabled={isCreating}
-                  className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white hover-scale"
-                >
-                  <Banknote className="h-3 w-3 mr-1" />
-                  <span className="font-medium">
-                    {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
-                  </span>
-                </Button>
-              </div>
-            )}
+          {/* Payment Request Button - More prominent */}
+          {shouldShowPaymentButton && (
+            <div className="flex justify-start">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => setShowBankingModal(true)}
+                disabled={isCreating}
+                className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white hover-scale"
+              >
+                <Banknote className="h-3 w-3 mr-1" />
+                <span className="font-medium">
+                  {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
+                </span>
+              </Button>
+            </div>
+          )}
 
-            {/* Action Buttons - Better organized */}
-            <div className="flex flex-wrap gap-2">
+          {/* Action Buttons - Better organized */}
+          <div className="flex flex-wrap gap-2">
               {/* Delivery confirmation button */}
               {canConfirmDelivery && travelerProfile && (
                 <Button 
@@ -253,8 +258,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </div>
             </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
       {hasDeliveredPackages && (
         <CardContent className="pt-0 pb-2">
           <div className="space-y-2">
