@@ -845,7 +845,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                           )}
                           {product.requestType === 'personal' && product.packageWeight && (
                             <div>
-                              <p className="font-medium text-muted-foreground">Peso</p>
+                              <p className="font-medium text-muted-foreground">Peso (kg)</p>
                               <p className="font-medium text-xs">{product.packageWeight}</p>
                             </div>
                           )}
