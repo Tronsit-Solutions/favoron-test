@@ -810,14 +810,14 @@ const Dashboard = ({ user }: DashboardProps) => {
                    
                    {/* Display all assigned packages directly */}
                    <div className="space-y-6">
-                      {assignedPackages
-                         .filter(pkg => {
-                           // First filter by selected trip
-                           if (selectedTripFilter !== "all" && pkg.matched_trip_id !== selectedTripFilter) {
-                             return false;
-                           }
-                           
-                           // Exclude packages from completed and paid trips
+                       {assignedPackages
+                          .filter(pkg => {
+                            // First filter by selected trip
+                            if (selectedTripId && pkg.matched_trip_id !== selectedTripId) {
+                              return false;
+                            }
+                            
+                            // Exclude packages from completed and paid trips
                            const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
                            if (matchedTrip && matchedTrip.status === 'completed_paid') {
                              return false;
