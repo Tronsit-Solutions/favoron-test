@@ -163,34 +163,33 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           {/* Trip Information - Horizontal Layout */}
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 border border-border/50">
             {/* Recipient Name */}
-            {trip.package_receiving_address?.recipient_name && (
+            {trip.package_receiving_address?.recipientName && (
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3 shrink-0" />
-                <span className="font-medium">{trip.package_receiving_address.recipient_name}</span>
+                <span className="font-medium">{trip.package_receiving_address.recipientName}</span>
               </div>
             )}
             
             {/* Address */}
-            {trip.package_receiving_address && (
+            {(trip.package_receiving_address?.streetAddress || trip.package_receiving_address?.cityArea) && (
               <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3 shrink-0" />
                 <span>
                   {[
-                    trip.package_receiving_address.address_line_1,
-                    trip.package_receiving_address.address_line_2,
-                    trip.package_receiving_address.city,
-                    trip.package_receiving_address.state,
-                    trip.package_receiving_address.postal_code
+                    trip.package_receiving_address.streetAddress,
+                    trip.package_receiving_address.streetAddress2,
+                    trip.package_receiving_address.cityArea,
+                    trip.package_receiving_address.postalCode
                   ].filter(Boolean).join(', ')}
                 </span>
               </div>
             )}
             
             {/* Phone */}
-            {trip.package_receiving_address?.phone && (
+            {trip.package_receiving_address?.contactNumber && (
               <div className="flex items-center gap-1">
                 <Phone className="h-3 w-3 shrink-0" />
-                <span>{trip.package_receiving_address.phone}</span>
+                <span>{trip.package_receiving_address.contactNumber}</span>
               </div>
             )}
             
