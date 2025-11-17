@@ -160,8 +160,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Trip Information - Horizontal Layout */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 border border-border/50">
+          {/* Trip Information - Horizontal Layout - Clickable */}
+          <div 
+            onClick={() => setShowDetailModal(true)}
+            className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2 border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
+          >
             {/* Recipient Name */}
             {trip.package_receiving_address?.recipientName && (
               <div className="flex items-center gap-1">
