@@ -345,7 +345,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         instructions: product.instructions || null,
         requestType: product.requestType || 'online',
         productPhotos: product.productPhotos || [],
-        packageWeight: product.packageWeight || null,
+        packageWeight: product.weight || null,
         adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
         subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
       }));
