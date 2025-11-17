@@ -57,11 +57,6 @@ interface DashboardProps {
   user: any;
 }
 
-// Add local state for trip filter
-const useLocalTripFilter = () => {
-  const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
-  return { selectedTripFilter, setSelectedTripFilter };
-};
 
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
@@ -120,8 +115,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     setSelectedPackageForQuote,
     quoteUserType,
     setQuoteUserType,
-    selectedTripFilter,
-    setSelectedTripFilter,
     selectedTripId,
     setSelectedTripId,
     packages,
@@ -720,36 +713,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               {/* Assigned Packages Section */}
               {assignedPackages.length > 0 && (
                 <div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-                    <h4 className="text-lg font-semibold">Mis Paquetes Asignados</h4>
-                    {(() => {
-                       // Get available trips from assigned packages
-                       const tripIds = [...new Set(assignedPackages.map(pkg => pkg.matched_trip_id).filter(Boolean))];
-                       const availableTrips = trips.filter(trip => tripIds.includes(trip.id));
-                      
-                      // Only show selector if there are multiple trips
-                      if (availableTrips.length <= 1) return null;
-                      
-                      return (
-                        <Select value={selectedTripFilter} onValueChange={setSelectedTripFilter}>
-                          <SelectTrigger className="w-auto min-w-[200px]">
-                            <SelectValue placeholder="Filtrar por viaje" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todos los viajes</SelectItem>
-                            {availableTrips.map(trip => {
-                              const packageCount = assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id).length;
-                              return (
-                                <SelectItem key={trip.id} value={trip.id}>
-                                  {trip.from_city} → {trip.to_city} ({new Date(trip.departure_date).toLocaleDateString('es-ES')}) - {packageCount} paquetes
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      );
-                    })()}
-                   </div>
+                  <h4 className="text-lg font-semibold mb-4">Mis Paquetes Asignados</h4>
                    
                    {/* Mini resumen de paquetes asignados */}
                    <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-4 mb-6 border border-border/50">

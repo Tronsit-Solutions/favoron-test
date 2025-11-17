@@ -32,7 +32,6 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<Package | null>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
-  const [selectedTripFilter, setSelectedTripFilter] = useState<string>("all");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   
   // Check if user is admin to decide which data hooks to use
@@ -192,8 +191,6 @@ export const useDashboardState = (user: any) => {
     setSelectedPackageForQuote,
     quoteUserType,
     setQuoteUserType,
-    selectedTripFilter,
-    setSelectedTripFilter,
     selectedTripId,
     setSelectedTripId,
     packages,
