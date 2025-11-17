@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, Calendar, Clock } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -157,47 +157,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
-            </div>
-          </div>
-
-          {/* Trip Details - Improved Design with Icons */}
-          <div className="space-y-2">
-            {/* Date and Reception Window - Cards with Icons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* Arrival Date Card */}
-              <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg p-3 border border-border">
-                <div className="flex items-start gap-2">
-                  <div className="bg-muted rounded-lg p-2 shrink-0">
-                    <Calendar className="h-4 w-4 text-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-1">Fecha de llegada</p>
-                    <div className="text-base font-semibold text-foreground leading-tight">
-                      {new Date(trip.arrival_date).toLocaleDateString('es-GT', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Reception Window Card */}
-              <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-lg p-3 border border-border">
-                <div className="flex items-start gap-2">
-                  <div className="bg-secondary/30 rounded-lg p-2 shrink-0">
-                    <Clock className="h-4 w-4 text-secondary-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium mb-1">Ventana de recepción</p>
-                    <div className="text-sm font-semibold text-foreground leading-tight">
-                      {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
