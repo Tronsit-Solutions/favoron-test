@@ -345,6 +345,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         instructions: product.instructions || null,
         requestType: product.requestType || 'online',
         productPhotos: product.productPhotos || [],
+        packageWeight: product.packageWeight || null,
         adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
         subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
       }));
@@ -840,6 +841,12 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                                 <ExternalLink className="h-3 w-3 mr-1" />
                                 <span>Ver producto</span>
                               </a>
+                            </div>
+                          )}
+                          {product.requestType === 'personal' && product.packageWeight && (
+                            <div>
+                              <p className="font-medium text-muted-foreground">Peso</p>
+                              <p className="font-medium text-xs">{product.packageWeight}</p>
                             </div>
                           )}
                         </div>
