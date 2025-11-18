@@ -49,6 +49,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     updateUserStatus,
     banUser,
     unbanUser,
+    updateUserRole,
     refreshUsers
   } = useUserManagement();
 
@@ -196,6 +197,36 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
       toast({
         title: "Error al desbloquear",
         description: error?.message || "No se pudo desbloquear el usuario. Intenta de nuevo.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  const handleUpdateUserRole = async (userId: number, newRole: 'admin' | 'user') => {
+    try {
+      await updateUserRole(userId, newRole);
+      
+      toast({
+        title: newRole === 'admin' ? "Usuario promovido" : "Rol removido",
+        description: newRole === 'admin' 
+          ? "El usuario ahora es administrador y tiene acceso completo a la plataforma" 
+          : "El usuario ya no es administrador",
+      });
+
+      // Refresh and update selected user
+      await refreshUsers();
+      if (selectedUser && selectedUser.id === userId) {
+        const updatedUser = users.find(u => u.id === userId);
+        if (updatedUser) {
+          setSelectedUser(updatedUser);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error updating user role:', error);
+      toast({
+        title: "Error al actualizar rol",
+        description: error?.message || "No se pudo actualizar el rol del usuario. Intenta de nuevo.",
         variant: "destructive"
       });
       throw error;
@@ -466,6 +497,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           onUpdateUser={handleUpdateUser}
           onBanUser={handleBanUser}
           onUnbanUser={handleUnbanUser}
+          onUpdateUserRole={handleUpdateUserRole}
         />
       )}
     </div>
