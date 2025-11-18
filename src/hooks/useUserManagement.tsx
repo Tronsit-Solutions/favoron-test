@@ -270,6 +270,63 @@ export const useUserManagement = () => {
     }
   };
 
+  const updateUserRole = async (userId: number, newRole: 'admin' | 'user') => {
+    try {
+      const user = users.find(u => u.id === userId);
+      if (!user || !user.profileId) {
+        throw new Error('User or profile ID not found');
+      }
+
+      // Get current user (the admin making the change)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('No authenticated user');
+      }
+
+      if (newRole === 'admin') {
+        // Insert admin role
+        const { error } = await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: user.profileId,
+            role: 'admin',
+            assigned_by: currentUser.id,
+            assigned_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,role'
+          });
+
+        if (error) {
+          console.error('Error promoting to admin:', error);
+          throw error;
+        }
+
+        console.log('User promoted to admin successfully');
+      } else {
+        // Remove admin role
+        const { error } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', user.profileId)
+          .eq('role', 'admin');
+
+        if (error) {
+          console.error('Error demoting from admin:', error);
+          throw error;
+        }
+
+        console.log('User demoted from admin successfully');
+      }
+      
+      // Refresh users to get updated role
+      await fetchUsers();
+      
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      throw error;
+    }
+  };
+
   return {
     users: filteredUsers,
     loading,
@@ -285,6 +342,7 @@ export const useUserManagement = () => {
     updateAdminNotes,
     banUser,
     unbanUser,
+    updateUserRole,
     refreshUsers: fetchUsers
   };
 };

@@ -49,6 +49,7 @@ interface UserDetailModalProps {
   onUpdateUser: (userId: number, updates: Partial<User>, primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }) => void;
   onBanUser?: (userId: number, duration: 'permanent' | '24h' | '7d' | '30d' | 'custom', customDate?: string, reason?: string) => Promise<void>;
   onUnbanUser?: (userId: number) => Promise<void>;
+  onUpdateUserRole?: (userId: number, newRole: 'admin' | 'user') => Promise<void>;
 }
 
 const UserDetailModal = ({ 
@@ -60,7 +61,8 @@ const UserDetailModal = ({
   allPackages,
   onUpdateUser,
   onBanUser,
-  onUnbanUser
+  onUnbanUser,
+  onUpdateUserRole
 }: UserDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
@@ -78,6 +80,9 @@ const UserDetailModal = ({
   const [customBanDate, setCustomBanDate] = useState('');
   const [banReason, setBanReason] = useState('');
   const [isBanning, setIsBanning] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [pendingRole, setPendingRole] = useState<'admin' | 'user'>(user.role);
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   const profileId = (user as any).profileId as string | undefined;
   const userBanInfo = (user as any);
@@ -542,6 +547,52 @@ const UserDetailModal = ({
                 </div>
 
                 {/* Ban Management Section */}
+                {/* Role Management Section */}
+                <div className="border-t pt-4 space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Gestión de Roles
+                  </h4>
+                  
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">Rol Actual</p>
+                        <div className="mt-1">
+                          {user.role === 'admin' ? (
+                            <Badge variant="default" className="bg-purple-600">
+                              👑 Administrador
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">
+                              👤 Usuario
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant={user.role === 'admin' ? 'destructive' : 'default'}
+                        size="sm"
+                        onClick={() => {
+                          setPendingRole(user.role === 'admin' ? 'user' : 'admin');
+                          setShowRoleDialog(true);
+                        }}
+                      >
+                        {user.role === 'admin' ? '⬇️ Quitar Admin' : '⬆️ Hacer Admin'}
+                      </Button>
+                    </div>
+                    
+                    {user.role === 'admin' && (
+                      <div className="pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          ⚠️ Los administradores tienen acceso completo a todas las funciones de la plataforma, incluyendo gestión de usuarios, paquetes, viajes y finanzas.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ban Management Section */}
                 <div className="border-t pt-4 space-y-4">
                   <h4 className="font-medium flex items-center gap-2">
                     <Shield className="h-4 w-4" />
@@ -827,6 +878,69 @@ const UserDetailModal = ({
                 setShowPrimeDialog(false);
               }}>
                 Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Role Change Confirmation Dialog */}
+        <AlertDialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingRole === 'admin' ? '⬆️ Promover a Administrador' : '⬇️ Quitar Rol de Administrador'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingRole === 'admin' ? (
+                  <>
+                    ¿Estás seguro de que deseas promover a <strong>{user.name}</strong> a administrador?
+                    <br /><br />
+                    Los administradores tendrán acceso completo a:
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>Gestión de usuarios y roles</li>
+                      <li>Aprobación de paquetes y viajes</li>
+                      <li>Acceso a información financiera</li>
+                      <li>Configuración del sistema</li>
+                    </ul>
+                    <br />
+                    <strong className="text-red-600">⚠️ Esta es una acción importante. Asegúrate de confiar en este usuario.</strong>
+                  </>
+                ) : (
+                  <>
+                    ¿Estás seguro de que deseas quitar el rol de administrador a <strong>{user.name}</strong>?
+                    <br /><br />
+                    Este usuario perderá el acceso a todas las funciones administrativas y volverá a ser un usuario regular.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isUpdatingRole}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isUpdatingRole}
+                onClick={async () => {
+                  if (!onUpdateUserRole) return;
+                  
+                  try {
+                    setIsUpdatingRole(true);
+                    await onUpdateUserRole(user.id, pendingRole);
+                    setShowRoleDialog(false);
+                  } catch (error) {
+                    console.error('Error updating role:', error);
+                  } finally {
+                    setIsUpdatingRole(false);
+                  }
+                }}
+                className={pendingRole === 'admin' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+              >
+                {isUpdatingRole ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Actualizando...
+                  </>
+                ) : (
+                  pendingRole === 'admin' ? 'Sí, promover' : 'Sí, quitar rol'
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
