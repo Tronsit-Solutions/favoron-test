@@ -827,6 +827,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
                                 handleConfirmOfficeReception(packageId);
                               }}
+                              updatePackage={updatePackage}
                               hasPendingAction={hasPendingAction}
                               autoExpand={false}
                             />

@@ -121,6 +121,7 @@ const TripPackagesGroup = ({
                       onQuote={onQuote}
                       onConfirmReceived={onConfirmReceived}
                       onConfirmOfficeDelivery={onConfirmOfficeDelivery}
+                      updatePackage={updatePackage}
                       hasPendingAction={hasPendingAction}
                       autoExpand={false}
                     />
