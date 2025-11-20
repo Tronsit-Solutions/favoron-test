@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { Package, DocumentType } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 
 export const usePackageActions = () => {
   const { toast } = useToast();
@@ -57,6 +58,85 @@ export const usePackageActions = () => {
     }
   };
 
+  const handleConfirmProductReceived = async (
+    packageId: string,
+    productIndex: number,
+    photo: string,
+    updatePackage: (id: string, updates: any) => Promise<any>,
+    pkg: any
+  ) => {
+    try {
+      // 1. Clone products_data
+      const updatedProducts = [...(pkg.products_data || [])];
+      
+      // 2. Update specific product
+      updatedProducts[productIndex] = {
+        ...updatedProducts[productIndex],
+        receivedByTraveler: true,
+        receivedAt: new Date().toISOString(),
+        receivedPhoto: photo
+      };
+      
+      // 3. Check if ALL products are confirmed
+      const allConfirmed = updatedProducts.every((p: any) => p.receivedByTraveler);
+      
+      // 4. Prepare updates
+      const updates: any = {
+        products_data: updatedProducts
+      };
+      
+      // 5. If all confirmed → change status
+      if (allConfirmed) {
+        updates.status = 'received_by_traveler';
+        updates.traveler_confirmation = {
+          confirmedAt: new Date().toISOString(),
+          allProductsConfirmed: true
+        };
+      }
+      
+      // 6. Update in DB
+      await updatePackage(packageId, updates);
+      
+      // 7. Send low-priority notification to shopper
+      const productName = updatedProducts[productIndex].itemDescription;
+      const remainingProducts = updatedProducts.filter((p: any) => !p.receivedByTraveler).length;
+      
+      try {
+        await supabase.functions.invoke('send-whatsapp-notification', {
+          body: {
+            user_id: pkg.user_id,
+            title: '✅ Producto recibido',
+            message: `El viajero confirmó la recepción de:\n📦 ${productName}\n\n${remainingProducts > 0 
+              ? `⏳ Quedan ${remainingProducts} productos por confirmar.` 
+              : '🎉 ¡Todos los productos han sido confirmados!'
+            }\n\nPaquete: ${pkg.item_description}`,
+            type: 'package',
+            priority: 'low'
+          }
+        });
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // Don't fail the confirmation if notification fails
+      }
+      
+      toast({
+        title: allConfirmed ? "¡Todos los productos confirmados!" : "Producto confirmado",
+        description: allConfirmed 
+          ? "Has recibido todos los productos del paquete"
+          : `Quedan ${remainingProducts} productos por confirmar`
+      });
+      
+    } catch (error) {
+      console.error('Error confirming product:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo confirmar el producto.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const handleEditPackage = async (editedPackageData: Package) => {
     try {
       // This should be handled by components with access to updatePackage
@@ -77,6 +157,7 @@ export const usePackageActions = () => {
   return {
     handleUploadDocument,
     handleConfirmPackageReceived,
+    handleConfirmProductReceived,
     handleEditPackage
   };
 };
