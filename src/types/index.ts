@@ -64,6 +64,22 @@ export interface Product {
   quantity?: string;
 }
 
+// Product data for multi-product packages with receipt confirmation
+export interface ProductData {
+  itemDescription: string;
+  itemLink?: string;
+  quantity: string;
+  requestType: 'online' | 'personal';
+  estimatedPrice: string;
+  additionalNotes?: string;
+  adminAssignedTip?: number;
+  
+  // Receipt confirmation fields
+  receivedByTraveler?: boolean;
+  receivedAt?: string;  // ISO timestamp
+  receivedPhoto?: string;  // URL or base64
+}
+
 export interface Quote {
   price?: string;
   serviceFee?: string;

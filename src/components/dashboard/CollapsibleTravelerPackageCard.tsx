@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
+import { ProductReceiptConfirmation } from "../ProductReceiptConfirmation";
 import TravelerPackagePriorityActions from "./traveler/TravelerPackagePriorityActions";
 import TravelerPackageDetails from "./traveler/TravelerPackageDetails";
 import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
@@ -17,6 +19,7 @@ import { TravelerPackageStatusBadge } from "./traveler/TravelerPackageStatusBadg
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { usePackageActions } from "@/hooks/usePackageActions";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -24,6 +27,7 @@ interface CollapsibleTravelerPackageCardProps {
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
   onConfirmOfficeDelivery?: (packageId: string) => void;
+  updatePackage: (id: string, updates: any) => Promise<any>;
   hasPendingAction?: boolean;
   autoExpand?: boolean;
 }
@@ -34,11 +38,14 @@ const CollapsibleTravelerPackageCard = ({
   onQuote,
   onConfirmReceived,
   onConfirmOfficeDelivery,
+  updatePackage,
   hasPendingAction = false,
   autoExpand = false
 }: CollapsibleTravelerPackageCardProps) => {
+  const { handleConfirmProductReceived } = usePackageActions();
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showProductConfirmationModal, setShowProductConfirmationModal] = useState(false);
   const [documentModal, setDocumentModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -62,7 +69,15 @@ const CollapsibleTravelerPackageCard = ({
 
   const handleConfirmReceivedClick = () => {
     console.log('🎯 handleConfirmReceivedClick called for package:', pkg.id, pkg.item_description);
-    setShowConfirmationModal(true);
+    
+    // Check if multi-product package
+    const hasMultipleProducts = pkg.products_data && pkg.products_data.length > 1;
+    
+    if (hasMultipleProducts) {
+      setShowProductConfirmationModal(true);
+    } else {
+      setShowConfirmationModal(true);
+    }
   };
 
   const handleConfirmOfficeDeliveryClick = () => {
@@ -124,6 +139,25 @@ const CollapsibleTravelerPackageCard = ({
     return parseFloat(pkg.admin_assigned_tip || '0');
   };
 
+  // Helper to get product confirmation progress
+  const getProductConfirmationProgress = () => {
+    if (!pkg.products_data || pkg.products_data.length <= 1) return null;
+    if (pkg.status !== 'in_transit') return null;
+    
+    const confirmed = pkg.products_data.filter((p: any) => p.receivedByTraveler).length;
+    const total = pkg.products_data.length;
+    
+    if (confirmed === 0) return null;
+    
+    return { confirmed, total };
+  };
+
+  const confirmationProgress = getProductConfirmationProgress();
+
+  const handleConfirmProduct = async (productIndex: number, photo: string) => {
+    await handleConfirmProductReceived(pkg.id, productIndex, photo, updatePackage, pkg);
+  };
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
@@ -154,8 +188,13 @@ const CollapsibleTravelerPackageCard = ({
                     </CardTitle>
                   </div>
                   
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                     <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
+                    {confirmationProgress && (
+                      <Badge className="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5">
+                        🔵 {confirmationProgress.confirmed}/{confirmationProgress.total} productos
+                      </Badge>
+                    )}
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground hidden sm:block" /> : <ChevronDown className="h-4 w-4 text-muted-foreground hidden sm:block" />}
                   </div>
                 </div>
@@ -677,6 +716,15 @@ const CollapsibleTravelerPackageCard = ({
         onConfirm={handleConfirmReceived} 
         packageName={getPackageName()}
         packageId={pkg.id}
+      />
+
+      <ProductReceiptConfirmation
+        isOpen={showProductConfirmationModal}
+        onClose={() => setShowProductConfirmationModal(false)}
+        packageId={pkg.id}
+        packageName={getPackageName()}
+        products={pkg.products_data || []}
+        onConfirmProduct={handleConfirmProduct}
       />
       
     </Collapsible>

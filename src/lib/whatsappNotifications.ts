@@ -98,6 +98,17 @@ export const WhatsAppTemplates = {
     priority: 'high' as const
   }),
   
+  // Low-priority notification for individual product confirmation
+  productReceivedByTraveler: (productName: string, remainingProducts: number, packageDescription: string) => ({
+    title: '✅ Producto recibido',
+    message: `El viajero confirmó la recepción de:\n📦 ${productName}\n\n${remainingProducts > 0 
+      ? `⏳ Quedan ${remainingProducts} productos por confirmar.` 
+      : '🎉 ¡Todos los productos han sido confirmados!'
+    }\n\nPaquete: ${packageDescription}`,
+    type: 'package' as const,
+    priority: 'low' as const
+  }),
+  
   // Para mensajes del chat
   newChatMessageFromShopper: (shopperName: string, packageDescription: string) => ({
     title: '💬 Nuevo mensaje del comprador',

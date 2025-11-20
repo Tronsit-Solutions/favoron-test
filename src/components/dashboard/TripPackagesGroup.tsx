@@ -13,6 +13,7 @@ interface TripPackagesGroupProps {
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
   onConfirmOfficeDelivery?: (packageId: string) => void;
+  updatePackage: (id: string, updates: any) => Promise<any>;
   defaultExpanded?: boolean;
 }
 
@@ -23,6 +24,7 @@ const TripPackagesGroup = ({
   onQuote,
   onConfirmReceived,
   onConfirmOfficeDelivery,
+  updatePackage,
   defaultExpanded = false
 }: TripPackagesGroupProps) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
