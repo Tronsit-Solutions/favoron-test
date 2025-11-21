@@ -169,7 +169,7 @@ export const TravelerPackageStatusBadge = ({
       </div>
       
       {config.actionMessage && (
-        <Alert className="border-blue-200 bg-blue-50">
+        <Alert className="hidden sm:block border-blue-200 bg-blue-50">
           <AlertDescription className="text-sm text-blue-800">
             💡 {config.actionMessage}
           </AlertDescription>
