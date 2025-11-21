@@ -91,7 +91,7 @@ export const ProductStatusModal = ({
                   <div className="flex-1 min-w-0 space-y-2">
                     <div>
                       <p className="font-medium text-sm leading-tight">
-                        {product.description}
+                        {product.description || `Producto #${index + 1}`}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         ${product.price?.toFixed(2) || "0.00"}
