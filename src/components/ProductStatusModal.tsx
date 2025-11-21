@@ -114,7 +114,7 @@ export const ProductStatusModal = ({
                           : ""
                       }
                     >
-                      {product.receivedByTraveler ? "Confirmado" : "Pendiente"}
+                      {product.receivedByTraveler ? "Confirmado por el viajero" : "Pendiente de confirmación"}
                     </Badge>
 
                     {/* Confirmation Details */}
