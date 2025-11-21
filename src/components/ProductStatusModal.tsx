@@ -103,9 +103,6 @@ export const ProductStatusModal = ({
                       <p className="font-medium text-sm leading-tight">
                         {productNames[index] || `Producto #${index + 1}`}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        ${product.price?.toFixed(2) || "0.00"}
-                      </p>
                     </div>
 
                     {/* Status Badge */}
