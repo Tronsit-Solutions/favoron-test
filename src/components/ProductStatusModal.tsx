@@ -29,6 +29,7 @@ interface ProductStatusModalProps {
   onClose: () => void;
   products: ProductData[];
   packageId: string;
+  itemDescription: string;
 }
 
 export const ProductStatusModal = ({
@@ -36,10 +37,14 @@ export const ProductStatusModal = ({
   onClose,
   products,
   packageId,
+  itemDescription,
 }: ProductStatusModalProps) => {
   const confirmedCount = products.filter(p => p.receivedByTraveler).length;
   const totalCount = products.length;
   const progressPercentage = (confirmedCount / totalCount) * 100;
+  
+  // Parse product names from item_description (comma separated)
+  const productNames = itemDescription.split(',').map(name => name.trim());
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,7 +96,7 @@ export const ProductStatusModal = ({
                   <div className="flex-1 min-w-0 space-y-2">
                     <div>
                       <p className="font-medium text-sm leading-tight">
-                        {product.description || `Producto #${index + 1}`}
+                        {productNames[index] || `Producto #${index + 1}`}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         ${product.price?.toFixed(2) || "0.00"}

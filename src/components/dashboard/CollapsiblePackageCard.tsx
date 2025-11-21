@@ -697,6 +697,7 @@ const CollapsiblePackageCard = ({
           onClose={() => setShowProductStatusModal(false)}
           products={productsArray}
           packageId={pkg.id}
+          itemDescription={pkg.item_description}
         />
       )}
     </>
