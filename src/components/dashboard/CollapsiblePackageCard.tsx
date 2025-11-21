@@ -281,7 +281,7 @@ const CollapsiblePackageCard = ({
                     >
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
-                        Ver productos
+                        Ver estado de productos
                       </span>
                       <Badge variant="secondary" className="text-xs">
                         {confirmedProductsCount}/{totalProductsCount}
