@@ -32,8 +32,31 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<Package | null>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
-  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(() => {
+    try {
+      // Load saved trip selection for this user
+      const saved = localStorage.getItem(`trip_filter_${user?.id || 'default'}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   
+  // Persist trip selection to localStorage
+  useEffect(() => {
+    if (user?.id) {
+      try {
+        if (selectedTripId) {
+          localStorage.setItem(`trip_filter_${user.id}`, JSON.stringify(selectedTripId));
+        } else {
+          localStorage.removeItem(`trip_filter_${user.id}`);
+        }
+      } catch (error) {
+        console.warn('Failed to save trip selection:', error);
+      }
+    }
+  }, [selectedTripId, user?.id]);
+
   // Check if user is admin to decide which data hooks to use
   const isAdminTab = activeTab === 'admin' || activeTab === 'ultima-milla';
   const userRole = user?.userRole?.role ?? user?.role;
