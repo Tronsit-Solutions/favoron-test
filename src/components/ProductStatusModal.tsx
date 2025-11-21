@@ -1,0 +1,148 @@
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Package } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+interface ProductData {
+  description: string;
+  price: number;
+  link?: string;
+  receivedByTraveler?: boolean;
+  receivedDate?: string;
+  receivedPhoto?: string;
+  weight?: number;
+  declaredValue?: number;
+}
+
+interface ProductStatusModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  products: ProductData[];
+  packageId: string;
+}
+
+export const ProductStatusModal = ({
+  isOpen,
+  onClose,
+  products,
+  packageId,
+}: ProductStatusModalProps) => {
+  const confirmedCount = products.filter(p => p.receivedByTraveler).length;
+  const totalCount = products.length;
+  const progressPercentage = (confirmedCount / totalCount) * 100;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            Estado de Productos
+          </DialogTitle>
+          <DialogDescription>
+            {confirmedCount} de {totalCount} productos confirmados
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <Progress value={progressPercentage} className="h-2" />
+            <p className="text-xs text-muted-foreground text-center">
+              {confirmedCount === totalCount 
+                ? "✅ Todos los productos confirmados" 
+                : `${totalCount - confirmedCount} producto${totalCount - confirmedCount > 1 ? 's' : ''} pendiente${totalCount - confirmedCount > 1 ? 's' : ''}`
+              }
+            </p>
+          </div>
+
+          {/* Products List */}
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {products.map((product, index) => (
+              <div
+                key={index}
+                className={`border rounded-lg p-3 ${
+                  product.receivedByTraveler
+                    ? "bg-green-50 border-green-200"
+                    : "bg-muted/30 border-border"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Icon */}
+                  <div className="flex-shrink-0 mt-1">
+                    {product.receivedByTraveler ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div>
+                      <p className="font-medium text-sm leading-tight">
+                        {product.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        ${product.price?.toFixed(2) || "0.00"}
+                      </p>
+                    </div>
+
+                    {/* Status Badge */}
+                    <Badge
+                      variant={product.receivedByTraveler ? "default" : "secondary"}
+                      className={
+                        product.receivedByTraveler
+                          ? "bg-green-600 hover:bg-green-700"
+                          : ""
+                      }
+                    >
+                      {product.receivedByTraveler ? "Confirmado" : "Pendiente"}
+                    </Badge>
+
+                    {/* Confirmation Details */}
+                    {product.receivedByTraveler && product.receivedDate && (
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>
+                          📅 Confirmado el{" "}
+                          {format(new Date(product.receivedDate), "d 'de' MMMM", {
+                            locale: es,
+                          })}
+                        </p>
+                        {product.receivedPhoto && (
+                          <button
+                            onClick={() => window.open(product.receivedPhoto, "_blank")}
+                            className="text-primary hover:underline flex items-center gap-1"
+                          >
+                            📷 Ver foto
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Close Button */}
+          <div className="flex justify-end pt-2">
+            <Button onClick={onClose} variant="outline">
+              Cerrar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

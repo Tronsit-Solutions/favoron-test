@@ -32,6 +32,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { SwipeableCard } from "@/components/ui/swipeable-card";
 import { canCancelPackage } from "@/lib/permissions";
+import { ProductStatusModal } from "@/components/ProductStatusModal";
+import { Badge } from "@/components/ui/badge";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -71,6 +73,7 @@ const CollapsiblePackageCard = ({
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
   const [showShippingInfoModal, setShowShippingInfoModal] = React.useState(false);
   const [showOfficeModal, setShowOfficeModal] = React.useState(false);
+  const [showProductStatusModal, setShowProductStatusModal] = React.useState(false);
   const {
     profile
   } = useAuth();
@@ -180,6 +183,16 @@ const CollapsiblePackageCard = ({
   };
   // Determine if delete is available for this package
   const canDelete = canCancelPackage(pkg, pkg.user_id);
+
+  // Calculate product confirmation counts
+  const productsArray = (pkg.products_data as any[]) || [];
+  const hasMultipleProducts = productsArray.length > 1;
+  const confirmedProductsCount = productsArray.filter((p: any) => p.receivedByTraveler).length;
+  const totalProductsCount = productsArray.length;
+  const shouldShowProductStatusButton = 
+    hasMultipleProducts && 
+    confirmedProductsCount > 0 &&
+    ['in_transit', 'received_by_traveler'].includes(pkg.status);
   
   // Card content wrapper
   const cardContent = (
@@ -254,6 +267,29 @@ const CollapsiblePackageCard = ({
                   </div>
                 </CardDescription>
 
+                {/* Product Status Button - Mobile */}
+                {shouldShowProductStatusButton && (
+                  <div className="pl-6">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProductStatusModal(true);
+                      }}
+                      className="text-xs w-full flex items-center justify-between gap-2"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Package className="h-3.5 w-3.5" />
+                        Ver productos
+                      </span>
+                      <Badge variant="secondary" className="text-xs">
+                        {confirmedProductsCount}/{totalProductsCount}
+                      </Badge>
+                    </Button>
+                  </div>
+                )}
+
                 {/* Action buttons - stacked vertically on mobile */}
                 <div className="space-y-2 w-full max-w-full pl-6">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
@@ -316,6 +352,23 @@ const CollapsiblePackageCard = ({
                     </CardTitle>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
+                    {shouldShowProductStatusButton && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowProductStatusModal(true);
+                        }}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Package className="h-3.5 w-3.5" />
+                        <span>Ver productos</span>
+                        <Badge variant="secondary" className="ml-1">
+                          {confirmedProductsCount}/{totalProductsCount}
+                        </Badge>
+                      </Button>
+                    )}
                     {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />}
                     {needsAction && <NotificationBadge count={1} />}
                   </div>
@@ -636,6 +689,16 @@ const CollapsiblePackageCard = ({
 
       {/* Office Address Modal */}
       {showOfficeModal && <OfficeAddressModal isOpen={showOfficeModal} onClose={() => setShowOfficeModal(false)} mode="pickup" />}
+
+      {/* Product Status Modal */}
+      {showProductStatusModal && (
+        <ProductStatusModal
+          isOpen={showProductStatusModal}
+          onClose={() => setShowProductStatusModal(false)}
+          products={productsArray}
+          packageId={pkg.id}
+        />
+      )}
     </>
   );
 };
