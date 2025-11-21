@@ -44,7 +44,12 @@ export const ProductStatusModal = ({
   const progressPercentage = (confirmedCount / totalCount) * 100;
   
   // Parse product names from item_description (comma separated)
-  const productNames = itemDescription.split(',').map(name => name.trim());
+  // Remove any prefix text before the actual product names (e.g., "Pedido de 2 productos: ")
+  const productNames = itemDescription
+    .split(':')  // Split by colon if present
+    .pop()       // Take the last part (after the colon)
+    ?.split(',') // Then split by commas
+    .map(name => name.trim()) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
