@@ -105,17 +105,12 @@ export const ProductStatusModal = ({
                       </p>
                     </div>
 
-                    {/* Status Badge */}
-                    <Badge
-                      variant={product.receivedByTraveler ? "default" : "secondary"}
-                      className={
-                        product.receivedByTraveler
-                          ? "bg-green-600 hover:bg-green-700"
-                          : ""
-                      }
-                    >
-                      {product.receivedByTraveler ? "Confirmado por el viajero" : "Pendiente de confirmación"}
-                    </Badge>
+                    {/* Status Description */}
+                    <p className={`text-xs ${product.receivedByTraveler ? 'text-green-700 font-medium' : 'text-muted-foreground'}`}>
+                      {product.receivedByTraveler 
+                        ? "✓ El viajero confirmó que recibió este producto" 
+                        : "El viajero aún no ha confirmado la recepción de este producto"}
+                    </p>
 
                     {/* Confirmation Details */}
                     {product.receivedByTraveler && product.receivedDate && (
