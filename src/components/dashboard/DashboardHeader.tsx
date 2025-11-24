@@ -77,15 +77,9 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (
-            <>
-              <Button variant="outline" size="sm" onClick={onShowUserManagement} className="hidden sm:flex">
-                <Users className="h-4 w-4 mr-2" />
-                Gestión de Usuarios
-              </Button>
-              <Button variant="outline" size="sm" onClick={onShowUserManagement} className="sm:hidden">
-                <Users className="h-4 w-4" />
-              </Button>
-            </>
+            <Button variant="outline" size="sm" onClick={onShowUserManagement}>
+              <Users className="h-4 w-4" />
+            </Button>
           )}
           
           
