@@ -612,6 +612,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          acquisition_source: string | null
+          acquisition_source_answered_at: string | null
           avatar_url: string | null
           ban_reason: string | null
           banned_at: string | null
@@ -635,6 +637,8 @@ export type Database = {
           whatsapp_notifications: boolean | null
         }
         Insert: {
+          acquisition_source?: string | null
+          acquisition_source_answered_at?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned_at?: string | null
@@ -658,6 +662,8 @@ export type Database = {
           whatsapp_notifications?: boolean | null
         }
         Update: {
+          acquisition_source?: string | null
+          acquisition_source_answered_at?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned_at?: string | null
