@@ -93,6 +93,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Acquisition Survey Logic
   const { needsSurvey } = useAcquisitionSurvey();
   const [showAcquisitionSurvey, setShowAcquisitionSurvey] = useState(false);
+  const [surveyDismissed, setSurveyDismissed] = useState(false);
   
   const {
     currentUser,
@@ -304,10 +305,11 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Mostrar encuesta de adquisición si es necesario
   const handleSurveyComplete = () => {
     setShowAcquisitionSurvey(false);
+    setSurveyDismissed(true);
   };
 
   // Check if survey needs to be shown
-  if (!showAcquisitionSurvey && needsSurvey()) {
+  if (!showAcquisitionSurvey && !surveyDismissed && needsSurvey()) {
     setShowAcquisitionSurvey(true);
   }
 
