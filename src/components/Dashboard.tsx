@@ -38,6 +38,8 @@ import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
 import { useStickyState } from "@/hooks/useStickyState";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
+import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
 
 
 
@@ -87,6 +89,10 @@ const Dashboard = ({ user }: DashboardProps) => {
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
+  
+  // Acquisition Survey Logic
+  const { needsSurvey } = useAcquisitionSurvey();
+  const [showAcquisitionSurvey, setShowAcquisitionSurvey] = useState(false);
   
   const {
     currentUser,
@@ -294,6 +300,16 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
   const { getStatusBadge } = useStatusHelpers();
+
+  // Mostrar encuesta de adquisición si es necesario
+  const handleSurveyComplete = () => {
+    setShowAcquisitionSurvey(false);
+  };
+
+  // Check if survey needs to be shown
+  if (!showAcquisitionSurvey && needsSurvey()) {
+    setShowAcquisitionSurvey(true);
+  }
 
   // Phone number banner component
   const PhoneNumberBannerSection = () => {
@@ -1017,6 +1033,12 @@ const Dashboard = ({ user }: DashboardProps) => {
         isOpen={showPrimeModal}
         onClose={() => setShowPrimeModal(false)}
         user={currentUser}
+      />
+
+      {/* Acquisition Survey Modal */}
+      <AcquisitionSurveyModal
+        isOpen={showAcquisitionSurvey}
+        onComplete={handleSurveyComplete}
       />
 
     </div>
