@@ -64,18 +64,18 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-[500px]" 
+        className="sm:max-w-[400px]" 
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl">¿Cómo conociste Favorón? 🎉</DialogTitle>
-          <DialogDescription className="text-base">
+          <DialogTitle className="text-xl">¿Cómo conociste Favorón? 🎉</DialogTitle>
+          <DialogDescription className="text-sm">
             Tu respuesta nos ayuda a entender cómo nos encuentran nuestros usuarios y mejorar nuestro servicio.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-4">
+        <div className="space-y-2 py-3">
           {surveyOptions.map((option) => {
             const Icon = option.icon;
             const isSelected = selectedSource === option.value;
@@ -84,20 +84,20 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
               <Card
                 key={option.value}
                 className={cn(
-                  "p-4 cursor-pointer transition-all hover:shadow-md",
+                  "p-3 cursor-pointer transition-all hover:shadow-md",
                   isSelected && "ring-2 ring-primary shadow-lg"
                 )}
                 onClick={() => setSelectedSource(option.value)}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <div className={cn(
-                    "w-12 h-12 rounded-lg bg-gradient-to-br flex items-center justify-center",
+                    "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center",
                     option.color
                   )}>
-                    <Icon className="w-6 h-6 text-white" />
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-base">{option.label}</p>
+                    <p className="font-medium text-sm">{option.label}</p>
                   </div>
                   <div className={cn(
                     "w-5 h-5 rounded-full border-2 transition-all",
