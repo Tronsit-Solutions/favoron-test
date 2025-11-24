@@ -71,7 +71,7 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
         <DialogHeader>
           <DialogTitle className="text-xl">¿Cómo conociste Favorón? 🎉</DialogTitle>
           <DialogDescription className="text-sm">
-            Tu respuesta nos ayuda a entender cómo nos encuentran nuestros usuarios y mejorar nuestro servicio.
+            Ayudanos a saber cómo nos encontraste, ¡va!
           </DialogDescription>
         </DialogHeader>
 
