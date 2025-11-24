@@ -99,6 +99,7 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>ID</TableHead>
                 <TableHead>Ruta</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fechas</TableHead>
@@ -122,6 +123,11 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
 
                 return (
                   <TableRow key={trip.id}>
+                    <TableCell>
+                      <span className="text-xs text-muted-foreground font-mono">
+                        #{trip.id.slice(0, 8)}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
