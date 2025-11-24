@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationDropdownProps {
   userId?: string;
@@ -53,16 +54,16 @@ const getPriorityColor = (priority: Notification['priority']) => {
 
 export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownProps) => {
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
+  const navigate = useNavigate();
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
       markAsRead(notification.id);
     }
     
-    // Handle action URL if provided
+    // Navigate to action URL if provided
     if (notification.action_url) {
-      // Here you would navigate to the specific page
-      console.log('Navigate to:', notification.action_url);
+      navigate(notification.action_url);
     }
   };
 
