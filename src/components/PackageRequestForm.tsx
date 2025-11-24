@@ -955,7 +955,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <div className="text-sm text-yellow-800">
                 <p className="font-medium mb-1">¿Cómo funciona?</p>
                 <ul className="space-y-1 text-xs">
-                  <li>• Revisaremos tu solicitud en 24-48 horas</li>
+                  <li>• Revisaremos tu solicitud en menos de 24h</li>
                   <li>• Te conectaremos con viajeros disponibles</li>
                   <li>• Recibirás cotizaciones y podrás elegir</li>
                   <li>• Solo pagas cuando aceptes una cotización</li>
