@@ -37,7 +37,7 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
     },
     {
       value: 'friend_referral' as AcquisitionSource,
-      label: 'Recomendación de un amigo',
+      label: 'Recomendación de amigo/familiar',
       icon: Users,
       color: 'from-blue-500 to-green-500'
     },
