@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users, Home, FileText, Shield, Sparkles } from "lucide-react";
+import { LogOut, User, Plane, Users, Home, FileText, Shield, Sparkles, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -134,6 +134,12 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {user.role === 'admin' && (
+                <DropdownMenuItem onClick={() => navigate('/admin/control')}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Control Admin
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleTermsClick}>
                 <FileText className="h-4 w-4 mr-2" />
                 Términos y Condiciones
