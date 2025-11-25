@@ -41,7 +41,6 @@ interface AuthContextType {
   profile: Profile | null;
   userRole: UserRole | null;
   loading: boolean;
-  initialLoading: boolean;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
@@ -65,8 +64,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Prevent duplicate profile fetches and manage loading lifecycle
@@ -157,41 +155,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Wrapper to avoid duplicate fetches and control loading state
-  const loadProfile = async (userId: string, isInitial = false) => {
-    // Si ya tenemos el profile del mismo usuario, refrescar en background sin mostrar loading
-    if (lastFetchedUserIdRef.current === userId && profile?.id === userId && !isInitial) {
-      // Silent refresh en background
-      if (!fetchingProfileRef.current) {
-        fetchingProfileRef.current = true;
-        try {
-          await fetchProfile(userId);
-        } finally {
-          fetchingProfileRef.current = false;
-        }
-      }
-      return;
-    }
-    
-    // Prevenir fetches duplicados del mismo usuario
+  const loadProfile = async (userId: string) => {
     if (fetchingProfileRef.current && lastFetchedUserIdRef.current === userId) {
       return;
     }
-    
     fetchingProfileRef.current = true;
     lastFetchedUserIdRef.current = userId;
-    
-    // Solo mostrar loading en carga inicial o cambio de usuario
-    if (isInitial) {
-      setInitialLoading(true);
-    }
-    
+    setLoading(true);
     try {
       await fetchProfile(userId);
     } finally {
       fetchingProfileRef.current = false;
-      if (isInitial) {
-        setInitialLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -217,16 +192,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             },
             userId: session.user.id
           });
-          
-          // Solo cargar profile si es un usuario diferente o evento relevante
-          // TOKEN_REFRESHED no requiere recargar el profile si es el mismo usuario
-          const shouldLoadProfile = 
-            event !== 'TOKEN_REFRESHED' || 
-            lastFetchedUserIdRef.current !== session.user.id;
-          
-          if (shouldLoadProfile) {
-            loadProfile(session.user.id, false);
-          }
+          // Load profile immediately for faster auth
+          loadProfile(session.user.id);
         } else {
           console.log('🚪 User signed out or no session');
           if (event === 'SIGNED_OUT') {
@@ -240,7 +207,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
           setProfile(null);
           setUserRole(null);
-          setInitialLoading(false);
+          setLoading(false);
         }
       }
     );
@@ -264,10 +231,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           },
           userId: session.user.id
         });
-        loadProfile(session.user.id, true); // isInitial = true
+        loadProfile(session.user.id);
       } else {
         console.log('🚫 No existing session found');
-        setInitialLoading(false);
+        setLoading(false);
       }
     });
 
@@ -329,7 +296,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     profile,
     userRole,
     loading,
-    initialLoading,
     signOut,
     updateProfile,
   };

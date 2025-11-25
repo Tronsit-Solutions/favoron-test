@@ -9,11 +9,10 @@ interface RequireAuthProps {
 }
 
 export const RequireAuth = ({ children, fallback }: RequireAuthProps) => {
-  const { user, initialLoading } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Solo bloquear UI durante la carga inicial de la app
-  if (initialLoading) {
+  if (loading) {
     return <LoadingState message="Verificando autenticación..." />;
   }
 
