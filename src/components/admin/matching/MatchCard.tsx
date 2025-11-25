@@ -23,6 +23,7 @@ import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PackageLabelModal } from "../PackageLabelModal";
+import { ProductStatusModal } from "@/components/ProductStatusModal";
 
 interface MatchCardProps {
   pkg: any;
@@ -59,6 +60,7 @@ export const MatchCard = ({
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showProductStatusModal, setShowProductStatusModal] = useState(false);
   const statusInfo = getStatusInfo(isCompleting ? 'completed' : pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status) && !isCompleting;
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
@@ -167,7 +169,14 @@ export const MatchCard = ({
                   </Badge>
                 )}
                 {getReceivedProductsInfo() && (
-                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs bg-blue-50 text-blue-700 border-blue-300 cursor-pointer hover:bg-blue-100 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProductStatusModal(true);
+                    }}
+                  >
                     <PackageCheck className="h-3 w-3 mr-1" />
                     {getReceivedProductsInfo()?.received}/{getReceivedProductsInfo()?.total}
                   </Badge>
@@ -705,6 +714,17 @@ export const MatchCard = ({
         onClose={() => setShowLabelModal(false)}
         pkg={pkg}
       />
+
+      {/* Product Status Modal */}
+      {showProductStatusModal && pkg.products_data && Array.isArray(pkg.products_data) && (
+        <ProductStatusModal
+          isOpen={showProductStatusModal}
+          onClose={() => setShowProductStatusModal(false)}
+          products={pkg.products_data}
+          packageId={pkg.id}
+          itemDescription={pkg.item_description}
+        />
+      )}
     </Card>
   );
 };
