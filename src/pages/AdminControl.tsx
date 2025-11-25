@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Package, TrendingUp, Settings } from "lucide-react";
+import { Shield, Users, Package, TrendingUp, Settings, ClipboardList } from "lucide-react";
 
 const AdminControl = () => {
   const { user, profile, userRole } = useAuth();
@@ -96,6 +96,23 @@ const AdminControl = () => {
               <CardContent>
                 <Button variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
                   Ver Reportes
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5" />
+                  Encuestas
+                </CardTitle>
+                <CardDescription>
+                  Ver y analizar respuestas de encuestas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+                  Ver Encuestas
                 </Button>
               </CardContent>
             </Card>
