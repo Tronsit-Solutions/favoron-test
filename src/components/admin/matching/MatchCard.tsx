@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Settings,
   Star,
-  Tag
+  Tag,
+  PackageCheck
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -133,6 +134,17 @@ export const MatchCard = ({
     return products.some((product: any) => product.requestType === 'personal');
   };
 
+  const getReceivedProductsInfo = () => {
+    if (!pkg.products_data || !Array.isArray(pkg.products_data)) return null;
+    const products = pkg.products_data;
+    if (products.length <= 1) return null; // Solo mostrar para múltiples productos
+    
+    const receivedCount = products.filter((p: any) => p.receivedByTraveler === true).length;
+    if (receivedCount === 0) return null; // Solo mostrar si hay al menos 1 recibido
+    
+    return { received: receivedCount, total: products.length };
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -152,6 +164,12 @@ export const MatchCard = ({
                 {pkg.label_number && (
                   <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
                     🏷️ #{pkg.label_number}
+                  </Badge>
+                )}
+                {getReceivedProductsInfo() && (
+                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                    <PackageCheck className="h-3 w-3 mr-1" />
+                    {getReceivedProductsInfo()?.received}/{getReceivedProductsInfo()?.total}
                   </Badge>
                 )}
               </div>
