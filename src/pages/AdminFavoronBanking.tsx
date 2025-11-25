@@ -3,8 +3,9 @@ import { useAuth } from "@/hooks/useAuth";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2 } from "lucide-react";
+import { Building2, ArrowLeft } from "lucide-react";
 import { AdminFavoronBankingInfo } from "@/components/admin/AdminFavoronBankingInfo";
+import { Button } from "@/components/ui/button";
 
 const AdminFavoronBanking = () => {
   const { user, profile, userRole } = useAuth();
@@ -38,6 +39,15 @@ const AdminFavoronBanking = () => {
         
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/admin/control')}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver al Control Admin
+            </Button>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Building2 className="h-8 w-8 text-primary" />
               Información Bancaria de Favorón
