@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import MonthlyPackageDetails from "./pages/MonthlyPackageDetails";
 import AdminControl from "./pages/AdminControl";
 import AdminSurveys from "./pages/AdminSurveys";
+import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,11 @@ const App = () => (
             <Route path="/admin/surveys" element={
               <RequireAuth>
                 <AdminSurveys />
+              </RequireAuth>
+            } />
+            <Route path="/admin/favoron-banking" element={
+              <RequireAuth>
+                <AdminFavoronBanking />
               </RequireAuth>
             } />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />

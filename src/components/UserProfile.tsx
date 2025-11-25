@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +15,7 @@ import TripHistory from "./profile/TripHistory";
 import PackageHistory from "./profile/PackageHistory";
 import { EmailNotificationSettings } from "./profile/EmailNotificationSettings";
 import { WhatsAppNotificationSettings } from "./profile/WhatsAppNotificationSettings";
-import { useAuth } from "@/hooks/useAuth";
-import FavoronBankingInfoDisplay from "./admin/FavoronBankingInfoDisplay";
-import FavoronBankingInfoForm from "./admin/FavoronBankingInfoForm";
-import { useFavoronBankingInfo } from "@/hooks";
+
 interface UserProfileProps {
   user: any;
   packages: any[];
@@ -40,11 +36,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     bank_account_type: user.bank_account_type || user.bankAccountType || '',
     bank_account_number: user.bank_account_number || user.bankAccountNumber || ''
   });
-const { toast } = useToast();
-const { userRole } = useAuth();
-const isAdmin = userRole?.role === 'admin';
-const [isFavoronEditing, setIsFavoronEditing] = useState(false);
-const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFavoronBankingInfo();
+  const { toast } = useToast();
   const handleBankingSave = () => {
     const updatedUser = {
       ...user,
@@ -386,57 +378,6 @@ const { account: favoronAccount, loading: favoronLoading, saveAccount } = useFav
           )}
         </CardContent>
       </Card>
-{isAdmin && (
-  <Card>
-    <CardHeader className="pb-3 md:pb-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-0">
-        <div className="space-y-1">
-          <CardTitle className="text-lg">Información Bancaria de Favorón</CardTitle>
-          <CardDescription className="text-sm">
-            Admin: gestiona la cuenta donde los shoppers realizan pagos
-          </CardDescription>
-        </div>
-        {!isFavoronEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsFavoronEditing(true)} className="self-start sm:self-center">
-            Editar
-          </Button>
-        )}
-      </div>
-    </CardHeader>
-    <CardContent className="space-y-4 pt-0">
-      {isFavoronEditing ? (
-        <FavoronBankingInfoForm
-          initialValues={{
-            // Banking Information
-            bank_name: favoronAccount?.bank_name || '',
-            account_holder: favoronAccount?.account_holder || '',
-            account_number: favoronAccount?.account_number || '',
-            account_type: favoronAccount?.account_type || 'Monetaria',
-            // Company Information
-            company_name: favoronAccount?.company_name || 'Favorón',
-            address_line_1: favoronAccount?.address_line_1 || '',
-            address_line_2: favoronAccount?.address_line_2 || '',
-            city: favoronAccount?.city || 'Guatemala',
-            state_department: favoronAccount?.state_department || 'Guatemala',
-            postal_code: favoronAccount?.postal_code || '',
-            country: favoronAccount?.country || 'Guatemala',
-            phone_number: favoronAccount?.phone_number || '',
-            email: favoronAccount?.email || 'info@favoron.app',
-            website: favoronAccount?.website || 'favoron.app',
-          }}
-          onSubmit={async (values) => {
-            await saveAccount(values);
-            toast({ title: 'Datos actualizados', description: 'La información de la empresa fue guardada.' });
-            setIsFavoronEditing(false);
-          }}
-          onCancel={() => setIsFavoronEditing(false)}
-        />
-      ) : (
-        <FavoronBankingInfoDisplay companyInfo={favoronAccount} />
-      )}
-    </CardContent>
-  </Card>
-)}
 </TabsContent>
 
       <TabsContent value="package-history">
