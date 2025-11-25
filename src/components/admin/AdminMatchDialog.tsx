@@ -386,7 +386,7 @@ const AdminMatchDialog = ({
                 {/* Expand Button */}
                 <button
                   onClick={() => setPackageExpanded(!packageExpanded)}
-                  className="p-1 hover:bg-blue-100 rounded transition-colors self-start"
+                  className="hidden sm:block p-1 hover:bg-blue-100 rounded transition-colors self-start"
                 >
                   {packageExpanded ? (
                     <ChevronDown className="h-4 w-4 text-blue-600" />
