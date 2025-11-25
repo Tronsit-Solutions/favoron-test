@@ -111,7 +111,7 @@ const AdminControl = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full" onClick={() => navigate('/dashboard')}>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/admin/surveys')}>
                   Ver Encuestas
                 </Button>
               </CardContent>
