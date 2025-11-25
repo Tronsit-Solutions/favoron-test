@@ -112,6 +112,15 @@ const CollapsiblePackageCard = ({
       case 'pending_purchase':
         return 'Pendiente de compra - Sube el comprobante';
       case 'in_transit':
+        // Check if there are multiple products and if any are received
+        if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+          const receivedCount = pkg.products_data.filter((p: any) => p.receivedByTraveler === true).length;
+          const totalCount = pkg.products_data.length;
+          
+          if (receivedCount > 0 && receivedCount < totalCount) {
+            return `${receivedCount}/${totalCount} productos recibidos`;
+          }
+        }
         return 'Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete';
       case 'received_by_traveler':
         return "Recibido por viajero";
