@@ -106,7 +106,10 @@ export const useDashboardState = (user: any) => {
     refreshPackages,
     setPackages,
     unreadCounts,
-    markPackageMessagesAsRead
+    markPackageMessagesAsRead,
+    loadMorePackages,
+    hasMorePackages,
+    totalPackages
   } = shouldUseAdminData ? {
     packages: adminData.packages,
     loading: adminData.loading,
@@ -116,11 +119,17 @@ export const useDashboardState = (user: any) => {
     refreshPackages: adminData.refreshData,
     setPackages: () => {}, // Admin data is read-only
     unreadCounts: adminData.unreadCounts,
-    markPackageMessagesAsRead: adminData.markPackageMessagesAsRead
+    markPackageMessagesAsRead: adminData.markPackageMessagesAsRead,
+    loadMorePackages: adminData.loadMorePackages,
+    hasMorePackages: adminData.hasMorePackages,
+    totalPackages: adminData.totalPackages
   } : {
     ...regularPackagesData,
     unreadCounts: {},
-    markPackageMessagesAsRead: async () => {}
+    markPackageMessagesAsRead: async () => {},
+    loadMorePackages: async () => {},
+    hasMorePackages: false,
+    totalPackages: 0
   };
 
   const {
@@ -232,6 +241,10 @@ export const useDashboardState = (user: any) => {
     setPackages,
     toast,
     unreadCounts,
-    markPackageMessagesAsRead
+    markPackageMessagesAsRead,
+    // Pagination for admin
+    loadMorePackages,
+    hasMorePackages,
+    totalPackages
   };
 };

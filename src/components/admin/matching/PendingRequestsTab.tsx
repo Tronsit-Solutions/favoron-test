@@ -13,12 +13,17 @@ import { usePackageHistory } from "@/hooks/usePackageHistory";
 import { PackageHistoryIndicator } from "./PackageHistoryIndicator";
 import { getDeliveryFee } from "@/lib/pricing";
 
+import { LoadMoreButton } from "@/components/admin/LoadMoreButton";
+
 interface PendingRequestsTabProps {
   packages: any[];
   onOpenMatchDialog: (pkg: any) => void;
   onViewPackageDetail: (pkg: any) => void;
   onDiscardPackage: (pkg: any) => void;
   availableTripsCount: number;
+  loadMorePackages?: () => Promise<void>;
+  hasMorePackages?: boolean;
+  totalPackages?: number;
 }
 
 const getStatusIcon = (status: string) => {
@@ -52,12 +57,16 @@ const PendingRequestsTab = ({
   onOpenMatchDialog, 
   onViewPackageDetail,
   onDiscardPackage,
-  availableTripsCount
+  availableTripsCount,
+  loadMorePackages,
+  hasMorePackages = false,
+  totalPackages = 0
 }: PendingRequestsTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [historyFilter, setHistoryFilter] = useState<'all' | 'new' | 'requoted'>('all');
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
   const { filterPackagesByHistory, getReQuoteStats } = usePackageHistory();
 
@@ -252,6 +261,21 @@ const PendingRequestsTab = ({
           ))
         )}
       </div>
+
+      {/* Load More Button */}
+      {loadMorePackages && (
+        <LoadMoreButton
+          onLoadMore={async () => {
+            setIsLoadingMore(true);
+            await loadMorePackages();
+            setIsLoadingMore(false);
+          }}
+          hasMore={hasMorePackages}
+          isLoading={isLoadingMore}
+          currentCount={packages.length}
+          totalCount={totalPackages}
+        />
+      )}
     </div>
   );
 };

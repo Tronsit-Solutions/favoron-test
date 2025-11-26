@@ -136,7 +136,10 @@ const Dashboard = ({ user }: DashboardProps) => {
     setPackages,
     toast,
     unreadCounts,
-    markPackageMessagesAsRead
+    markPackageMessagesAsRead,
+    loadMorePackages,
+    hasMorePackages,
+    totalPackages
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -883,6 +886,9 @@ const Dashboard = ({ user }: DashboardProps) => {
               refreshAdminData={async () => { await refreshPackages(); }}
               unreadCounts={unreadCounts}
               markPackageMessagesAsRead={markPackageMessagesAsRead}
+              loadMorePackages={loadMorePackages}
+              hasMorePackages={hasMorePackages}
+              totalPackages={totalPackages}
               />
             </TabsContent>
           )}

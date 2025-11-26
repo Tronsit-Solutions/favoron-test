@@ -32,6 +32,10 @@ interface AdminMatchingTabProps {
   getStatusBadge?: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
+  // Pagination props
+  loadMorePackages?: () => Promise<void>;
+  hasMorePackages?: boolean;
+  totalPackages?: number;
 }
 
 const AdminMatchingTab = ({
@@ -52,7 +56,10 @@ const AdminMatchingTab = ({
   onOpenActionsModal,
   getStatusBadge,
   unreadCounts = {},
-  markPackageMessagesAsRead
+  markPackageMessagesAsRead,
+  loadMorePackages,
+  hasMorePackages = false,
+  totalPackages = 0
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
   const currentTab = activeMatchingTab;
@@ -210,6 +217,9 @@ const AdminMatchingTab = ({
             onOpenMatchDialog={onOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
             availableTripsCount={availableTrips.length}
+            loadMorePackages={loadMorePackages}
+            hasMorePackages={hasMorePackages}
+            totalPackages={totalPackages}
           />
         </TabsContent>
 

@@ -72,12 +72,18 @@ const AdminDashboard = ({
   matchingTab,
   onMatchingTabChange,
   unreadCounts = {},
-  markPackageMessagesAsRead
+  markPackageMessagesAsRead,
+  loadMorePackages,
+  hasMorePackages = false,
+  totalPackages = 0
 }: AdminDashboardProps & { 
   matchingTab?: string; 
   onMatchingTabChange?: (tab: string) => void;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
+  loadMorePackages?: () => Promise<void>;
+  hasMorePackages?: boolean;
+  totalPackages?: number;
 }) => {
   // Persist activeTab in sessionStorage to prevent redirection on tab visibility changes
   const [activeTab, setActiveTab] = useState(() => {
@@ -538,6 +544,9 @@ const AdminDashboard = ({
                 openModal("admin-actions-matches", 'admin-actions', pkg);
               }
             }}
+            loadMorePackages={loadMorePackages}
+            hasMorePackages={hasMorePackages}
+            totalPackages={totalPackages}
           />
         </TabsContent>
 

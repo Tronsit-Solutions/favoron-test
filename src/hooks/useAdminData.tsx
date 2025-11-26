@@ -14,6 +14,9 @@ interface AdminData {
   loading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
+  loadMorePackages: () => Promise<void>;
+  hasMorePackages: boolean;
+  totalPackages: number;
   unreadCounts: { [packageId: string]: number };
   markPackageMessagesAsRead: (packageId: string) => Promise<void>;
 }
@@ -23,9 +26,15 @@ export const useAdminData = (): AdminData => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [packagesOffset, setPackagesOffset] = useState(0);
+  const [totalPackages, setTotalPackages] = useState(0);
+  const [hasMorePackages, setHasMorePackages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { toast } = useToast();
   const { user, userRole, loading: authLoading } = useAuth();
   const { unreadCounts, markPackageMessagesAsRead } = useUnreadChatMessages();
+
+  const PACKAGES_PER_PAGE = 50;
 
   // Persistir estado admin para evitar pérdida temporal durante refresh
   const [wasAdmin, setWasAdmin] = useState(() => {
@@ -54,50 +63,75 @@ export const useAdminData = (): AdminData => {
     return currentlyAdmin;
   }, [userRole, authLoading]);
 
-  const fetchAdminPackages = useCallback(async () => {
+  const fetchAdminPackages = useCallback(async (offset: number = 0, append: boolean = false) => {
     try {
-      console.log('🔄 Admin: Fetching all packages...');
+      console.log('🔄 Admin: Fetching packages with pagination...', { offset, limit: PACKAGES_PER_PAGE, append });
       
       const { data, error } = await supabase
-        .from('packages')
-        .select(`
-          *,
-          profiles:user_id(
-            id,
-            first_name,
-            last_name,
-            username,
-            avatar_url,
-            email,
-            phone_number,
-            trust_level,
-            prime_expires_at
-          ),
-          trips:matched_trip_id(
-            id,
-            from_city,
-            to_city,
-            departure_date,
-            arrival_date,
-            delivery_date,
-            profiles:user_id(
-              id,
-              first_name,
-              last_name,
-              username,
-              avatar_url
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
+        .rpc('get_admin_packages_paginated', {
+          p_limit: PACKAGES_PER_PAGE,
+          p_offset: offset,
+          p_status: null,
+          p_search: null,
+          p_trip_id: null
+        });
 
       if (error) {
         console.error('❌ Admin: Error fetching packages:', error);
         throw error;
       }
 
-      console.log('✅ Admin: Fetched packages:', data?.length || 0);
-      return data || [];
+      if (!data || data.length === 0) {
+        console.log('✅ Admin: No more packages to fetch');
+        setHasMorePackages(false);
+        return [];
+      }
+
+      // Transform RPC result to match Package type
+      const transformedPackages = data.map((row: any) => ({
+        ...row,
+        profiles: row.user_email ? {
+          id: row.user_id,
+          first_name: row.user_first_name,
+          last_name: row.user_last_name,
+          email: row.user_email,
+          phone_number: row.user_phone_number,
+          avatar_url: row.user_avatar_url,
+          username: null,
+          trust_level: null,
+          prime_expires_at: null
+        } : null,
+        trips: row.trip_from_city ? {
+          id: row.matched_trip_id,
+          from_city: row.trip_from_city,
+          to_city: row.trip_to_city,
+          departure_date: row.trip_departure_date,
+          arrival_date: row.trip_arrival_date,
+          delivery_date: null,
+          profiles: row.trip_user_email ? {
+            id: row.trip_user_id,
+            first_name: row.trip_user_first_name,
+            last_name: row.trip_user_last_name,
+            email: row.trip_user_email,
+            username: null,
+            avatar_url: null
+          } : null
+        } : null
+      }));
+
+      // Get total count from first row
+      const total = data[0]?.total_count || 0;
+      setTotalPackages(total);
+      setHasMorePackages(offset + data.length < total);
+
+      console.log('✅ Admin: Fetched packages:', {
+        count: transformedPackages.length,
+        total,
+        hasMore: offset + data.length < total,
+        offset
+      });
+
+      return transformedPackages;
     } catch (error: any) {
       console.error('❌ Admin: Package fetch failed:', error);
       setError(`Error cargando paquetes: ${error.message}`);
@@ -108,7 +142,7 @@ export const useAdminData = (): AdminData => {
       });
       return [];
     }
-  }, [toast]);
+  }, [toast, PACKAGES_PER_PAGE]);
 
   const fetchAdminTrips = useCallback(async () => {
     try {
@@ -183,6 +217,35 @@ export const useAdminData = (): AdminData => {
     }
   }, [toast]);
 
+  const loadMorePackages = useCallback(async () => {
+    if (isLoadingMore || !hasMorePackages) {
+      console.log('⏭️ Admin: Skipping load more', { isLoadingMore, hasMorePackages });
+      return;
+    }
+
+    console.log('🔄 Admin: Loading more packages...', { currentOffset: packagesOffset });
+    setIsLoadingMore(true);
+
+    try {
+      const newOffset = packagesOffset + PACKAGES_PER_PAGE;
+      const morePackages = await fetchAdminPackages(newOffset, true);
+      
+      if (morePackages.length > 0) {
+        setPackages(prev => [...prev, ...morePackages]);
+        setPackagesOffset(newOffset);
+      }
+    } catch (error: any) {
+      console.error('❌ Admin: Load more failed:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar más paquetes",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMorePackages, packagesOffset, fetchAdminPackages, toast, PACKAGES_PER_PAGE]);
+
   const refreshData = useCallback(async (forceRefresh = false) => {
     const shouldSkip = !user || (authLoading && !wasAdmin);
     
@@ -200,10 +263,12 @@ export const useAdminData = (): AdminData => {
     console.log('🔄 Admin: Starting data refresh...', { isAdmin, wasAdmin, authLoading, forceRefresh });
     setLoading(true);
     setError(null);
+    setPackagesOffset(0);
+    setHasMorePackages(true);
 
     try {
       const [packagesData, tripsData] = await Promise.all([
-        fetchAdminPackages(),
+        fetchAdminPackages(0, false),
         fetchAdminTrips()
       ]);
 
@@ -212,7 +277,8 @@ export const useAdminData = (): AdminData => {
       
       console.log('✅ Admin: Data refresh complete', {
         packages: packagesData.length,
-        trips: tripsData.length
+        trips: tripsData.length,
+        totalPackages
       });
     } catch (error: any) {
       console.error('❌ Admin: Data refresh failed:', error);
@@ -227,7 +293,7 @@ export const useAdminData = (): AdminData => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchAdminTrips]);
+  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchAdminTrips, totalPackages]);
 
   useEffect(() => {
     console.log('🔍 Admin: Effect triggered', {
@@ -292,11 +358,14 @@ export const useAdminData = (): AdminData => {
     loading,
     error,
     refreshData,
+    loadMorePackages,
+    hasMorePackages,
+    totalPackages,
     optimisticUpdatePackage,
     optimisticUpdateTrip,
     unreadCounts,
     markPackageMessagesAsRead
-  }), [packages, trips, loading, error, refreshData, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead]);
+  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,
