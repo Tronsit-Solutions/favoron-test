@@ -27,12 +27,11 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
     !(pkg.payment_receipt as any)?.auto_approved
   );
   
+  // Show ALL auto-approved payments (including audited ones) - complete history
   const auditPayments = packages
     .filter(pkg =>
       pkg.payment_receipt &&
-      (pkg.payment_receipt as any)?.auto_approved &&
-      // Show all auto-approved payments regardless of status
-      !((pkg.payment_receipt as any)?.audited)
+      (pkg.payment_receipt as any)?.auto_approved
     )
     .sort((a, b) => {
       // Sort by upload date (most recent first)
@@ -41,11 +40,17 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
       return dateB - dateA;
     });
   
+  // Show ALL approved payments (manual and auto) - complete history
   const approvedPayments = packages.filter(pkg => 
     pkg.payment_receipt && 
-    pkg.status === 'pending_purchase' &&
-    !(pkg.payment_receipt as any)?.auto_approved
-  );
+    // Include all statuses from pending_purchase onwards (complete history)
+    ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status)
+  ).sort((a, b) => {
+    // Sort by upload date (most recent first)
+    const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
+    const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
+    return dateB - dateA;
+  });
 
   // Prime membership payments
   const pendingPrimeMemberships = memberships.filter(membership => membership.status === 'pending');
@@ -381,9 +386,9 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
         <TabsContent value="audit" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>🔍 Pagos Auto-Aprobados</CardTitle>
+              <CardTitle>🔍 Historial de Pagos Auto-Aprobados</CardTitle>
               <CardDescription>
-                Pagos aprobados automáticamente por nivel de confianza. 
+                Historial completo de pagos aprobados automáticamente por nivel de confianza. 
                 Revisar solo si detectas algo inusual.
               </CardDescription>
             </CardHeader>
@@ -465,8 +470,8 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
         <TabsContent value="approved" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>✅ Pagos Aprobados</CardTitle>
-              <CardDescription>Historial de pagos confirmados</CardDescription>
+              <CardTitle>✅ Historial de Pagos Aprobados</CardTitle>
+              <CardDescription>Historial completo de pagos confirmados y en proceso</CardDescription>
             </CardHeader>
             <CardContent>
               {approvedPayments.length === 0 && approvedPrimeMemberships.length === 0 ? (
