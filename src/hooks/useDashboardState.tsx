@@ -109,7 +109,8 @@ export const useDashboardState = (user: any) => {
     markPackageMessagesAsRead,
     loadMorePackages,
     hasMorePackages,
-    totalPackages
+    totalPackages,
+    autoApprovedPayments
   } = shouldUseAdminData ? {
     packages: adminData.packages,
     loading: adminData.loading,
@@ -122,14 +123,16 @@ export const useDashboardState = (user: any) => {
     markPackageMessagesAsRead: adminData.markPackageMessagesAsRead,
     loadMorePackages: adminData.loadMorePackages,
     hasMorePackages: adminData.hasMorePackages,
-    totalPackages: adminData.totalPackages
+    totalPackages: adminData.totalPackages,
+    autoApprovedPayments: adminData.autoApprovedPayments
   } : {
     ...regularPackagesData,
     unreadCounts: {},
     markPackageMessagesAsRead: async () => {},
     loadMorePackages: async () => {},
     hasMorePackages: false,
-    totalPackages: 0
+    totalPackages: 0,
+    autoApprovedPayments: []
   };
 
   const {
@@ -245,6 +248,7 @@ export const useDashboardState = (user: any) => {
     // Pagination for admin
     loadMorePackages,
     hasMorePackages,
-    totalPackages
+    totalPackages,
+    autoApprovedPayments
   };
 };
