@@ -103,6 +103,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     purchase_origin: '',
     package_destination: ''
   });
+  const [editProductLinks, setEditProductLinks] = useState<string[]>([]);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -120,6 +121,13 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         purchase_origin: pkg.purchase_origin || '',
         package_destination: pkg.package_destination || ''
       });
+      
+      // Initialize product links for editing
+      if (pkg.products_data && Array.isArray(pkg.products_data)) {
+        setEditProductLinks(pkg.products_data.map((p: any) => p.itemLink || ''));
+      } else {
+        setEditProductLinks([pkg.item_link || '']);
+      }
     }
   }, [pkg]);
 
@@ -196,6 +204,13 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         purchase_origin: pkg.purchase_origin || '',
         package_destination: pkg.package_destination || ''
       });
+      
+      // Reset product links
+      if (pkg.products_data && Array.isArray(pkg.products_data)) {
+        setEditProductLinks(pkg.products_data.map((p: any) => p.itemLink || ''));
+      } else {
+        setEditProductLinks([pkg.item_link || '']);
+      }
     }
     setEditMode(!editMode);
   };
@@ -208,22 +223,23 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
       
       if (Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
         if (pkg.products_data.length === 1) {
-          // Single product: sync all fields including additional_notes
+          // Single product: sync all fields including itemLink from editProductLinks
           const p0 = pkg.products_data[0] || {};
           products_data = [
             {
               ...p0,
               itemDescription: editForm.item_description || p0.itemDescription,
-              itemLink: editForm.item_link || p0.itemLink || null,
+              itemLink: editProductLinks[0] || null,
               estimatedPrice: editForm.estimated_price || p0.estimatedPrice,
               quantity: p0.quantity || '1',
               additionalNotes: editForm.additional_notes || p0.additionalNotes || null,
             },
           ];
         } else {
-          // Multiple products: sync additional_notes to all products
-          products_data = pkg.products_data.map((product: any) => ({
+          // Multiple products: sync additional_notes and individual itemLinks
+          products_data = pkg.products_data.map((product: any, idx: number) => ({
             ...product,
+            itemLink: editProductLinks[idx] || product.itemLink || null,
             additionalNotes: editForm.additional_notes || product.additionalNotes || null,
           }));
         }
@@ -231,7 +247,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
 
       const updates = {
         item_description: editForm.item_description,
-        item_link: editForm.item_link || null,
+        item_link: editProductLinks[0] || null, // Use first product link for package-level field
         estimated_price: parseFloat(editForm.estimated_price) || null,
         additional_notes: editForm.additional_notes || null,
         purchase_origin: editForm.purchase_origin,
@@ -731,15 +747,32 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     </div>
                     
                     <div>
-                      <label className="text-sm font-medium">Link del producto</label>
-                      <Input
-                        type="url"
-                        value={editForm.item_link}
-                        onChange={(e) => handleFormChange('item_link', e.target.value)}
-                        placeholder="https://ejemplo.com/producto"
+                      <label className="text-sm font-medium">Notas adicionales</label>
+                      <Textarea
+                        value={editForm.additional_notes}
+                        onChange={(e) => handleFormChange('additional_notes', e.target.value)}
+                        placeholder="Notas adicionales..."
                         className="mt-1"
+                        rows={2}
                       />
                     </div>
+                    
+                    {editProductLinks.length === 1 ? (
+                      <div>
+                        <label className="text-sm font-medium">Link del producto</label>
+                        <Input
+                          type="url"
+                          value={editProductLinks[0]}
+                          onChange={(e) => {
+                            const newLinks = [...editProductLinks];
+                            newLinks[0] = e.target.value;
+                            setEditProductLinks(newLinks);
+                          }}
+                          placeholder="https://ejemplo.com/producto"
+                          className="mt-1"
+                        />
+                      </div>
+                    ) : null}
                     
                     <div>
                       <label className="text-sm font-medium">Precio estimado (USD)</label>
@@ -750,17 +783,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         onChange={(e) => handleFormChange('estimated_price', e.target.value)}
                         placeholder="0.00"
                         className="mt-1"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Notas adicionales</label>
-                      <Textarea
-                        value={editForm.additional_notes}
-                        onChange={(e) => handleFormChange('additional_notes', e.target.value)}
-                        placeholder="Notas adicionales..."
-                        className="mt-1"
-                        rows={2}
                       />
                     </div>
                     
@@ -784,6 +806,31 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                       />
                     </div>
                   </div>
+
+                  {/* Multiple Product Links Editor */}
+                  {editProductLinks.length > 1 && (
+                    <div className="mt-4 space-y-2">
+                      <label className="text-sm font-medium">Links de productos:</label>
+                      {detailedProducts.map((product, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs whitespace-nowrap">
+                            Producto #{idx + 1}
+                          </Badge>
+                          <Input
+                            type="url"
+                            value={editProductLinks[idx] || ''}
+                            onChange={(e) => {
+                              const newLinks = [...editProductLinks];
+                              newLinks[idx] = e.target.value;
+                              setEditProductLinks(newLinks);
+                            }}
+                            placeholder={`Link para ${product.description.substring(0, 30)}...`}
+                            className="flex-1"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* View Mode - Product Details */
