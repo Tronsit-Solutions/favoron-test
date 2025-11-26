@@ -105,7 +105,7 @@ export const useAdminData = (): AdminData => {
         // Fetch shopper profiles in a separate query
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, username, trust_level, prime_expires_at')
+          .select('id, first_name, last_name, username, email, phone_number, country_code, trust_level, prime_expires_at')
           .in('id', userIds);
 
         if (profilesError) {
