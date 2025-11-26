@@ -21,11 +21,21 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
   const [activeTab, setActiveTab] = useState("pending");
 
   // Separate payments by status
+  // Show manual pending payments AND all auto-approved payments
   const pendingPayments = packages.filter(pkg => 
-    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && 
-    pkg.payment_receipt &&
-    !(pkg.payment_receipt as any)?.auto_approved
-  );
+    pkg.payment_receipt && (
+      // Manual payments waiting for approval
+      ((pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && 
+       !(pkg.payment_receipt as any)?.auto_approved) ||
+      // OR all auto-approved payments
+      (pkg.payment_receipt as any)?.auto_approved
+    )
+  ).sort((a, b) => {
+    // Sort by upload date (most recent first)
+    const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
+    const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
+    return dateB - dateA;
+  });
   
   // Show ALL auto-approved payments (including audited ones) - complete history
   const auditPayments = packages
@@ -341,14 +351,14 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
         <TabsContent value="pending" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>💳 Pagos Pendientes de Aprobación</CardTitle>
-              <CardDescription>Revisa y confirma los comprobantes de pago subidos</CardDescription>
+              <CardTitle>💳 Todos los Comprobantes de Pago</CardTitle>
+              <CardDescription>Incluye pagos pendientes de aprobación manual y todos los auto-aprobados</CardDescription>
             </CardHeader>
             <CardContent>
               {pendingPayments.length === 0 && pendingPrimeMemberships.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-2">⏳</div>
-                  <p className="text-muted-foreground">No hay pagos pendientes de aprobación</p>
+                  <p className="text-muted-foreground">No hay comprobantes de pago</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -370,7 +380,7 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <Eye className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-blue-700">Pagos de Paquetes Pendientes ({pendingPayments.length})</h3>
+                        <h3 className="font-semibold text-blue-700">Comprobantes de Pago de Paquetes ({pendingPayments.length})</h3>
                       </div>
                       <div className="space-y-3">
                         {pendingPayments.map(pkg => renderPaymentCard(pkg, true))}
