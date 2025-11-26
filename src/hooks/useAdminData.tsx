@@ -48,6 +48,14 @@ export const useAdminData = (): AdminData => {
   const isAdmin = useMemo(() => {
     const currentlyAdmin = userRole?.role === 'admin';
     
+    console.log('🔑 Admin check:', {
+      userRole,
+      currentlyAdmin,
+      authLoading,
+      wasAdmin,
+      userId: user?.id
+    });
+    
     if (currentlyAdmin) {
       setWasAdmin(true);
       try {
@@ -61,7 +69,7 @@ export const useAdminData = (): AdminData => {
     }
     
     return currentlyAdmin;
-  }, [userRole, authLoading]);
+  }, [userRole, authLoading, user, wasAdmin]);
 
   const fetchAdminPackages = useCallback(async (offset: number = 0, append: boolean = false) => {
     try {
@@ -269,6 +277,15 @@ export const useAdminData = (): AdminData => {
   }, [isLoadingMore, hasMorePackages, packagesOffset, fetchAdminPackages, toast, PACKAGES_PER_PAGE]);
 
   const refreshData = useCallback(async (forceRefresh = false) => {
+    console.log('📍 refreshData called with:', { 
+      forceRefresh, 
+      user: !!user, 
+      authLoading, 
+      isAdmin, 
+      wasAdmin,
+      userRole: userRole?.role 
+    });
+    
     const shouldSkip = !user || (authLoading && !wasAdmin);
     
     if (shouldSkip && !forceRefresh) {
@@ -277,6 +294,7 @@ export const useAdminData = (): AdminData => {
         isAdmin, 
         wasAdmin, 
         hasUser: !!user,
+        userRole: userRole?.role,
         reason: !user ? 'no_user' : 'loading_and_not_was_admin'
       });
       return;
@@ -323,9 +341,12 @@ export const useAdminData = (): AdminData => {
       wasAdmin,
       authLoading,
       user: !!user,
-      userRole: userRole?.role
+      userId: user?.id,
+      userRole: userRole?.role,
+      shouldLoad: (isAdmin || wasAdmin) && user
     });
 
+    // FORCE LOAD si el user existe y alguna vez fue admin o es admin actual
     if ((isAdmin || wasAdmin) && user) {
       console.log('🚀 Admin: Starting initial data load...');
       refreshData();
@@ -334,8 +355,10 @@ export const useAdminData = (): AdminData => {
       setPackages([]);
       setTrips([]);
       setLoading(false);
+    } else if (!authLoading && user && !userRole) {
+      console.log('⚠️ Admin: User has no role assigned yet');
     }
-  }, [isAdmin, wasAdmin, authLoading, user, refreshData]);
+  }, [isAdmin, wasAdmin, authLoading, user, userRole, refreshData]);
 
   useEffect(() => {
     const shouldRetry = !loading && 

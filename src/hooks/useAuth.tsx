@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('fetchProfile called for userId:', userId);
+      console.log('🔍 fetchProfile called for userId:', userId);
       
       // Combinar queries en una sola para reducir requests
       const [profileResult, rolesResult] = await Promise.all([
@@ -109,27 +109,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .eq('user_id', userId)
       ]);
 
-      console.log('Profile result:', profileResult);
-      console.log('Roles result:', rolesResult);
+      console.log('📊 Profile result:', {
+        success: !profileResult.error,
+        data: profileResult.data,
+        error: profileResult.error
+      });
+      console.log('📊 Roles result:', {
+        success: !rolesResult.error,
+        count: rolesResult.data?.length || 0,
+        roles: rolesResult.data,
+        error: rolesResult.error
+      });
 
       if (profileResult.data) {
-        console.log('Setting profile:', profileResult.data);
+        console.log('✅ Setting profile:', profileResult.data.email);
         setProfile(profileResult.data);
+      } else {
+        console.log('⚠️ No profile data found');
       }
       
       // Handle multiple roles and prioritize admin
       if (rolesResult.data && rolesResult.data.length > 0) {
         const roles = rolesResult.data;
-        console.log('Found roles:', roles);
+        console.log('✅ Found roles:', roles);
         
         // Prioritize admin role if present
         const adminRole = roles.find(role => role.role === 'admin');
         const selectedRole = adminRole || roles[0];
         
-        console.log('Setting userRole:', selectedRole);
+        console.log('✅ Setting userRole:', { role: selectedRole.role, id: selectedRole.id });
         setUserRole(selectedRole);
       } else {
-        console.log('No roles found, using fallback');
+        console.log('⚠️ No roles found, using fallback');
         // Fallback role si no se puede cargar
         setUserRole({ 
           id: 'fallback', 
@@ -140,7 +151,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('❌ Error fetching profile:', error);
       SecurityMonitor.logEvent({
         type: 'data_access',
         details: {
