@@ -73,95 +73,32 @@ export const useAdminData = (): AdminData => {
 
   const fetchAdminPackages = useCallback(async (offset: number = 0, append: boolean = false) => {
     try {
-      console.log('🔄 Admin: Fetching packages with pagination...', { offset, limit: PACKAGES_PER_PAGE, append });
+      console.log('🔄 Admin: Fetching packages (DIRECT QUERY)...', { offset, limit: PACKAGES_PER_PAGE, append });
       
-      const { data, error } = await supabase
-        .rpc('get_admin_packages_paginated', {
-          p_limit: PACKAGES_PER_PAGE,
-          p_offset: offset,
-          p_status: null,
-          p_search: null,
-          p_trip_id: null
-        });
+      // Ultra-simple query without ANY JOINs - just get packages
+      const { data: packagesData, error: packagesError, count } = await supabase
+        .from('packages')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PACKAGES_PER_PAGE - 1);
 
-      if (error) {
-        console.error('❌ Admin: RPC Error, falling back to direct query...', error);
-        
-        // Fallback: use simple query without complex JOINs for speed
-        const { data: fallbackData, error: fallbackError, count } = await supabase
-          .from('packages')
-          .select('*', { count: 'exact' })
-          .order('created_at', { ascending: false })
-          .range(offset, offset + PACKAGES_PER_PAGE - 1);
-
-        if (fallbackError) {
-          throw fallbackError;
-        }
-
-        setTotalPackages(count || 0);
-        setHasMorePackages(offset + PACKAGES_PER_PAGE < (count || 0));
-
-        console.log('✅ Admin: Fallback query succeeded:', {
-          count: fallbackData?.length || 0,
-          total: count || 0,
-          hasMore: offset + PACKAGES_PER_PAGE < (count || 0),
-          offset
-        });
-
-        return fallbackData || [];
+      if (packagesError) {
+        console.error('❌ Admin: Packages query error:', packagesError);
+        throw packagesError;
       }
 
-      if (!data || data.length === 0) {
-        console.log('✅ Admin: No more packages to fetch');
-        setHasMorePackages(false);
-        return [];
-      }
+      setTotalPackages(count || 0);
+      setHasMorePackages(offset + PACKAGES_PER_PAGE < (count || 0));
 
-      // Transform RPC result to match Package type
-      const transformedPackages = data.map((row: any) => ({
-        ...row,
-        profiles: row.user_email ? {
-          id: row.user_id,
-          first_name: row.user_first_name,
-          last_name: row.user_last_name,
-          email: row.user_email,
-          phone_number: row.user_phone_number,
-          avatar_url: row.user_avatar_url,
-          username: null,
-          trust_level: null,
-          prime_expires_at: null
-        } : null,
-        trips: row.trip_from_city ? {
-          id: row.matched_trip_id,
-          from_city: row.trip_from_city,
-          to_city: row.trip_to_city,
-          departure_date: row.trip_departure_date,
-          arrival_date: row.trip_arrival_date,
-          delivery_date: null,
-          profiles: row.trip_user_email ? {
-            id: row.trip_user_id,
-            first_name: row.trip_user_first_name,
-            last_name: row.trip_user_last_name,
-            email: row.trip_user_email,
-            username: null,
-            avatar_url: null
-          } : null
-        } : null
-      }));
-
-      // Get total count from first row
-      const total = data[0]?.total_count || 0;
-      setTotalPackages(total);
-      setHasMorePackages(offset + data.length < total);
-
-      console.log('✅ Admin: Fetched packages:', {
-        count: transformedPackages.length,
-        total,
-        hasMore: offset + data.length < total,
+      console.log('✅ Admin: Fetched packages successfully:', {
+        count: packagesData?.length || 0,
+        total: count || 0,
+        hasMore: offset + PACKAGES_PER_PAGE < (count || 0),
         offset
       });
 
-      return transformedPackages;
+      // Return packages without joined data - will be loaded lazily when needed
+      return packagesData || [];
     } catch (error: any) {
       console.error('❌ Admin: Package fetch failed:', error);
       setError(`Error cargando paquetes: ${error.message}`);
