@@ -139,7 +139,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     markPackageMessagesAsRead,
     loadMorePackages,
     hasMorePackages,
-    totalPackages
+    totalPackages,
+    autoApprovedPayments
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -886,10 +887,11 @@ const Dashboard = ({ user }: DashboardProps) => {
               refreshAdminData={async () => { await refreshPackages(); }}
               unreadCounts={unreadCounts}
               markPackageMessagesAsRead={markPackageMessagesAsRead}
-              loadMorePackages={loadMorePackages}
-              hasMorePackages={hasMorePackages}
-              totalPackages={totalPackages}
-              />
+               loadMorePackages={loadMorePackages}
+               hasMorePackages={hasMorePackages}
+               totalPackages={totalPackages}
+               autoApprovedPayments={autoApprovedPayments}
+               />
             </TabsContent>
           )}
 

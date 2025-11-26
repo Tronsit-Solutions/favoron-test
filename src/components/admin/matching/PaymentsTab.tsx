@@ -13,9 +13,16 @@ interface PaymentsTabProps {
   onViewPackageDetail: (pkg: any) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
+  autoApprovedPayments?: any[];
 }
 
-export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, getStatusBadge }: PaymentsTabProps) {
+export function PaymentsTab({ 
+  packages, 
+  onViewPackageDetail, 
+  onUpdateStatus, 
+  getStatusBadge,
+  autoApprovedPayments = []
+}: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
@@ -37,14 +44,9 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
     return dateB - dateA;
   });
   
-  // Show ALL auto-approved payments (including audited ones) - complete history
-  const auditPayments = packages
-    .filter(pkg =>
-      pkg.payment_receipt &&
-      (pkg.payment_receipt as any)?.auto_approved
-    )
+  // Use dedicated auto-approved payments from separate query (no pagination limits)
+  const auditPayments = autoApprovedPayments
     .sort((a, b) => {
-      // Sort by upload date (most recent first)
       const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
       const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
       return dateB - dateA;

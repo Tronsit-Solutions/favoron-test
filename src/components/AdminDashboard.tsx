@@ -75,7 +75,8 @@ const AdminDashboard = ({
   markPackageMessagesAsRead,
   loadMorePackages,
   hasMorePackages = false,
-  totalPackages = 0
+  totalPackages = 0,
+  autoApprovedPayments = []
 }: AdminDashboardProps & { 
   matchingTab?: string; 
   onMatchingTabChange?: (tab: string) => void;
@@ -84,6 +85,7 @@ const AdminDashboard = ({
   loadMorePackages?: () => Promise<void>;
   hasMorePackages?: boolean;
   totalPackages?: number;
+  autoApprovedPayments?: any[];
 }) => {
   // Persist activeTab in sessionStorage to prevent redirection on tab visibility changes
   const [activeTab, setActiveTab] = useState(() => {
@@ -547,6 +549,7 @@ const AdminDashboard = ({
             loadMorePackages={loadMorePackages}
             hasMorePackages={hasMorePackages}
             totalPackages={totalPackages}
+            autoApprovedPayments={autoApprovedPayments}
           />
         </TabsContent>
 

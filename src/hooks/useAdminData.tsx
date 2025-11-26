@@ -24,6 +24,7 @@ interface AdminData {
   totalPackages: number;
   unreadCounts: { [packageId: string]: number };
   markPackageMessagesAsRead: (packageId: string) => Promise<void>;
+  autoApprovedPayments: LightweightPackage[];
 }
 
 export const useAdminData = (): AdminData => {
@@ -35,6 +36,7 @@ export const useAdminData = (): AdminData => {
   const [totalPackages, setTotalPackages] = useState(0);
   const [hasMorePackages, setHasMorePackages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [autoApprovedPayments, setAutoApprovedPayments] = useState<LightweightPackage[]>([]);
   const { toast } = useToast();
   const { user, userRole, loading: authLoading } = useAuth();
   const { unreadCounts, markPackageMessagesAsRead } = useUnreadChatMessages();
@@ -233,6 +235,63 @@ export const useAdminData = (): AdminData => {
     }
   }, []);
 
+  const fetchAutoApprovedPayments = useCallback(async () => {
+    try {
+      console.log('🔄 Admin: Fetching ALL auto-approved payments...');
+      
+      // Fetch ALL packages with payment receipts (no pagination)
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('packages')
+        .select(`
+          id, user_id, status, item_description, estimated_price,
+          purchase_origin, package_destination, created_at, 
+          delivery_method, quote, payment_receipt, updated_at
+        `)
+        .not('payment_receipt', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (paymentsError) {
+        console.error('❌ Admin: Error fetching auto-approved payments:', paymentsError);
+        throw paymentsError;
+      }
+
+      // Filter for auto-approved payments (handle both boolean and string "true")
+      const autoApproved = (paymentsData || []).filter(pkg => {
+        const receipt = pkg.payment_receipt as any;
+        return receipt?.auto_approved === true || receipt?.auto_approved === 'true';
+      });
+
+      console.log('✅ Admin: Found auto-approved payments:', {
+        total: paymentsData?.length || 0,
+        autoApproved: autoApproved.length
+      });
+
+      // Enrich with profiles
+      if (autoApproved.length > 0) {
+        const userIds = [...new Set(autoApproved.map(pkg => pkg.user_id))];
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (!profilesError && profilesData) {
+          const profilesMap = new Map(profilesData.map(p => [p.id, p]));
+          
+          return autoApproved.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          })) as LightweightPackage[];
+        }
+      }
+
+      return autoApproved as LightweightPackage[];
+    } catch (error: any) {
+      console.error('❌ Admin: Auto-approved payments fetch failed:', error);
+      return [];
+    }
+  }, []);
+
   const fetchAdminTrips = useCallback(async () => {
     try {
       console.log('🔄 Admin: Fetching all trips using secure admin RPC...');
@@ -366,10 +425,11 @@ export const useAdminData = (): AdminData => {
     setHasMorePackages(true);
 
     try {
-      const [paginatedPackages, matchedPkgs, tripsData] = await Promise.all([
+      const [paginatedPackages, matchedPkgs, tripsData, autoApprovedPkgs] = await Promise.all([
         fetchAdminPackages(0, false),
         fetchMatchedPackages(),
-        fetchAdminTrips()
+        fetchAdminTrips(),
+        fetchAutoApprovedPayments()
       ]);
 
       // Merge packages: use Map to avoid duplicates (matched packages might be in first 50)
@@ -382,12 +442,14 @@ export const useAdminData = (): AdminData => {
 
       setPackages(mergedPackages);
       setTrips(tripsData);
+      setAutoApprovedPayments(autoApprovedPkgs);
       
       console.log('✅ Admin: Data refresh complete', {
         paginated: paginatedPackages.length,
         matched: matchedPkgs.length,
         merged: mergedPackages.length,
         trips: tripsData.length,
+        autoApproved: autoApprovedPkgs.length,
         totalPackages
       });
     } catch (error: any) {
@@ -479,8 +541,9 @@ export const useAdminData = (): AdminData => {
     optimisticUpdatePackage,
     optimisticUpdateTrip,
     unreadCounts,
-    markPackageMessagesAsRead
-  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead]);
+    markPackageMessagesAsRead,
+    autoApprovedPayments
+  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead, autoApprovedPayments]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,
