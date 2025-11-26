@@ -77,8 +77,39 @@ export const useAdminData = (): AdminData => {
         });
 
       if (error) {
-        console.error('❌ Admin: Error fetching packages:', error);
-        throw error;
+        console.error('❌ Admin: RPC Error, falling back to direct query...', error);
+        
+        // Fallback to direct query
+        const { data: fallbackData, error: fallbackError, count } = await supabase
+          .from('packages')
+          .select(`
+            *,
+            profiles:user_id (
+              id, email, first_name, last_name, phone_number, avatar_url, username, trust_level, prime_expires_at
+            ),
+            trips:matched_trip_id (
+              id, from_city, to_city, departure_date, arrival_date, delivery_date,
+              profiles:user_id (id, email, first_name, last_name, username, avatar_url)
+            )
+          `, { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .range(offset, offset + PACKAGES_PER_PAGE - 1);
+
+        if (fallbackError) {
+          throw fallbackError;
+        }
+
+        setTotalPackages(count || 0);
+        setHasMorePackages(offset + PACKAGES_PER_PAGE < (count || 0));
+
+        console.log('✅ Admin: Fallback query succeeded:', {
+          count: fallbackData?.length || 0,
+          total: count || 0,
+          hasMore: offset + PACKAGES_PER_PAGE < (count || 0),
+          offset
+        });
+
+        return fallbackData || [];
       }
 
       if (!data || data.length === 0) {
