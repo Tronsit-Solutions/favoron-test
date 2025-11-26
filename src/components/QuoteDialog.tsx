@@ -418,10 +418,10 @@ const QuoteDialog = ({
                                       ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                                     </p>
                                   )}
-                                  {product.itemLink && (
+                                  {(product.itemLink || packageDetails.item_link) && (
                                     <div className="pt-1 pb-1">
                                       <a 
-                                        href={product.itemLink} 
+                                        href={product.itemLink || packageDetails.item_link} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium"
