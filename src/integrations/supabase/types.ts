@@ -1053,47 +1053,6 @@ export type Database = {
       expire_old_quotes: { Args: never; Returns: undefined }
       expire_prime_memberships: { Args: never; Returns: undefined }
       expire_unresponded_assignments: { Args: never; Returns: undefined }
-      get_admin_packages_paginated: {
-        Args: {
-          p_limit?: number
-          p_offset?: number
-          p_search?: string
-          p_status?: string
-          p_trip_id?: string
-        }
-        Returns: {
-          additional_notes: string
-          admin_assigned_tip: number
-          created_at: string
-          estimated_price: number
-          id: string
-          item_description: string
-          item_link: string
-          matched_assignment_expires_at: string
-          matched_trip_dates: Json
-          matched_trip_id: string
-          office_delivery: Json
-          package_destination: string
-          payment_receipt: Json
-          products_data: Json
-          purchase_confirmation: Json
-          purchase_origin: string
-          quote: Json
-          quote_expires_at: string
-          rejection_reason: string
-          shopper_name: string
-          status: string
-          total_count: number
-          tracking_info: Json
-          traveler_address: Json
-          traveler_name: string
-          traveler_rejection: Json
-          updated_at: string
-          user_id: string
-          wants_requote: boolean
-          weight: number
-        }[]
-      }
       get_admin_trips_with_user: {
         Args: never
         Returns: {
