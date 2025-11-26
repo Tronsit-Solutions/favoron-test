@@ -1053,99 +1053,47 @@ export type Database = {
       expire_old_quotes: { Args: never; Returns: undefined }
       expire_prime_memberships: { Args: never; Returns: undefined }
       expire_unresponded_assignments: { Args: never; Returns: undefined }
-      get_admin_packages_paginated:
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_search?: string
-              p_status?: string
-              p_trip_id?: string
-            }
-            Returns: {
-              admin_assigned_tip: number
-              created_at: string
-              delivery_deadline: string
-              estimated_price: number
-              id: string
-              incident_flag: boolean
-              item_description: string
-              label_number: number
-              matched_trip_id: string
-              office_delivery: Json
-              package_destination: string
-              payment_receipt: Json
-              products_data: Json
-              purchase_confirmation: Json
-              purchase_origin: string
-              quote: Json
-              status: string
-              total_count: number
-              tracking_info: Json
-              traveler_confirmation: Json
-              trip_arrival_date: string
-              trip_departure_date: string
-              trip_from_city: string
-              trip_to_city: string
-              trip_user_email: string
-              trip_user_first_name: string
-              trip_user_id: string
-              trip_user_last_name: string
-              updated_at: string
-              user_avatar_url: string
-              user_email: string
-              user_first_name: string
-              user_id: string
-              user_last_name: string
-              user_phone_number: string
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_search?: string
-              p_status?: string
-              p_trip_id?: string
-            }
-            Returns: {
-              admin_assigned_tip: number
-              created_at: string
-              delivery_deadline: string
-              estimated_price: number
-              id: string
-              incident_flag: boolean
-              item_description: string
-              label_number: number
-              matched_trip_id: string
-              office_delivery: Json
-              package_destination: string
-              payment_receipt: Json
-              products_data: Json
-              purchase_confirmation: Json
-              purchase_origin: string
-              quote: Json
-              status: string
-              total_count: number
-              tracking_info: Json
-              traveler_confirmation: Json
-              trip_arrival_date: string
-              trip_departure_date: string
-              trip_from_city: string
-              trip_to_city: string
-              trip_user_email: string
-              trip_user_first_name: string
-              trip_user_id: string
-              trip_user_last_name: string
-              updated_at: string
-              user_avatar_url: string
-              user_email: string
-              user_first_name: string
-              user_id: string
-              user_last_name: string
-              user_phone_number: string
-            }[]
-          }
+      get_admin_packages_paginated: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+          p_trip_id?: string
+        }
+        Returns: {
+          additional_notes: string
+          admin_assigned_tip: number
+          created_at: string
+          estimated_price: number
+          id: string
+          item_description: string
+          item_link: string
+          matched_assignment_expires_at: string
+          matched_trip_dates: Json
+          matched_trip_id: string
+          office_delivery: Json
+          package_destination: string
+          payment_receipt: Json
+          products_data: Json
+          purchase_confirmation: Json
+          purchase_origin: string
+          quote: Json
+          quote_expires_at: string
+          rejection_reason: string
+          shopper_name: string
+          status: string
+          total_count: number
+          tracking_info: Json
+          traveler_address: Json
+          traveler_name: string
+          traveler_rejection: Json
+          updated_at: string
+          user_id: string
+          wants_requote: boolean
+          weight: number
+        }[]
+      }
       get_admin_trips_with_user: {
         Args: never
         Returns: {
