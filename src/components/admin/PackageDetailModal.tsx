@@ -130,14 +130,14 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         package_destination: pkg.package_destination || ''
       });
       
-      // Initialize product links for editing
-      if (pkg.products_data && Array.isArray(pkg.products_data)) {
+      // Initialize product links for editing - ensure always string array
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
         setEditProductLinks(pkg.products_data.map((p: any) => p.itemLink || ''));
       } else {
         setEditProductLinks([pkg.item_link || '']);
       }
     }
-  }, [pkg]);
+  }, [pkg?.id, pkg?.products_data]); // Depend on stable values
 
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
@@ -785,7 +785,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         <label className="text-sm font-medium">Link del producto</label>
                         <Input
                           type="url"
-                          value={editProductLinks[0]}
+                          value={editProductLinks[0] || ''}
                           onChange={(e) => {
                             const newLinks = [...editProductLinks];
                             newLinks[0] = e.target.value;
