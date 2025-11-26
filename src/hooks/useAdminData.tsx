@@ -91,7 +91,8 @@ export const useAdminData = (): AdminData => {
           delivery_method, quote, rejection_reason, wants_requote,
           admin_rejection, quote_rejection, traveler_rejection,
           admin_actions_log, internal_notes, admin_assigned_tip,
-          confirmed_delivery_address, traveler_address, matched_trip_dates
+          confirmed_delivery_address, traveler_address, matched_trip_dates,
+          payment_receipt
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + PACKAGES_PER_PAGE - 1);
