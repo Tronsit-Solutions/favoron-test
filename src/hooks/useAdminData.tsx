@@ -25,6 +25,11 @@ interface AdminData {
   unreadCounts: { [packageId: string]: number };
   markPackageMessagesAsRead: (packageId: string) => Promise<void>;
   autoApprovedPayments: LightweightPackage[];
+  approvedPaymentsData: LightweightPackage[];
+  autoApprovedPaymentsLoading: boolean;
+  approvedPaymentsLoading: boolean;
+  loadAutoApprovedPayments: () => Promise<void>;
+  loadApprovedPayments: () => Promise<void>;
 }
 
 export const useAdminData = (): AdminData => {
@@ -37,6 +42,9 @@ export const useAdminData = (): AdminData => {
   const [hasMorePackages, setHasMorePackages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [autoApprovedPayments, setAutoApprovedPayments] = useState<LightweightPackage[]>([]);
+  const [approvedPaymentsData, setApprovedPaymentsData] = useState<LightweightPackage[]>([]);
+  const [autoApprovedPaymentsLoading, setAutoApprovedPaymentsLoading] = useState(false);
+  const [approvedPaymentsLoading, setApprovedPaymentsLoading] = useState(false);
   const { toast } = useToast();
   const { user, userRole, loading: authLoading } = useAuth();
   const { unreadCounts, markPackageMessagesAsRead } = useUnreadChatMessages();
@@ -237,9 +245,8 @@ export const useAdminData = (): AdminData => {
 
   const fetchAutoApprovedPayments = useCallback(async () => {
     try {
-      console.log('🔄 Admin: Fetching ALL auto-approved payments...');
+      console.log('🔄 Admin: Fetching ALL auto-approved payments (ON-DEMAND)...');
       
-      // Fetch ALL packages with payment receipts (no pagination)
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('packages')
         .select(`
@@ -255,7 +262,6 @@ export const useAdminData = (): AdminData => {
         throw paymentsError;
       }
 
-      // Filter for auto-approved payments (handle both boolean and string "true")
       const autoApproved = (paymentsData || []).filter(pkg => {
         const receipt = pkg.payment_receipt as any;
         return receipt?.auto_approved === true || receipt?.auto_approved === 'true';
@@ -266,7 +272,6 @@ export const useAdminData = (): AdminData => {
         autoApproved: autoApproved.length
       });
 
-      // Enrich with profiles
       if (autoApproved.length > 0) {
         const userIds = [...new Set(autoApproved.map(pkg => pkg.user_id))];
         
@@ -288,6 +293,54 @@ export const useAdminData = (): AdminData => {
       return autoApproved as LightweightPackage[];
     } catch (error: any) {
       console.error('❌ Admin: Auto-approved payments fetch failed:', error);
+      return [];
+    }
+  }, []);
+
+  const fetchApprovedPayments = useCallback(async () => {
+    try {
+      console.log('🔄 Admin: Fetching ALL approved payments (ON-DEMAND)...');
+      
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('packages')
+        .select(`
+          id, user_id, status, item_description, estimated_price,
+          purchase_origin, package_destination, created_at, 
+          delivery_method, quote, payment_receipt, updated_at
+        `)
+        .not('payment_receipt', 'is', null)
+        .in('status', ['pending_purchase', 'in_transit', 'received_by_traveler', 
+                       'pending_office_confirmation', 'delivered_to_office', 'completed'])
+        .order('created_at', { ascending: false });
+
+      if (paymentsError) {
+        console.error('❌ Admin: Error fetching approved payments:', paymentsError);
+        throw paymentsError;
+      }
+
+      console.log('✅ Admin: Found approved payments:', paymentsData?.length || 0);
+
+      if (paymentsData && paymentsData.length > 0) {
+        const userIds = [...new Set(paymentsData.map(pkg => pkg.user_id))];
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (!profilesError && profilesData) {
+          const profilesMap = new Map(profilesData.map(p => [p.id, p]));
+          
+          return paymentsData.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          })) as LightweightPackage[];
+        }
+      }
+
+      return (paymentsData || []) as LightweightPackage[];
+    } catch (error: any) {
+      console.error('❌ Admin: Approved payments fetch failed:', error);
       return [];
     }
   }, []);
@@ -425,11 +478,10 @@ export const useAdminData = (): AdminData => {
     setHasMorePackages(true);
 
     try {
-      const [paginatedPackages, matchedPkgs, tripsData, autoApprovedPkgs] = await Promise.all([
+      const [paginatedPackages, matchedPkgs, tripsData] = await Promise.all([
         fetchAdminPackages(0, false),
         fetchMatchedPackages(),
-        fetchAdminTrips(),
-        fetchAutoApprovedPayments()
+        fetchAdminTrips()
       ]);
 
       // Merge packages: use Map to avoid duplicates (matched packages might be in first 50)
@@ -442,14 +494,12 @@ export const useAdminData = (): AdminData => {
 
       setPackages(mergedPackages);
       setTrips(tripsData);
-      setAutoApprovedPayments(autoApprovedPkgs);
       
       console.log('✅ Admin: Data refresh complete', {
         paginated: paginatedPackages.length,
         matched: matchedPkgs.length,
         merged: mergedPackages.length,
         trips: tripsData.length,
-        autoApproved: autoApprovedPkgs.length,
         totalPackages
       });
     } catch (error: any) {
@@ -466,6 +516,29 @@ export const useAdminData = (): AdminData => {
       setLoading(false);
     }
   }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchMatchedPackages, fetchAdminTrips, totalPackages]);
+
+  // On-demand loading functions
+  const loadAutoApprovedPayments = useCallback(async () => {
+    if (autoApprovedPayments.length > 0) {
+      console.log('⏭️ Admin: Auto-approved payments already loaded');
+      return;
+    }
+    setAutoApprovedPaymentsLoading(true);
+    const data = await fetchAutoApprovedPayments();
+    setAutoApprovedPayments(data);
+    setAutoApprovedPaymentsLoading(false);
+  }, [autoApprovedPayments.length, fetchAutoApprovedPayments]);
+
+  const loadApprovedPayments = useCallback(async () => {
+    if (approvedPaymentsData.length > 0) {
+      console.log('⏭️ Admin: Approved payments already loaded');
+      return;
+    }
+    setApprovedPaymentsLoading(true);
+    const data = await fetchApprovedPayments();
+    setApprovedPaymentsData(data);
+    setApprovedPaymentsLoading(false);
+  }, [approvedPaymentsData.length, fetchApprovedPayments]);
 
   useEffect(() => {
     console.log('🔍 Admin: Effect triggered', {
@@ -542,8 +615,13 @@ export const useAdminData = (): AdminData => {
     optimisticUpdateTrip,
     unreadCounts,
     markPackageMessagesAsRead,
-    autoApprovedPayments
-  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead, autoApprovedPayments]);
+    autoApprovedPayments,
+    approvedPaymentsData,
+    autoApprovedPaymentsLoading,
+    approvedPaymentsLoading,
+    loadAutoApprovedPayments,
+    loadApprovedPayments
+  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead, autoApprovedPayments, approvedPaymentsData, autoApprovedPaymentsLoading, approvedPaymentsLoading, loadAutoApprovedPayments, loadApprovedPayments]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,

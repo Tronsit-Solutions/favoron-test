@@ -140,7 +140,12 @@ const Dashboard = ({ user }: DashboardProps) => {
     loadMorePackages,
     hasMorePackages,
     totalPackages,
-    autoApprovedPayments
+    autoApprovedPayments,
+    approvedPaymentsData,
+    autoApprovedPaymentsLoading,
+    approvedPaymentsLoading,
+    loadAutoApprovedPayments,
+    loadApprovedPayments
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -891,6 +896,11 @@ const Dashboard = ({ user }: DashboardProps) => {
                hasMorePackages={hasMorePackages}
                totalPackages={totalPackages}
                autoApprovedPayments={autoApprovedPayments}
+               approvedPaymentsData={approvedPaymentsData}
+               autoApprovedPaymentsLoading={autoApprovedPaymentsLoading}
+               approvedPaymentsLoading={approvedPaymentsLoading}
+               loadAutoApprovedPayments={loadAutoApprovedPayments}
+               loadApprovedPayments={loadApprovedPayments}
                />
             </TabsContent>
           )}

@@ -37,6 +37,11 @@ interface AdminMatchingTabProps {
   hasMorePackages?: boolean;
   totalPackages?: number;
   autoApprovedPayments?: any[];
+  approvedPaymentsData?: any[];
+  autoApprovedPaymentsLoading?: boolean;
+  approvedPaymentsLoading?: boolean;
+  loadAutoApprovedPayments?: () => Promise<void>;
+  loadApprovedPayments?: () => Promise<void>;
 }
 
 const AdminMatchingTab = ({
@@ -61,7 +66,12 @@ const AdminMatchingTab = ({
   loadMorePackages,
   hasMorePackages = false,
   totalPackages = 0,
-  autoApprovedPayments = []
+  autoApprovedPayments = [],
+  approvedPaymentsData = [],
+  autoApprovedPaymentsLoading = false,
+  approvedPaymentsLoading = false,
+  loadAutoApprovedPayments,
+  loadApprovedPayments
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
   const currentTab = activeMatchingTab;
@@ -254,6 +264,11 @@ const AdminMatchingTab = ({
             onUpdateStatus={onUpdateStatus}
             getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
             autoApprovedPayments={autoApprovedPayments}
+            approvedPaymentsData={approvedPaymentsData}
+            autoApprovedPaymentsLoading={autoApprovedPaymentsLoading}
+            approvedPaymentsLoading={approvedPaymentsLoading}
+            loadAutoApprovedPayments={loadAutoApprovedPayments}
+            loadApprovedPayments={loadApprovedPayments}
           />
         </TabsContent>
       </Tabs>

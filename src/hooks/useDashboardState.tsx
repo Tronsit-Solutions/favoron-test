@@ -110,7 +110,12 @@ export const useDashboardState = (user: any) => {
     loadMorePackages,
     hasMorePackages,
     totalPackages,
-    autoApprovedPayments
+    autoApprovedPayments,
+    approvedPaymentsData,
+    autoApprovedPaymentsLoading,
+    approvedPaymentsLoading,
+    loadAutoApprovedPayments,
+    loadApprovedPayments
   } = shouldUseAdminData ? {
     packages: adminData.packages,
     loading: adminData.loading,
@@ -124,7 +129,12 @@ export const useDashboardState = (user: any) => {
     loadMorePackages: adminData.loadMorePackages,
     hasMorePackages: adminData.hasMorePackages,
     totalPackages: adminData.totalPackages,
-    autoApprovedPayments: adminData.autoApprovedPayments
+    autoApprovedPayments: adminData.autoApprovedPayments,
+    approvedPaymentsData: adminData.approvedPaymentsData,
+    autoApprovedPaymentsLoading: adminData.autoApprovedPaymentsLoading,
+    approvedPaymentsLoading: adminData.approvedPaymentsLoading,
+    loadAutoApprovedPayments: adminData.loadAutoApprovedPayments,
+    loadApprovedPayments: adminData.loadApprovedPayments
   } : {
     ...regularPackagesData,
     unreadCounts: {},
@@ -132,7 +142,12 @@ export const useDashboardState = (user: any) => {
     loadMorePackages: async () => {},
     hasMorePackages: false,
     totalPackages: 0,
-    autoApprovedPayments: []
+    autoApprovedPayments: [],
+    approvedPaymentsData: [],
+    autoApprovedPaymentsLoading: false,
+    approvedPaymentsLoading: false,
+    loadAutoApprovedPayments: async () => {},
+    loadApprovedPayments: async () => {}
   };
 
   const {
@@ -249,6 +264,11 @@ export const useDashboardState = (user: any) => {
     loadMorePackages,
     hasMorePackages,
     totalPackages,
-    autoApprovedPayments
+    autoApprovedPayments,
+    approvedPaymentsData,
+    autoApprovedPaymentsLoading,
+    approvedPaymentsLoading,
+    loadAutoApprovedPayments,
+    loadApprovedPayments
   };
 };
