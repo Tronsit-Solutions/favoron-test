@@ -8,8 +8,13 @@ import { useUnreadChatMessages } from '@/hooks/useUnreadChatMessages';
 export type Package = Tables<'packages'>;
 export type Trip = Tables<'trips'>;
 
+// Lightweight package for admin list views - heavy JSONB fields are optional and loaded on-demand
+export type LightweightPackage = Package & {
+  profiles?: any; // Enriched from separate query
+};
+
 interface AdminData {
-  packages: Package[];
+  packages: LightweightPackage[];
   trips: Trip[];
   loading: boolean;
   error: string | null;
@@ -22,7 +27,7 @@ interface AdminData {
 }
 
 export const useAdminData = (): AdminData => {
-  const [packages, setPackages] = useState<Package[]>([]);
+  const [packages, setPackages] = useState<LightweightPackage[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +80,19 @@ export const useAdminData = (): AdminData => {
     try {
       console.log('🔄 Admin: Fetching packages (DIRECT QUERY)...', { offset, limit: PACKAGES_PER_PAGE, append });
       
-      // Ultra-simple query without ANY JOINs - just get packages
+      // Optimized query: only essential lightweight fields (no heavy JSONB)
       const { data: packagesData, error: packagesError, count } = await supabase
         .from('packages')
-        .select('*', { count: 'exact' })
+        .select(`
+          id, user_id, status, item_description, estimated_price,
+          purchase_origin, package_destination, matched_trip_id,
+          created_at, updated_at, delivery_deadline, quote_expires_at,
+          matched_assignment_expires_at, label_number, incident_flag,
+          delivery_method, quote, rejection_reason, wants_requote,
+          admin_rejection, quote_rejection, traveler_rejection,
+          admin_actions_log, internal_notes, admin_assigned_tip,
+          confirmed_delivery_address, traveler_address, matched_trip_dates
+        `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + PACKAGES_PER_PAGE - 1);
 
@@ -118,14 +132,14 @@ export const useAdminData = (): AdminData => {
           const enrichedPackages = packagesData.map(pkg => ({
             ...pkg,
             profiles: profilesMap.get(pkg.user_id) || null
-          }));
+          })) as LightweightPackage[];
           
           console.log('✅ Admin: Enriched packages with shopper profiles');
           return enrichedPackages;
         }
       }
 
-      return packagesData || [];
+      return (packagesData || []) as LightweightPackage[];
     } catch (error: any) {
       console.error('❌ Admin: Package fetch failed:', error);
       setError(`Error cargando paquetes: ${error.message}`);
@@ -142,7 +156,8 @@ export const useAdminData = (): AdminData => {
     try {
       console.log('🔄 Admin: Fetching ALL matched packages...');
       
-      // Load ALL packages with a matched_trip_id - ONLY essential fields
+      // Load ALL packages with a matched_trip_id - ONLY lightweight fields
+      // Heavy JSONB fields (products_data, payment_receipt, etc.) loaded on-demand
       const { data: matchedData, error: matchedError } = await supabase
         .from('packages')
         .select(`
@@ -170,11 +185,10 @@ export const useAdminData = (): AdminData => {
           traveler_rejection,
           admin_actions_log,
           internal_notes,
-          office_delivery,
-          products_data,
-          payment_receipt,
-          purchase_confirmation,
-          tracking_info
+          admin_assigned_tip,
+          confirmed_delivery_address,
+          traveler_address,
+          matched_trip_dates
         `)
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
@@ -204,14 +218,14 @@ export const useAdminData = (): AdminData => {
           const enrichedPackages = matchedData.map(pkg => ({
             ...pkg,
             profiles: profilesMap.get(pkg.user_id) || null
-          }));
+          })) as LightweightPackage[];
           
           console.log('✅ Admin: Enriched matched packages with profiles');
           return enrichedPackages;
         }
       }
 
-      return matchedData || [];
+      return (matchedData || []) as LightweightPackage[];
     } catch (error: any) {
       console.error('❌ Admin: Matched packages fetch failed:', error);
       return [];
