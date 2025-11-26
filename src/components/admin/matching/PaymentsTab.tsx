@@ -30,7 +30,9 @@ export function PaymentsTab({ packages, onViewPackageDetail, onUpdateStatus, get
   const auditPayments = packages
     .filter(pkg =>
       pkg.payment_receipt &&
-      (pkg.payment_receipt as any)?.auto_approved
+      (pkg.payment_receipt as any)?.auto_approved &&
+      // Show all auto-approved payments regardless of status
+      !((pkg.payment_receipt as any)?.audited)
     )
     .sort((a, b) => {
       // Sort by upload date (most recent first)
