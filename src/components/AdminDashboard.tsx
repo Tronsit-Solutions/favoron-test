@@ -76,7 +76,12 @@ const AdminDashboard = ({
   loadMorePackages,
   hasMorePackages = false,
   totalPackages = 0,
-  autoApprovedPayments = []
+  autoApprovedPayments = [],
+  approvedPaymentsData = [],
+  autoApprovedPaymentsLoading = false,
+  approvedPaymentsLoading = false,
+  loadAutoApprovedPayments,
+  loadApprovedPayments
 }: AdminDashboardProps & { 
   matchingTab?: string; 
   onMatchingTabChange?: (tab: string) => void;
@@ -86,6 +91,11 @@ const AdminDashboard = ({
   hasMorePackages?: boolean;
   totalPackages?: number;
   autoApprovedPayments?: any[];
+  approvedPaymentsData?: any[];
+  autoApprovedPaymentsLoading?: boolean;
+  approvedPaymentsLoading?: boolean;
+  loadAutoApprovedPayments?: () => Promise<void>;
+  loadApprovedPayments?: () => Promise<void>;
 }) => {
   // Persist activeTab in sessionStorage to prevent redirection on tab visibility changes
   const [activeTab, setActiveTab] = useState(() => {
@@ -546,10 +556,18 @@ const AdminDashboard = ({
                 openModal("admin-actions-matches", 'admin-actions', pkg);
               }
             }}
+            getStatusBadge={getStatusBadge}
+            unreadCounts={unreadCounts}
+            markPackageMessagesAsRead={markPackageMessagesAsRead}
             loadMorePackages={loadMorePackages}
             hasMorePackages={hasMorePackages}
             totalPackages={totalPackages}
             autoApprovedPayments={autoApprovedPayments}
+            approvedPaymentsData={approvedPaymentsData}
+            autoApprovedPaymentsLoading={autoApprovedPaymentsLoading}
+            approvedPaymentsLoading={approvedPaymentsLoading}
+            loadAutoApprovedPayments={loadAutoApprovedPayments}
+            loadApprovedPayments={loadApprovedPayments}
           />
         </TabsContent>
 

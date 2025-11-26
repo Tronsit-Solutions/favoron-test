@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,11 @@ interface PaymentsTabProps {
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   getStatusBadge: (status: string) => JSX.Element;
   autoApprovedPayments?: any[];
+  approvedPaymentsData?: any[];
+  autoApprovedPaymentsLoading?: boolean;
+  approvedPaymentsLoading?: boolean;
+  loadAutoApprovedPayments?: () => Promise<void>;
+  loadApprovedPayments?: () => Promise<void>;
 }
 
 export function PaymentsTab({ 
@@ -21,11 +26,31 @@ export function PaymentsTab({
   onViewPackageDetail, 
   onUpdateStatus, 
   getStatusBadge,
-  autoApprovedPayments = []
+  autoApprovedPayments = [],
+  approvedPaymentsData = [],
+  autoApprovedPaymentsLoading = false,
+  approvedPaymentsLoading = false,
+  loadAutoApprovedPayments,
+  loadApprovedPayments
 }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
+
+  // Lazy load data when tabs become active
+  useEffect(() => {
+    if (activeTab === 'audit' && autoApprovedPayments.length === 0 && !autoApprovedPaymentsLoading && loadAutoApprovedPayments) {
+      console.log('🔄 Loading auto-approved payments on-demand...');
+      loadAutoApprovedPayments();
+    }
+  }, [activeTab, autoApprovedPayments.length, autoApprovedPaymentsLoading, loadAutoApprovedPayments]);
+
+  useEffect(() => {
+    if (activeTab === 'approved' && approvedPaymentsData.length === 0 && !approvedPaymentsLoading && loadApprovedPayments) {
+      console.log('🔄 Loading approved payments on-demand...');
+      loadApprovedPayments();
+    }
+  }, [activeTab, approvedPaymentsData.length, approvedPaymentsLoading, loadApprovedPayments]);
 
   // Separate payments by status
   // Show manual pending payments AND all auto-approved payments
@@ -52,17 +77,13 @@ export function PaymentsTab({
       return dateB - dateA;
     });
   
-  // Show ALL approved payments (manual and auto) - complete history
-  const approvedPayments = packages.filter(pkg => 
-    pkg.payment_receipt && 
-    // Include all statuses from pending_purchase onwards (complete history)
-    ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status)
-  ).sort((a, b) => {
-    // Sort by upload date (most recent first)
-    const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
-    const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
-    return dateB - dateA;
-  });
+  // Use dedicated approved payments from separate query (no pagination limits)
+  const approvedPayments = approvedPaymentsData
+    .sort((a, b) => {
+      const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
+      const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
+      return dateB - dateA;
+    });
 
   // Prime membership payments
   const pendingPrimeMemberships = memberships.filter(membership => membership.status === 'pending');
@@ -405,7 +426,12 @@ export function PaymentsTab({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {auditPayments.length === 0 ? (
+              {autoApprovedPaymentsLoading ? (
+                <div className="text-center py-8">
+                  <div className="text-2xl mb-2">⏳</div>
+                  <p className="text-muted-foreground">Cargando pagos auto-aprobados...</p>
+                </div>
+              ) : auditPayments.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500" />
                   <p className="text-muted-foreground">No hay pagos para auditar</p>
@@ -486,7 +512,12 @@ export function PaymentsTab({
               <CardDescription>Historial completo de pagos confirmados y en proceso</CardDescription>
             </CardHeader>
             <CardContent>
-              {approvedPayments.length === 0 && approvedPrimeMemberships.length === 0 ? (
+              {approvedPaymentsLoading ? (
+                <div className="text-center py-8">
+                  <div className="text-2xl mb-2">⏳</div>
+                  <p className="text-muted-foreground">Cargando historial de pagos...</p>
+                </div>
+              ) : approvedPayments.length === 0 && approvedPrimeMemberships.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-2">✅</div>
                   <p className="text-muted-foreground">No hay pagos aprobados aún</p>
