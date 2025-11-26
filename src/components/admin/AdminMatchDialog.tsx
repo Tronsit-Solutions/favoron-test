@@ -255,7 +255,7 @@ const AdminMatchDialog = ({
       const mappedProduct = {
         itemDescription: product.itemDescription || product.item_description || product.description || '',
         estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
-        itemLink: product.itemLink || product.item_link || product.link || '',
+        itemLink: product.itemLink || product.item_link || product.link || selectedPackage.item_link || '',
         quantity: product.quantity || product.qty || '1',
         adminAssignedTip: product.adminAssignedTip || 0
       };
