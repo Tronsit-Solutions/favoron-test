@@ -11,6 +11,8 @@ import { getStatusLabel, formatFullName } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
+import { usePackageDetails } from "@/hooks/usePackageDetails";
+import { useMemo } from "react";
 
 interface AdminMatchDialogProps {
   showMatchDialog: boolean;
@@ -46,6 +48,24 @@ const AdminMatchDialog = ({
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
 
   const MODAL_ID = 'admin-match-dialog';
+
+  // Load heavy fields on-demand when dialog is open
+  const { details: heavyDetails, loading: loadingDetails } = usePackageDetails(
+    showMatchDialog && selectedPackage?.id ? selectedPackage.id : null
+  );
+
+  // Merge lightweight data with heavy fields
+  const fullPackage = useMemo(() => {
+    if (!selectedPackage) return null;
+    return {
+      ...selectedPackage,
+      products_data: heavyDetails?.products_data || selectedPackage.products_data,
+      payment_receipt: heavyDetails?.payment_receipt || selectedPackage.payment_receipt,
+      purchase_confirmation: heavyDetails?.purchase_confirmation || selectedPackage.purchase_confirmation,
+      tracking_info: heavyDetails?.tracking_info || selectedPackage.tracking_info,
+      office_delivery: heavyDetails?.office_delivery || selectedPackage.office_delivery,
+    };
+  }, [selectedPackage, heavyDetails]);
 
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
@@ -234,28 +254,28 @@ const AdminMatchDialog = ({
 
   // Helper functions to detect multi-product orders
   const isMultiProductOrder = () => {
-    return selectedPackage?.products_data && 
-           Array.isArray(selectedPackage.products_data) && 
-           selectedPackage.products_data.length > 1;
+    return fullPackage?.products_data && 
+           Array.isArray(fullPackage.products_data) && 
+           fullPackage.products_data.length > 1;
   };
 
   const getProductsForModal = () => {
-    console.log('🔍 DEBUG getProductsForModal - selectedPackage:', selectedPackage);
-    console.log('🔍 DEBUG products_data:', selectedPackage?.products_data);
+    console.log('🔍 DEBUG getProductsForModal - fullPackage:', fullPackage);
+    console.log('🔍 DEBUG products_data:', fullPackage?.products_data);
     
-    if (!selectedPackage?.products_data) {
+    if (!fullPackage?.products_data) {
       console.log('❌ No products_data found');
       return [];
     }
     
-    const products = selectedPackage.products_data.map((product: any, index: number) => {
+    const products = fullPackage.products_data.map((product: any, index: number) => {
       console.log(`🔍 DEBUG Product ${index}:`, product);
       
       // Handle different data structure possibilities
       const mappedProduct = {
         itemDescription: product.itemDescription || product.item_description || product.description || '',
         estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
-        itemLink: product.itemLink || product.item_link || product.link || selectedPackage.item_link || '',
+        itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
         quantity: product.quantity || product.qty || '1',
         adminAssignedTip: product.adminAssignedTip || 0
       };
@@ -293,8 +313,8 @@ const AdminMatchDialog = ({
 
   // Helper function to get total quantity
   const getTotalQuantity = () => {
-    if (selectedPackage?.products_data && Array.isArray(selectedPackage.products_data)) {
-      return selectedPackage.products_data.reduce((total, product) => {
+    if (fullPackage?.products_data && Array.isArray(fullPackage.products_data)) {
+      return fullPackage.products_data.reduce((total, product) => {
         const quantity = parseInt(product.quantity || product.qty || '1');
         return total + quantity;
       }, 0);
@@ -690,9 +710,10 @@ const AdminMatchDialog = ({
                     variant="outline"
                     onClick={() => setShowProductTipModal(true)}
                     className="w-full sm:w-auto"
+                    disabled={loadingDetails}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    Asignar Tips por Producto ({selectedPackage.products_data.length} productos)
+                    {loadingDetails ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
                   </Button>
                   {getTotalAssignedTip() > 0 && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
