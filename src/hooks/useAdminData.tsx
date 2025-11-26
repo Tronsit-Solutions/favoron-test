@@ -97,7 +97,34 @@ export const useAdminData = (): AdminData => {
         offset
       });
 
-      // Return packages without joined data - will be loaded lazily when needed
+      // Get unique user IDs from packages (shoppers)
+      if (packagesData && packagesData.length > 0) {
+        const userIds = [...new Set(packagesData.map(pkg => pkg.user_id))];
+        console.log('🔄 Admin: Fetching shopper profiles...', { userIds: userIds.length });
+        
+        // Fetch shopper profiles in a separate query
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('❌ Admin: Error fetching profiles:', profilesError);
+        } else {
+          // Create a map for quick lookup
+          const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+          
+          // Attach profiles to packages
+          const enrichedPackages = packagesData.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          }));
+          
+          console.log('✅ Admin: Enriched packages with shopper profiles');
+          return enrichedPackages;
+        }
+      }
+
       return packagesData || [];
     } catch (error: any) {
       console.error('❌ Admin: Package fetch failed:', error);
