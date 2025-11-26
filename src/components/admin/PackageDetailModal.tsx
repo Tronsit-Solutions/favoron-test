@@ -19,6 +19,7 @@ import RejectionReasonModal from "./RejectionReasonModal";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { usePackageDetails } from "@/hooks/usePackageDetails";
 import { QuoteRecalculator } from "./QuoteRecalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -89,8 +90,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const { isModalOpen, closeModal, getModalData } = useModalState();
   const { user, userRole } = useAuth();
   const { toast } = useToast();
-  const pkg = getModalData(modalId);
+  const pkgLight = getModalData(modalId); // Lightweight data from list
   const isOpen = isModalOpen(modalId);
+  
+  // Load heavy fields on-demand when modal opens
+  const { details: heavyDetails, loading: loadingDetails } = usePackageDetails(isOpen ? pkgLight?.id : null);
+  
+  // Merge light and heavy data
+  const pkg = pkgLight && heavyDetails ? { ...pkgLight, ...heavyDetails } : pkgLight;
+  
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
@@ -140,12 +148,27 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     return null;
   }
 
-  console.log('PackageDetailModal render:', { pkg, trips, isOpen, modalId });
+  console.log('PackageDetailModal render:', { pkg, trips, isOpen, modalId, loadingDetails });
   console.log('🛒 Shopper profile data:', pkg?.profiles);
+  console.log('📦 Products data:', pkg?.products_data);
 
   if (!pkg) {
     console.log('No package provided to PackageDetailModal');
     return null;
+  }
+  
+  // Show loading state while fetching heavy details
+  if (loadingDetails) {
+    return (
+      <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3">Cargando detalles del paquete...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   // Safe date formatting function
