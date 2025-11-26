@@ -138,6 +138,56 @@ export const useAdminData = (): AdminData => {
     }
   }, [toast, PACKAGES_PER_PAGE]);
 
+  const fetchMatchedPackages = useCallback(async () => {
+    try {
+      console.log('🔄 Admin: Fetching ALL matched packages...');
+      
+      // Load ALL packages with a matched_trip_id
+      const { data: matchedData, error: matchedError } = await supabase
+        .from('packages')
+        .select('*')
+        .not('matched_trip_id', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (matchedError) {
+        console.error('❌ Admin: Matched packages query error:', matchedError);
+        throw matchedError;
+      }
+
+      console.log('✅ Admin: Fetched matched packages:', matchedData?.length || 0);
+
+      // Enrich with profiles if we have packages
+      if (matchedData && matchedData.length > 0) {
+        const userIds = [...new Set(matchedData.map(pkg => pkg.user_id))];
+        console.log('🔄 Admin: Fetching profiles for matched packages...', { userIds: userIds.length });
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('❌ Admin: Error fetching profiles for matched packages:', profilesError);
+        } else {
+          const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+          
+          const enrichedPackages = matchedData.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          }));
+          
+          console.log('✅ Admin: Enriched matched packages with profiles');
+          return enrichedPackages;
+        }
+      }
+
+      return matchedData || [];
+    } catch (error: any) {
+      console.error('❌ Admin: Matched packages fetch failed:', error);
+      return [];
+    }
+  }, []);
+
   const fetchAdminTrips = useCallback(async () => {
     try {
       console.log('🔄 Admin: Fetching all trips using secure admin RPC...');
@@ -271,16 +321,27 @@ export const useAdminData = (): AdminData => {
     setHasMorePackages(true);
 
     try {
-      const [packagesData, tripsData] = await Promise.all([
+      const [paginatedPackages, matchedPkgs, tripsData] = await Promise.all([
         fetchAdminPackages(0, false),
+        fetchMatchedPackages(),
         fetchAdminTrips()
       ]);
 
-      setPackages(packagesData);
+      // Merge packages: use Map to avoid duplicates (matched packages might be in first 50)
+      const allPackagesMap = new Map<string, any>();
+      [...paginatedPackages, ...matchedPkgs].forEach(pkg => {
+        allPackagesMap.set(pkg.id, pkg);
+      });
+      
+      const mergedPackages = Array.from(allPackagesMap.values());
+
+      setPackages(mergedPackages);
       setTrips(tripsData);
       
       console.log('✅ Admin: Data refresh complete', {
-        packages: packagesData.length,
+        paginated: paginatedPackages.length,
+        matched: matchedPkgs.length,
+        merged: mergedPackages.length,
         trips: tripsData.length,
         totalPackages
       });
@@ -297,7 +358,7 @@ export const useAdminData = (): AdminData => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchAdminTrips, totalPackages]);
+  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchMatchedPackages, fetchAdminTrips, totalPackages]);
 
   useEffect(() => {
     console.log('🔍 Admin: Effect triggered', {
