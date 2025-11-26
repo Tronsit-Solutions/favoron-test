@@ -142,10 +142,35 @@ export const useAdminData = (): AdminData => {
     try {
       console.log('🔄 Admin: Fetching ALL matched packages...');
       
-      // Load ALL packages with a matched_trip_id
+      // Load ALL packages with a matched_trip_id - ONLY essential fields
       const { data: matchedData, error: matchedError } = await supabase
         .from('packages')
-        .select('*')
+        .select(`
+          id,
+          user_id,
+          status,
+          item_description,
+          estimated_price,
+          purchase_origin,
+          package_destination,
+          matched_trip_id,
+          created_at,
+          updated_at,
+          delivery_deadline,
+          quote_expires_at,
+          matched_assignment_expires_at,
+          label_number,
+          incident_flag,
+          delivery_method,
+          quote,
+          rejection_reason,
+          wants_requote,
+          admin_rejection,
+          quote_rejection,
+          traveler_rejection,
+          admin_actions_log,
+          internal_notes
+        `)
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
 
