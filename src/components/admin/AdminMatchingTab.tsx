@@ -92,12 +92,8 @@ const AdminMatchingTab = ({
   const pendingRequests = [...approvedPackages, ...rejectedQuotes];
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const activeMatches = packages.filter(pkg => {
-    if (!pkg.matched_trip_id) return false;
-    const now = Date.now();
-    const quoteExpiredByTime = pkg.status === 'quote_sent' && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
-    const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
-    if (pkg.status === 'quote_expired' || quoteExpiredByTime || assignmentExpiredByTime) return false;
-    return true;
+    // Include ALL packages with a matched trip, regardless of status or expiration
+    return pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
   });
   const pendingPayments = packages.filter(pkg => 
     (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
