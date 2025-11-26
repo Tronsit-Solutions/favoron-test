@@ -6,27 +6,8 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
 
   const matchedPackages = useMemo(() => 
     packages.filter(pkg => {
-      // Must have a matched trip
-      if (!pkg.matched_trip_id) return false;
-      
-      // Exclude expired quotes (by status or by time)
-      const now = Date.now();
-      const quoteExpiredByTime = pkg.status === 'quote_sent' && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
-      const assignmentExpiredByTime = pkg.status === 'matched' && pkg.matched_assignment_expires_at && (new Date(pkg.matched_assignment_expires_at).getTime() < now);
-      
-      // Advanced statuses that should not be filtered out even if quote is expired
-      const advancedStatuses = ['completed', 'delivered_to_office', 'received_by_traveler', 'in_transit', 'pending_office_confirmation', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase'];
-      const isAdvancedStatus = advancedStatuses.includes(pkg.status);
-      
-      // Packages with payment receipt should not be filtered by quote expiration
-      const hasPaymentReceipt = pkg.payment_receipt;
-      
-      // General quote expiration check for packages that haven't advanced past the quote stage
-      const generalQuoteExpired = !isAdvancedStatus && !hasPaymentReceipt && pkg.quote_expires_at && (new Date(pkg.quote_expires_at).getTime() < now);
-      
-      if (pkg.status === 'quote_expired' || quoteExpiredByTime || assignmentExpiredByTime || generalQuoteExpired) return false;
-      
-      return true;
+      // Include ALL packages with a matched trip, regardless of expiration or status
+      return pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
     }), 
     [packages]
   );
