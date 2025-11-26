@@ -171,7 +171,10 @@ export const useAdminData = (): AdminData => {
           admin_actions_log,
           internal_notes,
           office_delivery,
-          products_data
+          products_data,
+          payment_receipt,
+          purchase_confirmation,
+          tracking_info
         `)
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
