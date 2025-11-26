@@ -851,7 +851,11 @@ export const useDashboardActions = (
           if (Array.isArray(currentPackage.products_data) && currentPackage.products_data.length > 0) {
             if (currentPackage.products_data.length === 1) {
               const onlyProduct = currentPackage.products_data[0];
-              updatedProductsData = [{ ...onlyProduct, adminAssignedTip: adminTip }];
+              updatedProductsData = [{
+                ...onlyProduct,
+                itemLink: onlyProduct.itemLink || currentPackage.item_link || null,
+                adminAssignedTip: adminTip
+              }];
             }
             // If more than one product exists but no per-product tips provided, leave as is
           } else {
@@ -859,7 +863,7 @@ export const useDashboardActions = (
             updatedProductsData = [{
               itemDescription: currentPackage.item_description || 'Producto',
               estimatedPrice: String(currentPackage.estimated_price ?? '0'),
-              itemLink: currentPackage.item_link || undefined,
+              itemLink: currentPackage.item_link || null,
               quantity: '1',
               adminAssignedTip: adminTip
             }];

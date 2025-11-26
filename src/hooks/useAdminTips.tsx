@@ -22,7 +22,7 @@ export const useAdminTips = () => {
     const normalizedProducts = products.map((p) => ({
       itemDescription: p.itemDescription ?? '',
       estimatedPrice: (p.estimatedPrice ?? '0').toString(),
-      itemLink: p.itemLink ?? null,
+      itemLink: p.itemLink || null,
       quantity: (p.quantity ?? '1').toString(),
       adminAssignedTip: Number.isFinite(p.adminAssignedTip) ? p.adminAssignedTip : 0,
       additionalNotes: (p as any).additionalNotes ?? null, // Preserve additional notes

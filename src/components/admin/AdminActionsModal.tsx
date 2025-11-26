@@ -101,7 +101,13 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   
   // Properly construct products array with correct field names
   const products = pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0 
-    ? pkg.products_data 
+    ? pkg.products_data.map((product: any) => ({
+        itemDescription: product.itemDescription || '',
+        estimatedPrice: product.estimatedPrice?.toString() || '0',
+        itemLink: product.itemLink || pkg.item_link || '',
+        quantity: product.quantity || '1',
+        adminAssignedTip: product.adminAssignedTip || 0
+      }))
     : [{
         itemDescription: pkg.item_description,
         estimatedPrice: pkg.estimated_price?.toString() || '0',
