@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, CreditCard, CheckCircle, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Copy, CreditCard, CheckCircle, X, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,8 @@ export default function ShopperPaymentInfoModal({
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   const [removingDiscount, setRemovingDiscount] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
   
   // Extract quote data and check for discount - use currentPkg for dynamic updates
   const quote = currentPkg.quote as any;
@@ -158,6 +161,85 @@ export default function ShopperPaymentInfoModal({
     }
   };
 
+  const applyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast({
+        title: "Código requerido",
+        description: "Por favor ingresa un código de descuento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setApplyingDiscount(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const currentQuote = currentPkg.quote as any;
+      const orderAmount = breakdown.totalPrice;
+
+      // Validate discount code
+      const { data: validationResult, error: rpcError } = await supabase.rpc('validate_discount_code', {
+        _code: discountCode.trim().toUpperCase(),
+        _order_amount: orderAmount,
+        _user_id: currentPkg.user_id
+      });
+
+      if (rpcError) throw rpcError;
+
+      const result = validationResult as any;
+
+      if (!result || !result.valid) {
+        toast({
+          title: "Código inválido",
+          description: result?.error || "El código de descuento no es válido",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Apply discount
+      const discountAmount = result.calculatedDiscount;
+      const finalTotal = orderAmount - discountAmount;
+
+      const updatedQuote = {
+        ...currentQuote,
+        discountCode: discountCode.trim().toUpperCase(),
+        discountCodeId: result.discountCodeId,
+        discountAmount: discountAmount,
+        originalTotalPrice: orderAmount,
+        finalTotalPrice: finalTotal,
+        totalPrice: finalTotal
+      };
+
+      const { error: updateError } = await supabase
+        .from('packages')
+        .update({ quote: updatedQuote })
+        .eq('id', currentPkg.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedPkg = { ...currentPkg, quote: updatedQuote };
+      setCurrentPkg(updatedPkg);
+      onUploadComplete(updatedPkg);
+      setDiscountCode('');
+
+      toast({
+        title: "¡Descuento aplicado!",
+        description: `Has ahorrado Q${discountAmount.toFixed(2)}`,
+      });
+    } catch (error) {
+      console.error('Error applying discount:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo aplicar el descuento. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setApplyingDiscount(false);
+    }
+  };
+
   // Can remove discount only if quote was accepted but payment not yet approved
   const canRemoveDiscount = hasDiscount && (
     currentPkg.status === 'quote_accepted' || 
@@ -236,9 +318,40 @@ export default function ShopperPaymentInfoModal({
                   </div>
                 </>
               ) : (
-                <div className="text-3xl font-bold text-primary">
-                  Q{totalAmount.toFixed(2)}
-                </div>
+                <>
+                  <div className="text-3xl font-bold text-primary">
+                    Q{totalAmount.toFixed(2)}
+                  </div>
+                  
+                  {/* Discount code input */}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">¿Tienes un código de descuento?</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Ingresa el código"
+                        value={discountCode}
+                        onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            applyDiscount();
+                          }
+                        }}
+                        disabled={applyingDiscount}
+                        className="flex-1"
+                      />
+                      <Button
+                        onClick={applyDiscount}
+                        disabled={applyingDiscount || !discountCode.trim()}
+                        size="sm"
+                      >
+                        {applyingDiscount ? 'Aplicando...' : 'Aplicar'}
+                      </Button>
+                    </div>
+                  </div>
+                </>
               )}
               <p className="text-sm text-muted-foreground mt-2">
                 Por el paquete: {pkg.item_description}
