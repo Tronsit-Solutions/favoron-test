@@ -30,6 +30,10 @@ export default function ShopperPaymentInfoModal({
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   
+  // Extract quote data and check for discount
+  const quote = pkg.quote as any;
+  const hasDiscount = quote?.finalTotalPrice !== undefined && quote?.discountAmount > 0;
+  
   // Calculate total from products_data admin tips + fees
   const productsData = (pkg.products_data as any[]) || [];
   const sumOfAdminTips = productsData.reduce((sum, product) => {
@@ -44,7 +48,9 @@ export default function ShopperPaymentInfoModal({
     pkg.package_destination
   );
   
-  const totalAmount = breakdown.totalPrice;
+  // Use finalTotalPrice if discount exists, otherwise use calculated total
+  const totalAmount = hasDiscount ? parseFloat(quote.finalTotalPrice) : breakdown.totalPrice;
+  const originalAmount = hasDiscount ? parseFloat(quote.originalTotalPrice) : totalAmount;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -141,10 +147,29 @@ export default function ShopperPaymentInfoModal({
               <CardTitle className="text-lg">Monto a Pagar</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                Q{totalAmount.toFixed(2)}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              {hasDiscount ? (
+                <>
+                  <div className="text-lg text-muted-foreground line-through">
+                    Q{originalAmount.toFixed(2)}
+                  </div>
+                  <div className="text-3xl font-bold text-primary">
+                    Q{totalAmount.toFixed(2)}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 p-2 bg-green-50 dark:bg-green-950 rounded-lg">
+                    <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                      🎉 Descuento aplicado: {quote.discountCode}
+                    </span>
+                    <span className="text-sm text-green-600 dark:text-green-400">
+                      (-Q{parseFloat(quote.discountAmount).toFixed(2)})
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-3xl font-bold text-primary">
+                  Q{totalAmount.toFixed(2)}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
                 Por el paquete: {pkg.item_description}
               </p>
             </CardContent>
@@ -235,7 +260,7 @@ export default function ShopperPaymentInfoModal({
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong></p>
+                <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong>{hasDiscount && <span className="text-green-600 ml-1">(con descuento aplicado)</span>}</p>
                 <p>2. Utiliza los datos bancarios de Favorón mostrados arriba</p>
                 <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
                 <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
