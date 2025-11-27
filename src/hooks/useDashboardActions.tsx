@@ -505,6 +505,24 @@ export const useDashboardActions = (
         if (quoteData.message === 'accepted') {
           console.log('✅ Accepting quote via RPC accept_quote');
           
+          // If discount code is present, update the quote first with discount info
+          if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
+            console.log('💳 Discount code present, updating quote with discount data');
+            
+            const quoteWithDiscount = {
+              ...selectedPackage.quote,
+              discountCode: quoteData.discountCode,
+              discountCodeId: quoteData.discountCodeId,
+              discountAmount: quoteData.discountAmount,
+              originalTotalPrice: quoteData.originalTotalPrice,
+              finalTotalPrice: quoteData.finalTotalPrice
+            };
+            
+            await updatePackage(selectedPackage.id, {
+              quote: quoteWithDiscount
+            });
+          }
+          
           const { error } = await supabase.rpc('accept_quote', {
             _package_id: selectedPackage.id
           });
@@ -530,7 +548,9 @@ export const useDashboardActions = (
           
           toast({
             title: "¡Cotización aceptada!",
-            description: "Ahora sube tu comprobante de pago.",
+            description: quoteData.discountCodeId 
+              ? `Código de descuento aplicado. Ahora sube tu comprobante de pago.`
+              : "Ahora sube tu comprobante de pago.",
           });
         } else {
           await updatePackage(selectedPackage.id, {
