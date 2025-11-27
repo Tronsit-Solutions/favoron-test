@@ -143,7 +143,6 @@ export default function ShopperPaymentInfoModal({
       // Update local state
       const updatedPkg = { ...currentPkg, quote: updatedQuote };
       setCurrentPkg(updatedPkg);
-      onUploadComplete(updatedPkg);
       
       toast({
         title: "Descuento removido",
@@ -221,7 +220,6 @@ export default function ShopperPaymentInfoModal({
       // Update local state
       const updatedPkg = { ...currentPkg, quote: updatedQuote };
       setCurrentPkg(updatedPkg);
-      onUploadComplete(updatedPkg);
       setDiscountCode('');
 
       toast({
