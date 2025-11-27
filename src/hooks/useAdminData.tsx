@@ -171,36 +171,37 @@ export const useAdminData = (): AdminData => {
       // Heavy JSONB fields (products_data, payment_receipt, etc.) loaded on-demand
       const { data: matchedData, error: matchedError } = await supabase
         .from('packages')
-        .select(`
-          id,
-          user_id,
-          status,
-          item_description,
-          estimated_price,
-          purchase_origin,
-          package_destination,
-          matched_trip_id,
-          created_at,
-          updated_at,
-          delivery_deadline,
-          quote_expires_at,
-          matched_assignment_expires_at,
-          label_number,
-          incident_flag,
-          delivery_method,
-          quote,
-          rejection_reason,
-          wants_requote,
-          admin_rejection,
-          quote_rejection,
-          traveler_rejection,
-          admin_actions_log,
-          internal_notes,
-          admin_assigned_tip,
-          confirmed_delivery_address,
-          traveler_address,
-          matched_trip_dates
-        `)
+      .select(`
+        id,
+        user_id,
+        status,
+        item_description,
+        estimated_price,
+        purchase_origin,
+        package_destination,
+        matched_trip_id,
+        created_at,
+        updated_at,
+        delivery_deadline,
+        quote_expires_at,
+        matched_assignment_expires_at,
+        label_number,
+        incident_flag,
+        delivery_method,
+        quote,
+        rejection_reason,
+        wants_requote,
+        admin_rejection,
+        quote_rejection,
+        traveler_rejection,
+        admin_actions_log,
+        internal_notes,
+        admin_assigned_tip,
+        confirmed_delivery_address,
+        traveler_address,
+        matched_trip_dates,
+        payment_receipt
+      `)
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
 
