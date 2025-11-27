@@ -54,7 +54,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
-      quantity: '1',
+      quantity: '',
       requestType: 'online'
     }];
   };
@@ -101,7 +101,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
-      quantity: '1',
+      quantity: '',
       requestType: 'online' as 'online' | 'personal'
     }],
     formData: editMode ? getInitialFormData() : {
@@ -300,7 +300,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           itemLink: '',
           itemDescription: '',
           estimatedPrice: '',
-          quantity: '1',
+          quantity: '',
           requestType: 'online'
         }];
         const initialFormData = {
@@ -365,7 +365,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
-        quantity: '1',
+        quantity: '',
         requestType: formRequestType
       }]);
     }
@@ -380,7 +380,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const calculateTotalEstimated = () => {
     return products.reduce((total, product) => {
       const price = parseFloat(product.estimatedPrice || '0');
-      const quantity = parseInt(product.quantity || '1');
+      const quantity = parseInt(product.quantity || '0');
       return total + (price * quantity);
     }, 0);
   };
@@ -544,9 +544,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                             <Input
                               id={`quantity-${index}`}
                               type="number"
-                              min="1"
-                              placeholder="1"
-                              value={product.quantity || '1'}
+                              min="0"
+                              placeholder="0"
+                              value={product.quantity}
                               onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
                               className="h-8 text-sm"
                               required
