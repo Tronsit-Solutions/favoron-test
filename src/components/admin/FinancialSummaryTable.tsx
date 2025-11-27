@@ -29,6 +29,7 @@ interface EnrichedPackageData {
   productLink?: string | null;
   paymentDate: string;
   totalToPay: number;
+  discountAmount: number;
   travelerTip: number;
   favoronRevenue: number;
   messengerPayment: number;
@@ -246,6 +247,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         }
       }
 
+      // Extract discount amount from quote
+      const discountAmount = parseFloat(quote?.discountAmount || '0');
+
       return {
         package: pkg,
         shopperName,
@@ -255,6 +259,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         productLink,
         paymentDate,
         totalToPay,
+        discountAmount,
         travelerTip,
         favoronRevenue,
         messengerPayment,
@@ -283,6 +288,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         productLink: null,
         paymentDate,
         totalToPay: membership.amount,
+        discountAmount: 0,
         travelerTip: 0,
         favoronRevenue: membership.amount,
         messengerPayment: 0,
@@ -341,12 +347,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const totals = useMemo(() => {
     return filteredData.reduce((acc, item) => ({
       totalToPay: acc.totalToPay + item.totalToPay,
+      discountAmount: acc.discountAmount + item.discountAmount,
       travelerTip: acc.travelerTip + item.travelerTip,
       favoronRevenue: acc.favoronRevenue + item.favoronRevenue,
       messengerPayment: acc.messengerPayment + item.messengerPayment,
       primePayments: acc.primePayments + (item.isPrimeMembership ? item.primeAmount || 0 : 0)
     }), {
       totalToPay: 0,
+      discountAmount: 0,
       travelerTip: 0,
       favoronRevenue: 0,
       messengerPayment: 0,
@@ -372,6 +380,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Tipo': item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
       'Estado': item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
       'Total a Pagar (Q)': item.totalToPay.toFixed(2),
+      'Descuento (Q)': item.discountAmount > 0 ? `-${item.discountAmount.toFixed(2)}` : '0.00',
       'Tip Viajero (Q)': item.travelerTip.toFixed(2),
       'Ingreso Favorón (Q)': item.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': item.messengerPayment.toFixed(2),
@@ -387,6 +396,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Tipo': '',
       'Estado': 'TOTAL',
       'Total a Pagar (Q)': totals.totalToPay.toFixed(2),
+      'Descuento (Q)': totals.discountAmount > 0 ? `-${totals.discountAmount.toFixed(2)}` : '0.00',
       'Tip Viajero (Q)': totals.travelerTip.toFixed(2),
       'Ingreso Favorón (Q)': totals.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': totals.messengerPayment.toFixed(2),
@@ -497,6 +507,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead>Productos</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Total a Pagar</TableHead>
+                <TableHead className="text-right">Descuento</TableHead>
                 <TableHead className="text-right">Tip Viajero</TableHead>
                 <TableHead className="text-right">Ingreso Favoron</TableHead>
                 <TableHead className="text-right">Pago Mensajero</TableHead>
@@ -581,6 +592,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.totalToPay)}
                   </TableCell>
+                  <TableCell className="text-right font-mono text-green-600">
+                    {item.discountAmount > 0 ? `-${formatCurrency(item.discountAmount)}` : '-'}
+                  </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.travelerTip)}
                   </TableCell>
@@ -637,6 +651,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableCell></TableCell>
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.totalToPay)}</strong>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-green-600">
+                    <strong>{totals.discountAmount > 0 ? `-${formatCurrency(totals.discountAmount)}` : '-'}</strong>
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.travelerTip)}</strong>
