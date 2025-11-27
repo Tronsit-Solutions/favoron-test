@@ -200,8 +200,13 @@ export function PaymentsTab({
                     <span className="font-medium">Fee de entrega:</span> Q{correctPricing.deliveryFee.toFixed(2)}
                   </p>
                 )}
+                {pkg.quote?.discountAmount > 0 && (
+                  <p className="text-xs text-green-700">
+                    <span className="font-medium">Descuento ({pkg.quote.discountCode}):</span> -Q{Number(pkg.quote.discountAmount).toFixed(2)}
+                  </p>
+                )}
                 <p className="text-xs text-amber-700 font-semibold mt-1 pt-1 border-t border-amber-300">
-                  <span className="font-medium">Total que debía pagar:</span> Q{correctPricing.totalPrice.toFixed(2)}
+                  <span className="font-medium">Total que debía pagar:</span> Q{pkg.quote?.finalTotalPrice ? Number(pkg.quote.finalTotalPrice).toFixed(2) : correctPricing.totalPrice.toFixed(2)}
                 </p>
               </div>
             {pkg.payment_receipt && (
