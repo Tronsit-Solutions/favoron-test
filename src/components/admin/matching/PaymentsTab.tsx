@@ -40,6 +40,7 @@ export function PaymentsTab({
   const { memberships, updateMembershipStatus } = usePrimeMembership();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
+  const [markingAsReviewed, setMarkingAsReviewed] = useState<string | null>(null);
 
   // Lazy load data when tabs become active
   useEffect(() => {
@@ -106,7 +107,13 @@ export function PaymentsTab({
 
   // Handle marking auto-approved payments as reviewed
   const handleMarkAsReviewed = async (packageId: string, currentReceipt: any) => {
+    if (markingAsReviewed) return; // Prevent double click
+    
+    setMarkingAsReviewed(packageId);
+    
     try {
+      console.log('📝 Marking payment as reviewed:', packageId);
+      
       const { error } = await supabase
         .from('packages')
         .update({
@@ -118,24 +125,31 @@ export function PaymentsTab({
         })
         .eq('id', packageId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error marking as reviewed:', { packageId, error });
+        throw error;
+      }
+      
+      console.log('✅ Successfully marked as reviewed:', packageId);
       
       toast({
-        title: "Pago revisado",
+        title: "✅ Pago revisado",
         description: "El comprobante ha sido marcado como revisado."
       });
       
-      // Trigger refresh
+      // Trigger refresh with delay to allow UI to update first
       if (onRefresh) {
-        await onRefresh();
+        setTimeout(() => onRefresh(), 500);
       }
-    } catch (error) {
-      console.error('Error marking as reviewed:', error);
+    } catch (error: any) {
+      console.error('💥 Exception marking as reviewed:', { packageId, error });
       toast({
         title: "Error",
-        description: "No se pudo marcar el pago como revisado.",
+        description: error?.message || "No se pudo marcar el pago como revisado. Intenta de nuevo.",
         variant: "destructive"
       });
+    } finally {
+      setMarkingAsReviewed(null);
     }
   };
 
@@ -243,9 +257,19 @@ export function PaymentsTab({
                   size="sm" 
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-xs sm:text-sm"
                   onClick={() => handleMarkAsReviewed(pkg.id, pkg.payment_receipt)}
+                  disabled={markingAsReviewed === pkg.id}
                 >
-                  <CheckCheck className="h-4 w-4 mr-1" />
-                  <span className="sm:inline">Revisado</span>
+                  {markingAsReviewed === pkg.id ? (
+                    <>
+                      <span className="animate-spin mr-1">⏳</span>
+                      <span>Procesando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCheck className="h-4 w-4 mr-1" />
+                      <span>Revisado</span>
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button 
