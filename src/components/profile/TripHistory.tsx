@@ -143,7 +143,13 @@ const TripHistory = ({ trips, packages }: TripHistoryProps) => {
                   <span>{selectedTrip.from_city} → {selectedTrip.to_city}</span>
                 </CardTitle>
                 <CardDescription>
-                  Llegada: {new Date(selectedTrip.arrival_date).toLocaleDateString('es-GT')} • Fecha de entrega en oficina: {new Date(selectedTrip.delivery_date).toLocaleDateString('es-GT')}
+                  Llegada: {(() => {
+                    const date = new Date(selectedTrip.arrival_date);
+                    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT');
+                  })()} • Fecha de entrega en oficina: {(() => {
+                    const date = new Date(selectedTrip.delivery_date);
+                    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT');
+                  })()}
                 </CardDescription>
               </div>
               <Button variant="outline" onClick={() => setSelectedTrip(null)}>

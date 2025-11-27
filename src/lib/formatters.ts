@@ -21,6 +21,19 @@ export const getDaysUntil = (date: string | Date): number => {
   return diffDays;
 };
 
+/**
+ * Formatea una fecha en UTC sin conversión de timezone local
+ * Útil para fechas que deben mostrarse igual independientemente de la zona horaria del usuario
+ */
+export const formatDateUTC = (dateString: string | Date, locale: string = APP_CONFIG.DEFAULT_LOCALE): string => {
+  const date = new Date(dateString);
+  return new Date(
+    date.getUTCFullYear(), 
+    date.getUTCMonth(), 
+    date.getUTCDate()
+  ).toLocaleDateString(locale);
+};
+
 // Price formatting utilities
 export const formatPrice = (price: number | string): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;

@@ -200,7 +200,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 shrink-0" />
               <span>
-                {new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}
+                {(() => {
+                  const dateFirst = new Date(trip.first_day_packages);
+                  const dateLast = new Date(trip.last_day_packages);
+                  return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}`;
+                })()}
               </span>
             </div>
           </div>

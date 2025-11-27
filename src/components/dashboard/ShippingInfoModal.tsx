@@ -80,34 +80,43 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                   {tripDates.first_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(tripDates.first_day_packages).toLocaleDateString('es-GT', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</p>
+                      <p className="text-sm font-semibold text-primary">{(() => {
+                        const date = new Date(tripDates.first_day_packages);
+                        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        });
+                      })()}</p>
                     </div>
                   )}
                   {tripDates.last_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{new Date(tripDates.last_day_packages).toLocaleDateString('es-GT', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</p>
+                      <p className="text-sm font-semibold text-primary">{(() => {
+                        const date = new Date(tripDates.last_day_packages);
+                        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        });
+                      })()}</p>
                     </div>
                   )}
                   {tripDates.delivery_date && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
-                      <p className="text-sm font-semibold text-success">{new Date(tripDates.delivery_date).toLocaleDateString('es-GT', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</p>
+                      <p className="text-sm font-semibold text-success">{(() => {
+                        const date = new Date(tripDates.delivery_date);
+                        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        });
+                      })()}</p>
                       
                       <Alert className="mt-3">
                         <Info className="h-4 w-4" />
