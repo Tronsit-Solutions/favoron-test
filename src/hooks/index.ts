@@ -10,7 +10,6 @@ export { useOptimizedRealtime } from './useOptimizedRealtime';
 export { useNavigationState } from './useNavigationState';
 export { useNotifications } from './useNotifications';
 export { usePaymentOrders } from './usePaymentOrders';
-export { useRealtimePackages } from './useRealtimePackages';
 export { createOrUpdateTripPaymentAccumulator } from './useCreateTripPaymentAccumulator';
 export { useDashboardActions } from './useDashboardActions';
 export { useMatchFilters } from './useMatchFilters';
