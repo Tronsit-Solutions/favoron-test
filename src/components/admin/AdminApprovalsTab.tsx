@@ -249,7 +249,10 @@ const AdminApprovalsTab = ({
                              Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
+                             Fecha límite: {(() => {
+                               const date = new Date(pkg.delivery_deadline);
+                               return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT');
+                             })()}
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Método de entrega: {pkg.delivery_method === 'delivery' 
@@ -333,19 +336,26 @@ const AdminApprovalsTab = ({
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
                           <h4 className="font-medium text-sm sm:text-base break-words">{trip.from_city} → {trip.to_city}</h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')} • 
-                             Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
-                          </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
+                              Llegada: {(() => {
+                                const date = new Date(trip.arrival_date);
+                                return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT');
+                              })()} • 
+                              Entrega: {(() => {
+                                const date = new Date(trip.delivery_date);
+                                return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT');
+                              })()}
                            </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                            Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
-                          </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                            Recepción paquetes: {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
-                          </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                              Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
+                            </p>
+                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                             Recepción paquetes: {(() => {
+                               const dateFirst = new Date(trip.first_day_packages);
+                               const dateLast = new Date(trip.last_day_packages);
+                               return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT')} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT')}`;
+                             })()}
+                           </p>
                         </div>
                         <div className="flex-shrink-0 self-start">
                           {getStatusBadge(trip.status)}

@@ -374,11 +374,14 @@ const AdminMatchDialog = ({
                     </Badge>
                     {selectedPackage.delivery_deadline && (
                       <Badge variant="outline" className="border-red-300 text-red-700 text-xs">
-                        ⏰ Límite: {new Date(selectedPackage.delivery_deadline).toLocaleDateString('es-GT', { 
-                          day: 'numeric', 
-                          month: 'short',
-                          year: 'numeric'
-                        })}
+                                       ⏰ Límite: {(() => {
+                                         const date = new Date(selectedPackage.delivery_deadline);
+                                         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
+                                           day: 'numeric', 
+                                           month: 'short',
+                                           year: 'numeric'
+                                         });
+                                       })()}
                       </Badge>
                     )}
                   </div>
@@ -560,12 +563,16 @@ const AdminMatchDialog = ({
                                  <Package className="h-4 w-4 text-gray-400" />
                                  <div>
                                    <p className="text-xs text-gray-500 font-medium">VENTANA RECEPCIÓN</p>
-                                   <p className="text-sm font-medium text-gray-700">
-                                     {trip.first_day_packages && trip.last_day_packages ? 
-                                       `${new Date(trip.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(trip.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}` 
-                                       : 'Por confirmar'
-                                     }
-                                   </p>
+                                    <p className="text-sm font-medium text-gray-700">
+                                      {trip.first_day_packages && trip.last_day_packages ? 
+                                        (() => {
+                                          const dateFirst = new Date(trip.first_day_packages);
+                                          const dateLast = new Date(trip.last_day_packages);
+                                          return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}`;
+                                        })()
+                                        : 'Por confirmar'
+                                      }
+                                    </p>
                                  </div>
                                </div>
 
@@ -897,7 +904,11 @@ const AdminMatchDialog = ({
                         <p className="text-sm font-medium">Ventana de Recepción de Paquetes</p>
                         <p className="text-sm text-muted-foreground">
                           {selectedTraveler.trip.first_day_packages && selectedTraveler.trip.last_day_packages 
-                            ? `${new Date(selectedTraveler.trip.first_day_packages).toLocaleDateString('es-GT')} - ${new Date(selectedTraveler.trip.last_day_packages).toLocaleDateString('es-GT')}`
+                            ? (() => {
+                                const dateFirst = new Date(selectedTraveler.trip.first_day_packages);
+                                const dateLast = new Date(selectedTraveler.trip.last_day_packages);
+                                return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT')} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT')}`;
+                              })()
                             : 'No especificado'}
                         </p>
                       </div>

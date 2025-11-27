@@ -79,14 +79,22 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
                   Fechas para enviar el paquete:
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Desde: {new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).toLocaleDateString('es-GT', { 
+                  Desde: {new Date(
+                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCFullYear(),
+                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCMonth(),
+                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCDate()
+                  ).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
                   })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Hasta: {new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).toLocaleDateString('es-GT', { 
+                  Hasta: {new Date(
+                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCFullYear(),
+                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCMonth(),
+                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCDate()
+                  ).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
@@ -101,7 +109,11 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
                   Fecha estimada de entrega en oficina:
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).toLocaleDateString('es-GT', { 
+                  {new Date(
+                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCFullYear(),
+                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCMonth(),
+                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCDate()
+                  ).toLocaleDateString('es-GT', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 
