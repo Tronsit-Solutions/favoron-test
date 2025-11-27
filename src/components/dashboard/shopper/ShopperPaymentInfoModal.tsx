@@ -223,9 +223,9 @@ export default function ShopperPaymentInfoModal({
                         size="sm" 
                         onClick={removeDiscount}
                         disabled={removingDiscount}
-                        className="h-auto p-1 hover:bg-green-100 dark:hover:bg-green-900"
+                        className="text-xs text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900"
                       >
-                        <X className="h-4 w-4 text-green-700 dark:text-green-300" />
+                        Cancelar descuento
                       </Button>
                     )}
                   </div>
