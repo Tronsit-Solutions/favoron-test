@@ -104,14 +104,20 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({
-    item_description: '',
-    item_link: '',
-    estimated_price: '',
-    additional_notes: '',
     purchase_origin: '',
     package_destination: ''
   });
-  const [editProductLinks, setEditProductLinks] = useState<string[]>([]);
+  const [editProducts, setEditProducts] = useState<Array<{
+    itemDescription: string;
+    estimatedPrice: string;
+    quantity: string;
+    itemLink: string;
+    additionalNotes?: string;
+    adminAssignedTip?: number;
+    requestType?: string;
+    weight?: string;
+    [key: string]: any;
+  }>>([]);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -121,21 +127,34 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Initialize edit form when package data changes
   useEffect(() => {
     if (pkg) {
+      // Initialize products for editing
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        setEditProducts(pkg.products_data.map((p: any) => ({
+          ...p, // Preserve all existing fields
+          itemDescription: p.itemDescription || '',
+          estimatedPrice: p.estimatedPrice?.toString() || '0',
+          quantity: p.quantity?.toString() || '1',
+          itemLink: p.itemLink || '',
+          additionalNotes: p.additionalNotes || '',
+          weight: p.weight || ''
+        })));
+      } else {
+        // Single product (legacy format)
+        setEditProducts([{
+          itemDescription: pkg.item_description || '',
+          estimatedPrice: pkg.estimated_price?.toString() || '0',
+          quantity: '1',
+          itemLink: pkg.item_link || '',
+          additionalNotes: pkg.additional_notes || '',
+          adminAssignedTip: pkg.admin_assigned_tip || 0
+        }]);
+      }
+      
+      // General package fields
       setEditForm({
-        item_description: pkg.item_description || '',
-        item_link: pkg.item_link || '',
-        estimated_price: pkg.estimated_price?.toString() || '',
-        additional_notes: pkg.additional_notes || '',
         purchase_origin: pkg.purchase_origin || '',
         package_destination: pkg.package_destination || ''
       });
-      
-      // Initialize product links for editing - ensure always string array
-      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-        setEditProductLinks(pkg.products_data.map((p: any) => p.itemLink || ''));
-      } else {
-        setEditProductLinks([pkg.item_link || '']);
-      }
     }
   }, [pkg?.id, pkg?.products_data]); // Depend on stable values
 
@@ -218,69 +237,84 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Handle edit mode toggle
   const handleEditToggle = () => {
     if (editMode) {
-      // Reset form to current package data when canceling
+      // Reset to original data when canceling
+      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+        setEditProducts(pkg.products_data.map((p: any) => ({
+          ...p,
+          itemDescription: p.itemDescription || '',
+          estimatedPrice: p.estimatedPrice?.toString() || '0',
+          quantity: p.quantity?.toString() || '1',
+          itemLink: p.itemLink || '',
+          additionalNotes: p.additionalNotes || '',
+          weight: p.weight || ''
+        })));
+      } else {
+        setEditProducts([{
+          itemDescription: pkg.item_description || '',
+          estimatedPrice: pkg.estimated_price?.toString() || '0',
+          quantity: '1',
+          itemLink: pkg.item_link || '',
+          additionalNotes: pkg.additional_notes || '',
+          adminAssignedTip: pkg.admin_assigned_tip || 0
+        }]);
+      }
+      
       setEditForm({
-        item_description: pkg.item_description || '',
-        item_link: pkg.item_link || '',
-        estimated_price: pkg.estimated_price?.toString() || '',
-        additional_notes: pkg.additional_notes || '',
         purchase_origin: pkg.purchase_origin || '',
         package_destination: pkg.package_destination || ''
       });
-      
-      // Reset product links
-      if (pkg.products_data && Array.isArray(pkg.products_data)) {
-        setEditProductLinks(pkg.products_data.map((p: any) => p.itemLink || ''));
-      } else {
-        setEditProductLinks([pkg.item_link || '']);
-      }
     }
     setEditMode(!editMode);
+  };
+  
+  // Handle individual product field changes
+  const handleProductChange = (index: number, field: string, value: string) => {
+    setEditProducts(prev => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value
+      };
+      return updated;
+    });
   };
 
   // Handle save changes
   const handleSaveChanges = () => {
     if (onUpdatePackage) {
-      // Sync edits to products_data for consistent UI (both single and multiple products)
-      let products_data: any | undefined = undefined;
+      // Normalize products to save
+      const normalizedProducts = editProducts.map(product => ({
+        ...product, // Preserve fields not being edited (adminAssignedTip, requestType, etc.)
+        itemDescription: product.itemDescription?.trim() || '',
+        estimatedPrice: product.estimatedPrice?.toString() || '0',
+        quantity: product.quantity?.toString() || '1',
+        itemLink: product.itemLink?.trim() || null,
+        additionalNotes: product.additionalNotes?.trim() || null,
+        weight: product.weight?.trim() || null
+      }));
+
+      // Calculate total price from individual products
+      const totalPrice = normalizedProducts.reduce((sum, p) => 
+        sum + ((parseFloat(p.estimatedPrice) || 0) * (parseInt(p.quantity) || 1)), 0
+      );
       
-      if (Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-        if (pkg.products_data.length === 1) {
-          // Single product: sync all fields including itemLink from editProductLinks
-          const p0 = pkg.products_data[0] || {};
-          products_data = [
-            {
-              ...p0,
-              itemDescription: editForm.item_description || p0.itemDescription,
-              itemLink: editProductLinks[0] || null,
-              estimatedPrice: editForm.estimated_price || p0.estimatedPrice,
-              quantity: p0.quantity || '1',
-              additionalNotes: editForm.additional_notes || p0.additionalNotes || null,
-            },
-          ];
-        } else {
-          // Multiple products: sync additional_notes and individual itemLinks
-          products_data = pkg.products_data.map((product: any, idx: number) => ({
-            ...product,
-            itemLink: editProductLinks[idx] || product.itemLink || null,
-            additionalNotes: editForm.additional_notes || product.additionalNotes || null,
-          }));
-        }
-      }
+      // Generate auto description for package
+      const autoDescription = normalizedProducts.length > 1
+        ? `Pedido de ${normalizedProducts.length} productos: ${normalizedProducts.map(p => p.itemDescription?.substring(0, 30)).join(', ')}`
+        : normalizedProducts[0]?.itemDescription || '';
 
       const updates = {
-        item_description: editForm.item_description,
-        item_link: editProductLinks[0] || null, // Use first product link for package-level field
-        estimated_price: parseFloat(editForm.estimated_price) || null,
-        additional_notes: editForm.additional_notes || null,
+        products_data: normalizedProducts,
+        item_description: autoDescription,
+        item_link: normalizedProducts[0]?.itemLink || null, // First link for legacy field
+        estimated_price: totalPrice,
         purchase_origin: editForm.purchase_origin,
-        package_destination: editForm.package_destination,
-        ...(products_data ? { products_data } : {}),
+        package_destination: editForm.package_destination
       };
+      
       onUpdatePackage(pkg.id, updates);
     }
     setEditMode(false);
-    // Close to reflect latest data from list
     closeModal(modalId);
   };
 
@@ -755,60 +789,10 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
               )}
 
               {editMode ? (
-                /* Edit Mode - Form Fields */
+                /* Edit Mode - Individual Product Editor */
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Descripción del producto</label>
-                      <Textarea
-                        value={editForm.item_description}
-                        onChange={(e) => handleFormChange('item_description', e.target.value)}
-                        placeholder="Describe el producto que necesitas..."
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Notas adicionales</label>
-                      <Textarea
-                        value={editForm.additional_notes}
-                        onChange={(e) => handleFormChange('additional_notes', e.target.value)}
-                        placeholder="Notas adicionales..."
-                        className="mt-1"
-                        rows={2}
-                      />
-                    </div>
-                    
-                    {editProductLinks.length === 1 ? (
-                      <div>
-                        <label className="text-sm font-medium">Link del producto</label>
-                        <Input
-                          type="url"
-                          value={editProductLinks[0] || ''}
-                          onChange={(e) => {
-                            const newLinks = [...editProductLinks];
-                            newLinks[0] = e.target.value;
-                            setEditProductLinks(newLinks);
-                          }}
-                          placeholder="https://ejemplo.com/producto"
-                          className="mt-1"
-                        />
-                      </div>
-                    ) : null}
-                    
-                    <div>
-                      <label className="text-sm font-medium">Precio estimado (USD)</label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={editForm.estimated_price}
-                        onChange={(e) => handleFormChange('estimated_price', e.target.value)}
-                        placeholder="0.00"
-                        className="mt-1"
-                      />
-                    </div>
-                    
+                  {/* General package fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b">
                     <div>
                       <label className="text-sm font-medium">País de compra</label>
                       <Input
@@ -818,7 +802,6 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         className="mt-1"
                       />
                     </div>
-                    
                     <div>
                       <label className="text-sm font-medium">Destino del paquete</label>
                       <Input
@@ -830,30 +813,136 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     </div>
                   </div>
 
-                  {/* Multiple Product Links Editor */}
-                  {editProductLinks.length > 1 && (
-                    <div className="mt-4 space-y-2">
-                      <label className="text-sm font-medium">Links de productos:</label>
-                      {detailedProducts.map((product, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs whitespace-nowrap">
-                            Producto #{idx + 1}
-                          </Badge>
-                          <Input
-                            type="url"
-                            value={editProductLinks[idx] || ''}
-                            onChange={(e) => {
-                              const newLinks = [...editProductLinks];
-                              newLinks[idx] = e.target.value;
-                              setEditProductLinks(newLinks);
-                            }}
-                            placeholder={`Link para ${product.description.substring(0, 30)}...`}
-                            className="flex-1"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Individual products editor */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Editar Productos ({editProducts.length})
+                    </h4>
+                    
+                    {editProducts.map((product, idx) => (
+                      <Card key={idx} className="border-l-4 border-l-primary bg-muted/10">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary">Producto #{idx + 1}</Badge>
+                            {product.adminAssignedTip > 0 && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                Tip: Q{product.adminAssignedTip}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* Product description */}
+                            <div className="md:col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Descripción del producto
+                              </label>
+                              <Textarea
+                                value={product.itemDescription}
+                                onChange={(e) => handleProductChange(idx, 'itemDescription', e.target.value)}
+                                placeholder="Describe el producto..."
+                                className="mt-1"
+                                rows={2}
+                              />
+                            </div>
+                            
+                            {/* Price and Quantity */}
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Precio estimado (USD)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={product.estimatedPrice}
+                                onChange={(e) => handleProductChange(idx, 'estimatedPrice', e.target.value)}
+                                placeholder="0.00"
+                                className="mt-1"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Cantidad
+                              </label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={product.quantity}
+                                onChange={(e) => handleProductChange(idx, 'quantity', e.target.value)}
+                                placeholder="1"
+                                className="mt-1"
+                              />
+                            </div>
+                            
+                            {/* Product link */}
+                            <div className="md:col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Link del producto
+                              </label>
+                              <Input
+                                type="url"
+                                value={product.itemLink}
+                                onChange={(e) => handleProductChange(idx, 'itemLink', e.target.value)}
+                                placeholder="https://ejemplo.com/producto"
+                                className="mt-1"
+                              />
+                            </div>
+                            
+                            {/* Additional notes */}
+                            <div className="md:col-span-2">
+                              <label className="text-xs font-medium text-muted-foreground">
+                                Notas adicionales (opcional)
+                              </label>
+                              <Input
+                                value={product.additionalNotes || ''}
+                                onChange={(e) => handleProductChange(idx, 'additionalNotes', e.target.value)}
+                                placeholder="Notas especiales para este producto..."
+                                className="mt-1"
+                              />
+                            </div>
+                            
+                            {/* Weight field if exists */}
+                            {product.weight !== undefined && (
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground">
+                                  Peso (lbs)
+                                </label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  value={product.weight || ''}
+                                  onChange={(e) => handleProductChange(idx, 'weight', e.target.value)}
+                                  placeholder="0.0"
+                                  className="mt-1"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Subtotal */}
+                          <div className="pt-2 border-t flex justify-end">
+                            <p className="text-sm">
+                              Subtotal: <span className="font-bold text-primary">
+                                ${((parseFloat(product.estimatedPrice) || 0) * (parseInt(product.quantity) || 1)).toFixed(2)}
+                              </span>
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Total calculated */}
+                  <div className="bg-primary/10 rounded-lg p-3 flex justify-between items-center">
+                    <span className="font-medium">Total estimado del pedido:</span>
+                    <span className="text-lg font-bold text-primary">
+                      ${editProducts.reduce((sum, p) => 
+                        sum + ((parseFloat(p.estimatedPrice) || 0) * (parseInt(p.quantity) || 1)), 0
+                      ).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 /* View Mode - Product Details */
