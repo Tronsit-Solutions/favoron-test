@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, CreditCard, CheckCircle } from "lucide-react";
+import { Copy, CreditCard, CheckCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,7 @@ export default function ShopperPaymentInfoModal({
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
+  const [removingDiscount, setRemovingDiscount] = useState(false);
   
   // Extract quote data and check for discount
   const quote = pkg.quote as any;
@@ -107,6 +108,54 @@ export default function ShopperPaymentInfoModal({
     setTimeout(() => setCloseLocked(false), 300);
   };
 
+  const removeDiscount = async () => {
+    setRemovingDiscount(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const currentQuote = pkg.quote as any;
+      
+      // Reconstruct quote without discount fields
+      const updatedQuote = {
+        price: currentQuote.price,
+        serviceFee: currentQuote.serviceFee,
+        deliveryFee: currentQuote.deliveryFee,
+        totalPrice: currentQuote.originalTotalPrice || currentQuote.totalPrice,
+        message: currentQuote.message,
+        adminAssignedTipAccepted: currentQuote.adminAssignedTipAccepted,
+        completePrice: currentQuote.completePrice
+      };
+      
+      const { error } = await supabase
+        .from('packages')
+        .update({ quote: updatedQuote })
+        .eq('id', pkg.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      const updatedPkg = { ...pkg, quote: updatedQuote };
+      setCurrentPkg(updatedPkg);
+      onUploadComplete(updatedPkg);
+      
+      toast({
+        title: "Descuento removido",
+        description: "El descuento ha sido desaplicado correctamente",
+      });
+    } catch (error) {
+      console.error('Error removing discount:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo remover el descuento. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setRemovingDiscount(false);
+    }
+  };
+
+  // Can remove discount only if quote was accepted but payment not yet approved
+  const canRemoveDiscount = hasDiscount && (pkg.status === 'quote_accepted' || pkg.status === 'payment_pending_approval');
+
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
       <DialogContent 
@@ -155,13 +204,26 @@ export default function ShopperPaymentInfoModal({
                   <div className="text-3xl font-bold text-primary">
                     Q{totalAmount.toFixed(2)}
                   </div>
-                  <div className="flex items-center gap-2 mt-2 p-2 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                      🎉 Descuento aplicado: {quote.discountCode}
-                    </span>
-                    <span className="text-sm text-green-600 dark:text-green-400">
-                      (-Q{parseFloat(quote.discountAmount).toFixed(2)})
-                    </span>
+                  <div className="flex items-center gap-2 mt-2 p-2 bg-green-50 dark:bg-green-950 rounded-lg justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        🎉 Descuento aplicado: {quote.discountCode}
+                      </span>
+                      <span className="text-sm text-green-600 dark:text-green-400">
+                        (-Q{parseFloat(quote.discountAmount).toFixed(2)})
+                      </span>
+                    </div>
+                    {canRemoveDiscount && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={removeDiscount}
+                        disabled={removingDiscount}
+                        className="h-auto p-1 hover:bg-green-100 dark:hover:bg-green-900"
+                      >
+                        <X className="h-4 w-4 text-green-700 dark:text-green-300" />
+                      </Button>
+                    )}
                   </div>
                 </>
               ) : (
