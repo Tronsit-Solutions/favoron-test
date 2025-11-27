@@ -175,7 +175,7 @@ const FinancialDashboard = ({
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              40% + fees - descuentos
+              fees - descuentos
             </p>
           </CardContent>
         </Card>
