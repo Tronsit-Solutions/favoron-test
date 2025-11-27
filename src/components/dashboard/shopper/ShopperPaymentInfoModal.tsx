@@ -31,12 +31,12 @@ export default function ShopperPaymentInfoModal({
   const [closeLocked, setCloseLocked] = useState(false);
   const [removingDiscount, setRemovingDiscount] = useState(false);
   
-  // Extract quote data and check for discount
-  const quote = pkg.quote as any;
+  // Extract quote data and check for discount - use currentPkg for dynamic updates
+  const quote = currentPkg.quote as any;
   const hasDiscount = quote?.finalTotalPrice !== undefined && quote?.discountAmount > 0;
   
   // Calculate total from products_data admin tips + fees
-  const productsData = (pkg.products_data as any[]) || [];
+  const productsData = (currentPkg.products_data as any[]) || [];
   const sumOfAdminTips = productsData.reduce((sum, product) => {
     const tip = parseFloat(product.adminAssignedTip || '0');
     return sum + tip;
@@ -44,9 +44,9 @@ export default function ShopperPaymentInfoModal({
   
   const breakdown = getPriceBreakdown(
     sumOfAdminTips,
-    pkg.delivery_method || 'pickup', 
+    currentPkg.delivery_method || 'pickup', 
     profile?.trust_level,
-    pkg.package_destination
+    currentPkg.package_destination
   );
   
   // Use finalTotalPrice if discount exists, otherwise use calculated total
@@ -69,6 +69,11 @@ export default function ShopperPaymentInfoModal({
 
   // Show success state if receipt was uploaded
   const showSuccessState = currentPkg.payment_receipt && currentPkg.status === 'payment_pending_approval';
+
+  // Sync currentPkg with pkg prop when it changes
+  useEffect(() => {
+    setCurrentPkg(pkg);
+  }, [pkg]);
 
   // Protect modal from closing when file picker is active on Android
   useEffect(() => {
@@ -112,7 +117,7 @@ export default function ShopperPaymentInfoModal({
     setRemovingDiscount(true);
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      const currentQuote = pkg.quote as any;
+      const currentQuote = currentPkg.quote as any;
       
       // Reconstruct quote without discount fields
       const updatedQuote = {
@@ -128,12 +133,12 @@ export default function ShopperPaymentInfoModal({
       const { error } = await supabase
         .from('packages')
         .update({ quote: updatedQuote })
-        .eq('id', pkg.id);
+        .eq('id', currentPkg.id);
       
       if (error) throw error;
       
       // Update local state
-      const updatedPkg = { ...pkg, quote: updatedQuote };
+      const updatedPkg = { ...currentPkg, quote: updatedQuote };
       setCurrentPkg(updatedPkg);
       onUploadComplete(updatedPkg);
       
@@ -155,9 +160,9 @@ export default function ShopperPaymentInfoModal({
 
   // Can remove discount only if quote was accepted but payment not yet approved
   const canRemoveDiscount = hasDiscount && (
-    pkg.status === 'quote_accepted' || 
-    pkg.status === 'payment_pending' ||
-    pkg.status === 'payment_pending_approval'
+    currentPkg.status === 'quote_accepted' || 
+    currentPkg.status === 'payment_pending' ||
+    currentPkg.status === 'payment_pending_approval'
   );
 
   return (
