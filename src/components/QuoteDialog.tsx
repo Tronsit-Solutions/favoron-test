@@ -156,8 +156,21 @@ const QuoteDialog = ({
   const isMobile = useIsMobile();
   const [mobileInputsReady, setMobileInputsReady] = useState(false);
 
-  // Destructure form state for easier access
-  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms, confirmedDeliveryTime, discountCode, discountAmount, discountCodeId, originalTotal, finalTotal } = formState;
+  // Destructure form state for easier access with safe defaults
+  const { 
+    price, 
+    message, 
+    rejectionReason, 
+    wantsRequote, 
+    additionalComments, 
+    acceptedTerms, 
+    confirmedDeliveryTime, 
+    discountCode = '', 
+    discountAmount = 0, 
+    discountCodeId = '', 
+    originalTotal = 0, 
+    finalTotal = 0 
+  } = formState;
 
   // Helper functions to update form state
   const updateFormField = (field: string, value: any) => {
@@ -166,7 +179,7 @@ const QuoteDialog = ({
 
   // Validate discount code
   const validateDiscountCode = async () => {
-    if (!discountCode.trim()) return;
+    if (!discountCode || !discountCode.trim()) return;
     
     setIsValidatingCode(true);
     setDiscountError(null);
