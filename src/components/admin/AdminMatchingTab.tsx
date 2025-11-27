@@ -42,6 +42,7 @@ interface AdminMatchingTabProps {
   approvedPaymentsLoading?: boolean;
   loadAutoApprovedPayments?: () => Promise<void>;
   loadApprovedPayments?: () => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 
 const AdminMatchingTab = ({
@@ -71,7 +72,8 @@ const AdminMatchingTab = ({
   autoApprovedPaymentsLoading = false,
   approvedPaymentsLoading = false,
   loadAutoApprovedPayments,
-  loadApprovedPayments
+  loadApprovedPayments,
+  onRefresh
 }: AdminMatchingTabProps) => {
   // Use URL-driven state instead of local state
   const currentTab = activeMatchingTab;
@@ -269,6 +271,7 @@ const AdminMatchingTab = ({
             approvedPaymentsLoading={approvedPaymentsLoading}
             loadAutoApprovedPayments={loadAutoApprovedPayments}
             loadApprovedPayments={loadApprovedPayments}
+            onRefresh={onRefresh}
           />
         </TabsContent>
       </Tabs>
