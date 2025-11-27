@@ -50,8 +50,15 @@ const FinancialDashboard = ({
       return sum + parseFloat(pkg.estimated_price?.toString() || '0');
     }, 0);
 
-    // Ingresos Favorón (40% del precio base + fees adicionales)
-    const favoronRevenue = completedPackages.reduce((sum, pkg) => {
+    // Descuentos totales aplicados
+    const totalDiscounts = completedPackages.reduce((sum, pkg) => {
+      const quote = pkg.quote as any;
+      const discountAmount = parseFloat(quote?.discountAmount || '0');
+      return sum + discountAmount;
+    }, 0);
+
+    // Ingresos Favorón (40% del precio base + fees adicionales - descuentos)
+    const favoronRevenueGross = completedPackages.reduce((sum, pkg) => {
       const quote = pkg.quote as any;
       const basePrice = parseFloat(quote?.price || '0');
       const serviceFee = calculateServiceFee(basePrice);
@@ -59,6 +66,9 @@ const FinancialDashboard = ({
       const revenue = calculateFavoronRevenue(basePrice, serviceFee, undefined);
       return sum + revenue;
     }, 0);
+
+    // Restar descuentos de los ingresos de Favorón
+    const favoronRevenue = favoronRevenueGross - totalDiscounts;
 
     // Tips para viajeros (igual a la cotización completa)
     const travelerTips = completedPackages.reduce((sum, pkg) => {
@@ -70,6 +80,7 @@ const FinancialDashboard = ({
       totalOrderValue,
       totalGMV,
       favoronRevenue,
+      totalDiscounts,
       travelerTips,
       completedOrders: completedPackages.length
     };
@@ -158,8 +169,13 @@ const FinancialDashboard = ({
             <div className="text-2xl font-bold text-green-700">
               {formatCurrencyGTQ(financialMetrics.favoronRevenue)}
             </div>
+            {financialMetrics.totalDiscounts > 0 && (
+              <p className="text-xs text-red-600 font-medium">
+                Descuentos aplicados: -{formatCurrencyGTQ(financialMetrics.totalDiscounts)}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
-              40% + fees adicionales
+              40% + fees - descuentos
             </p>
           </CardContent>
         </Card>
