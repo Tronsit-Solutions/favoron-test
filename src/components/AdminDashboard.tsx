@@ -568,6 +568,7 @@ const AdminDashboard = ({
             approvedPaymentsLoading={approvedPaymentsLoading}
             loadAutoApprovedPayments={loadAutoApprovedPayments}
             loadApprovedPayments={loadApprovedPayments}
+            onRefresh={refreshAdminData}
           />
         </TabsContent>
 

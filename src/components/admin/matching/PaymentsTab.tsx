@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles } from 'lucide-react';
+import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles, CheckCheck } from 'lucide-react';
 import { usePrimeMembership } from '@/hooks';
 import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
 import { getPriceBreakdown } from '@/lib/pricing';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -19,6 +21,7 @@ interface PaymentsTabProps {
   approvedPaymentsLoading?: boolean;
   loadAutoApprovedPayments?: () => Promise<void>;
   loadApprovedPayments?: () => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 
 export function PaymentsTab({ 
@@ -31,7 +34,8 @@ export function PaymentsTab({
   autoApprovedPaymentsLoading = false,
   approvedPaymentsLoading = false,
   loadAutoApprovedPayments,
-  loadApprovedPayments
+  loadApprovedPayments,
+  onRefresh
 }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
@@ -53,14 +57,15 @@ export function PaymentsTab({
   }, [activeTab, approvedPaymentsData.length, approvedPaymentsLoading, loadApprovedPayments]);
 
   // Separate payments by status
-  // Show manual pending payments AND all auto-approved payments
+  // Show manual pending payments AND auto-approved payments that haven't been reviewed yet
   const pendingPayments = packages.filter(pkg => 
     pkg.payment_receipt && (
       // Manual payments waiting for approval
       ((pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && 
        !(pkg.payment_receipt as any)?.auto_approved) ||
-      // OR all auto-approved payments
-      (pkg.payment_receipt as any)?.auto_approved
+      // OR auto-approved payments that haven't been marked as reviewed
+      ((pkg.payment_receipt as any)?.auto_approved && 
+       !(pkg.payment_receipt as any)?.admin_reviewed)
     )
   ).sort((a, b) => {
     // Sort by upload date (most recent first)
@@ -78,7 +83,15 @@ export function PaymentsTab({
     });
   
   // Use dedicated approved payments from separate query (no pagination limits)
+  // Include both manual approved payments AND auto-approved payments that have been reviewed
   const approvedPayments = approvedPaymentsData
+    .filter(pkg => 
+      // Manual approved payments (no auto_approved flag)
+      !(pkg.payment_receipt as any)?.auto_approved ||
+      // OR auto-approved payments that have been marked as reviewed
+      ((pkg.payment_receipt as any)?.auto_approved && 
+       (pkg.payment_receipt as any)?.admin_reviewed)
+    )
     .sort((a, b) => {
       const dateA = new Date((a.payment_receipt as any)?.uploadedAt || a.created_at).getTime();
       const dateB = new Date((b.payment_receipt as any)?.uploadedAt || b.created_at).getTime();
@@ -91,7 +104,42 @@ export function PaymentsTab({
     membership.status === 'approved' || membership.status === 'rejected'
   );
 
-  const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false) => {
+  // Handle marking auto-approved payments as reviewed
+  const handleMarkAsReviewed = async (packageId: string, currentReceipt: any) => {
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .update({
+          payment_receipt: {
+            ...currentReceipt,
+            admin_reviewed: true,
+            admin_reviewed_at: new Date().toISOString()
+          }
+        })
+        .eq('id', packageId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Pago revisado",
+        description: "El comprobante ha sido marcado como revisado."
+      });
+      
+      // Trigger refresh
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } catch (error) {
+      console.error('Error marking as reviewed:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo marcar el pago como revisado.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false, isAutoApproved: boolean = false) => {
     // Recalculate the correct pricing based on shopper's trust level
     const isPrime = pkg.profiles?.trust_level === 'prime';
     const basePrice = Number(pkg.quote?.price || pkg.estimated_price || 0);
@@ -190,14 +238,25 @@ export function PaymentsTab({
               <span className="sm:inline">Ver Comprobante</span>
             </Button>
             {showConfirmButton && (
-              <Button 
-                size="sm" 
-                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs sm:text-sm"
-                onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                <span className="sm:inline">Confirmar Pago</span>
-              </Button>
+              isAutoApproved ? (
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-xs sm:text-sm"
+                  onClick={() => handleMarkAsReviewed(pkg.id, pkg.payment_receipt)}
+                >
+                  <CheckCheck className="h-4 w-4 mr-1" />
+                  <span className="sm:inline">Revisado</span>
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs sm:text-sm"
+                  onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  <span className="sm:inline">Confirmar Pago</span>
+                </Button>
+              )
             )}
           </div>
         </div>
@@ -375,7 +434,7 @@ export function PaymentsTab({
           <Card>
             <CardHeader>
               <CardTitle>💳 Todos los Comprobantes de Pago</CardTitle>
-              <CardDescription>Incluye pagos pendientes de aprobación manual y todos los auto-aprobados</CardDescription>
+              <CardDescription>Incluye pagos pendientes de aprobación manual y pagos auto-aprobados que requieren revisión</CardDescription>
             </CardHeader>
             <CardContent>
               {pendingPayments.length === 0 && pendingPrimeMemberships.length === 0 ? (
@@ -406,7 +465,10 @@ export function PaymentsTab({
                         <h3 className="font-semibold text-blue-700">Comprobantes de Pago de Paquetes ({pendingPayments.length})</h3>
                       </div>
                       <div className="space-y-3">
-                        {pendingPayments.map(pkg => renderPaymentCard(pkg, true))}
+                        {pendingPayments.map(pkg => {
+                          const isAutoApproved = (pkg.payment_receipt as any)?.auto_approved === true;
+                          return renderPaymentCard(pkg, true, isAutoApproved);
+                        })}
                       </div>
                     </div>
                   )}
