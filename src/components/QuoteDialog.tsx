@@ -198,7 +198,7 @@ const QuoteDialog = ({
       
       const result = data as any;
       
-      if (result?.is_valid) {
+      if (result?.valid) {
         // Apply discount
         const discount = result.calculatedDiscount;
         const newTotal = Math.max(0, baseTotal - discount);
@@ -214,7 +214,7 @@ const QuoteDialog = ({
           description: `Descuento de ${formatCurrency(discount)} aplicado correctamente.`,
         });
       } else {
-        setDiscountError(result?.message || 'Código inválido');
+        setDiscountError(result?.error || 'Código inválido');
       }
     } catch (error: any) {
       console.error('Error validating discount code:', error);
