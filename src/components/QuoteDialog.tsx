@@ -198,13 +198,13 @@ const QuoteDialog = ({
       
       const result = data as any;
       
-      if (result?.valid) {
+      if (result?.is_valid) {
         // Apply discount
-        const discount = result.discount_amount;
+        const discount = result.calculatedDiscount;
         const newTotal = Math.max(0, baseTotal - discount);
         
         updateFormField('discountAmount', discount);
-        updateFormField('discountCodeId', result.discount_code_id);
+        updateFormField('discountCodeId', result.discountCodeId);
         updateFormField('originalTotal', baseTotal);
         updateFormField('finalTotal', newTotal);
         setDiscountSuccess(true);

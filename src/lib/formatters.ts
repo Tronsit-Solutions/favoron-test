@@ -31,8 +31,10 @@ export const formatPriceRange = (min: number, max: number): string => {
   return `${formatPrice(min)} - ${formatPrice(max)}`;
 };
 
-export const formatCurrency = (amount: number | string): string => {
+export const formatCurrency = (amount: number | string | undefined | null): string => {
+  if (amount === undefined || amount === null) return `${APP_CONFIG.PRICE_CURRENCY}0.00`;
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numAmount)) return `${APP_CONFIG.PRICE_CURRENCY}0.00`;
   return `${APP_CONFIG.PRICE_CURRENCY}${numAmount.toFixed(2)}`;
 };
 
