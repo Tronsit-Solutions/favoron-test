@@ -47,20 +47,24 @@ export const ProductConfirmationItem = ({
   };
 
   const handleConfirmWithPhoto = async () => {
-    if (!photoFile) return;
-
     setIsUploading(true);
     try {
-      // Convert file to base64 for now (could be replaced with Supabase storage upload)
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Photo = reader.result as string;
-        await onConfirm(index, base64Photo);
+      if (photoFile) {
+        // Convert file to base64 for now (could be replaced with Supabase storage upload)
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Photo = reader.result as string;
+          await onConfirm(index, base64Photo);
+          setShowPhotoModal(false);
+          setPhotoFile(null);
+          setPhotoPreview(null);
+        };
+        reader.readAsDataURL(photoFile);
+      } else {
+        // Confirm without photo
+        await onConfirm(index, '');
         setShowPhotoModal(false);
-        setPhotoFile(null);
-        setPhotoPreview(null);
-      };
-      reader.readAsDataURL(photoFile);
+      }
     } catch (error) {
       console.error('Error confirming product:', error);
     } finally {
@@ -127,13 +131,13 @@ export const ProductConfirmationItem = ({
           <DialogHeader>
             <DialogTitle>Confirmar producto recibido</DialogTitle>
             <DialogDescription>
-              Sube una foto del producto para confirmar que lo recibiste
+              Opcionalmente sube una foto del producto
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="product-photo">Foto del producto *</Label>
+              <Label htmlFor="product-photo">Foto del producto (opcional)</Label>
               <Input
                 id="product-photo"
                 type="file"
@@ -173,7 +177,7 @@ export const ProductConfirmationItem = ({
             <Button
               type="button"
               onClick={handleConfirmWithPhoto}
-              disabled={!photoFile || isUploading}
+              disabled={isUploading}
             >
               {isUploading ? "Confirmando..." : "Confirmar recepción"}
             </Button>
