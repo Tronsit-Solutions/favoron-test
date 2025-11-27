@@ -154,7 +154,11 @@ export default function ShopperPaymentInfoModal({
   };
 
   // Can remove discount only if quote was accepted but payment not yet approved
-  const canRemoveDiscount = hasDiscount && (pkg.status === 'quote_accepted' || pkg.status === 'payment_pending_approval');
+  const canRemoveDiscount = hasDiscount && (
+    pkg.status === 'quote_accepted' || 
+    pkg.status === 'payment_pending' ||
+    pkg.status === 'payment_pending_approval'
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleModalClose}>
