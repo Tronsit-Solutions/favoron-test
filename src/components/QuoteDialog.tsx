@@ -13,6 +13,7 @@ import { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import PrimeModal from "./PrimeModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
@@ -21,6 +22,7 @@ import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
 import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
 import { createNormalizedQuote } from '@/lib/quoteHelpers';
+import { supabase } from "@/integrations/supabase/client";
 import './ui/mobile-input-fix.css';
 import { resolveSignedUrl } from "@/lib/storageUrls";
 interface QuoteDialogProps {
@@ -103,6 +105,7 @@ const QuoteDialog = ({
   tripDates
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
+  const { toast } = useToast();
   const [imageModalState, setImageModalState] = useState<{ isOpen: boolean; imageUrl: string; title: string }>({
     isOpen: false,
     imageUrl: '',
@@ -128,7 +131,12 @@ const QuoteDialog = ({
       wantsRequote: false,
       additionalComments: '',
       acceptedTerms: false,
-      confirmedDeliveryTime: false
+      confirmedDeliveryTime: false,
+      discountCode: '',
+      discountAmount: 0,
+      discountCodeId: '',
+      originalTotal: 0,
+      finalTotal: 0
     },
     ttl: 24 * 60 * 60 * 1000, // 24 hours
     encrypt: true // Encrypt since this contains financial data
@@ -139,16 +147,79 @@ const QuoteDialog = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   
+  // Discount code validation state
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [discountSuccess, setDiscountSuccess] = useState(false);
+  
   // Mobile detection and input control
   const isMobile = useIsMobile();
   const [mobileInputsReady, setMobileInputsReady] = useState(false);
 
   // Destructure form state for easier access
-  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms, confirmedDeliveryTime } = formState;
+  const { price, message, rejectionReason, wantsRequote, additionalComments, acceptedTerms, confirmedDeliveryTime, discountCode, discountAmount, discountCodeId, originalTotal, finalTotal } = formState;
 
   // Helper functions to update form state
   const updateFormField = (field: string, value: any) => {
     setFormState(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Validate discount code
+  const validateDiscountCode = async () => {
+    if (!discountCode.trim()) return;
+    
+    setIsValidatingCode(true);
+    setDiscountError(null);
+    setDiscountSuccess(false);
+    
+    try {
+      const baseTotal = displayAmount || 0;
+      
+      const { data, error } = await supabase.rpc('validate_discount_code', {
+        _code: discountCode.trim().toUpperCase(),
+        _order_amount: baseTotal,
+        _user_id: profile?.id
+      });
+      
+      if (error) throw error;
+      
+      const result = data as any;
+      
+      if (result?.valid) {
+        // Apply discount
+        const discount = result.discount_amount;
+        const newTotal = Math.max(0, baseTotal - discount);
+        
+        updateFormField('discountAmount', discount);
+        updateFormField('discountCodeId', result.discount_code_id);
+        updateFormField('originalTotal', baseTotal);
+        updateFormField('finalTotal', newTotal);
+        setDiscountSuccess(true);
+        
+        toast({
+          title: "¡Código aplicado!",
+          description: `Descuento de ${formatCurrency(discount)} aplicado correctamente.`,
+        });
+      } else {
+        setDiscountError(result?.message || 'Código inválido');
+      }
+    } catch (error: any) {
+      console.error('Error validating discount code:', error);
+      setDiscountError('Error al validar el código. Intenta de nuevo.');
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
+
+  // Remove discount
+  const removeDiscount = () => {
+    updateFormField('discountCode', '');
+    updateFormField('discountAmount', 0);
+    updateFormField('discountCodeId', '');
+    updateFormField('originalTotal', 0);
+    updateFormField('finalTotal', 0);
+    setDiscountSuccess(false);
+    setDiscountError(null);
   };
 
   // Clear persisted state when modal is closed
@@ -228,9 +299,21 @@ const QuoteDialog = ({
         return; // Prevent submission if quote is expired
       }
       clearPersistedState(); // Clear form data on successful submission
-      onSubmit({
+      
+      // Include discount data if applied
+      const submitData: any = {
         message: 'accepted'
-      });
+      };
+      
+      if (discountSuccess && discountCodeId) {
+        submitData.discountCode = discountCode;
+        submitData.discountCodeId = discountCodeId;
+        submitData.discountAmount = discountAmount;
+        submitData.originalTotalPrice = originalTotal;
+        submitData.finalTotalPrice = finalTotal;
+      }
+      
+      onSubmit(submitData);
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
@@ -721,6 +804,77 @@ const QuoteDialog = ({
                 </div>
               </div>
               
+              {/* Discount Code Section - Only for shoppers accepting quotes */}
+              {existingQuote && userType === 'user' && !isQuoteExpired && (
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 rounded-lg p-4 shadow-sm">
+                  <Label className="text-sm font-semibold text-amber-900 mb-2 block">
+                    💳 ¿Tienes un código de descuento?
+                  </Label>
+                  
+                  {!discountSuccess ? (
+                    <>
+                      <div className="flex gap-2 mt-2">
+                        <Input 
+                          placeholder="Ingresa tu código"
+                          value={discountCode}
+                          onChange={(e) => {
+                            updateFormField('discountCode', e.target.value.toUpperCase());
+                            setDiscountError(null);
+                          }}
+                          className="flex-1 uppercase font-mono"
+                          disabled={isValidatingCode}
+                        />
+                        <Button 
+                          onClick={validateDiscountCode} 
+                          disabled={!discountCode.trim() || isValidatingCode}
+                          className="bg-amber-600 hover:bg-amber-700"
+                        >
+                          {isValidatingCode ? 'Validando...' : 'Aplicar'}
+                        </Button>
+                      </div>
+                      {discountError && (
+                        <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                          <AlertTriangle className="w-4 h-4" />
+                          {discountError}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mt-2 bg-white/80 rounded-lg p-3 border border-green-300">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-green-700 font-semibold text-sm flex items-center gap-2">
+                            ✅ Código aplicado: <span className="font-mono">{discountCode}</span>
+                          </p>
+                          <div className="mt-2 space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Total original:</span>
+                              <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-green-600 font-medium">
+                              <span>Descuento:</span>
+                              <span>-{formatCurrency(discountAmount)}</span>
+                            </div>
+                            <div className="flex justify-between text-base font-bold text-green-700 pt-2 border-t">
+                              <span>Nuevo total:</span>
+                              <span>{formatCurrency(finalTotal)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeDiscount}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Live countdown for shoppers viewing quotes */}
               {packageDetails.quote_expires_at && userType === 'user' && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageDetails.status) && <QuoteCountdown expiresAt={packageDetails.quote_expires_at} onExpire={() => {
             // The dialog will need to be refreshed when quote expires
