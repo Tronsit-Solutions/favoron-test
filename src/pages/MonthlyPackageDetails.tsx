@@ -69,7 +69,7 @@ type TableRowType =
   | { type: 'package'; data: PackageData }
   | { type: 'prime'; data: PrimeMembershipData };
 
-type SortField = 'created_at' | 'item_description' | 'customer' | 'traveler' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger';
+type SortField = 'created_at' | 'item_description' | 'customer' | 'traveler' | 'route' | 'status' | 'price' | 'tip' | 'favoron_income' | 'messenger' | 'discount';
 type SortDirection = 'asc' | 'desc' | null;
 
 const MonthlyPackageDetails = () => {
@@ -317,6 +317,13 @@ const MonthlyPackageDetails = () => {
     return Number.isFinite(numDeliveryFee) ? numDeliveryFee : 0;
   };
 
+  const getDiscountAmount = (pkg: PackageData) => {
+    // El descuento aplicado está en quote.discountAmount
+    const discountAmount = pkg.quote?.discountAmount || 0;
+    const numDiscount = typeof discountAmount === 'string' ? parseFloat(discountAmount) : Number(discountAmount);
+    return Number.isFinite(numDiscount) ? numDiscount : 0;
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       // Cycle through: asc -> desc -> null
@@ -419,6 +426,10 @@ const MonthlyPackageDetails = () => {
             aValue = getMessengerCost(a);
             bValue = getMessengerCost(b);
             break;
+          case 'discount':
+            aValue = getDiscountAmount(a);
+            bValue = getDiscountAmount(b);
+            break;
         }
 
         if (sortDirection === 'asc') {
@@ -494,6 +505,7 @@ const MonthlyPackageDetails = () => {
       'Destino': pkg.package_destination,
       'Estado': getStatusBadgeText(pkg.status),
       'Precio Total': getTotalPrice(pkg),
+      'Descuento': getDiscountAmount(pkg),
       'Tip Viajero': pkg.admin_assigned_tip || 0,
       'Ingreso Favorón': getFavoronIncome(pkg),
       'Costo Mensajero': getMessengerCost(pkg),
@@ -510,6 +522,7 @@ const MonthlyPackageDetails = () => {
       'Destino': 'N/A',
       'Estado': pm.status === 'approved' ? 'Aprobada' : pm.status === 'rejected' ? 'Rechazada' : 'Pendiente',
       'Precio Total': 'N/A',
+      'Descuento': 0,
       'Tip Viajero': 0,
       'Ingreso Favorón': pm.status === 'approved' ? pm.amount : 0,
       'Costo Mensajero': 0,
@@ -524,6 +537,8 @@ const MonthlyPackageDetails = () => {
       .filter(pm => pm.status === 'approved')
       .reduce((sum, pm) => sum + pm.amount, 0);
 
+    const totalDiscounts = displayed.reduce((sum, pkg) => sum + getDiscountAmount(pkg), 0);
+
     excelData.push({
       'Tipo': '',
       'Fecha': '',
@@ -534,6 +549,7 @@ const MonthlyPackageDetails = () => {
       'Destino': '',
       'Estado': 'TOTAL',
       'Precio Total': totalRevenue,
+      'Descuento': totalDiscounts,
       'Tip Viajero': totalTips,
       'Ingreso Favorón': totalFavoronIncome + totalPrimeIncomeForExcel,
       'Costo Mensajero': totalMessenger,
@@ -905,6 +921,20 @@ const MonthlyPackageDetails = () => {
                         variant="ghost"
                         size="sm"
                         className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
+                        onClick={() => handleSort('discount')}
+                      >
+                        Descuento (Q)
+                        {sortField === 'discount' && (
+                          sortDirection === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />
+                        )}
+                        {sortField !== 'discount' && <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="h-9 py-2 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs font-semibold hover:bg-muted ml-auto"
                         onClick={() => handleSort('tip')}
                       >
                         Tip (Q)
@@ -956,6 +986,9 @@ const MonthlyPackageDetails = () => {
                      <TableCell className="py-2 text-xs text-right">
                        ${displayedPackages.reduce((sum, pkg) => sum + getTotalPrice(pkg), 0).toFixed(2)}
                      </TableCell>
+                     <TableCell className="py-2 text-xs text-right text-red-600">
+                       Q{displayedPackages.reduce((sum, pkg) => sum + getDiscountAmount(pkg), 0).toFixed(2)}
+                     </TableCell>
                      <TableCell className="py-2 text-xs text-right text-blue-600">
                        Q{displayedPackages.reduce((sum, pkg) => {
                          const tip = pkg.admin_assigned_tip || 0;
@@ -1000,6 +1033,9 @@ const MonthlyPackageDetails = () => {
                       <TableCell className="py-2 text-xs text-right font-medium">
                         ${getTotalPrice(pkg).toFixed(2)}
                       </TableCell>
+                      <TableCell className="py-2 text-xs text-right font-semibold text-red-600">
+                        {getDiscountAmount(pkg) > 0 ? `-Q${getDiscountAmount(pkg).toFixed(2)}` : "-"}
+                      </TableCell>
                       <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
                         {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
                       </TableCell>
@@ -1039,6 +1075,9 @@ const MonthlyPackageDetails = () => {
                        </TableCell>
                        <TableCell className="py-2 text-xs text-right text-muted-foreground">
                          N/A
+                       </TableCell>
+                       <TableCell className="py-2 text-xs text-right text-muted-foreground">
+                         Q0.00
                        </TableCell>
                        <TableCell className="py-2 text-xs text-right text-muted-foreground">
                          Q0.00
