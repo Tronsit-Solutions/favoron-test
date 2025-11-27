@@ -151,6 +151,103 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_code_usage: {
+        Row: {
+          discount_amount: number
+          discount_code_id: string
+          id: string
+          package_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          discount_amount: number
+          discount_code_id: string
+          id?: string
+          package_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          discount_amount?: number
+          discount_code_id?: string
+          id?: string
+          package_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_code_usage_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usage_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_code_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_discount_amount: number | null
+          max_uses: number | null
+          min_order_amount: number | null
+          single_use_per_user: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          single_use_per_user?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_discount_amount?: number | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          single_use_per_user?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       favoron_company_information: {
         Row: {
           account_holder: string
@@ -1206,6 +1303,10 @@ export type Database = {
           _bank_name: string
         }
         Returns: boolean
+      }
+      validate_discount_code: {
+        Args: { _code: string; _order_amount: number; _user_id: string }
+        Returns: Json
       }
       verify_admin_access: { Args: never; Returns: boolean }
       verify_authenticated: { Args: never; Returns: boolean }
