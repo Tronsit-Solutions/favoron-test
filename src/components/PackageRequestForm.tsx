@@ -545,7 +545,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                               id={`quantity-${index}`}
                               type="number"
                               min="1"
-                              placeholder="1"
+                              placeholder="#"
                               value={product.quantity}
                               onChange={(e) => updateProduct(index, 'quantity', e.target.value)}
                               className="h-8 text-sm"
