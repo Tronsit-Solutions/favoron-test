@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import QuoteCountdown from "../QuoteCountdown";
 
 interface StatusConfig {
   emoji: string;
@@ -167,6 +168,16 @@ export const TravelerPackageStatusBadge = ({
           </div>
         </div>
       </div>
+      
+      {/* Show countdown timer for quote_sent status */}
+      {status === 'quote_sent' && pkg?.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+        <div className="space-y-2 px-3">
+          <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+          <p className="text-xs text-amber-600">
+            ⚠️ Si el shopper no acepta en este tiempo, el paquete se removerá de tu viaje automáticamente.
+          </p>
+        </div>
+      )}
       
       {config.actionMessage && (
         <Alert className="hidden sm:block border-blue-200 bg-blue-50">
