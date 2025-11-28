@@ -563,7 +563,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const hasTravelerConfirmation = pkg.traveler_confirmation && (pkg.traveler_confirmation.confirmedAt || pkg.traveler_confirmation.confirmed_at);
   
   // Allow admin uploads based on package status
-  const canUploadPaymentReceipt = ['payment_pending', 'payment_pending_approval', 'quote_sent', 'approved'].includes(pkg.status);
+  const canUploadPaymentReceipt = !hasPaymentReceipt && !['cancelled', 'rejected'].includes(pkg.status);
   const canUploadPurchaseConfirmation = ['pending_purchase', 'payment_confirmed'].includes(pkg.status);
   
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
