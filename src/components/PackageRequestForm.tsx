@@ -54,7 +54,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
-      quantity: '',
+      quantity: '1',
       requestType: 'online'
     }];
   };
@@ -101,7 +101,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       itemLink: '',
       itemDescription: '',
       estimatedPrice: '',
-      quantity: '',
+      quantity: '1',
       requestType: 'online' as 'online' | 'personal'
     }],
     formData: editMode ? getInitialFormData() : {
@@ -300,7 +300,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           itemLink: '',
           itemDescription: '',
           estimatedPrice: '',
-          quantity: '',
+          quantity: '1',
           requestType: 'online'
         }];
         const initialFormData = {
@@ -365,7 +365,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         itemLink: '',
         itemDescription: '',
         estimatedPrice: '',
-        quantity: '',
+        quantity: '1',
         requestType: formRequestType
       }]);
     }
