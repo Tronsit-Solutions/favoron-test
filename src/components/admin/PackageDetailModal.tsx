@@ -11,6 +11,8 @@ import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
 import TrackingInfoViewer from "./TrackingInfoViewer";
+import FavoronPaymentReceiptViewer from "./FavoronPaymentReceiptViewer";
+import FavoronPaymentReceiptUpload from "./FavoronPaymentReceiptUpload";
 import PaymentReceiptUpload from "@/components/dashboard/shopper/PaymentReceiptUpload";
 import PurchaseConfirmationUpload from "@/components/PurchaseConfirmationUpload";
 import { TravelerConfirmationDisplay } from "@/components/dashboard/TravelerConfirmationDisplay";
@@ -118,6 +120,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     weight?: string;
     [key: string]: any;
   }>>([]);
+  const [paymentOrder, setPaymentOrder] = useState<any>(null);
+  const [loadingPaymentOrder, setLoadingPaymentOrder] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -157,6 +161,34 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
       });
     }
   }, [pkg?.id, pkg?.products_data]); // Depend on stable values
+
+  // Load payment order for Favoron payment receipt
+  useEffect(() => {
+    const loadPaymentOrder = async () => {
+      if (!pkg?.matched_trip_id || !isOpen) return;
+
+      setLoadingPaymentOrder(true);
+      try {
+        const { data, error } = await supabase
+          .from('payment_orders')
+          .select('*')
+          .eq('trip_id', pkg.matched_trip_id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading payment order:', error);
+        } else {
+          setPaymentOrder(data);
+        }
+      } catch (error) {
+        console.error('Exception loading payment order:', error);
+      } finally {
+        setLoadingPaymentOrder(false);
+      }
+    };
+
+    loadPaymentOrder();
+  }, [pkg?.matched_trip_id, isOpen]);
 
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
@@ -318,6 +350,49 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         variant: "destructive",
       });
       throw error;
+    }
+  };
+
+  // Handle delete Favoron payment receipt
+  const handleDeleteFavoronReceipt = async () => {
+    try {
+      // 1. Delete file from storage if exists
+      if (paymentOrder?.receipt_url) {
+        const { error: storageError } = await supabase.storage
+          .from('payment-receipts')
+          .remove([paymentOrder.receipt_url]);
+        
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+      
+      // 2. Update database - clear the receipt fields
+      const { error: dbError } = await supabase
+        .from('payment_orders')
+        .update({ 
+          receipt_url: null,
+          receipt_filename: null
+        })
+        .eq('id', paymentOrder.id);
+      
+      if (dbError) throw dbError;
+      
+      toast({
+        title: "Comprobante eliminado",
+        description: "El comprobante de pago de Favorón ha sido eliminado exitosamente",
+      });
+      
+      // 3. Refresh payment order data
+      setPaymentOrder({ ...paymentOrder, receipt_url: null, receipt_filename: null });
+      
+    } catch (error: any) {
+      console.error('Error deleting Favoron receipt:', error);
+      toast({
+        title: "Error al eliminar",
+        description: error.message || "No se pudo eliminar el comprobante de pago",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1645,6 +1720,63 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Favoron Payment Receipt Section */}
+              {pkg.matched_trip_id && (
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <Receipt className="h-4 w-4" />
+                    Comprobante de Pago del Favorón
+                  </h4>
+                  
+                  {loadingPaymentOrder ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      <span className="ml-2 text-sm">Cargando información de pago...</span>
+                    </div>
+                  ) : paymentOrder ? (
+                    paymentOrder.receipt_url ? (
+                      <FavoronPaymentReceiptViewer 
+                        receiptUrl={paymentOrder.receipt_url}
+                        receiptFilename={paymentOrder.receipt_filename}
+                        paymentOrderId={paymentOrder.id}
+                        amount={paymentOrder.amount}
+                        className="w-full"
+                        onDelete={handleDeleteFavoronReceipt}
+                      />
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          Sin comprobante de pago de Favorón
+                        </p>
+                        <div className="border-2 border-dashed border-purple-300 rounded-lg p-4">
+                          <p className="text-xs text-purple-600 mb-3">
+                            ℹ️ Como admin, puedes subir el comprobante de pago realizado por Favorón al viajero
+                          </p>
+                          <FavoronPaymentReceiptUpload 
+                            paymentOrderId={paymentOrder.id}
+                            onUploadComplete={() => {
+                              // Reload payment order
+                              supabase
+                                .from('payment_orders')
+                                .select('*')
+                                .eq('id', paymentOrder.id)
+                                .single()
+                                .then(({ data }) => {
+                                  if (data) setPaymentOrder(data);
+                                });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No hay orden de pago asociada con este viaje
+                    </p>
+                  )}
                 </div>
               )}
 
