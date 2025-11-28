@@ -249,20 +249,28 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
     }
   };
 
-  // Don't show upload form if payment has been approved by admin
-  const paymentApprovedStatuses = ['payment_confirmed', 'paid', 'pending_purchase', 'matched', 'in_transit', 'received_by_traveler', 'delivered', 'pending_office_confirmation'];
-  
-  if (paymentApprovedStatuses.includes(pkg.status)) {
-    return null; // Don't show anything - payment already processed
+  // Only hide if payment receipt already exists
+  if (confirmedFile && pkg.payment_receipt) {
+    return (
+      <div className="bg-success/10 border border-success/30 rounded-lg p-3 h-fit max-w-md">
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-6 h-6 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Check className="h-3 w-3 text-success" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-success">Comprobante confirmado</p>
+            <p className="text-xs text-success/80 truncate">{confirmedFile?.filename}</p>
+          </div>
+        </div>
+        <p className="text-xs text-success/80">
+          El administrador verificará tu pago pronto.
+        </p>
+      </div>
+    );
   }
 
-  // Don't show the upload success message if payment has been approved by admin
-  if (confirmedFile && !['payment_pending', 'payment_pending_approval'].includes(pkg.status)) {
-    return null; // Hide success message after admin approval
-  }
-
-  // Show confirmed upload state
-  if (uploadState === 'confirmed' || confirmedFile) {
+  // Show confirmed upload state - only if still in pending approval states
+  if ((uploadState === 'confirmed' || confirmedFile) && ['payment_pending', 'payment_pending_approval'].includes(pkg.status)) {
     return (
       <div className="bg-success/10 border border-success/30 rounded-lg p-3 h-fit max-w-md">
         <div className="flex items-center space-x-2 mb-2">
