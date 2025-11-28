@@ -16,6 +16,7 @@ import TravelerPackageInfo from "./traveler/TravelerPackageInfo";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import { TravelerConfirmationDisplay } from "./TravelerConfirmationDisplay";
 import { TravelerPackageStatusBadge } from "./traveler/TravelerPackageStatusBadge";
+import QuoteCountdown from "./QuoteCountdown";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,9 +266,19 @@ const CollapsibleTravelerPackageCard = ({
                           🔗 Paquete emparejado - Envía tu cotización
                         </div>
                       )}
-                       {pkg.status === 'quote_sent' && (
-                         <div className="text-muted-foreground">
-                           📝 Cotización enviada - Esperando respuesta del shopper
+                     {pkg.status === 'quote_sent' && (
+                         <div className="space-y-2">
+                           <div className="text-muted-foreground">
+                             📝 Cotización enviada - Esperando respuesta del shopper
+                           </div>
+                           {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                             <div className="flex flex-col gap-2">
+                               <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                               <p className="text-xs text-amber-600">
+                                 ⚠️ Si el shopper no acepta en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                               </p>
+                             </div>
+                           )}
                          </div>
                        )}
                       {pkg.status === 'quote_accepted' && (
