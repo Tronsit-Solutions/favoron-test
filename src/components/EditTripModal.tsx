@@ -48,7 +48,14 @@ const EditTripModal = ({
       },
     firstDayPackages: tripData?.first_day_packages ? new Date(tripData.first_day_packages) : null as Date | null,
     lastDayPackages: tripData?.last_day_packages ? new Date(tripData.last_day_packages) : null as Date | null,
-    messengerPickupLocation: tripData?.messenger_pickup_info?.location || ''
+    messengerPickupInfo: {
+      streetAddress: tripData?.messenger_pickup_info?.streetAddress || '',
+      cityArea: tripData?.messenger_pickup_info?.cityArea || '',
+      accommodationName: tripData?.messenger_pickup_info?.accommodationName || '',
+      contactNumber: tripData?.messenger_pickup_info?.contactNumber || '',
+      pickupInstructions: tripData?.messenger_pickup_info?.pickupInstructions || '',
+      preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
+    }
   });
   const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
@@ -75,7 +82,10 @@ const EditTripModal = ({
       id: tripData.id,
       ...formData,
       fromCity: finalFromCity,
-      toCity: finalToCity
+      toCity: finalToCity,
+      messengerPickupInfo: formData.deliveryMethod === 'mensajero' 
+        ? formData.messengerPickupInfo 
+        : null
     };
     onSubmit(submitData);
   };
@@ -90,6 +100,16 @@ const EditTripModal = ({
       ...prev,
       packageReceivingAddress: {
         ...prev.packageReceivingAddress,
+        [field]: value
+      }
+    }));
+  };
+
+  const handleMessengerInfoChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      messengerPickupInfo: {
+        ...prev.messengerPickupInfo,
         [field]: value
       }
     }));
@@ -329,17 +349,89 @@ const EditTripModal = ({
               </RadioGroup>
               
               {formData.deliveryMethod === 'mensajero' && (
-                <div className="space-y-2 mt-4 p-4 border rounded-lg bg-muted/10">
-                  <Label htmlFor="messengerPickupLocation">Dirección de entrega *</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Textarea 
-                      id="messengerPickupLocation"
-                      placeholder="Ingresa la dirección completa donde deseas entregar los paquetes al mensajero..."
-                      value={formData.messengerPickupLocation}
-                      onChange={(e) => handleInputChange('messengerPickupLocation', e.target.value)}
-                      className="pl-10 min-h-[80px]"
+                <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
+                  <p className="text-sm text-muted-foreground">
+                    Información de entrega para el mensajero de Favorón
+                  </p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerStreetAddress">Dirección completa *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="messengerStreetAddress"
+                        type="text"
+                        placeholder="Ej: 5ta Avenida 10-50, Zona 10"
+                        value={formData.messengerPickupInfo.streetAddress}
+                        onChange={(e) => handleMessengerInfoChange('streetAddress', e.target.value)}
+                        className="pl-10"
+                        required={formData.deliveryMethod === 'mensajero'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerCityArea">Ciudad/Zona *</Label>
+                    <Input 
+                      id="messengerCityArea"
+                      type="text"
+                      placeholder="Ej: Guatemala, Zona 10"
+                      value={formData.messengerPickupInfo.cityArea}
+                      onChange={(e) => handleMessengerInfoChange('cityArea', e.target.value)}
                       required={formData.deliveryMethod === 'mensajero'}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerAccommodationName">Nombre del lugar (opcional)</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="messengerAccommodationName"
+                        type="text"
+                        placeholder="Ej: Edificio Europlaza, Torre 1"
+                        value={formData.messengerPickupInfo.accommodationName}
+                        onChange={(e) => handleMessengerInfoChange('accommodationName', e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerContactNumber">Número de contacto *</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="messengerContactNumber"
+                        type="tel"
+                        placeholder="+502 1234-5678"
+                        value={formData.messengerPickupInfo.contactNumber}
+                        onChange={(e) => handleMessengerInfoChange('contactNumber', e.target.value)}
+                        className="pl-10"
+                        required={formData.deliveryMethod === 'mensajero'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerPreferredTime">Horario preferido (opcional)</Label>
+                    <Input 
+                      id="messengerPreferredTime"
+                      type="text"
+                      placeholder="Ej: Entre 2pm y 5pm"
+                      value={formData.messengerPickupInfo.preferredTime}
+                      onChange={(e) => handleMessengerInfoChange('preferredTime', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="messengerPickupInstructions">Instrucciones adicionales (opcional)</Label>
+                    <Textarea 
+                      id="messengerPickupInstructions"
+                      placeholder="Ej: Tocar el timbre del apartamento 301, preguntar por Juan..."
+                      value={formData.messengerPickupInfo.pickupInstructions}
+                      onChange={(e) => handleMessengerInfoChange('pickupInstructions', e.target.value)}
+                      className="min-h-[80px]"
                     />
                   </div>
                 </div>
