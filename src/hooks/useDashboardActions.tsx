@@ -1641,8 +1641,8 @@ export const useDashboardActions = (
         available_space: parseFloat(editedTripData.availableSpace),
         package_receiving_address: editedTripData.packageReceivingAddress,
         delivery_method: editedTripData.deliveryMethod,
-        messenger_pickup_info: editedTripData.deliveryMethod === 'delivery' ? 
-          { location: editedTripData.messengerPickupLocation } : null,
+        messenger_pickup_info: editedTripData.deliveryMethod === 'mensajero' ? 
+          editedTripData.messengerPickupInfo : null,
         status: 'pending_approval' // Always reset to pending approval after edit
       };
 
