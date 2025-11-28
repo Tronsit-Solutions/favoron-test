@@ -64,7 +64,7 @@ export const MatchCard = ({
   const statusInfo = getStatusInfo(isCompleting ? 'completed' : pkg.status);
   const showCompleteButton = ['delivered_to_office', 'out_for_delivery'].includes(pkg.status) && !isCompleting;
   const showOfficeReceptionButton = pkg.status === 'received_by_traveler';
-  const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation' && !!pkg.office_delivery?.traveler_declaration;
+  const showAdminOfficeConfirmButton = pkg.status === 'pending_office_confirmation';
   const showShopperReceivedButton = pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery';
 
   const handleCompleteDelivery = async () => {
