@@ -405,6 +405,57 @@ const AdminDashboard = ({
     openModal(modalId, 'trip-detail', tripWithUser);
   };
 
+  const handleAdminEditTrip = async (tripId: string, editedData: any) => {
+    try {
+      const safeToISOString = (dateValue: any) => {
+        if (!dateValue) return null;
+        return dateValue instanceof Date ? dateValue.toISOString() : new Date(dateValue).toISOString();
+      };
+
+      const dbData = {
+        from_country: editedData.fromCountry,
+        from_city: editedData.fromCity,
+        to_city: editedData.toCity,
+        arrival_date: safeToISOString(editedData.arrivalDate),
+        departure_date: safeToISOString(editedData.arrivalDate),
+        delivery_date: safeToISOString(editedData.deliveryDate),
+        first_day_packages: safeToISOString(editedData.firstDayPackages),
+        last_day_packages: safeToISOString(editedData.lastDayPackages),
+        available_space: parseFloat(editedData.availableSpace) || null,
+        package_receiving_address: editedData.packageReceivingAddress,
+        delivery_method: editedData.deliveryMethod,
+        messenger_pickup_info: editedData.deliveryMethod === 'mensajero' 
+          ? editedData.messengerPickupInfo 
+          : null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('trips')
+        .update(dbData)
+        .eq('id', tripId);
+
+      if (error) throw error;
+
+      toast({ 
+        title: "¡Viaje actualizado!",
+        description: "Los cambios se han guardado correctamente."
+      });
+
+      // Refrescar datos admin
+      if (refreshAdminData) {
+        await refreshAdminData();
+      }
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el viaje.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Use local state for all filtering to prevent props refreshes from affecting UI
   const availableTrips = localTrips.filter(trip => ['approved', 'active'].includes(trip.status));
   const approvedPackages = localPackages.filter(p => p.status === 'approved');
@@ -672,6 +723,7 @@ const AdminDashboard = ({
         onReject={(id) => {
           onApproveReject('trip', id, 'reject');
         }}
+        onEditTrip={handleAdminEditTrip}
       />
     </div>
   );
