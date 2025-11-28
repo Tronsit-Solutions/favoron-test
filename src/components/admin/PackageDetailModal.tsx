@@ -234,6 +234,93 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     setRejectionModalOpen(true);
   };
 
+  // Handle delete payment receipt
+  const handleDeletePaymentReceipt = async () => {
+    try {
+      // 1. Delete file from storage if exists
+      if (pkg.payment_receipt?.filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('payment-receipts')
+          .remove([pkg.payment_receipt.filePath]);
+        
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+      
+      // 2. Update database - clear the field
+      const { error: dbError } = await supabase
+        .from('packages')
+        .update({ payment_receipt: null })
+        .eq('id', pkg.id);
+      
+      if (dbError) throw dbError;
+      
+      toast({
+        title: "Comprobante eliminado",
+        description: "El comprobante de pago ha sido eliminado exitosamente",
+      });
+      
+      // 3. Refresh modal data
+      closeModal(modalId);
+      
+    } catch (error: any) {
+      console.error('Error deleting payment receipt:', error);
+      toast({
+        title: "Error al eliminar",
+        description: error.message || "No se pudo eliminar el comprobante de pago",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // Handle delete purchase confirmation
+  const handleDeletePurchaseConfirmation = async () => {
+    try {
+      // 1. Delete file from storage if exists
+      if (pkg.purchase_confirmation?.filePath) {
+        const buckets = ['purchase-confirmations', 'payment-receipts']; // Try both buckets
+        
+        for (const bucket of buckets) {
+          const { error: storageError } = await supabase.storage
+            .from(bucket)
+            .remove([pkg.purchase_confirmation.filePath]);
+          
+          if (!storageError) {
+            console.log(`File deleted from bucket: ${bucket}`);
+            break;
+          }
+        }
+      }
+      
+      // 2. Update database - clear the field
+      const { error: dbError } = await supabase
+        .from('packages')
+        .update({ purchase_confirmation: null })
+        .eq('id', pkg.id);
+      
+      if (dbError) throw dbError;
+      
+      toast({
+        title: "Comprobante eliminado",
+        description: "El comprobante de compra ha sido eliminado exitosamente",
+      });
+      
+      // 3. Refresh modal data
+      closeModal(modalId);
+      
+    } catch (error: any) {
+      console.error('Error deleting purchase confirmation:', error);
+      toast({
+        title: "Error al eliminar",
+        description: error.message || "No se pudo eliminar el comprobante de compra",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   // Handle edit mode toggle
   const handleEditToggle = () => {
     if (editMode) {
@@ -1422,6 +1509,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     paymentReceipt={pkg.payment_receipt}
                     packageId={pkg.id}
                     className="w-full"
+                    onDelete={handleDeletePaymentReceipt}
                   />
                 ) : canUploadPaymentReceipt ? (
                   <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">
@@ -1466,6 +1554,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     purchaseConfirmation={pkg.purchase_confirmation}
                     packageId={pkg.id}
                     className="w-full"
+                    onDelete={handleDeletePurchaseConfirmation}
                   />
                 ) : canUploadPurchaseConfirmation ? (
                   <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">

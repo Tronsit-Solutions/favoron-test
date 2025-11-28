@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Download, Eye, X } from "lucide-react";
+import { FileText, Download, Eye, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -23,12 +24,15 @@ interface PaymentReceiptViewerProps {
     message?: string;
   };
   estimatedPrice?: number;
+  onDelete?: () => void;
 }
 
-const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, estimatedPrice }: PaymentReceiptViewerProps) => {
+const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, estimatedPrice, onDelete }: PaymentReceiptViewerProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Generate signed URL for private files
   useEffect(() => {
@@ -255,6 +259,18 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
               <Download className="h-4 w-4 mr-1" />
               Descargar
             </Button>
+            {onDelete && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={loading || deleting}
+                className="flex-1 text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Eliminar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -314,6 +330,37 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar comprobante de pago?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El comprobante de pago será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  if (onDelete) {
+                    await onDelete();
+                  }
+                  setShowDeleteDialog(false);
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

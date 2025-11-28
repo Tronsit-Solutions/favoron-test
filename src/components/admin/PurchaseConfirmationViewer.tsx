@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Eye, Download, ExternalLink } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { FileText, Eye, Download, ExternalLink, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,14 +18,17 @@ interface PurchaseConfirmationViewerProps {
   };
   packageId: string;
   className?: string;
+  onDelete?: () => void;
 }
 
 const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts'] as const;
 
-const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className }: PurchaseConfirmationViewerProps) => {
+const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className, onDelete }: PurchaseConfirmationViewerProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   const isImage = purchaseConfirmation.filename?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
@@ -191,6 +195,19 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
                 <Download className="h-4 w-4 mr-1" />
                 Descargar
               </Button>
+
+              {onDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={loading || deleting}
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Eliminar
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -213,6 +230,37 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar comprobante de compra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. El comprobante de compra será eliminado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  if (onDelete) {
+                    await onDelete();
+                  }
+                  setShowDeleteDialog(false);
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
