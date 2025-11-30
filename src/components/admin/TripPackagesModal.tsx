@@ -7,6 +7,7 @@ import { Package as PackageIcon, MapPin, DollarSign, Calendar, User } from "luci
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Trip, Package } from "@/types";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface TripPackagesModalProps {
   trip: Trip | null;
@@ -88,11 +89,11 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span><strong>Llegada:</strong> {new Date(trip.arrival_date).toLocaleDateString()}</span>
+                  <span><strong>Llegada:</strong> {formatDateUTC(trip.arrival_date)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span><strong>Entrega:</strong> {new Date(trip.delivery_date).toLocaleDateString()}</span>
+                  <span><strong>Entrega:</strong> {formatDateUTC(trip.delivery_date)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(trip.status, { context: 'trip' })}

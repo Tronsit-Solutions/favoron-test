@@ -2,6 +2,7 @@ import React from "react";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface PackageShippingInstructionsProps {
   travelerAddress: any;
@@ -35,7 +36,7 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
               <span className="text-green-600">📥</span>
               <span className="text-gray-700">Primer día para recibir paquetes:</span>
               <span className="font-semibold text-gray-800">
-                {new Date(matchedTripDates.first_day_packages).toLocaleDateString('es-GT')}
+                {formatDateUTC(matchedTripDates.first_day_packages)}
               </span>
             </div>
             
@@ -43,7 +44,7 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
               <span className="text-orange-600">📤</span>
               <span className="text-gray-700">Último día para recibir paquetes:</span>
               <span className="font-semibold text-gray-800">
-                {new Date(matchedTripDates.last_day_packages).toLocaleDateString('es-GT')}
+                {formatDateUTC(matchedTripDates.last_day_packages)}
               </span>
             </div>
             
@@ -61,7 +62,7 @@ export const PackageShippingInstructions = ({ travelerAddress, matchedTripDates 
                 </TooltipContent>
               </Tooltip>
               <span className="font-semibold text-gray-800">
-                {new Date(matchedTripDates.delivery_date).toLocaleDateString('es-GT')}
+                {formatDateUTC(matchedTripDates.delivery_date)}
               </span>
             </div>
           </div>

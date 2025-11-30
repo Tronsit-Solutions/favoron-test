@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Calendar, CheckCircle, Truck, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import AddressDisplay from "@/components/ui/address-display";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface ShippingInfoRegistryProps {
   pkg: Package;
@@ -72,30 +73,15 @@ const ShippingInfoRegistry = ({
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                  <p className="text-sm font-semibold text-primary">{new Date(tripDates.first_day_packages).toLocaleDateString('es-GT', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</p>
+                  <p className="text-sm font-semibold text-primary">{formatDateUTC(tripDates.first_day_packages)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                  <p className="text-sm font-semibold text-primary">{new Date(tripDates.last_day_packages).toLocaleDateString('es-GT', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</p>
+                  <p className="text-sm font-semibold text-primary">{formatDateUTC(tripDates.last_day_packages)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Fecha de entrega en oficina de Favoron:</p>
-                  <p className="text-sm font-semibold text-success">{new Date(tripDates.delivery_date).toLocaleDateString('es-GT', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</p>
+                  <p className="text-sm font-semibold text-success">{formatDateUTC(tripDates.delivery_date)}</p>
                   
                   <Alert className="mt-3">
                     <Info className="h-4 w-4" />
