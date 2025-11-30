@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getStatusLabel, formatFullName } from "@/lib/formatters";
+import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
@@ -652,20 +652,20 @@ const AdminMatchDialog = ({
                                    <Package className="h-3 w-3 text-blue-600" />
                                    <span className="font-medium text-blue-900 text-sm">Ventana de Recepción</span>
                                  </div>
-                                 <div className="space-y-1 text-xs">
-                                   <div className="flex justify-between">
-                                     <span className="text-blue-700">Primer día:</span>
-                                      <span className="font-medium text-blue-900">
-                                        {trip.first_day_packages ? new Date(trip.first_day_packages).toLocaleDateString('es-GT') : 'No especificado'}
-                                      </span>
-                                    </div>
+                                  <div className="space-y-1 text-xs">
                                     <div className="flex justify-between">
-                                      <span className="text-blue-700">Último día:</span>
-                                      <span className="font-medium text-blue-900">
-                                        {trip.last_day_packages ? new Date(trip.last_day_packages).toLocaleDateString('es-GT') : 'No especificado'}
-                                      </span>
-                                   </div>
-                                 </div>
+                                      <span className="text-blue-700">Primer día:</span>
+                                       <span className="font-medium text-blue-900">
+                                         {trip.first_day_packages ? formatDateUTC(new Date(trip.first_day_packages)) : 'No especificado'}
+                                       </span>
+                                     </div>
+                                     <div className="flex justify-between">
+                                       <span className="text-blue-700">Último día:</span>
+                                       <span className="font-medium text-blue-900">
+                                         {trip.last_day_packages ? formatDateUTC(new Date(trip.last_day_packages)) : 'No especificado'}
+                                       </span>
+                                    </div>
+                                  </div>
                                </div>
 
                                {/* Additional Details */}

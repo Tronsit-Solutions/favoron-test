@@ -21,7 +21,7 @@ import {
   DollarSign,
   Hash
 } from "lucide-react";
-import { formatDate } from "@/lib/formatters";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface TripDetailModalProps {
   isOpen: boolean;
@@ -105,13 +105,13 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
               <div className="bg-muted/30 rounded-lg p-3">
                 <div className="text-xs sm:text-sm font-medium">Fecha de Viaje</div>
                 <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                  Llegada: {formatDate(trip.arrival_date)}
+                  Llegada: {formatDateUTC(new Date(trip.arrival_date))}
                 </div>
               </div>
               <div className="bg-muted/30 rounded-lg p-3">
                 <div className="text-xs sm:text-sm font-medium">Fecha de Entrega</div>
                 <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                  {formatDate(trip.delivery_date)}
+                  {formatDateUTC(new Date(trip.delivery_date))}
                 </div>
               </div>
               <div className="bg-muted/30 rounded-lg p-3 sm:col-span-2">
@@ -134,14 +134,14 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                 <div className="flex-1">
                   <div className="text-xs sm:text-sm font-medium">Primer día</div>
                   <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                    {formatDate(trip.first_day_packages)}
+                    {formatDateUTC(new Date(trip.first_day_packages))}
                   </div>
                 </div>
                 <div className="text-muted-foreground hidden sm:block">—</div>
                 <div className="flex-1">
                   <div className="text-xs sm:text-sm font-medium">Último día</div>
                   <div className="text-xs sm:text-sm text-muted-foreground break-words">
-                    {formatDate(trip.last_day_packages)}
+                    {formatDateUTC(new Date(trip.last_day_packages))}
                   </div>
                 </div>
               </div>
@@ -376,11 +376,11 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
             <div className="bg-muted/30 rounded-lg p-3 sm:p-4 space-y-2">
               <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                <span className="break-words">Registrado el {formatDate(trip.created_at)}</span>
+                <span className="break-words">Registrado el {formatDateUTC(new Date(trip.created_at))}</span>
               </div>
               <div className="flex items-center gap-2 text-xs sm:text-sm">
                 <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                <span className="break-words">Última actualización: {formatDate(trip.updated_at)}</span>
+                <span className="break-words">Última actualización: {formatDateUTC(new Date(trip.updated_at))}</span>
               </div>
             </div>
           </div>
