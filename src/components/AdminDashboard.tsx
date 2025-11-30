@@ -409,7 +409,12 @@ const AdminDashboard = ({
     try {
       const safeToISOString = (dateValue: any) => {
         if (!dateValue) return null;
-        return dateValue instanceof Date ? dateValue.toISOString() : new Date(dateValue).toISOString();
+        const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+        // Normalize to midday UTC to ensure consistent date display
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+        return new Date(Date.UTC(year, month, day, 12, 0, 0, 0)).toISOString();
       };
 
       const dbData = {

@@ -84,3 +84,15 @@ export const formatFullName = (firstName?: string, lastName?: string): string =>
   if (!firstName && !lastName) return 'Usuario';
   return [firstName, lastName].filter(Boolean).join(' ');
 };
+
+/**
+ * Normaliza una fecha a mediodía UTC del día seleccionado por el usuario
+ * Esto asegura que las fechas se muestren correctamente sin importar la zona horaria
+ */
+export const normalizeToMiddayUTC = (date: Date | string): Date => {
+  const d = date instanceof Date ? date : new Date(date);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const day = d.getDate();
+  return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
+};
