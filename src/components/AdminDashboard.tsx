@@ -417,7 +417,6 @@ const AdminDashboard = ({
         from_city: editedData.fromCity,
         to_city: editedData.toCity,
         arrival_date: safeToISOString(editedData.arrivalDate),
-        departure_date: safeToISOString(editedData.arrivalDate),
         delivery_date: safeToISOString(editedData.deliveryDate),
         first_day_packages: safeToISOString(editedData.firstDayPackages),
         last_day_packages: safeToISOString(editedData.lastDayPackages),
