@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, CalendarDays, Plane } from "lucide-react";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateUTC } from "@/lib/formatters";
 
 interface TripCardProps {
   trip: any;
@@ -69,23 +69,23 @@ export const TripCard = ({
               <div className="flex items-center space-x-1">
                 <CalendarDays className="h-3 w-3 text-blue-500" />
                 <span className="text-blue-600">
-                  Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString()}
+                  Fecha de viaje: {formatDateUTC(new Date(trip.arrival_date))}
                 </span>
               </div>
               
               <div className="flex items-center space-x-4">
                 <span className="text-green-600">
-                  📥 Primer día: {new Date(trip.first_day_packages).toLocaleDateString()}
+                  📥 Primer día: {formatDateUTC(new Date(trip.first_day_packages))}
                 </span>
                 <span className="text-red-600">
-                  📤 Último día: {new Date(trip.last_day_packages).toLocaleDateString()}
+                  📤 Último día: {formatDateUTC(new Date(trip.last_day_packages))}
                 </span>
               </div>
 
               <div className="flex items-center space-x-1">
                 <CalendarDays className="h-3 w-3 text-primary" />
                 <span className="text-primary font-medium">
-                  Entrega: {new Date(trip.delivery_date).toLocaleDateString()}
+                  Entrega: {formatDateUTC(new Date(trip.delivery_date))}
                 </span>
               </div>
             </div>
