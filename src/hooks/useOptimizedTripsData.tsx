@@ -89,7 +89,6 @@ export const useOptimizedTripsData = () => {
 
       const payload = {
         ...tripData,
-        departure_date: (tripData as any).departure_date || (tripData as any).arrival_date,
         user_id: user.id,
         client_request_id: (tripData as any).client_request_id || null
       };
@@ -138,16 +137,9 @@ export const useOptimizedTripsData = () => {
 
   const updateTrip = useCallback(async (id: string, updates: TripUpdate) => {
     try {
-      const updatesWithCompat: any = {
-        ...updates,
-        ...(updates as any)?.arrival_date && !("departure_date" in (updates as any))
-          ? { departure_date: (updates as any).arrival_date }
-          : {}
-      };
-
       const { data, error } = await supabase
         .from('trips')
-        .update(updatesWithCompat)
+        .update(updates)
         .eq('id', id)
         .select()
         .single();

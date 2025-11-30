@@ -160,7 +160,6 @@ export const useDashboardActions = (
         from_city: tripData.fromCity,
         from_country: tripData.fromCountry, // Add missing fromCountry mapping
         to_city: tripData.toCity,
-        departure_date: safeToISOString(tripData.arrivalDate), // Set to arrival_date for compatibility
         arrival_date: safeToISOString(tripData.arrivalDate),
         first_day_packages: safeToISOString(tripData.firstDayPackages),
         last_day_packages: safeToISOString(tripData.lastDayPackages),
@@ -1634,7 +1633,6 @@ export const useDashboardActions = (
         from_city: editedTripData.fromCity,
         to_city: editedTripData.toCity,
         arrival_date: editedTripData.arrivalDate,
-        departure_date: editedTripData.arrivalDate, // Set to arrival_date for compatibility
         delivery_date: editedTripData.deliveryDate,
         first_day_packages: editedTripData.firstDayPackages,
         last_day_packages: editedTripData.lastDayPackages,

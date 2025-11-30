@@ -860,7 +860,7 @@ export type Database = {
           created_at: string
           delivery_date: string
           delivery_method: string | null
-          departure_date: string
+          departure_date: string | null
           first_day_packages: string
           from_city: string
           from_country: string | null
@@ -883,7 +883,7 @@ export type Database = {
           created_at?: string
           delivery_date: string
           delivery_method?: string | null
-          departure_date: string
+          departure_date?: string | null
           first_day_packages: string
           from_city: string
           from_country?: string | null
@@ -906,7 +906,7 @@ export type Database = {
           created_at?: string
           delivery_date?: string
           delivery_method?: string | null
-          departure_date?: string
+          departure_date?: string | null
           first_day_packages?: string
           from_city?: string
           from_country?: string | null
