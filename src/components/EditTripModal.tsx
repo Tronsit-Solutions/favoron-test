@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,46 @@ const EditTripModal = ({
       preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
     }
   });
+
+  // Sync formData with tripData whenever tripData changes
+  useEffect(() => {
+    if (tripData) {
+      setFormData({
+        fromCity: tripData?.from_city || '',
+        fromCityOther: tripData?.fromCityOther || '',
+        fromCountry: tripData?.from_country || '',
+        toCity: tripData?.to_city || '',
+        toCityOther: tripData?.toCityOther || '',
+        toCountry: tripData?.toCountry || 'Guatemala',
+        arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null,
+        availableSpace: tripData?.available_space?.toString() || '',
+        deliveryMethod: tripData?.delivery_method || '',
+        deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null,
+        additionalInfo: tripData?.additionalInfo || '',
+        packageReceivingAddress: {
+          accommodationType: tripData?.package_receiving_address?.accommodationType || '',
+          streetAddress: tripData?.package_receiving_address?.streetAddress || '',
+          streetAddress2: tripData?.package_receiving_address?.streetAddress2 || '',
+          cityArea: tripData?.package_receiving_address?.cityArea || '',
+          postalCode: tripData?.package_receiving_address?.postalCode || '',
+          hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
+          contactNumber: tripData?.package_receiving_address?.contactNumber || '',
+          recipientName: tripData?.package_receiving_address?.recipientName || ''
+        },
+        firstDayPackages: tripData?.first_day_packages ? new Date(tripData.first_day_packages) : null,
+        lastDayPackages: tripData?.last_day_packages ? new Date(tripData.last_day_packages) : null,
+        messengerPickupInfo: {
+          streetAddress: tripData?.messenger_pickup_info?.streetAddress || '',
+          cityArea: tripData?.messenger_pickup_info?.cityArea || '',
+          accommodationName: tripData?.messenger_pickup_info?.accommodationName || '',
+          contactNumber: tripData?.messenger_pickup_info?.contactNumber || '',
+          pickupInstructions: tripData?.messenger_pickup_info?.pickupInstructions || '',
+          preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
+        }
+      });
+    }
+  }, [tripData]);
+
   const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
