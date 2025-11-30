@@ -14,6 +14,7 @@ import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import RejectionReasonModal from "./RejectionReasonModal";
 import EditTripModal from "../EditTripModal";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface TripDetailModalProps {
   modalId: string;
@@ -389,7 +390,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                   <div>
                     <p className="text-sm font-medium">Fecha de Llegada</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(trip.arrival_date).toLocaleDateString('es-GT')}
+                      {formatDateUTC(trip.arrival_date)}
                     </p>
                   </div>
                 </div>
@@ -483,7 +484,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                     <div>
                       <p className="text-sm font-medium text-primary">Fecha de Entrega</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.delivery_date).toLocaleDateString('es-GT')}
+                        {formatDateUTC(trip.delivery_date)}
                       </p>
                     </div>
                   </div>
@@ -495,7 +496,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                     <div>
                       <p className="text-sm font-medium text-green-600">Primer Día Recibir Paquetes</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.first_day_packages).toLocaleDateString('es-GT')}
+                        {formatDateUTC(trip.first_day_packages)}
                       </p>
                     </div>
                   </div>
@@ -507,7 +508,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                     <div>
                       <p className="text-sm font-medium text-red-600">Último Día Recibir Paquetes</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
+                        {formatDateUTC(trip.last_day_packages)}
                       </p>
                     </div>
                   </div>

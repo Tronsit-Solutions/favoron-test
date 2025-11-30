@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { MapPin, Calendar, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { formatDateUTC } from "@/lib/formatters";
 interface ShippingInstructionsProps {
   pkg: PackageType;
 }
@@ -49,22 +50,14 @@ const ShippingInstructions = ({
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">📥 Primer día para recibir:</span>
                       <span className="font-semibold text-foreground">
-                        {new Date(tripDates.first_day_packages).toLocaleDateString("es-GT", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric"
-                    })}
+                        {formatDateUTC(tripDates.first_day_packages)}
                       </span>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">📤 Último día para recibir:</span>
                       <span className="font-semibold text-foreground">
-                        {new Date(tripDates.last_day_packages).toLocaleDateString("es-GT", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric"
-                    })}
+                        {formatDateUTC(tripDates.last_day_packages)}
                       </span>
                     </div>
                   </div>
@@ -72,11 +65,7 @@ const ShippingInstructions = ({
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">🏢 Entrega en Guatemala:</span>
                     <span className="font-semibold text-foreground">
-                      {new Date(tripDates.delivery_date).toLocaleDateString("es-GT", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric"
-                  })}
+                      {formatDateUTC(tripDates.delivery_date)}
                     </span>
                   </div>
                 </div>

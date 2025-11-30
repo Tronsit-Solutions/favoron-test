@@ -41,6 +41,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface AdminActionsModalProps {
   modalId: string;
@@ -770,11 +771,11 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                     <div className="flex items-center space-x-1">
                                       <Calendar className="h-3 w-3" />
-                                      <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
+                                      <span>Llegada: {formatDateUTC(trip.arrival_date)}</span>
                                     </div>
                                     <div className="flex items-center space-x-1">
                                       <Truck className="h-3 w-3" />
-                                      <span>Entrega: {new Date(trip.delivery_date).toLocaleDateString('es-GT')}</span>
+                                      <span>Entrega: {formatDateUTC(trip.delivery_date)}</span>
                                     </div>
                                   </div>
 

@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, ChevronUp, MapPin, Calendar, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CollapsibleTravelerPackageCard from "./CollapsibleTravelerPackageCard";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface TripPackagesGroupProps {
   trip: any;
@@ -61,7 +62,7 @@ const TripPackagesGroup = ({
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>Fecha de viaje: {new Date(trip.arrival_date).toLocaleDateString('es-GT')}</span>
+                    <span>Fecha de viaje: {formatDateUTC(trip.arrival_date)}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">
                     {packages.length} paquete{packages.length !== 1 ? 's' : ''}

@@ -13,6 +13,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
 import { WhatsAppTestButton } from './WhatsAppTestButton';
+import { formatDateUTC } from "@/lib/formatters";
 
 // Helper function to check if delivery is overdue
 const isDeliveryOverdue = (deliveryDate: string): boolean => {
@@ -352,17 +353,13 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                          
                          <div className="flex items-center gap-2">
                            <div className="text-sm">
-                             <span className={`font-medium ${
-                               isDeliveryOverdue(trip.delivery_date)
-                                 ? 'text-red-600 font-bold'
-                                 : 'text-primary'
-                             }`}>
-                               Entrega en oficina: {new Date(trip.delivery_date).toLocaleDateString('es-ES', {
-                                 year: 'numeric',
-                                 month: 'long', 
-                                 day: 'numeric'
-                               })}
-                             </span>
+                              <span className={`font-medium ${
+                                isDeliveryOverdue(trip.delivery_date)
+                                  ? 'text-red-600 font-bold'
+                                  : 'text-primary'
+                              }`}>
+                                Entrega en oficina: {formatDateUTC(trip.delivery_date)}
+                              </span>
                            </div>
                            {isDeliveryOverdue(trip.delivery_date) && (
                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600 text-white animate-pulse">
@@ -375,11 +372,7 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <Calendar className="h-4 w-4" />
-                            <span>Llegada: {new Date(trip.arrival_date).toLocaleDateString('es-ES', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}</span>
+                            <span>Llegada: {formatDateUTC(trip.arrival_date)}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Package className="h-4 w-4" />
