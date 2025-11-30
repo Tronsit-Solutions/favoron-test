@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useCachedData } from './useCachedData';
+import { normalizeToMiddayUTC } from '@/lib/formatters';
 
 export type Trip = Tables<'trips'>;
 export type TripInsert = TablesInsert<'trips'>;
@@ -87,8 +88,23 @@ export const useOptimizedTripsData = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuario no autenticado');
 
+      // Normalize date fields to midday UTC
+      const normalizedData = { ...tripData };
+      if (normalizedData.arrival_date) {
+        normalizedData.arrival_date = normalizeToMiddayUTC(new Date(normalizedData.arrival_date)).toISOString();
+      }
+      if (normalizedData.first_day_packages) {
+        normalizedData.first_day_packages = normalizeToMiddayUTC(new Date(normalizedData.first_day_packages)).toISOString();
+      }
+      if (normalizedData.last_day_packages) {
+        normalizedData.last_day_packages = normalizeToMiddayUTC(new Date(normalizedData.last_day_packages)).toISOString();
+      }
+      if (normalizedData.delivery_date) {
+        normalizedData.delivery_date = normalizeToMiddayUTC(new Date(normalizedData.delivery_date)).toISOString();
+      }
+
       const payload = {
-        ...tripData,
+        ...normalizedData,
         user_id: user.id,
         client_request_id: (tripData as any).client_request_id || null
       };
@@ -137,9 +153,24 @@ export const useOptimizedTripsData = () => {
 
   const updateTrip = useCallback(async (id: string, updates: TripUpdate) => {
     try {
+      // Normalize date fields to midday UTC
+      const normalizedUpdates = { ...updates };
+      if (normalizedUpdates.arrival_date) {
+        normalizedUpdates.arrival_date = normalizeToMiddayUTC(new Date(normalizedUpdates.arrival_date)).toISOString();
+      }
+      if (normalizedUpdates.first_day_packages) {
+        normalizedUpdates.first_day_packages = normalizeToMiddayUTC(new Date(normalizedUpdates.first_day_packages)).toISOString();
+      }
+      if (normalizedUpdates.last_day_packages) {
+        normalizedUpdates.last_day_packages = normalizeToMiddayUTC(new Date(normalizedUpdates.last_day_packages)).toISOString();
+      }
+      if (normalizedUpdates.delivery_date) {
+        normalizedUpdates.delivery_date = normalizeToMiddayUTC(new Date(normalizedUpdates.delivery_date)).toISOString();
+      }
+
       const { data, error } = await supabase
         .from('trips')
-        .update(updates)
+        .update(normalizedUpdates)
         .eq('id', id)
         .select()
         .single();
