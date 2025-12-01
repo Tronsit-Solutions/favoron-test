@@ -47,10 +47,16 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
       setLoading(true);
       
       // Fetch trips with last_mile_delivered field from database
-      const { data: tripsFromDB, error: tripsError } = await supabase
-        .from('trips')
-        .select('*, last_mile_delivered')
-        .in('status', ['approved', 'active']);
+    const { data: tripsFromDB, error: tripsError } = await supabase
+      .from('trips')
+      .select(`
+        id, from_city, to_city, from_country, arrival_date, delivery_date,
+        first_day_packages, last_day_packages, delivery_method, messenger_pickup_info,
+        package_receiving_address, status, created_at, updated_at, user_id,
+        available_space, last_mile_delivered, rejection_reason, admin_rejection,
+        client_request_id
+      `)
+      .in('status', ['approved', 'active']);
 
       if (tripsError) {
         console.error('Error fetching trips:', tripsError);
