@@ -13,61 +13,68 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { hasOpenModals } = useModalProtection();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [tabJustBecameVisible, setTabJustBecameVisible] = useState(false);
 
-  // Get current user info on mount
+  // Track tab visibility changes with grace period
   useEffect(() => {
-    const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        setTabJustBecameVisible(true);
+        setTimeout(() => setTabJustBecameVisible(false), 5000); // 5s grace period
+      }
     };
-    getCurrentUser();
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     window.location.href = 'https://favoron.app';
   };
-useEffect(() => {
-  // Robust auth guard with modal and visibility protection
-  const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
-  let cancelled = false;
+  useEffect(() => {
+    // Auth guard with grace period after tab visibility changes
+    const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
+    let cancelled = false;
 
-  const delay = (typeof hasOpenModals === 'function' && hasOpenModals()) ? 30000 : 10000; // 30s if modal open, else 10s
+    const checkAndMaybeRedirect = async () => {
+      if (cancelled) return;
 
-  const checkAndMaybeRedirect = async () => {
-    if (cancelled) return;
-
-    // If authenticated, persist flag and stop
-    if (user) {
-      try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
-      return;
-    }
-
-    // Avoid redirecting while loading, hidden tab, or offline
-    if (loading || document.hidden || !navigator.onLine) return;
-
-    // If previously authenticated, be conservative (transient null user)
-    if (wasAuthenticated) return;
-
-    // Final verification with Supabase to avoid race conditions
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
+      // If authenticated, persist flag and stop
+      if (user) {
         try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
         return;
       }
-    } catch {
-      // If getSession fails, do not be aggressive
-      return;
-    }
 
-    if (!cancelled) window.location.href = 'https://favoron.app';
-  };
+      // Don't redirect if:
+      // - Still loading
+      // - Tab is hidden
+      // - Tab just became visible (grace period)
+      // - Offline
+      // - User was previously authenticated this session
+      if (loading || document.hidden || tabJustBecameVisible || !navigator.onLine) return;
+      if (wasAuthenticated) return; // Trust this flag - user already authenticated
 
-  const timer = setTimeout(checkAndMaybeRedirect, delay);
-  return () => { cancelled = true; clearTimeout(timer); };
-}, [user, loading, navigate, hasOpenModals, location]);
+      // Only verify with Supabase if it really seems there's no session
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session) {
+          try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
+          return;
+        }
+      } catch {
+        // If getSession fails, don't redirect
+        return;
+      }
+
+      // Only redirect if definitely no session
+      if (!cancelled) window.location.href = 'https://favoron.app';
+    };
+
+    // Longer delay if modal is open, shorter otherwise
+    const delay = (typeof hasOpenModals === 'function' && hasOpenModals()) ? 30000 : 15000;
+    const timer = setTimeout(checkAndMaybeRedirect, delay);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [user, loading, hasOpenModals, tabJustBecameVisible]);
 
   // Only show loading spinner if we're genuinely loading (not just transient states)
   if (loading && !user) {
