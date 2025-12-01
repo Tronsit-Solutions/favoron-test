@@ -1155,7 +1155,6 @@ export type Database = {
           created_at: string
           delivery_date: string
           delivery_method: string
-          departure_date: string
           email: string
           first_day_packages: string
           first_name: string
@@ -1235,7 +1234,6 @@ export type Database = {
         Args: never
         Returns: {
           arrival_date: string
-          departure_date: string
           from_city: string
           id: string
           status: string
