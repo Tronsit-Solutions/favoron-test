@@ -1,0 +1,1 @@
+ALTER TABLE public.trips DROP COLUMN departure_date;

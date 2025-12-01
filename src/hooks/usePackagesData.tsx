@@ -34,7 +34,6 @@ export const usePackagesData = () => {
           trips:matched_trip_id (
             id,
             package_receiving_address,
-            departure_date,
             arrival_date,
             first_day_packages,
             last_day_packages,

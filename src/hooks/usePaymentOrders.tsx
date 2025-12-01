@@ -45,7 +45,6 @@ export const usePaymentOrders = () => {
             id,
             from_city,
             to_city,
-            departure_date,
             arrival_date,
             user_id,
             packages:packages!matched_trip_id (
@@ -162,7 +161,6 @@ export const usePaymentOrders = () => {
             id,
             from_city,
             to_city,
-            departure_date,
             arrival_date,
             user_id,
             packages:packages!matched_trip_id (
