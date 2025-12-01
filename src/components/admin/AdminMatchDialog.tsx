@@ -110,6 +110,13 @@ const AdminMatchDialog = ({
       return 'espana';
     }
     
+    // Map Mexico variations
+    if (normalized.includes('mexico') || normalized.includes('méxico') ||
+        normalized.includes('mx') || normalized.includes('cdmx') ||
+        normalized.includes('ciudad de mexico') || normalized.includes('ciudad de méxico')) {
+      return 'mexico';
+    }
+    
     // Map Guatemala variations (including cities)
     if (normalized.includes('guatemala') || normalized.includes('quetzaltenango') ||
         normalized.includes('xela') || normalized.includes('antigua') ||
