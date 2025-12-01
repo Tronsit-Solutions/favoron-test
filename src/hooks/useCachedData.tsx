@@ -41,6 +41,7 @@ export const useCachedData = <T,>(
     }
 
     try {
+      // Don't reset data to null - keep previous data visible during refresh
       setLoading(true);
       setError(null);
       const result = await fetchFn();
