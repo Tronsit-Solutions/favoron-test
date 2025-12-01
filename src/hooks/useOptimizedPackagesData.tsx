@@ -60,7 +60,6 @@ export const useOptimizedPackagesData = () => {
       .select(`
         id,
         package_receiving_address,
-        departure_date,
         arrival_date,
         first_day_packages,
         last_day_packages,
@@ -118,7 +117,6 @@ export const useOptimizedPackagesData = () => {
             id,
             from_city,
             to_city,
-            departure_date,
             arrival_date,
             delivery_date,
             first_day_packages,
