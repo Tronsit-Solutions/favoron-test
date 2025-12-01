@@ -93,14 +93,27 @@ const AdminMatchDialog = ({
     }, 0);
   };
 
-  // Filter trips to exclude those with past arrival dates
+  // Filter trips to exclude those with past arrival dates and match by country
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const validTrips = availableTrips.filter(trip => {
-    const isNotExpired = new Date(trip.arrival_date) >= today;
-    return isNotExpired;
-  });
+  const packageOrigin = selectedPackage?.purchase_origin?.toLowerCase();
+  
+  const validTrips = availableTrips
+    .filter(trip => {
+      // Exclude trips with past arrival dates
+      const isNotExpired = new Date(trip.arrival_date) >= today;
+      
+      // Only show trips from the same country as the package origin
+      const tripCountry = (trip.from_country || trip.from_city || '').toLowerCase();
+      const matchesOrigin = !packageOrigin || 
+                           tripCountry.includes(packageOrigin) || 
+                           packageOrigin.includes(tripCountry);
+      
+      return isNotExpired && matchesOrigin;
+    })
+    // Sort by arrival date (soonest first)
+    .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
 
   // Handle modal state persistence
   useEffect(() => {
