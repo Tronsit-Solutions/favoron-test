@@ -93,24 +93,56 @@ const AdminMatchDialog = ({
     }, 0);
   };
 
-  // Filter trips to exclude those with past arrival dates and match by country
+  // Normalize country names to handle variations
+  const normalizeCountry = (location: string): string => {
+    const normalized = location?.toLowerCase().trim() || '';
+    
+    // Map US variations
+    if (normalized.includes('usa') || normalized.includes('estados unidos') || 
+        normalized.includes('estados-unidos') || normalized.includes('united states') ||
+        normalized.includes('ee.uu') || normalized.includes('eeuu')) {
+      return 'usa';
+    }
+    
+    // Map Spain variations
+    if (normalized.includes('españa') || normalized.includes('espana') || 
+        normalized.includes('spain')) {
+      return 'espana';
+    }
+    
+    // Map Guatemala variations (including cities)
+    if (normalized.includes('guatemala') || normalized.includes('quetzaltenango') ||
+        normalized.includes('xela') || normalized.includes('antigua') ||
+        normalized.includes('zona 14') || normalized.includes('guatemala city')) {
+      return 'guatemala';
+    }
+    
+    return normalized;
+  };
+
+  // Filter trips by country (origin and destination) and exclude past dates
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const packageOrigin = selectedPackage?.purchase_origin?.toLowerCase();
+  const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+  const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
   
   const validTrips = availableTrips
     .filter(trip => {
       // Exclude trips with past arrival dates
       const isNotExpired = new Date(trip.arrival_date) >= today;
       
-      // Only show trips from the same country as the package origin
-      const tripCountry = (trip.from_country || trip.from_city || '').toLowerCase();
-      const matchesOrigin = !packageOrigin || 
-                           tripCountry.includes(packageOrigin) || 
-                           packageOrigin.includes(tripCountry);
+      // Filter by origin country (normalized)
+      const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+      const matchesOrigin = !packageOriginNormalized || 
+                           tripOriginNormalized === packageOriginNormalized;
       
-      return isNotExpired && matchesOrigin;
+      // Filter by destination country (normalized)
+      const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
+      const matchesDestination = !packageDestinationNormalized || 
+                               tripDestinationNormalized === packageDestinationNormalized;
+      
+      return isNotExpired && matchesOrigin && matchesDestination;
     })
     // Sort by arrival date (soonest first)
     .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
