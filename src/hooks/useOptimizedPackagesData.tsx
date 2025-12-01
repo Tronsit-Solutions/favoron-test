@@ -9,7 +9,7 @@ export type Package = Tables<'packages'>;
 export type PackageInsert = TablesInsert<'packages'>;
 export type PackageUpdate = TablesUpdate<'packages'>;
 
-export const useOptimizedPackagesData = () => {
+export const useOptimizedPackagesData = (userId?: string) => {
   const { toast } = useToast();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,15 +88,13 @@ export const useOptimizedPackagesData = () => {
 
   // Optimized fetch function using cached data
   const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
-    // Get current user directly from supabase auth
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      console.log('📦 No user available, returning empty');
+    // Use userId passed as parameter to avoid redundant auth check
+    if (!userId) {
+      console.log('📦 No user ID provided, returning empty');
       return [];
     }
 
-    console.log('📦 Fetching packages for user:', user.id);
+    console.log('📦 Fetching packages for user:', userId);
     
     try {
       const { data, error } = await supabase
@@ -150,9 +148,9 @@ export const useOptimizedPackagesData = () => {
       console.error('📦 Package fetch failed:', error);
       return [];
     }
-  }, [toast]);
+  }, [toast, userId]);
 
-  // Use cached data with 30-second TTL
+  // Use cached data with 2-minute TTL
   const { 
     data: cachedPackages, 
     loading: cacheLoading, 
@@ -160,8 +158,9 @@ export const useOptimizedPackagesData = () => {
     refresh: refreshCache,
     invalidate: invalidateCache 
   } = useCachedData(fetchPackagesOptimized, {
-    key: `packages-optimized`,
-    ttl: 30000 // 30 seconds
+    key: `packages-optimized-${userId || 'default'}`,
+    ttl: 120000, // 2 minutes
+    enabled: !!userId
   });
 
   // Sync local state with cached data

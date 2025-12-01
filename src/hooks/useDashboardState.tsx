@@ -91,7 +91,7 @@ export const useDashboardState = (user: any) => {
   // Use admin-specific hook for admin tab, otherwise use regular hooks
   const adminData = useAdminData();
   
-  const regularPackagesData = useOptimizedPackagesData();
+  const regularPackagesData = useOptimizedPackagesData(user?.id);
   const regularTripsData = useOptimizedTripsData();
 
   // Choose data source based on context - más tolerante durante estados de transición
