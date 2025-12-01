@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -856,6 +856,18 @@ const AdminMatchDialog = ({
                           {selectedTraveler.first_name && selectedTraveler.last_name 
                             ? `${selectedTraveler.first_name} ${selectedTraveler.last_name}` 
                             : selectedTraveler.username || `Usuario ID: ${selectedTraveler.trip?.user_id}`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Teléfono</p>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedTraveler.country_code && selectedTraveler.phone_number
+                            ? `${selectedTraveler.country_code} ${selectedTraveler.phone_number}`
+                            : selectedTraveler.phone_number || 'No especificado'}
                         </p>
                       </div>
                     </div>
