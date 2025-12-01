@@ -756,19 +756,19 @@ const AdminMatchDialog = ({
               
               {isMultiProductOrder() ? (
                 // Multi-product order: Show button to open modal
-                <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowProductTipModal(true)}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto shrink-0"
                     disabled={loadingDetails}
                   >
                     <Settings className="h-4 w-4 mr-2" />
                     {loadingDetails ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
                   </Button>
                   {getTotalAssignedTip() > 0 && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex-1">
                       <p className="text-sm font-medium text-green-800">
                         Tips asignados: Q{getTotalAssignedTip().toFixed(2)}
                       </p>
