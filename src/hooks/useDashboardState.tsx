@@ -88,14 +88,15 @@ export const useDashboardState = (user: any) => {
     }
   }, [isAdmin, userRole]);
 
+  // Determine if we should use admin data BEFORE calling hooks
+  const shouldUseAdminData = isAdminTab && (isAdmin || wasAdminUser || (!userRole && wasAdminUser));
+
   // Use admin-specific hook for admin tab, otherwise use regular hooks
   const adminData = useAdminData();
   
-  const regularPackagesData = useOptimizedPackagesData(user?.id);
+  // Only fetch regular packages data if NOT on admin tab - prevents unnecessary queries and error toasts
+  const regularPackagesData = useOptimizedPackagesData(shouldUseAdminData ? undefined : user?.id);
   const regularTripsData = useOptimizedTripsData();
-
-  // Choose data source based on context - más tolerante durante estados de transición
-  const shouldUseAdminData = isAdminTab && (isAdmin || wasAdminUser || (!userRole && wasAdminUser));
   
   const {
     packages,
