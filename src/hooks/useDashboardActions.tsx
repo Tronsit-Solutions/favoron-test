@@ -1723,6 +1723,41 @@ export const useDashboardActions = (
     }
   };
 
+  // Handler for travelers to dismiss expired quotes from their view
+  const handleDismissExpiredPackage = async (packageId: string) => {
+    try {
+      if (!updatePackage) {
+        console.error('updatePackage function not available');
+        return;
+      }
+
+      // Set traveler_dismissed_at and clear matched_trip_id to free the package
+      await updatePackage(packageId, {
+        traveler_dismissed_at: new Date().toISOString(),
+        matched_trip_id: null,
+        traveler_address: null,
+        matched_trip_dates: null,
+      });
+
+      toast({
+        title: "Paquete descartado",
+        description: "El paquete ha sido removido de tu lista de viajes.",
+      });
+
+      // Refresh to update the view
+      if (refreshPackages) {
+        await refreshPackages();
+      }
+    } catch (error) {
+      console.error('Error dismissing expired package:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo descartar el paquete. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     handlePackageSubmit,
     handleTripSubmit,
@@ -1742,6 +1777,7 @@ export const useDashboardActions = (
     handleConfirmShopperReceived,
     handleConfirmDeliveryComplete,
     handleEditTrip,
-    handleEditPackage
+    handleEditPackage,
+    handleDismissExpiredPackage
   };
 };

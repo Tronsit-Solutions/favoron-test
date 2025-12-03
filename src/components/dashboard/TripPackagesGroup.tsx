@@ -14,6 +14,7 @@ interface TripPackagesGroupProps {
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
   onConfirmOfficeDelivery?: (packageId: string) => void;
+  onDismissExpiredPackage?: (packageId: string) => void;
   updatePackage: (id: string, updates: any) => Promise<any>;
   defaultExpanded?: boolean;
 }
@@ -25,6 +26,7 @@ const TripPackagesGroup = ({
   onQuote,
   onConfirmReceived,
   onConfirmOfficeDelivery,
+  onDismissExpiredPackage,
   updatePackage,
   defaultExpanded = false
 }: TripPackagesGroupProps) => {
@@ -122,6 +124,7 @@ const TripPackagesGroup = ({
                       onQuote={onQuote}
                       onConfirmReceived={onConfirmReceived}
                       onConfirmOfficeDelivery={onConfirmOfficeDelivery}
+                      onDismissExpiredPackage={onDismissExpiredPackage}
                       updatePackage={updatePackage}
                       hasPendingAction={hasPendingAction}
                       autoExpand={false}

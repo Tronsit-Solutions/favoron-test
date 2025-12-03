@@ -170,7 +170,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditTrip,
     handleEditPackage,
     handleAdminConfirmOfficeDelivery,
-    handleConfirmShopperReceived
+    handleConfirmShopperReceived,
+    handleDismissExpiredPackage
   } = useDashboardActions(
     packages,
     setPackages,
@@ -233,6 +234,11 @@ const Dashboard = ({ user }: DashboardProps) => {
   
   // Get packages assigned to user's trips (for traveler view)
   const assignedPackages = packages.filter(pkg => {
+    // Exclude dismissed packages
+    if (pkg.traveler_dismissed_at) {
+      return false;
+    }
+    
     // Check if package is assigned to any of user's trips
     if (pkg.matched_trip_id && userTrips.some(trip => trip.id === pkg.matched_trip_id)) {
       return true;
@@ -819,7 +825,9 @@ const Dashboard = ({ user }: DashboardProps) => {
                              ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
                            );
                            const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-                           return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status);
+                           // Include quote_expired packages so traveler can dismiss them
+                           const isExpiredQuote = pkg.status === 'quote_expired';
+                           return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status) || isExpiredQuote;
                          })
                         .sort((a, b) => {
                           // Priority 1: Packages with pending actions first
@@ -854,6 +862,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
                                 handleConfirmOfficeReception(packageId);
                               }}
+                              onDismissExpiredPackage={handleDismissExpiredPackage}
                               updatePackage={updatePackage}
                               hasPendingAction={hasPendingAction}
                               autoExpand={false}

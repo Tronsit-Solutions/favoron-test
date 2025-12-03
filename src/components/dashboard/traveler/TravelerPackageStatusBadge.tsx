@@ -111,6 +111,14 @@ const TRAVELER_STATUS_MAP: Record<string, StatusConfig> = {
     bgColor: "bg-red-50",
     textColor: "text-red-600",
   },
+  quote_expired: {
+    emoji: "⏰",
+    label: "Cotización expirada",
+    description: "La cotización expiró porque el shopper no pagó a tiempo.",
+    bgColor: "bg-amber-50",
+    textColor: "text-amber-600",
+    actionMessage: "Puedes descartar este paquete de tu lista de viajes.",
+  },
 };
 
 interface TravelerPackageStatusBadgeProps {

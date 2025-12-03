@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import TravelerPackageTimeline from "./TravelerPackageTimeline";
 import PackageReceiptConfirmation from "../PackageReceiptConfirmation";
 import { ProductReceiptConfirmation } from "../ProductReceiptConfirmation";
@@ -28,6 +29,7 @@ interface CollapsibleTravelerPackageCardProps {
   onQuote: (pkg: any, userType: 'user' | 'admin') => void;
   onConfirmReceived: (packageId: string, photo?: string) => void;
   onConfirmOfficeDelivery?: (packageId: string) => void;
+  onDismissExpiredPackage?: (packageId: string) => void;
   updatePackage: (id: string, updates: any) => Promise<any>;
   hasPendingAction?: boolean;
   autoExpand?: boolean;
@@ -39,6 +41,7 @@ const CollapsibleTravelerPackageCard = ({
   onQuote,
   onConfirmReceived,
   onConfirmOfficeDelivery,
+  onDismissExpiredPackage,
   updatePackage,
   hasPendingAction = false,
   autoExpand = false
@@ -214,6 +217,22 @@ const CollapsibleTravelerPackageCard = ({
                   />
                 </div>
 
+                {/* Dismiss button for expired quotes - mobile */}
+                {pkg.status === 'quote_expired' && onDismissExpiredPackage && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDismissExpiredPackage(pkg.id);
+                    }}
+                    className="w-full text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Descartar de mis viajes
+                  </Button>
+                )}
+
                 {/* Priority action button - full width on mobile */}
                 <div className="w-full">
                   <TravelerPackagePriorityActions
@@ -329,6 +348,27 @@ const CollapsibleTravelerPackageCard = ({
                       {pkg.status === 'cancelled' && (
                         <div className="font-medium text-red-600">
                           ❌ Cancelado
+                        </div>
+                      )}
+                      {pkg.status === 'quote_expired' && (
+                        <div className="space-y-2">
+                          <div className="font-medium text-amber-600">
+                            ⏰ Cotización expirada - El shopper no pagó a tiempo
+                          </div>
+                          {onDismissExpiredPackage && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDismissExpiredPackage(pkg.id);
+                              }}
+                              className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Descartar de mis viajes
+                            </Button>
+                          )}
                         </div>
                       )}
                       {pkg.status === 'pending_approval' && (
