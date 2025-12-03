@@ -33,6 +33,7 @@ interface MonthlyReport {
   completed_packages: number;
   total_trips: number;
   total_revenue: number;
+  favoron_earnings: number;
   average_package_value: number;
   completion_rate: number;
   status_breakdown: Record<string, { count: number; revenue: number }> | null;
@@ -544,8 +545,8 @@ const MonthlyReportsTab = () => {
                     </div>
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <Coins className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-green-600">{formatCurrency(report.total_revenue)}</p>
-                      <p className="text-xs text-muted-foreground">Ingresos totales</p>
+                      <p className="text-2xl font-bold text-green-600">{formatCurrency(report.total_revenue)} / {formatCurrency(report.favoron_earnings)}</p>
+                      <p className="text-xs text-muted-foreground">Pagado shoppers / Fee Favorón</p>
                     </div>
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <CheckCircle className="h-6 w-6 text-blue-600 mx-auto mb-2" />
