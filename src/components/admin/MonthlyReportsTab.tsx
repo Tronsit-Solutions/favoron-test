@@ -30,6 +30,7 @@ interface MonthlyReport {
   month: string;
   month_name: string;
   total_packages: number;
+  completed_packages: number;
   total_trips: number;
   total_revenue: number;
   average_package_value: number;
@@ -512,7 +513,7 @@ const MonthlyReportsTab = () => {
                     <div>
                       <CardTitle className="text-lg">{report.month_name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {report.total_packages} paquetes • {report.total_trips} viajes
+                        {report.completed_packages}/{report.total_packages} paquetes • {report.total_trips} viajes
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -533,8 +534,8 @@ const MonthlyReportsTab = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="text-center p-4 bg-primary/5 rounded-lg">
                       <Package className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-primary">{report.total_packages}</p>
-                      <p className="text-xs text-muted-foreground">Total paquetes</p>
+                      <p className="text-2xl font-bold text-primary">{report.completed_packages} / {report.total_packages}</p>
+                      <p className="text-xs text-muted-foreground">Confirmados / Solicitados</p>
                     </div>
                     <div className="text-center p-4 bg-traveler/5 rounded-lg">
                       <Plane className="h-6 w-6 text-traveler mx-auto mb-2" />
