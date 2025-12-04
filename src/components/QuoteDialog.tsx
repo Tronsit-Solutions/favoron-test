@@ -778,19 +778,9 @@ const QuoteDialog = ({
                                 {product.itemDescription || `Producto ${index + 1}`}
                               </p>
                               
-                              <div className="space-y-1 text-xs">
-                                <div className="flex justify-between text-green-700">
-                                  <span>Tip viajero:</span>
-                                  <span>{formatCurrency(tip)}</span>
-                                </div>
-                                <div className="flex justify-between text-green-700">
-                                  <span>Fee Favorón:</span>
-                                  <span>{formatCurrency(serviceFee)}</span>
-                                </div>
-                                <div className="flex justify-between font-semibold text-green-800 pt-1 border-t border-green-200">
-                                  <span>Subtotal:</span>
-                                  <span>{formatCurrency(subtotal)}</span>
-                                </div>
+                              <div className="flex justify-between font-semibold text-green-800 text-sm">
+                                <span>Subtotal:</span>
+                                <span>{formatCurrency(subtotal)}</span>
                               </div>
                             </div>
                           );
