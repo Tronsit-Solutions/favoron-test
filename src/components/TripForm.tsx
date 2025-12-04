@@ -168,7 +168,6 @@ const TripForm = ({
     { value: 'Miami', label: 'Miami, FL' },
     { value: 'Orlando', label: 'Orlando, FL' },
     { value: 'Tampa', label: 'Tampa, FL' },
-    { value: 'Otra ciudad', label: 'Otra ciudad' }
   ];
   const accommodationTypes = [{
     value: 'hotel',
@@ -441,10 +440,11 @@ const TripForm = ({
                         options={usCities}
                         value={formData.fromCity}
                         onValueChange={value => handleInputChange('fromCity', value)}
-                        placeholder="Ciudad"
+                        placeholder="Escribe o selecciona tu ciudad"
                         searchPlaceholder="Buscar ciudad..."
-                        emptyMessage="No se encontraron ciudades"
+                        emptyMessage="No encontrada"
                         className="w-full text-sm h-8"
+                        allowCustomValue={true}
                       />
                     </div>
                   ) : (
@@ -456,15 +456,6 @@ const TripForm = ({
                       onChange={e => handleInputChange('fromCity', e.target.value)} 
                       required 
                       className="w-full text-sm"
-                    />
-                  )}
-                  {formData.fromCountry === 'estados-unidos' && formData.fromCity === 'Otra ciudad' && (
-                    <Input 
-                      placeholder="Escribe tu ciudad de origen" 
-                      value={formData.fromCity === 'Otra ciudad' ? '' : formData.fromCity}
-                      onChange={e => handleInputChange('fromCity', e.target.value)} 
-                      className="mt-2 text-sm"
-                      required
                     />
                   )}
                 </div>

@@ -31,6 +31,7 @@ interface ComboboxProps {
   emptyMessage?: string
   className?: string
   disabled?: boolean
+  allowCustomValue?: boolean
 }
 
 export function Combobox({
@@ -42,10 +43,20 @@ export function Combobox({
   emptyMessage = "No se encontraron resultados",
   className,
   disabled = false,
+  allowCustomValue = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState("")
 
   const selectedOption = options.find((option) => option.value === value)
+  
+  // Check if the current search query matches any option
+  const hasExactMatch = options.some(
+    (option) => option.value.toLowerCase() === searchQuery.toLowerCase() ||
+                option.label.toLowerCase() === searchQuery.toLowerCase()
+  )
+  
+  const showCustomOption = allowCustomValue && searchQuery.length > 0 && !hasExactMatch
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -69,16 +80,50 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 z-50 bg-popover" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>
+              {allowCustomValue && searchQuery.length > 0 ? (
+                <CommandItem
+                  value={searchQuery}
+                  onSelect={() => {
+                    onValueChange(searchQuery)
+                    setSearchQuery("")
+                    setOpen(false)
+                  }}
+                  className="cursor-pointer"
+                >
+                  <span className="text-primary">+ Usar "{searchQuery}"</span>
+                </CommandItem>
+              ) : (
+                emptyMessage
+              )}
+            </CommandEmpty>
             <CommandGroup>
+              {showCustomOption && (
+                <CommandItem
+                  value={searchQuery}
+                  onSelect={() => {
+                    onValueChange(searchQuery)
+                    setSearchQuery("")
+                    setOpen(false)
+                  }}
+                  className="cursor-pointer border-b border-border mb-1"
+                >
+                  <span className="text-primary">+ Usar "{searchQuery}"</span>
+                </CommandItem>
+              )}
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
                     onValueChange(currentValue === value ? "" : currentValue)
+                    setSearchQuery("")
                     setOpen(false)
                   }}
                 >
