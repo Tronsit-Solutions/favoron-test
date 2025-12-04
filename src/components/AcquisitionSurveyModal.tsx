@@ -72,16 +72,16 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onComplete()}>
       <DialogContent 
-        className="sm:max-w-[400px]"
+        className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle className="text-xl">¿Cómo conociste Favorón? 🎉</DialogTitle>
+          <DialogTitle className="text-lg">¿Cómo conociste Favorón? 🎉</DialogTitle>
           <DialogDescription className="text-sm">
             No queremos seguir tirando pisto en mala publicidad. Cuéntanos, ¿cómo nos encontraste?
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 py-3">
+        <div className="space-y-1.5 py-2">
           {surveyOptions.map((option) => {
             const Icon = option.icon;
             const isSelected = selectedSource === option.value;
@@ -90,17 +90,17 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
               <div key={option.value}>
                 <Card
                   className={cn(
-                    "p-3 cursor-pointer transition-all hover:shadow-md",
+                    "p-2.5 cursor-pointer transition-all hover:shadow-md",
                     isSelected && "ring-2 ring-primary shadow-lg"
                   )}
                   onClick={() => setSelectedSource(option.value)}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     <div className={cn(
-                      "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center",
+                      "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center",
                       option.color
                     )}>
-                      <Icon className="w-5 h-5 text-white" />
+                      <Icon className="w-4 h-4 text-white" />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-sm">{option.label}</p>
@@ -120,8 +120,8 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
                   </div>
                 </Card>
                 {option.value === 'friend_referral' && isSelected && (
-                  <div className="ml-12 mt-2 space-y-2 animate-in slide-in-from-top-2">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="ml-10 mt-1.5 space-y-1.5 animate-in slide-in-from-top-2">
+                    <p className="text-xs text-muted-foreground">
                       🎁 Si es usuario de Favorón, ¡le daremos un regalito! ;)
                     </p>
                     <Input
