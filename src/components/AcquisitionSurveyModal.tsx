@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Instagram, Facebook, Music2, Video, Users, Search } from "lucide-react";
 import { useAcquisitionSurvey, AcquisitionSource } from "@/hooks/useAcquisitionSurvey";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
   const { submitSurvey } = useAcquisitionSurvey();
   const [selectedSource, setSelectedSource] = useState<AcquisitionSource | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [referrerName, setReferrerName] = useState('');
 
   const surveyOptions = [
     {
@@ -59,7 +61,7 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
     if (!selectedSource) return;
 
     setIsSubmitting(true);
-    const result = await submitSurvey(selectedSource);
+    const result = await submitSurvey(selectedSource, referrerName || undefined);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -85,38 +87,53 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
             const isSelected = selectedSource === option.value;
 
             return (
-              <Card
-                key={option.value}
-                className={cn(
-                  "p-3 cursor-pointer transition-all hover:shadow-md",
-                  isSelected && "ring-2 ring-primary shadow-lg"
+              <div key={option.value}>
+                <Card
+                  className={cn(
+                    "p-3 cursor-pointer transition-all hover:shadow-md",
+                    isSelected && "ring-2 ring-primary shadow-lg"
+                  )}
+                  onClick={() => setSelectedSource(option.value)}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={cn(
+                      "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center",
+                      option.color
+                    )}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{option.label}</p>
+                    </div>
+                    <div className={cn(
+                      "w-5 h-5 rounded-full border-2 transition-all",
+                      isSelected 
+                        ? "bg-primary border-primary" 
+                        : "border-muted-foreground/30"
+                    )}>
+                      {isSelected && (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+                {option.value === 'friend_referral' && isSelected && (
+                  <div className="ml-12 mt-2 space-y-2 animate-in slide-in-from-top-2">
+                    <p className="text-sm text-muted-foreground">
+                      🎁 Si es usuario de Favorón, ¡le daremos un regalito! ;)
+                    </p>
+                    <Input
+                      placeholder="Nombre de quien te refirió (opcional)"
+                      value={referrerName}
+                      onChange={(e) => setReferrerName(e.target.value)}
+                      className="text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                 )}
-                onClick={() => setSelectedSource(option.value)}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className={cn(
-                    "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center",
-                    option.color
-                  )}>
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{option.label}</p>
-                  </div>
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 transition-all",
-                    isSelected 
-                      ? "bg-primary border-primary" 
-                      : "border-gray-300"
-                  )}>
-                    {isSelected && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
+              </div>
             );
           })}
         </div>
