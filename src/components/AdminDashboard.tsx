@@ -22,13 +22,12 @@ import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 
 
-import AdminTravelerPaymentsTab from "./admin/AdminTravelerPaymentsTab";
 import AdminMatchingTab from "./admin/AdminMatchingTab";
 import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
-import AdminRefundsTab from "./admin/AdminRefundsTab";
+import AdminPaymentsUnifiedTab from "./admin/AdminPaymentsUnifiedTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -525,9 +524,9 @@ const AdminDashboard = ({
       badge: (matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers) > 0 ? <NotificationBadge count={matchingTotal + localPackages.filter(p => p.status === 'pending_office_confirmation').length + paymentsToConfirm + pendingActions.rejectedByTravelers} /> : undefined
     },
     {
-      value: "traveler-payments",
-      label: "Pagos Viajeros",
-      badge: pendingTravelerPayments > 0 ? <NotificationBadge count={pendingTravelerPayments} /> : undefined
+      value: "payments",
+      label: "Pagos",
+      badge: (pendingTravelerPayments + pendingRefundsCount) > 0 ? <NotificationBadge count={pendingTravelerPayments + pendingRefundsCount} /> : undefined
     },
     {
       value: "support",
@@ -543,11 +542,6 @@ const AdminDashboard = ({
       value: "reports",
       label: "Reportes",
       badge: undefined
-    },
-    {
-      value: "refunds",
-      label: "Reembolsos",
-      badge: pendingRefundsCount > 0 ? <NotificationBadge count={pendingRefundsCount} /> : undefined
     }
   ];
   
@@ -573,7 +567,7 @@ const AdminDashboard = ({
         ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <TabsList className="grid w-full grid-cols-8">
+                <TabsList className="grid w-full grid-cols-7">
                   {adminTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -655,8 +649,8 @@ const AdminDashboard = ({
         </TabsContent>
 
 
-        <TabsContent value="traveler-payments" className="space-y-4">
-          <AdminTravelerPaymentsTab />
+        <TabsContent value="payments" className="space-y-4">
+          <AdminPaymentsUnifiedTab />
         </TabsContent>
 
         <TabsContent value="support" className="space-y-4">
@@ -673,10 +667,6 @@ const AdminDashboard = ({
 
         <TabsContent value="reports" className="space-y-4">
           <MonthlyReportsTab />
-        </TabsContent>
-
-        <TabsContent value="refunds" className="space-y-4">
-          <AdminRefundsTab />
         </TabsContent>
 
       </Tabs>
