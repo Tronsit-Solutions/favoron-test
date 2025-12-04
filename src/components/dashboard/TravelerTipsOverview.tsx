@@ -44,12 +44,28 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
   // Rejected packages (to show separately)
   const rejectedPackages = allFilteredPackages.filter(pkg => pkg.status === 'rejected');
 
-  // Calculate total tips from active packages only
+  // Calculate total tips from active packages only, excluding cancelled products
   const totalTips = filteredPackages.reduce((sum, pkg) => {
+    // If package has products_data, sum tips excluding cancelled products
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      return sum + pkg.products_data.reduce((productSum: number, product: any) => {
+        if (product.cancelled) return productSum; // Skip cancelled products
+        return productSum + parseFloat(product.adminAssignedTip || '0');
+      }, 0);
+    }
+    // Fallback to quote.price for packages without products_data
     if (pkg.quote?.price) {
       return sum + parseFloat(pkg.quote.price);
     }
     return sum;
+  }, 0);
+
+  // Count cancelled products across all packages
+  const cancelledProductsCount = filteredPackages.reduce((count, pkg) => {
+    if (pkg.products_data && Array.isArray(pkg.products_data)) {
+      return count + pkg.products_data.filter((p: any) => p.cancelled).length;
+    }
+    return count;
   }, 0);
 
   // Count packages with confirmed tips (active only)
@@ -166,6 +182,13 @@ const TravelerTipsOverview = ({ packages, trips }: TravelerTipsOverviewProps) =>
             </p>
           </div>
         </div>
+
+        {/* Cancelled products notice */}
+        {cancelledProductsCount > 0 && (
+          <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
+            ⚠️ {cancelledProductsCount} producto{cancelledProductsCount !== 1 ? 's' : ''} cancelado{cancelledProductsCount !== 1 ? 's' : ''} - el tip de productos cancelados no se incluye en el total
+          </div>
+        )}
 
         {/* Rejected Packages Section */}
         {rejectedPackages.length > 0 && (

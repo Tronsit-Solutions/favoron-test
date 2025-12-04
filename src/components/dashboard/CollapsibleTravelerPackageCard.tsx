@@ -124,24 +124,44 @@ const CollapsibleTravelerPackageCard = ({
 
   const getPackageDescription = () => {
     const tipAmount = getTipAmount();
+    const cancelledProducts = pkg.products_data?.filter((p: any) => p.cancelled)?.length || 0;
+    const cancelledNote = cancelledProducts > 0 ? ` • ❌ ${cancelledProducts} cancelado${cancelledProducts > 1 ? 's' : ''}` : '';
+    
     if (pkg.products && pkg.products.length > 0) {
-      const total = pkg.products.reduce((sum: number, product: any) => 
-        sum + parseFloat(product.estimatedPrice || 0), 0
-      ).toFixed(2);
-      return `Total: $${total}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
+      const total = pkg.products
+        .filter((product: any) => !product.cancelled)
+        .reduce((sum: number, product: any) => 
+          sum + parseFloat(product.estimatedPrice || 0), 0
+        ).toFixed(2);
+      return `Precio: $${total} • Tip: Q${tipAmount.toFixed(2)}${cancelledNote}`;
     }
-    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
+    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}${cancelledNote}`;
   };
 
   const getTipAmount = () => {
     // First try to get tip from products_data, fallback to admin_assigned_tip
+    // Exclude cancelled products from tip calculation
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
       return pkg.products_data.reduce((sum: number, product: any) => {
+        if (product.cancelled) return sum; // Skip cancelled products
         return sum + parseFloat(product.adminAssignedTip || '0');
       }, 0);
     }
     return parseFloat(pkg.admin_assigned_tip || '0');
   };
+
+  // Check if package has cancelled products
+  const getCancelledProductsInfo = () => {
+    if (!pkg.products_data || !Array.isArray(pkg.products_data)) return null;
+    const cancelled = pkg.products_data.filter((p: any) => p.cancelled);
+    if (cancelled.length === 0) return null;
+    return {
+      count: cancelled.length,
+      total: pkg.products_data.length
+    };
+  };
+
+  const cancelledInfo = getCancelledProductsInfo();
 
   // Helper to get product confirmation progress
   const getProductConfirmationProgress = () => {
