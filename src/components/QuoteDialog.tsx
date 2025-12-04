@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -149,6 +149,16 @@ const QuoteDialog = ({
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showTravelerRejectionModal, setShowTravelerRejectionModal] = useState(false);
   
+  // Selected products state for multi-product orders (shoppers can remove products)
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  
+  // Initialize selected products when modal opens
+  useEffect(() => {
+    if (isOpen && packageDetails.products_data && Array.isArray(packageDetails.products_data)) {
+      setSelectedProducts([...packageDetails.products_data]);
+    }
+  }, [isOpen, packageDetails.products_data]);
+  
   // Discount code validation state
   const [isValidatingCode, setIsValidatingCode] = useState(false);
   const [discountError, setDiscountError] = useState<string | null>(null);
@@ -268,10 +278,18 @@ const QuoteDialog = ({
     buttonDisabled: userType === 'user' && !acceptedTerms || isQuoteExpired
   });
 
-  // Get admin tip amount - always from products_data first
+  // Check if shopper is viewing a quote (not traveler context)
+  const isShopperContext = existingQuote && userType === 'user' && packageDetails.status !== 'matched';
+  
+  // Get admin tip amount - use selectedProducts for shoppers, products_data otherwise
   const getTipAmount = () => {
-    if (packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0) {
-      const totalTip = packageDetails.products_data.reduce((sum: number, product: any) => {
+    // For shoppers, use selectedProducts (which may have items removed)
+    const productsToUse = isShopperContext && selectedProducts.length > 0 
+      ? selectedProducts 
+      : packageDetails.products_data;
+    
+    if (productsToUse && Array.isArray(productsToUse) && productsToUse.length > 0) {
+      const totalTip = productsToUse.reduce((sum: number, product: any) => {
         return sum + parseFloat(product.adminAssignedTip || '0');
       }, 0);
       return totalTip > 0 ? totalTip : null;
@@ -280,6 +298,32 @@ const QuoteDialog = ({
     const fallbackTip = parseFloat(packageDetails.admin_assigned_tip || '0');
     return fallbackTip > 0 ? fallbackTip : null;
   };
+  
+  // Calculate subtotal for a single product (tip + service fee)
+  const calculateProductSubtotal = (product: any): number => {
+    const tip = parseFloat(product.adminAssignedTip || '0');
+    const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
+    return tip + serviceFee;
+  };
+  
+  // Calculate total from selected products with delivery fee
+  const calculateSelectedProductsTotal = (): number => {
+    if (selectedProducts.length === 0) return 0;
+    const totalTip = selectedProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+    return breakdown.totalPrice;
+  };
+  
+  // Remove a product from selection (minimum 1 product required)
+  const removeProduct = (indexToRemove: number) => {
+    if (selectedProducts.length <= 1) return;
+    setSelectedProducts(prev => prev.filter((_, i) => i !== indexToRemove));
+    // Clear any applied discount when products change
+    if (discountSuccess) {
+      removeDiscount();
+    }
+  };
+  
   const adminTipAmount = getTipAmount();
 
   // Check if this is a matched package with admin assigned tip (traveler needs to accept/reject)
@@ -326,6 +370,39 @@ const QuoteDialog = ({
         submitData.discountAmount = discountAmount;
         submitData.originalTotalPrice = originalTotal;
         submitData.finalTotalPrice = finalTotal;
+      }
+      
+      // Check if shopper removed any products
+      const originalProducts = packageDetails.products_data || [];
+      if (originalProducts.length > 1 && selectedProducts.length < originalProducts.length) {
+        const removedProducts = originalProducts.filter(
+          (p: any) => !selectedProducts.some((sp: any) => 
+            sp.itemDescription === p.itemDescription && sp.estimatedPrice === p.estimatedPrice
+          )
+        );
+        
+        submitData.updatedProducts = selectedProducts;
+        submitData.removedProducts = removedProducts.map((p: any) => p.itemDescription || 'Producto sin nombre');
+        
+        // Recalculate quote with remaining products
+        const newTotalTip = selectedProducts.reduce((sum: number, p: any) => 
+          sum + parseFloat(p.adminAssignedTip || '0'), 0
+        );
+        const recalculatedQuote = createNormalizedQuote(
+          newTotalTip,
+          packageDetails.delivery_method,
+          packageDetails.shopper_trust_level,
+          existingQuote.message,
+          true,
+          packageDetails.package_destination
+        );
+        submitData.recalculatedQuote = recalculatedQuote;
+        
+        // Update final total if discount was applied
+        if (submitData.finalTotalPrice) {
+          submitData.originalTotalPrice = recalculatedQuote.totalPrice;
+          submitData.finalTotalPrice = Math.max(0, recalculatedQuote.totalPrice - discountAmount);
+        }
       }
       
       onSubmit(submitData);
@@ -718,124 +795,201 @@ const QuoteDialog = ({
                       <p className="text-green-700 italic bg-green-100 rounded p-2">"{existingQuote.message}"</p>
                     </div>
                   )}
-                  <div className="mt-2 pt-2 border-t border-green-300">
-                     <p className="font-medium text-lg">
-                       {(() => {
-                    const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                    const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
-                    return (
-                      <>
-                        <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
-                           </>
-                         );
-                       })()}
-                     </p>
-                    <p className="text-xs text-green-600 mt-1">
-                      Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
-                      {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
-                    </p>
-                     <p className="text-xs text-red-600 mt-1 font-medium">
-                       Tú eres el encargado de hacer la compra del producto y la cotización no incluye el precio de tu producto.
-                     </p>
-                     
-                     {/* Price Breakdown */}
-                     <div className="mt-3 pt-2 border-t border-green-200">
-                       <p className="text-sm font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
-                        <div className="space-y-1 text-sm text-green-700">
-                           {(() => {
-                             const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-                             const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
-                             const isPrime = packageDetails.shopper_trust_level === 'prime';
-                             
-                              // Calculate standard pricing (40% fee) to show original price
-                              const standardBreakdown = getPriceBreakdown(
-                                base, 
-                                packageDetails.delivery_method, 
-                                'basic',
-                                packageDetails.package_destination
-                              );
-                             
-                               return (
-                                 <>
-                                    {isPrime ? (
-                                      <>
-                                        <div className="flex justify-between font-medium">
-                                          <span>Precio total estándar:</span>
-                                          <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="ml-3">• Favorón:</span>
-                                          <span>{formatCurrency(base + standardBreakdown.serviceFee)}</span>
-                                        </div>
-                                        {packageDetails.delivery_method === 'delivery' && (
-                                          <div className="flex justify-between text-sm">
-                                            <span className="ml-3">• Envío a domicilio:</span>
-                                            <span>{formatCurrency(standardBreakdown.deliveryFee)}</span>
-                                          </div>
-                                        )}
-                                        <div className="flex justify-between text-prime font-medium">
-                                          <span>Descuento Prime:</span>
-                                          <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
-                                        </div>
-                                        <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
-                                          <span>Total a pagar:</span>
-                                          <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                        </div>
-                                      </>
-                                    ) : (
-                                        <>
-                                          {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
-                                            <div className="flex justify-between">
-                                              <span>Entrega a domicilio:</span>
-                                              <span>{formatCurrency(breakdown.deliveryFee)}</span>
-                                            </div>
-                                          )}
-                                          {packageDetails.delivery_method === 'delivery' && breakdown.isPrime && (
-                                            <div className="flex justify-between">
-                                              <span>Entrega a domicilio:</span>
-                                              <span className="text-green-600">Gratis (Prime)</span>
-                                            </div>
-                                          )}
-                                         <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
-                                           <span>Total:</span>
-                                           <span>{formatCurrency(breakdown.totalPrice)}</span>
-                                         </div>
-                                         {/* Prime savings message for non-Prime users */}
-                                         {!breakdown.isPrime && (() => {
-                                           const primeBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'prime', packageDetails.package_destination);
-                                           const savings = breakdown.totalPrice - primeBreakdown.totalPrice;
-                                           return savings > 0 ? (
-                                             <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                                               <div className="flex items-center justify-between gap-3">
-                                                 <div>
-                                                   <p className="text-sm text-purple-800">
-                                                     <span className="font-semibold">⭐ Con Prime ahorrarías:</span>{" "}
-                                                     <span className="font-bold text-purple-900">{formatCurrency(savings)}</span>
-                                                   </p>
-                                                   <p className="text-xs text-purple-700 mt-1">
-                                                     Los usuarios Prime pagan menores comisiones y envío gratis.
-                                                   </p>
-                                                 </div>
-                                                 <Button
-                                                   onClick={() => setShowPrimeModal(true)}
-                                                   size="sm"
-                                                   className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
-                                                 >
-                                                   <Crown className="w-4 h-4 mr-2" />
-                                                   Obtener Prime
-                                                 </Button>
-                                               </div>
-                                             </div>
-                                           ) : null;
-                                         })()}
-                                       </>
-                                   )}
-                                </>
-                              );
-                          })()}
+                  
+                  {/* Per-Product Breakdown - For multi-product orders viewed by shopper */}
+                  {selectedProducts.length > 1 && userType === 'user' && (
+                    <div className="mt-3 pt-2 border-t border-green-300">
+                      <p className="text-sm font-semibold text-green-800 mb-3">📦 Tu cotización por producto:</p>
+                      <div className="space-y-3">
+                        {selectedProducts.map((product: any, index: number) => {
+                          const tip = parseFloat(product.adminAssignedTip || '0');
+                          const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
+                          const subtotal = tip + serviceFee;
+                          const canRemove = selectedProducts.length > 1;
+                          
+                          return (
+                            <div key={index} className="bg-white/80 border border-green-200 rounded-lg p-3 relative">
+                              {/* Remove button */}
+                              {canRemove && (
+                                <button
+                                  onClick={() => removeProduct(index)}
+                                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors"
+                                  title="Eliminar producto"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                              
+                              <p className="font-medium text-green-800 text-sm pr-8 mb-2">
+                                {product.itemDescription || `Producto ${index + 1}`}
+                              </p>
+                              
+                              <div className="space-y-1 text-xs">
+                                {product.estimatedPrice && (
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Precio producto:</span>
+                                    <span>${parseFloat(product.estimatedPrice).toFixed(2)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between text-green-700">
+                                  <span>Tip viajero:</span>
+                                  <span>{formatCurrency(tip)}</span>
+                                </div>
+                                <div className="flex justify-between text-green-700">
+                                  <span>Fee Favorón:</span>
+                                  <span>{formatCurrency(serviceFee)}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-green-800 pt-1 border-t border-green-200">
+                                  <span>Subtotal:</span>
+                                  <span>{formatCurrency(subtotal)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {/* Delivery fee (if applicable) */}
+                        {packageDetails.delivery_method === 'delivery' && (
+                          <div className="flex justify-between text-sm text-green-700 px-1">
+                            <span>🚚 Entrega a domicilio:</span>
+                            <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Dynamic total */}
+                        <div className="flex justify-between font-bold text-lg text-green-800 pt-2 border-t-2 border-green-300 px-1">
+                          <span>💰 TOTAL A PAGAR:</span>
+                          <span>{formatCurrency(calculateSelectedProductsTotal())}</span>
                         </div>
+                        
+                        <p className="text-xs text-red-600 font-medium px-1">
+                          ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
+                        </p>
                       </div>
-                  </div>
+                    </div>
+                  )}
+                  
+                  {/* Single product or standard breakdown */}
+                  {(selectedProducts.length <= 1 || userType !== 'user') && (
+                    <div className="mt-2 pt-2 border-t border-green-300">
+                       <p className="font-medium text-lg">
+                         {(() => {
+                      const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                      const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+                      return (
+                        <>
+                          <strong>Total a pagar:</strong> {formatCurrency(breakdown.totalPrice)}
+                             </>
+                           );
+                         })()}
+                       </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Este precio incluye todos los servicios: plataforma Favorón, seguro y compensación del viajero.
+                        {packageDetails.delivery_method === 'delivery' && ' Incluye costo de envío a domicilio.'}
+                      </p>
+                       <p className="text-xs text-red-600 mt-1 font-medium">
+                         Tú eres el encargado de hacer la compra del producto y la cotización no incluye el precio de tu producto.
+                       </p>
+                       
+                       {/* Price Breakdown */}
+                       <div className="mt-3 pt-2 border-t border-green-200">
+                         <p className="text-sm font-medium text-green-700 mb-2">📋 Desglose de factura:</p>
+                          <div className="space-y-1 text-sm text-green-700">
+                             {(() => {
+                               const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
+                               const breakdown = getPriceBreakdown(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+                               const isPrime = packageDetails.shopper_trust_level === 'prime';
+                               
+                                // Calculate standard pricing (40% fee) to show original price
+                                const standardBreakdown = getPriceBreakdown(
+                                  base, 
+                                  packageDetails.delivery_method, 
+                                  'basic',
+                                  packageDetails.package_destination
+                                );
+                               
+                                 return (
+                                   <>
+                                      {isPrime ? (
+                                        <>
+                                          <div className="flex justify-between font-medium">
+                                            <span>Precio total estándar:</span>
+                                            <span>{formatCurrency(standardBreakdown.totalPrice)}</span>
+                                          </div>
+                                          <div className="flex justify-between text-sm">
+                                            <span className="ml-3">• Favorón:</span>
+                                            <span>{formatCurrency(base + standardBreakdown.serviceFee)}</span>
+                                          </div>
+                                          {packageDetails.delivery_method === 'delivery' && (
+                                            <div className="flex justify-between text-sm">
+                                              <span className="ml-3">• Envío a domicilio:</span>
+                                              <span>{formatCurrency(standardBreakdown.deliveryFee)}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex justify-between text-prime font-medium">
+                                            <span>Descuento Prime:</span>
+                                            <span>-{formatCurrency(standardBreakdown.totalPrice - breakdown.totalPrice)}</span>
+                                          </div>
+                                          <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
+                                            <span>Total a pagar:</span>
+                                            <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                          </div>
+                                        </>
+                                      ) : (
+                                          <>
+                                            {packageDetails.delivery_method === 'delivery' && !breakdown.isPrime && (
+                                              <div className="flex justify-between">
+                                                <span>Entrega a domicilio:</span>
+                                                <span>{formatCurrency(breakdown.deliveryFee)}</span>
+                                              </div>
+                                            )}
+                                            {packageDetails.delivery_method === 'delivery' && breakdown.isPrime && (
+                                              <div className="flex justify-between">
+                                                <span>Entrega a domicilio:</span>
+                                                <span className="text-green-600">Gratis (Prime)</span>
+                                              </div>
+                                            )}
+                                           <div className="flex justify-between pt-2 border-t border-green-200 font-medium">
+                                             <span>Total:</span>
+                                             <span>{formatCurrency(breakdown.totalPrice)}</span>
+                                           </div>
+                                           {/* Prime savings message for non-Prime users */}
+                                           {!breakdown.isPrime && (() => {
+                                             const primeBreakdown = getPriceBreakdown(base, packageDetails.delivery_method, 'prime', packageDetails.package_destination);
+                                             const savings = breakdown.totalPrice - primeBreakdown.totalPrice;
+                                             return savings > 0 ? (
+                                               <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                                 <div className="flex items-center justify-between gap-3">
+                                                   <div>
+                                                     <p className="text-sm text-purple-800">
+                                                       <span className="font-semibold">⭐ Con Prime ahorrarías:</span>{" "}
+                                                       <span className="font-bold text-purple-900">{formatCurrency(savings)}</span>
+                                                     </p>
+                                                     <p className="text-xs text-purple-700 mt-1">
+                                                       Los usuarios Prime pagan menores comisiones y envío gratis.
+                                                     </p>
+                                                   </div>
+                                                   <Button
+                                                     onClick={() => setShowPrimeModal(true)}
+                                                     size="sm"
+                                                     className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
+                                                   >
+                                                     <Crown className="w-4 h-4 mr-2" />
+                                                     Obtener Prime
+                                                   </Button>
+                                                 </div>
+                                               </div>
+                                             ) : null;
+                                           })()}
+                                         </>
+                                     )}
+                                  </>
+                                );
+                            })()}
+                          </div>
+                        </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
