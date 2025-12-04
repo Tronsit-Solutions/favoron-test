@@ -404,7 +404,7 @@ const TripForm = ({
               <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
             </div>
             <p className="text-sm text-destructive -mt-1 mb-1">
-              Recomendamos registrar únicamente viajes con destino a Guatemala. Ejemplo: USA → Guatemala, México → Guatemala.
+              Si tu viaje es de ida y vuelta (round trip), deberás registrar dos viajes separados: uno de ida y otro de regreso.
             </p>
 
             {/* Sección ORIGEN */}
