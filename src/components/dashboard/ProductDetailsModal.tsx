@@ -135,16 +135,32 @@ const ProductDetailsModal = ({ isOpen, onClose, pkg, onProductCancelled }: Produ
               return (
                 <div 
                   key={idx} 
-                  className={`border rounded-lg p-4 space-y-3 ${isCancelled ? 'opacity-60 bg-muted/50' : ''}`}
+                  className={`relative border rounded-lg p-4 space-y-3 ${
+                    isCancelled 
+                      ? 'bg-muted/70 border-muted-foreground/20 opacity-60' 
+                      : ''
+                  }`}
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Cancelled overlay */}
+                  {isCancelled && (
+                    <div className="absolute inset-0 bg-muted/20 rounded-lg pointer-events-none flex items-center justify-center overflow-hidden">
+                      <span className="text-muted-foreground/30 font-bold text-2xl rotate-[-15deg] select-none">
+                        CANCELADO
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between relative z-10">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium">Producto {idx + 1}</h3>
+                      <h3 className={`font-medium ${isCancelled ? 'line-through text-muted-foreground' : ''}`}>
+                        Producto {idx + 1}
+                      </h3>
                       <Badge variant={product.requestType === 'personal' ? 'secondary' : 'outline'}>
                         {product.requestType === 'personal' ? 'Personal' : 'Online'}
                       </Badge>
                       {isCancelled && (
-                        <Badge variant="destructive">
+                        <Badge variant="destructive" className="bg-destructive/20 text-destructive border border-destructive/30">
+                          <Ban className="h-3 w-3 mr-1" />
                           Cancelado
                         </Badge>
                       )}
