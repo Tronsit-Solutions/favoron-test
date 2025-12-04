@@ -1,0 +1,460 @@
+import { useState, useRef } from 'react';
+import { useAdminRefundOrders } from '@/hooks/useRefundOrders';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatCurrency } from '@/lib/formatters';
+import { 
+  RefreshCw, 
+  Check, 
+  X, 
+  Upload, 
+  Eye, 
+  Loader2,
+  Banknote,
+  Clock,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react';
+
+const AdminRefundsTab = () => {
+  const { refundOrders, loading, updateRefundStatus, uploadRefundReceipt, refreshRefundOrders } = useAdminRefundOrders();
+  const [selectedRefund, setSelectedRefund] = useState<any>(null);
+  const [actionModal, setActionModal] = useState<{
+    type: 'approve' | 'reject' | 'complete';
+    refund: any;
+  } | null>(null);
+  const [notes, setNotes] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
+  const approvedRefunds = refundOrders.filter(r => r.status === 'approved');
+  const completedRefunds = refundOrders.filter(r => r.status === 'completed');
+  const rejectedRefunds = refundOrders.filter(r => r.status === 'rejected');
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300"><Check className="h-3 w-3 mr-1" />Aprobado</Badge>;
+      case 'completed':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Completado</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300"><XCircle className="h-3 w-3 mr-1" />Rechazado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!actionModal) return;
+    setProcessing(true);
+    await updateRefundStatus(actionModal.refund.id, 'approved', notes || undefined);
+    setProcessing(false);
+    setActionModal(null);
+    setNotes('');
+  };
+
+  const handleReject = async () => {
+    if (!actionModal) return;
+    setProcessing(true);
+    await updateRefundStatus(actionModal.refund.id, 'rejected', notes || undefined);
+    setProcessing(false);
+    setActionModal(null);
+    setNotes('');
+  };
+
+  const handleComplete = async (file?: File) => {
+    if (!actionModal) return;
+    setProcessing(true);
+    
+    let receiptUrl: string | undefined;
+    let receiptFilename: string | undefined;
+    
+    if (file) {
+      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, file);
+      if (uploadedPath) {
+        receiptUrl = uploadedPath;
+        receiptFilename = file.name;
+      }
+    }
+    
+    await updateRefundStatus(actionModal.refund.id, 'completed', notes || undefined, receiptUrl, receiptFilename);
+    setProcessing(false);
+    setActionModal(null);
+    setNotes('');
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleComplete(file);
+    }
+  };
+
+  const RefundTable = ({ refunds, showActions = true }: { refunds: any[]; showActions?: boolean }) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Fecha</TableHead>
+          <TableHead>Shopper</TableHead>
+          <TableHead>Producto(s)</TableHead>
+          <TableHead>Monto</TableHead>
+          <TableHead>Banco</TableHead>
+          <TableHead>Estado</TableHead>
+          {showActions && <TableHead>Acciones</TableHead>}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {refunds.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={showActions ? 7 : 6} className="text-center text-muted-foreground py-8">
+              No hay reembolsos en esta categoría
+            </TableCell>
+          </TableRow>
+        ) : (
+          refunds.map((refund) => (
+            <TableRow key={refund.id}>
+              <TableCell className="text-sm">
+                {new Date(refund.created_at).toLocaleDateString('es-GT')}
+              </TableCell>
+              <TableCell>
+                <div>
+                  <p className="font-medium text-sm">
+                    {refund.shopper?.first_name} {refund.shopper?.last_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{refund.shopper?.email}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="max-w-[200px]">
+                  {refund.cancelled_products?.map((p: any, i: number) => (
+                    <p key={i} className="text-xs truncate">{p.description}</p>
+                  ))}
+                </div>
+              </TableCell>
+              <TableCell className="font-semibold text-green-600">
+                {formatCurrency(refund.amount)}
+              </TableCell>
+              <TableCell>
+                <div className="text-xs">
+                  <p className="font-medium">{refund.bank_name}</p>
+                  <p className="text-muted-foreground">{refund.bank_account_number}</p>
+                </div>
+              </TableCell>
+              <TableCell>{getStatusBadge(refund.status)}</TableCell>
+              {showActions && (
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedRefund(refund)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {refund.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-green-600 hover:text-green-700"
+                          onClick={() => setActionModal({ type: 'approve', refund })}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => setActionModal({ type: 'reject', refund })}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    {refund.status === 'approved' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-700"
+                        onClick={() => setActionModal({ type: 'complete', refund })}
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              )}
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="text-2xl font-bold">{pendingRefunds.length}</p>
+                <p className="text-xs text-muted-foreground">Pendientes</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">{approvedRefunds.length}</p>
+                <p className="text-xs text-muted-foreground">Aprobados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{completedRefunds.length}</p>
+                <p className="text-xs text-muted-foreground">Completados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2">
+              <Banknote className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(completedRefunds.reduce((sum, r) => sum + r.amount, 0))}
+                </p>
+                <p className="text-xs text-muted-foreground">Total Reembolsado</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main content */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+            Órdenes de Reembolso
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={refreshRefundOrders} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Tabs defaultValue="pending">
+              <TabsList>
+                <TabsTrigger value="pending" className="relative">
+                  Pendientes
+                  {pendingRefunds.length > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      {pendingRefunds.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="approved">Aprobados ({approvedRefunds.length})</TabsTrigger>
+                <TabsTrigger value="completed">Completados ({completedRefunds.length})</TabsTrigger>
+                <TabsTrigger value="rejected">Rechazados ({rejectedRefunds.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending">
+                <RefundTable refunds={pendingRefunds} />
+              </TabsContent>
+              <TabsContent value="approved">
+                <RefundTable refunds={approvedRefunds} />
+              </TabsContent>
+              <TabsContent value="completed">
+                <RefundTable refunds={completedRefunds} showActions={false} />
+              </TabsContent>
+              <TabsContent value="rejected">
+                <RefundTable refunds={rejectedRefunds} showActions={false} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Detail Modal */}
+      <Dialog open={!!selectedRefund} onOpenChange={() => setSelectedRefund(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detalle de Reembolso</DialogTitle>
+          </DialogHeader>
+          {selectedRefund && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Shopper</p>
+                  <p className="font-medium">{selectedRefund.shopper?.first_name} {selectedRefund.shopper?.last_name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedRefund.shopper?.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Monto</p>
+                  <p className="text-xl font-bold text-green-600">{formatCurrency(selectedRefund.amount)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Datos Bancarios</p>
+                <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
+                  <p><strong>Banco:</strong> {selectedRefund.bank_name}</p>
+                  <p><strong>Titular:</strong> {selectedRefund.bank_account_holder}</p>
+                  <p><strong>Cuenta:</strong> {selectedRefund.bank_account_number}</p>
+                  <p><strong>Tipo:</strong> {selectedRefund.bank_account_type === 'monetary' ? 'Monetaria' : 'Ahorro'}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Productos Cancelados</p>
+                <div className="space-y-2">
+                  {selectedRefund.cancelled_products?.map((p: any, i: number) => (
+                    <div key={i} className="bg-muted p-2 rounded text-sm">
+                      <p className="font-medium">{p.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Reembolso: {formatCurrency(p.totalRefund)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground">Razón</p>
+                <p className="text-sm">{selectedRefund.reason}</p>
+              </div>
+
+              {selectedRefund.notes && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Notas</p>
+                  <p className="text-sm">{selectedRefund.notes}</p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Creado: {new Date(selectedRefund.created_at).toLocaleString('es-GT')}
+                </p>
+                {getStatusBadge(selectedRefund.status)}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Modal */}
+      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {actionModal?.type === 'approve' && 'Aprobar Reembolso'}
+              {actionModal?.type === 'reject' && 'Rechazar Reembolso'}
+              {actionModal?.type === 'complete' && 'Completar Reembolso'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {actionModal && (
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="font-medium">{formatCurrency(actionModal.refund.amount)}</p>
+                <p className="text-sm text-muted-foreground">
+                  {actionModal.refund.shopper?.first_name} {actionModal.refund.shopper?.last_name}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notas (opcional)</label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Agregar notas..."
+                rows={3}
+              />
+            </div>
+
+            {actionModal?.type === 'complete' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Comprobante de transferencia</label>
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleFileSelect}
+                  disabled={uploading || processing}
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); }} disabled={processing}>
+              Cancelar
+            </Button>
+            {actionModal?.type === 'approve' && (
+              <Button onClick={handleApprove} disabled={processing}>
+                {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Aprobar
+              </Button>
+            )}
+            {actionModal?.type === 'reject' && (
+              <Button variant="destructive" onClick={handleReject} disabled={processing}>
+                {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Rechazar
+              </Button>
+            )}
+            {actionModal?.type === 'complete' && (
+              <Button onClick={() => handleComplete()} disabled={processing}>
+                {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                Completar sin comprobante
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminRefundsTab;
