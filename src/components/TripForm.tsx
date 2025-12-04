@@ -727,7 +727,7 @@ const TripForm = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Fecha estimada en que entregarás los paquetes *</Label>
+              <Label>Fecha en la que entregarás los paquetes *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
