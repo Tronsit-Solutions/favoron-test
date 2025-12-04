@@ -126,14 +126,20 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
               const unitPrice = parseFloat(product.estimatedPrice || '0');
               const totalPrice = quantity * unitPrice;
               
+              const tipAmount = parseFloat(product.adminAssignedTip || '0');
+              const isCancelled = product.cancelled === true;
+              
               return (
-                <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                <div key={index} className={`bg-muted/30 border border-border/50 rounded p-2 ${isCancelled ? 'opacity-60 bg-destructive/5' : ''}`}>
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-foreground">
+                      <p className={`text-xs font-medium text-foreground ${isCancelled ? 'line-through' : ''}`}>
                         Producto {index + 1}
+                        {isCancelled && (
+                          <span className="ml-2 text-destructive no-underline font-normal">(cancelado)</span>
+                        )}
                       </p>
-                      <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                      <p className={`text-xs text-muted-foreground ${isCancelled ? 'line-through' : ''}`}>{product.itemDescription}</p>
                       <div className="mt-1 space-y-1">
                         <p className="text-xs text-muted-foreground">
                           <strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}
@@ -146,10 +152,17 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                             💰 <strong>Total:</strong> ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                           </p>
                         )}
+                        {/* Tip del viajero por producto */}
+                        {tipAmount > 0 && (
+                          <p className={`text-xs font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-green-600'}`}>
+                            💵 <strong>Tu tip:</strong> Q{tipAmount.toFixed(2)}
+                            {isCancelled && <span className="ml-1 text-destructive no-underline">(no aplica)</span>}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-primary">
+                      <p className={`text-xs font-bold ${isCancelled ? 'text-muted-foreground line-through' : 'text-primary'}`}>
                         ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
                       </p>
                       {quantity > 1 && (
@@ -162,7 +175,7 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       href={product.itemLink} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      className={`text-xs hover:underline flex items-center gap-1 ${isCancelled ? 'text-muted-foreground' : 'text-primary'}`}
                     >
                       <ExternalLink className="h-3 w-3" />
                       Ver producto
@@ -174,15 +187,20 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
               const quantity = parseInt(product.quantity || '1');
               const unitPrice = parseFloat(product.estimatedPrice || '0');
               const totalPrice = quantity * unitPrice;
+              const tipAmount = parseFloat(product.adminAssignedTip || '0');
+              const isCancelled = product.cancelled === true;
               
               return (
-                <div key={index} className="bg-muted/30 border border-border/50 rounded p-2">
+                <div key={index} className={`bg-muted/30 border border-border/50 rounded p-2 ${isCancelled ? 'opacity-60 bg-destructive/5' : ''}`}>
                   <div className="flex items-start justify-between mb-1">
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-foreground">
+                      <p className={`text-xs font-medium text-foreground ${isCancelled ? 'line-through' : ''}`}>
                         Producto {index + 1}
+                        {isCancelled && (
+                          <span className="ml-2 text-destructive no-underline font-normal">(cancelado)</span>
+                        )}
                       </p>
-                      <p className="text-xs text-muted-foreground">{product.itemDescription}</p>
+                      <p className={`text-xs text-muted-foreground ${isCancelled ? 'line-through' : ''}`}>{product.itemDescription}</p>
                       <div className="mt-1 space-y-1">
                         <p className="text-xs text-muted-foreground">
                           <strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}
@@ -195,10 +213,17 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                             💰 <strong>Total:</strong> ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
                           </p>
                         )}
+                        {/* Tip del viajero por producto */}
+                        {tipAmount > 0 && (
+                          <p className={`text-xs font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-green-600'}`}>
+                            💵 <strong>Tu tip:</strong> Q{tipAmount.toFixed(2)}
+                            {isCancelled && <span className="ml-1 text-destructive no-underline">(no aplica)</span>}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-primary">
+                      <p className={`text-xs font-bold ${isCancelled ? 'text-muted-foreground line-through' : 'text-primary'}`}>
                         ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
                       </p>
                       {quantity > 1 && (
@@ -211,7 +236,7 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       href={product.itemLink} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      className={`text-xs hover:underline flex items-center gap-1 ${isCancelled ? 'text-muted-foreground' : 'text-primary'}`}
                     >
                       <ExternalLink className="h-3 w-3" />
                       Ver producto
