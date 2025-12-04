@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2 } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -510,7 +510,7 @@ const QuoteDialog = ({
                 <div>
                   <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
                   {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {packageDetails.products_data.map((product: any, index: number) => {
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
@@ -519,157 +519,169 @@ const QuoteDialog = ({
                         const isPersonalOrder = product.requestType === 'personal';
                         
                         return (
-                          <div key={index} className="border border-muted rounded-lg p-3 bg-muted/20">
-                            
-                            {isPersonalOrder ? (
-                              /* Vista para pedidos personales */
-                              <div className="space-y-3">
-                                {/* Descripción */}
-                                {product.itemDescription && (
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground"><strong>Descripción:</strong></p>
-                                    <p className="text-sm text-foreground">{product.itemDescription}</p>
-                                  </div>
-                                )}
-                                
-                                {/* Instrucción */}
-                                {product.instructions && (
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground"><strong>Instrucciones de compra:</strong></p>
-                                    <p className="text-sm text-foreground">{product.instructions}</p>
-                                  </div>
-                                )}
-                                
-                                {/* Peso */}
-                                {product.weight && (
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground"><strong>Peso estimado:</strong></p>
-                                    <p className="text-sm text-foreground">{product.weight} kg</p>
-                                  </div>
-                                )}
-                                
-                                {/* Fotos del paquete */}
-                                {product.productPhotos && product.productPhotos.length > 0 && (
-                                  <div>
-                                    <p className="text-sm font-medium text-foreground mb-2"><strong>Fotos del producto:</strong></p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                      {product.productPhotos.map((photo: any, photoIndex: number) => (
-                                        <ResolvedImage 
-                                          key={photoIndex}
-                                          src={photo}
-                                          alt={`Foto ${photoIndex + 1} del producto`}
-                                          className="w-full h-24 object-cover rounded border border-muted cursor-pointer hover:opacity-80 transition-opacity"
-                                          onClick={() => {
-                                            const getRawUrl = (input: any): string | null => {
-                                              if (!input) return null;
-                                              if (typeof input === 'string') return input;
-                                              if (typeof input === 'object') {
-                                                if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
-                                                if (input.filePath) return input.filePath;
-                                                if (input.url) return input.url;
-                                              }
-                                              return null;
-                                            };
-                                            const url = getRawUrl(photo);
-                                            if (url) {
-                                              setImageModalState({
-                                                isOpen: true,
-                                                imageUrl: url,
-                                                title: `Foto ${photoIndex + 1} del producto`
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {/* Precio */}
-                                <div className="flex justify-between items-center pt-2 border-t">
-                                  <p className="text-sm text-foreground font-medium">
-                                    <strong>Precio estimado:</strong> ${unitPrice.toFixed(2)}
-                                  </p>
-                                  {adminTip > 0 && isTravelerContext && (
-                                    <div className="text-right">
-                                      <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                      <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                    </div>
-                                  )}
-                                </div>
+                          <div 
+                            key={index} 
+                            className="group relative bg-gradient-to-br from-background to-muted/30 border-2 border-muted/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200"
+                          >
+                            {/* Header con badge de índice */}
+                            <div className="flex items-center gap-3 p-4 pb-3 border-b border-muted/40 bg-muted/20">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-bold text-sm shrink-0">
+                                #{index + 1}
                               </div>
-                            ) : (
-                              /* Vista para pedidos online normales */
-                              <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
-                                <div className="text-sm text-foreground space-y-2 flex-1 min-w-0">
-                                  <p><strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}</p>
-                                  <p><strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
-                                  {quantity > 1 && (
-                                    <p className="text-sm text-primary font-medium">
-                                      ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
-                                    </p>
-                                  )}
-                                  {(product.itemLink || packageDetails.item_link) && (
-                                    <div className="pt-1 pb-1">
-                                      <a 
-                                        href={product.itemLink || packageDetails.item_link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium"
-                                      >
-                                        <ExternalLink className="h-3.5 w-3.5" />
-                                        Ver producto en tienda
-                                      </a>
-                                    </div>
-                                  )}
-                                  <p className="text-sm text-foreground font-medium">
-                                    <strong>Total del producto:</strong> ${totalPrice.toFixed(2)}
-                                  </p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  {adminTip > 0 ? (
-                                    <div>
-                                      {isTravelerContext ? (
-                                        <>
-                                          <p className="text-lg font-bold text-green-600">Q{adminTip.toFixed(2)}</p>
-                                          <p className="text-xs text-muted-foreground">Tip asignado</p>
-                                        </>
-                                      ) : (
-                                        <></>
-                                      )}
-                                    </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  {isPersonalOrder ? (
+                                    <Badge variant="secondary" className="text-xs shrink-0">
+                                      <Package className="h-3 w-3 mr-1" />
+                                      Pedido Personal
+                                    </Badge>
                                   ) : (
-                                    <p className="text-sm text-muted-foreground">Sin tip</p>
+                                    <Package className="h-4 w-4 text-muted-foreground shrink-0" />
                                   )}
+                                  <p className="font-semibold text-foreground truncate">
+                                    {product.itemDescription || `Producto ${index + 1}`}
+                                  </p>
                                 </div>
                               </div>
-                            )}
+                            </div>
+                            
+                            {/* Contenido del producto */}
+                            <div className="p-4 space-y-3">
+                              {isPersonalOrder ? (
+                                /* Vista para pedidos personales */
+                                <div className="space-y-3">
+                                  {/* Instrucciones */}
+                                  {product.instructions && (
+                                    <div className="bg-muted/30 rounded-lg p-3">
+                                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Instrucciones</p>
+                                      <p className="text-sm text-foreground">{product.instructions}</p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Info grid */}
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {product.weight && (
+                                      <div className="bg-muted/20 rounded-lg p-2.5">
+                                        <p className="text-xs text-muted-foreground">Peso estimado</p>
+                                        <p className="text-sm font-medium text-foreground">{product.weight} kg</p>
+                                      </div>
+                                    )}
+                                    <div className="bg-muted/20 rounded-lg p-2.5">
+                                      <p className="text-xs text-muted-foreground">Precio estimado</p>
+                                      <p className="text-sm font-medium text-foreground">${unitPrice.toFixed(2)}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Fotos del paquete */}
+                                  {product.productPhotos && product.productPhotos.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Fotos del producto</p>
+                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                        {product.productPhotos.map((photo: any, photoIndex: number) => (
+                                          <ResolvedImage 
+                                            key={photoIndex}
+                                            src={photo}
+                                            alt={`Foto ${photoIndex + 1}`}
+                                            className="w-full aspect-square object-cover rounded-lg border-2 border-muted/40 cursor-pointer hover:border-primary/50 hover:scale-105 transition-all duration-200"
+                                            onClick={() => {
+                                              const getRawUrl = (input: any): string | null => {
+                                                if (!input) return null;
+                                                if (typeof input === 'string') return input;
+                                                if (typeof input === 'object') {
+                                                  if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+                                                  if (input.filePath) return input.filePath;
+                                                  if (input.url) return input.url;
+                                                }
+                                                return null;
+                                              };
+                                              const url = getRawUrl(photo);
+                                              if (url) {
+                                                setImageModalState({
+                                                  isOpen: true,
+                                                  imageUrl: url,
+                                                  title: `Foto ${photoIndex + 1} del producto`
+                                                });
+                                              }
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                /* Vista para pedidos online normales */
+                                <div className="space-y-3">
+                                  {/* Info grid */}
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-muted/20 rounded-lg p-2.5">
+                                      <p className="text-xs text-muted-foreground">Precio unitario</p>
+                                      <p className="text-sm font-medium text-foreground">${unitPrice.toFixed(2)}</p>
+                                    </div>
+                                    <div className="bg-muted/20 rounded-lg p-2.5">
+                                      <p className="text-xs text-muted-foreground">Cantidad</p>
+                                      <p className="text-sm font-medium text-foreground">{quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Link a tienda */}
+                                  {(product.itemLink || packageDetails.item_link) && (
+                                    <a 
+                                      href={product.itemLink || packageDetails.item_link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary text-sm font-medium transition-colors"
+                                    >
+                                      <ExternalLink className="h-4 w-4" />
+                                      Ver en tienda
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Footer con total */}
+                            <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-t border-muted/40">
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Total producto</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-lg font-bold text-foreground">${totalPrice.toFixed(2)}</span>
+                                {adminTip > 0 && isTravelerContext && (
+                                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
+                                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">Q{adminTip.toFixed(2)}</span>
+                                    <span className="text-xs text-green-600 dark:text-green-500">tip</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
                       
                       {/* Total general si hay múltiples productos */}
                       {packageDetails.products_data.length > 1 && (
-                        <div className="border-t pt-3 mt-3">
-                          <div className="flex justify-between items-center">
-                            <p className="font-medium text-foreground">
-                              <strong>Total del pedido:</strong> ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-xl p-4 mt-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/20">
+                                <Calculator className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="font-medium text-foreground">Total del pedido</span>
+                            </div>
+                            <span className="text-2xl font-bold text-primary">
+                              ${packageDetails.products_data.reduce((sum: number, product: any) => {
                                 const quantity = parseInt(product.quantity || '1');
                                 const unitPrice = parseFloat(product.estimatedPrice || '0');
                                 return sum + quantity * unitPrice;
                               }, 0).toFixed(2)}
-                            </p>
+                            </span>
                           </div>
-                          {displayAmount && (
-                            <div className="flex justify-between items-center mt-1">
-                              {isTravelerContext ? (
-                                <>
-                                  <p className="font-medium text-green-600">Tip total:</p>
-                                  <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
-                                </>
-                              ) : (
-                                <></>
-                              )}
+                          {displayAmount && isTravelerContext && (
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-primary/20">
+                              <span className="text-sm text-muted-foreground">Tip total asignado</span>
+                              <span className="text-xl font-bold text-green-600">Q{displayAmount.toFixed(2)}</span>
                             </div>
                           )}
                         </div>
