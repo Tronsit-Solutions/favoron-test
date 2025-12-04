@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Crown } from 'lucide-react';
 
 export interface FavoronCompanyFormValues {
   // Banking Information
@@ -21,6 +22,8 @@ export interface FavoronCompanyFormValues {
   phone_number: string;
   email: string;
   website: string;
+  // Cancellation penalty
+  cancellation_penalty_amount: number;
 }
 
 interface Props {
@@ -47,6 +50,8 @@ export default function FavoronBankingInfoForm({ initialValues, onSubmit, onCanc
     phone_number: '',
     email: 'info@favoron.app',
     website: 'favoron.app',
+    // Cancellation penalty
+    cancellation_penalty_amount: 5,
   });
 
   useEffect(() => {
@@ -68,13 +73,18 @@ export default function FavoronBankingInfoForm({ initialValues, onSubmit, onCanc
         phone_number: initialValues.phone_number || '',
         email: initialValues.email || 'info@favoron.app',
         website: initialValues.website || 'favoron.app',
+        // Cancellation penalty
+        cancellation_penalty_amount: initialValues.cancellation_penalty_amount ?? 5,
       });
     }
   }, [initialValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setValues((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setValues((prev) => ({ 
+      ...prev, 
+      [name]: type === 'number' ? parseFloat(value) || 0 : value 
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,6 +176,31 @@ export default function FavoronBankingInfoForm({ initialValues, onSubmit, onCanc
                 <Label htmlFor="account_type">Tipo de cuenta</Label>
                 <Input id="account_type" name="account_type" value={values.account_type} onChange={handleChange} required />
               </div>
+            </div>
+          </div>
+
+          {/* Cancellation Penalty Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground">Configuración de cancelaciones</h3>
+            <div className="space-y-2">
+              <Label htmlFor="cancellation_penalty_amount">Penalización por cancelación (Q)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Q</span>
+                <Input
+                  id="cancellation_penalty_amount"
+                  name="cancellation_penalty_amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={values.cancellation_penalty_amount}
+                  onChange={handleChange}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Crown className="h-3 w-3 text-purple-500" />
+                Los usuarios Prime están exentos de esta penalización.
+              </p>
             </div>
           </div>
 

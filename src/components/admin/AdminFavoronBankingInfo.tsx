@@ -69,6 +69,8 @@ export const AdminFavoronBankingInfo = () => {
               phone_number: favoronAccount?.phone_number || '',
               email: favoronAccount?.email || 'info@favoron.app',
               website: favoronAccount?.website || 'favoron.app',
+              // Cancellation penalty
+              cancellation_penalty_amount: favoronAccount?.cancellation_penalty_amount ?? 5,
             }}
             onSubmit={async (values) => {
               await saveAccount(values);
