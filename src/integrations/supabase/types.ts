@@ -256,6 +256,7 @@ export type Database = {
           address_line_1: string | null
           address_line_2: string | null
           bank_name: string
+          cancellation_penalty_amount: number | null
           city: string | null
           company_name: string | null
           country: string | null
@@ -276,6 +277,7 @@ export type Database = {
           address_line_1?: string | null
           address_line_2?: string | null
           bank_name: string
+          cancellation_penalty_amount?: number | null
           city?: string | null
           company_name?: string | null
           country?: string | null
@@ -296,6 +298,7 @@ export type Database = {
           address_line_1?: string | null
           address_line_2?: string | null
           bank_name?: string
+          cancellation_penalty_amount?: number | null
           city?: string | null
           company_name?: string | null
           country?: string | null

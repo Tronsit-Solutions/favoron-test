@@ -19,10 +19,10 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Banknote, Package, Loader2 } from 'lucide-react';
+import { AlertTriangle, Banknote, Package, Loader2, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRefundOrders } from '@/hooks/useRefundOrders';
-import { getRefundBreakdown, CANCELLATION_REASONS, CancellationReason } from '@/lib/refundCalculations';
+import { getRefundBreakdown, CANCELLATION_REASONS, CancellationReason, DEFAULT_CANCELLATION_PENALTY } from '@/lib/refundCalculations';
 import { formatCurrency } from '@/lib/formatters';
 import { toast } from 'sonner';
 
@@ -62,42 +62,73 @@ const ProductCancellationModal = ({
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankAccountType, setBankAccountType] = useState('monetary');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingBankInfo, setLoadingBankInfo] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
+  const [isPrimeUser, setIsPrimeUser] = useState(false);
+  const [penaltyAmount, setPenaltyAmount] = useState(DEFAULT_CANCELLATION_PENALTY);
 
   const { createRefundOrder } = useRefundOrders();
 
-  // Calculate refund breakdown
-  const refundBreakdown = getRefundBreakdown(product, quote, allProducts);
+  // Calculate refund breakdown with penalty info
+  const refundBreakdown = getRefundBreakdown(product, quote, allProducts, {
+    penaltyAmount,
+    isPrimeUser
+  });
 
-  // Load user's existing bank info
+  // Load user's bank info, Prime status, and penalty amount
   useEffect(() => {
-    const loadBankInfo = async () => {
+    const loadData = async () => {
       try {
-        setLoadingBankInfo(true);
+        setLoadingData(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: financialData } = await supabase
-          .from('user_financial_data')
-          .select('bank_name, bank_account_holder, bank_account_number, bank_account_type')
-          .eq('user_id', user.id)
-          .single();
+        // Load in parallel: bank info, user profile, company info
+        const [financialResult, profileResult, companyResult] = await Promise.all([
+          supabase
+            .from('user_financial_data')
+            .select('bank_name, bank_account_holder, bank_account_number, bank_account_type')
+            .eq('user_id', user.id)
+            .single(),
+          supabase
+            .from('profiles')
+            .select('trust_level')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('favoron_company_information')
+            .select('cancellation_penalty_amount')
+            .eq('is_active', true)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        ]);
 
-        if (financialData) {
-          setBankName(financialData.bank_name || '');
-          setBankAccountHolder(financialData.bank_account_holder || '');
-          setBankAccountNumber(financialData.bank_account_number || '');
-          setBankAccountType(financialData.bank_account_type || 'monetary');
+        // Set bank info
+        if (financialResult.data) {
+          setBankName(financialResult.data.bank_name || '');
+          setBankAccountHolder(financialResult.data.bank_account_holder || '');
+          setBankAccountNumber(financialResult.data.bank_account_number || '');
+          setBankAccountType(financialResult.data.bank_account_type || 'monetary');
+        }
+
+        // Set Prime status
+        if (profileResult.data) {
+          setIsPrimeUser(profileResult.data.trust_level === 'prime');
+        }
+
+        // Set penalty amount
+        if (companyResult.data && companyResult.data.cancellation_penalty_amount != null) {
+          setPenaltyAmount(companyResult.data.cancellation_penalty_amount);
         }
       } catch (error) {
-        console.error('Error loading bank info:', error);
+        console.error('Error loading data:', error);
       } finally {
-        setLoadingBankInfo(false);
+        setLoadingData(false);
       }
     };
 
     if (isOpen) {
-      loadBankInfo();
+      loadData();
     }
   }, [isOpen]);
 
@@ -129,6 +160,9 @@ const ProductCancellationModal = ({
           description: product.itemDescription,
           tip: refundBreakdown.productTip,
           serviceFee: refundBreakdown.proportionalServiceFee,
+          grossRefund: refundBreakdown.grossRefund,
+          penaltyApplied: refundBreakdown.cancellationPenalty,
+          isPrimeExempt: refundBreakdown.isPrimeExempt,
           totalRefund: refundBreakdown.totalRefund,
           cancelledAt: new Date().toISOString()
         }]
@@ -152,7 +186,9 @@ const ProductCancellationModal = ({
         cancelledAt: new Date().toISOString(),
         cancellationReason: reason,
         refundAmount: refundBreakdown.totalRefund,
-        refundOrderId: refundOrder.id
+        refundOrderId: refundOrder.id,
+        penaltyApplied: refundBreakdown.cancellationPenalty,
+        isPrimeExempt: refundBreakdown.isPrimeExempt
       };
 
       // 3. Update quote with cancellation info
@@ -164,6 +200,8 @@ const ProductCancellationModal = ({
           {
             productIndex,
             refundAmount: refundBreakdown.totalRefund,
+            penaltyApplied: refundBreakdown.cancellationPenalty,
+            isPrimeExempt: refundBreakdown.isPrimeExempt,
             cancelledAt: new Date().toISOString(),
             reason
           }
@@ -265,6 +303,28 @@ const ProductCancellationModal = ({
                 <span>{formatCurrency(refundBreakdown.proportionalServiceFee)}</span>
               </div>
               <Separator className="my-2" />
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>{formatCurrency(refundBreakdown.grossRefund)}</span>
+              </div>
+              
+              {/* Penalty or Prime exemption */}
+              {refundBreakdown.isPrimeExempt ? (
+                <div className="flex justify-between text-purple-600">
+                  <span className="flex items-center gap-1">
+                    <Crown className="h-3 w-3" />
+                    Penalización (Prime exento):
+                  </span>
+                  <span>Q0.00</span>
+                </div>
+              ) : (
+                <div className="flex justify-between text-destructive">
+                  <span>Penalización por cancelación:</span>
+                  <span>-{formatCurrency(refundBreakdown.cancellationPenalty)}</span>
+                </div>
+              )}
+              
+              <Separator className="my-2" />
               <div className="flex justify-between font-semibold text-green-700">
                 <span>Total a reembolsar:</span>
                 <span>{formatCurrency(refundBreakdown.totalRefund)}</span>
@@ -295,7 +355,7 @@ const ProductCancellationModal = ({
           <div className="space-y-3">
             <h4 className="font-medium text-sm">Datos bancarios para el reembolso</h4>
             
-            {loadingBankInfo ? (
+            {loadingData ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
@@ -362,7 +422,7 @@ const ProductCancellationModal = ({
           <Button 
             variant="destructive" 
             onClick={handleSubmit} 
-            disabled={isSubmitting || loadingBankInfo}
+            disabled={isSubmitting || loadingData}
           >
             {isSubmitting ? (
               <>

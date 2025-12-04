@@ -19,6 +19,8 @@ export type FavoronCompanyInfo = {
   phone_number?: string;
   email?: string;
   website?: string;
+  // Cancellation penalty
+  cancellation_penalty_amount?: number;
   // System fields
   is_active?: boolean;
   created_at?: string;
@@ -87,6 +89,7 @@ export function useFavoronCompanyInfo(packageId?: string) {
           phone_number: values.phone_number,
           email: values.email,
           website: values.website,
+          cancellation_penalty_amount: values.cancellation_penalty_amount,
           is_active: true,
         })
         .eq('id', companyInfo.id)
@@ -114,6 +117,7 @@ export function useFavoronCompanyInfo(packageId?: string) {
           phone_number: values.phone_number,
           email: values.email,
           website: values.website,
+          cancellation_penalty_amount: values.cancellation_penalty_amount,
           is_active: true,
         })
         .select()

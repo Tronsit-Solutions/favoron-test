@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { Crown } from 'lucide-react';
 
 interface Props {
   companyInfo: {
@@ -18,11 +19,12 @@ interface Props {
     phone_number?: string;
     email?: string;
     website?: string;
+    // Cancellation penalty
+    cancellation_penalty_amount?: number;
   } | null;
 }
 
 export default function FavoronBankingInfoDisplay({ companyInfo }: Props) {
-
   return (
     <Card>
       <CardContent className="space-y-6 pt-4">
@@ -107,6 +109,23 @@ export default function FavoronBankingInfoDisplay({ companyInfo }: Props) {
               <span className="text-muted-foreground">Tipo:</span>{' '}
               <span className="font-medium text-foreground">{companyInfo?.account_type || '—'}</span>
             </div>
+          </div>
+        </div>
+
+        {/* Cancellation Penalty */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">Configuración de cancelaciones</h3>
+          <div className="text-sm">
+            <div>
+              <span className="text-muted-foreground">Penalización por cancelación:</span>{' '}
+              <span className="font-medium text-foreground">
+                Q{(companyInfo?.cancellation_penalty_amount ?? 5).toFixed(2)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Crown className="h-3 w-3 text-purple-500" />
+              Los usuarios Prime están exentos de esta penalización.
+            </p>
           </div>
         </div>
       </CardContent>
