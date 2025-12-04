@@ -127,6 +127,49 @@ const TripForm = ({
   
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
   const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
+  
+  const usCities = [
+    { value: 'New York', label: 'New York, NY' },
+    { value: 'Los Angeles', label: 'Los Angeles, CA' },
+    { value: 'Chicago', label: 'Chicago, IL' },
+    { value: 'Houston', label: 'Houston, TX' },
+    { value: 'Phoenix', label: 'Phoenix, AZ' },
+    { value: 'Philadelphia', label: 'Philadelphia, PA' },
+    { value: 'San Antonio', label: 'San Antonio, TX' },
+    { value: 'San Diego', label: 'San Diego, CA' },
+    { value: 'Dallas', label: 'Dallas, TX' },
+    { value: 'Austin', label: 'Austin, TX' },
+    { value: 'San Jose', label: 'San Jose, CA' },
+    { value: 'Fort Worth', label: 'Fort Worth, TX' },
+    { value: 'Jacksonville', label: 'Jacksonville, FL' },
+    { value: 'Columbus', label: 'Columbus, OH' },
+    { value: 'Charlotte', label: 'Charlotte, NC' },
+    { value: 'San Francisco', label: 'San Francisco, CA' },
+    { value: 'Indianapolis', label: 'Indianapolis, IN' },
+    { value: 'Seattle', label: 'Seattle, WA' },
+    { value: 'Denver', label: 'Denver, CO' },
+    { value: 'Washington', label: 'Washington, DC' },
+    { value: 'Boston', label: 'Boston, MA' },
+    { value: 'El Paso', label: 'El Paso, TX' },
+    { value: 'Nashville', label: 'Nashville, TN' },
+    { value: 'Detroit', label: 'Detroit, MI' },
+    { value: 'Oklahoma City', label: 'Oklahoma City, OK' },
+    { value: 'Portland', label: 'Portland, OR' },
+    { value: 'Las Vegas', label: 'Las Vegas, NV' },
+    { value: 'Memphis', label: 'Memphis, TN' },
+    { value: 'Louisville', label: 'Louisville, KY' },
+    { value: 'Baltimore', label: 'Baltimore, MD' },
+    { value: 'Milwaukee', label: 'Milwaukee, WI' },
+    { value: 'Albuquerque', label: 'Albuquerque, NM' },
+    { value: 'Tucson', label: 'Tucson, AZ' },
+    { value: 'Fresno', label: 'Fresno, CA' },
+    { value: 'Sacramento', label: 'Sacramento, CA' },
+    { value: 'Atlanta', label: 'Atlanta, GA' },
+    { value: 'Miami', label: 'Miami, FL' },
+    { value: 'Orlando', label: 'Orlando, FL' },
+    { value: 'Tampa', label: 'Tampa, FL' },
+    { value: 'Otra ciudad', label: 'Otra ciudad' }
+  ];
   const accommodationTypes = [{
     value: 'hotel',
     label: 'Hotel/Hostal'
@@ -391,15 +434,39 @@ const TripForm = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="fromCity" className="text-xs sm:text-sm">Ciudad de origen *</Label>
-                  <Input 
-                    id="fromCity"
-                    type="text" 
-                    placeholder="Ciudad" 
-                    value={formData.fromCity} 
-                    onChange={e => handleInputChange('fromCity', e.target.value)} 
-                    required 
-                    className="w-full text-sm"
-                  />
+                  {formData.fromCountry === 'estados-unidos' ? (
+                    <div className="mobile-safe-combobox">
+                      <Combobox
+                        key="fromCity-combobox"
+                        options={usCities}
+                        value={formData.fromCity}
+                        onValueChange={value => handleInputChange('fromCity', value)}
+                        placeholder="Ciudad"
+                        searchPlaceholder="Buscar ciudad..."
+                        emptyMessage="No se encontraron ciudades"
+                        className="w-full text-sm h-8"
+                      />
+                    </div>
+                  ) : (
+                    <Input 
+                      id="fromCity"
+                      type="text" 
+                      placeholder="Ciudad" 
+                      value={formData.fromCity} 
+                      onChange={e => handleInputChange('fromCity', e.target.value)} 
+                      required 
+                      className="w-full text-sm"
+                    />
+                  )}
+                  {formData.fromCountry === 'estados-unidos' && formData.fromCity === 'Otra ciudad' && (
+                    <Input 
+                      placeholder="Escribe tu ciudad de origen" 
+                      value={formData.fromCity === 'Otra ciudad' ? '' : formData.fromCity}
+                      onChange={e => handleInputChange('fromCity', e.target.value)} 
+                      className="mt-2 text-sm"
+                      required
+                    />
+                  )}
                 </div>
               </div>
             </div>
