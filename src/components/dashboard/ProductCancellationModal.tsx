@@ -262,53 +262,50 @@ const ProductCancellationModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
             Cancelar Producto
           </DialogTitle>
-          <DialogDescription>
-            Esta acción creará una solicitud de reembolso que será procesada por el equipo de Favoron.
+          <DialogDescription className="text-xs">
+            Se creará una solicitud de reembolso procesada por Favoron.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 overflow-y-auto flex-1 pr-1">
           {/* Product info */}
-          <div className="bg-muted p-3 rounded-lg">
+          <div className="bg-muted p-2 rounded-lg">
             <div className="flex items-start gap-2">
               <Package className="h-4 w-4 mt-0.5 text-muted-foreground" />
               <div>
                 <p className="font-medium text-sm">{product.itemDescription || `Producto ${productIndex + 1}`}</p>
-                <p className="text-xs text-muted-foreground">
-                  Cantidad: {product.quantity || 1}
-                </p>
+                <p className="text-xs text-muted-foreground">Cantidad: {product.quantity || 1}</p>
               </div>
             </div>
           </div>
 
           {/* Refund breakdown */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm flex items-center gap-2">
-              <Banknote className="h-4 w-4" />
+          <div className="space-y-1">
+            <h4 className="font-medium text-xs flex items-center gap-1">
+              <Banknote className="h-3 w-3" />
               Cálculo de Reembolso
             </h4>
-            <div className="bg-green-50 border border-green-200 p-3 rounded-lg space-y-1 text-sm">
+            <div className="bg-green-50 border border-green-200 p-2 rounded-lg space-y-1 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Costo del producto:</span>
                 <span>{formatCurrency(refundBreakdown.productTip)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Fee Favoron proporcional:</span>
+                <span className="text-muted-foreground">Fee Favoron:</span>
                 <span>{formatCurrency(refundBreakdown.proportionalServiceFee)}</span>
               </div>
-              <Separator className="my-2" />
+              <Separator className="my-1" />
               <div className="flex justify-between">
                 <span>Subtotal:</span>
                 <span>{formatCurrency(refundBreakdown.grossRefund)}</span>
               </div>
               
-              {/* Penalty or Prime exemption */}
               {refundBreakdown.isPrimeExempt ? (
                 <div className="flex justify-between text-purple-600">
                   <span className="flex items-center gap-1">
@@ -319,12 +316,12 @@ const ProductCancellationModal = ({
                 </div>
               ) : (
                 <div className="flex justify-between text-destructive">
-                  <span>Penalización por cancelación:</span>
+                  <span>Penalización:</span>
                   <span>-{formatCurrency(refundBreakdown.cancellationPenalty)}</span>
                 </div>
               )}
               
-              <Separator className="my-2" />
+              <Separator className="my-1" />
               <div className="flex justify-between font-semibold text-green-700">
                 <span>Total a reembolsar:</span>
                 <span>{formatCurrency(refundBreakdown.totalRefund)}</span>
@@ -333,10 +330,10 @@ const ProductCancellationModal = ({
           </div>
 
           {/* Reason */}
-          <div className="space-y-2">
-            <Label htmlFor="reason">Razón de cancelación</Label>
+          <div className="space-y-1">
+            <Label htmlFor="reason" className="text-xs">Razón de cancelación</Label>
             <Select value={reason} onValueChange={(v) => setReason(v as CancellationReason)}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -352,49 +349,29 @@ const ProductCancellationModal = ({
           <Separator />
 
           {/* Bank info */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm">Datos bancarios para el reembolso</h4>
+          <div className="space-y-2">
+            <h4 className="font-medium text-xs">Datos bancarios para reembolso</h4>
             
             {loadingData ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="bankName">Banco</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="bankName" className="text-xs">Banco</Label>
                   <Input
                     id="bankName"
                     value={bankName}
                     onChange={(e) => setBankName(e.target.value)}
-                    placeholder="Ej: Banrural, BAM, BI"
+                    placeholder="Ej: Banrural"
+                    className="h-8 text-sm"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountHolder">Titular de la cuenta</Label>
-                  <Input
-                    id="bankAccountHolder"
-                    value={bankAccountHolder}
-                    onChange={(e) => setBankAccountHolder(e.target.value)}
-                    placeholder="Nombre completo"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountNumber">Número de cuenta</Label>
-                  <Input
-                    id="bankAccountNumber"
-                    value={bankAccountNumber}
-                    onChange={(e) => setBankAccountNumber(e.target.value)}
-                    placeholder="Número de cuenta"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bankAccountType">Tipo de cuenta</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="bankAccountType" className="text-xs">Tipo</Label>
                   <Select value={bankAccountType} onValueChange={setBankAccountType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -403,24 +380,45 @@ const ProductCancellationModal = ({
                     </SelectContent>
                   </Select>
                 </div>
-              </>
+                <div className="col-span-2 space-y-1">
+                  <Label htmlFor="bankAccountHolder" className="text-xs">Titular</Label>
+                  <Input
+                    id="bankAccountHolder"
+                    value={bankAccountHolder}
+                    onChange={(e) => setBankAccountHolder(e.target.value)}
+                    placeholder="Nombre completo"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="col-span-2 space-y-1">
+                  <Label htmlFor="bankAccountNumber" className="text-xs">Número de cuenta</Label>
+                  <Input
+                    id="bankAccountNumber"
+                    value={bankAccountNumber}
+                    onChange={(e) => setBankAccountNumber(e.target.value)}
+                    placeholder="Número de cuenta"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
             )}
           </div>
 
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
+          <Alert className="py-2">
+            <AlertTriangle className="h-3 w-3" />
             <AlertDescription className="text-xs">
-              El reembolso será procesado en 3-5 días hábiles después de ser aprobado por nuestro equipo.
+              Reembolso procesado en 3-5 días hábiles después de aprobación.
             </AlertDescription>
           </Alert>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+        <DialogFooter className="gap-2 flex-shrink-0 pt-2">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
           <Button 
-            variant="destructive" 
+            variant="destructive"
+            size="sm"
             onClick={handleSubmit} 
             disabled={isSubmitting || loadingData}
           >
