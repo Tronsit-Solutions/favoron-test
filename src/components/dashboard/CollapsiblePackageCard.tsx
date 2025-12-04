@@ -181,7 +181,50 @@ const CollapsiblePackageCard = ({
     return pkg.quote && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date());
   };
 
-  // Helper function to get package name
+  // Helper function to render package name with cancelled products styled
+  const renderPackageName = () => {
+    const products = (pkg.products_data as any[]) || [];
+    
+    // If no products or single product, show item_description with cancelled style if needed
+    if (products.length <= 1) {
+      const isCancelled = products[0]?.cancelled === true;
+      const name = pkg.item_description || 'Sin descripción';
+      
+      if (isCancelled) {
+        return (
+          <>
+            <span className="text-muted-foreground line-through">{name}</span>
+            <span className="text-destructive ml-1">(cancelado)</span>
+          </>
+        );
+      }
+      return <>{name}</>;
+    }
+    
+    // For multiple products: render each with cancelled styling
+    const productElements = products.map((product, idx) => {
+      const name = product.itemDescription?.substring(0, 20) || `Producto ${idx + 1}`;
+      const isCancelled = product.cancelled === true;
+      
+      return (
+        <React.Fragment key={idx}>
+          {idx > 0 && ', '}
+          {isCancelled ? (
+            <>
+              <span className="text-muted-foreground line-through">{name}</span>
+              <span className="text-destructive text-xs ml-0.5">(cancelado)</span>
+            </>
+          ) : (
+            <span>{name}</span>
+          )}
+        </React.Fragment>
+      );
+    });
+    
+    return <>Pedido de {products.length} productos: {productElements}</>;
+  };
+
+  // Helper function to get package name (text only, for non-JSX contexts)
   const getPackageName = () => {
     return pkg.item_description || 'Sin descripción';
   };
@@ -251,7 +294,7 @@ const CollapsiblePackageCard = ({
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
-                      {getPackageName()}
+                      {renderPackageName()}
                     </CardTitle>
                   </div>
                   {needsAction && (
@@ -355,7 +398,7 @@ const CollapsiblePackageCard = ({
                       <span className="truncate flex items-center gap-2 w-full">
                         <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                         <span className="truncate">
-                          {pkg.item_description || 'Sin descripción'}
+                          {renderPackageName()}
                         </span>
                       </span>
                     </CardTitle>
