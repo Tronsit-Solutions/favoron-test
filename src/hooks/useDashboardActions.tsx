@@ -335,7 +335,9 @@ export const useDashboardActions = (
             
             // Use the secure RPC function for traveler rejections
             const { error } = await supabase.rpc('traveler_reject_assignment', {
-              _package_id: selectedPackage.id
+              _package_id: selectedPackage.id,
+              _rejection_reason: quoteData.rejectionReason || null,
+              _additional_comments: quoteData.additionalNotes || null
             });
 
             if (error) {
