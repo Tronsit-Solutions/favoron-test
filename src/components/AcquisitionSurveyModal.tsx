@@ -19,13 +19,13 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
   const surveyOptions = [
     {
       value: 'instagram_ads' as AcquisitionSource,
-      label: 'Instagram Ads',
+      label: 'Instagram',
       icon: Instagram,
       color: 'from-pink-500 to-purple-500'
     },
     {
       value: 'facebook_ads' as AcquisitionSource,
-      label: 'Facebook Ads',
+      label: 'Facebook',
       icon: Facebook,
       color: 'from-blue-600 to-blue-400'
     },
