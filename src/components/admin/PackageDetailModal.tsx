@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban } from "lucide-react";
+import AdminProductCancellationModal from "./AdminProductCancellationModal";
+import { canCancelProduct } from "@/lib/refundCalculations";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import PaymentReceiptViewer from "./PaymentReceiptViewer";
 import PurchaseConfirmationViewer from "./PurchaseConfirmationViewer";
@@ -122,6 +124,11 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   }>>([]);
   const [paymentOrder, setPaymentOrder] = useState<any>(null);
   const [loadingPaymentOrder, setLoadingPaymentOrder] = useState(false);
+  const [adminCancellationModal, setAdminCancellationModal] = useState<{
+    isOpen: boolean;
+    product: any;
+    productIndex: number;
+  } | null>(null);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -573,6 +580,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
       return pkg.products_data.map((product: any, index: number) => ({
         id: index + 1,
+        index,
         description: product.itemDescription || 'Sin descripción',
         price: parseFloat(product.estimatedPrice || '0'),
         quantity: parseInt(product.quantity || '1'),
@@ -582,21 +590,33 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         productPhotos: product.productPhotos || [],
         packageWeight: product.weight || null,
         adminTip: product.adminAssignedTip ? parseFloat(product.adminAssignedTip) : 0,
-        subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1')
+        subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1'),
+        cancelled: product.cancelled || false,
+        receivedByTraveler: product.receivedByTraveler || false,
+        rawProduct: product
       }));
     } else {
       // Legacy single product format
       return [{
         id: 1,
+        index: 0,
         description: pkg.item_description || 'Sin descripción',
         price: parseFloat(pkg.estimated_price?.toString() || '0'),
         quantity: 1,
         link: pkg.item_link,
         adminTip: pkg.admin_assigned_tip ? parseFloat(pkg.admin_assigned_tip.toString()) : 0,
-        subtotal: parseFloat(pkg.estimated_price?.toString() || '0')
+        subtotal: parseFloat(pkg.estimated_price?.toString() || '0'),
+        cancelled: false,
+        receivedByTraveler: false,
+        rawProduct: null
       }];
     }
   };
+
+  // Calculate active product count for cancellation validation
+  const activeProductCount = pkg.products_data && Array.isArray(pkg.products_data) 
+    ? pkg.products_data.filter((p: any) => !p.cancelled).length 
+    : 1;
 
   const detailedProducts = getDetailedProductInfo();
   const totalOrderValue = detailedProducts.reduce((sum, product) => sum + product.subtotal, 0);
@@ -1107,34 +1127,78 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                   </div>
                 </div>
               ) : (
-                /* View Mode - Product Details */
+              /* View Mode - Product Details */
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm">Productos Solicitados:</h4>
-                  {detailedProducts.map((product) => (
-                    <Card key={product.id} className="border-l-4 border-l-primary/30 bg-muted/20">
+                  {detailedProducts.map((product) => {
+                    const cancellationCheck = canCancelProduct(
+                      product.rawProduct || product,
+                      pkg.status,
+                      activeProductCount
+                    );
+                    
+                    return (
+                    <Card 
+                      key={product.id} 
+                      className={`border-l-4 ${product.cancelled 
+                        ? 'border-l-destructive/50 bg-destructive/5 opacity-70' 
+                        : 'border-l-primary/30 bg-muted/20'}`}
+                    >
                       <CardContent className="p-2">
                         <div className="flex justify-between items-start mb-1">
                           <div className="flex-1">
-                            <div className="flex items-center gap-1 mb-1">
+                            <div className="flex items-center gap-1 mb-1 flex-wrap">
                               <Badge variant="outline" className="text-xs">
                                 Producto #{product.id}
                               </Badge>
                               <Badge variant="secondary" className="text-xs">
                                 Cantidad: {product.quantity}
                               </Badge>
+                              {product.cancelled && (
+                                <Badge variant="destructive" className="text-xs">
+                                  <Ban className="h-3 w-3 mr-1" />
+                                  Cancelado
+                                </Badge>
+                              )}
+                              {product.receivedByTraveler && !product.cancelled && (
+                                <Badge variant="default" className="text-xs bg-green-600">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Recibido
+                                </Badge>
+                              )}
                             </div>
-                            <h5 className="font-medium text-sm">{product.description}</h5>
+                            <h5 className={`font-medium text-sm ${product.cancelled ? 'line-through text-muted-foreground' : ''}`}>
+                              {product.description}
+                            </h5>
                           </div>
-                          <div className="text-right ml-3">
-                            <p className="text-base font-bold text-primary">${product.price.toFixed(2)}</p>
+                          <div className="text-right ml-3 flex flex-col items-end gap-1">
+                            <p className={`text-base font-bold ${product.cancelled ? 'line-through text-muted-foreground' : 'text-primary'}`}>
+                              ${product.price.toFixed(2)}
+                            </p>
                             <p className="text-xs text-muted-foreground">c/u</p>
+                            {/* Cancel button for multi-product orders */}
+                            {!product.cancelled && detailedProducts.length > 1 && cancellationCheck.canCancel && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive/10 h-7 text-xs mt-1"
+                                onClick={() => setAdminCancellationModal({
+                                  isOpen: true,
+                                  product: product.rawProduct || product,
+                                  productIndex: product.index
+                                })}
+                              >
+                                <X className="h-3 w-3 mr-1" />
+                                Cancelar
+                              </Button>
+                            )}
                           </div>
                         </div>
                         
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-1 text-xs">
                           <div>
                             <p className="font-medium text-muted-foreground">Precio Unitario</p>
-                            <p className="font-medium">${product.price.toFixed(2)}</p>
+                            <p className={`font-medium ${product.cancelled ? 'line-through' : ''}`}>${product.price.toFixed(2)}</p>
                           </div>
                           <div>
                             <p className="font-medium text-muted-foreground">Cantidad</p>
@@ -1142,12 +1206,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                           </div>
                           <div>
                             <p className="font-medium text-muted-foreground">Subtotal</p>
-                            <p className="font-bold text-primary">${product.subtotal.toFixed(2)}</p>
+                            <p className={`font-bold ${product.cancelled ? 'line-through text-muted-foreground' : 'text-primary'}`}>
+                              ${product.subtotal.toFixed(2)}
+                            </p>
                           </div>
                           {product.adminTip > 0 && (
                             <div>
                               <p className="font-medium text-muted-foreground">Tip Asignado</p>
-                              <p className="font-bold text-green-600">Q{product.adminTip.toFixed(2)}</p>
+                              <p className={`font-bold ${product.cancelled ? 'line-through text-muted-foreground' : 'text-green-600'}`}>
+                                Q{product.adminTip.toFixed(2)}
+                                {product.cancelled && <span className="ml-1 text-destructive no-underline">(no aplica)</span>}
+                              </p>
                             </div>
                           )}
                           {product.link && (
@@ -1205,7 +1274,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         )}
                       </CardContent>
                     </Card>
-                  ))}
+                  )})}
                 </div>
               )}
 
@@ -1853,6 +1922,24 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         type="package"
         itemName={pkg?.item_description || 'Solicitud'}
       />
+      
+      {/* Admin Product Cancellation Modal */}
+      {adminCancellationModal && pkg.products_data && (
+        <AdminProductCancellationModal
+          isOpen={adminCancellationModal.isOpen}
+          onClose={() => setAdminCancellationModal(null)}
+          product={adminCancellationModal.product}
+          productIndex={adminCancellationModal.productIndex}
+          packageId={pkg.id}
+          shopperId={pkg.user_id}
+          quote={pkg.quote}
+          allProducts={pkg.products_data}
+          onCancellationComplete={() => {
+            setAdminCancellationModal(null);
+            closeModal(modalId);
+          }}
+        />
+      )}
     </Dialog>
   );
 };
