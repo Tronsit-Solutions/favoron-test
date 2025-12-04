@@ -521,169 +521,111 @@ const QuoteDialog = ({
                         return (
                           <div 
                             key={index} 
-                            className="group relative bg-gradient-to-br from-background to-muted/30 border-2 border-muted/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200"
+                            className="group relative bg-gradient-to-br from-background to-muted/20 border border-muted/50 rounded-lg overflow-hidden shadow-sm hover:shadow hover:border-primary/20 transition-all duration-200"
                           >
-                            {/* Header con badge de índice */}
-                            <div className="flex items-center gap-3 p-4 pb-3 border-b border-muted/40 bg-muted/20">
-                              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-bold text-sm shrink-0">
-                                #{index + 1}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  {isPersonalOrder ? (
-                                    <Badge variant="secondary" className="text-xs shrink-0">
-                                      <Package className="h-3 w-3 mr-1" />
-                                      Pedido Personal
-                                    </Badge>
-                                  ) : (
-                                    <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                                  )}
-                                  <p className="font-semibold text-foreground truncate">
-                                    {product.itemDescription || `Producto ${index + 1}`}
-                                  </p>
-                                </div>
-                              </div>
+                            {/* Header compacto */}
+                            <div className="flex items-center gap-2 px-3 py-2 border-b border-muted/30 bg-muted/10">
+                              <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10 text-primary font-bold text-xs shrink-0">
+                                {index + 1}
+                              </span>
+                              {isPersonalOrder && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                                  Personal
+                                </Badge>
+                              )}
+                              <p className="text-sm font-medium text-foreground truncate flex-1">
+                                {product.itemDescription || `Producto ${index + 1}`}
+                              </p>
                             </div>
                             
-                            {/* Contenido del producto */}
-                            <div className="p-4 space-y-3">
+                            {/* Contenido compacto */}
+                            <div className="px-3 py-2">
                               {isPersonalOrder ? (
-                                /* Vista para pedidos personales */
-                                <div className="space-y-3">
-                                  {/* Instrucciones */}
+                                <div className="space-y-2">
                                   {product.instructions && (
-                                    <div className="bg-muted/30 rounded-lg p-3">
-                                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Instrucciones</p>
-                                      <p className="text-sm text-foreground">{product.instructions}</p>
-                                    </div>
+                                    <p className="text-xs text-muted-foreground line-clamp-2">{product.instructions}</p>
                                   )}
-                                  
-                                  {/* Info grid */}
-                                  <div className="grid grid-cols-2 gap-3">
+                                  <div className="flex items-center gap-3 text-xs">
                                     {product.weight && (
-                                      <div className="bg-muted/20 rounded-lg p-2.5">
-                                        <p className="text-xs text-muted-foreground">Peso estimado</p>
-                                        <p className="text-sm font-medium text-foreground">{product.weight} kg</p>
-                                      </div>
+                                      <span className="text-muted-foreground">Peso: <span className="text-foreground font-medium">{product.weight}kg</span></span>
                                     )}
-                                    <div className="bg-muted/20 rounded-lg p-2.5">
-                                      <p className="text-xs text-muted-foreground">Precio estimado</p>
-                                      <p className="text-sm font-medium text-foreground">${unitPrice.toFixed(2)}</p>
-                                    </div>
+                                    <span className="text-muted-foreground">Precio: <span className="text-foreground font-medium">${unitPrice.toFixed(2)}</span></span>
                                   </div>
-                                  
-                                  {/* Fotos del paquete */}
                                   {product.productPhotos && product.productPhotos.length > 0 && (
-                                    <div>
-                                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Fotos del producto</p>
-                                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                        {product.productPhotos.map((photo: any, photoIndex: number) => (
-                                          <ResolvedImage 
-                                            key={photoIndex}
-                                            src={photo}
-                                            alt={`Foto ${photoIndex + 1}`}
-                                            className="w-full aspect-square object-cover rounded-lg border-2 border-muted/40 cursor-pointer hover:border-primary/50 hover:scale-105 transition-all duration-200"
-                                            onClick={() => {
-                                              const getRawUrl = (input: any): string | null => {
-                                                if (!input) return null;
-                                                if (typeof input === 'string') return input;
-                                                if (typeof input === 'object') {
-                                                  if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
-                                                  if (input.filePath) return input.filePath;
-                                                  if (input.url) return input.url;
-                                                }
-                                                return null;
-                                              };
-                                              const url = getRawUrl(photo);
-                                              if (url) {
-                                                setImageModalState({
-                                                  isOpen: true,
-                                                  imageUrl: url,
-                                                  title: `Foto ${photoIndex + 1} del producto`
-                                                });
+                                    <div className="flex gap-1">
+                                      {product.productPhotos.slice(0, 4).map((photo: any, photoIndex: number) => (
+                                        <ResolvedImage 
+                                          key={photoIndex}
+                                          src={photo}
+                                          alt={`Foto ${photoIndex + 1}`}
+                                          className="w-10 h-10 object-cover rounded border border-muted/40 cursor-pointer hover:border-primary/50 transition-colors"
+                                          onClick={() => {
+                                            const getRawUrl = (input: any): string | null => {
+                                              if (!input) return null;
+                                              if (typeof input === 'string') return input;
+                                              if (typeof input === 'object') {
+                                                if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+                                                if (input.filePath) return input.filePath;
+                                                if (input.url) return input.url;
                                               }
-                                            }}
-                                          />
-                                        ))}
-                                      </div>
+                                              return null;
+                                            };
+                                            const url = getRawUrl(photo);
+                                            if (url) {
+                                              setImageModalState({
+                                                isOpen: true,
+                                                imageUrl: url,
+                                                title: `Foto ${photoIndex + 1} del producto`
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      ))}
                                     </div>
                                   )}
                                 </div>
                               ) : (
-                                /* Vista para pedidos online normales */
-                                <div className="space-y-3">
-                                  {/* Info grid */}
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-muted/20 rounded-lg p-2.5">
-                                      <p className="text-xs text-muted-foreground">Precio unitario</p>
-                                      <p className="text-sm font-medium text-foreground">${unitPrice.toFixed(2)}</p>
-                                    </div>
-                                    <div className="bg-muted/20 rounded-lg p-2.5">
-                                      <p className="text-xs text-muted-foreground">Cantidad</p>
-                                      <p className="text-sm font-medium text-foreground">{quantity} unidad{quantity !== 1 ? 'es' : ''}</p>
-                                    </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-3 text-xs">
+                                    <span className="text-muted-foreground">${unitPrice.toFixed(2)} × {quantity}</span>
+                                    {(product.itemLink || packageDetails.item_link) && (
+                                      <a 
+                                        href={product.itemLink || packageDetails.item_link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
+                                      >
+                                        <ExternalLink className="h-3 w-3" />
+                                        Ver en tienda
+                                      </a>
+                                    )}
                                   </div>
-                                  
-                                  {/* Link a tienda */}
-                                  {(product.itemLink || packageDetails.item_link) && (
-                                    <a 
-                                      href={product.itemLink || packageDetails.item_link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 hover:bg-primary/10 text-primary text-sm font-medium transition-colors"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                      Ver en tienda
-                                    </a>
-                                  )}
+                                  <span className="text-sm font-semibold text-foreground">${totalPrice.toFixed(2)}</span>
                                 </div>
                               )}
                             </div>
                             
-                            {/* Footer con total */}
-                            <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-t border-muted/40">
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">Total producto</span>
+                            {/* Footer minimal solo si hay tip */}
+                            {adminTip > 0 && isTravelerContext && (
+                              <div className="flex items-center justify-end px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border-t border-green-100 dark:border-green-900/30">
+                                <span className="text-xs font-semibold text-green-700 dark:text-green-400">Q{adminTip.toFixed(2)} tip</span>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <span className="text-lg font-bold text-foreground">${totalPrice.toFixed(2)}</span>
-                                {adminTip > 0 && isTravelerContext && (
-                                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30">
-                                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">Q{adminTip.toFixed(2)}</span>
-                                    <span className="text-xs text-green-600 dark:text-green-500">tip</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                            )}
                           </div>
                         );
                       })}
                       
                       {/* Total general si hay múltiples productos */}
                       {packageDetails.products_data.length > 1 && (
-                        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-xl p-4 mt-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/20">
-                                <Calculator className="h-4 w-4 text-primary" />
-                              </div>
-                              <span className="font-medium text-foreground">Total del pedido</span>
-                            </div>
-                            <span className="text-2xl font-bold text-primary">
-                              ${packageDetails.products_data.reduce((sum: number, product: any) => {
-                                const quantity = parseInt(product.quantity || '1');
-                                const unitPrice = parseFloat(product.estimatedPrice || '0');
-                                return sum + quantity * unitPrice;
-                              }, 0).toFixed(2)}
-                            </span>
-                          </div>
-                          {displayAmount && isTravelerContext && (
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-primary/20">
-                              <span className="text-sm text-muted-foreground">Tip total asignado</span>
-                              <span className="text-xl font-bold text-green-600">Q{displayAmount.toFixed(2)}</span>
-                            </div>
-                          )}
+                        <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mt-1">
+                          <span className="text-sm text-muted-foreground">Total del pedido</span>
+                          <span className="text-base font-bold text-primary">
+                            ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                              const quantity = parseInt(product.quantity || '1');
+                              const unitPrice = parseFloat(product.estimatedPrice || '0');
+                              return sum + quantity * unitPrice;
+                            }, 0).toFixed(2)}
+                          </span>
                         </div>
                       )}
                     </div>
