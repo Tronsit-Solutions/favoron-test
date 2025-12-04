@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import PrimeModal from "./PrimeModal";
+import TravelerRejectionModal from "./TravelerRejectionModal";
 import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
@@ -146,6 +147,7 @@ const QuoteDialog = ({
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
+  const [showTravelerRejectionModal, setShowTravelerRejectionModal] = useState(false);
   
   // Discount code validation state
   const [isValidatingCode, setIsValidatingCode] = useState(false);
@@ -372,7 +374,13 @@ const QuoteDialog = ({
       return;
     }
 
-    // For admin-assigned tips, travelers can reject directly without justification
+    // For travelers rejecting admin-assigned tips, show the traveler rejection modal
+    if (isTravelerContext) {
+      setShowTravelerRejectionModal(true);
+      return;
+    }
+
+    // For admin-assigned tips, travelers can reject directly without justification (fallback)
     clearPersistedState(); // Clear form data on successful rejection
     onSubmit({
       message: 'rejected',
@@ -380,6 +388,16 @@ const QuoteDialog = ({
       wantsRequote: existingQuote ? wantsRequote : undefined,
       additionalNotes: existingQuote ? additionalComments : undefined
     });
+  };
+
+  const handleTravelerRejectionConfirm = (reason: string, comments: string) => {
+    clearPersistedState();
+    onSubmit({
+      message: 'rejected',
+      rejectionReason: reason || undefined,
+      additionalNotes: comments || undefined
+    });
+    setShowTravelerRejectionModal(false);
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} overflow-y-auto p-4 sm:p-6`}>
@@ -1076,6 +1094,14 @@ const QuoteDialog = ({
           isOpen={showPrimeModal}
           onClose={() => setShowPrimeModal(false)}
           user={profile}
+        />
+        
+        {/* Traveler Rejection Modal */}
+        <TravelerRejectionModal
+          isOpen={showTravelerRejectionModal}
+          onClose={() => setShowTravelerRejectionModal(false)}
+          onConfirm={handleTravelerRejectionConfirm}
+          packageDescription={packageDetails.item_description}
         />
       </DialogContent>
 
