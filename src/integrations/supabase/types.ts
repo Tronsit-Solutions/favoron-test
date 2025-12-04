@@ -788,6 +788,91 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_orders: {
+        Row: {
+          amount: number
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type: string
+          bank_name: string
+          cancelled_products: Json
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          package_id: string
+          reason: string
+          receipt_filename: string | null
+          receipt_url: string | null
+          shopper_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_holder: string
+          bank_account_number: string
+          bank_account_type?: string
+          bank_name: string
+          cancelled_products?: Json
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          package_id: string
+          reason?: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          shopper_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_holder?: string
+          bank_account_number?: string
+          bank_account_type?: string
+          bank_name?: string
+          cancelled_products?: Json
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          package_id?: string
+          reason?: string
+          receipt_filename?: string | null
+          receipt_url?: string | null
+          shopper_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_orders_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refund_orders_shopper_id_fkey"
+            columns: ["shopper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_payment_accumulator: {
         Row: {
           accumulated_amount: number

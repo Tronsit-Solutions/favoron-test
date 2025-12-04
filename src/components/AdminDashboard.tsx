@@ -28,6 +28,7 @@ import FinancialDashboard from "./admin/FinancialDashboard";
 import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
+import AdminRefundsTab from "./admin/AdminRefundsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -473,6 +474,29 @@ const AdminDashboard = ({
   const { paymentOrders } = usePaymentOrders();
   const pendingTravelerPayments = paymentOrders.filter(order => order.status === 'pending').length;
   
+  // Get pending refunds count
+  const [pendingRefundsCount, setPendingRefundsCount] = useState(0);
+  useEffect(() => {
+    const fetchPendingRefunds = async () => {
+      const { count } = await supabase
+        .from('refund_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      setPendingRefundsCount(count || 0);
+    };
+    fetchPendingRefunds();
+    
+    // Subscribe to changes
+    const channel = supabase
+      .channel('refund_orders_count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'refund_orders' }, () => {
+        fetchPendingRefunds();
+      })
+      .subscribe();
+    
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+  
   // Setup consolidated real-time with complete modal protection
   const { isRealtimePaused, queuedUpdates, processQueuedUpdates } = useConsolidatedRealtimeAdmin({
     onPackageUpdate: setLocalPackages,
@@ -519,6 +543,11 @@ const AdminDashboard = ({
       value: "reports",
       label: "Reportes",
       badge: undefined
+    },
+    {
+      value: "refunds",
+      label: "Reembolsos",
+      badge: pendingRefundsCount > 0 ? <NotificationBadge count={pendingRefundsCount} /> : undefined
     }
   ];
   
@@ -544,7 +573,7 @@ const AdminDashboard = ({
         ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-8">
                   {adminTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -644,6 +673,10 @@ const AdminDashboard = ({
 
         <TabsContent value="reports" className="space-y-4">
           <MonthlyReportsTab />
+        </TabsContent>
+
+        <TabsContent value="refunds" className="space-y-4">
+          <AdminRefundsTab />
         </TabsContent>
 
       </Tabs>
