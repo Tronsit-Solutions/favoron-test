@@ -15,6 +15,7 @@ export type AcquisitionSource =
 interface ProfileWithAcquisition {
   acquisition_source?: string | null;
   acquisition_source_answered_at?: string | null;
+  referrer_name?: string | null;
 }
 
 export const useAcquisitionSurvey = () => {
@@ -42,7 +43,7 @@ export const useAcquisitionSurvey = () => {
   }, [profile]);
 
   // Enviar respuesta de la encuesta
-  const submitSurvey = useCallback(async (source: AcquisitionSource) => {
+  const submitSurvey = useCallback(async (source: AcquisitionSource, referrerName?: string) => {
     if (!profile?.id) {
       throw new Error('No user profile found');
     }
@@ -52,7 +53,8 @@ export const useAcquisitionSurvey = () => {
         .from('profiles')
         .update({
           acquisition_source: source,
-          acquisition_source_answered_at: new Date().toISOString()
+          acquisition_source_answered_at: new Date().toISOString(),
+          referrer_name: referrerName || null
         } as any) // Type assertion needed until types are regenerated
         .eq('id', profile.id);
 

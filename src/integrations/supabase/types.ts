@@ -733,6 +733,7 @@ export type Database = {
           last_name: string | null
           phone_number: string | null
           prime_expires_at: string | null
+          referrer_name: string | null
           trust_level: Database["public"]["Enums"]["trust_level"] | null
           updated_at: string | null
           username: string | null
@@ -758,6 +759,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
+          referrer_name?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
@@ -783,6 +785,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
+          referrer_name?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           updated_at?: string | null
           username?: string | null
