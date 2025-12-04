@@ -779,12 +779,6 @@ const QuoteDialog = ({
                               </p>
                               
                               <div className="space-y-1 text-xs">
-                                {product.estimatedPrice && (
-                                  <div className="flex justify-between text-muted-foreground">
-                                    <span>Precio producto:</span>
-                                    <span>${parseFloat(product.estimatedPrice).toFixed(2)}</span>
-                                  </div>
-                                )}
                                 <div className="flex justify-between text-green-700">
                                   <span>Tip viajero:</span>
                                   <span>{formatCurrency(tip)}</span>
