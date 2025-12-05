@@ -226,7 +226,7 @@ const AdminMatchDialog = ({
           // Try to fetch profiles directly from the profiles table
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, username, email')
+            .select('id, first_name, last_name, username, email, country_code, phone_number')
             .in('id', userIds);
           
           if (error) {
