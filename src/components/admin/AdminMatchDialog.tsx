@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,7 @@ const AdminMatchDialog = ({
   const [adminTip, setAdminTip] = useState<string>('');
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
+  const [showAllTrips, setShowAllTrips] = useState(false);
 
   const MODAL_ID = 'admin-match-dialog';
 
@@ -145,11 +146,11 @@ const AdminMatchDialog = ({
         // Exclude trips with past arrival dates
         const isNotExpired = new Date(trip.arrival_date) >= today;
         
-        // Filter by origin country (normalized)
+        // Filter by origin country (skip if showAllTrips is enabled)
         const tripOriginNormalized = normalizeCountry(trip.from_country || '');
-        const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
+        const matchesOrigin = showAllTrips || tripOriginNormalized === packageOriginNormalized;
         
-        // Filter by destination country (normalized)
+        // Filter by destination country (normalized) - always required
         const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
         const matchesDestination = !packageDestinationNormalized || 
                                    tripDestinationNormalized === packageDestinationNormalized;
@@ -158,7 +159,31 @@ const AdminMatchDialog = ({
       })
       // Sort by arrival date (soonest first)
       .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
-  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination, showAllTrips]);
+
+  // Count trips that match destination only (for showing "other countries" option)
+  const allDestinationTrips = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+    const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+    
+    return availableTrips.filter(trip => {
+      const isNotExpired = new Date(trip.arrival_date) >= today;
+      const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
+      const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+      const matchesDestination = !packageDestinationNormalized || 
+                                 tripDestinationNormalized === packageDestinationNormalized;
+      // Only count trips from DIFFERENT countries
+      const isDifferentOrigin = tripOriginNormalized !== packageOriginNormalized;
+      return isNotExpired && matchesDestination && isDifferentOrigin;
+    });
+  }, [availableTrips, selectedPackage?.package_destination, selectedPackage?.purchase_origin]);
+
+  // Reset showAllTrips when selected package changes
+  useEffect(() => {
+    setShowAllTrips(false);
+  }, [selectedPackage?.id]);
 
   // Handle modal state persistence
   useEffect(() => {
@@ -563,9 +588,64 @@ const AdminMatchDialog = ({
               </p>
             </div>
 
+            {/* Show All Trips Indicator */}
+            {showAllTrips && (
+              <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3 flex-shrink-0">
+                <div className="flex items-center gap-2 text-amber-800">
+                  <Globe className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Mostrando viajes de todos los países
+                  </span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAllTrips(false)}
+                  className="text-amber-800 hover:bg-amber-100 h-7 px-2"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Solo {selectedPackage?.purchase_origin}
+                </Button>
+              </div>
+            )}
+
             <ScrollArea className="flex-1 w-full min-h-0">
               <div className="space-y-2 pr-4 pb-4">
+                {/* Empty State with Option to Show Other Countries */}
+                {validTrips.length === 0 && !showAllTrips && allDestinationTrips.length > 0 && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Globe className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground mb-2">
+                      No hay viajes disponibles desde {selectedPackage?.purchase_origin}
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Pero hay {allDestinationTrips.length} viaje(s) desde otros países hacia {selectedPackage?.package_destination}
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowAllTrips(true)}
+                      className="gap-2"
+                    >
+                      <Globe className="h-4 w-4" />
+                      Ver viajes de otros países
+                    </Button>
+                  </div>
+                )}
+
+                {/* No trips at all */}
+                {validTrips.length === 0 && (showAllTrips || allDestinationTrips.length === 0) && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">
+                      No hay viajes disponibles para esta ruta
+                    </p>
+                  </div>
+                )}
+
                 {validTrips.map((trip) => {
+                  const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+                  const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+                  const isDifferentCountry = showAllTrips && tripOriginNormalized !== packageOriginNormalized;
                   const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
                   
                   return (
@@ -613,6 +693,11 @@ const AdminMatchDialog = ({
                                    <span className="text-sm font-medium text-gray-900">
                                      {trip.to_city}
                                    </span>
+                                   {isDifferentCountry && (
+                                     <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs ml-1">
+                                       ⚠️ País diferente
+                                     </Badge>
+                                   )}
                                  </div>
                               </div>
 
