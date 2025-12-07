@@ -299,9 +299,8 @@ const OperationsReadyTab = () => {
                 <Button
                   onClick={() => handleMarkReady(pkg)}
                   disabled={updatingId === pkg.id}
-                  className="w-full"
+                  className="w-full bg-success hover:bg-success/90 text-success-foreground"
                   size="lg"
-                  variant={pkg.delivery_method === 'delivery' ? 'default' : 'outline'}
                 >
                   {updatingId === pkg.id ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
