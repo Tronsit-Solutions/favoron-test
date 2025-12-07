@@ -20,14 +20,19 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
   const filteredMatches = useMemo(() => {
     return matchedPackages.filter(pkg => {
       const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+      const search = searchTerm.toLowerCase().trim();
+      
+      // Combine first and last names for full name search
+      const shopperFullName = `${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || ''}`.toLowerCase();
+      const travelerFullName = `${matchedTrip?.profiles?.first_name || ''} ${matchedTrip?.profiles?.last_name || ''}`.toLowerCase();
       
       const matchesSearch = 
-        (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (pkg.user_id || '').toString().includes(searchTerm) ||
-        (pkg.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (pkg.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase());
+        (pkg.item_description || '').toLowerCase().includes(search) ||
+        (pkg.user_id || '').toString().includes(search) ||
+        shopperFullName.includes(search) ||
+        travelerFullName.includes(search) ||
+        (matchedTrip?.from_city || '').toLowerCase().includes(search) ||
+        (matchedTrip?.to_city || '').toLowerCase().includes(search);
       
       const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
       
