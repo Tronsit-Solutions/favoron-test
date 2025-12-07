@@ -66,6 +66,24 @@ const CollapsibleTravelerPackageCard = ({
   
   const { user } = useAuth();
 
+  // Helper to detect if quote is expired (either by status OR by expired timer)
+  const isQuoteExpired = (p: any): boolean => {
+    if (p.status === 'quote_expired') return true;
+    // Check if timer has expired but backend hasn't updated status yet
+    if ((p.status === 'quote_sent' || p.status === 'payment_pending') && 
+        p.quote_expires_at && 
+        new Date(p.quote_expires_at).getTime() <= Date.now()) {
+      return true;
+    }
+    return false;
+  };
+
+  // Get effective status (accounting for expired timer)
+  const getEffectiveStatus = (p: any): string => {
+    if (isQuoteExpired(p)) return 'quote_expired';
+    return p.status;
+  };
+
   const handleConfirmReceived = (photo?: string) => {
     console.log('🎯 handleConfirmReceived called for package:', pkg.id, pkg.item_description, 'photo:', !!photo);
     onConfirmReceived(pkg.id, photo);
@@ -213,7 +231,7 @@ const CollapsibleTravelerPackageCard = ({
                   </div>
                   
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                    <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
+                    <TravelerPackageStatusBadge status={getEffectiveStatus(pkg)} pkg={pkg} />
                     {confirmationProgress && (
                       <Badge className="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5">
                         🔵 {confirmationProgress.confirmed}/{confirmationProgress.total} productos
@@ -231,14 +249,14 @@ const CollapsibleTravelerPackageCard = ({
                 {/* Status message - mobile optimized */}
                 <div className="text-xs w-full">
                   <TravelerPackageStatusBadge 
-                    status={pkg.status} 
+                    status={getEffectiveStatus(pkg)} 
                     pkg={pkg}
                     showFullDescription={true}
                   />
                 </div>
 
                 {/* Dismiss button for expired quotes - mobile */}
-                {pkg.status === 'quote_expired' && onDismissExpiredPackage && (
+                {isQuoteExpired(pkg) && onDismissExpiredPackage && (
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -370,7 +388,7 @@ const CollapsibleTravelerPackageCard = ({
                           ❌ Cancelado
                         </div>
                       )}
-                      {pkg.status === 'quote_expired' && (
+                      {isQuoteExpired(pkg) && (
                         <div className="space-y-2">
                           <div className="font-medium text-amber-600">
                             ⏰ Cotización expirada - El shopper no pagó a tiempo
