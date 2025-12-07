@@ -820,14 +820,20 @@ const Dashboard = ({ user }: DashboardProps) => {
                              'delivered_to_office',
                              'completed'
                            ];
-                           const isTimerActive = (pkg: any) => (
-                             (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-                             ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-                           );
-                           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-                           // Include quote_expired packages so traveler can dismiss them
-                           const isExpiredQuote = pkg.status === 'quote_expired';
-                           return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status) || isExpiredQuote;
+                            const isTimerActive = (pkg: any) => (
+                              (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+                              ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+                            );
+                            // Also include packages where the quote HAS expired but status hasn't been updated yet by backend
+                            const hasExpiredTimer = (pkg: any) => (
+                              (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && 
+                              pkg.quote_expires_at && 
+                              new Date(pkg.quote_expires_at).getTime() <= now
+                            );
+                            const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
+                            // Include quote_expired packages so traveler can dismiss them (both explicit status and expired timer)
+                            const isExpiredQuote = pkg.status === 'quote_expired' || hasExpiredTimer(pkg);
+                            return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status) || isExpiredQuote;
                          })
                         .sort((a, b) => {
                           // Priority 1: Packages with pending actions first
