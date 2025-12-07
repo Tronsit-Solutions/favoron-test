@@ -31,10 +31,10 @@ const DashboardPage = () => {
     await supabase.auth.signOut();
     window.location.href = 'https://favoron.app';
   };
-  // Redirect operations users directly to operations panel
+  // Redirect operations users directly to operations panel - MUST run before any early returns
   useEffect(() => {
     if (!loading && userRole?.role === 'operations') {
-      navigate('/operations');
+      navigate('/operations', { replace: true });
     }
   }, [loading, userRole, navigate]);
 
@@ -98,6 +98,19 @@ const DashboardPage = () => {
   // Don't render if no user/profile, but avoid unmounting during transient loading
   if (!user || !profile) {
     return null; // Will redirect to auth
+  }
+
+  // Wait for userRole to be loaded before rendering - prevents race condition
+  // where Dashboard renders before we know if user should be redirected to /operations
+  if (!userRole) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando permisos...</p>
+        </div>
+      </div>
+    );
   }
 
   // Create user object compatible with existing Dashboard component
