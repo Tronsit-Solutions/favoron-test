@@ -31,6 +31,13 @@ const DashboardPage = () => {
     await supabase.auth.signOut();
     window.location.href = 'https://favoron.app';
   };
+  // Redirect operations users directly to operations panel
+  useEffect(() => {
+    if (!loading && userRole?.role === 'operations') {
+      navigate('/operations');
+    }
+  }, [loading, userRole, navigate]);
+
   useEffect(() => {
     // Auth guard with grace period after tab visibility changes
     const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
