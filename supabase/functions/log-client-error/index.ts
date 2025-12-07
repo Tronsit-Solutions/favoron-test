@@ -53,12 +53,10 @@ serve(async (req) => {
       session_id: sessionId,
     } = body || {};
 
-    if (!message || typeof message !== "string") {
-      return new Response(JSON.stringify({ error: "Invalid payload: message is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Accept payloads without message, use a default instead of rejecting
+    const safeMessage = (message && typeof message === "string") 
+      ? message 
+      : "Unknown client error (no message provided)";
 
     // Intentar identificar usuario desde el token si no viene en el body
     const authHeader = req.headers.get("Authorization") || "";
@@ -78,7 +76,7 @@ serve(async (req) => {
       route: typeof route === "string" ? route : null,
       url: typeof url === "string" ? url : null,
       referrer: typeof referrer === "string" ? referrer : null,
-      message,
+      message: safeMessage,
       name: typeof name === "string" ? name : null,
       type: typeof type === "string" ? type : "error",
       severity: typeof severity === "string" ? severity : "error",
