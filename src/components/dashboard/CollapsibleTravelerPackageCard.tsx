@@ -536,14 +536,14 @@ const CollapsibleTravelerPackageCard = ({
                   </TabsContent>
                   
                   <TabsContent value="chat" className="mt-0">
-                    {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) ? (
+                    {['pending_purchase', 'payment_confirmed', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
                       <div className="bg-muted/30 rounded-lg">
                         <PackageTimeline pkg={pkg} />
                       </div>
                     ) : (
                       <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
                         <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
-                        <p>Chat disponible tras aceptar cotización</p>
+                        <p>Chat disponible después del pago</p>
                       </div>
                     )}
                   </TabsContent>
@@ -674,11 +674,12 @@ const CollapsibleTravelerPackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="chat" className="mt-0">
-                      {['quote_accepted', 'pending_purchase', 'payment_confirmed', 'in_transit', 'delivered', 'received_by_traveler', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status) ? (
+                      {['pending_purchase', 'payment_confirmed', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
                         <PackageTimeline pkg={pkg} />
                       ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-                          El chat estará disponible una vez que se acepte la cotización.
+                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">
+                          <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
+                          <p>El chat estará disponible una vez que el shopper realice el pago.</p>
                         </div>
                       )}
                     </TabsContent>
