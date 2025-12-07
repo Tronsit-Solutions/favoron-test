@@ -256,7 +256,7 @@ const AdminApprovalsTab = ({
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Método de entrega: {pkg.delivery_method === 'delivery' 
-                               ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, pkg.package_destination)})` 
+                               ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, (pkg.confirmed_delivery_address as any)?.cityArea)})` 
                                : '🏢 Recojo en zona 14'}
                            </p>
                           {pkg.item_link && (

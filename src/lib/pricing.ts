@@ -13,38 +13,62 @@ export const getFavoronCommissionRate = (trustLevel?: TrustLevel | string): numb
 };
 
 /**
- * Get the delivery fee based on delivery method, user's trust level, and destination
- * - Guatemala City: Q25 for standard users, Q0 for Prime users
- * - Other cities: Q60 for standard users, Q35 for Prime users (Q60 - Q25 discount)
+ * Check if a cityArea is "Guatemala" (capital city only)
+ * Only "Guatemala" qualifies for reduced delivery fee (Q25)
+ * Mixco, Villa Nueva, Petapa, etc. are Q60
+ */
+export const isGuatemalaCityArea = (cityArea?: string): boolean => {
+  if (!cityArea) return false;
+  const normalized = cityArea.toLowerCase().trim();
+  
+  // Only exact matches for Guatemala city
+  const guatemalaCityNames = [
+    'guatemala',
+    'guatemala city', 
+    'ciudad de guatemala',
+    'guate'
+  ];
+  
+  return guatemalaCityNames.some(name => 
+    normalized === name || normalized.startsWith(name + ',')
+  );
+};
+
+/**
+ * Get the delivery fee based on delivery method, user's trust level, and cityArea
+ * - Guatemala (city): Q25 for standard users, Q0 for Prime users
+ * - Other cities (Mixco, Villa Nueva, etc.): Q60 for standard users, Q35 for Prime users
  * - Pickup: Q0 for everyone
+ * 
+ * @param deliveryMethod - 'pickup' or 'delivery'
+ * @param trustLevel - user's trust level
+ * @param cityArea - the cityArea field from confirmed_delivery_address (e.g., 'Guatemala', 'Mixco', 'Villa Nueva')
  */
 export const getDeliveryFee = (
   deliveryMethod: string = 'pickup', 
   trustLevel?: TrustLevel | string,
-  destination?: string
+  cityArea?: string
 ): number => {
-  // No delivery fee for pickup regardless of trust level or destination
+  // No delivery fee for pickup regardless of trust level or cityArea
   if (deliveryMethod === 'pickup') {
     return 0;
   }
   
-  // Check if destination is Guatemala City (detects multiple variations)
-  const isGuatemalaCity = destination?.toLowerCase().match(
-    /guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$|ciudad\s*guatemala/
-  );
+  // Check if cityArea is Guatemala city (only "Guatemala" qualifies)
+  const isGuatemala = isGuatemalaCityArea(cityArea);
   
-  // Prime users in Guatemala City get free delivery
-  if (trustLevel === 'prime' && isGuatemalaCity) {
+  // Prime users in Guatemala city get free delivery
+  if (trustLevel === 'prime' && isGuatemala) {
     return 0;
   }
   
-  // Prime users outside Guatemala City get Q25 discount (Q60 - Q25 = Q35)
-  if (trustLevel === 'prime' && !isGuatemalaCity) {
+  // Prime users outside Guatemala city get Q25 discount (Q60 - Q25 = Q35)
+  if (trustLevel === 'prime' && !isGuatemala) {
     return PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE - PRICING_CONFIG.PRIME_DISCOUNT; // Q35
   }
   
-  // Standard users: Q25 for Guatemala City, Q60 for other cities
-  return isGuatemalaCity 
+  // Standard users: Q25 for Guatemala city, Q60 for other cities
+  return isGuatemala 
     ? PRICING_CONFIG.STANDARD_DELIVERY_FEE // Q25
     : PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE; // Q60
 };
