@@ -523,16 +523,6 @@ const QuoteDialog = ({
                     </p>
                   </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-2">
-                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-[10px] px-2 py-0.5">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Garantizado
-                  </Badge>
-                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-[10px] px-2 py-0.5">
-                    <Gift className="w-3 h-3 mr-1" />
-                    Sin costo
-                  </Badge>
-                </div>
               </div>
             </div>
           )}
