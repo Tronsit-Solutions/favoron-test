@@ -187,7 +187,7 @@ const PendingRequestsTab = ({
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Entrega: {pkg.delivery_method === 'delivery' 
-                    ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, (pkg as any)?.profiles?.trust_level, pkg.package_destination)})` 
+                    ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, (pkg as any)?.profiles?.trust_level, (pkg.confirmed_delivery_address as any)?.cityArea)})` 
                     : '🏢 Recojo en zona 14'}
                   {pkg.delivery_deadline && (
                     <span className="text-orange-600 ml-2">

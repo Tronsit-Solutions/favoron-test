@@ -6,6 +6,49 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/**
+ * Check if a cityArea is "Guatemala" (capital city only)
+ * Only "Guatemala" qualifies for reduced delivery fee (Q25)
+ * Mixco, Villa Nueva, Petapa, etc. are Q60
+ */
+const isGuatemalaCityArea = (cityArea?: string): boolean => {
+  if (!cityArea) return false;
+  const normalized = cityArea.toLowerCase().trim();
+  
+  // Only exact matches for Guatemala city
+  const guatemalaCityNames = [
+    'guatemala',
+    'guatemala city', 
+    'ciudad de guatemala',
+    'guate'
+  ];
+  
+  return guatemalaCityNames.some(name => 
+    normalized === name || normalized.startsWith(name + ',')
+  );
+};
+
+/**
+ * Get the delivery fee based on delivery method, trust level, and cityArea
+ */
+const getDeliveryFee = (
+  deliveryMethod: string = 'pickup', 
+  trustLevel?: string,
+  cityArea?: string
+): number => {
+  if (deliveryMethod === 'pickup') return 0;
+  
+  const isGuatemala = isGuatemalaCityArea(cityArea);
+  
+  // Prime: Q0 in Guatemala, Q35 outside
+  if (trustLevel === 'prime') {
+    return isGuatemala ? 0 : 35;
+  }
+  
+  // Standard: Q25 in Guatemala, Q60 outside
+  return isGuatemala ? 25 : 60;
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -49,6 +92,7 @@ serve(async (req) => {
         created_at, 
         quote, 
         delivery_method,
+        confirmed_delivery_address,
         profiles!packages_user_id_fkey(trust_level)
       `)
       .not('quote', 'is', null)
@@ -77,20 +121,24 @@ serve(async (req) => {
       const currentDeliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0)
       const currentTotalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0)
 
-      // Calculate correct fees based on trust level and delivery method
+      // Get cityArea from confirmed_delivery_address for delivery fee calculation
+      const confirmedAddress = pkg.confirmed_delivery_address as any
+      const cityArea = confirmedAddress?.cityArea
+
+      // Calculate correct fees based on trust level and cityArea
       let correctServiceFee: number
       let correctDeliveryFee: number
 
       if (currentTrustLevel === 'prime') {
-        // Prime users: 20% service fee, Q0 delivery fee
+        // Prime users: 20% service fee
         correctServiceFee = basePrice * 0.20
-        correctDeliveryFee = 0
       } else {
-        // Standard users: 40% service fee, Q25 delivery fee only for delivery
+        // Standard users: 40% service fee
         correctServiceFee = basePrice * 0.40
-        const deliveryMethod = pkg.delivery_method || 'pickup'
-        correctDeliveryFee = deliveryMethod === 'delivery' ? 25 : 0
       }
+      
+      // Delivery fee based on cityArea
+      correctDeliveryFee = getDeliveryFee(pkg.delivery_method || 'pickup', currentTrustLevel, cityArea)
       
       // Total: Price + ServiceFee + DeliveryFee
       const correctTotalPrice = basePrice + correctServiceFee + correctDeliveryFee
@@ -104,6 +152,7 @@ serve(async (req) => {
         console.log(`🔧 Updating package ${pkg.id}:`, {
           trustLevel: currentTrustLevel,
           deliveryMethod: pkg.delivery_method,
+          cityArea,
           basePrice,
           currentServiceFee,
           correctServiceFee,
@@ -135,6 +184,7 @@ serve(async (req) => {
             packageId: pkg.id, 
             status: 'updated',
             trustLevel: currentTrustLevel,
+            cityArea,
             oldServiceFee: currentServiceFee,
             newServiceFee: correctServiceFee,
             oldDeliveryFee: currentDeliveryFee,

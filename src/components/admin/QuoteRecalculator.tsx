@@ -21,12 +21,15 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
   const currentDeliveryFee = parseFloat(pkg.quote?.deliveryFee || '0');
   const currentTotal = parseFloat(pkg.quote?.totalPrice || '0');
   
-  // Calcular valores correctos
+  // Calcular valores correctos usando cityArea de confirmed_delivery_address
+  const confirmedAddress = pkg.confirmed_delivery_address as any;
+  const cityArea = confirmedAddress?.cityArea;
+  
   const correctServiceFee = calculateServiceFee(travelerTip, pkg.profiles?.trust_level);
   const correctDeliveryFee = getDeliveryFee(
     pkg.delivery_method || 'pickup',
     pkg.profiles?.trust_level,
-    pkg.package_destination
+    cityArea
   );
   const correctTotal = travelerTip + correctServiceFee + correctDeliveryFee;
   
@@ -109,9 +112,9 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
               <p className="font-semibold text-purple-700">
                 {pkg.delivery_method === 'pickup' 
                   ? 'Pickup (Q0)' 
-                  : pkg.package_destination?.toLowerCase().match(/guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$/)
-                    ? 'Gratis en Guate City'
-                    : 'Q35 (vs Q60 estándar)'
+                  : correctDeliveryFee === 0
+                    ? 'Gratis en Guatemala'
+                    : `Q${correctDeliveryFee} (vs Q60 estándar)`
                 }
               </p>
             </div>

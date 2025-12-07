@@ -111,8 +111,12 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
       const travelerProfile = profilesMap[travelerId];
       const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
       
+      // Get cityArea from confirmed_delivery_address for delivery fee calculation
+      const confirmedAddress = pkg.confirmed_delivery_address as any;
+      const cityArea = confirmedAddress?.cityArea;
+      
       const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
-      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel, pkg.package_destination);
+      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel, cityArea);
 
       if (!travelerData[travelerId]) {
         const profile = profilesMap[travelerId];

@@ -226,8 +226,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const travelerTip = parseFloat(quote?.price || '0');
       
       // Use shopper's trust level for service fee and delivery fee (what shopper pays)
+      // Get cityArea from confirmed_delivery_address for delivery fee calculation
+      const confirmedAddress = pkg.confirmed_delivery_address as any;
+      const cityArea = confirmedAddress?.cityArea;
+      
       const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
-      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, pkg.package_destination);
+      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, cityArea);
       
       // Total to pay = service fee + traveler tip + delivery fee
       const totalToPay = serviceFee + travelerTip + deliveryFee;
@@ -235,17 +239,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Favoron revenue is the service fee
       const favoronRevenue = serviceFee;
       
-      // Messenger payment calculation based on destination
-      const isGuatemalaCity = pkg.package_destination?.toLowerCase().includes('guatemala city') || 
-                              pkg.package_destination?.toLowerCase().includes('ciudad de guatemala');
-      let messengerPayment = 0;
-      if (pkg.delivery_method !== 'pickup') {
-        if (shopperTrustLevel === 'prime') {
-          messengerPayment = isGuatemalaCity ? 0 : 35; // Q35 for Prime outside Guatemala City
-        } else {
-          messengerPayment = isGuatemalaCity ? 25 : 60; // Q25 for Guatemala City, Q60 outside
-        }
-      }
+      // Messenger payment = delivery fee (what we pay to messenger)
+      const messengerPayment = deliveryFee;
 
       // Extract discount amount from quote
       const discountAmount = parseFloat(quote?.discountAmount || '0');

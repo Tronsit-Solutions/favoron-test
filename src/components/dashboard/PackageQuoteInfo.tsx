@@ -15,7 +15,10 @@ interface PackageQuoteInfoProps {
   shopperTrustLevel?: string;
   adminTipAmount?: number;
   packageStatus?: string;
+  /** @deprecated Use cityArea instead */
   packageDestination?: string;
+  /** cityArea from confirmed_delivery_address - used for delivery fee calculation */
+  cityArea?: string;
   productsData?: any[];
 }
 const PackageQuoteInfo = ({
@@ -27,6 +30,7 @@ const PackageQuoteInfo = ({
   adminTipAmount,
   packageStatus,
   packageDestination,
+  cityArea,
   productsData
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
@@ -43,8 +47,9 @@ const PackageQuoteInfo = ({
   }, 0);
   
   // Recalculate fees correctly based on trust level and delivery method
+  // Use cityArea for delivery fee calculation (fall back to packageDestination for backwards compat)
   const serviceFee = calculateServiceFee(sumOfAdminTips, effectiveTrust);
-  const deliveryFee = getDeliveryFee(deliveryMethod, effectiveTrust, packageDestination);
+  const deliveryFee = getDeliveryFee(deliveryMethod, effectiveTrust, cityArea || packageDestination);
   
   const favoronTotal = sumOfAdminTips + serviceFee;
   const displayTotal = sumOfAdminTips + serviceFee + deliveryFee;
