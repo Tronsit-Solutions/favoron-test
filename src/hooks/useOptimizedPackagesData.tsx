@@ -86,9 +86,8 @@ export const useOptimizedPackagesData = (userId?: string) => {
     }, {} as Record<string, any>);
   }, []);
 
-  // Optimized fetch function using cached data
+  // Optimized fetch function - excludes heavy JSONB fields for faster loading
   const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
-    // Use userId passed as parameter to avoid redundant auth check
     if (!userId) {
       console.log('📦 No user ID provided, returning empty');
       return [];
@@ -97,10 +96,42 @@ export const useOptimizedPackagesData = (userId?: string) => {
     console.log('📦 Fetching packages for user:', userId);
     
     try {
+      // Select only essential fields, exclude heavy JSONB: products_data, purchase_confirmation, tracking_info, office_delivery
       const { data, error } = await supabase
         .from('packages')
         .select(`
-          *,
+          id,
+          user_id,
+          status,
+          item_description,
+          item_link,
+          estimated_price,
+          purchase_origin,
+          package_destination,
+          matched_trip_id,
+          created_at,
+          updated_at,
+          delivery_deadline,
+          delivery_method,
+          quote,
+          quote_expires_at,
+          matched_assignment_expires_at,
+          label_number,
+          incident_flag,
+          rejection_reason,
+          wants_requote,
+          admin_assigned_tip,
+          admin_rejection,
+          quote_rejection,
+          traveler_rejection,
+          confirmed_delivery_address,
+          traveler_address,
+          matched_trip_dates,
+          payment_receipt,
+          traveler_dismissed_at,
+          traveler_confirmation,
+          additional_notes,
+          internal_notes,
           profiles:user_id(
             id,
             first_name,
@@ -119,6 +150,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
             delivery_date,
             first_day_packages,
             last_day_packages,
+            package_receiving_address,
             profiles:user_id(
               id,
               first_name,
@@ -130,6 +162,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
             )
           )
         `)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -143,7 +176,8 @@ export const useOptimizedPackagesData = (userId?: string) => {
       }
 
       console.log('📦 Fetched packages successfully:', data?.length || 0);
-      return data || [];
+      // Cast to Package[] - missing heavy fields will be loaded on-demand via usePackageDetails
+      return (data || []) as unknown as Package[];
     } catch (error) {
       console.error('📦 Package fetch failed:', error);
       return [];
