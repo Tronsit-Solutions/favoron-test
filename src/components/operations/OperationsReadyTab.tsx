@@ -36,6 +36,20 @@ interface PackageForReady {
   trip_arrival_date?: string;
 }
 
+interface TripData {
+  id: string;
+  from_city: string;
+  to_city: string;
+  arrival_date: string;
+  user_id: string;
+}
+
+interface ProfileData {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+}
+
 const OperationsReadyTab = () => {
   const { user } = useAuth();
   const [packages, setPackages] = useState<PackageForReady[]>([]);
@@ -49,7 +63,8 @@ const OperationsReadyTab = () => {
   const fetchPackages = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch packages in one query
+      const { data: packagesData, error: packagesError } = await supabase
         .from('packages')
         .select(`
           id,
@@ -67,62 +82,82 @@ const OperationsReadyTab = () => {
         .eq('status', 'delivered_to_office')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (packagesError) throw packagesError;
 
-      // Fetch shopper, traveler names and trip info
-      const packagesWithNames = await Promise.all(
-        (data || []).map(async (pkg) => {
-          let shopperName = '';
-          let travelerName = '';
-          let tripFromCity = '';
-          let tripToCity = '';
-          let tripArrivalDate = '';
+      if (!packagesData || packagesData.length === 0) {
+        setPackages([]);
+        setLoading(false);
+        return;
+      }
 
-          const { data: shopperData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', pkg.user_id)
-            .single();
+      // Get unique trip IDs and user IDs
+      const tripIds = [...new Set(packagesData.map(p => p.matched_trip_id).filter(Boolean))] as string[];
+      const shopperIds = [...new Set(packagesData.map(p => p.user_id))];
 
-          if (shopperData) {
-            shopperName = `${shopperData.first_name || ''} ${shopperData.last_name || ''}`.trim();
-          }
+      // Batch fetch trips
+      let tripsMap = new Map<string, TripData>();
+      if (tripIds.length > 0) {
+        const { data: tripsData, error: tripsError } = await supabase
+          .from('trips')
+          .select('id, from_city, to_city, arrival_date, user_id')
+          .in('id', tripIds);
 
-          if (pkg.matched_trip_id) {
-            const { data: tripData } = await supabase
-              .from('trips')
-              .select('user_id, from_city, to_city, arrival_date')
-              .eq('id', pkg.matched_trip_id)
-              .single();
+        if (tripsError) throw tripsError;
+        tripsData?.forEach(t => tripsMap.set(t.id, t));
+      }
 
-            if (tripData) {
-              tripFromCity = tripData.from_city;
-              tripToCity = tripData.to_city;
-              tripArrivalDate = tripData.arrival_date;
+      // Get traveler IDs from trips
+      const travelerIds = [...new Set(Array.from(tripsMap.values()).map(t => t.user_id))];
+      const allUserIds = [...new Set([...shopperIds, ...travelerIds])];
 
-              const { data: travelerData } = await supabase
-                .from('profiles')
-                .select('first_name, last_name')
-                .eq('id', tripData.user_id)
-                .single();
+      // Batch fetch all profiles in one query
+      let profilesMap = new Map<string, ProfileData>();
+      if (allUserIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', allUserIds);
 
-              if (travelerData) {
-                travelerName = `${travelerData.first_name || ''} ${travelerData.last_name || ''}`.trim();
-              }
+        if (profilesError) throw profilesError;
+        profilesData?.forEach(p => profilesMap.set(p.id, p));
+      }
+
+      // Combine data in memory (no additional queries!)
+      const packagesWithNames: PackageForReady[] = packagesData.map(pkg => {
+        const shopperProfile = profilesMap.get(pkg.user_id);
+        const shopperName = shopperProfile 
+          ? `${shopperProfile.first_name || ''} ${shopperProfile.last_name || ''}`.trim()
+          : '';
+
+        let travelerName = '';
+        let tripFromCity = '';
+        let tripToCity = '';
+        let tripArrivalDate = '';
+
+        if (pkg.matched_trip_id) {
+          const trip = tripsMap.get(pkg.matched_trip_id);
+          if (trip) {
+            tripFromCity = trip.from_city;
+            tripToCity = trip.to_city;
+            tripArrivalDate = trip.arrival_date;
+            
+            const travelerProfile = profilesMap.get(trip.user_id);
+            if (travelerProfile) {
+              travelerName = `${travelerProfile.first_name || ''} ${travelerProfile.last_name || ''}`.trim();
             }
           }
+        }
 
-          return {
-            ...pkg,
-            products_data: pkg.products_data as ProductData[] | null,
-            shopper_name: shopperName,
-            traveler_name: travelerName,
-            trip_from_city: tripFromCity,
-            trip_to_city: tripToCity,
-            trip_arrival_date: tripArrivalDate,
-          };
-        })
-      );
+        return {
+          ...pkg,
+          products_data: pkg.products_data as ProductData[] | null,
+          shopper_name: shopperName,
+          traveler_name: travelerName,
+          trip_from_city: tripFromCity,
+          trip_to_city: tripToCity,
+          trip_arrival_date: tripArrivalDate,
+        };
+      });
 
       setPackages(packagesWithNames);
     } catch (error) {
