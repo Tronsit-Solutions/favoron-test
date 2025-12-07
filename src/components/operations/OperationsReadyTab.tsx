@@ -4,9 +4,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, CheckCircle, Loader2, Truck, Store } from 'lucide-react';
+import { Package, CheckCircle, Loader2, Truck, Store, ExternalLink, User, Plane } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateUTC } from '@/lib/formatters';
+
+interface ProductData {
+  name?: string;
+  itemDescription?: string;
+  quantity?: number;
+  itemLink?: string;
+  cancelled?: boolean;
+}
 
 interface PackageForReady {
   id: string;
@@ -18,6 +26,8 @@ interface PackageForReady {
   package_destination: string;
   matched_trip_id: string | null;
   user_id: string;
+  products_data: ProductData[] | null;
+  label_number: number | null;
   shopper_name?: string;
   traveler_name?: string;
 }
@@ -42,7 +52,9 @@ const OperationsReadyTab = () => {
           purchase_origin,
           package_destination,
           matched_trip_id,
-          user_id
+          user_id,
+          products_data,
+          label_number
         `)
         .eq('status', 'delivered_to_office')
         .order('created_at', { ascending: false });
@@ -87,6 +99,7 @@ const OperationsReadyTab = () => {
 
           return {
             ...pkg,
+            products_data: pkg.products_data as ProductData[] | null,
             shopper_name: shopperName,
             traveler_name: travelerName,
           };
@@ -111,7 +124,6 @@ const OperationsReadyTab = () => {
 
     setUpdatingId(pkg.id);
     
-    // Determine status based on delivery method
     const newStatus = pkg.delivery_method === 'delivery' ? 'ready_for_delivery' : 'ready_for_pickup';
     
     try {
@@ -153,6 +165,11 @@ const OperationsReadyTab = () => {
     );
   };
 
+  const getActiveProducts = (products: ProductData[] | null): ProductData[] => {
+    if (!products || products.length === 0) return [];
+    return products.filter(p => !p.cancelled);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -187,49 +204,116 @@ const OperationsReadyTab = () => {
       </div>
 
       <div className="grid gap-4">
-        {packages.map((pkg) => (
-          <Card key={pkg.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {getDeliveryMethodBadge(pkg.delivery_method)}
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateUTC(pkg.created_at)}
-                    </span>
-                  </div>
-                  <h3 className="font-medium text-foreground line-clamp-2">
-                    {pkg.item_description}
-                  </h3>
-                  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-                    <span>📦 Shopper: {pkg.shopper_name || 'Desconocido'}</span>
-                    {pkg.traveler_name && (
-                      <span>✈️ Viajero: {pkg.traveler_name}</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {pkg.purchase_origin} → {pkg.package_destination}
-                  </div>
+        {packages.map((pkg) => {
+          const activeProducts = getActiveProducts(pkg.products_data);
+          
+          return (
+            <Card key={pkg.id} className="hover:shadow-md transition-shadow overflow-hidden">
+              {/* Header con método y ruta */}
+              <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-b">
+                <div className="flex items-center gap-2">
+                  {getDeliveryMethodBadge(pkg.delivery_method)}
+                  {pkg.label_number && (
+                    <Badge variant="outline" className="font-mono">
+                      🏷️ #{pkg.label_number}
+                    </Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {formatDateUTC(pkg.created_at)}
+                  </span>
                 </div>
+                <span className="text-sm text-muted-foreground">
+                  {pkg.purchase_origin} → {pkg.package_destination}
+                </span>
+              </div>
+
+              {/* Sección prominente de nombres */}
+              <div className="bg-gradient-to-r from-orange-50 to-blue-50 dark:from-orange-950/20 dark:to-blue-950/20 px-4 py-3 border-b">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-full">
+                      <User className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">Shopper</span>
+                      <p className="text-lg font-bold text-primary leading-tight">
+                        {pkg.shopper_name || 'Desconocido'}
+                      </p>
+                    </div>
+                  </div>
+                  {pkg.traveler_name && (
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-blue-500/10 rounded-full">
+                        <Plane className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Viajero</span>
+                        <p className="text-lg font-bold text-blue-600 leading-tight">
+                          {pkg.traveler_name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <CardContent className="p-4">
+                {/* Lista de productos */}
+                {activeProducts.length > 0 ? (
+                  <div className="space-y-2 mb-4">
+                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                      <Package className="h-4 w-4" />
+                      Productos ({activeProducts.length}):
+                    </p>
+                    <div className="space-y-1.5 pl-2 border-l-2 border-muted">
+                      {activeProducts.map((product, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-foreground">
+                            • {product.name || product.itemDescription || 'Producto'} 
+                            {product.quantity && product.quantity > 1 && (
+                              <span className="text-muted-foreground ml-1">x{product.quantity}</span>
+                            )}
+                          </span>
+                          {product.itemLink && (
+                            <a
+                              href={product.itemLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
+                            >
+                              Ver producto
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {pkg.item_description}
+                  </p>
+                )}
+
+                {/* Botón de acción */}
                 <Button
                   onClick={() => handleMarkReady(pkg)}
                   disabled={updatingId === pkg.id}
-                  className="shrink-0"
+                  className="w-full"
+                  size="lg"
                   variant={pkg.delivery_method === 'delivery' ? 'default' : 'outline'}
                 >
                   {updatingId === pkg.id ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : pkg.delivery_method === 'delivery' ? (
-                    <Truck className="h-4 w-4 mr-2" />
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}
-                  {pkg.delivery_method === 'delivery' ? 'Marcar Listo para Entrega' : 'Marcar Listo para Recoger'}
+                  ✓ VERIFICADO Y EMPACADO
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
