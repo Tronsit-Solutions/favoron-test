@@ -81,21 +81,24 @@ const ActiveMatchesTab = ({
   // Filtrar matches basado en búsqueda y estados seleccionados
   const filteredMatches = matchedPackages.filter(pkg => {
     const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+    const search = searchTerm.toLowerCase().trim();
     
-    const matchesSearch = 
-      (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (pkg.user_id || '').toString().includes(searchTerm) ||
-      (pkg.label_number || '').toString().includes(searchTerm) ||
-      (matchedTrip?.from_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (matchedTrip?.to_city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      // Búsqueda por nombres del dueño del paquete (shopper)
-      ((pkg as any)?.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ((pkg as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ((pkg as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      // Búsqueda por nombres del viajero asignado
-      ((matchedTrip as any)?.profiles?.first_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ((matchedTrip as any)?.profiles?.last_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // Combinar nombres para búsqueda con espacios (ej: "Luis Flores")
+    const shopperFullName = `${(pkg as any)?.profiles?.first_name || ''} ${(pkg as any)?.profiles?.last_name || ''}`.toLowerCase().trim();
+    const travelerFullName = `${(matchedTrip as any)?.profiles?.first_name || ''} ${(matchedTrip as any)?.profiles?.last_name || ''}`.toLowerCase().trim();
+    
+    const matchesSearch = !search ||
+      (pkg.item_description || '').toLowerCase().includes(search) ||
+      (pkg.user_id || '').toString().includes(search) ||
+      (pkg.label_number || '').toString().includes(search) ||
+      (matchedTrip?.from_city || '').toLowerCase().includes(search) ||
+      (matchedTrip?.to_city || '').toLowerCase().includes(search) ||
+      // Búsqueda por nombre completo del shopper
+      shopperFullName.includes(search) ||
+      ((pkg as any)?.profiles?.username || '').toLowerCase().includes(search) ||
+      // Búsqueda por nombre completo del viajero
+      travelerFullName.includes(search) ||
+      ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(search);
     
     // Si no hay estados seleccionados, se trata como "todos seleccionados"
     const matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(pkg.status);
