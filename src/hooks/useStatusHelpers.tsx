@@ -95,6 +95,8 @@ export const useStatusHelpers = () => {
       received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
       pending_office_confirmation: { label: "🔒 Esperando confirmación", variant: "warning" as const },
       delivered_to_office: { label: "Entregado en oficina", variant: "success" as const },
+      ready_for_pickup: { label: "📦 Listo para recoger", variant: "default" as const },
+      ready_for_delivery: { label: "🚛 Listo para entrega", variant: "default" as const },
       out_for_delivery: { 
         label: packageDestination ? `En reparto en ${packageDestination}` : "En reparto", 
         variant: "warning" as const 
@@ -136,6 +138,8 @@ export const useStatusHelpers = () => {
       received_by_traveler: "hsl(var(--success))",
       pending_office_confirmation: "hsl(var(--warning))",
       delivered_to_office: "hsl(var(--success))",
+      ready_for_pickup: "hsl(var(--info))",
+      ready_for_delivery: "hsl(var(--info))",
       out_for_delivery: "hsl(var(--warning))",
       active: "hsl(var(--success))",
       completed: "hsl(var(--success))",
