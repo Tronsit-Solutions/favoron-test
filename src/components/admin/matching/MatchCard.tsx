@@ -439,8 +439,8 @@ export const MatchCard = ({
                     </p>
                   )}
                   
-                  {pkg.status === 'payment_confirmed' && (
-                    <p className="text-xs text-gray-600 mt-1">✅ Listo para envío</p>
+                  {pkg.status === 'pending_purchase' && (
+                    <p className="text-xs text-gray-600 mt-1">✅ Pago confirmado - Listo para compra</p>
                   )}
                   
                   {pkg.status === 'in_transit' && (

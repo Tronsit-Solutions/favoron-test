@@ -132,7 +132,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
           )}
 
           {/* Document Upload Section */}
-          {onDocumentUpload && (pkg.status === 'pending_purchase' || pkg.status === 'payment_confirmed' || pkg.status === 'paid' || pkg.status === 'in_transit') && (
+          {onDocumentUpload && (pkg.status === 'pending_purchase' || pkg.status === 'paid' || pkg.status === 'in_transit') && (
             <div>
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                 <FileText className="h-4 w-4" />

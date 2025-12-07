@@ -110,7 +110,7 @@ const AdminMatchingTab = ({
     return pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
   });
   const pendingPayments = packages.filter(pkg => 
-    (pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && pkg.payment_receipt
+    pkg.status === 'payment_pending_approval' && pkg.payment_receipt
   );
   const pendingOfficeConfirmations = packages.filter(pkg => pkg.status === 'pending_office_confirmation');
 

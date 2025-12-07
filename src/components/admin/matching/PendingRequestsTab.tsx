@@ -32,7 +32,7 @@ const getStatusIcon = (status: string) => {
     case 'quote_rejected': return '❌';
     case 'quote_sent': return '💬';
     case 'payment_pending': return '💳';
-    case 'payment_confirmed': return '✅';
+    case 'pending_purchase': return '✅';
     case 'in_transit': return '🚚';
     case 'delivered': return '📦';
     default: return '⏳';
@@ -45,7 +45,7 @@ const getStatusColor = (status: string) => {
     case 'quote_rejected': return 'bg-red-100 text-red-800';
     case 'quote_sent': return 'bg-blue-100 text-blue-800';
     case 'payment_pending': return 'bg-yellow-100 text-yellow-800';
-    case 'payment_confirmed': return 'bg-green-100 text-green-800';
+    case 'pending_purchase': return 'bg-green-100 text-green-800';
     case 'in_transit': return 'bg-purple-100 text-purple-800';
     case 'delivered': return 'bg-emerald-100 text-emerald-800';
     default: return 'bg-gray-100 text-gray-800';

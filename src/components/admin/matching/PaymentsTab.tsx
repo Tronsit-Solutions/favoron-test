@@ -62,7 +62,7 @@ export function PaymentsTab({
   const pendingPayments = packages.filter(pkg => 
     pkg.payment_receipt && (
       // Manual payments waiting for approval
-      ((pkg.status === 'payment_pending_approval' || pkg.status === 'payment_confirmed') && 
+      (pkg.status === 'payment_pending_approval' && 
        !(pkg.payment_receipt as any)?.auto_approved) ||
       // OR auto-approved payments that haven't been marked as reviewed
       ((pkg.payment_receipt as any)?.auto_approved && 

@@ -127,7 +127,7 @@ const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSum
                 <span className="font-medium">
                   {packages.filter(pkg => 
                     pkg.status === 'quote_accepted' || 
-                    pkg.status === 'payment_confirmed' || 
+                    pkg.status === 'pending_purchase' || 
                     pkg.status === 'in_transit'
                   ).length}
                 </span>

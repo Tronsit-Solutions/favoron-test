@@ -15,7 +15,7 @@ const TravelerPackageTimeline = ({ currentStatus, className = "" }: TravelerPack
       description: 'El shopper aceptó tu cotización'
     },
     { 
-      key: 'payment_confirmed', 
+      key: 'pending_purchase', 
       label: 'Pago confirmado', 
       icon: Package,
       description: 'Admin confirmó el pago del shopper'

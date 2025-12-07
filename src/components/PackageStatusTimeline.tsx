@@ -39,16 +39,10 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
       description: 'Aceptaste la cotización del viajero'
     },
     { 
-      key: 'payment_confirmed', 
+      key: 'pending_purchase', 
       label: 'Pago confirmado', 
       icon: Check,
-      description: 'Tu pago fue confirmado'
-    },
-    { 
-      key: 'pending_purchase', 
-      label: 'Pendiente de Compra', 
-      icon: Clock,
-      description: 'Debes realizar la compra del producto'
+      description: 'Tu pago fue confirmado, el shopper debe realizar la compra'
     },
     { 
       key: 'in_transit', 
