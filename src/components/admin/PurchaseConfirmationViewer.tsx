@@ -32,6 +32,7 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const { toast } = useToast();
 
   const isImage = purchaseConfirmation.filename?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
+  const isPDF = purchaseConfirmation.filename?.toLowerCase().match(/\.pdf$/);
 
   // Auto-generate signed URL on mount
   useEffect(() => {
@@ -106,7 +107,7 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const handleView = async () => {
     const url = await generateSignedUrl();
     if (url) {
-      if (isImage) {
+      if (isImage || isPDF) {
         setShowModal(true);
       } else {
         window.open(url, '_blank');
@@ -179,8 +180,8 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
                   "Cargando..."
                 ) : (
                   <>
-                    {isImage ? <Eye className="h-4 w-4 mr-1" /> : <ExternalLink className="h-4 w-4 mr-1" />}
-                    {isImage ? 'Ver' : 'Abrir'}
+                    {(isImage || isPDF) ? <Eye className="h-4 w-4 mr-1" /> : <ExternalLink className="h-4 w-4 mr-1" />}
+                    {isImage ? 'Ver' : isPDF ? 'Ver PDF' : 'Abrir'}
                   </>
                 )}
               </Button>
@@ -220,11 +221,18 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
             <DialogTitle>Comprobante de Compra - {purchaseConfirmation.filename}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center">
-            {signedUrl && (
+            {signedUrl && isImage && (
               <img 
                 src={signedUrl} 
                 alt="Comprobante de compra"
                 className="max-w-full max-h-[70vh] object-contain"
+              />
+            )}
+            {signedUrl && isPDF && (
+              <iframe
+                src={signedUrl}
+                title="Comprobante de compra"
+                className="w-full h-[70vh] rounded-lg border"
               />
             )}
           </div>
