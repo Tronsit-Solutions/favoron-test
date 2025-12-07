@@ -261,11 +261,17 @@ export type Database = {
           company_name: string | null
           country: string | null
           created_at: string
+          delivery_fee_guatemala_city: number | null
+          delivery_fee_outside_city: number | null
           email: string | null
           id: string
           is_active: boolean
           phone_number: string | null
           postal_code: string | null
+          prime_delivery_discount: number | null
+          prime_membership_price: number | null
+          service_fee_rate_prime: number | null
+          service_fee_rate_standard: number | null
           state_department: string | null
           updated_at: string
           website: string | null
@@ -282,11 +288,17 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          delivery_fee_guatemala_city?: number | null
+          delivery_fee_outside_city?: number | null
           email?: string | null
           id?: string
           is_active?: boolean
           phone_number?: string | null
           postal_code?: string | null
+          prime_delivery_discount?: number | null
+          prime_membership_price?: number | null
+          service_fee_rate_prime?: number | null
+          service_fee_rate_standard?: number | null
           state_department?: string | null
           updated_at?: string
           website?: string | null
@@ -303,11 +315,17 @@ export type Database = {
           company_name?: string | null
           country?: string | null
           created_at?: string
+          delivery_fee_guatemala_city?: number | null
+          delivery_fee_outside_city?: number | null
           email?: string | null
           id?: string
           is_active?: boolean
           phone_number?: string | null
           postal_code?: string | null
+          prime_delivery_discount?: number | null
+          prime_membership_price?: number | null
+          service_fee_rate_prime?: number | null
+          service_fee_rate_standard?: number | null
           state_department?: string | null
           updated_at?: string
           website?: string | null
