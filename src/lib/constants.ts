@@ -140,6 +140,9 @@ export const STATUS_LABELS = {
   shipped: 'Enviado',
   in_transit: 'En tránsito',
   received_by_traveler: 'Recibido por viajero',
+  delivered_to_office: 'Entregado en oficina',
+  ready_for_pickup: 'Listo para recoger',
+  ready_for_delivery: 'Listo para entrega',
   delivered: 'Entregado',
   cancelled: 'Cancelado',
   
@@ -177,7 +180,9 @@ export const PAID_STATUSES = [
   'in_transit',
   'received_by_traveler',
   'delivered',
-  'delivered_to_office'
+  'delivered_to_office',
+  'ready_for_pickup',
+  'ready_for_delivery'
 ] as const;
 
 export const isPaidStatus = (status: string): boolean => {

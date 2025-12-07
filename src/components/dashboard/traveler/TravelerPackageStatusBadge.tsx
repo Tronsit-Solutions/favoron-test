@@ -97,6 +97,20 @@ const TRAVELER_STATUS_MAP: Record<string, StatusConfig> = {
     bgColor: "bg-green-50",
     textColor: "text-green-600",
   },
+  ready_for_pickup: {
+    emoji: "📦",
+    label: "Listo para recoger",
+    description: "El paquete está listo para que el shopper lo recoja en oficina.",
+    bgColor: "bg-blue-50",
+    textColor: "text-blue-600",
+  },
+  ready_for_delivery: {
+    emoji: "🚛",
+    label: "Listo para entrega",
+    description: "El paquete está listo para ser enviado al domicilio del shopper.",
+    bgColor: "bg-blue-50",
+    textColor: "text-blue-600",
+  },
   completed: {
     emoji: "✅",
     label: "Completado",

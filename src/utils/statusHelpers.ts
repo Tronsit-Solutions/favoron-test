@@ -23,6 +23,8 @@ export const getStatusBadge = (status: string) => {
     received_by_traveler: { label: 'Recibido por viajero', variant: 'default' },
     pending_office_confirmation: { label: 'Esperando confirmación', variant: 'secondary' },
     delivered_to_office: { label: 'Entregado en oficina', variant: 'default' },
+    ready_for_pickup: { label: 'Listo para recoger', variant: 'default' },
+    ready_for_delivery: { label: 'Listo para entrega', variant: 'default' },
     out_for_delivery: { label: 'En camino', variant: 'default' },
     cancelled: { label: 'Cancelado', variant: 'destructive' },
     rejected: { label: 'Rechazado', variant: 'destructive' },
