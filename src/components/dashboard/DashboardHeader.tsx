@@ -165,6 +165,12 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                   <DropdownMenuSeparator />
                 </>
               )}
+              {user.role === 'operations' && (
+                <DropdownMenuItem onClick={() => navigate('/operations')}>
+                  <Package className="h-4 w-4 mr-2" />
+                  Panel de Operaciones
+                </DropdownMenuItem>
+              )}
               {user.role === 'admin' && (
                 <DropdownMenuItem onClick={() => navigate('/admin/control')}>
                   <Settings className="h-4 w-4 mr-2" />
