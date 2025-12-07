@@ -113,7 +113,7 @@ const MonthlyReportsTab = () => {
     const statusMap: Record<string, { label: string; variant: "default" | "success" | "warning" | "destructive" }> = {
       'pending_approval': { label: 'Pendiente', variant: 'warning' },
       'approved': { label: 'Aprobado', variant: 'success' },
-      'matched': { label: 'Matched', variant: 'success' },
+      'matched': { label: 'Emparejado', variant: 'success' },
       'completed': { label: 'Completado', variant: 'success' },
       'delivered_to_office': { label: 'Entregado', variant: 'success' },
       'received_by_traveler': { label: 'Recibido', variant: 'success' },

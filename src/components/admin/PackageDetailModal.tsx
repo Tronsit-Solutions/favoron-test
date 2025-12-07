@@ -545,7 +545,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     const statusMap = {
       'pending_approval': { label: 'Pendiente de Aprobación', variant: 'secondary' as const },
       'approved': { label: 'Aprobado', variant: 'default' as const },
-      'matched': { label: 'Match realizado', variant: 'default' as const },
+      'matched': { label: 'Emparejado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_rejected': { label: 'Cotización rechazada', variant: 'destructive' as const },

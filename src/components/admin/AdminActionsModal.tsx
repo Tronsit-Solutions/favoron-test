@@ -120,7 +120,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     { value: 'pending_approval', label: 'Pendiente de Aprobación' },
     { value: 'approved', label: 'Aprobado' },
     { value: 'rejected', label: 'Rechazado' },
-    { value: 'matched', label: 'Match Realizado' },
+    { value: 'matched', label: 'Emparejado' },
     { value: 'quote_sent', label: 'Cotización Enviada' },
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
     { value: 'awaiting_payment', label: 'Esperando Pago' },

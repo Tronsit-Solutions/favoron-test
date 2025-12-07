@@ -22,7 +22,7 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
     },
     { 
       key: 'matched', 
-      label: 'Match realizado', 
+      label: 'Emparejado', 
       icon: MapPin,
       description: 'Emparejado con un viajero'
     },
