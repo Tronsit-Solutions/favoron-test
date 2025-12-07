@@ -517,7 +517,7 @@ const QuoteDialog = ({
                     <Banknote className="w-5 h-5 text-success" />
                   </div>
                   <div>
-                    <span className="text-xs text-muted-foreground">Tu tip</span>
+                    <span className="text-xs text-muted-foreground">Tu tip por llevarte este paquete</span>
                     <p className="text-2xl font-bold bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
                       Q{displayAmount.toFixed(2)}
                     </p>
