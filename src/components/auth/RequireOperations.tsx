@@ -6,7 +6,7 @@ interface RequireOperationsProps {
 }
 
 export const RequireOperations = ({ children }: RequireOperationsProps) => {
-  const { userRole, loading, user } = useAuth();
+  const { userRole, loading, user, roleLoaded } = useAuth();
 
   if (loading) {
     return (
@@ -20,8 +20,8 @@ export const RequireOperations = ({ children }: RequireOperationsProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Wait for userRole to load before deciding access - prevents premature redirect
-  if (!userRole) {
+  // Wait for roleLoaded to be true - guarantees userRole is set
+  if (!roleLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

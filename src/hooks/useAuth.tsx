@@ -41,6 +41,7 @@ interface AuthContextType {
   profile: Profile | null;
   userRole: UserRole | null;
   loading: boolean;
+  roleLoaded: boolean;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
@@ -65,6 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoaded, setRoleLoaded] = useState(false);
   const navigate = useNavigate();
 
   // Prevent duplicate profile fetches and manage loading lifecycle
@@ -140,6 +142,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         console.log('✅ Setting userRole:', { role: selectedRole.role, id: selectedRole.id });
         setUserRole(selectedRole);
+        setRoleLoaded(true);
       } else {
         console.log('⚠️ No roles found, using fallback');
         // Fallback role si no se puede cargar
@@ -150,6 +153,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           assigned_by: null, 
           assigned_at: new Date().toISOString() 
         });
+        setRoleLoaded(true);
       }
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
@@ -219,6 +223,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
           setProfile(null);
           setUserRole(null);
+          setRoleLoaded(false);
           setLoading(false);
         }
       }
@@ -246,6 +251,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         loadProfile(session.user.id);
       } else {
         console.log('🚫 No existing session found');
+        setRoleLoaded(false);
         setLoading(false);
       }
     });
@@ -273,6 +279,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(null);
       setProfile(null);
       setUserRole(null);
+      setRoleLoaded(false);
       
       // Navigate to auth using React Router (no page reload)
       navigate('/auth');
@@ -308,6 +315,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     profile,
     userRole,
     loading,
+    roleLoaded,
     signOut,
     updateProfile,
   };
