@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Package, CheckCircle, Loader2, Truck, Store, ExternalLink, User, Plane, Tag, Printer, ChevronDown, ChevronRight } from 'lucide-react';
+import { Package, CheckCircle, Loader2, Truck, Store, ExternalLink, User, Plane, Tag, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateUTC } from '@/lib/formatters';
 import { PackageLabelModal } from '@/components/admin/PackageLabelModal';
@@ -32,21 +31,9 @@ interface PackageForReady {
   label_number: number | null;
   shopper_name?: string;
   traveler_name?: string;
-  // Trip info
   trip_from_city?: string;
   trip_to_city?: string;
   trip_arrival_date?: string;
-}
-
-interface TripGroup {
-  tripId: string | null;
-  tripInfo: {
-    from_city: string;
-    to_city: string;
-    arrival_date: string;
-    traveler_name: string;
-  } | null;
-  packages: PackageForReady[];
 }
 
 const OperationsReadyTab = () => {
@@ -54,7 +41,6 @@ const OperationsReadyTab = () => {
   const [packages, setPackages] = useState<PackageForReady[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set(['no-trip']));
   
   // Label modal state
   const [showLabelModal, setShowLabelModal] = useState(false);
@@ -139,10 +125,6 @@ const OperationsReadyTab = () => {
       );
 
       setPackages(packagesWithNames);
-      
-      // Auto-expand all trip groups
-      const tripIds = new Set(packagesWithNames.map(p => p.matched_trip_id || 'no-trip'));
-      setExpandedTrips(tripIds);
     } catch (error) {
       console.error('Error fetching packages:', error);
       toast.error('Error al cargar paquetes');
@@ -154,40 +136,6 @@ const OperationsReadyTab = () => {
   useEffect(() => {
     fetchPackages();
   }, []);
-
-  // Group packages by trip
-  const tripGroups = useMemo((): TripGroup[] => {
-    const groups: Record<string, TripGroup> = {};
-    
-    packages.forEach(pkg => {
-      const tripKey = pkg.matched_trip_id || 'no-trip';
-      
-      if (!groups[tripKey]) {
-        groups[tripKey] = {
-          tripId: pkg.matched_trip_id,
-          tripInfo: pkg.matched_trip_id ? {
-            from_city: pkg.trip_from_city || '',
-            to_city: pkg.trip_to_city || '',
-            arrival_date: pkg.trip_arrival_date || '',
-            traveler_name: pkg.traveler_name || '',
-          } : null,
-          packages: [],
-        };
-      }
-      
-      groups[tripKey].packages.push(pkg);
-    });
-    
-    // Sort: trips with arrival date first (sorted by date), then no-trip at end
-    return Object.values(groups).sort((a, b) => {
-      if (!a.tripInfo && b.tripInfo) return 1;
-      if (a.tripInfo && !b.tripInfo) return -1;
-      if (a.tripInfo && b.tripInfo) {
-        return new Date(a.tripInfo.arrival_date).getTime() - new Date(b.tripInfo.arrival_date).getTime();
-      }
-      return 0;
-    });
-  }, [packages]);
 
   const handleMarkReady = async (pkg: PackageForReady) => {
     if (!user) return;
@@ -218,18 +166,6 @@ const OperationsReadyTab = () => {
     }
   };
 
-  const toggleTripExpanded = (tripKey: string) => {
-    setExpandedTrips(prev => {
-      const next = new Set(prev);
-      if (next.has(tripKey)) {
-        next.delete(tripKey);
-      } else {
-        next.add(tripKey);
-      }
-      return next;
-    });
-  };
-
   const openLabelModal = (pkgs: PackageForReady[]) => {
     setSelectedPackagesForLabel(pkgs);
     setShowLabelModal(true);
@@ -238,14 +174,14 @@ const OperationsReadyTab = () => {
   const getDeliveryMethodBadge = (method: string | null) => {
     if (method === 'delivery') {
       return (
-        <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+        <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300">
           <Truck className="h-3 w-3 mr-1" />
           Delivery
         </Badge>
       );
     }
     return (
-      <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+      <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300">
         <Store className="h-3 w-3 mr-1" />
         Pickup
       </Badge>
@@ -281,164 +217,134 @@ const OperationsReadyTab = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Header with global actions */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-lg font-semibold">
-          Paquetes para marcar como listos ({packages.length})
+          Paquetes para preparar ({packages.length})
         </h2>
-        <Button variant="outline" size="sm" onClick={fetchPackages}>
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openLabelModal(packages)}
+            disabled={packages.length === 0}
+          >
+            <Printer className="h-4 w-4 mr-1" />
+            Generar {packages.length} etiqueta{packages.length !== 1 ? 's' : ''}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={fetchPackages}>
+            Actualizar
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        {tripGroups.map((group) => {
-          const tripKey = group.tripId || 'no-trip';
-          const isExpanded = expandedTrips.has(tripKey);
+      {/* Flat list of packages - package is the main element */}
+      <div className="space-y-3">
+        {packages.map((pkg) => {
+          const activeProducts = getActiveProducts(pkg.products_data);
           
           return (
-            <Card key={tripKey} className="overflow-hidden">
-              {/* Trip Header */}
-              <Collapsible open={isExpanded} onOpenChange={() => toggleTripExpanded(tripKey)}>
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-b cursor-pointer hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      {isExpanded ? (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      
-                      {group.tripInfo ? (
-                        <div className="flex items-center gap-3">
-                          <Plane className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              {group.tripInfo.from_city} → {group.tripInfo.to_city}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              📅 {formatDateUTC(group.tripInfo.arrival_date)} • 👤 {group.tripInfo.traveler_name}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <Package className="h-5 w-5 text-muted-foreground" />
-                          <p className="font-semibold text-muted-foreground">Sin viaje asignado</p>
-                        </div>
-                      )}
-                      
-                      <Badge variant="secondary" className="ml-2">
-                        {group.packages.length} paquete{group.packages.length !== 1 ? 's' : ''}
+            <Card key={pkg.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                {/* Package Header - Label number prominent */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {pkg.label_number && (
+                      <Badge variant="default" className="text-base font-mono px-3 py-1">
+                        🏷️ #{pkg.label_number}
                       </Badge>
-                    </div>
-                    
-                    {/* Button to generate all labels for this trip */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openLabelModal(group.packages);
-                      }}
-                      className="shrink-0"
-                    >
-                      <Printer className="h-4 w-4 mr-1" />
-                      Generar {group.packages.length} etiqueta{group.packages.length !== 1 ? 's' : ''}
-                    </Button>
+                    )}
+                    {getDeliveryMethodBadge(pkg.delivery_method)}
                   </div>
-                </CollapsibleTrigger>
+                  
+                  {/* Individual label button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openLabelModal([pkg])}
+                    className="shrink-0"
+                  >
+                    <Tag className="h-4 w-4 mr-1" />
+                    Etiqueta
+                  </Button>
+                </div>
                 
-                <CollapsibleContent>
-                  <div className="divide-y">
-                    {group.packages.map((pkg) => {
-                      const activeProducts = getActiveProducts(pkg.products_data);
-                      
-                      return (
-                        <div key={pkg.id} className="p-4 hover:bg-muted/30 transition-colors">
-                          {/* Package Header */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {getDeliveryMethodBadge(pkg.delivery_method)}
-                              {pkg.label_number && (
-                                <Badge variant="outline" className="font-mono">
-                                  🏷️ #{pkg.label_number}
-                                </Badge>
-                              )}
-                              <span className="text-xs text-muted-foreground">
-                                {pkg.purchase_origin} → {pkg.package_destination}
-                              </span>
-                            </div>
-                            
-                            {/* Individual label button */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openLabelModal([pkg])}
-                              className="shrink-0"
-                            >
-                              <Tag className="h-4 w-4 mr-1" />
-                              Etiqueta
-                            </Button>
-                          </div>
-                          
-                          {/* Shopper info */}
-                          <div className="flex items-center gap-2 mb-3 p-2 bg-primary/5 rounded-lg">
-                            <User className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium text-primary">
-                              Shopper: {pkg.shopper_name || 'Desconocido'}
-                            </span>
-                          </div>
-                          
-                          {/* Products list */}
-                          {activeProducts.length > 0 ? (
-                            <div className="space-y-1.5 mb-4 pl-2 border-l-2 border-muted">
-                              {activeProducts.map((product, idx) => (
-                                <div key={idx} className="flex items-center justify-between gap-2 text-sm">
-                                  <span className="text-foreground">
-                                    • {product.name || product.itemDescription || 'Producto'} 
-                                    {product.quantity && product.quantity > 1 && (
-                                      <span className="text-muted-foreground ml-1">x{product.quantity}</span>
-                                    )}
-                                  </span>
-                                  {product.itemLink && (
-                                    <a
-                                      href={product.itemLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
-                                    >
-                                      Ver producto
-                                      <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                              {pkg.item_description}
-                            </p>
+                {/* SHOPPER - Primary info, prominent */}
+                <div className="flex items-center gap-2 mb-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <User className="h-5 w-5 text-primary" />
+                  <span className="text-base font-semibold text-primary uppercase tracking-wide">
+                    {pkg.shopper_name || 'Shopper desconocido'}
+                  </span>
+                </div>
+                
+                {/* Products list */}
+                {activeProducts.length > 0 ? (
+                  <div className="space-y-2 mb-4 p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                      📦 Productos
+                    </p>
+                    {activeProducts.map((product, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-foreground">
+                          • {product.name || product.itemDescription || 'Producto'} 
+                          {product.quantity && product.quantity > 1 && (
+                            <span className="text-muted-foreground ml-1 font-medium">x{product.quantity}</span>
                           )}
-
-                          {/* Action button */}
-                          <Button
-                            onClick={() => handleMarkReady(pkg)}
-                            disabled={updatingId === pkg.id}
-                            className="w-full bg-success hover:bg-success/90 text-success-foreground"
+                        </span>
+                        {product.itemLink && (
+                          <a
+                            href={product.itemLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
                           >
-                            {updatingId === pkg.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                            )}
-                            ✓ VERIFICADO Y EMPACADO
-                          </Button>
-                        </div>
-                      );
-                    })}
+                            Ver producto
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
+                ) : (
+                  <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                      📦 Producto
+                    </p>
+                    <p className="text-sm text-foreground line-clamp-2">
+                      {pkg.item_description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Trip info - Secondary, compact line */}
+                {pkg.matched_trip_id && (
+                  <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground bg-muted/20 px-3 py-2 rounded-md">
+                    <Plane className="h-3.5 w-3.5" />
+                    <span>
+                      {pkg.trip_from_city} → {pkg.trip_to_city}
+                    </span>
+                    <span className="text-muted-foreground/50">•</span>
+                    <span>{pkg.trip_arrival_date ? formatDateUTC(pkg.trip_arrival_date) : 'Sin fecha'}</span>
+                    <span className="text-muted-foreground/50">•</span>
+                    <span>Viajero: {pkg.traveler_name || 'Desconocido'}</span>
+                  </div>
+                )}
+
+                {/* Action button - Full width, prominent */}
+                <Button
+                  onClick={() => handleMarkReady(pkg)}
+                  disabled={updatingId === pkg.id}
+                  className="w-full bg-success hover:bg-success/90 text-success-foreground font-semibold"
+                  size="lg"
+                >
+                  {updatingId === pkg.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  ✓ VERIFICADO Y EMPACADO
+                </Button>
+              </CardContent>
             </Card>
           );
         })}
