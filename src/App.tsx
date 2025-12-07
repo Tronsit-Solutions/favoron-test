@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { RequireOperations } from "@/components/auth/RequireOperations";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -17,6 +18,7 @@ import AdminSurveys from "./pages/AdminSurveys";
 import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 import AdminDiscounts from "./pages/AdminDiscounts";
 import AdminPlatformFees from "./pages/AdminPlatformFees";
+import Operations from "./pages/Operations";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,11 @@ const App = () => (
               <RequireAuth>
                 <AdminPlatformFees />
               </RequireAuth>
+            } />
+            <Route path="/operations" element={
+              <RequireOperations>
+                <Operations />
+              </RequireOperations>
             } />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
             <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />

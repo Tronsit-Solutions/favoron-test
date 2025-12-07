@@ -31,7 +31,7 @@ export const useDashboardState = (user: any) => {
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<Package | null>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
-  const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin'>('user');
+  const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin' | 'operations'>('user');
   const [selectedTripId, setSelectedTripId] = useState<string | null>(() => {
     try {
       // Load saved trip selection for this user

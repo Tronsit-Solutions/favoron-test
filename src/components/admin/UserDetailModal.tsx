@@ -49,7 +49,7 @@ interface UserDetailModalProps {
   onUpdateUser: (userId: number, updates: Partial<User>, primeInfo?: { isPaid: boolean; paymentReference?: string; notes?: string }) => void;
   onBanUser?: (userId: number, duration: 'permanent' | '24h' | '7d' | '30d' | 'custom', customDate?: string, reason?: string) => Promise<void>;
   onUnbanUser?: (userId: number) => Promise<void>;
-  onUpdateUserRole?: (userId: number, newRole: 'admin' | 'user') => Promise<void>;
+  onUpdateUserRole?: (userId: number, newRole: 'admin' | 'user' | 'operations') => Promise<void>;
 }
 
 const UserDetailModal = ({ 
@@ -81,7 +81,7 @@ const UserDetailModal = ({
   const [banReason, setBanReason] = useState('');
   const [isBanning, setIsBanning] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
-  const [pendingRole, setPendingRole] = useState<'admin' | 'user'>(user.role);
+  const [pendingRole, setPendingRole] = useState<'admin' | 'user' | 'operations'>(user.role);
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   const profileId = (user as any).profileId as string | undefined;

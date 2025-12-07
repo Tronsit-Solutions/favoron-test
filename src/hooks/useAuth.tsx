@@ -30,7 +30,7 @@ interface Profile {
 interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'operations';
   assigned_by: string | null;
   assigned_at: string;
 }

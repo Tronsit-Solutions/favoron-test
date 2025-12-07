@@ -15,7 +15,7 @@ export const useDashboardActions = (
   setSelectedPackageForAddress: (pkg: any) => void,
   setShowQuoteDialog: (show: boolean) => void,
   setSelectedPackageForQuote: (pkg: any) => void,
-  setQuoteUserType: (type: 'user' | 'admin') => void,
+  setQuoteUserType: (type: 'user' | 'admin' | 'operations') => void,
   // Supabase functions
   createPackage?: (packageData: any) => Promise<any>,
   createTrip?: (tripData: any) => Promise<any>,
@@ -218,7 +218,7 @@ export const useDashboardActions = (
     });
   };
 
-  const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user' | 'admin') => {
+  const handleQuoteSubmit = async (quoteData: any, selectedPackage: any, userType: 'user' | 'admin' | 'operations') => {
     try {
       console.log('🚀 STARTING QUOTE SUBMIT');
       console.log('📦 Selected package:', selectedPackage);
