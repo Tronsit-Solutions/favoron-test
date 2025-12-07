@@ -343,14 +343,9 @@ const CollapsibleTravelerPackageCard = ({
                           ✅ Cotización aceptada - Esperando pago
                         </div>
                       )}
-                      {pkg.status === 'payment_confirmed' && (
-                        <div className="font-medium text-blue-600">
-                          💳 Pago confirmado - El cliente ya pagó la cotización y debes comprar el producto
-                        </div>
-                      )}
                       {pkg.status === 'pending_purchase' && (
-                        <div className="text-muted-foreground">
-                          🛍️ Pendiente de compra - El cliente ya pagó la cotización y debe comprar el producto
+                        <div className="font-medium text-blue-600">
+                          💳 Pago confirmado - El cliente ya pagó la cotización y pronto subirá el comprobante de compra
                         </div>
                       )}
                       {pkg.status === 'in_transit' && (
@@ -462,7 +457,7 @@ const CollapsibleTravelerPackageCard = ({
                   </TabsContent>
                   
                   <TabsContent value="estado" className="mt-0">
-                    {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) ? (
+                    {['quote_accepted', 'pending_purchase', 'in_transit'].includes(pkg.status) ? (
                       <div className="bg-muted/30 rounded-lg p-3">
                         <TravelerPackageTimeline currentStatus={pkg.status} />
                       </div>
@@ -554,7 +549,7 @@ const CollapsibleTravelerPackageCard = ({
                   </TabsContent>
                   
                   <TabsContent value="chat" className="mt-0">
-                    {['pending_purchase', 'payment_confirmed', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
+                    {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
                       <div className="bg-muted/30 rounded-lg">
                         <PackageTimeline pkg={pkg} />
                       </div>
@@ -605,7 +600,7 @@ const CollapsibleTravelerPackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="estado" className="mt-0">
-                      {['quote_accepted', 'payment_confirmed', 'in_transit'].includes(pkg.status) && (
+                      {['quote_accepted', 'pending_purchase', 'in_transit'].includes(pkg.status) && (
                         <div className="bg-muted/30 rounded-lg p-3">
                           <TravelerPackageTimeline currentStatus={pkg.status} />
                         </div>
@@ -692,7 +687,7 @@ const CollapsibleTravelerPackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="chat" className="mt-0">
-                      {['pending_purchase', 'payment_confirmed', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
+                      {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
                         <PackageTimeline pkg={pkg} />
                       ) : (
                         <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">

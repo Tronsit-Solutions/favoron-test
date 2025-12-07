@@ -124,8 +124,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     { value: 'quote_sent', label: 'Cotización Enviada' },
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
     { value: 'awaiting_payment', label: 'Esperando Pago' },
-    { value: 'payment_confirmed', label: 'Pago Confirmado' },
-    { value: 'pending_purchase', label: 'Pendiente de Compra' },
+    { value: 'pending_purchase', label: 'Pago Confirmado' },
     
     { value: 'in_transit', label: 'En Tránsito' },
     { value: 'received_by_traveler', label: 'Recibido por Viajero' },
@@ -228,7 +227,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
       }
 
       // Determinar si el paquete ya está pagado (para no borrar recibos), pero SIEMPRE pasar a 'matched'
-      const isPaid = pkg?.status && ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(pkg.status);
+      const isPaid = pkg?.status && ['pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(pkg.status);
 
       // Preparar actualización: mover a 'matched' para que el nuevo viajero ACEPTE; limpiar dirección y fechas
       const updatePayload: any = {

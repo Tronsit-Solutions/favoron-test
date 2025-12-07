@@ -10,7 +10,7 @@ export const usePendingActions = (packages: any[], trips: any[], currentUser: an
     const paymentsToMake = shopperPackages.filter(pkg => pkg.status === 'quote_accepted').length;
     const purchasesToMake = shopperPackages.filter(pkg => pkg.status === 'pending_purchase').length;
     const uploadsNeeded = shopperPackages.filter(pkg => 
-      pkg.status === 'payment_confirmed' && !pkg.purchase_confirmation
+      pkg.status === 'pending_purchase' && !pkg.purchase_confirmation
     ).length;
 
     // For travelers
