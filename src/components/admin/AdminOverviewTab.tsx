@@ -200,7 +200,7 @@ const AdminOverviewTab = ({
                     {pkg.payment_receipt && (
                       <Button 
                         size="sm" 
-                        onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                        onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
                         className="flex-1 justify-center"
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />

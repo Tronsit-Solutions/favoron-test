@@ -55,7 +55,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   // Filter packages to include only those in advanced payment states
   const eligiblePackages = useMemo(() => {
     const advancedStates = [
-      'payment_confirmed',
       'pending_purchase', 
       'purchase_confirmed',
       'shipped',
@@ -218,7 +217,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         if (receipt.uploadedAt) {
           paymentDate = new Date(receipt.uploadedAt).toLocaleDateString('es-GT');
         }
-      } else if (['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
+      } else if (['pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 

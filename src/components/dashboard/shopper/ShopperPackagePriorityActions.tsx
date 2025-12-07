@@ -49,7 +49,6 @@ const ShopperPackagePriorityActions = ({
 
   // Define advanced states where timer and re-quote options should never appear
   const advancedStates = [
-    'payment_confirmed', 
     'pending_purchase', 
     'purchase_confirmed', 
     'in_transit', 
@@ -154,18 +153,11 @@ const ShopperPackagePriorityActions = ({
           description: "Tu comprobante de pago está siendo verificado. Te notificaremos cuando sea aprobado.",
           button: null
         };
-      case 'payment_confirmed':
-        return {
-          icon: Package2,
-          title: "¡Pago confirmado!",
-          description: "Tu pago fue aprobado. El viajero procederá a comprar el producto.",
-          button: null
-        };
       case 'pending_purchase':
         return {
           icon: Package2,
-          title: "🛒 Tu turno de comprar",
-          description: "Procede con la compra del artículo y adjunta el recibo junto con los datos de envío.",
+          title: "¡Pago confirmado! 🛒 Tu turno de comprar",
+          description: "Tu pago fue aprobado. Procede con la compra del artículo y adjunta el recibo junto con los datos de envío.",
           button: null
         };
       case 'purchase_confirmed':

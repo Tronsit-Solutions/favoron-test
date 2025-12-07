@@ -134,8 +134,7 @@ export const STATUS_LABELS = {
   quote_expired: 'Cotización expirada',
   quote_accepted: 'Cotización aceptada',
   awaiting_payment: 'Cotización Aceptada - Pendiente Pago',
-  payment_confirmed: 'Pago confirmado',
-  pending_purchase: 'Compra pendiente',
+  pending_purchase: 'Pago confirmado - Compra pendiente',
   purchase_confirmed: 'Compra confirmada',
   shipped: 'Enviado',
   in_transit: 'En tránsito',
@@ -172,7 +171,6 @@ export const REJECTION_REASONS = {
 } as const;
 
 export const PAID_STATUSES = [
-  'payment_confirmed',
   'pending_purchase', 
   'purchase_confirmed',
   'paid',

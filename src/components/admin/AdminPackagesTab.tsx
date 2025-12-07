@@ -67,7 +67,7 @@ const AdminPackagesTab = ({
                   {pkg.status === 'payment_pending' && (
                     <Button 
                       size="sm" 
-                      onClick={() => onUpdateStatus('package', pkg.id, 'payment_confirmed')}
+                      onClick={() => onUpdateStatus('package', pkg.id, 'pending_purchase')}
                     >
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Confirmar Pago

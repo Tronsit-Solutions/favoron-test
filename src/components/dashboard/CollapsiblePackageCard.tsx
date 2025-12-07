@@ -107,10 +107,8 @@ const CollapsiblePackageCard = ({
         return 'Pago pendiente - Realiza el pago para continuar';
       case 'payment_pending_approval':
         return 'Pago enviado - Esperando aprobación';
-      case 'payment_confirmed':
-        return "Pago confirmado - Viajero comprará el producto";
       case 'pending_purchase':
-        return 'Pendiente de compra - Sube el comprobante';
+        return "Pago confirmado - Viajero comprará el producto";
       case 'in_transit':
         // Check if there are multiple products and if any are received
         if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
@@ -157,7 +155,6 @@ const CollapsiblePackageCard = ({
     const eligibleStatuses = [
       'payment_pending',
       'payment_pending_approval', 
-      'payment_confirmed',
       'pending_purchase',
       'in_transit',
       'received_by_traveler',
@@ -174,7 +171,7 @@ const CollapsiblePackageCard = ({
     if (!pkg.quote) return false;
     
     // States where quote was already accepted/paid - always show quote
-    const paidStates = ['payment_pending', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+    const paidStates = ['payment_pending', 'payment_pending_approval', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
     if (paidStates.includes(pkg.status)) return true;
     
     // For earlier states, check if quote hasn't expired
@@ -563,7 +560,7 @@ const CollapsiblePackageCard = ({
                     </TabsContent>
                     
                     <TabsContent value="chat" className="mt-0">
-                      {['pending_purchase', 'payment_confirmed', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
+                      {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
                         <PackageTimeline pkg={pkg} />
                       ) : (
                         <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
@@ -631,7 +628,7 @@ const CollapsiblePackageCard = ({
                       <CollapsibleContent>
                         <div className="p-3 space-y-3">
                           {/* Show partial info for payment_pending and payment_pending_approval */}
-                          {['payment_pending', 'payment_pending_approval', 'payment_confirmed'].includes(pkg.status) ? (
+                          {['payment_pending', 'payment_pending_approval'].includes(pkg.status) ? (
                             <PartialDeliveryInfo pkg={pkg} />
                           ) : (
                             /* Show full info for pending_purchase and later stages */

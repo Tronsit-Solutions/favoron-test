@@ -551,7 +551,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
       'quote_rejected': { label: 'Cotización rechazada', variant: 'destructive' as const },
       'payment_pending': { label: 'Pago pendiente', variant: 'secondary' as const },
       'payment_pending_approval': { label: 'Pago pendiente de aprobación', variant: 'warning' as const },
-      'payment_confirmed': { label: 'Pago confirmado', variant: 'default' as const },
+      'pending_purchase': { label: 'Pago confirmado', variant: 'success' as const },
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered_to_office': { label: 'Entregado en oficina', variant: 'default' as const },
       'out_for_delivery': { label: 'En reparto', variant: 'default' as const },
@@ -571,7 +571,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   
   // Allow admin uploads based on package status
   const canUploadPaymentReceipt = !hasPaymentReceipt && !['cancelled', 'rejected'].includes(pkg.status);
-  const canUploadPurchaseConfirmation = ['pending_purchase', 'payment_confirmed'].includes(pkg.status);
+  const canUploadPurchaseConfirmation = pkg.status === 'pending_purchase';
   
   const hasAnyDocuments = hasPaymentReceipt || hasPurchaseConfirmation || hasTrackingInfo;
   

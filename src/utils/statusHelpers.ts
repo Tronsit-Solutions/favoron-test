@@ -15,7 +15,6 @@ export const getStatusBadge = (status: string) => {
     payment_pending: { label: 'Pago pendiente', variant: 'warning' },
     payment_pending_approval: { label: 'Pago en revisión', variant: 'warning' },
     quote_accepted: { label: 'Cotización Aceptada - Pendiente Pago', variant: 'destructive' },
-    payment_confirmed: { label: 'Pago confirmado', variant: 'default' },
     paid: { label: 'Pagado', variant: 'default' },
     pending_purchase: { label: 'Pendiente de compra', variant: 'default' },
     purchased: { label: 'Comprado', variant: 'default' },

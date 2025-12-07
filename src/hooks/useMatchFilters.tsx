@@ -42,7 +42,7 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
 
   const statsData = useMemo(() => ({
     completed: matchedPackages.filter(p => p.status === 'completed').length,
-    inProgress: matchedPackages.filter(p => ['payment_pending', 'in_transit', 'matched', 'quote_sent', 'payment_pending_approval', 'payment_confirmed', 'pending_purchase', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office'].includes(p.status)).length,
+    inProgress: matchedPackages.filter(p => ['payment_pending', 'in_transit', 'matched', 'quote_sent', 'payment_pending_approval', 'pending_purchase', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(p.status)).length,
     broken: matchedPackages.filter(p => ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'].includes(p.status)).length
   }), [matchedPackages]);
 

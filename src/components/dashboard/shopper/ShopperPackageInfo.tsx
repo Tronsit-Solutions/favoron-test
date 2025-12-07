@@ -13,7 +13,7 @@ const ShopperPackageInfo = ({
   onPackageUpdate
 }: ShopperPackageInfoProps) => {
   useEffect(() => {
-    const shouldMove = Boolean(pkg.purchase_confirmation) && pkg.status !== 'in_transit' && ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
+    const shouldMove = Boolean(pkg.purchase_confirmation) && pkg.status !== 'in_transit' && ['pending_purchase','paid'].includes(pkg.status as any);
     if (shouldMove) {
       supabase.from('packages').update({ status: 'in_transit' }).eq('id', pkg.id)
         .then(({ error }) => { if (!error) onPackageUpdate?.({ ...pkg, status: 'in_transit' }); });
@@ -38,7 +38,7 @@ const ShopperPackageInfo = ({
   };
   // Comentado - usando ShippingInfoRegistry en su lugar
   // const renderTravelerAddress = () => {
-  //   if (!pkg.traveler_address || !['pending_purchase', 'payment_confirmed'].includes(pkg.status)) return null;
+  //   if (!pkg.traveler_address || pkg.status !== 'pending_purchase') return null;
   //   return <ShippingInstructions pkg={pkg} />;
   // };
   const renderPaymentUpload = () => {
@@ -54,7 +54,7 @@ const ShopperPackageInfo = ({
   };
 
   const renderDocumentUpload = () => {
-    if (!['pending_purchase', 'payment_confirmed', 'paid', 'in_transit'].includes(pkg.status)) return null;
+    if (!['pending_purchase', 'paid', 'in_transit'].includes(pkg.status)) return null;
     return <div className="mt-2">
         <UploadDocuments 
           packageId={pkg.id}
@@ -66,7 +66,7 @@ const ShopperPackageInfo = ({
             
             // Guardar en la base de datos según el tipo
             if (type === 'confirmation') {
-              const shouldMoveInTransit = ['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any);
+              const shouldMoveInTransit = ['pending_purchase','paid'].includes(pkg.status as any);
               const updateData = { 
                 purchase_confirmation: data,
                 ...(shouldMoveInTransit ? { status: 'in_transit' } : {})
@@ -100,8 +100,8 @@ const ShopperPackageInfo = ({
               ...(type === 'confirmation' 
                 ? { 
                     purchase_confirmation: data,
-                    ...(['pending_purchase','payment_confirmed','paid'].includes(pkg.status as any) ? { status: 'in_transit' } : {})
-                  } 
+                    ...(['pending_purchase','paid'].includes(pkg.status as any) ? { status: 'in_transit' } : {})
+                  }
                 : { tracking_info: data }
               )
             };
@@ -115,7 +115,7 @@ const ShopperPackageInfo = ({
       {renderQuoteInfo()}
       {renderPaymentUpload()}
       {/* Removido renderTravelerAddress() - ahora se usa ShippingInfoRegistry */}
-      {['pending_purchase', 'payment_confirmed', 'paid', 'in_transit'].includes(pkg.status) && renderDocumentUpload()}
+      {['pending_purchase', 'paid', 'in_transit'].includes(pkg.status) && renderDocumentUpload()}
     </>;
 };
 export default ShopperPackageInfo;
