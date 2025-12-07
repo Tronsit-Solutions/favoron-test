@@ -8,6 +8,13 @@ import { toast } from 'sonner';
 import { parseISO } from 'date-fns';
 import OperationsTripCard from './OperationsTripCard';
 
+interface ProductData {
+  itemDescription?: string;
+  estimatedPrice?: string | number;
+  quantity?: string | number;
+  itemLink?: string;
+}
+
 interface PackageData {
   id: string;
   item_description: string;
@@ -15,6 +22,8 @@ interface PackageData {
   matched_trip_id: string;
   user_id: string;
   label_number: number | null;
+  estimated_price: number | null;
+  products_data: ProductData[] | null;
 }
 
 interface TripData {
@@ -33,20 +42,24 @@ interface ProfileData {
   country_code: string | null;
 }
 
-interface TripGroup {
+export interface TripGroupPackage {
+  id: string;
+  item_description: string;
+  status: string;
+  shopper_name: string;
+  label_number: number | null;
+  estimated_price: number | null;
+  products_data: ProductData[] | null;
+}
+
+export interface TripGroup {
   trip_id: string;
   traveler_name: string;
   traveler_phone: string | null;
   arrival_date: string;
   from_city: string;
   to_city: string;
-  packages: {
-    id: string;
-    item_description: string;
-    status: string;
-    shopper_name: string;
-    label_number: number | null;
-  }[];
+  packages: TripGroupPackage[];
 }
 
 const OperationsReceptionTab = () => {
@@ -63,7 +76,7 @@ const OperationsReceptionTab = () => {
       // Fetch packages in reception-pending states
       const { data: packagesData, error: packagesError } = await supabase
         .from('packages')
-        .select('id, item_description, status, matched_trip_id, user_id, label_number')
+        .select('id, item_description, status, matched_trip_id, user_id, label_number, estimated_price, products_data')
         .in('status', ['in_transit', 'received_by_traveler', 'pending_office_confirmation'])
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
@@ -106,7 +119,7 @@ const OperationsReceptionTab = () => {
       const profilesMap = new Map<string, ProfileData>();
       profilesData?.forEach(p => profilesMap.set(p.id, p));
 
-      setPackages(packagesData);
+      setPackages(packagesData as PackageData[]);
       setTrips(tripsData || []);
       setProfiles(profilesMap);
     } catch (error) {
@@ -167,6 +180,8 @@ const OperationsReceptionTab = () => {
         status: pkg.status,
         shopper_name: shopperName,
         label_number: pkg.label_number,
+        estimated_price: pkg.estimated_price,
+        products_data: pkg.products_data as ProductData[] | null,
       });
     });
 

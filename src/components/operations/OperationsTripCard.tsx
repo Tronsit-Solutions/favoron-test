@@ -4,27 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CheckCircle, ChevronDown, ChevronUp, Loader2, Package, Phone, Plane } from 'lucide-react';
+import { CheckCircle, ChevronDown, ChevronUp, ExternalLink, Loader2, Package, Phone, Plane } from 'lucide-react';
 import { formatDateUTC } from '@/lib/formatters';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
-
-interface PackageItem {
-  id: string;
-  item_description: string;
-  status: string;
-  shopper_name: string;
-  label_number?: number | null;
-}
-
-interface TripGroup {
-  trip_id: string;
-  traveler_name: string;
-  traveler_phone: string | null;
-  arrival_date: string;
-  from_city: string;
-  to_city: string;
-  packages: PackageItem[];
-}
+import { TripGroup, TripGroupPackage } from './OperationsReceptionTab';
 
 interface OperationsTripCardProps {
   trip: TripGroup;
@@ -32,6 +15,153 @@ interface OperationsTripCardProps {
   onConfirmAll: (packageIds: string[]) => Promise<void>;
   confirmingIds: Set<string>;
 }
+
+// Helper to format currency
+const formatPrice = (price: number | string | null | undefined): string => {
+  if (price === null || price === undefined) return '';
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  if (isNaN(numPrice)) return '';
+  return `$${numPrice.toFixed(2)}`;
+};
+
+// Package list item component with detailed product info
+const PackageListItem = ({
+  pkg,
+  isConfirming,
+  isSelected,
+  isAnyConfirming,
+  onSelect,
+  onConfirm,
+}: {
+  pkg: TripGroupPackage;
+  isConfirming: boolean;
+  isSelected: boolean;
+  isAnyConfirming: boolean;
+  onSelect: (id: string, checked: boolean) => void;
+  onConfirm: (id: string) => Promise<void>;
+}) => {
+  const products = pkg.products_data;
+  const isMultiProduct = products && Array.isArray(products) && products.length > 1;
+
+  // Get total estimated price
+  const totalPrice = products && Array.isArray(products) && products.length > 0
+    ? products.reduce((sum, p) => {
+        const price = parseFloat(String(p.estimatedPrice || 0));
+        const qty = parseInt(String(p.quantity || 1), 10);
+        return sum + (isNaN(price) ? 0 : price * (isNaN(qty) ? 1 : qty));
+      }, 0)
+    : pkg.estimated_price || 0;
+
+  // Get total quantity
+  const totalQuantity = products && Array.isArray(products) && products.length > 0
+    ? products.reduce((sum, p) => sum + (parseInt(String(p.quantity || 1), 10) || 1), 0)
+    : 1;
+
+  return (
+    <div className="py-3 px-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+      {/* Header row with checkbox, description, and confirm button */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <Checkbox
+            className="mt-1"
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(pkg.id, !!checked)}
+            disabled={isAnyConfirming}
+          />
+          <div className="flex-1 min-w-0 space-y-1">
+            <p className="font-medium text-foreground">
+              {isMultiProduct ? `${products.length} productos` : pkg.item_description}
+            </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+              <span>👤 {pkg.shopper_name}</span>
+              {pkg.label_number && <span>🏷️ #{pkg.label_number}</span>}
+            </div>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onConfirm(pkg.id)}
+          disabled={isAnyConfirming}
+          className="shrink-0"
+        >
+          {isConfirming ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Confirmar
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Product details section */}
+      <div className="mt-2 ml-8 space-y-1.5">
+        {isMultiProduct ? (
+          // Multi-product display
+          <>
+            {products.map((product, index) => {
+              const productPrice = parseFloat(String(product.estimatedPrice || 0));
+              const productQty = parseInt(String(product.quantity || 1), 10) || 1;
+              const productLink = product.itemLink;
+
+              return (
+                <div key={index} className="flex items-center gap-2 text-sm py-1 px-2 bg-muted/50 rounded">
+                  <span className="text-muted-foreground">📦</span>
+                  <span className="font-medium truncate flex-1">{product.itemDescription || `Producto ${index + 1}`}</span>
+                  {!isNaN(productPrice) && productPrice > 0 && (
+                    <span className="text-muted-foreground">{formatPrice(productPrice)}</span>
+                  )}
+                  {productQty > 1 && (
+                    <span className="text-muted-foreground">x{productQty}</span>
+                  )}
+                  {productLink && (
+                    <a
+                      href={productLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-0.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+            <div className="flex items-center gap-3 text-sm pt-1 border-t mt-2">
+              <span className="font-medium text-foreground">💰 Total: {formatPrice(totalPrice)}</span>
+              <span className="text-muted-foreground">📦 {totalQuantity} unidad{totalQuantity !== 1 ? 'es' : ''}</span>
+            </div>
+          </>
+        ) : (
+          // Single product display
+          <div className="flex items-center gap-3 text-sm flex-wrap">
+            {totalPrice > 0 && (
+              <span className="text-foreground font-medium">💰 {formatPrice(totalPrice)}</span>
+            )}
+            {totalQuantity > 1 && (
+              <span className="text-muted-foreground">📦 x{totalQuantity} unidades</span>
+            )}
+            {products?.[0]?.itemLink && (
+              <a
+                href={products[0].itemLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline flex items-center gap-1 text-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Ver producto
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const OperationsTripCard = ({ trip, onConfirmPackage, onConfirmAll, confirmingIds }: OperationsTripCardProps) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -212,46 +342,17 @@ const OperationsTripCard = ({ trip, onConfirmPackage, onConfirmAll, confirmingId
                 </div>
 
                 {/* Package list */}
-                {pendingPackages.map((pkg) => {
-                  const isConfirming = confirmingIds.has(pkg.id);
-                  return (
-                    <div
-                      key={pkg.id}
-                      className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Checkbox
-                          checked={selectedIds.has(pkg.id)}
-                          onCheckedChange={(checked) => handleSelectPackage(pkg.id, !!checked)}
-                          disabled={isAnyConfirming}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">{pkg.item_description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            👤 {pkg.shopper_name}
-                            {pkg.label_number && <span className="ml-2">🏷️ #{pkg.label_number}</span>}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onConfirmPackage(pkg.id)}
-                        disabled={isAnyConfirming}
-                        className="shrink-0 ml-2"
-                      >
-                        {isConfirming ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Confirmar
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  );
-                })}
+                {pendingPackages.map((pkg) => (
+                  <PackageListItem
+                    key={pkg.id}
+                    pkg={pkg}
+                    isConfirming={confirmingIds.has(pkg.id)}
+                    isSelected={selectedIds.has(pkg.id)}
+                    isAnyConfirming={isAnyConfirming}
+                    onSelect={handleSelectPackage}
+                    onConfirm={onConfirmPackage}
+                  />
+                ))}
               </div>
             )}
           </CardContent>
