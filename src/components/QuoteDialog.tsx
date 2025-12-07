@@ -634,6 +634,17 @@ const QuoteDialog = ({
                       <div className="text-sm text-foreground">
                         <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
                         <p><strong>Cantidad:</strong> 1 unidad</p>
+                        {packageDetails.item_link && (
+                          <a 
+                            href={packageDetails.item_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs mt-2"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Ver en tienda
+                          </a>
+                        )}
                       </div>
                       <div className="text-right space-y-2">
                         <div>
