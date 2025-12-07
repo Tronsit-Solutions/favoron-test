@@ -82,6 +82,20 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
           >
             <Home className="h-4 w-4" />
           </Button>
+          
+          {/* Botón prominente para usuarios con rol operations */}
+          {user.role === 'operations' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/operations')}
+              className="flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+            >
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Operaciones</span>
+            </Button>
+          )}
+          
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (
