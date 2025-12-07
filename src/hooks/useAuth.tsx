@@ -133,9 +133,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const roles = rolesResult.data;
         console.log('✅ Found roles:', roles);
         
-        // Prioritize admin role if present
+        // Prioritize roles: admin > operations > user
         const adminRole = roles.find(role => role.role === 'admin');
-        const selectedRole = adminRole || roles[0];
+        const operationsRole = roles.find(role => role.role === 'operations');
+        const selectedRole = adminRole || operationsRole || roles[0];
         
         console.log('✅ Setting userRole:', { role: selectedRole.role, id: selectedRole.id });
         setUserRole(selectedRole);
