@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -480,20 +480,87 @@ const QuoteDialog = ({
       <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} overflow-y-auto p-4 sm:p-6`}>
 
         <DialogHeader className="pr-12">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
-            {isTravelerContext ? '💰 Tip Asignado por Favorón' : !existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
-          </DialogTitle>
-          <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed text-left">
-            {isTravelerContext ? 'Favorón ha asignado un tip específico para este pedido. Revisa y decide si aceptas.' : !existingQuote ? 'Proporciona tu mejor cotización para este Favorón' : 'Revisa los detalles y responde a la cotización del viajero'}
-          </DialogDescription>
+          {isTravelerContext ? (
+            <>
+              {/* Modern gradient header for travelers */}
+              <div className="flex items-center gap-3 mb-1">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success via-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-success/30">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                    <Gift className="w-2.5 h-2.5 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold text-left bg-gradient-to-r from-success via-emerald-600 to-green-700 bg-clip-text text-transparent">
+                    Oportunidad de Ganancia
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground text-left">
+                    Favorón te ha asignado un tip por este pedido
+                  </DialogDescription>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
+                {!existingQuote ? '💰 Enviar Cotización' : '✅ Responder Cotización'}
+              </DialogTitle>
+              <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed text-left">
+                {!existingQuote ? 'Proporciona tu mejor cotización para este Favorón' : 'Revisa los detalles y responde a la cotización del viajero'}
+              </DialogDescription>
+            </>
+          )}
         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6 overflow-x-hidden">{/* Force no horizontal overflow */}
+          
+          {/* HERO TIP CARD - Only for travelers */}
+          {isTravelerContext && displayAmount && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/20 border border-success/30 p-5 sm:p-6 shadow-lg shadow-success/10 animate-fade-in">
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-500/10 to-transparent rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
+                    <Banknote className="w-4 h-4 text-success" />
+                  </div>
+                  <span className="text-sm font-medium text-success dark:text-emerald-400">Tu Ganancia</span>
+                </div>
+                
+                <div className="flex items-baseline gap-2 mb-3">
+                  <span className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-success via-emerald-600 to-green-600 bg-clip-text text-transparent tracking-tight">
+                    Q{displayAmount.toFixed(2)}
+                  </span>
+                </div>
+                
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Este es el monto que ganarás por llevar este paquete. Revisa los detalles abajo y decide si aceptas.
+                </p>
+                
+                {/* Quick benefit badges */}
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-xs px-2 py-1">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Pago garantizado
+                  </Badge>
+                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-xs px-2 py-1">
+                    <Gift className="w-3 h-3 mr-1" />
+                    Sin costo para ti
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Package Details */}
-          <div className="bg-muted/50 border rounded-lg p-3 sm:p-4 max-w-full">{/* Reduce padding and add max-width */}
+          <div className={`${isTravelerContext ? 'bg-card border-2 border-muted/60 hover:border-primary/20 transition-colors' : 'bg-muted/50 border'} rounded-xl p-3 sm:p-4 max-w-full`}>
             <div className="flex items-start space-x-2 mb-2">
-              <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-              <p className="text-base sm:text-sm font-semibold text-primary">📦 Detalles del Favorón</p>
+              <Package className={`h-5 w-5 ${isTravelerContext ? 'text-primary' : 'text-primary'} mt-0.5 flex-shrink-0`} />
+              <p className="text-base sm:text-sm font-semibold text-foreground">Detalles del Producto</p>
             </div>
             <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
               {/* Unified container for all package details */}
@@ -646,23 +713,9 @@ const QuoteDialog = ({
                           </a>
                         )}
                       </div>
-                      <div className="text-right space-y-2">
-                        <div>
-                          <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
-                          <p className="text-xs text-muted-foreground">Total</p>
-                        </div>
-                        {displayAmount && (
-                          <div>
-                            {isTravelerContext ? (
-                              <>
-                                <p className="text-lg font-bold text-green-600">Q{displayAmount.toFixed(2)}</p>
-                                <p className="text-xs text-muted-foreground">Tip asignado</p>
-                              </>
-                            ) : (
-                              <></>
-                            )}
-                          </div>
-                        )}
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
                   )}
@@ -1095,20 +1148,26 @@ const QuoteDialog = ({
               </div>
             </div>}
 
-          {/* Message for admin assigned tip acceptance */}
-          {displayAmount && <div className="space-y-4">
-              <div className="max-w-full overflow-hidden">{/* Reduce width and prevent overflow */}
-                <Label htmlFor="message">Mensaje adicional (opcional)</Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {isTravelerContext ? "Mensaje para el shopper:" : "Mensaje para el viajero:"}
-                </p>
+          {/* Message for admin assigned tip acceptance - Modern design for travelers */}
+          {displayAmount && (
+            <div className={`${isTravelerContext ? 'bg-card border-2 border-muted/60 rounded-xl' : ''} p-4`}>
+              <div className="max-w-full overflow-hidden space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-lg ${isTravelerContext ? 'bg-primary/10' : 'bg-muted'} flex items-center justify-center`}>
+                    <FileText className={`w-3.5 h-3.5 ${isTravelerContext ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <Label htmlFor="message" className="text-sm font-medium">
+                    {isTravelerContext ? "Mensaje para el shopper" : "Mensaje para el viajero"}
+                  </Label>
+                  <span className="text-xs text-muted-foreground">(opcional)</span>
+                </div>
                 <Textarea 
                   id="message" 
-                  placeholder="Escribe un mensaje para el shopper..." 
+                  placeholder={isTravelerContext ? "Escribe un mensaje para el shopper..." : "Añade cualquier información adicional..."}
                   value={message} 
                   onChange={e => updateFormField('message', e.target.value)} 
-                  rows={3}
-                  className={isMobile ? 'mobile-safe-form' : ''}
+                  rows={2}
+                  className={`${isMobile ? 'mobile-safe-form' : ''} resize-none border-muted/60 focus:border-primary/40`}
                   autoFocus={false}
                   readOnly={isMobile && !mobileInputsReady}
                   onFocus={(e) => {
@@ -1118,7 +1177,8 @@ const QuoteDialog = ({
                   }}
                 />
               </div>
-            </div>}
+            </div>
+          )}
 
           {/* Terms and Conditions Checkbox - Only for shoppers accepting quotes */}
           {existingQuote && userType === 'user' && <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1160,21 +1220,36 @@ const QuoteDialog = ({
           updateFormField('additionalComments', values.additional_comments ?? "");
         }} />}
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">            
+          {/* Action Buttons - Modern design for travelers */}
+          <div className={`flex justify-end gap-3 pt-4 ${isTravelerContext ? 'border-t-2 border-muted/40' : 'border-t'}`}>            
             {!existingQuote ? <>
-                <Button variant="destructive" onClick={handleReject} className="flex-1 sm:flex-none">
-                  Rechazar Pedido
+                <Button 
+                  variant="outline" 
+                  onClick={handleReject} 
+                  className={`flex-1 sm:flex-none ${isTravelerContext ? 'border-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200' : ''}`}
+                >
+                  Rechazar
                 </Button>
-                <Button onClick={handleSubmit} disabled={!displayAmount && !price} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white">
-                  {displayAmount ? isTravelerContext ? `Aceptar Tip Q${displayAmount.toFixed(2)}` : `Aceptar Cotización Q${displayAmount.toFixed(2)}` : 'Enviar Cotización'}
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={!displayAmount && !price} 
+                  className={`flex-1 sm:flex-none ${isTravelerContext 
+                    ? 'bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25 hover:shadow-success/40 hover:scale-[1.02] transition-all duration-200' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                >
+                  {displayAmount ? (
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      {isTravelerContext ? `Aceptar Q${displayAmount.toFixed(2)}` : `Aceptar Cotización Q${displayAmount.toFixed(2)}`}
+                    </span>
+                  ) : 'Enviar Cotización'}
                 </Button>
               </> : <>
                 {!showRejectionForm ? <>
-                    <Button variant="destructive" onClick={handleReject} className="flex-1 sm:flex-none">
+                    <Button variant="outline" onClick={handleReject} className="flex-1 sm:flex-none border-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200">
                       Rechazar
                     </Button>
-                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && (!acceptedTerms || !confirmedDeliveryTime) || isQuoteExpired} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 disabled:opacity-50">
+                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && (!acceptedTerms || !confirmedDeliveryTime) || isQuoteExpired} className="flex-1 sm:flex-none bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25 disabled:opacity-50 disabled:shadow-none transition-all duration-200">
                       {isQuoteExpired ? 'Cotización Expirada' : 'Aceptar Cotización'}
                     </Button>
                   </> : <>
