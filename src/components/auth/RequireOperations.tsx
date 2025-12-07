@@ -20,8 +20,18 @@ export const RequireOperations = ({ children }: RequireOperationsProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Allow both operations and admin roles
-  const hasAccess = userRole?.role === 'operations' || userRole?.role === 'admin';
+  // Wait for userRole to load before deciding access - prevents premature redirect
+  if (!userRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground ml-3">Verificando permisos...</p>
+      </div>
+    );
+  }
+
+  // Now safely check access with role loaded
+  const hasAccess = userRole.role === 'operations' || userRole.role === 'admin';
 
   if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;
