@@ -127,7 +127,6 @@ export const canCancelProduct = (
   // Status check - only certain statuses allow cancellation
   const CANCELLABLE_STATUSES = [
     'pending_purchase',
-    'payment_confirmed',
     'in_transit',
     'purchased'
   ];

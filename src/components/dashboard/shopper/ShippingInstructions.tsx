@@ -20,13 +20,13 @@ const ShippingInstructions = ({
   const address = pkg.traveler_address || pkgWithTrips.trips?.package_receiving_address;
   const tripDates = pkg.matched_trip_dates as any;
   // Solo mostrar si hay dirección y el status es quote_sent o superior
-  if (!address || !['quote_sent', 'pending_purchase', 'payment_confirmed'].includes(pkg.status)) {
+  if (!address || !['quote_sent', 'pending_purchase'].includes(pkg.status)) {
     return null;
   }
 
   // Determinar si mostrar información parcial o completa
   const showPartialInfo = pkg.status === 'quote_sent';
-  const showFullInfo = ['pending_purchase', 'payment_confirmed'].includes(pkg.status);
+  const showFullInfo = pkg.status === 'pending_purchase';
   return <div className="mt-4">
       
       
@@ -95,7 +95,7 @@ const ShippingInstructions = ({
                       </div>
                     </div>
                   ) : (
-                    // Vista completa para pending_purchase y payment_confirmed
+                    // Vista completa para pending_purchase
                     <>
                       <div className="grid grid-cols-2 gap-2">
                         <div>

@@ -29,7 +29,6 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
   // Filter packages to include only those in advanced payment states
   const eligiblePackages = useMemo(() => {
     const advancedStates = [
-      'payment_confirmed',
       'pending_purchase', 
       'purchase_confirmed',
       'shipped',

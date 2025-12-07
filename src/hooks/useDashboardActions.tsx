@@ -242,7 +242,7 @@ export const useDashboardActions = (
         
         // Special case: traveler accepting admin-assigned tip
         const isTravelerAcceptingAssignedTip = userType === 'user' &&
-                                              (selectedPackage.status === 'matched' || ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status)) &&
+                                              (selectedPackage.status === 'matched' || ['pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status)) &&
                                               selectedPackage.admin_assigned_tip &&
                                               quoteData.adminAssignedTipAccepted;
         if (isTravelerAcceptingAssignedTip) {
@@ -282,7 +282,7 @@ export const useDashboardActions = (
           } : null;
           
           // Check if package is already paid
-          const isPaidPackage = ['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status) || !!selectedPackage.payment_receipt;
+          const isPaidPackage = ['pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(selectedPackage.status) || !!selectedPackage.payment_receipt;
           
           if (isPaidPackage) {
             console.log('📦 Package already paid, proceeding directly and updating delivery info');
@@ -635,7 +635,7 @@ export const useDashboardActions = (
       if (type === 'confirmation') {
         updatedData.purchase_confirmation = data;
         // Move to in_transit immediately when purchase confirmation is uploaded
-        if (['pending_purchase','payment_confirmed','paid'].includes(pkg.status)) {
+        if (['pending_purchase','paid'].includes(pkg.status)) {
           newStatus = 'in_transit';
         }
         
