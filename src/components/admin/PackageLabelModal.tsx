@@ -26,8 +26,13 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   const [isGeneratingLabels, setIsGeneratingLabels] = useState(false);
   const { toast } = useToast();
   
-  const packageList = packages || (pkg ? [pkg] : []);
-  const currentPackage = packageList[currentPackageIndex] || pkg;
+  const packageList = packages && packages.length > 0 ? packages : (pkg ? [pkg] : []);
+  const currentPackage = packageList[currentPackageIndex];
+  
+  // Don't render if no packages
+  if (!isOpen || packageList.length === 0) {
+    return null;
+  }
 
   // Reset when modal closes
   useEffect(() => {
