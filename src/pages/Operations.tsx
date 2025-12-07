@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Tag, Truck, ArrowLeft, PackageCheck } from 'lucide-react';
+import { Package, Tag, ArrowLeft, PackageCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import OperationsReceptionTab from '@/components/operations/OperationsReceptionTab';
 import OperationsLabelsTab from '@/components/operations/OperationsLabelsTab';
-import OperationsLastMileTab from '@/components/operations/OperationsLastMileTab';
 import OperationsReadyTab from '@/components/operations/OperationsReadyTab';
 
 const Operations = () => {
@@ -28,9 +27,9 @@ const Operations = () => {
               </Link>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Panel de Operaciones</h1>
-                <p className="text-sm text-muted-foreground">
-                  Recepción, preparación, etiquetas y última milla
-                </p>
+              <p className="text-sm text-muted-foreground">
+                Recepción, preparación y etiquetas
+              </p>
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
@@ -46,7 +45,7 @@ const Operations = () => {
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-3 max-w-xl">
             <TabsTrigger value="reception" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Recepción</span>
@@ -58,10 +57,6 @@ const Operations = () => {
             <TabsTrigger value="labels" className="flex items-center gap-2">
               <Tag className="h-4 w-4" />
               <span className="hidden sm:inline">Etiquetas</span>
-            </TabsTrigger>
-            <TabsTrigger value="lastmile" className="flex items-center gap-2">
-              <Truck className="h-4 w-4" />
-              <span className="hidden sm:inline">Última Milla</span>
             </TabsTrigger>
           </TabsList>
 
@@ -75,10 +70,6 @@ const Operations = () => {
 
           <TabsContent value="labels">
             {activeTab === 'labels' && <OperationsLabelsTab />}
-          </TabsContent>
-
-          <TabsContent value="lastmile">
-            {activeTab === 'lastmile' && <OperationsLastMileTab />}
           </TabsContent>
         </Tabs>
       </main>
