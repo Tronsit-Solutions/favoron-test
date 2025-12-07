@@ -28,11 +28,6 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
   
   const packageList = packages && packages.length > 0 ? packages : (pkg ? [pkg] : []);
   const currentPackage = packageList[currentPackageIndex];
-  
-  // Don't render if no packages
-  if (!isOpen || packageList.length === 0) {
-    return null;
-  }
 
   // Reset when modal closes
   useEffect(() => {
@@ -40,6 +35,11 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
       setLabelNumbers({});
     }
   }, [isOpen]);
+  
+  // Don't render if no packages - MUST be after all hooks
+  if (!isOpen || packageList.length === 0) {
+    return null;
+  }
 
   const generateLabelNumbers = async () => {
     setIsGeneratingLabels(true);
