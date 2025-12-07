@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Plane, Users, Home, FileText, Shield, Sparkles, Settings } from "lucide-react";
+import { LogOut, User, Users, Home, FileText, Shield, Sparkles, Settings, Eye, UserCog, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -9,9 +8,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { NotificationDropdown } from "@/components/ui/notification-dropdown";
-
+import type { ViewMode } from "@/hooks/useDashboardState";
 
 interface DashboardHeaderProps {
   user: any;
@@ -20,10 +20,18 @@ interface DashboardHeaderProps {
   onShowUserManagement?: () => void;
   onGoHome?: () => void;
   onShowPrime?: () => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome, onShowPrime }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, onGoHome, onShowPrime, viewMode, onViewModeChange }: DashboardHeaderProps) => {
   const navigate = useNavigate();
+
+  const viewModeLabels: Record<ViewMode, { label: string; icon: React.ReactNode; description: string }> = {
+    user: { label: 'Usuario', icon: <User className="h-4 w-4" />, description: 'Ver como usuario normal' },
+    admin: { label: 'Admin', icon: <UserCog className="h-4 w-4" />, description: 'Panel de administración' },
+    operations: { label: 'Operations', icon: <Package className="h-4 w-4" />, description: 'Panel de operaciones' },
+  };
 
   const handleLogoClick = () => {
     navigate('/');
@@ -134,6 +142,29 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {user.role === 'admin' && onViewModeChange && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Eye className="h-3 w-3" />
+                    Cambiar Vista
+                  </DropdownMenuLabel>
+                  {(Object.keys(viewModeLabels) as ViewMode[]).map((mode) => (
+                    <DropdownMenuItem 
+                      key={mode}
+                      onClick={() => onViewModeChange(mode)}
+                      className={viewMode === mode ? 'bg-accent' : ''}
+                    >
+                      {viewModeLabels[mode].icon}
+                      <span className="ml-2">{viewModeLabels[mode].label}</span>
+                      {viewMode === mode && (
+                        <span className="ml-auto text-xs text-primary">●</span>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
               {user.role === 'admin' && (
                 <DropdownMenuItem onClick={() => navigate('/admin/control')}>
                   <Settings className="h-4 w-4 mr-2" />

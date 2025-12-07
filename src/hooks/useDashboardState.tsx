@@ -6,6 +6,8 @@ import { useAdminData } from './useAdminData';
 import type { Package } from "@/types";
 import { useSearchParams } from "react-router-dom";
 
+export type ViewMode = 'user' | 'admin' | 'operations';
+
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,6 +43,27 @@ export const useDashboardState = (user: any) => {
       return null;
     }
   });
+
+  // View mode for admins to switch between different perspectives
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    try {
+      const saved = localStorage.getItem(`view_mode_${user?.id || 'default'}`);
+      return (saved as ViewMode) || 'admin';
+    } catch {
+      return 'admin';
+    }
+  });
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    if (user?.id && user?.role === 'admin') {
+      try {
+        localStorage.setItem(`view_mode_${user.id}`, viewMode);
+      } catch (error) {
+        console.warn('Failed to save view mode:', error);
+      }
+    }
+  }, [viewMode, user?.id, user?.role]);
   
   // Persist trip selection to localStorage
   useEffect(() => {
@@ -270,6 +293,9 @@ export const useDashboardState = (user: any) => {
     autoApprovedPaymentsLoading,
     approvedPaymentsLoading,
     loadAutoApprovedPayments,
-    loadApprovedPayments
+    loadApprovedPayments,
+    // View mode for admin role switching
+    viewMode,
+    setViewMode
   };
 };

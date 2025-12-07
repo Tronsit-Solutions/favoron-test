@@ -32,7 +32,7 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { useUrlState } from "@/hooks/useUrlState";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
 import { useStickyState } from "@/hooks/useStickyState";
@@ -145,7 +145,9 @@ const Dashboard = ({ user }: DashboardProps) => {
     autoApprovedPaymentsLoading,
     approvedPaymentsLoading,
     loadAutoApprovedPayments,
-    loadApprovedPayments
+    loadApprovedPayments,
+    viewMode,
+    setViewMode
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -194,6 +196,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     async () => { await refreshTrips(); } // Add refreshTrips function wrapped
   );
 
+  const navigate = useNavigate();
   const pendingActions = usePendingActions(packages, trips, currentUser);
 
   // Filter preference for inactive trips
@@ -208,6 +211,19 @@ const Dashboard = ({ user }: DashboardProps) => {
   // Real-time updates are now active, no manual refresh needed
 
   const isAdmin = currentUser.role === 'admin';
+
+  // Determine effective admin visibility based on viewMode
+  // If admin is viewing as 'user', they shouldn't see admin tabs
+  const isAdminViewingAsAdmin = isAdmin && viewMode === 'admin';
+
+  // Redirect to operations page when admin switches to operations view
+  const handleViewModeChange = (mode: typeof viewMode) => {
+    if (mode === 'operations') {
+      navigate('/operations');
+    } else {
+      setViewMode(mode);
+    }
+  };
   
   // Filter packages and trips for current user
   const userPackages = packages.filter(pkg => pkg.user_id === currentUser.id);
@@ -355,6 +371,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           onShowUserManagement={() => setShowUserManagement(false)}
           onGoHome={() => setShowUserManagement(false)}
           onShowPrime={() => setShowPrimeModal(true)}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
         />
         <div className="container mx-auto mobile-container py-8">
           <UserManagement 
@@ -488,6 +506,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           onLogout={signOut}
           onShowUserManagement={() => setShowUserManagement(true)}
           onShowPrime={() => setShowPrimeModal(true)}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
         />
 
       <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
@@ -519,7 +539,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             <TabsList className={cn(
               "w-full h-auto min-h-10",
               "flex flex-wrap sm:grid",
-              isAdmin ? "sm:grid-cols-5" : "sm:grid-cols-3",
+              isAdminViewingAsAdmin ? "sm:grid-cols-5" : "sm:grid-cols-3",
               "gap-1 p-1"
             )}>
               <TabsTrigger 
@@ -554,7 +574,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                   />
                 )}
               </TabsTrigger>
-              {isAdmin && (
+              {isAdminViewingAsAdmin && (
                 <TabsTrigger 
                   value="admin" 
                   className="relative flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
@@ -568,7 +588,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                   )}
                 </TabsTrigger>
               )}
-              {isAdmin && (
+              {isAdminViewingAsAdmin && (
                 <TabsTrigger 
                   value="ultima-milla" 
                   className="relative flex-1 min-w-[90px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
