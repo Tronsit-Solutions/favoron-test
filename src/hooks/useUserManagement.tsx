@@ -37,9 +37,11 @@ export const useUserManagement = () => {
 
       const formattedUsers: UserWithProfileId[] = profiles?.map((profile: any, index: number) => {
         // Map roles correctly
-        let role: 'user' | 'admin' = 'user';
+        let role: 'user' | 'admin' | 'operations' = 'user';
         if (profile.user_role === 'admin') {
           role = 'admin';
+        } else if (profile.user_role === 'operations') {
+          role = 'operations';
         } else {
           role = 'user'; // Default for regular users
         }
@@ -270,7 +272,7 @@ export const useUserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: number, newRole: 'admin' | 'user') => {
+  const updateUserRole = async (userId: number, newRole: 'admin' | 'user' | 'operations') => {
     try {
       const user = users.find(u => u.id === userId);
       if (!user || !user.profileId) {
@@ -283,39 +285,44 @@ export const useUserManagement = () => {
         throw new Error('No authenticated user');
       }
 
-      if (newRole === 'admin') {
-        // Insert admin role
-        const { error } = await supabase
-          .from('user_roles')
-          .upsert({
-            user_id: user.profileId,
-            role: 'admin',
-            assigned_by: currentUser.id,
-            assigned_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,role'
-          });
-
-        if (error) {
-          console.error('Error promoting to admin:', error);
-          throw error;
-        }
-
-        console.log('User promoted to admin successfully');
-      } else {
-        // Remove admin role
+      if (newRole === 'user') {
+        // Remove all special roles (admin and operations)
         const { error } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', user.profileId)
-          .eq('role', 'admin');
+          .in('role', ['admin', 'operations']);
 
         if (error) {
-          console.error('Error demoting from admin:', error);
+          console.error('Error removing special roles:', error);
           throw error;
         }
 
-        console.log('User demoted from admin successfully');
+        console.log('User demoted to regular user successfully');
+      } else {
+        // First, remove any existing special roles
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', user.profileId)
+          .in('role', ['admin', 'operations']);
+
+        // Insert new role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: user.profileId,
+            role: newRole,
+            assigned_by: currentUser.id,
+            assigned_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error(`Error assigning ${newRole} role:`, error);
+          throw error;
+        }
+
+        console.log(`User promoted to ${newRole} successfully`);
       }
       
       // Refresh users to get updated role

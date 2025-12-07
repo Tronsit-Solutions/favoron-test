@@ -45,7 +45,7 @@ interface QuoteDialogProps {
     shopper_trust_level?: string;
     package_destination?: string;
   };
-  userType: 'user' | 'admin';
+  userType: 'user' | 'admin' | 'operations';
   existingQuote?: any;
   tripDates?: {
     first_day_packages: string;

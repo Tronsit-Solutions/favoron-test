@@ -4,7 +4,7 @@ export interface User {
   name: string;
   username?: string;
   avatarUrl?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'operations';
   phoneNumber?: string;
   whatsappNumber?: string;
   preferredLanguage?: string;
@@ -100,7 +100,7 @@ import { Tables } from '@/integrations/supabase/types';
 export type Package = Tables<'packages'>;
 export type Trip = Tables<'trips'>;
 
-export type UserType = 'user' | 'admin';
+export type UserType = 'user' | 'admin' | 'operations';
 export type DocumentType = 'confirmation' | 'tracking' | 'payment_receipt';
 
 // Chat message types
