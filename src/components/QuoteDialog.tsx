@@ -481,27 +481,19 @@ const QuoteDialog = ({
 
         <DialogHeader className="pr-12">
           {isTravelerContext ? (
-            <>
-              {/* Modern gradient header for travelers */}
-              <div className="flex items-center gap-3 mb-1">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success via-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-success/30">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center animate-pulse">
-                    <Gift className="w-2.5 h-2.5 text-white" />
-                  </div>
-                </div>
-                <div>
-                  <DialogTitle className="text-xl sm:text-2xl font-bold text-left bg-gradient-to-r from-success via-emerald-600 to-green-700 bg-clip-text text-transparent">
-                    Oportunidad de Ganancia
-                  </DialogTitle>
-                  <DialogDescription className="text-sm text-muted-foreground text-left">
-                    Favorón te ha asignado un tip por este pedido
-                  </DialogDescription>
-                </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-success to-emerald-600 flex items-center justify-center shadow-md">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-            </>
+              <div className="flex-1">
+                <DialogTitle className="text-lg font-bold text-left bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
+                  Tip Asignado
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground text-left">
+                  Revisa y decide si aceptas
+                </DialogDescription>
+              </div>
+            </div>
           ) : (
             <>
               <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
@@ -516,220 +508,260 @@ const QuoteDialog = ({
 
         <div className="space-y-4 sm:space-y-6 overflow-x-hidden">{/* Force no horizontal overflow */}
           
-          {/* HERO TIP CARD - Only for travelers */}
+          {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/20 border border-success/30 p-5 sm:p-6 shadow-lg shadow-success/10 animate-fade-in">
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success/20 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-500/10 to-transparent rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
-              
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                    <Banknote className="w-4 h-4 text-success" />
+            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50/80 to-green-50/60 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/30 px-4 py-3 shadow-sm">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-success" />
                   </div>
-                  <span className="text-sm font-medium text-success dark:text-emerald-400">Tu Ganancia</span>
+                  <div>
+                    <span className="text-xs text-muted-foreground">Tu ganancia</span>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
+                      Q{displayAmount.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                
-                <div className="flex items-baseline gap-2 mb-3">
-                  <span className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-success via-emerald-600 to-green-600 bg-clip-text text-transparent tracking-tight">
-                    Q{displayAmount.toFixed(2)}
-                  </span>
-                </div>
-                
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Este es el monto que ganarás por llevar este paquete. Revisa los detalles abajo y decide si aceptas.
-                </p>
-                
-                {/* Quick benefit badges */}
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-xs px-2 py-1">
+                <div className="hidden sm:flex items-center gap-2">
+                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-[10px] px-2 py-0.5">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Pago garantizado
+                    Garantizado
                   </Badge>
-                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-xs px-2 py-1">
+                  <Badge variant="outline" className="bg-white/60 dark:bg-white/10 border-success/30 text-success text-[10px] px-2 py-0.5">
                     <Gift className="w-3 h-3 mr-1" />
-                    Sin costo para ti
+                    Sin costo
                   </Badge>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Package Details */}
-          <div className={`${isTravelerContext ? 'bg-card border-2 border-muted/60 hover:border-primary/20 transition-colors' : 'bg-muted/50 border'} rounded-xl p-3 sm:p-4 max-w-full`}>
-            <div className="flex items-start space-x-2 mb-2">
-              <Package className={`h-5 w-5 ${isTravelerContext ? 'text-primary' : 'text-primary'} mt-0.5 flex-shrink-0`} />
-              <p className="text-base sm:text-sm font-semibold text-foreground">Detalles del Producto</p>
-            </div>
-            <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
-              {/* Unified container for all package details */}
-              <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
-                {/* Product Description */}
-                <div>
-                  <p className="font-medium text-foreground mb-2">
-                    <strong>{packageDetails.products_data?.[0]?.requestType === 'personal' ? 'Pedido:' : 'Producto:'}</strong>
-                  </p>
-                  <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
+          {/* Package Details - Compact for travelers, detailed for shoppers */}
+          <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg p-3 max-w-full`}>
+            {isTravelerContext ? (
+              /* Compact inline view for travelers */
+              <div className="space-y-2">
+                {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
+                  packageDetails.products_data.map((product: any, index: number) => {
+                    const quantity = parseInt(product.quantity || '1');
+                    const unitPrice = parseFloat(product.estimatedPrice || '0');
+                    const isPersonalOrder = product.requestType === 'personal';
+                    
+                    return (
+                      <div key={index} className="flex items-center justify-between gap-2 py-1 border-b border-muted/30 last:border-0">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Package className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span className="text-sm font-medium truncate">{product.itemDescription || packageDetails.item_description}</span>
+                          {isPersonalOrder && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 shrink-0">Personal</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                          <span>${unitPrice.toFixed(2)} × {quantity}</span>
+                          {(product.itemLink || packageDetails.item_link) && (
+                            <a 
+                              href={product.itemLink || packageDetails.item_link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-primary hover:underline"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Ver
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <Package className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{packageDetails.item_description}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                      <span>${packageDetails.estimated_price} × 1</span>
+                      {packageDetails.item_link && (
+                        <a 
+                          href={packageDetails.item_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Ver
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {packageDetails.additional_notes && (
+                  <p className="text-xs text-muted-foreground mt-1">{packageDetails.additional_notes}</p>
+                )}
+              </div>
+            ) : (
+              /* Detailed view for shoppers */
+              <>
+                <div className="flex items-start space-x-2 mb-2">
+                  <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-base sm:text-sm font-semibold text-foreground">Detalles del Producto</p>
                 </div>
+                <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
+                  <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
+                    <div>
+                      <p className="font-medium text-foreground mb-2">
+                        <strong>{packageDetails.products_data?.[0]?.requestType === 'personal' ? 'Pedido:' : 'Producto:'}</strong>
+                      </p>
+                      <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
+                    </div>
 
-                {/* Pricing Information */}
-                <div>
-                  <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
-                  {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                    <div className="space-y-4">
-                      {packageDetails.products_data.map((product: any, index: number) => {
-                        const quantity = parseInt(product.quantity || '1');
-                        const unitPrice = parseFloat(product.estimatedPrice || '0');
-                        const totalPrice = quantity * unitPrice;
-                        const adminTip = parseFloat(product.adminAssignedTip || '0');
-                        const isPersonalOrder = product.requestType === 'personal';
-                        
-                        return (
-                          <div 
-                            key={index} 
-                            className="group relative bg-gradient-to-br from-background to-muted/20 border border-muted/50 rounded-lg overflow-hidden shadow-sm hover:shadow hover:border-primary/20 transition-all duration-200"
-                          >
-                            {/* Header compacto */}
-                            <div className="flex items-center gap-2 px-3 py-2 border-b border-muted/30 bg-muted/10">
-                              <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10 text-primary font-bold text-xs shrink-0">
-                                {index + 1}
-                              </span>
-                              {isPersonalOrder && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-                                  Personal
-                                </Badge>
-                              )}
-                              <p className="text-sm font-medium text-foreground truncate flex-1">
-                                {product.itemDescription || `Producto ${index + 1}`}
-                              </p>
-                            </div>
+                    <div>
+                      <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
+                      {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
+                        <div className="space-y-4">
+                          {packageDetails.products_data.map((product: any, index: number) => {
+                            const quantity = parseInt(product.quantity || '1');
+                            const unitPrice = parseFloat(product.estimatedPrice || '0');
+                            const totalPrice = quantity * unitPrice;
+                            const isPersonalOrder = product.requestType === 'personal';
                             
-                            {/* Contenido compacto */}
-                            <div className="px-3 py-2">
-                              {isPersonalOrder ? (
-                                <div className="space-y-2">
-                                  {product.instructions && (
-                                    <p className="text-xs text-muted-foreground line-clamp-2">{product.instructions}</p>
+                            return (
+                              <div 
+                                key={index} 
+                                className="group relative bg-gradient-to-br from-background to-muted/20 border border-muted/50 rounded-lg overflow-hidden shadow-sm hover:shadow hover:border-primary/20 transition-all duration-200"
+                              >
+                                <div className="flex items-center gap-2 px-3 py-2 border-b border-muted/30 bg-muted/10">
+                                  <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10 text-primary font-bold text-xs shrink-0">
+                                    {index + 1}
+                                  </span>
+                                  {isPersonalOrder && (
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                                      Personal
+                                    </Badge>
                                   )}
-                                  <div className="flex items-center gap-3 text-xs">
-                                    {product.weight && (
-                                      <span className="text-muted-foreground">Peso: <span className="text-foreground font-medium">{product.weight}kg</span></span>
-                                    )}
-                                    <span className="text-muted-foreground">Precio: <span className="text-foreground font-medium">${unitPrice.toFixed(2)}</span></span>
-                                  </div>
-                                  {product.productPhotos && product.productPhotos.length > 0 && (
-                                    <div className="flex gap-1">
-                                      {product.productPhotos.slice(0, 4).map((photo: any, photoIndex: number) => (
-                                        <ResolvedImage 
-                                          key={photoIndex}
-                                          src={photo}
-                                          alt={`Foto ${photoIndex + 1}`}
-                                          className="w-10 h-10 object-cover rounded border border-muted/40 cursor-pointer hover:border-primary/50 transition-colors"
-                                          onClick={() => {
-                                            const getRawUrl = (input: any): string | null => {
-                                              if (!input) return null;
-                                              if (typeof input === 'string') return input;
-                                              if (typeof input === 'object') {
-                                                if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
-                                                if (input.filePath) return input.filePath;
-                                                if (input.url) return input.url;
-                                              }
-                                              return null;
-                                            };
-                                            const url = getRawUrl(photo);
-                                            if (url) {
-                                              setImageModalState({
-                                                isOpen: true,
-                                                imageUrl: url,
-                                                title: `Foto ${photoIndex + 1} del producto`
-                                              });
-                                            }
-                                          }}
-                                        />
-                                      ))}
+                                  <p className="text-sm font-medium text-foreground truncate flex-1">
+                                    {product.itemDescription || `Producto ${index + 1}`}
+                                  </p>
+                                </div>
+                                
+                                <div className="px-3 py-2">
+                                  {isPersonalOrder ? (
+                                    <div className="space-y-2">
+                                      {product.instructions && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{product.instructions}</p>
+                                      )}
+                                      <div className="flex items-center gap-3 text-xs">
+                                        {product.weight && (
+                                          <span className="text-muted-foreground">Peso: <span className="text-foreground font-medium">{product.weight}kg</span></span>
+                                        )}
+                                        <span className="text-muted-foreground">Precio: <span className="text-foreground font-medium">${unitPrice.toFixed(2)}</span></span>
+                                      </div>
+                                      {product.productPhotos && product.productPhotos.length > 0 && (
+                                        <div className="flex gap-1">
+                                          {product.productPhotos.slice(0, 4).map((photo: any, photoIndex: number) => (
+                                            <ResolvedImage 
+                                              key={photoIndex}
+                                              src={photo}
+                                              alt={`Foto ${photoIndex + 1}`}
+                                              className="w-10 h-10 object-cover rounded border border-muted/40 cursor-pointer hover:border-primary/50 transition-colors"
+                                              onClick={() => {
+                                                const getRawUrl = (input: any): string | null => {
+                                                  if (!input) return null;
+                                                  if (typeof input === 'string') return input;
+                                                  if (typeof input === 'object') {
+                                                    if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+                                                    if (input.filePath) return input.filePath;
+                                                    if (input.url) return input.url;
+                                                  }
+                                                  return null;
+                                                };
+                                                const url = getRawUrl(photo);
+                                                if (url) {
+                                                  setImageModalState({
+                                                    isOpen: true,
+                                                    imageUrl: url,
+                                                    title: `Foto ${photoIndex + 1} del producto`
+                                                  });
+                                                }
+                                              }}
+                                            />
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-3 text-xs">
+                                        <span className="text-muted-foreground">${unitPrice.toFixed(2)} × {quantity}</span>
+                                        {(product.itemLink || packageDetails.item_link) && (
+                                          <a 
+                                            href={product.itemLink || packageDetails.item_link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
+                                          >
+                                            <ExternalLink className="h-3 w-3" />
+                                            Ver en tienda
+                                          </a>
+                                        )}
+                                      </div>
+                                      <span className="text-sm font-semibold text-foreground">${totalPrice.toFixed(2)}</span>
                                     </div>
                                   )}
                                 </div>
-                              ) : (
-                                <div className="flex items-center justify-between gap-2">
-                                  <div className="flex items-center gap-3 text-xs">
-                                    <span className="text-muted-foreground">${unitPrice.toFixed(2)} × {quantity}</span>
-                                    {(product.itemLink || packageDetails.item_link) && (
-                                      <a 
-                                        href={product.itemLink || packageDetails.item_link} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-                                      >
-                                        <ExternalLink className="h-3 w-3" />
-                                        Ver en tienda
-                                      </a>
-                                    )}
-                                  </div>
-                                  <span className="text-sm font-semibold text-foreground">${totalPrice.toFixed(2)}</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Footer minimal solo si hay tip */}
-                            {adminTip > 0 && isTravelerContext && (
-                              <div className="flex items-center justify-end px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border-t border-green-100 dark:border-green-900/30">
-                                <span className="text-xs font-semibold text-green-700 dark:text-green-400">Q{adminTip.toFixed(2)} tip</span>
                               </div>
+                            );
+                          })}
+                          
+                          {packageDetails.products_data.length > 1 && (
+                            <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mt-1">
+                              <span className="text-sm text-muted-foreground">Total del pedido</span>
+                              <span className="text-base font-bold text-primary">
+                                ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                                  const quantity = parseInt(product.quantity || '1');
+                                  const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                  return sum + quantity * unitPrice;
+                                }, 0).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center">
+                          <div className="text-sm text-foreground">
+                            <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
+                            <p><strong>Cantidad:</strong> 1 unidad</p>
+                            {packageDetails.item_link && (
+                              <a 
+                                href={packageDetails.item_link} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary hover:underline text-xs mt-2"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Ver en tienda
+                              </a>
                             )}
                           </div>
-                        );
-                      })}
-                      
-                      {/* Total general si hay múltiples productos */}
-                      {packageDetails.products_data.length > 1 && (
-                        <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mt-1">
-                          <span className="text-sm text-muted-foreground">Total del pedido</span>
-                          <span className="text-base font-bold text-primary">
-                            ${packageDetails.products_data.reduce((sum: number, product: any) => {
-                              const quantity = parseInt(product.quantity || '1');
-                              const unitPrice = parseFloat(product.estimatedPrice || '0');
-                              return sum + quantity * unitPrice;
-                            }, 0).toFixed(2)}
-                          </span>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
+                            <p className="text-xs text-muted-foreground">Total</p>
+                          </div>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-foreground">
-                        <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
-                        <p><strong>Cantidad:</strong> 1 unidad</p>
-                        {packageDetails.item_link && (
-                          <a 
-                            href={packageDetails.item_link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs mt-2"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Ver en tienda
-                          </a>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
-                        <p className="text-xs text-muted-foreground">Total</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Additional Notes */}
-                {packageDetails.additional_notes && (
-                  <div>
-                    <p className="font-medium text-foreground mb-2"><strong>Notas adicionales:</strong></p>
-                    <p className="text-foreground leading-relaxed">{packageDetails.additional_notes}</p>
+                    {packageDetails.additional_notes && (
+                      <div>
+                        <p className="font-medium text-foreground mb-2"><strong>Notas adicionales:</strong></p>
+                        <p className="text-foreground leading-relaxed">{packageDetails.additional_notes}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* UNIFIED IMPORTANT INFO - Show for shoppers viewing quotes */}
