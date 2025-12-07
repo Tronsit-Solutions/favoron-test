@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket } from "lucide-react";
+import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign } from "lucide-react";
 
 const AdminControl = () => {
   const { user, profile, userRole } = useAuth();
@@ -147,6 +147,23 @@ const AdminControl = () => {
               <CardContent>
                 <Button variant="outline" className="w-full" onClick={() => navigate('/admin/discounts')}>
                   Gestionar Códigos
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Tarifas de la Plataforma
+                </CardTitle>
+                <CardDescription>
+                  Gestionar comisiones, envíos y penalizaciones
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/admin/platform-fees')}>
+                  Configurar Tarifas
                 </Button>
               </CardContent>
             </Card>

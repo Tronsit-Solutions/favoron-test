@@ -16,6 +16,7 @@ import AdminControl from "./pages/AdminControl";
 import AdminSurveys from "./pages/AdminSurveys";
 import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 import AdminDiscounts from "./pages/AdminDiscounts";
+import AdminPlatformFees from "./pages/AdminPlatformFees";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,11 @@ const App = () => (
             <Route path="/admin/discounts" element={
               <RequireAuth>
                 <AdminDiscounts />
+              </RequireAuth>
+            } />
+            <Route path="/admin/platform-fees" element={
+              <RequireAuth>
+                <AdminPlatformFees />
               </RequireAuth>
             } />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
