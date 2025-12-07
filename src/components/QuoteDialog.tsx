@@ -481,18 +481,13 @@ const QuoteDialog = ({
 
         <DialogHeader className="pr-12">
           {isTravelerContext ? (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-success to-emerald-600 flex items-center justify-center shadow-md">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <DialogTitle className="text-lg font-bold text-left bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
-                  Tip Asignado
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground text-left">
-                  Revisa y decide si aceptas
-                </DialogDescription>
-              </div>
+            <div>
+              <DialogTitle className="text-lg font-bold text-left bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
+                Tip Asignado
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground text-left">
+                Revisa y decide si aceptas
+              </DialogDescription>
             </div>
           ) : (
             <>
