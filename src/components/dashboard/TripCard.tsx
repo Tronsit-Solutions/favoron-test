@@ -59,9 +59,9 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
   );
   
-  // Verificar si hay al menos 1 paquete entregado
+  // Verificar si hay al menos 1 paquete entregado o completado
   const hasDeliveredPackages = packages.some(pkg => 
-    ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
+    ['delivered_to_office', 'received_by_traveler', 'completed', 'pending_office_confirmation'].includes(pkg.status)
   );
   
   const canConfirmDelivery = trip.status === 'active' && allPackagesCompleted;
