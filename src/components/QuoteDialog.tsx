@@ -527,67 +527,92 @@ const QuoteDialog = ({
             </div>
           )}
 
-          {/* Package Details - Compact for travelers, detailed for shoppers */}
-          <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg p-3 max-w-full`}>
+          {/* Package Details - Clear product view for travelers, detailed for shoppers */}
+          <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg p-4 max-w-full`}>
             {isTravelerContext ? (
-              /* Compact inline view for travelers */
-              <div className="space-y-2">
+              /* Clear structured view for travelers */
+              <div className="space-y-3">
+                {/* Section Header */}
+                <div className="flex items-center gap-2 pb-2 border-b border-muted/40">
+                  <Package className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Producto solicitado</span>
+                </div>
+
                 {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                  packageDetails.products_data.map((product: any, index: number) => {
-                    const quantity = parseInt(product.quantity || '1');
-                    const unitPrice = parseFloat(product.estimatedPrice || '0');
-                    const isPersonalOrder = product.requestType === 'personal';
-                    
-                    return (
-                      <div key={index} className="flex items-center justify-between gap-2 py-1 border-b border-muted/30 last:border-0">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="text-sm font-medium truncate">{product.itemDescription || packageDetails.item_description}</span>
-                          {isPersonalOrder && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 shrink-0">Personal</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                          <span>${unitPrice.toFixed(2)} × {quantity}</span>
-                          {(product.itemLink || packageDetails.item_link) && (
+                  <div className="space-y-3">
+                    {packageDetails.products_data.map((product: any, index: number) => {
+                      const quantity = parseInt(product.quantity || '1');
+                      const unitPrice = parseFloat(product.estimatedPrice || '0');
+                      const isPersonalOrder = product.requestType === 'personal';
+                      const productLink = product.itemLink || packageDetails.item_link;
+                      
+                      return (
+                        <div key={index} className="bg-background/60 rounded-lg p-3 border border-muted/30">
+                          {/* Product Name */}
+                          <div className="flex items-start gap-2 mb-2">
+                            <h4 className="text-base font-semibold text-foreground leading-snug flex-1">
+                              {product.itemDescription || packageDetails.item_description}
+                            </h4>
+                            {isPersonalOrder && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0">Personal</Badge>
+                            )}
+                          </div>
+                          
+                          {/* Price and Quantity */}
+                          <p className="text-sm text-muted-foreground mb-3">
+                            ${unitPrice.toFixed(2)} USD × {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
+                          </p>
+                          
+                          {/* Product Link Button */}
+                          {productLink && (
                             <a 
-                              href={product.itemLink || packageDetails.item_link} 
+                              href={productLink} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-primary hover:underline"
+                              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition-colors"
                             >
-                              <ExternalLink className="h-3 w-3" />
-                              Ver
+                              <ExternalLink className="h-4 w-4" />
+                              Ver producto en tienda
+                              <span className="text-primary/70">→</span>
                             </a>
                           )}
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="text-sm font-medium truncate">{packageDetails.item_description}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                      <span>${packageDetails.estimated_price} × 1</span>
-                      {packageDetails.item_link && (
-                        <a 
-                          href={packageDetails.item_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-primary hover:underline"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Ver
-                        </a>
-                      )}
-                    </div>
+                  <div className="bg-background/60 rounded-lg p-3 border border-muted/30">
+                    {/* Product Name */}
+                    <h4 className="text-base font-semibold text-foreground leading-snug mb-2">
+                      {packageDetails.item_description}
+                    </h4>
+                    
+                    {/* Price and Quantity */}
+                    <p className="text-sm text-muted-foreground mb-3">
+                      ${packageDetails.estimated_price} USD × 1 unidad
+                    </p>
+                    
+                    {/* Product Link Button */}
+                    {packageDetails.item_link && (
+                      <a 
+                        href={packageDetails.item_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Ver producto en tienda
+                        <span className="text-primary/70">→</span>
+                      </a>
+                    )}
                   </div>
                 )}
+
+                {/* Additional Notes */}
                 {packageDetails.additional_notes && (
-                  <p className="text-xs text-muted-foreground mt-1">{packageDetails.additional_notes}</p>
+                  <p className="text-xs text-muted-foreground italic mt-2 px-1">
+                    📝 {packageDetails.additional_notes}
+                  </p>
                 )}
               </div>
             ) : (
