@@ -1107,23 +1107,19 @@ const QuoteDialog = ({
 
           {/* Admin Assigned Tip Display - When traveler needs to accept/reject */}
           {displayAmount && isTravelerContext && <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-start space-x-2 mb-3">
-                <Package className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <p className="text-base sm:text-sm font-semibold text-green-800">💰 Tip</p>
+              <div className="flex items-center gap-3 mb-2">
+                <Package className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <span className="text-sm font-semibold text-green-800">💰 Tip</span>
+                <p className="text-2xl font-bold text-green-700">Q{displayAmount.toFixed(2)}</p>
               </div>
-              <div className="text-sm sm:text-sm ml-7 space-y-2">
-                <div className="bg-background/80 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-green-700 mb-2">Q{displayAmount.toFixed(2)}</p>
-                  <p className="text-green-600 font-medium">
-                    Este es el tip que ganarás si aceptas llevar este paquete.
-                  </p>
-                  {(['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(packageDetails.status || '')) && (
-                    <p className="text-blue-600 font-medium text-sm mt-2">
-                      ✅ Este paquete ya fue pagado. Al aceptar, procederás directamente a la compra.
-                    </p>
-                  )}
-                </div>
-              </div>
+              <p className="text-green-600 font-medium text-sm">
+                Este es el tip que ganarás si aceptas llevar este paquete.
+              </p>
+              {(['payment_confirmed', 'pending_purchase', 'purchase_confirmed', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'delivered', 'delivered_to_office'].includes(packageDetails.status || '')) && (
+                <p className="text-blue-600 font-medium text-sm mt-2">
+                  ✅ Este paquete ya fue pagado. Al aceptar, procederás directamente a la compra.
+                </p>
+              )}
             </div>}
 
           {/* Quote Form - Show when sending a quote (not admin assigned tip) */}
