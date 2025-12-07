@@ -563,6 +563,10 @@ const UserDetailModal = ({
                             <Badge variant="default" className="bg-purple-600">
                               👑 Administrador
                             </Badge>
+                          ) : user.role === 'operations' ? (
+                            <Badge variant="default" className="bg-orange-600">
+                              📦 Operaciones
+                            </Badge>
                           ) : (
                             <Badge variant="secondary">
                               👤 Usuario
@@ -570,22 +574,38 @@ const UserDetailModal = ({
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant={user.role === 'admin' ? 'destructive' : 'default'}
-                        size="sm"
-                        onClick={() => {
-                          setPendingRole(user.role === 'admin' ? 'user' : 'admin');
-                          setShowRoleDialog(true);
+                      <Select
+                        value={user.role}
+                        onValueChange={(newRole) => {
+                          if (newRole !== user.role) {
+                            setPendingRole(newRole as 'admin' | 'user' | 'operations');
+                            setShowRoleDialog(true);
+                          }
                         }}
                       >
-                        {user.role === 'admin' ? '⬇️ Quitar Admin' : '⬆️ Hacer Admin'}
-                      </Button>
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">👤 Usuario</SelectItem>
+                          <SelectItem value="operations">📦 Operaciones</SelectItem>
+                          <SelectItem value="admin">👑 Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     {user.role === 'admin' && (
                       <div className="pt-3 border-t border-border">
                         <p className="text-xs text-muted-foreground">
                           ⚠️ Los administradores tienen acceso completo a todas las funciones de la plataforma, incluyendo gestión de usuarios, paquetes, viajes y finanzas.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {user.role === 'operations' && (
+                      <div className="pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground">
+                          📦 Los usuarios de Operaciones tienen acceso al panel de recepción, preparación y etiquetas. No tienen acceso a datos financieros ni gestión de usuarios.
                         </p>
                       </div>
                     )}
@@ -888,30 +908,44 @@ const UserDetailModal = ({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {pendingRole === 'admin' ? '⬆️ Promover a Administrador' : '⬇️ Quitar Rol de Administrador'}
+                {pendingRole === 'admin' 
+                  ? '⬆️ Promover a Administrador' 
+                  : pendingRole === 'operations'
+                  ? '📦 Asignar rol de Operaciones'
+                  : '⬇️ Cambiar a Usuario Regular'}
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                {pendingRole === 'admin' ? (
-                  <>
-                    ¿Estás seguro de que deseas promover a <strong>{user.name}</strong> a administrador?
-                    <br /><br />
-                    Los administradores tendrán acceso completo a:
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li>Gestión de usuarios y roles</li>
-                      <li>Aprobación de paquetes y viajes</li>
-                      <li>Acceso a información financiera</li>
-                      <li>Configuración del sistema</li>
-                    </ul>
-                    <br />
-                    <strong className="text-red-600">⚠️ Esta es una acción importante. Asegúrate de confiar en este usuario.</strong>
-                  </>
-                ) : (
-                  <>
-                    ¿Estás seguro de que deseas quitar el rol de administrador a <strong>{user.name}</strong>?
-                    <br /><br />
-                    Este usuario perderá el acceso a todas las funciones administrativas y volverá a ser un usuario regular.
-                  </>
-                )}
+              <AlertDialogDescription asChild>
+                <div>
+                  {pendingRole === 'admin' ? (
+                    <>
+                      <p>¿Estás seguro de que deseas promover a <strong>{user.name}</strong> a administrador?</p>
+                      <p className="mt-2">Los administradores tendrán acceso completo a:</p>
+                      <ul className="list-disc list-inside mt-2 space-y-1">
+                        <li>Gestión de usuarios y roles</li>
+                        <li>Aprobación de paquetes y viajes</li>
+                        <li>Acceso a información financiera</li>
+                        <li>Configuración del sistema</li>
+                      </ul>
+                      <p className="mt-3 text-red-600 font-medium">⚠️ Esta es una acción importante. Asegúrate de confiar en este usuario.</p>
+                    </>
+                  ) : pendingRole === 'operations' ? (
+                    <>
+                      <p>¿Estás seguro de que deseas asignar el rol de Operaciones a <strong>{user.name}</strong>?</p>
+                      <p className="mt-2">El usuario tendrá acceso al panel de Operaciones:</p>
+                      <ul className="list-disc list-inside mt-2 space-y-1">
+                        <li>Confirmar recepción de paquetes en oficina</li>
+                        <li>Verificar y preparar paquetes</li>
+                        <li>Generar etiquetas de envío</li>
+                      </ul>
+                      <p className="mt-3 text-orange-600 font-medium">⚠️ NO tendrá acceso a datos financieros, gestión de usuarios ni configuración del sistema.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>¿Estás seguro de que deseas cambiar a <strong>{user.name}</strong> a usuario regular?</p>
+                      <p className="mt-2">Este usuario perderá el acceso a todas las funciones especiales y volverá a ser un usuario regular.</p>
+                    </>
+                  )}
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -931,7 +965,13 @@ const UserDetailModal = ({
                     setIsUpdatingRole(false);
                   }
                 }}
-                className={pendingRole === 'admin' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                className={
+                  pendingRole === 'admin' 
+                    ? 'bg-purple-600 hover:bg-purple-700' 
+                    : pendingRole === 'operations'
+                    ? 'bg-orange-600 hover:bg-orange-700'
+                    : ''
+                }
               >
                 {isUpdatingRole ? (
                   <>
@@ -939,7 +979,11 @@ const UserDetailModal = ({
                     Actualizando...
                   </>
                 ) : (
-                  pendingRole === 'admin' ? 'Sí, promover' : 'Sí, quitar rol'
+                  pendingRole === 'admin' 
+                    ? 'Sí, promover' 
+                    : pendingRole === 'operations'
+                    ? 'Sí, asignar'
+                    : 'Sí, cambiar'
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>
