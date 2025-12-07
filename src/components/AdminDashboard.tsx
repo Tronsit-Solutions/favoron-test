@@ -192,7 +192,7 @@ const AdminDashboard = ({
     const statusMap = {
       'pending_approval': { label: 'Pendiente', variant: 'warning' as const },
       'approved': { label: 'Aprobado', variant: 'success' as const },
-      'matched': { label: 'Match realizado', variant: 'success' as const },
+      'matched': { label: 'Emparejado', variant: 'success' as const },
       'quote_sent': { label: 'Cotización enviada', variant: 'default' as const },
       'quote_accepted': { label: 'Cotización aceptada', variant: 'default' as const },
       'address_confirmed': { label: 'Dirección confirmada', variant: 'default' as const },

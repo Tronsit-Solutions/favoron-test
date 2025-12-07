@@ -109,7 +109,7 @@ const MonthlyPackageDetails = () => {
   const statusOptions = [
     { value: 'pending_approval', label: 'Pendiente aprobación' },
     { value: 'approved', label: 'Aprobado' },
-    { value: 'matched', label: 'Asignado' },
+    { value: 'matched', label: 'Emparejado' },
     { value: 'quote_sent', label: 'Cotización enviada' },
     { value: 'payment_pending', label: 'Pago pendiente' },
     { value: 'paid', label: 'Pagado' },
