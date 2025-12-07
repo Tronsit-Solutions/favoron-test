@@ -33,7 +33,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
     if (onGoHome) {
       onGoHome();
     } else {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
