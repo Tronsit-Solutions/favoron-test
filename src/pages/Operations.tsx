@@ -66,19 +66,19 @@ const Operations = () => {
           </TabsList>
 
           <TabsContent value="reception">
-            <OperationsReceptionTab />
+            {activeTab === 'reception' && <OperationsReceptionTab />}
           </TabsContent>
 
           <TabsContent value="ready">
-            <OperationsReadyTab />
+            {activeTab === 'ready' && <OperationsReadyTab />}
           </TabsContent>
 
           <TabsContent value="labels">
-            <OperationsLabelsTab />
+            {activeTab === 'labels' && <OperationsLabelsTab />}
           </TabsContent>
 
           <TabsContent value="lastmile">
-            <OperationsLastMileTab />
+            {activeTab === 'lastmile' && <OperationsLastMileTab />}
           </TabsContent>
         </Tabs>
       </main>

@@ -38,7 +38,7 @@ const OperationsLabelsTab = () => {
   const fetchTrips = async () => {
     setLoading(true);
     try {
-      // Fetch trips with active/approved status
+      // 1. Fetch trips with active/approved status
       const { data: tripsData, error: tripsError } = await supabase
         .from('trips')
         .select('id, from_city, to_city, arrival_date, delivery_date, status, user_id')
@@ -46,27 +46,55 @@ const OperationsLabelsTab = () => {
         .order('arrival_date', { ascending: true });
 
       if (tripsError) throw tripsError;
+      if (!tripsData || tripsData.length === 0) {
+        setTrips([]);
+        setLoading(false);
+        return;
+      }
 
-      // Fetch packages and traveler names for each trip
-      const tripsWithDetails = await Promise.all(
-        (tripsData || []).map(async (trip) => {
-          // Get traveler name
-          const { data: travelerData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', trip.user_id)
-            .single();
+      // 2. Batch fetch all traveler profiles
+      const travelerIds = [...new Set(tripsData.map(t => t.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', travelerIds);
 
-          const travelerName = travelerData
-            ? `${travelerData.first_name || ''} ${travelerData.last_name || ''}`.trim()
+      const profilesMap = new Map<string, { first_name: string | null; last_name: string | null }>();
+      profilesData?.forEach(p => profilesMap.set(p.id, p));
+
+      // 3. Batch fetch all packages for these trips
+      const tripIds = tripsData.map(t => t.id);
+      const { data: packagesData } = await supabase
+        .from('packages')
+        .select('id, item_description, status, label_number, package_destination, confirmed_delivery_address, products_data, matched_trip_id')
+        .in('matched_trip_id', tripIds)
+        .not('status', 'in', '("cancelled","rejected")');
+
+      // Group packages by trip
+      const packagesByTrip = new Map<string, PackageForLabel[]>();
+      packagesData?.forEach(pkg => {
+        if (!pkg.matched_trip_id) return;
+        if (!packagesByTrip.has(pkg.matched_trip_id)) {
+          packagesByTrip.set(pkg.matched_trip_id, []);
+        }
+        packagesByTrip.get(pkg.matched_trip_id)!.push({
+          id: pkg.id,
+          item_description: pkg.item_description,
+          status: pkg.status,
+          label_number: pkg.label_number,
+          package_destination: pkg.package_destination,
+          confirmed_delivery_address: pkg.confirmed_delivery_address,
+          products_data: pkg.products_data,
+        });
+      });
+
+      // 4. Build final result in memory
+      const tripsWithDetails: TripWithPackages[] = tripsData
+        .map(trip => {
+          const traveler = profilesMap.get(trip.user_id);
+          const travelerName = traveler
+            ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim()
             : 'Desconocido';
-
-          // Get packages for this trip
-          const { data: packagesData } = await supabase
-            .from('packages')
-            .select('id, item_description, status, label_number, package_destination, confirmed_delivery_address, products_data')
-            .eq('matched_trip_id', trip.id)
-            .not('status', 'in', '("cancelled","rejected")');
 
           return {
             id: trip.id,
@@ -76,13 +104,12 @@ const OperationsLabelsTab = () => {
             delivery_date: trip.delivery_date,
             status: trip.status,
             traveler_name: travelerName,
-            packages: packagesData || [],
+            packages: packagesByTrip.get(trip.id) || [],
           };
         })
-      );
+        .filter(t => t.packages.length > 0);
 
-      // Filter only trips with packages
-      setTrips(tripsWithDetails.filter((t) => t.packages.length > 0));
+      setTrips(tripsWithDetails);
     } catch (error) {
       console.error('Error fetching trips:', error);
       toast.error('Error al cargar viajes');
