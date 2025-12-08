@@ -73,13 +73,11 @@ const OperationsReceptionTab = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch packages in reception-pending states
+      // Fetch packages using RPC that excludes heavy base64 photos from products_data
       const { data: packagesData, error: packagesError } = await supabase
-        .from('packages')
-        .select('id, item_description, status, matched_trip_id, user_id, label_number, estimated_price, products_data')
-        .in('status', ['in_transit', 'received_by_traveler', 'pending_office_confirmation'])
-        .not('matched_trip_id', 'is', null)
-        .order('created_at', { ascending: false });
+        .rpc('get_operations_packages', {
+          p_statuses: ['in_transit', 'received_by_traveler', 'pending_office_confirmation']
+        });
 
       if (packagesError) throw packagesError;
 
@@ -119,7 +117,12 @@ const OperationsReceptionTab = () => {
       const profilesMap = new Map<string, ProfileData>();
       profilesData?.forEach(p => profilesMap.set(p.id, p));
 
-      setPackages(packagesData as PackageData[]);
+      // Map products_summary from RPC to products_data for component compatibility
+      const mappedPackages = packagesData.map((p: any) => ({
+        ...p,
+        products_data: p.products_summary
+      }));
+      setPackages(mappedPackages as PackageData[]);
       setTrips(tripsData || []);
       setProfiles(profilesMap);
     } catch (error) {
