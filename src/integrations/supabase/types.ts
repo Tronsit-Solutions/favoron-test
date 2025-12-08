@@ -1322,6 +1322,23 @@ export type Database = {
         Returns: Json
       }
       get_next_label_number: { Args: never; Returns: number }
+      get_operations_packages: {
+        Args: { p_statuses: string[] }
+        Returns: {
+          created_at: string
+          delivery_method: string
+          estimated_price: number
+          id: string
+          item_description: string
+          label_number: number
+          matched_trip_id: string
+          package_destination: string
+          products_summary: Json
+          purchase_origin: string
+          status: string
+          user_id: string
+        }[]
+      }
       get_public_profile_data: {
         Args: { target_user_id?: string }
         Returns: {

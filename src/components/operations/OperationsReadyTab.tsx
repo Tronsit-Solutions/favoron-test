@@ -63,24 +63,11 @@ const OperationsReadyTab = () => {
   const fetchPackages = async () => {
     setLoading(true);
     try {
-      // Fetch packages in one query
+      // Fetch packages using RPC that excludes heavy base64 photos from products_data
       const { data: packagesData, error: packagesError } = await supabase
-        .from('packages')
-        .select(`
-          id,
-          item_description,
-          status,
-          delivery_method,
-          created_at,
-          purchase_origin,
-          package_destination,
-          matched_trip_id,
-          user_id,
-          products_data,
-          label_number
-        `)
-        .eq('status', 'delivered_to_office')
-        .order('created_at', { ascending: false });
+        .rpc('get_operations_packages', {
+          p_statuses: ['delivered_to_office']
+        });
 
       if (packagesError) throw packagesError;
 
@@ -150,7 +137,8 @@ const OperationsReadyTab = () => {
 
         return {
           ...pkg,
-          products_data: pkg.products_data as ProductData[] | null,
+          // Map products_summary from RPC to products_data for component compatibility
+          products_data: pkg.products_summary as ProductData[] | null,
           shopper_name: shopperName,
           traveler_name: travelerName,
           trip_from_city: tripFromCity,
