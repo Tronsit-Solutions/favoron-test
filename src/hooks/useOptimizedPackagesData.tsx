@@ -96,7 +96,8 @@ export const useOptimizedPackagesData = (userId?: string) => {
     console.log('📦 Fetching packages for user:', userId);
     
     try {
-      // Select only essential fields, exclude heavy JSONB: products_data, purchase_confirmation, tracking_info, office_delivery
+      // Select only essential fields, exclude heavy JSONB: purchase_confirmation, tracking_info, office_delivery
+      // products_data is included so shoppers can view/manage individual products
       const { data, error } = await supabase
         .from('packages')
         .select(`
@@ -106,6 +107,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
           item_description,
           item_link,
           estimated_price,
+          products_data,
           purchase_origin,
           package_destination,
           matched_trip_id,
