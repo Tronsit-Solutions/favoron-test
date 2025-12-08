@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock } from "lucide-react";
 import AdminProductCancellationModal from "./AdminProductCancellationModal";
 import { canCancelProduct } from "@/lib/refundCalculations";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
@@ -663,6 +663,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         subtotal: parseFloat(product.estimatedPrice || '0') * parseInt(product.quantity || '1'),
         cancelled: product.cancelled || false,
         receivedByTraveler: product.receivedByTraveler || false,
+        receivedAt: product.receivedAt || null,
+        receivedPhoto: product.receivedPhoto || null,
+        confirmedByAdmin: product.confirmedByAdmin || false,
         rawProduct: product
       }));
     } else {
@@ -678,6 +681,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         subtotal: parseFloat(pkg.estimated_price?.toString() || '0'),
         cancelled: false,
         receivedByTraveler: false,
+        receivedAt: null,
+        receivedPhoto: null,
+        confirmedByAdmin: false,
         rawProduct: null
       }];
     }
@@ -1199,13 +1205,25 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
               ) : (
               /* View Mode - Product Details */
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Productos Solicitados:</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Productos Solicitados:</h4>
+                    {/* Progress indicator for multi-product orders */}
+                    {detailedProducts.length > 1 && ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status) && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300">
+                        <Package className="h-3 w-3 mr-1" />
+                        {detailedProducts.filter(p => p.receivedByTraveler && !p.cancelled).length}/{detailedProducts.filter(p => !p.cancelled).length} recibidos
+                      </Badge>
+                    )}
+                  </div>
                   {detailedProducts.map((product) => {
                     const cancellationCheck = canCancelProduct(
                       product.rawProduct || product,
                       pkg.status,
                       activeProductCount
                     );
+                    
+                    // Check if product reception status should be shown
+                    const showReceptionStatus = ['in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
                     
                     return (
                     <Card 
@@ -1230,11 +1248,24 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                                   Cancelado
                                 </Badge>
                               )}
-                              {product.receivedByTraveler && !product.cancelled && (
-                                <Badge variant="default" className="text-xs bg-green-600">
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                  Recibido
-                                </Badge>
+                              {/* Enhanced reception status badges */}
+                              {showReceptionStatus && !product.cancelled && (
+                                product.receivedByTraveler ? (
+                                  <Badge variant="default" className="text-xs bg-green-600 dark:bg-green-700">
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    {product.confirmedByAdmin ? 'Confirmado por Admin' : 'Recibido'}
+                                    {product.receivedAt && (
+                                      <span className="ml-1 opacity-80">
+                                        - {new Date(product.receivedAt).toLocaleDateString('es-GT', { day: '2-digit', month: 'short' })}
+                                      </span>
+                                    )}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    Pendiente
+                                  </Badge>
+                                )
                               )}
                             </div>
                             <h5 className={`font-medium text-sm ${product.cancelled ? 'line-through text-muted-foreground' : ''}`}>
