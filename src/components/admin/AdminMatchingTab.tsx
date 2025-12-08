@@ -227,9 +227,6 @@ const AdminMatchingTab = ({
             onOpenMatchDialog={onOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
             availableTripsCount={availableTrips.length}
-            loadMorePackages={loadMorePackages}
-            hasMorePackages={hasMorePackages}
-            totalPackages={totalPackages}
           />
         </TabsContent>
 
