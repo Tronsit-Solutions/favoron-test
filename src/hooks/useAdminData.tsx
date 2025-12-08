@@ -244,6 +244,66 @@ export const useAdminData = (): AdminData => {
     }
   }, []);
 
+  // Fetch ALL packages pending match (approved or quote_rejected) without pagination
+  const fetchPendingMatchPackages = useCallback(async () => {
+    try {
+      console.log('🔄 Admin: Fetching ALL pending match packages...');
+      
+      const { data: pendingData, error: pendingError } = await supabase
+        .from('packages')
+        .select(`
+          id, user_id, status, item_description, estimated_price,
+          purchase_origin, package_destination, matched_trip_id,
+          created_at, updated_at, delivery_deadline, quote_expires_at,
+          matched_assignment_expires_at, label_number, incident_flag,
+          delivery_method, quote, rejection_reason, wants_requote,
+          admin_rejection, quote_rejection, traveler_rejection,
+          admin_actions_log, internal_notes, admin_assigned_tip,
+          confirmed_delivery_address, traveler_address, matched_trip_dates,
+          additional_notes
+        `)
+        .in('status', ['approved', 'quote_rejected'])
+        .order('created_at', { ascending: false });
+
+      if (pendingError) {
+        console.error('❌ Admin: Pending match packages query error:', pendingError);
+        throw pendingError;
+      }
+
+      console.log('✅ Admin: Fetched pending match packages:', pendingData?.length || 0);
+
+      // Enrich with profiles
+      if (pendingData && pendingData.length > 0) {
+        const userIds = [...new Set(pendingData.map(pkg => pkg.user_id))];
+        console.log('🔄 Admin: Fetching profiles for pending match packages...', { userIds: userIds.length });
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('❌ Admin: Error fetching profiles for pending match packages:', profilesError);
+        } else {
+          const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+          
+          const enrichedPackages = pendingData.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          })) as LightweightPackage[];
+          
+          console.log('✅ Admin: Enriched pending match packages with profiles');
+          return enrichedPackages;
+        }
+      }
+
+      return (pendingData || []) as LightweightPackage[];
+    } catch (error: any) {
+      console.error('❌ Admin: Pending match packages fetch failed:', error);
+      return [];
+    }
+  }, []);
+
   const fetchAutoApprovedPayments = useCallback(async () => {
     try {
       console.log('🔄 Admin: Fetching ALL auto-approved payments (ON-DEMAND)...');
@@ -479,15 +539,16 @@ export const useAdminData = (): AdminData => {
     setHasMorePackages(true);
 
     try {
-      const [paginatedPackages, matchedPkgs, tripsData] = await Promise.all([
+      const [paginatedPackages, matchedPkgs, pendingMatchPkgs, tripsData] = await Promise.all([
         fetchAdminPackages(0, false),
         fetchMatchedPackages(),
+        fetchPendingMatchPackages(),
         fetchAdminTrips()
       ]);
 
-      // Merge packages: use Map to avoid duplicates (matched packages might be in first 50)
+      // Merge packages: use Map to avoid duplicates
       const allPackagesMap = new Map<string, any>();
-      [...paginatedPackages, ...matchedPkgs].forEach(pkg => {
+      [...paginatedPackages, ...matchedPkgs, ...pendingMatchPkgs].forEach(pkg => {
         allPackagesMap.set(pkg.id, pkg);
       });
       
@@ -499,6 +560,7 @@ export const useAdminData = (): AdminData => {
       console.log('✅ Admin: Data refresh complete', {
         paginated: paginatedPackages.length,
         matched: matchedPkgs.length,
+        pendingMatch: pendingMatchPkgs.length,
         merged: mergedPackages.length,
         trips: tripsData.length,
         totalPackages
@@ -516,7 +578,7 @@ export const useAdminData = (): AdminData => {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchMatchedPackages, fetchAdminTrips, totalPackages]);
+  }, [isAdmin, wasAdmin, authLoading, user, fetchAdminPackages, fetchMatchedPackages, fetchPendingMatchPackages, fetchAdminTrips, totalPackages]);
 
   // On-demand loading functions
   const loadAutoApprovedPayments = useCallback(async () => {
