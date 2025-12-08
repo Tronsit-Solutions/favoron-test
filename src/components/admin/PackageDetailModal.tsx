@@ -129,6 +129,13 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     product: any;
     productIndex: number;
   } | null>(null);
+  
+  // State for admin product confirmation modal
+  const [adminConfirmProductModal, setAdminConfirmProductModal] = useState<{
+    isOpen: boolean;
+    product: any;
+    productIndex: number;
+  } | null>(null);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -399,6 +406,69 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         title: "Error al eliminar",
         description: error.message || "No se pudo eliminar el comprobante de pago",
         variant: "destructive",
+      });
+    }
+  };
+
+  // Handle admin confirming product as received (for multi-product orders)
+  const handleAdminConfirmProduct = async (productIndex: number) => {
+    if (!pkg?.products_data) return;
+    
+    try {
+      // Clone products_data
+      const updatedProducts = [...(pkg.products_data as any[])];
+      
+      // Update specific product
+      updatedProducts[productIndex] = {
+        ...updatedProducts[productIndex],
+        receivedByTraveler: true,
+        receivedAt: new Date().toISOString(),
+        receivedPhoto: null, // Photo optional for admin
+        confirmedByAdmin: true // Mark that it was confirmed by admin
+      };
+      
+      // Check if ALL products are confirmed (excluding cancelled)
+      const allConfirmed = updatedProducts.every((p: any) => p.receivedByTraveler || p.cancelled);
+      
+      // Prepare updates
+      const updates: any = { products_data: updatedProducts };
+      
+      if (allConfirmed) {
+        updates.status = 'received_by_traveler';
+        updates.traveler_confirmation = {
+          confirmedAt: new Date().toISOString(),
+          allProductsConfirmed: true,
+          confirmedByAdmin: true
+        };
+      }
+      
+      // Update in DB
+      const { error } = await supabase
+        .from('packages')
+        .update(updates)
+        .eq('id', pkg.id);
+      
+      if (error) throw error;
+      
+      const remainingCount = updatedProducts.filter((p: any) => !p.receivedByTraveler && !p.cancelled).length;
+      
+      toast({
+        title: allConfirmed ? "¡Todos los productos confirmados!" : "Producto confirmado",
+        description: allConfirmed 
+          ? "Todos los productos han sido marcados como recibidos"
+          : `Quedan ${remainingCount} producto(s) por confirmar`
+      });
+      
+      // Close modal and refresh
+      setAdminConfirmProductModal(null);
+      closeModal(modalId);
+      
+    } catch (error: any) {
+      console.error('Error confirming product:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo confirmar el producto",
+        variant: "destructive"
       });
     }
   };
@@ -1176,6 +1246,25 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                               ${product.price.toFixed(2)}
                             </p>
                             <p className="text-xs text-muted-foreground">c/u</p>
+                            {/* Confirm receipt button for admin - only when in_transit and not confirmed */}
+                            {!product.cancelled && 
+                             !product.receivedByTraveler && 
+                             ['in_transit', 'received_by_traveler'].includes(pkg.status) && 
+                             detailedProducts.filter(p => !p.cancelled).length > 1 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-600 hover:bg-green-50 dark:hover:bg-green-950 h-7 text-xs mt-1"
+                                onClick={() => setAdminConfirmProductModal({
+                                  isOpen: true,
+                                  product: product.rawProduct || product,
+                                  productIndex: product.index
+                                })}
+                              >
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                Confirmar recepción
+                              </Button>
+                            )}
                             {/* Cancel button for multi-product orders */}
                             {!product.cancelled && detailedProducts.length > 1 && cancellationCheck.canCancel && (
                               <Button
@@ -1939,6 +2028,54 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
             closeModal(modalId);
           }}
         />
+      )}
+      
+      {/* Admin Product Confirmation Modal */}
+      {adminConfirmProductModal?.isOpen && (
+        <Dialog 
+          open={adminConfirmProductModal.isOpen} 
+          onOpenChange={() => setAdminConfirmProductModal(null)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                Confirmar producto recibido
+              </DialogTitle>
+              <DialogDescription>
+                Marcar este producto como recibido por el viajero
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              {/* Product info */}
+              <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                <p className="font-medium">{adminConfirmProductModal.product?.itemDescription}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cantidad: {adminConfirmProductModal.product?.quantity || 1}
+                </p>
+              </div>
+              
+              {/* Note */}
+              <p className="text-sm text-muted-foreground">
+                La foto es opcional para confirmaciones hechas por admin. Esta acción quedará registrada en el sistema.
+              </p>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAdminConfirmProductModal(null)}>
+                Cancelar
+              </Button>
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => handleAdminConfirmProduct(adminConfirmProductModal.productIndex)}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Confirmar recepción
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </Dialog>
   );
