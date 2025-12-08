@@ -9,7 +9,8 @@ import { LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const DashboardPage = () => {
-  const { user, profile, userRole, loading, roleLoaded } = useAuth();
+  // NOTE: Operations users are redirected by RequireAuth - they never reach this component
+  const { user, profile, userRole, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { hasOpenModals } = useModalProtection();
@@ -31,13 +32,6 @@ const DashboardPage = () => {
     await supabase.auth.signOut();
     window.location.href = 'https://favoron.app';
   };
-  // Redirect operations users directly to operations panel - MUST run after roleLoaded is true
-  useEffect(() => {
-    if (!loading && roleLoaded && userRole?.role === 'operations') {
-      console.log('🔄 Redirecting operations user to /operations');
-      navigate('/operations', { replace: true });
-    }
-  }, [loading, roleLoaded, userRole, navigate]);
 
   useEffect(() => {
     // Auth guard with grace period after tab visibility changes
@@ -99,19 +93,6 @@ const DashboardPage = () => {
   // Don't render if no user/profile, but avoid unmounting during transient loading
   if (!user || !profile) {
     return null; // Will redirect to auth
-  }
-
-  // Wait for role to be fully loaded before rendering - prevents race condition
-  // where Dashboard renders before we know if user should be redirected to /operations
-  if (!roleLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Verificando permisos...</p>
-        </div>
-      </div>
-    );
   }
 
   // Create user object compatible with existing Dashboard component
