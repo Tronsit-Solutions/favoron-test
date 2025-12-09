@@ -104,26 +104,30 @@ export const PackageCancellationModal: React.FC<PackageCancellationModalProps> =
           });
         }
 
-        // Check Prime status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('prime_expires_at')
-          .eq('id', user.id)
-          .single();
+        // Load profile and company info in parallel
+        const [profileResult, companyResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('prime_expires_at')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('favoron_company_information')
+            .select('cancellation_penalty_amount, prime_penalty_exempt')
+            .eq('is_active', true)
+            .single()
+        ]);
 
-        if (profile?.prime_expires_at) {
-          setIsPrimeUser(new Date(profile.prime_expires_at) > new Date());
-        }
+        // Set Prime status - only exempt if user is Prime AND system allows Prime exemption
+        const isUserPrime = profileResult.data?.prime_expires_at 
+          ? new Date(profileResult.data.prime_expires_at) > new Date()
+          : false;
+        const primePenaltyExempt = companyResult.data?.prime_penalty_exempt !== false; // default true
+        setIsPrimeUser(isUserPrime && primePenaltyExempt);
 
-        // Load cancellation penalty
-        const { data: companyInfo } = await supabase
-          .from('favoron_company_information')
-          .select('cancellation_penalty_amount')
-          .eq('is_active', true)
-          .single();
-
-        if (companyInfo?.cancellation_penalty_amount) {
-          setPenaltyAmount(companyInfo.cancellation_penalty_amount);
+        // Set penalty amount
+        if (companyResult.data?.cancellation_penalty_amount) {
+          setPenaltyAmount(companyResult.data.cancellation_penalty_amount);
         }
       } catch (error) {
         console.error('Error loading data:', error);
