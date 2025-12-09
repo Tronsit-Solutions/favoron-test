@@ -11,6 +11,7 @@ export interface PlatformFees {
   prime_delivery_discount: number;
   prime_membership_price: number;
   cancellation_penalty_amount: number;
+  prime_penalty_exempt: boolean;
 }
 
 const DEFAULT_FEES: Omit<PlatformFees, 'id'> = {
@@ -21,6 +22,7 @@ const DEFAULT_FEES: Omit<PlatformFees, 'id'> = {
   prime_delivery_discount: 25,
   prime_membership_price: 200,
   cancellation_penalty_amount: 5,
+  prime_penalty_exempt: true,
 };
 
 export const usePlatformFees = () => {
@@ -36,7 +38,7 @@ export const usePlatformFees = () => {
 
       const { data, error: fetchError } = await supabase
         .from('favoron_company_information')
-        .select('id, service_fee_rate_standard, service_fee_rate_prime, delivery_fee_guatemala_city, delivery_fee_outside_city, prime_delivery_discount, prime_membership_price, cancellation_penalty_amount')
+        .select('id, service_fee_rate_standard, service_fee_rate_prime, delivery_fee_guatemala_city, delivery_fee_outside_city, prime_delivery_discount, prime_membership_price, cancellation_penalty_amount, prime_penalty_exempt')
         .eq('is_active', true)
         .single();
 
@@ -56,6 +58,7 @@ export const usePlatformFees = () => {
           prime_delivery_discount: data.prime_delivery_discount ?? DEFAULT_FEES.prime_delivery_discount,
           prime_membership_price: data.prime_membership_price ?? DEFAULT_FEES.prime_membership_price,
           cancellation_penalty_amount: data.cancellation_penalty_amount ?? DEFAULT_FEES.cancellation_penalty_amount,
+          prime_penalty_exempt: data.prime_penalty_exempt ?? DEFAULT_FEES.prime_penalty_exempt,
         });
       }
     } catch (err) {
