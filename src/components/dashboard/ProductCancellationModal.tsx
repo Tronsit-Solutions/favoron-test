@@ -96,7 +96,7 @@ const ProductCancellationModal = ({
             .single(),
           supabase
             .from('favoron_company_information')
-            .select('cancellation_penalty_amount')
+            .select('cancellation_penalty_amount, prime_penalty_exempt')
             .eq('is_active', true)
             .order('updated_at', { ascending: false })
             .limit(1)
@@ -111,10 +111,10 @@ const ProductCancellationModal = ({
           setBankAccountType(financialResult.data.bank_account_type || 'monetary');
         }
 
-        // Set Prime status
-        if (profileResult.data) {
-          setIsPrimeUser(profileResult.data.trust_level === 'prime');
-        }
+        // Set Prime status - only exempt if user is Prime AND system allows Prime exemption
+        const isUserPrime = profileResult.data?.trust_level === 'prime';
+        const primePenaltyExempt = companyResult.data?.prime_penalty_exempt !== false; // default true
+        setIsPrimeUser(isUserPrime && primePenaltyExempt);
 
         // Set penalty amount
         if (companyResult.data && companyResult.data.cancellation_penalty_amount != null) {
