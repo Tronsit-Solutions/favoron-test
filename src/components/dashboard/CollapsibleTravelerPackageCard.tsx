@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
@@ -140,10 +140,54 @@ const CollapsibleTravelerPackageCard = ({
     return `${prefix}${pkg.item_description || 'Pedido'}`;
   };
 
+  // Render package name with cancelled products styled with strikethrough
+  const renderPackageName = () => {
+    const products = pkg.products_data || [];
+    const isPersonalOrder = products[0]?.requestType === 'personal';
+    const prefix = isPersonalOrder ? 'Pedido personal: ' : '';
+    
+    // Single product or no products_data
+    if (products.length <= 1) {
+      const isCancelled = products[0]?.cancelled === true;
+      const name = pkg.item_description || 'Pedido';
+      
+      if (isCancelled) {
+        return (
+          <>
+            {prefix}
+            <span className="text-muted-foreground line-through">{name}</span>
+            <span className="text-destructive ml-1">(cancelado)</span>
+          </>
+        );
+      }
+      return <>{prefix}{name}</>;
+    }
+    
+    // Multiple products with cancellation styling
+    const productElements = products.map((product: any, idx: number) => {
+      const name = product.itemDescription?.substring(0, 25) || `Producto ${idx + 1}`;
+      const isCancelled = product.cancelled === true;
+      
+      return (
+        <React.Fragment key={idx}>
+          {idx > 0 && ', '}
+          {isCancelled ? (
+            <>
+              <span className="text-muted-foreground line-through">{name}</span>
+              <span className="text-destructive text-xs ml-0.5">(cancelado)</span>
+            </>
+          ) : (
+            <span>{name}</span>
+          )}
+        </React.Fragment>
+      );
+    });
+    
+    return <>{prefix}Pedido de {products.length} productos: {productElements}</>;
+  };
+
   const getPackageDescription = () => {
     const tipAmount = getTipAmount();
-    const cancelledProducts = pkg.products_data?.filter((p: any) => p.cancelled)?.length || 0;
-    const cancelledNote = cancelledProducts > 0 ? ` • ❌ ${cancelledProducts} cancelado${cancelledProducts > 1 ? 's' : ''}` : '';
     
     if (pkg.products && pkg.products.length > 0) {
       const total = pkg.products
@@ -151,9 +195,9 @@ const CollapsibleTravelerPackageCard = ({
         .reduce((sum: number, product: any) => 
           sum + parseFloat(product.estimatedPrice || 0), 0
         ).toFixed(2);
-      return `Precio: $${total} • Tip: Q${tipAmount.toFixed(2)}${cancelledNote}`;
+      return `Precio: $${total} • Tip: Q${tipAmount.toFixed(2)}`;
     }
-    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}${cancelledNote}`;
+    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
   };
 
   const getTipAmount = () => {
@@ -226,7 +270,7 @@ const CollapsibleTravelerPackageCard = ({
                       )}
                     </div>
                     <CardTitle className="text-xs sm:text-sm font-semibold leading-tight break-words line-clamp-2 max-w-full">
-                      {getPackageName()}
+                      {renderPackageName()}
                     </CardTitle>
                   </div>
                   
@@ -296,7 +340,7 @@ const CollapsibleTravelerPackageCard = ({
                         />
                       )}
                     </div>
-                    <span className="flex-1">{getPackageName()}</span>
+                    <span className="flex-1">{renderPackageName()}</span>
                   </CardTitle>
                 </div>
 
