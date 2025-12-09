@@ -270,6 +270,7 @@ export type Database = {
           postal_code: string | null
           prime_delivery_discount: number | null
           prime_membership_price: number | null
+          prime_penalty_exempt: boolean | null
           service_fee_rate_prime: number | null
           service_fee_rate_standard: number | null
           state_department: string | null
@@ -297,6 +298,7 @@ export type Database = {
           postal_code?: string | null
           prime_delivery_discount?: number | null
           prime_membership_price?: number | null
+          prime_penalty_exempt?: boolean | null
           service_fee_rate_prime?: number | null
           service_fee_rate_standard?: number | null
           state_department?: string | null
@@ -324,6 +326,7 @@ export type Database = {
           postal_code?: string | null
           prime_delivery_discount?: number | null
           prime_membership_price?: number | null
+          prime_penalty_exempt?: boolean | null
           service_fee_rate_prime?: number | null
           service_fee_rate_standard?: number | null
           state_department?: string | null

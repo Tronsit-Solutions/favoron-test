@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { usePlatformFees, PlatformFees } from '@/hooks/usePlatformFees';
@@ -28,6 +29,7 @@ const AdminPlatformFees = () => {
         prime_delivery_discount: fees.prime_delivery_discount,
         prime_membership_price: fees.prime_membership_price,
         cancellation_penalty_amount: fees.cancellation_penalty_amount,
+        prime_penalty_exempt: fees.prime_penalty_exempt,
       });
       setHasChanges(false);
     }
@@ -36,6 +38,11 @@ const AdminPlatformFees = () => {
   const handleChange = (field: keyof Omit<PlatformFees, 'id'>, value: string) => {
     const numValue = parseFloat(value) || 0;
     setFormData(prev => prev ? { ...prev, [field]: numValue } : null);
+    setHasChanges(true);
+  };
+
+  const handleToggleChange = (field: keyof Omit<PlatformFees, 'id'>, value: boolean) => {
+    setFormData(prev => prev ? { ...prev, [field]: value } : null);
     setHasChanges(true);
   };
 
@@ -57,6 +64,7 @@ const AdminPlatformFees = () => {
         prime_delivery_discount: fees.prime_delivery_discount,
         prime_membership_price: fees.prime_membership_price,
         cancellation_penalty_amount: fees.cancellation_penalty_amount,
+        prime_penalty_exempt: fees.prime_penalty_exempt,
       });
       setHasChanges(false);
     }
@@ -268,7 +276,6 @@ const AdminPlatformFees = () => {
                         className="pl-8"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">Prime: Exento de penalización</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -289,6 +296,25 @@ const AdminPlatformFees = () => {
                       />
                     </div>
                   </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="prime-exempt" className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-yellow-500" />
+                      Prime exento de penalización
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Los usuarios Prime no pagan penalización por cancelar productos
+                    </p>
+                  </div>
+                  <Switch
+                    id="prime-exempt"
+                    checked={formData.prime_penalty_exempt}
+                    onCheckedChange={(value) => handleToggleChange('prime_penalty_exempt', value)}
+                  />
                 </div>
               </CardContent>
             </Card>
