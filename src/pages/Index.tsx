@@ -1,18 +1,33 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
-import Dashboard from "@/components/Dashboard";
+import { Suspense, lazy, ComponentType } from "react";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import TravelsHubSection from "@/components/TravelsHubSection";
 
-// Lazy load heavy components to speed up initial load
-const PlatformDescriptionSection = lazy(() => import("@/components/PlatformDescriptionSection"));
-const HowItWorksSection = lazy(() => import("@/components/HowItWorksSection"));
-const BenefitsSection = lazy(() => import("@/components/BenefitsSection"));
-const CTASection = lazy(() => import("@/components/CTASection"));
+// Retry wrapper for lazy imports to handle chunk loading failures after deployments
+const lazyWithRetry = <T extends ComponentType<any>>(
+  componentImport: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> =>
+  lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      // Chunk failed to load - likely stale cache after deployment
+      console.warn('Chunk load failed, reloading page...', error);
+      window.location.reload();
+      // Return a dummy component to satisfy types (won't actually render)
+      return { default: (() => null) as unknown as T };
+    }
+  });
+
+// Lazy load heavy components with retry logic
+const PlatformDescriptionSection = lazyWithRetry(() => import("@/components/PlatformDescriptionSection"));
+const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSection"));
+const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"));
+const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
