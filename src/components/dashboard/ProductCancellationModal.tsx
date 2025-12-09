@@ -209,18 +209,28 @@ const ProductCancellationModal = ({
         adjustedTotalPrice: (currentQuote.totalPrice || 0) - refundBreakdown.totalRefund
       };
 
-      // 4. Save updates
+      // 4. Check if ALL products are now cancelled
+      const allProductsCancelled = updatedProducts.every((p: any) => p.cancelled === true);
+
+      // 5. Build update payload
+      const updatePayload: any = {
+        products_data: updatedProducts,
+        quote: updatedQuote
+      };
+
+      // If all products cancelled, mark package as cancelled
+      if (allProductsCancelled) {
+        updatePayload.status = 'cancelled';
+      }
+
       const { error: updateError } = await supabase
         .from('packages')
-        .update({
-          products_data: updatedProducts,
-          quote: updatedQuote
-        })
+        .update(updatePayload)
         .eq('id', packageId);
 
       if (updateError) throw updateError;
 
-      // 5. Save bank info for future use
+      // 6. Save bank info for future use
       const { data: existingFinancial } = await supabase
         .from('user_financial_data')
         .select('id')
@@ -249,7 +259,11 @@ const ProductCancellationModal = ({
           });
       }
 
-      toast.success('Producto cancelado. Tu solicitud de reembolso ha sido creada.');
+      if (allProductsCancelled) {
+        toast.success('Todos los productos cancelados. El pedido ha sido cancelado.');
+      } else {
+        toast.success('Producto cancelado. Tu solicitud de reembolso ha sido creada.');
+      }
       onCancellationComplete();
       onClose();
     } catch (error) {
