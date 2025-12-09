@@ -177,3 +177,83 @@ export const CANCELLATION_REASONS = [
 ] as const;
 
 export type CancellationReason = typeof CANCELLATION_REASONS[number]['value'];
+
+/**
+ * Calculate the refund amount for cancelling an entire package
+ * The refund includes:
+ * 1. All tips (quote.price)
+ * 2. The full Favoron service fee
+ * 3. Minus a single cancellation penalty (unless Prime user)
+ */
+export const calculatePackageRefund = (
+  quote: QuoteData,
+  options?: RefundOptions
+): number => {
+  const penaltyAmount = options?.penaltyAmount ?? DEFAULT_CANCELLATION_PENALTY;
+  const isPrimeUser = options?.isPrimeUser ?? false;
+
+  // Get total tips and service fee
+  const totalTips = quote.price || 0;
+  const serviceFee = quote.serviceFee || 0;
+  
+  // Gross refund = all tips + service fee (delivery fee NOT refunded as it's for the service)
+  const grossRefund = totalTips + serviceFee;
+  
+  // Apply single penalty (only if NOT Prime user)
+  const penalty = isPrimeUser ? 0 : penaltyAmount;
+  const netRefund = Math.max(0, grossRefund - penalty);
+  
+  // Round to 2 decimal places
+  return Math.round(netRefund * 100) / 100;
+};
+
+/**
+ * Get breakdown of package refund calculation for display
+ */
+export const getPackageRefundBreakdown = (
+  quote: QuoteData,
+  options?: RefundOptions
+): {
+  totalTips: number;
+  serviceFee: number;
+  deliveryFee: number;
+  grossRefund: number;
+  cancellationPenalty: number;
+  isPrimeExempt: boolean;
+  totalRefund: number;
+} => {
+  const penaltyAmount = options?.penaltyAmount ?? DEFAULT_CANCELLATION_PENALTY;
+  const isPrimeUser = options?.isPrimeUser ?? false;
+
+  const totalTips = quote.price || 0;
+  const serviceFee = quote.serviceFee || 0;
+  const deliveryFee = quote.deliveryFee || 0;
+  
+  const grossRefund = Math.round((totalTips + serviceFee) * 100) / 100;
+  const cancellationPenalty = isPrimeUser ? 0 : penaltyAmount;
+  const totalRefund = Math.max(0, Math.round((grossRefund - cancellationPenalty) * 100) / 100);
+  
+  return {
+    totalTips,
+    serviceFee,
+    deliveryFee,
+    grossRefund,
+    cancellationPenalty,
+    isPrimeExempt: isPrimeUser,
+    totalRefund
+  };
+};
+
+/**
+ * Package-level cancellation reasons
+ */
+export const PACKAGE_CANCELLATION_REASONS = [
+  { value: 'changed_mind', label: 'Cambié de opinión' },
+  { value: 'found_locally', label: 'Lo encontré localmente' },
+  { value: 'too_expensive', label: 'Muy costoso' },
+  { value: 'taking_too_long', label: 'Está tardando demasiado' },
+  { value: 'no_longer_needed', label: 'Ya no lo necesito' },
+  { value: 'other', label: 'Otro' }
+] as const;
+
+export type PackageCancellationReason = typeof PACKAGE_CANCELLATION_REASONS[number]['value'];
