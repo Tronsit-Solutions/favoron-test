@@ -31,7 +31,8 @@ import { Package as PackageType, UserType, DocumentType } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { SwipeableCard } from "@/components/ui/swipeable-card";
-import { canCancelPackage } from "@/lib/permissions";
+import { canCancelPackage, requiresRefundForCancellation } from "@/lib/permissions";
+import { PackageCancellationModal } from "@/components/dashboard/PackageCancellationModal";
 import { ProductStatusModal } from "@/components/ProductStatusModal";
 import { Badge } from "@/components/ui/badge";
 interface CollapsiblePackageCardProps {
@@ -74,6 +75,7 @@ const CollapsiblePackageCard = ({
   const [showShippingInfoModal, setShowShippingInfoModal] = React.useState(false);
   const [showOfficeModal, setShowOfficeModal] = React.useState(false);
   const [showProductStatusModal, setShowProductStatusModal] = React.useState(false);
+  const [showCancellationModal, setShowCancellationModal] = React.useState(false);
   const {
     profile
   } = useAuth();
@@ -230,8 +232,11 @@ const CollapsiblePackageCard = ({
   const getPackageDescription = () => {
     return `Precio: $${pkg.estimated_price}`;
   };
-  // Determine if delete is available for this package
-  const canDelete = canCancelPackage(pkg, pkg.user_id);
+  // Determine if delete/cancel is available for this package
+  const canDeleteSimple = canCancelPackage(pkg, pkg.user_id); // Pre-payment cancellation
+  const canDeleteWithRefund = canCancelPackage(pkg, pkg.user_id, undefined, { withRefund: true }); // Post-payment with refund
+  const needsRefund = requiresRefundForCancellation(pkg);
+  const canDelete = canDeleteSimple || canDeleteWithRefund;
 
   // Calculate product confirmation counts
   const productsArray = (pkg.products_data as any[]) || [];
@@ -269,12 +274,19 @@ const CollapsiblePackageCard = ({
                       <Archive className="mr-2 h-4 w-4" />
                       Archivar
                     </DropdownMenuItem>}
-                  {onDeletePackage && canDelete && <DropdownMenuItem onClick={e => {
+                  {onDeletePackage && canDeleteSimple && !needsRefund && <DropdownMenuItem onClick={e => {
                 e.stopPropagation();
                 setShowDeleteDialog(true);
               }} className="text-destructive focus:text-destructive">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Cancelar pedido
+                  </DropdownMenuItem>}
+                  {onDeletePackage && needsRefund && canDeleteWithRefund && <DropdownMenuItem onClick={e => {
+                e.stopPropagation();
+                setShowCancellationModal(true);
+              }} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Cancelar con reembolso
                   </DropdownMenuItem>}
                   {onDeletePackage && !canDelete && <DropdownMenuItem disabled className="opacity-50">
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -754,6 +766,22 @@ const CollapsiblePackageCard = ({
           products={productsArray}
           packageId={pkg.id}
           itemDescription={pkg.item_description}
+        />
+      )}
+
+      {/* Package Cancellation Modal with Refund */}
+      {showCancellationModal && (
+        <PackageCancellationModal
+          isOpen={showCancellationModal}
+          onClose={() => setShowCancellationModal(false)}
+          packageId={pkg.id}
+          quote={(pkg.quote as any) || {}}
+          products={productsArray}
+          onCancellationComplete={() => {
+            if (onDeletePackage) {
+              onDeletePackage(pkg);
+            }
+          }}
         />
       )}
     </>

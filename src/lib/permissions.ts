@@ -7,19 +7,19 @@ export const canEditPackage = (pkg: Package, userId: string): boolean => {
          ['pending_approval', 'approved'].includes(pkg.status);
 };
 
-export const canCancelPackage = (pkg: Package, userId: string, userRole?: string): boolean => {
+export interface CancelPackageOptions {
+  withRefund?: boolean;
+}
+
+export const canCancelPackage = (pkg: Package, userId: string, userRole?: string, options?: CancelPackageOptions): boolean => {
   // Admins pueden cancelar cualquier paquete
   if (userRole === 'admin') return true;
   
   // Solo el shopper puede cancelar
   if (pkg.user_id !== userId) return false;
   
-  // Estados que NO permiten cancelación (pago procesado o proceso avanzado)
-  const nonCancellableStatuses = [
-    'payment_pending_approval',  // Pago subido
-    'pending_purchase',          // Pago aprobado
-    
-    'in_transit',                // En tránsito
+  // Estados ya finalizados - nunca se pueden cancelar
+  const finalStatuses = [
     'pending_office_confirmation', // Esperando oficina
     'delivered_to_office',       // En oficina
     'completed',                 // Completado
@@ -27,7 +27,34 @@ export const canCancelPackage = (pkg: Package, userId: string, userRole?: string
     'delivered'                  // Ya entregado
   ];
   
-  return !nonCancellableStatuses.includes(pkg.status);
+  if (finalStatuses.includes(pkg.status)) return false;
+  
+  // Estados que permiten cancelación CON reembolso
+  const refundableStatuses = [
+    'payment_pending_approval',  // Pago subido
+    'pending_purchase',          // Pago aprobado
+    'in_transit',                // En tránsito
+    'received_by_traveler'       // Viajero tiene el producto
+  ];
+  
+  // Si está en estado post-pago, solo se puede cancelar con reembolso
+  if (refundableStatuses.includes(pkg.status)) {
+    return options?.withRefund === true;
+  }
+  
+  // Estados pre-pago: cancelación simple sin reembolso
+  return true;
+};
+
+// Helper para saber si la cancelación requiere reembolso
+export const requiresRefundForCancellation = (pkg: Package): boolean => {
+  const refundableStatuses = [
+    'payment_pending_approval',
+    'pending_purchase',
+    'in_transit',
+    'received_by_traveler'
+  ];
+  return refundableStatuses.includes(pkg.status);
 };
 
 export const canViewPackageDetails = (pkg: Package, userId: string, userRole?: string): boolean => {
