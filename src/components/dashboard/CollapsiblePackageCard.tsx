@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -247,10 +247,13 @@ const CollapsiblePackageCard = ({
     hasMultipleProducts && 
     confirmedProductsCount > 0 &&
     ['in_transit', 'received_by_traveler'].includes(pkg.status);
+
+  // Check if package is fully cancelled (all products cancelled)
+  const isCancelledPackage = pkg.status === 'cancelled';
   
   // Card content wrapper
   const cardContent = (
-    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"} ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''}`}>
+    <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"} ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
         <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
             
@@ -351,7 +354,37 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
+                {/* Cancelled Package Banner - Mobile */}
+                {isCancelledPackage && viewMode === 'user' && (
+                  <div className="pl-6">
+                    <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-destructive font-medium mb-2">
+                        <Ban className="h-4 w-4" />
+                        <span className="text-sm">Este pedido ha sido cancelado</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Todos los productos de este pedido fueron cancelados. Tu reembolso está siendo procesado.
+                      </p>
+                      {onArchivePackage && (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onArchivePackage(pkg);
+                          }}
+                          className="w-full text-xs"
+                        >
+                          <Archive className="h-3.5 w-3.5 mr-2" />
+                          Archivar y mover al historial
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Action buttons - stacked vertically on mobile */}
+                {!isCancelledPackage && (
                 <div className="space-y-2 w-full max-w-full pl-6">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
                 e.stopPropagation();
@@ -397,6 +430,7 @@ const CollapsiblePackageCard = ({
                       )
                     ) : null}
                 </div>
+                )}
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
@@ -462,6 +496,38 @@ const CollapsiblePackageCard = ({
                   </div>
                 </div>
                 
+                {/* Cancelled Package Banner - Desktop */}
+                {isCancelledPackage && viewMode === 'user' ? (
+                  <div className="w-full">
+                    <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-destructive font-medium mb-1">
+                            <Ban className="h-4 w-4" />
+                            <span className="text-sm">Este pedido ha sido cancelado</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Todos los productos fueron cancelados. Tu reembolso está siendo procesado.
+                          </p>
+                        </div>
+                        {onArchivePackage && (
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onArchivePackage(pkg);
+                            }}
+                            className="flex-shrink-0 text-xs"
+                          >
+                            <Archive className="h-3.5 w-3.5 mr-2" />
+                            Archivar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0 overflow-hidden">
                   {/* Shopper Action Button - Different for different statuses */}
                   {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="success" onClick={e => {
@@ -524,6 +590,7 @@ const CollapsiblePackageCard = ({
                   </div>
 
                  </div>
+                )}
                </div>}
           </CardHeader>
         </CollapsibleTrigger>
