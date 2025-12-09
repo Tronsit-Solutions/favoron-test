@@ -423,7 +423,28 @@ const Dashboard = ({ user }: DashboardProps) => {
   };
 
   const handleArchivePackage = async (pkg: any) => {
-    // Validar si se puede cancelar (archivar = cancelar)
+    // Para paquetes ya cancelados, solo cambiar a archived_by_shopper
+    if (pkg.status === 'cancelled') {
+      try {
+        console.log('📦 Archiving cancelled package:', pkg.id);
+        await updatePackage(pkg.id, { status: 'archived_by_shopper' });
+        toast({
+          title: "Pedido archivado",
+          description: "El pedido se ha movido a tu historial.",
+        });
+        await refreshPackages();
+      } catch (error) {
+        console.error('Error archiving cancelled package:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo archivar el pedido. Inténtalo de nuevo.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    
+    // Validar si se puede cancelar (archivar = cancelar para paquetes activos)
     if (!canCancelPackage(pkg, currentUser.id)) {
       toast({
         title: "No se puede archivar",
@@ -634,8 +655,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             </div>
 
             {userPackages.filter(pkg => {
-              // Excluir paquetes cancelados, completados y archivados por el shopper
-            if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
+              // Excluir paquetes completados, archivados y rechazados (pero mantener cancelados para que shopper pueda archivar)
+              if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
               
               // Excluir paquetes que pertenecen a viajes completados y pagados
               if (pkg.matched_trip_id) {
@@ -648,8 +669,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             ) : (
               <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
-                   // Excluir paquetes cancelados, completados y archivados por el shopper
-                   if (pkg.status === 'cancelled' || pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
+                   // Excluir paquetes completados, archivados y rechazados (pero mantener cancelados para que shopper pueda archivar)
+                   if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'rejected') return false;
                    
                    // Excluir paquetes que pertenecen a viajes completados y pagados
                    if (pkg.matched_trip_id) {
