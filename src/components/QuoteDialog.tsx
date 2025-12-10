@@ -895,10 +895,6 @@ const QuoteDialog = ({
                           })()}
                         </div>
                         
-                        {/* Social proof */}
-                        <p className="text-center text-xs text-green-600/70 pt-2 border-t border-green-100">
-                          ✨ +1,250 Favorones entregados con éxito
-                        </p>
                       </div>
                       
                       {/* Warning note */}
