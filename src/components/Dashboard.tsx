@@ -777,6 +777,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                             onEditTrip={handleEditTrip}
                             currentUser={currentUser}
                             travelerProfile={currentUser}
+                            packages={assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id)}
                           />
                         ))}
                     </div>
