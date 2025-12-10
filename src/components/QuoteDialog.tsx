@@ -753,165 +753,277 @@ const QuoteDialog = ({
                 )}
               </div>
             ) : (
-              /* Detailed view for shoppers */
+            /* Detailed view for shoppers - UNIFIED: Product details + Quote per product */
               <>
-                <div className="flex items-start space-x-2 mb-2">
-                  <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <p className="text-base sm:text-sm font-semibold text-foreground">Detalles del Producto</p>
-                </div>
-                <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
-                  <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
-                    <div>
-                      <p className="font-medium text-foreground mb-2">
-                        <strong>{packageDetails.products_data?.[0]?.requestType === 'personal' ? 'Pedido:' : 'Producto:'}</strong>
-                      </p>
-                      <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
+                {/* Show unified section for multi-product with existing quote */}
+                {selectedProducts.length > 1 && existingQuote ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="h-5 w-5 text-green-700" />
+                      <p className="text-base font-semibold text-green-800">Tu Pedido</p>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                        {selectedProducts.length} productos
+                      </Badge>
                     </div>
-
-                    <div>
-                      <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
-                      {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                        <div className="space-y-4">
-                          {packageDetails.products_data.map((product: any, index: number) => {
-                            const quantity = parseInt(product.quantity || '1');
-                            const unitPrice = parseFloat(product.estimatedPrice || '0');
-                            const totalPrice = quantity * unitPrice;
-                            const isPersonalOrder = product.requestType === 'personal';
+                    
+                    <div className="space-y-3">
+                      {selectedProducts.map((product: any, index: number) => {
+                        const quantity = parseInt(product.quantity || '1');
+                        const unitPrice = parseFloat(product.estimatedPrice || '0');
+                        const tip = parseFloat(product.adminAssignedTip || '0');
+                        const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
+                        const subtotal = tip + serviceFee;
+                        const canRemove = selectedProducts.length > 1;
+                        const productLink = product.itemLink || packageDetails.item_link;
+                        
+                        return (
+                          <div key={index} className="bg-white/90 border border-green-200 rounded-lg p-3 relative">
+                            {/* Header: number + name + delete */}
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="flex items-center justify-center w-6 h-6 rounded bg-green-100 text-green-700 font-bold text-xs shrink-0">
+                                  {index + 1}
+                                </span>
+                                <p className="font-medium text-green-800 text-sm truncate">
+                                  {product.itemDescription || `Producto ${index + 1}`}
+                                </p>
+                              </div>
+                              {canRemove && (
+                                <button
+                                  onClick={() => removeProduct(index)}
+                                  className="p-1 rounded-full hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors shrink-0"
+                                  title="Eliminar producto"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
                             
-                            return (
-                              <div 
-                                key={index} 
-                                className="group relative bg-gradient-to-br from-background to-muted/20 border border-muted/50 rounded-lg overflow-hidden shadow-sm hover:shadow hover:border-primary/20 transition-all duration-200"
-                              >
-                                <div className="flex items-center gap-2 px-3 py-2 border-b border-muted/30 bg-muted/10">
-                                  <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10 text-primary font-bold text-xs shrink-0">
-                                    {index + 1}
-                                  </span>
-                                  {isPersonalOrder && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-                                      Personal
-                                    </Badge>
-                                  )}
-                                  <p className="text-sm font-medium text-foreground truncate flex-1">
-                                    {product.itemDescription || `Producto ${index + 1}`}
-                                  </p>
-                                </div>
+                            {/* Price USD + quantity + link */}
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                              <span>${unitPrice.toFixed(2)} × {quantity}</span>
+                              {productLink && (
+                                <a 
+                                  href={productLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Ver en tienda
+                                </a>
+                              )}
+                            </div>
+                            
+                            {/* Separator */}
+                            <div className="border-t border-green-200 my-2" />
+                            
+                            {/* Subtotal in Quetzales */}
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-green-700">Subtotal a pagar:</span>
+                              <span className="font-semibold text-green-800">{formatCurrency(subtotal)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Footer totals */}
+                      <div className="bg-green-100/50 border border-green-200 rounded-lg p-3 mt-2 space-y-2">
+                        {/* Total USD */}
+                        <div className="flex justify-between text-sm text-green-700">
+                          <span>Total productos (USD):</span>
+                          <span className="font-medium">
+                            ${selectedProducts.reduce((sum: number, p: any) => {
+                              const qty = parseInt(p.quantity || '1');
+                              const price = parseFloat(p.estimatedPrice || '0');
+                              return sum + qty * price;
+                            }, 0).toFixed(2)}
+                          </span>
+                        </div>
+                        
+                        {/* Delivery fee (if applicable) */}
+                        {packageDetails.delivery_method === 'delivery' && (
+                          <div className="flex justify-between text-sm text-green-700">
+                            <span>🚚 Entrega a domicilio:</span>
+                            <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}</span>
+                          </div>
+                        )}
+                        
+                        {/* Total to pay */}
+                        <div className="flex justify-between font-bold text-lg text-green-800 pt-2 border-t border-green-300">
+                          <span>💰 TOTAL A PAGAR:</span>
+                          <span>{formatCurrency(calculateSelectedProductsTotal())}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Warning note */}
+                      <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded p-2">
+                        ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Original detailed view for single product or no quote */
+                  <>
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Package className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <p className="text-base sm:text-sm font-semibold text-foreground">Detalles del Producto</p>
+                    </div>
+                    <div className="text-sm ml-4 sm:ml-7 space-y-3 overflow-x-hidden">
+                      <div className="bg-background/80 rounded-lg p-3 space-y-4 max-w-full overflow-hidden">
+                        <div>
+                          <p className="font-medium text-foreground mb-2">
+                            <strong>{packageDetails.products_data?.[0]?.requestType === 'personal' ? 'Pedido:' : 'Producto:'}</strong>
+                          </p>
+                          <p className="text-foreground leading-relaxed">{packageDetails.item_description}</p>
+                        </div>
+
+                        <div>
+                          <p className="font-medium text-foreground mb-3"><strong>Información del producto:</strong></p>
+                          {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
+                            <div className="space-y-4">
+                              {packageDetails.products_data.map((product: any, index: number) => {
+                                const quantity = parseInt(product.quantity || '1');
+                                const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                const totalPrice = quantity * unitPrice;
+                                const isPersonalOrder = product.requestType === 'personal';
                                 
-                                <div className="px-3 py-2">
-                                  {isPersonalOrder ? (
-                                    <div className="space-y-2">
-                                      {product.instructions && (
-                                        <p className="text-xs text-muted-foreground line-clamp-2">{product.instructions}</p>
+                                return (
+                                  <div 
+                                    key={index} 
+                                    className="group relative bg-gradient-to-br from-background to-muted/20 border border-muted/50 rounded-lg overflow-hidden shadow-sm hover:shadow hover:border-primary/20 transition-all duration-200"
+                                  >
+                                    <div className="flex items-center gap-2 px-3 py-2 border-b border-muted/30 bg-muted/10">
+                                      <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10 text-primary font-bold text-xs shrink-0">
+                                        {index + 1}
+                                      </span>
+                                      {isPersonalOrder && (
+                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                                          Personal
+                                        </Badge>
                                       )}
-                                      <div className="flex items-center gap-3 text-xs">
-                                        {product.weight && (
-                                          <span className="text-muted-foreground">Peso: <span className="text-foreground font-medium">{product.weight}kg</span></span>
-                                        )}
-                                        <span className="text-muted-foreground">Precio: <span className="text-foreground font-medium">${unitPrice.toFixed(2)}</span></span>
-                                      </div>
-                                      {product.productPhotos && product.productPhotos.length > 0 && (
-                                        <div className="flex gap-1">
-                                          {product.productPhotos.slice(0, 4).map((photo: any, photoIndex: number) => (
-                                            <ResolvedImage 
-                                              key={photoIndex}
-                                              src={photo}
-                                              alt={`Foto ${photoIndex + 1}`}
-                                              className="w-10 h-10 object-cover rounded border border-muted/40 cursor-pointer hover:border-primary/50 transition-colors"
-                                              onClick={() => {
-                                                const getRawUrl = (input: any): string | null => {
-                                                  if (!input) return null;
-                                                  if (typeof input === 'string') return input;
-                                                  if (typeof input === 'object') {
-                                                    if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
-                                                    if (input.filePath) return input.filePath;
-                                                    if (input.url) return input.url;
-                                                  }
-                                                  return null;
-                                                };
-                                                const url = getRawUrl(photo);
-                                                if (url) {
-                                                  setImageModalState({
-                                                    isOpen: true,
-                                                    imageUrl: url,
-                                                    title: `Foto ${photoIndex + 1} del producto`
-                                                  });
-                                                }
-                                              }}
-                                            />
-                                          ))}
+                                      <p className="text-sm font-medium text-foreground truncate flex-1">
+                                        {product.itemDescription || `Producto ${index + 1}`}
+                                      </p>
+                                    </div>
+                                    
+                                    <div className="px-3 py-2">
+                                      {isPersonalOrder ? (
+                                        <div className="space-y-2">
+                                          {product.instructions && (
+                                            <p className="text-xs text-muted-foreground line-clamp-2">{product.instructions}</p>
+                                          )}
+                                          <div className="flex items-center gap-3 text-xs">
+                                            {product.weight && (
+                                              <span className="text-muted-foreground">Peso: <span className="text-foreground font-medium">{product.weight}kg</span></span>
+                                            )}
+                                            <span className="text-muted-foreground">Precio: <span className="text-foreground font-medium">${unitPrice.toFixed(2)}</span></span>
+                                          </div>
+                                          {product.productPhotos && product.productPhotos.length > 0 && (
+                                            <div className="flex gap-1">
+                                              {product.productPhotos.slice(0, 4).map((photo: any, photoIndex: number) => (
+                                                <ResolvedImage 
+                                                  key={photoIndex}
+                                                  src={photo}
+                                                  alt={`Foto ${photoIndex + 1}`}
+                                                  className="w-10 h-10 object-cover rounded border border-muted/40 cursor-pointer hover:border-primary/50 transition-colors"
+                                                  onClick={() => {
+                                                    const getRawUrl = (input: any): string | null => {
+                                                      if (!input) return null;
+                                                      if (typeof input === 'string') return input;
+                                                      if (typeof input === 'object') {
+                                                        if (input.filePath && input.bucket) return `${input.bucket}/${input.filePath}`;
+                                                        if (input.filePath) return input.filePath;
+                                                        if (input.url) return input.url;
+                                                      }
+                                                      return null;
+                                                    };
+                                                    const url = getRawUrl(photo);
+                                                    if (url) {
+                                                      setImageModalState({
+                                                        isOpen: true,
+                                                        imageUrl: url,
+                                                        title: `Foto ${photoIndex + 1} del producto`
+                                                      });
+                                                    }
+                                                  }}
+                                                />
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-3 text-xs">
+                                            <span className="text-muted-foreground">${unitPrice.toFixed(2)} × {quantity}</span>
+                                            {(product.itemLink || packageDetails.item_link) && (
+                                              <a 
+                                                href={product.itemLink || packageDetails.item_link} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
+                                              >
+                                                <ExternalLink className="h-3 w-3" />
+                                                Ver en tienda
+                                              </a>
+                                            )}
+                                          </div>
+                                          <span className="text-sm font-semibold text-foreground">${totalPrice.toFixed(2)}</span>
                                         </div>
                                       )}
                                     </div>
-                                  ) : (
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex items-center gap-3 text-xs">
-                                        <span className="text-muted-foreground">${unitPrice.toFixed(2)} × {quantity}</span>
-                                        {(product.itemLink || packageDetails.item_link) && (
-                                          <a 
-                                            href={product.itemLink || packageDetails.item_link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
-                                          >
-                                            <ExternalLink className="h-3 w-3" />
-                                            Ver en tienda
-                                          </a>
-                                        )}
-                                      </div>
-                                      <span className="text-sm font-semibold text-foreground">${totalPrice.toFixed(2)}</span>
-                                    </div>
-                                  )}
+                                  </div>
+                                );
+                              })}
+                              
+                              {packageDetails.products_data.length > 1 && (
+                                <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mt-1">
+                                  <span className="text-sm text-muted-foreground">Total del pedido</span>
+                                  <span className="text-base font-bold text-primary">
+                                    ${packageDetails.products_data.reduce((sum: number, product: any) => {
+                                      const quantity = parseInt(product.quantity || '1');
+                                      const unitPrice = parseFloat(product.estimatedPrice || '0');
+                                      return sum + quantity * unitPrice;
+                                    }, 0).toFixed(2)}
+                                  </span>
                                 </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <div className="text-sm text-foreground">
+                                <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
+                                <p><strong>Cantidad:</strong> 1 unidad</p>
+                                {packageDetails.item_link && (
+                                  <a 
+                                    href={packageDetails.item_link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-primary hover:underline text-xs mt-2"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Ver en tienda
+                                  </a>
+                                )}
                               </div>
-                            );
-                          })}
-                          
-                          {packageDetails.products_data.length > 1 && (
-                            <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 mt-1">
-                              <span className="text-sm text-muted-foreground">Total del pedido</span>
-                              <span className="text-base font-bold text-primary">
-                                ${packageDetails.products_data.reduce((sum: number, product: any) => {
-                                  const quantity = parseInt(product.quantity || '1');
-                                  const unitPrice = parseFloat(product.estimatedPrice || '0');
-                                  return sum + quantity * unitPrice;
-                                }, 0).toFixed(2)}
-                              </span>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
+                                <p className="text-xs text-muted-foreground">Total</p>
+                              </div>
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <div className="flex justify-between items-center">
-                          <div className="text-sm text-foreground">
-                            <p><strong>Precio unitario:</strong> ${packageDetails.estimated_price}</p>
-                            <p><strong>Cantidad:</strong> 1 unidad</p>
-                            {packageDetails.item_link && (
-                              <a 
-                                href={packageDetails.item_link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-primary hover:underline text-xs mt-2"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                                Ver en tienda
-                              </a>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-primary">${packageDetails.estimated_price}</p>
-                            <p className="text-xs text-muted-foreground">Total</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
-                    {packageDetails.additional_notes && (
-                      <div>
-                        <p className="font-medium text-foreground mb-2"><strong>Notas adicionales:</strong></p>
-                        <p className="text-foreground leading-relaxed">{packageDetails.additional_notes}</p>
+                        {packageDetails.additional_notes && (
+                          <div>
+                            <p className="font-medium text-foreground mb-2"><strong>Notas adicionales:</strong></p>
+                            <p className="text-foreground leading-relaxed">{packageDetails.additional_notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -998,62 +1110,6 @@ const QuoteDialog = ({
                     </div>
                   )}
                   
-                  {/* Per-Product Breakdown - For multi-product orders viewed by shopper */}
-                  {selectedProducts.length > 1 && userType === 'user' && (
-                    <div className="mt-3 pt-2 border-t border-green-300">
-                      <p className="text-sm font-semibold text-green-800 mb-3">📦 Tu cotización por producto:</p>
-                      <div className="space-y-3">
-                        {selectedProducts.map((product: any, index: number) => {
-                          const tip = parseFloat(product.adminAssignedTip || '0');
-                          const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
-                          const subtotal = tip + serviceFee;
-                          const canRemove = selectedProducts.length > 1;
-                          
-                          return (
-                            <div key={index} className="bg-white/80 border border-green-200 rounded-lg p-3 relative">
-                              {/* Remove button */}
-                              {canRemove && (
-                                <button
-                                  onClick={() => removeProduct(index)}
-                                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors"
-                                  title="Eliminar producto"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                              
-                              <p className="font-medium text-green-800 text-sm pr-8 mb-2">
-                                {product.itemDescription || `Producto ${index + 1}`}
-                              </p>
-                              
-                              <div className="flex justify-between font-semibold text-green-800 text-sm">
-                                <span>Subtotal:</span>
-                                <span>{formatCurrency(subtotal)}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        
-                        {/* Delivery fee (if applicable) */}
-                        {packageDetails.delivery_method === 'delivery' && (
-                          <div className="flex justify-between text-sm text-green-700 px-1">
-                            <span>🚚 Entrega a domicilio:</span>
-                            <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}</span>
-                          </div>
-                        )}
-                        
-                        {/* Dynamic total */}
-                        <div className="flex justify-between font-bold text-lg text-green-800 pt-2 border-t-2 border-green-300 px-1">
-                          <span>💰 TOTAL A PAGAR:</span>
-                          <span>{formatCurrency(calculateSelectedProductsTotal())}</span>
-                        </div>
-                        
-                        <p className="text-xs text-red-600 font-medium px-1">
-                          ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
-                        </p>
-                      </div>
-                    </div>
-                  )}
                   
                   {/* Single product or standard breakdown */}
                   {(selectedProducts.length <= 1 || userType !== 'user') && (
