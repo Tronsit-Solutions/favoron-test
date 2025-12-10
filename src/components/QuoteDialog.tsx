@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -322,18 +322,30 @@ const QuoteDialog = ({
     return tip + serviceFee;
   };
   
-  // Calculate total from selected products with delivery fee
+  // Calculate total from selected products with delivery fee (excluding excluded products)
   const calculateSelectedProductsTotal = (): number => {
-    if (selectedProducts.length === 0) return 0;
-    const totalTip = selectedProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+    const activeProducts = selectedProducts.filter(p => !p.excluded);
+    if (activeProducts.length === 0) return 0;
+    const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
     return breakdown.totalPrice;
   };
   
-  // Remove a product from selection (minimum 1 product required)
-  const removeProduct = (indexToRemove: number) => {
-    if (selectedProducts.length <= 1) return;
-    setSelectedProducts(prev => prev.filter((_, i) => i !== indexToRemove));
+  // Get count of active (non-excluded) products
+  const activeProductsCount = selectedProducts.filter(p => !p.excluded).length;
+  
+  // Toggle product exclusion (strike-through) instead of removing
+  const toggleProductExclusion = (indexToToggle: number) => {
+    const product = selectedProducts[indexToToggle];
+    const currentActiveCount = selectedProducts.filter(p => !p.excluded).length;
+    
+    // Cannot exclude if it's the last active product
+    if (!product.excluded && currentActiveCount <= 1) return;
+    
+    setSelectedProducts(prev => 
+      prev.map((p, i) => i === indexToToggle ? { ...p, excluded: !p.excluded } : p)
+    );
+    
     // Clear any applied discount when products change
     if (discountSuccess) {
       removeDiscount();
@@ -388,20 +400,16 @@ const QuoteDialog = ({
         submitData.finalTotalPrice = finalTotal;
       }
       
-      // Check if shopper removed any products
-      const originalProducts = packageDetails.products_data || [];
-      if (originalProducts.length > 1 && selectedProducts.length < originalProducts.length) {
-        const removedProducts = originalProducts.filter(
-          (p: any) => !selectedProducts.some((sp: any) => 
-            sp.itemDescription === p.itemDescription && sp.estimatedPrice === p.estimatedPrice
-          )
-        );
+      // Check if shopper excluded (struck-through) any products
+      const activeProducts = selectedProducts.filter((p: any) => !p.excluded);
+      const excludedProducts = selectedProducts.filter((p: any) => p.excluded);
+      
+      if (excludedProducts.length > 0) {
+        submitData.updatedProducts = activeProducts;
+        submitData.removedProducts = excludedProducts.map((p: any) => p.itemDescription || 'Producto sin nombre');
         
-        submitData.updatedProducts = selectedProducts;
-        submitData.removedProducts = removedProducts.map((p: any) => p.itemDescription || 'Producto sin nombre');
-        
-        // Recalculate quote with remaining products
-        const newTotalTip = selectedProducts.reduce((sum: number, p: any) => 
+        // Recalculate quote with remaining active products
+        const newTotalTip = activeProducts.reduce((sum: number, p: any) => 
           sum + parseFloat(p.adminAssignedTip || '0'), 0
         );
         const recalculatedQuote = createNormalizedQuote(
@@ -762,47 +770,77 @@ const QuoteDialog = ({
                       <Package className="h-5 w-5 text-green-700" />
                       <p className="text-base font-semibold text-green-800">Tu Pedido</p>
                       <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                        {selectedProducts.length} productos
+                        {activeProductsCount} de {selectedProducts.length} productos
                       </Badge>
                     </div>
                     
                     <div className="space-y-3">
                       {selectedProducts.map((product: any, index: number) => {
+                        const isExcluded = product.excluded === true;
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const tip = parseFloat(product.adminAssignedTip || '0');
                         const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
                         const subtotal = tip + serviceFee;
-                        const canRemove = selectedProducts.length > 1;
+                        const canToggle = selectedProducts.length > 1;
                         const productLink = product.itemLink || packageDetails.item_link;
                         
                         return (
-                          <div key={index} className="bg-white/90 border border-green-200 rounded-lg p-3 relative">
-                            {/* Header: number + name + delete */}
+                          <div 
+                            key={index} 
+                            className={`rounded-lg p-3 relative transition-all ${
+                              isExcluded 
+                                ? "bg-gray-100 border border-gray-300 opacity-60" 
+                                : "bg-white/90 border border-green-200"
+                            }`}
+                          >
+                            {/* "Quitado" badge overlay */}
+                            {isExcluded && (
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-500/80 text-white text-xs px-3 py-1 rounded-full font-medium z-10">
+                                Quitado
+                              </div>
+                            )}
+                            
+                            {/* Header: number + name + toggle button */}
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className="flex items-center justify-center w-6 h-6 rounded bg-green-100 text-green-700 font-bold text-xs shrink-0">
+                                <span className={`flex items-center justify-center w-6 h-6 rounded font-bold text-xs shrink-0 ${
+                                  isExcluded 
+                                    ? "bg-gray-200 text-gray-500" 
+                                    : "bg-green-100 text-green-700"
+                                }`}>
                                   {index + 1}
                                 </span>
-                                <p className="font-medium text-green-800 text-sm truncate">
+                                <p className={`font-medium text-sm truncate ${
+                                  isExcluded 
+                                    ? "line-through text-gray-500" 
+                                    : "text-green-800"
+                                }`}>
                                   {product.itemDescription || `Producto ${index + 1}`}
                                 </p>
                               </div>
-                              {canRemove && (
+                              {canToggle && (
                                 <button
-                                  onClick={() => removeProduct(index)}
-                                  className="p-1 rounded-full hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors shrink-0"
-                                  title="Eliminar producto"
+                                  onClick={() => toggleProductExclusion(index)}
+                                  className={`p-1.5 rounded-full transition-colors shrink-0 ${
+                                    isExcluded
+                                      ? "hover:bg-green-100 text-gray-500 hover:text-green-600"
+                                      : "hover:bg-red-100 text-muted-foreground hover:text-red-600"
+                                  }`}
+                                  title={isExcluded ? "Restaurar producto" : "Quitar producto"}
+                                  disabled={!isExcluded && activeProductsCount <= 1}
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  {isExcluded ? <Plus className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                                 </button>
                               )}
                             </div>
                             
                             {/* Price USD + quantity + link */}
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                            <div className={`flex items-center gap-3 text-xs mb-2 ${
+                              isExcluded ? "text-gray-400 line-through" : "text-muted-foreground"
+                            }`}>
                               <span>${unitPrice.toFixed(2)} × {quantity}</span>
-                              {productLink && (
+                              {productLink && !isExcluded && (
                                 <a 
                                   href={productLink} 
                                   target="_blank" 
@@ -816,12 +854,12 @@ const QuoteDialog = ({
                             </div>
                             
                             {/* Separator */}
-                            <div className="border-t border-green-200 my-2" />
+                            <div className={`border-t my-2 ${isExcluded ? "border-gray-200" : "border-green-200"}`} />
                             
                             {/* Subtotal in Quetzales */}
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-green-700">Subtotal a pagar:</span>
-                              <span className="font-semibold text-green-800">{formatCurrency(subtotal)}</span>
+                            <div className={`flex justify-between items-center ${isExcluded ? "line-through" : ""}`}>
+                              <span className={`text-xs ${isExcluded ? "text-gray-400" : "text-green-700"}`}>Subtotal a pagar:</span>
+                              <span className={`font-semibold ${isExcluded ? "text-gray-400" : "text-green-800"}`}>{formatCurrency(subtotal)}</span>
                             </div>
                           </div>
                         );
