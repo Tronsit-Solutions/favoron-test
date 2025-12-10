@@ -849,6 +849,77 @@ const QuoteDialog = ({
                       <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded p-2">
                         ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
                       </p>
+                      
+                      {/* Discount Code Section - Inside green container */}
+                      {existingQuote && userType === 'user' && !isQuoteExpired && (
+                        <div className="bg-green-100/50 border border-green-300 rounded-lg p-3 mt-2">
+                          <Label className="text-sm font-semibold text-green-800 mb-2 block">
+                            💳 ¿Tienes un código de descuento?
+                          </Label>
+                          
+                          {!discountSuccess ? (
+                            <>
+                              <div className="flex gap-2 mt-2">
+                                <Input 
+                                  placeholder="Ingresa tu código"
+                                  value={discountCode}
+                                  onChange={(e) => {
+                                    updateFormField('discountCode', e.target.value.toUpperCase());
+                                    setDiscountError(null);
+                                  }}
+                                  className="flex-1 uppercase font-mono bg-white"
+                                  disabled={isValidatingCode}
+                                />
+                                <Button 
+                                  onClick={validateDiscountCode} 
+                                  disabled={!discountCode.trim() || isValidatingCode}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  {isValidatingCode ? 'Validando...' : 'Aplicar'}
+                                </Button>
+                              </div>
+                              {discountError && (
+                                <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                                  <AlertTriangle className="w-4 h-4" />
+                                  {discountError}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <div className="mt-2 bg-white/80 rounded-lg p-3 border border-green-300">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <p className="text-green-700 font-semibold text-sm flex items-center gap-2">
+                                    ✅ Código aplicado: <span className="font-mono">{discountCode}</span>
+                                  </p>
+                                  <div className="mt-2 space-y-1">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="text-muted-foreground">Total original:</span>
+                                      <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                                      <span>Descuento:</span>
+                                      <span>-{formatCurrency(discountAmount)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-base font-bold text-green-700 pt-2 border-t">
+                                      <span>Nuevo total:</span>
+                                      <span>{formatCurrency(finalTotal)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={removeDiscount}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -1089,76 +1160,6 @@ const QuoteDialog = ({
 
           {/* Existing Quote Display */}
           {existingQuote && <div className="space-y-4">
-              {/* Discount Code Section - Only for shoppers accepting quotes */}
-              {existingQuote && userType === 'user' && !isQuoteExpired && (
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 rounded-lg p-4 shadow-sm">
-                  <Label className="text-sm font-semibold text-amber-900 mb-2 block">
-                    💳 ¿Tienes un código de descuento?
-                  </Label>
-                  
-                  {!discountSuccess ? (
-                    <>
-                      <div className="flex gap-2 mt-2">
-                        <Input 
-                          placeholder="Ingresa tu código"
-                          value={discountCode}
-                          onChange={(e) => {
-                            updateFormField('discountCode', e.target.value.toUpperCase());
-                            setDiscountError(null);
-                          }}
-                          className="flex-1 uppercase font-mono"
-                          disabled={isValidatingCode}
-                        />
-                        <Button 
-                          onClick={validateDiscountCode} 
-                          disabled={!discountCode.trim() || isValidatingCode}
-                          className="bg-amber-600 hover:bg-amber-700"
-                        >
-                          {isValidatingCode ? 'Validando...' : 'Aplicar'}
-                        </Button>
-                      </div>
-                      {discountError && (
-                        <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
-                          <AlertTriangle className="w-4 h-4" />
-                          {discountError}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <div className="mt-2 bg-white/80 rounded-lg p-3 border border-green-300">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <p className="text-green-700 font-semibold text-sm flex items-center gap-2">
-                            ✅ Código aplicado: <span className="font-mono">{discountCode}</span>
-                          </p>
-                          <div className="mt-2 space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Total original:</span>
-                              <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-green-600 font-medium">
-                              <span>Descuento:</span>
-                              <span>-{formatCurrency(discountAmount)}</span>
-                            </div>
-                            <div className="flex justify-between text-base font-bold text-green-700 pt-2 border-t">
-                              <span>Nuevo total:</span>
-                              <span>{formatCurrency(finalTotal)}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={removeDiscount}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Live countdown for shoppers viewing quotes */}
               {packageDetails.quote_expires_at && userType === 'user' && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageDetails.status) && <QuoteCountdown expiresAt={packageDetails.quote_expires_at} onExpire={() => {
