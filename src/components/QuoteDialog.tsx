@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit } from "lucide-react";
+import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { useState, useRef, useEffect } from "react";
@@ -53,6 +54,18 @@ interface QuoteDialogProps {
     delivery_date: string;
     arrival_date: string;
   };
+  tripInfo?: {
+    id: string;
+    from_city: string;
+    from_country?: string;
+    to_city: string;
+    arrival_date: string;
+    first_day_packages: string;
+    last_day_packages: string;
+    delivery_date: string;
+    package_receiving_address?: any;
+  };
+  onEditTrip?: () => void;
 }
 const ResolvedImage = ({ src, alt, className, onClick }: { src: any; alt: string; className?: string; onClick?: () => void }) => {
   const [url, setUrl] = useState<string>("");
@@ -103,7 +116,9 @@ const QuoteDialog = ({
   packageDetails,
   userType,
   existingQuote,
-  tripDates
+  tripDates,
+  tripInfo,
+  onEditTrip
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -148,6 +163,7 @@ const QuoteDialog = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showTravelerRejectionModal, setShowTravelerRejectionModal] = useState(false);
+  const [showTripConfirmation, setShowTripConfirmation] = useState(false);
   
   // Selected products state for multi-product orders (shoppers can remove products)
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
@@ -407,7 +423,12 @@ const QuoteDialog = ({
       
       onSubmit(submitData);
     } else if (isAdminAssignedTip) {
-      // Traveler accepting admin assigned tip
+      // Traveler accepting admin assigned tip - show trip confirmation first if tripInfo available
+      if (tripInfo && !showTripConfirmation) {
+        setShowTripConfirmation(true);
+        return;
+      }
+      
       const basePrice = parseFloat(packageDetails.admin_assigned_tip);
       const normalizedQuote = createNormalizedQuote(
         basePrice, 
@@ -419,6 +440,7 @@ const QuoteDialog = ({
       );
       
       clearPersistedState(); // Clear form data on successful submission
+      setShowTripConfirmation(false);
       onSubmit(normalizedQuote);
     } else {
       const basePrice = parseFloat(price);
@@ -503,6 +525,115 @@ const QuoteDialog = ({
 
         <div className="space-y-4 sm:space-y-6 overflow-x-hidden">{/* Force no horizontal overflow */}
           
+          {/* TRIP CONFIRMATION STEP - For travelers confirming their trip info */}
+          {isTravelerContext && showTripConfirmation && tripInfo ? (
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="text-center pb-2">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Plane className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">Confirma tu información de viaje</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Verifica que estos datos sean correctos antes de enviar la cotización
+                </p>
+              </div>
+              
+              {/* Route */}
+              <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-muted-foreground">{tripInfo.from_country || tripInfo.from_city}</span>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="font-semibold text-foreground">{tripInfo.to_city}</span>
+                </div>
+              </div>
+              
+              {/* Dates */}
+              <div className="bg-muted/30 rounded-lg p-4 space-y-3 border border-muted/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-foreground">Fechas del viaje</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Llegada:</span>
+                    <span className="font-medium text-foreground">{formatDateUTC(tripInfo.arrival_date)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Recibo paquetes:</span>
+                    <span className="font-medium text-foreground">
+                      {formatDateUTC(tripInfo.first_day_packages)} - {formatDateUTC(tripInfo.last_day_packages)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Entrega en oficina:</span>
+                    <span className="font-medium text-foreground">{formatDateUTC(tripInfo.delivery_date)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Delivery Address */}
+              {tripInfo.package_receiving_address && (
+                <div className="bg-muted/30 rounded-lg p-4 space-y-2 border border-muted/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Home className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-foreground">Dirección de recepción de paquetes</span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    {tripInfo.package_receiving_address.recipientName && (
+                      <p className="font-semibold text-foreground">{tripInfo.package_receiving_address.recipientName}</p>
+                    )}
+                    {tripInfo.package_receiving_address.streetAddress && (
+                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.streetAddress}</p>
+                    )}
+                    {tripInfo.package_receiving_address.streetAddress2 && (
+                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.streetAddress2}</p>
+                    )}
+                    {tripInfo.package_receiving_address.cityArea && (
+                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.cityArea}</p>
+                    )}
+                    {tripInfo.package_receiving_address.postalCode && (
+                      <p className="text-muted-foreground">CP: {tripInfo.package_receiving_address.postalCode}</p>
+                    )}
+                    {tripInfo.package_receiving_address.hotelAirbnbName && (
+                      <p className="text-muted-foreground">🏨 {tripInfo.package_receiving_address.hotelAirbnbName}</p>
+                    )}
+                    {tripInfo.package_receiving_address.contactNumber && (
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-muted-foreground">{tripInfo.package_receiving_address.contactNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowTripConfirmation(false);
+                    onClose();
+                    onEditTrip?.();
+                  }}
+                  className="flex-1"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar viaje
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  className="flex-1 bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Confirmar y enviar
+                </Button>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
             <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50/80 to-green-50/60 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/30 px-4 py-3 shadow-sm">
@@ -1295,6 +1426,8 @@ const QuoteDialog = ({
                   </>}
               </>}
           </div>
+          </>
+          )}
         </div>
         
         {/* Terms and Conditions Modal */}

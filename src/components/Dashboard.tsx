@@ -1088,6 +1088,15 @@ const Dashboard = ({ user }: DashboardProps) => {
             delivery_date: string;
             arrival_date: string;
           }}
+          tripInfo={selectedPackageForQuote.matched_trip_id 
+            ? trips.find(t => t.id === selectedPackageForQuote.matched_trip_id) as any 
+            : undefined}
+          onEditTrip={() => {
+            const trip = trips.find(t => t.id === selectedPackageForQuote.matched_trip_id);
+            if (trip) {
+              handleEditTrip(trip);
+            }
+          }}
         />
       )}
 
