@@ -827,22 +827,40 @@ const QuoteDialog = ({
                         );
                       })}
                       
-                      {/* Footer totals */}
-                      <div className="bg-green-100/50 border border-green-200 rounded-lg p-3 mt-2 space-y-2">
+                      {/* Footer totals - Clean UX design */}
+                      <div className="bg-green-50/50 rounded-xl p-4 mt-3 space-y-3">
                         
                         {/* Delivery fee (if applicable) */}
                         {packageDetails.delivery_method === 'delivery' && (
                           <div className="flex justify-between text-sm text-green-700">
                             <span>🚚 Entrega a domicilio:</span>
-                            <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}</span>
+                            <span className="font-semibold text-green-600">
+                              {formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}
+                            </span>
                           </div>
                         )}
                         
-                        {/* Total to pay */}
-                        <div className="flex justify-between font-bold text-lg text-green-800 pt-2 border-t border-green-300">
-                          <span>💰 TOTAL A PAGAR:</span>
-                          <span>{formatCurrency(calculateSelectedProductsTotal())}</span>
+                        {/* Total to pay - Clean design with anxiety reduction */}
+                        <div className="flex justify-between items-center py-3">
+                          <span className="text-green-700 font-medium">
+                            ✅ Total final (sin sorpresas):
+                          </span>
+                          {(() => {
+                            const total = calculateSelectedProductsTotal();
+                            const wholePart = Math.floor(total);
+                            const decimalPart = (total % 1).toFixed(2).slice(2);
+                            return (
+                              <span className="text-2xl font-bold text-green-600">
+                                Q{wholePart}<span className="text-base">.{decimalPart}</span>
+                              </span>
+                            );
+                          })()}
                         </div>
+                        
+                        {/* Social proof */}
+                        <p className="text-center text-xs text-green-600/70 pt-2 border-t border-green-100">
+                          ✨ +1,250 Favorones entregados con éxito
+                        </p>
                       </div>
                       
                       {/* Warning note */}
