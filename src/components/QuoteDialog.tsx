@@ -554,9 +554,20 @@ const QuoteDialog = ({
                           </div>
                           
                           {/* Price and Quantity */}
-                          <p className="text-sm text-muted-foreground mb-3">
+                          <p className="text-sm text-muted-foreground mb-2">
                             ${unitPrice.toFixed(2)} USD × {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
                           </p>
+                          
+                          {/* Tip asignado para este producto */}
+                          {product.adminAssignedTip && (
+                            <div className="flex items-center gap-1.5 mb-3 text-sm">
+                              <Gift className="h-4 w-4 text-success" />
+                              <span className="text-muted-foreground">Tu tip por este producto:</span>
+                              <span className="font-semibold text-success">
+                                Q{parseFloat(product.adminAssignedTip).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
                           
                           {/* Product Link Button */}
                           {productLink && (
