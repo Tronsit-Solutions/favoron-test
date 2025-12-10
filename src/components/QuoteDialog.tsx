@@ -561,9 +561,9 @@ const QuoteDialog = ({
                           {/* Tip asignado para este producto */}
                           {product.adminAssignedTip && (
                             <div className="flex items-center gap-1.5 mb-3 text-sm">
-                              <Gift className="h-4 w-4 text-success" />
-                              <span className="text-muted-foreground">Tu tip por este producto:</span>
-                              <span className="font-semibold text-success">
+                              <Gift className="h-4 w-4 text-emerald-600" />
+                              <span className="text-gray-500">Tu tip por este producto:</span>
+                              <span className="font-bold text-emerald-600">
                                 Q{parseFloat(product.adminAssignedTip).toFixed(2)}
                               </span>
                             </div>
