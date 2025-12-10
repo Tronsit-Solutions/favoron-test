@@ -118,10 +118,23 @@ const AdminMatchDialog = ({
       return 'mexico';
     }
     
-    // Map Guatemala variations (including cities)
+    // Map Guatemala variations (including cities and departments)
     if (normalized.includes('guatemala') || normalized.includes('quetzaltenango') ||
         normalized.includes('xela') || normalized.includes('antigua') ||
-        normalized.includes('zona 14') || normalized.includes('guatemala city')) {
+        normalized.includes('zona 14') || normalized.includes('guatemala city') ||
+        normalized.includes('escuintla') || normalized.includes('amatitlan') ||
+        normalized.includes('amatitlán') || normalized.includes('chimaltenango') ||
+        normalized.includes('chichicastenango') || normalized.includes('quiche') ||
+        normalized.includes('quiché') || normalized.includes('solola') ||
+        normalized.includes('sololá') || normalized.includes('san pedro la laguna') ||
+        normalized.includes('san lucas') || normalized.includes('villa nueva') ||
+        normalized.includes('mixco') || normalized.includes('petapa') ||
+        normalized.includes('santa catarina pinula') || normalized.includes('fraijanes') ||
+        normalized.includes('sacatepequez') || normalized.includes('sacatepéquez') ||
+        normalized.includes('huehuetenango') || normalized.includes('coban') ||
+        normalized.includes('cobán') || normalized.includes('alta verapaz') ||
+        normalized.includes('retalhuleu') || normalized.includes('mazatenango') ||
+        normalized.includes('suchitepequez') || normalized.includes('suchitepéquez')) {
       return 'guatemala';
     }
     
