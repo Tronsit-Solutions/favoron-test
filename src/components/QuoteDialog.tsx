@@ -829,17 +829,6 @@ const QuoteDialog = ({
                       
                       {/* Footer totals */}
                       <div className="bg-green-100/50 border border-green-200 rounded-lg p-3 mt-2 space-y-2">
-                        {/* Total USD */}
-                        <div className="flex justify-between text-sm text-green-700">
-                          <span>Total productos (USD):</span>
-                          <span className="font-medium">
-                            ${selectedProducts.reduce((sum: number, p: any) => {
-                              const qty = parseInt(p.quantity || '1');
-                              const price = parseFloat(p.estimatedPrice || '0');
-                              return sum + qty * price;
-                            }, 0).toFixed(2)}
-                          </span>
-                        </div>
                         
                         {/* Delivery fee (if applicable) */}
                         {packageDetails.delivery_method === 'delivery' && (
