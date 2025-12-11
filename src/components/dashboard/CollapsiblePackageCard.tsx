@@ -263,7 +263,7 @@ const CollapsiblePackageCard = ({
   const cardContent = (
     <Card className={`transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} ${needsAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"} ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
-        <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-2 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
+        <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-3 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
             
             {/* Three dots menu - positioned absolutely in top-right corner */}
             {viewMode === 'user' && <DropdownMenu>
@@ -333,7 +333,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Description */}
                 <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full text-left">
-                  <div className="space-y-1 max-w-full pl-6">
+                  <div className="space-y-1 max-w-full pl-5">
                     <span className="block break-words max-w-full">{getPackageDescription()}</span>
                     <span className="block break-words max-w-full">{getStatusDescription(pkg)}</span>
                   </div>
@@ -341,14 +341,14 @@ const CollapsiblePackageCard = ({
 
                 {/* Trip Change Alert Badge - Mobile (compact) */}
                 {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
-                  <div className="pl-6">
+                  <div className="pl-5">
                     <TripChangeAlertBadge packageId={pkg.id} compact />
                   </div>
                 )}
 
                 {/* Product Status Button - Mobile */}
                 {shouldShowProductStatusButton && (
-                  <div className="pl-6">
+                  <div className="pl-5">
                     <Button
                       size="sm"
                       variant="outline"
@@ -371,7 +371,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Cancelled Package Banner - Mobile */}
                 {isCancelledPackage && viewMode === 'user' && (
-                  <div className="pl-6">
+                  <div className="pl-5">
                     <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-destructive font-medium mb-2">
                         <Ban className="h-4 w-4" />
@@ -400,7 +400,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
-                <div className="space-y-2 w-full max-w-full pl-6">
+                <div className="space-y-2 w-full max-w-full pl-5">
                   {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
                 e.stopPropagation();
                 onRequestRequote(pkg);
