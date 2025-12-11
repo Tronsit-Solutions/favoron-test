@@ -960,7 +960,7 @@ export type Database = {
           {
             foreignKeyName: "trip_payment_accumulator_trip_id_fkey"
             columns: ["trip_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "trips"
             referencedColumns: ["id"]
           },
