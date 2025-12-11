@@ -765,8 +765,8 @@ const QuoteDialog = ({
             ) : (
             /* Detailed view for shoppers - UNIFIED: Product details + Quote per product */
               <>
-                {/* Show unified section for multi-product with existing quote */}
-                {selectedProducts.length > 1 && existingQuote ? (
+                {/* Show unified section for all products with existing quote */}
+                {existingQuote ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Package className="h-5 w-5 text-green-700" />
