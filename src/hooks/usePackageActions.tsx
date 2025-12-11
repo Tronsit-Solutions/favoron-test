@@ -77,8 +77,8 @@ export const usePackageActions = () => {
         receivedPhoto: photo
       };
       
-      // 3. Check if ALL products are confirmed
-      const allConfirmed = updatedProducts.every((p: any) => p.receivedByTraveler);
+      // 3. Check if ALL active (non-cancelled) products are confirmed
+      const allConfirmed = updatedProducts.every((p: any) => p.receivedByTraveler || p.cancelled);
       
       // 4. Prepare updates
       const updates: any = {
@@ -99,7 +99,7 @@ export const usePackageActions = () => {
       
       // 7. Send low-priority notification to shopper
       const productName = updatedProducts[productIndex].itemDescription;
-      const remainingProducts = updatedProducts.filter((p: any) => !p.receivedByTraveler).length;
+      const remainingProducts = updatedProducts.filter((p: any) => !p.receivedByTraveler && !p.cancelled).length;
       
       try {
         await supabase.functions.invoke('send-whatsapp-notification', {
