@@ -37,10 +37,10 @@ export function useTripChangeAlerts(packageId: string | undefined) {
           return;
         }
 
-        // Find notification that includes this packageId in metadata and hasn't been seen on card
+        // Find notification that includes this packageId in metadata (no seenOnCard filter - badge is persistent)
         const relevantNotification = notifications?.find(n => {
           const metadata = n.metadata as any;
-          return metadata?.packageIds?.includes(packageId) && metadata?.seenOnCard !== true;
+          return metadata?.packageIds?.includes(packageId);
         });
 
         if (relevantNotification) {
@@ -85,38 +85,10 @@ export function useTripChangeAlerts(packageId: string | undefined) {
     };
   }, [user?.id, packageId]);
 
-  const markAsSeen = async () => {
-    if (!alert) return;
-
-    try {
-      // Get current notification to preserve metadata
-      const { data: notification } = await supabase
-        .from('notifications')
-        .select('metadata')
-        .eq('id', alert.notificationId)
-        .single();
-
-      const currentMetadata = (notification?.metadata as any) || {};
-      
-      // Update only seenOnCard in metadata, preserve notification read status
-      await supabase
-        .from('notifications')
-        .update({ 
-          metadata: { ...currentMetadata, seenOnCard: true }
-        })
-        .eq('id', alert.notificationId);
-
-      setAlert(null);
-    } catch (err) {
-      console.error('Error marking alert as seen:', err);
-    }
-  };
-
   return {
     hasUnreadChanges: !!alert,
     changeType: alert?.changeType,
     changedAt: alert?.changedAt,
-    markAsSeen,
     loading
   };
 }
