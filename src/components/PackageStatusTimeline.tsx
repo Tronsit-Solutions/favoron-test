@@ -1,4 +1,4 @@
-import { Check, Clock, Package, Truck, MapPin, Building } from "lucide-react";
+import { Check, Clock, Package, Truck, MapPin, Building, CreditCard } from "lucide-react";
 
 interface PackageStatusTimelineProps {
   currentStatus: string;
@@ -37,6 +37,18 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
       label: 'Cotización aceptada', 
       icon: Check,
       description: 'Aceptaste la cotización del viajero'
+    },
+    { 
+      key: 'payment_pending', 
+      label: 'Pago pendiente', 
+      icon: CreditCard,
+      description: 'Esperando tu pago'
+    },
+    { 
+      key: 'payment_pending_approval', 
+      label: 'Pago en revisión', 
+      icon: Clock,
+      description: 'Tu comprobante está siendo verificado'
     },
     { 
       key: 'pending_purchase', 
