@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { CheckCircle, ChevronDown, ChevronUp, ExternalLink, Loader2, Package, Phone, Plane } from 'lucide-react';
 import { formatDateUTC } from '@/lib/formatters';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
-import { TripGroup, TripGroupPackage } from './OperationsReceptionTab';
+import { TripGroup, TripGroupPackage } from '@/hooks/useOperationsData';
 
 interface OperationsTripCardProps {
   trip: TripGroup;

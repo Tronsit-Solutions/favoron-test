@@ -1289,6 +1289,36 @@ export type Database = {
           username: string
         }[]
       }
+      get_all_operations_data: {
+        Args: never
+        Returns: {
+          confirmed_delivery_address: Json
+          created_at: string
+          delivery_method: string
+          estimated_price: number
+          id: string
+          item_description: string
+          label_number: number
+          matched_trip_id: string
+          package_destination: string
+          products_summary: Json
+          purchase_origin: string
+          shopper_first_name: string
+          shopper_last_name: string
+          status: string
+          traveler_country_code: string
+          traveler_first_name: string
+          traveler_last_name: string
+          traveler_phone: string
+          trip_arrival_date: string
+          trip_delivery_date: string
+          trip_from_city: string
+          trip_status: string
+          trip_to_city: string
+          trip_user_id: string
+          user_id: string
+        }[]
+      }
       get_database_stats: {
         Args: never
         Returns: {

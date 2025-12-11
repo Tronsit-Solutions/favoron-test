@@ -1,71 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Package, User, Truck, Home, Loader2 } from 'lucide-react';
+import { CheckCircle2, Package, User, Truck, Home, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { OperationsPackage, ProductData } from '@/hooks/useOperationsData';
 
-interface OperationsPackage {
-  id: string;
-  label_number: number | null;
-  item_description: string;
-  delivery_method: string | null;
-  status: string;
-  products_summary: any;
-  user_id: string;
+interface OperationsCompletedTabProps {
+  packages: OperationsPackage[];
+  loading: boolean;
+  onRefresh: () => void;
+  onRemovePackage: (id: string) => void;
 }
 
-interface ShopperInfo {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-}
-
-const OperationsCompletedTab = () => {
-  const [packages, setPackages] = useState<OperationsPackage[]>([]);
-  const [shopperProfiles, setShopperProfiles] = useState<Record<string, ShopperInfo>>({});
-  const [loading, setLoading] = useState(true);
+const OperationsCompletedTab = ({ packages, loading, onRefresh, onRemovePackage }: OperationsCompletedTabProps) => {
   const [completingId, setCompletingId] = useState<string | null>(null);
-
-  const fetchPackages = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc('get_operations_packages', {
-        p_statuses: ['ready_for_pickup', 'ready_for_delivery']
-      });
-
-      if (error) throw error;
-
-      setPackages(data || []);
-
-      // Fetch shopper profiles
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map((p: OperationsPackage) => p.user_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name')
-          .in('id', userIds);
-
-        if (profiles) {
-          const profileMap: Record<string, ShopperInfo> = {};
-          profiles.forEach(p => {
-            profileMap[p.id] = p;
-          });
-          setShopperProfiles(profileMap);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching packages:', error);
-      toast.error('Error al cargar paquetes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPackages();
-  }, []);
 
   const handleMarkCompleted = async (packageId: string) => {
     setCompletingId(packageId);
@@ -81,21 +31,13 @@ const OperationsCompletedTab = () => {
       if (error) throw error;
 
       toast.success('Paquete marcado como completado');
-      setPackages(prev => prev.filter(p => p.id !== packageId));
+      onRemovePackage(packageId);
     } catch (error) {
       console.error('Error marking package as completed:', error);
       toast.error('Error al marcar como completado');
     } finally {
       setCompletingId(null);
     }
-  };
-
-  const getShopperName = (userId: string) => {
-    const profile = shopperProfiles[userId];
-    if (profile?.first_name || profile?.last_name) {
-      return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-    }
-    return 'Usuario';
   };
 
   const pickupPackages = packages.filter(p => p.status === 'ready_for_pickup');
@@ -127,6 +69,13 @@ const OperationsCompletedTab = () => {
     const isPickup = pkg.status === 'ready_for_pickup';
     const isCompleting = completingId === pkg.id;
 
+    const getProductsList = (products: ProductData[] | null) => {
+      if (!products || products.length === 0) return null;
+      return products.filter(p => !p.cancelled);
+    };
+
+    const activeProducts = getProductsList(pkg.products_data);
+
     return (
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
@@ -151,27 +100,25 @@ const OperationsCompletedTab = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* Shopper Name - Prominent */}
           <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
             <User className="h-5 w-5 text-primary" />
             <span className="font-semibold text-lg">
-              {getShopperName(pkg.user_id)}
+              {pkg.shopper_name}
             </span>
           </div>
 
-          {/* Products */}
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               <Package className="h-4 w-4" /> Productos:
             </p>
-            {pkg.products_summary && Array.isArray(pkg.products_summary) ? (
+            {activeProducts && activeProducts.length > 0 ? (
               <ul className="text-sm space-y-1 pl-5">
-                {pkg.products_summary.map((product: any, idx: number) => (
+                {activeProducts.map((product, idx) => (
                   <li key={idx} className="list-disc">
-                    {product.quantity && product.quantity > 1 && (
+                    {product.quantity && Number(product.quantity) > 1 && (
                       <span className="font-medium">x{product.quantity} </span>
                     )}
-                    {product.description || product.itemDescription || 'Producto'}
+                    {product.name || product.itemDescription || 'Producto'}
                   </li>
                 ))}
               </ul>
@@ -180,7 +127,6 @@ const OperationsCompletedTab = () => {
             )}
           </div>
 
-          {/* Complete Button */}
           <Button
             onClick={() => handleMarkCompleted(pkg.id)}
             disabled={isCompleting}
@@ -200,7 +146,16 @@ const OperationsCompletedTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Pickup Section */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">
+          Paquetes para completar ({packages.length})
+        </h2>
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Actualizar
+        </Button>
+      </div>
+
       {pickupPackages.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -215,7 +170,6 @@ const OperationsCompletedTab = () => {
         </div>
       )}
 
-      {/* Delivery Section */}
       {deliveryPackages.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
