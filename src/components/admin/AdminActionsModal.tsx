@@ -125,11 +125,13 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     { value: 'quote_accepted', label: 'Cotización Aceptada' },
     { value: 'awaiting_payment', label: 'Esperando Pago' },
     { value: 'pending_purchase', label: 'Pago Confirmado' },
-    
     { value: 'in_transit', label: 'En Tránsito' },
     { value: 'received_by_traveler', label: 'Recibido por Viajero' },
     { value: 'pending_office_confirmation', label: 'Esperando Confirmación Oficina' },
     { value: 'delivered_to_office', label: 'Entregado en Oficina' },
+    { value: 'ready_for_pickup', label: 'Listo para Recoger' },
+    { value: 'ready_for_delivery', label: 'Listo para Envío' },
+    { value: 'out_for_delivery', label: 'En Reparto' },
     { value: 'completed', label: 'Completado' },
     { value: 'cancelled', label: 'Cancelado' },
   ];
