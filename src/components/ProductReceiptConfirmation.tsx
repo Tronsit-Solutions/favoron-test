@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, Package as PackageIcon, Info } from "lucide-react";
+import { CheckCircle2, Package as PackageIcon, Info, Ban } from "lucide-react";
 import { ProductConfirmationItem } from "./ProductConfirmationItem";
 import { ProductData } from "@/types";
 
@@ -26,10 +26,14 @@ export const ProductReceiptConfirmation = ({
 }: ProductReceiptConfirmationProps) => {
   const [confirmingIndex, setConfirmingIndex] = useState<number | null>(null);
 
-  const confirmedCount = products.filter(p => p.receivedByTraveler).length;
-  const totalCount = products.length;
-  const allConfirmed = confirmedCount === totalCount;
-  const progressPercentage = (confirmedCount / totalCount) * 100;
+  // Filter out cancelled products - they shouldn't need confirmation
+  const activeProducts = products.filter(p => !p.cancelled);
+  const cancelledCount = products.length - activeProducts.length;
+
+  const confirmedCount = activeProducts.filter(p => p.receivedByTraveler).length;
+  const totalCount = activeProducts.length;
+  const allConfirmed = confirmedCount === totalCount && totalCount > 0;
+  const progressPercentage = totalCount > 0 ? (confirmedCount / totalCount) * 100 : 0;
 
   const handleConfirmProduct = async (productIndex: number, photo: string) => {
     setConfirmingIndex(productIndex);
@@ -49,11 +53,24 @@ export const ProductReceiptConfirmation = ({
             Confirmación de Productos
           </DialogTitle>
           <DialogDescription>
-            {packageName}
+            {cancelledCount > 0 
+              ? `${packageName} (${cancelledCount} producto${cancelledCount > 1 ? 's' : ''} cancelado${cancelledCount > 1 ? 's' : ''})`
+              : packageName
+            }
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Cancelled products info */}
+          {cancelledCount > 0 && (
+            <Alert className="bg-muted/50 border-muted">
+              <Ban className="h-4 w-4 text-muted-foreground" />
+              <AlertDescription className="text-muted-foreground">
+                {cancelledCount} producto{cancelledCount > 1 ? 's' : ''} cancelado{cancelledCount > 1 ? 's' : ''} no requiere{cancelledCount > 1 ? 'n' : ''} confirmación.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Progress section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -75,7 +92,7 @@ export const ProductReceiptConfirmation = ({
           </div>
 
           {/* Info alert */}
-          {!allConfirmed && (
+          {!allConfirmed && totalCount > 0 && (
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
@@ -94,17 +111,21 @@ export const ProductReceiptConfirmation = ({
             </Alert>
           )}
 
-          {/* Products list */}
+          {/* Products list - only active (non-cancelled) products */}
           <div className="space-y-3">
-            {products.map((product, index) => (
-              <ProductConfirmationItem
-                key={index}
-                product={product}
-                index={index}
-                onConfirm={handleConfirmProduct}
-                isConfirming={confirmingIndex === index}
-              />
-            ))}
+            {activeProducts.map((product) => {
+              // Find original index for the callback
+              const originalIndex = products.findIndex(p => p === product);
+              return (
+                <ProductConfirmationItem
+                  key={originalIndex}
+                  product={product}
+                  index={originalIndex}
+                  onConfirm={handleConfirmProduct}
+                  isConfirming={confirmingIndex === originalIndex}
+                />
+              );
+            })}
           </div>
         </div>
 
