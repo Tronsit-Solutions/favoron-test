@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useOperationsData } from '@/hooks/useOperationsData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2 } from 'lucide-react';
+import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import {
@@ -20,6 +21,9 @@ import OperationsCompletedTab from '@/components/operations/OperationsCompletedT
 const Operations = () => {
   const { profile, userRole } = useAuth();
   const [activeTab, setActiveTab] = useState('reception');
+  
+  // Centralized data hook - loads once, used by all tabs
+  const operationsData = useOperationsData();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -48,30 +52,46 @@ const Operations = () => {
                 </p>
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm hidden sm:inline">
-                    {profile?.first_name} {profile?.last_name}
-                  </span>
-                  <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">
-                    {userRole?.role === 'admin' ? 'Admin' : 'Operaciones'}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover">
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Cerrar sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              {/* Global refresh button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={operationsData.refresh}
+                disabled={operationsData.loading}
+              >
+                {operationsData.loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm hidden sm:inline">
+                      {profile?.first_name} {profile?.last_name}
+                    </span>
+                    <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs">
+                      {userRole?.role === 'admin' ? 'Admin' : 'Operaciones'}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </header>
@@ -83,10 +103,20 @@ const Operations = () => {
             <TabsTrigger value="reception" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Recepción</span>
+              {operationsData.receptionPackages.length > 0 && (
+                <span className="ml-1 text-xs bg-primary/20 px-1.5 rounded">
+                  {operationsData.receptionPackages.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="ready" className="flex items-center gap-2">
               <PackageCheck className="h-4 w-4" />
               <span className="hidden sm:inline">Preparación</span>
+              {operationsData.readyPackages.length > 0 && (
+                <span className="ml-1 text-xs bg-primary/20 px-1.5 rounded">
+                  {operationsData.readyPackages.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="labels" className="flex items-center gap-2">
               <Tag className="h-4 w-4" />
@@ -95,24 +125,50 @@ const Operations = () => {
             <TabsTrigger value="completed" className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               <span className="hidden sm:inline">Completados</span>
+              {operationsData.completedPackages.length > 0 && (
+                <span className="ml-1 text-xs bg-primary/20 px-1.5 rounded">
+                  {operationsData.completedPackages.length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="reception">
-            {activeTab === 'reception' && <OperationsReceptionTab />}
-          </TabsContent>
+          {/* Use CSS hiding to keep components mounted */}
+          <div className={activeTab !== 'reception' ? 'hidden' : ''}>
+            <OperationsReceptionTab 
+              tripGroups={operationsData.receptionTripGroups}
+              loading={operationsData.loading}
+              onRefresh={operationsData.refresh}
+              onRemovePackage={operationsData.removePackage}
+              onRemovePackages={operationsData.removePackages}
+            />
+          </div>
 
-          <TabsContent value="ready">
-            {activeTab === 'ready' && <OperationsReadyTab />}
-          </TabsContent>
+          <div className={activeTab !== 'ready' ? 'hidden' : ''}>
+            <OperationsReadyTab 
+              packages={operationsData.readyPackages}
+              loading={operationsData.loading}
+              onRefresh={operationsData.refresh}
+              onRemovePackage={operationsData.removePackage}
+            />
+          </div>
 
-          <TabsContent value="labels">
-            {activeTab === 'labels' && <OperationsLabelsTab />}
-          </TabsContent>
+          <div className={activeTab !== 'labels' ? 'hidden' : ''}>
+            <OperationsLabelsTab 
+              trips={operationsData.labelsTrips}
+              loading={operationsData.loading}
+              onRefresh={operationsData.refresh}
+            />
+          </div>
 
-          <TabsContent value="completed">
-            {activeTab === 'completed' && <OperationsCompletedTab />}
-          </TabsContent>
+          <div className={activeTab !== 'completed' ? 'hidden' : ''}>
+            <OperationsCompletedTab 
+              packages={operationsData.completedPackages}
+              loading={operationsData.loading}
+              onRefresh={operationsData.refresh}
+              onRemovePackage={operationsData.removePackage}
+            />
+          </div>
         </Tabs>
       </main>
     </div>

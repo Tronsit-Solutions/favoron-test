@@ -1,126 +1,21 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tag, Loader2, Printer, MapPin, Calendar } from 'lucide-react';
-import { toast } from 'sonner';
+import { Tag, Loader2, Printer, MapPin, Calendar, RefreshCw } from 'lucide-react';
 import { formatDateUTC } from '@/lib/formatters';
 import { PackageLabelModal } from '@/components/admin/PackageLabelModal';
+import { TripWithPackages } from '@/hooks/useOperationsData';
 
-interface PackageForLabel {
-  id: string;
-  item_description: string;
-  status: string;
-  label_number: number | null;
-  products_data?: any;
-  package_destination: string;
-  confirmed_delivery_address?: any;
+interface OperationsLabelsTabProps {
+  trips: TripWithPackages[];
+  loading: boolean;
+  onRefresh: () => void;
 }
 
-interface TripWithPackages {
-  id: string;
-  from_city: string;
-  to_city: string;
-  arrival_date: string;
-  delivery_date: string;
-  status: string;
-  traveler_name: string;
-  packages: PackageForLabel[];
-}
-
-const OperationsLabelsTab = () => {
-  const [trips, setTrips] = useState<TripWithPackages[]>([]);
-  const [loading, setLoading] = useState(true);
+const OperationsLabelsTab = ({ trips, loading, onRefresh }: OperationsLabelsTabProps) => {
   const [selectedTrip, setSelectedTrip] = useState<TripWithPackages | null>(null);
   const [showLabelModal, setShowLabelModal] = useState(false);
-
-  const fetchTrips = async () => {
-    setLoading(true);
-    try {
-      // 1. Fetch trips with active/approved status
-      const { data: tripsData, error: tripsError } = await supabase
-        .from('trips')
-        .select('id, from_city, to_city, arrival_date, delivery_date, status, user_id')
-        .in('status', ['approved', 'active'])
-        .order('arrival_date', { ascending: true });
-
-      if (tripsError) throw tripsError;
-      if (!tripsData || tripsData.length === 0) {
-        setTrips([]);
-        setLoading(false);
-        return;
-      }
-
-      // 2. Batch fetch all traveler profiles
-      const travelerIds = [...new Set(tripsData.map(t => t.user_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .in('id', travelerIds);
-
-      const profilesMap = new Map<string, { first_name: string | null; last_name: string | null }>();
-      profilesData?.forEach(p => profilesMap.set(p.id, p));
-
-      // 3. Batch fetch all packages for these trips
-      const tripIds = tripsData.map(t => t.id);
-      const { data: packagesData } = await supabase
-        .from('packages')
-        .select('id, item_description, status, label_number, package_destination, confirmed_delivery_address, products_data, matched_trip_id')
-        .in('matched_trip_id', tripIds)
-        .not('status', 'in', '("cancelled","rejected")');
-
-      // Group packages by trip
-      const packagesByTrip = new Map<string, PackageForLabel[]>();
-      packagesData?.forEach(pkg => {
-        if (!pkg.matched_trip_id) return;
-        if (!packagesByTrip.has(pkg.matched_trip_id)) {
-          packagesByTrip.set(pkg.matched_trip_id, []);
-        }
-        packagesByTrip.get(pkg.matched_trip_id)!.push({
-          id: pkg.id,
-          item_description: pkg.item_description,
-          status: pkg.status,
-          label_number: pkg.label_number,
-          package_destination: pkg.package_destination,
-          confirmed_delivery_address: pkg.confirmed_delivery_address,
-          products_data: pkg.products_data,
-        });
-      });
-
-      // 4. Build final result in memory
-      const tripsWithDetails: TripWithPackages[] = tripsData
-        .map(trip => {
-          const traveler = profilesMap.get(trip.user_id);
-          const travelerName = traveler
-            ? `${traveler.first_name || ''} ${traveler.last_name || ''}`.trim()
-            : 'Desconocido';
-
-          return {
-            id: trip.id,
-            from_city: trip.from_city,
-            to_city: trip.to_city,
-            arrival_date: trip.arrival_date,
-            delivery_date: trip.delivery_date,
-            status: trip.status,
-            traveler_name: travelerName,
-            packages: packagesByTrip.get(trip.id) || [],
-          };
-        })
-        .filter(t => t.packages.length > 0);
-
-      setTrips(tripsWithDetails);
-    } catch (error) {
-      console.error('Error fetching trips:', error);
-      toast.error('Error al cargar viajes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTrips();
-  }, []);
 
   const handleOpenLabels = (trip: TripWithPackages) => {
     setSelectedTrip(trip);
@@ -155,7 +50,8 @@ const OperationsLabelsTab = () => {
         <h2 className="text-lg font-semibold">
           Viajes con paquetes ({trips.length})
         </h2>
-        <Button variant="outline" size="sm" onClick={fetchTrips}>
+        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
       </div>
