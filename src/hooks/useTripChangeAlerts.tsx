@@ -29,7 +29,6 @@ export function useTripChangeAlerts(packageId: string | undefined) {
           .select('id, metadata, created_at')
           .eq('user_id', user.id)
           .eq('type', 'trip')
-          .eq('read', false)
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -38,10 +37,10 @@ export function useTripChangeAlerts(packageId: string | undefined) {
           return;
         }
 
-        // Find notification that includes this packageId in metadata
+        // Find notification that includes this packageId in metadata and hasn't been seen on card
         const relevantNotification = notifications?.find(n => {
           const metadata = n.metadata as any;
-          return metadata?.packageIds?.includes(packageId);
+          return metadata?.packageIds?.includes(packageId) && metadata?.seenOnCard !== true;
         });
 
         if (relevantNotification) {
@@ -90,9 +89,21 @@ export function useTripChangeAlerts(packageId: string | undefined) {
     if (!alert) return;
 
     try {
+      // Get current notification to preserve metadata
+      const { data: notification } = await supabase
+        .from('notifications')
+        .select('metadata')
+        .eq('id', alert.notificationId)
+        .single();
+
+      const currentMetadata = (notification?.metadata as any) || {};
+      
+      // Update only seenOnCard in metadata, preserve notification read status
       await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ 
+          metadata: { ...currentMetadata, seenOnCard: true }
+        })
         .eq('id', alert.notificationId);
 
       setAlert(null);

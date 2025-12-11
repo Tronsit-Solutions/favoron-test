@@ -92,7 +92,8 @@ export function useTripEditNotifications() {
               tripId,
               changeType,
               packageIds,
-              changedAt: new Date().toISOString()
+              changedAt: new Date().toISOString(),
+              seenOnCard: false
             }
           );
           notifiedCount++;
