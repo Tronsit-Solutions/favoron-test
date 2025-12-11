@@ -521,8 +521,42 @@ export const useDashboardActions = (
         if (quoteData.message === 'accepted') {
           console.log('✅ Accepting quote via RPC accept_quote');
           
-          // If discount code is present, update the quote first with discount info
-          if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
+          // Handle product exclusions (when shopper removed products from quote)
+          if (quoteData.updatedProducts && quoteData.recalculatedQuote) {
+            console.log('📦 Shopper excluded products, updating products_data and quote');
+            
+            // Prepare quote with discount if applicable
+            let finalQuote = quoteData.recalculatedQuote;
+            if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
+              finalQuote = {
+                ...finalQuote,
+                discountCode: quoteData.discountCode,
+                discountCodeId: quoteData.discountCodeId,
+                discountAmount: quoteData.discountAmount,
+                originalTotalPrice: quoteData.originalTotalPrice,
+                finalTotalPrice: quoteData.finalTotalPrice
+              };
+            }
+            
+            // Build internal notes for removed products
+            const removedProductsNote = quoteData.removedProducts?.length > 0
+              ? `[${new Date().toISOString()}] Productos removidos por shopper: ${quoteData.removedProducts.join(', ')}`
+              : null;
+            
+            const updatedInternalNotes = removedProductsNote
+              ? (selectedPackage.internal_notes 
+                  ? `${selectedPackage.internal_notes}\n${removedProductsNote}`
+                  : removedProductsNote)
+              : selectedPackage.internal_notes;
+            
+            // Update products_data and quote BEFORE accepting
+            await updatePackage(selectedPackage.id, {
+              products_data: quoteData.updatedProducts,
+              quote: finalQuote,
+              internal_notes: updatedInternalNotes
+            });
+          } else if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
+            // Existing discount-only logic (no products removed)
             console.log('💳 Discount code present, updating quote with discount data');
             
             const quoteWithDiscount = {
