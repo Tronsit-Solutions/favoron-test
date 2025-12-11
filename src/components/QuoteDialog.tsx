@@ -1383,10 +1383,11 @@ const QuoteDialog = ({
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
+                  variant="success"
                   disabled={(!displayAmount && !price) || (isTravelerContext && !confirmedProductReview)} 
                   className={`flex-1 sm:flex-none ${isTravelerContext 
-                    ? 'bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25 hover:shadow-success/40 hover:scale-[1.02] transition-all duration-200' 
-                    : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                    ? 'shadow-lg shadow-success/25 hover:shadow-success/40 hover:scale-[1.02] transition-all duration-200' 
+                    : ''}`}
                 >
                   {displayAmount ? (
                     <span className="flex items-center gap-2">
