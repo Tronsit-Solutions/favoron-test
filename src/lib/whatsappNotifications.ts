@@ -136,5 +136,13 @@ export const WhatsAppTemplates = {
     message: `${travelerName} subió un archivo sobre tu paquete "${packageDescription}".\n\nRevísalo en el chat del paquete.`,
     type: 'package' as const,
     priority: 'medium' as const
+  }),
+
+  // Notificación cuando shopper elimina productos de pedido multi-producto
+  productsRemovedByShopper: (packageDescription: string, removedProducts: string[], remainingCount: number) => ({
+    title: '⚠️ Productos removidos del pedido',
+    message: `El shopper ha removido ${removedProducts.length} producto(s) de "${packageDescription}":\n\n❌ ${removedProducts.join('\n❌ ')}\n\n📦 Quedan ${remainingCount} producto(s) en el pedido.\n\nEl tip del viaje se ha ajustado automáticamente.`,
+    type: 'package' as const,
+    priority: 'high' as const
   })
 };
