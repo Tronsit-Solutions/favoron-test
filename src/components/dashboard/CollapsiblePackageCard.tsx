@@ -30,7 +30,7 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package as PackageType, UserType, DocumentType } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { SwipeableCard } from "@/components/ui/swipeable-card";
+
 import { canCancelPackage, requiresRefundForCancellation } from "@/lib/permissions";
 import { PackageCancellationModal } from "@/components/dashboard/PackageCancellationModal";
 import { ProductStatusModal } from "@/components/ProductStatusModal";
@@ -765,22 +765,7 @@ const CollapsiblePackageCard = ({
   return (
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        {isMobile && viewMode === 'user' ? (
-          <div className="w-full max-w-full min-w-0" data-swipeable="true">
-            <SwipeableCard
-              onArchive={onArchivePackage ? () => onArchivePackage(pkg) : undefined}
-              onDelete={onDeletePackage && canDelete ? () => setShowDeleteDialog(true) : undefined}
-              canDelete={canDelete}
-              canArchive={true}
-              isExpanded={isOpen}
-              className="w-full"
-            >
-              {cardContent}
-            </SwipeableCard>
-          </div>
-        ) : (
-          cardContent
-        )}
+        {cardContent}
       </Collapsible>
 
       {/* Edit Package Modal */}
