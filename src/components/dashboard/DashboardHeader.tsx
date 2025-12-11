@@ -83,8 +83,8 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Home className="h-4 w-4" />
           </Button>
           
-          {/* Botón prominente para usuarios con rol operations */}
-          {user.role === 'operations' && (
+          {/* Botón prominente para usuarios con rol admin u operations */}
+          {(user.role === 'operations' || user.role === 'admin') && (
             <Button 
               variant="outline" 
               size="sm" 
