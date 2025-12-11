@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
@@ -65,6 +65,33 @@ const CollapsibleTravelerPackageCard = ({
   const isMobile = useIsMobile();
   
   const { user } = useAuth();
+
+  // Auto-reconciliation: detect if package needs status correction
+  const needsReconciliation = useMemo(() => {
+    if (pkg.status !== 'in_transit' || !pkg.products_data?.length) return false;
+    
+    // Check if all products are confirmed or cancelled
+    const allResolved = pkg.products_data.every(
+      (p: any) => p.receivedByTraveler || p.cancelled
+    );
+    
+    return allResolved;
+  }, [pkg.status, pkg.products_data]);
+
+  // Auto-reconcile on mount if needed
+  useEffect(() => {
+    if (needsReconciliation && updatePackage) {
+      console.log('🔄 Auto-reconciling package status:', pkg.id);
+      updatePackage(pkg.id, {
+        status: 'received_by_traveler',
+        traveler_confirmation: {
+          confirmedAt: new Date().toISOString(),
+          allProductsConfirmed: true,
+          autoReconciled: true
+        }
+      });
+    }
+  }, [needsReconciliation, pkg.id, updatePackage]);
 
   // Helper to detect if quote is expired (either by status OR by expired timer)
   const isQuoteExpired = (p: any): boolean => {
