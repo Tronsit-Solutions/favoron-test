@@ -308,7 +308,7 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full max-w-full pr-8">
+            {isMobile ? <div className="space-y-3 w-full max-w-full">
                 {/* Product name and status in single row */}
                 <div className="flex items-start gap-2 w-full">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
