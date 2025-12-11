@@ -68,14 +68,18 @@ export function useTripEditNotifications() {
         return { notifiedCount: 0 };
       }
 
-      // Get unique shopper IDs
-      const shopperIds = [...new Set(activePackages.map(p => p.user_id))];
-      const message = getChangeMessage(changeType, tripDetails);
+      // Get unique shopper IDs and their package IDs
+      const shopperPackagesMap = new Map<string, string[]>();
+      activePackages.forEach(p => {
+        const existing = shopperPackagesMap.get(p.user_id) || [];
+        shopperPackagesMap.set(p.user_id, [...existing, p.id]);
+      });
 
+      const message = getChangeMessage(changeType, tripDetails);
       let notifiedCount = 0;
 
-      // Send notification to each unique shopper
-      for (const shopperId of shopperIds) {
+      // Send notification to each unique shopper with their package IDs in metadata
+      for (const [shopperId, packageIds] of shopperPackagesMap.entries()) {
         try {
           await createNotification(
             shopperId,
@@ -83,7 +87,13 @@ export function useTripEditNotifications() {
             message,
             'trip',
             'high', // High priority = email + WhatsApp
-            '/dashboard'
+            '/dashboard',
+            {
+              tripId,
+              changeType,
+              packageIds,
+              changedAt: new Date().toISOString()
+            }
           );
           notifiedCount++;
         } catch (notifyError) {
