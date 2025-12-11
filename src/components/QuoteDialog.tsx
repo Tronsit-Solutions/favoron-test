@@ -45,6 +45,7 @@ interface QuoteDialogProps {
     additional_notes?: string;
     shopper_trust_level?: string;
     package_destination?: string;
+    cityArea?: string;
   };
   userType: 'user' | 'admin' | 'operations';
   existingQuote?: any;
@@ -329,7 +330,8 @@ const QuoteDialog = ({
     const activeProducts = selectedProducts.filter(p => !p.excluded);
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
-    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+    const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
+    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea);
     return breakdown.totalPrice;
   };
   
@@ -875,7 +877,7 @@ const QuoteDialog = ({
                           <div className="flex justify-between text-sm text-green-700">
                             <span>🚚 Entrega a domicilio:</span>
                             <span className="font-semibold text-green-600">
-                              {formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.package_destination).deliveryFee)}
+                              {formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea).deliveryFee)}
                             </span>
                           </div>
                         )}
