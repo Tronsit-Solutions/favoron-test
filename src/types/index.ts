@@ -78,6 +78,12 @@ export interface ProductData {
   receivedByTraveler?: boolean;
   receivedAt?: string;  // ISO timestamp
   receivedPhoto?: string;  // URL or base64
+  
+  // Cancellation fields
+  cancelled?: boolean;
+  cancelledAt?: string;
+  cancelledReason?: string;
+  refundAmount?: number;
 }
 
 export interface Quote {
