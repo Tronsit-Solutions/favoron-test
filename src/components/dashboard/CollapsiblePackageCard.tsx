@@ -339,10 +339,10 @@ const CollapsiblePackageCard = ({
                   </div>
                 </CardDescription>
 
-                {/* Trip Change Alert Badge - Mobile */}
+                {/* Trip Change Alert Badge - Mobile (compact) */}
                 {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
                   <div className="pl-6">
-                    <TripChangeAlertBadge packageId={pkg.id} />
+                    <TripChangeAlertBadge packageId={pkg.id} compact />
                   </div>
                 )}
 
