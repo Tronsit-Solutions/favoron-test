@@ -1009,6 +1009,21 @@ const QuoteDialog = ({
                           )}
                         </div>
                       )}
+                      
+                      {/* Final total after discount - clear and prominent */}
+                      {discountSuccess && (
+                        <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-400 rounded-lg p-4 mt-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-green-800 font-bold text-base flex items-center gap-2">
+                              <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              Total a pagar:
+                            </span>
+                            <span className="text-2xl font-bold text-green-700">
+                              {formatCurrency(finalTotal)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
