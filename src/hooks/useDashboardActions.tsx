@@ -555,6 +555,30 @@ export const useDashboardActions = (
               quote: finalQuote,
               internal_notes: updatedInternalNotes
             });
+            
+            // Notify traveler about removed products
+            if (quoteData.removedProducts?.length > 0 && selectedPackage.matched_trip_id) {
+              const matchedTrip = trips.find(t => t.id === selectedPackage.matched_trip_id);
+              if (matchedTrip?.user_id) {
+                try {
+                  const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
+                  const template = WhatsAppTemplates.productsRemovedByShopper(
+                    selectedPackage.item_description || 'tu pedido',
+                    quoteData.removedProducts,
+                    quoteData.updatedProducts.length
+                  );
+                  
+                  await sendWhatsAppNotification({
+                    userId: matchedTrip.user_id,
+                    ...template,
+                    actionUrl: 'https://favoron.app/dashboard?tab=viajes'
+                  });
+                  console.log('✅ Traveler notified about removed products');
+                } catch (notifError) {
+                  console.error('⚠️ Error notifying traveler about removed products:', notifError);
+                }
+              }
+            }
           } else if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
             // Existing discount-only logic (no products removed)
             console.log('💳 Discount code present, updating quote with discount data');
