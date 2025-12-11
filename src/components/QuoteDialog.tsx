@@ -148,6 +148,7 @@ const QuoteDialog = ({
       additionalComments: '',
       acceptedTerms: false,
       confirmedDeliveryTime: false,
+      confirmedProductReview: false,
       discountCode: '',
       discountAmount: 0,
       discountCodeId: '',
@@ -193,6 +194,7 @@ const QuoteDialog = ({
     additionalComments, 
     acceptedTerms, 
     confirmedDeliveryTime, 
+    confirmedProductReview = false,
     discountCode = '', 
     discountAmount = 0, 
     discountCodeId = '', 
@@ -1347,6 +1349,28 @@ const QuoteDialog = ({
           updateFormField('additionalComments', values.additional_comments ?? "");
         }} />}
 
+          {/* Traveler confirmation checkbox */}
+          {isTravelerContext && !existingQuote && (
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="confirmedProductReview"
+                  checked={confirmedProductReview}
+                  onCheckedChange={(checked) => updateFormField('confirmedProductReview', checked === true)}
+                  className="mt-0.5 border-emerald-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                />
+                <label htmlFor="confirmedProductReview" className="text-sm cursor-pointer">
+                  <span className="font-medium text-emerald-800 dark:text-emerald-200">
+                    Confirmo que he revisado el producto y que puedo llevarlo en mi maleta
+                  </span>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                    Al marcar esta casilla, confirmas que el producto cumple con las restricciones de equipaje y aduanas
+                  </p>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons - Modern design for travelers */}
           <div className={`flex justify-end gap-3 pt-4 ${isTravelerContext ? 'border-t-2 border-muted/40' : 'border-t'}`}>            
             {!existingQuote ? <>
@@ -1359,7 +1383,7 @@ const QuoteDialog = ({
                 </Button>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={!displayAmount && !price} 
+                  disabled={(!displayAmount && !price) || (isTravelerContext && !confirmedProductReview)} 
                   className={`flex-1 sm:flex-none ${isTravelerContext 
                     ? 'bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25 hover:shadow-success/40 hover:scale-[1.02] transition-all duration-200' 
                     : 'bg-green-600 hover:bg-green-700 text-white'}`}
