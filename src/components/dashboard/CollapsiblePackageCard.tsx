@@ -35,6 +35,7 @@ import { canCancelPackage, requiresRefundForCancellation } from "@/lib/permissio
 import { PackageCancellationModal } from "@/components/dashboard/PackageCancellationModal";
 import { ProductStatusModal } from "@/components/ProductStatusModal";
 import { Badge } from "@/components/ui/badge";
+import { TripChangeAlertBadge } from "@/components/dashboard/TripChangeAlertBadge";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -250,6 +251,13 @@ const CollapsiblePackageCard = ({
 
   // Check if package is fully cancelled (all products cancelled)
   const isCancelledPackage = pkg.status === 'cancelled';
+
+  // Active statuses where trip change alerts should be shown
+  const ACTIVE_PACKAGE_STATUSES_FOR_ALERTS = [
+    'matched', 'quote_sent', 'quote_accepted', 'payment_pending_approval',
+    'pending_purchase', 'in_transit', 'received_by_traveler', 
+    'pending_office_confirmation', 'delivered_to_office'
+  ];
   
   // Card content wrapper
   const cardContent = (
@@ -330,6 +338,13 @@ const CollapsiblePackageCard = ({
                     <span className="block break-words max-w-full">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
+
+                {/* Trip Change Alert Badge - Mobile */}
+                {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
+                  <div className="pl-6">
+                    <TripChangeAlertBadge packageId={pkg.id} />
+                  </div>
+                )}
 
                 {/* Product Status Button - Mobile */}
                 {shouldShowProductStatusButton && (
@@ -482,6 +497,11 @@ const CollapsiblePackageCard = ({
                       </span>
                     </div>
                   </CardDescription>
+
+                  {/* Trip Change Alert Badge - Desktop (compact) */}
+                  {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
+                    <TripChangeAlertBadge packageId={pkg.id} compact />
+                  )}
                   
                   {/* Action buttons - responsive layout */}
                   <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
