@@ -75,10 +75,11 @@ export function TripChangeAlertBadge({ packageId, compact = false }: TripChangeA
 
   if (compact) {
     return (
-      <Popover>
+      <Popover modal={false}>
         <PopoverTrigger asChild>
           <button
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 transition-colors"
           >
             <AlertTriangle className="h-3 w-3" />
@@ -93,11 +94,12 @@ export function TripChangeAlertBadge({ packageId, compact = false }: TripChangeA
   }
 
   return (
-    <Popover>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <button 
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 transition-colors w-full text-left"
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <div className="flex-1 min-w-0">
