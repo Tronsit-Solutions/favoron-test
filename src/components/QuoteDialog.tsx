@@ -217,11 +217,18 @@ const QuoteDialog = ({
     setDiscountSuccess(false);
     
     try {
-      const baseTotal = displayAmount || 0;
+      // Calculate Favorón subtotal (tip + service fee) WITHOUT delivery - discount only applies to this
+      const activeProducts = selectedProducts.filter(p => !p.excluded);
+      const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+      const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
+      const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea);
+      
+      // Favorón subtotal = tip + service fee (no delivery)
+      const favoronSubtotal = breakdown.basePrice + breakdown.serviceFee;
       
       const { data, error } = await supabase.rpc('validate_discount_code', {
         _code: discountCode.trim().toUpperCase(),
-        _order_amount: baseTotal,
+        _order_amount: favoronSubtotal, // Validate against Favorón subtotal only
         _user_id: profile?.id
       });
       
@@ -230,14 +237,16 @@ const QuoteDialog = ({
       const result = data as any;
       
       if (result?.valid) {
-        // Apply discount
+        // Apply discount to Favorón subtotal only
         const discount = result.calculatedDiscount;
-        const newTotal = Math.max(0, baseTotal - discount);
+        const discountedFavoron = Math.max(0, favoronSubtotal - discount);
+        // Final total = discounted Favorón + delivery fee
+        const finalTotalWithDelivery = discountedFavoron + breakdown.deliveryFee;
         
         updateFormField('discountAmount', discount);
         updateFormField('discountCodeId', result.discountCodeId);
-        updateFormField('originalTotal', baseTotal);
-        updateFormField('finalTotal', newTotal);
+        updateFormField('originalTotal', favoronSubtotal); // Store Favorón subtotal, not total with delivery
+        updateFormField('finalTotal', finalTotalWithDelivery);
         setDiscountSuccess(true);
         
         toast({
@@ -983,16 +992,16 @@ const QuoteDialog = ({
                                   </p>
                                   <div className="mt-2 space-y-1">
                                     <div className="flex justify-between text-sm">
-                                      <span className="text-muted-foreground">Total original:</span>
+                                      <span className="text-muted-foreground">Subtotal Favorón:</span>
                                       <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm text-green-600 font-medium">
                                       <span>Descuento:</span>
                                       <span>-{formatCurrency(discountAmount)}</span>
                                     </div>
-                                    <div className="flex justify-between text-base font-bold text-green-700 pt-2 border-t">
-                                      <span>Nuevo total:</span>
-                                      <span>{formatCurrency(finalTotal)}</span>
+                                    <div className="flex justify-between text-sm font-medium text-green-700">
+                                      <span>Subtotal con descuento:</span>
+                                      <span>{formatCurrency(originalTotal - discountAmount)}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1010,17 +1019,29 @@ const QuoteDialog = ({
                         </div>
                       )}
                       
-                      {/* Final total after discount - clear and prominent */}
+                      {/* Final total after discount - clear breakdown with delivery */}
                       {discountSuccess && (
                         <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-400 rounded-lg p-4 mt-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-green-800 font-bold text-base flex items-center gap-2">
-                              <CheckCircle2 className="w-5 h-5 text-green-600" />
-                              Total a pagar:
-                            </span>
-                            <span className="text-2xl font-bold text-green-700">
-                              {formatCurrency(finalTotal)}
-                            </span>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm text-green-800">
+                              <span>Subtotal con descuento:</span>
+                              <span>{formatCurrency(originalTotal - discountAmount)}</span>
+                            </div>
+                            {packageDetails.delivery_method === 'delivery' && (
+                              <div className="flex justify-between text-sm text-green-800">
+                                <span>🚚 Entrega a domicilio:</span>
+                                <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea).deliveryFee)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center pt-2 border-t border-green-300">
+                              <span className="text-green-800 font-bold text-base flex items-center gap-2">
+                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                Total a pagar:
+                              </span>
+                              <span className="text-2xl font-bold text-green-700">
+                                {formatCurrency(finalTotal)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       )}
