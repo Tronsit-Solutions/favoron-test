@@ -22,7 +22,7 @@ import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
-import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee } from '@/lib/pricing';
+import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee, isGuatemalaCityArea } from '@/lib/pricing';
 import { createNormalizedQuote } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
 import './ui/mobile-input-fix.css';
@@ -899,6 +899,39 @@ const QuoteDialog = ({
                           })()}
                         </div>
                         
+                        {/* Prime savings display */}
+                        {packageDetails.shopper_trust_level === 'prime' && (() => {
+                          const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
+                          const activeProducts = selectedProducts.filter(p => !p.excluded);
+                          const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+                          
+                          // Calculate service fee savings (40% standard vs 20% Prime)
+                          const standardServiceFee = totalTip * 0.40;
+                          const primeServiceFee = totalTip * 0.20;
+                          const serviceFeeSavings = standardServiceFee - primeServiceFee;
+                          
+                          // Calculate delivery savings only if delivery method
+                          let deliverySavings = 0;
+                          if (packageDetails.delivery_method === 'delivery') {
+                            const isGuatemala = isGuatemalaCityArea(cityArea);
+                            const standardDelivery = isGuatemala ? 25 : 60;
+                            const primeDelivery = isGuatemala ? 0 : 35;
+                            deliverySavings = standardDelivery - primeDelivery;
+                          }
+                          
+                          const totalSavings = serviceFeeSavings + deliverySavings;
+                          
+                          if (totalSavings <= 0) return null;
+                          
+                          return (
+                            <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-2 mt-2">
+                              <Crown className="w-4 h-4 text-amber-500" />
+                              <span className="text-amber-700 font-semibold text-sm">
+                                ¡Ahorro Prime! Estás ahorrando {formatCurrency(totalSavings)} en este pedido
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       
                       {/* Warning note */}
