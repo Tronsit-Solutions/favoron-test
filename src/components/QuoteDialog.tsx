@@ -776,6 +776,13 @@ const QuoteDialog = ({
             ) : (
             /* Detailed view for shoppers - UNIFIED: Product details + Quote per product */
               <>
+                {/* Warning note - Outside green container for cleaner hierarchy */}
+                {existingQuote && (
+                  <p className="text-xs text-amber-700 font-medium bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3">
+                    ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
+                  </p>
+                )}
+                
                 {/* Show unified section for all products with existing quote */}
                 {existingQuote ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -943,10 +950,7 @@ const QuoteDialog = ({
                         })()}
                       </div>
                       
-                      {/* Warning note */}
-                      <p className="text-xs text-red-600 font-medium bg-red-50 border border-red-200 rounded p-2">
-                        ⚠️ Tú eres el encargado de hacer la compra. La cotización no incluye el precio de tus productos.
-                      </p>
+                      
                       
                       {/* Discount Code Section - Inside green container */}
                       {existingQuote && userType === 'user' && !isQuoteExpired && (
