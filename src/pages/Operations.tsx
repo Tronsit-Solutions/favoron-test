@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Tag, ArrowLeft, PackageCheck, LogOut } from 'lucide-react';
+import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import {
@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import OperationsReceptionTab from '@/components/operations/OperationsReceptionTab';
 import OperationsLabelsTab from '@/components/operations/OperationsLabelsTab';
 import OperationsReadyTab from '@/components/operations/OperationsReadyTab';
+import OperationsCompletedTab from '@/components/operations/OperationsCompletedTab';
 
 const Operations = () => {
   const { profile, userRole } = useAuth();
@@ -78,7 +79,7 @@ const Operations = () => {
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-xl">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="reception" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Recepción</span>
@@ -90,6 +91,10 @@ const Operations = () => {
             <TabsTrigger value="labels" className="flex items-center gap-2">
               <Tag className="h-4 w-4" />
               <span className="hidden sm:inline">Etiquetas</span>
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Completados</span>
             </TabsTrigger>
           </TabsList>
 
@@ -103,6 +108,10 @@ const Operations = () => {
 
           <TabsContent value="labels">
             {activeTab === 'labels' && <OperationsLabelsTab />}
+          </TabsContent>
+
+          <TabsContent value="completed">
+            {activeTab === 'completed' && <OperationsCompletedTab />}
           </TabsContent>
         </Tabs>
       </main>
