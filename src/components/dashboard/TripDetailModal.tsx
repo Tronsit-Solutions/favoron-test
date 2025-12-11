@@ -4,8 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
+import { TripEditSelectionModal } from "./TripEditSelectionModal";
+import { TripEditReceivingWindowModal } from "./TripEditReceivingWindowModal";
+import { TripEditDeliveryDateModal } from "./TripEditDeliveryDateModal";
+import { TripEditAddressModal } from "./TripEditAddressModal";
+import { useTripEditNotifications } from "@/hooks/useTripEditNotifications";
 import { 
   Calendar, 
   MapPin, 
@@ -36,10 +41,84 @@ interface TripDetailModalProps {
 export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, packages = [], onEditTrip, currentUser }: TripDetailModalProps) => {
   if (!trip) return null;
 
+  const { hasActivePackages: checkActivePackages } = useTripEditNotifications();
+  
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showReceivingWindowModal, setShowReceivingWindowModal] = useState(false);
+  const [showDeliveryDateModal, setShowDeliveryDateModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [hasActivePackages, setHasActivePackages] = useState(false);
+  
   const address = trip.package_receiving_address;
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   const isOwner = currentUser?.id === trip.user_id;
+
+  // Check for active packages when modal opens
+  useEffect(() => {
+    const checkPackages = async () => {
+      if (trip?.id) {
+        const hasActive = await checkActivePackages(trip.id);
+        setHasActivePackages(hasActive);
+      }
+    };
+    if (isOpen) {
+      checkPackages();
+    }
+  }, [isOpen, trip?.id]);
+
+  const handleEditOptionSelect = (option: 'receiving_window' | 'delivery_date' | 'address' | 'other') => {
+    setShowSelectionModal(false);
+    
+    switch (option) {
+      case 'receiving_window':
+        setShowReceivingWindowModal(true);
+        break;
+      case 'delivery_date':
+        setShowDeliveryDateModal(true);
+        break;
+      case 'address':
+        setShowAddressModal(true);
+        break;
+      case 'other':
+        setShowEditModal(true);
+        break;
+    }
+  };
+
+  const handleReceivingWindowSubmit = (data: { firstDayPackages: Date; lastDayPackages: Date }) => {
+    if (onEditTrip) {
+      onEditTrip({
+        id: trip.id,
+        ...trip,
+        firstDayPackages: data.firstDayPackages,
+        lastDayPackages: data.lastDayPackages
+      });
+    }
+    setShowReceivingWindowModal(false);
+  };
+
+  const handleDeliveryDateSubmit = (data: { deliveryDate: Date }) => {
+    if (onEditTrip) {
+      onEditTrip({
+        id: trip.id,
+        ...trip,
+        deliveryDate: data.deliveryDate
+      });
+    }
+    setShowDeliveryDateModal(false);
+  };
+
+  const handleAddressSubmit = (data: { packageReceivingAddress: any }) => {
+    if (onEditTrip) {
+      onEditTrip({
+        id: trip.id,
+        ...trip,
+        packageReceivingAddress: data.packageReceivingAddress
+      });
+    }
+    setShowAddressModal(false);
+  };
 
   const handleEditSubmit = (editedData: any) => {
     if (onEditTrip) {
@@ -62,7 +141,7 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => setShowEditModal(true)}
+                  onClick={() => setShowSelectionModal(true)}
                   className="h-7 px-2 sm:h-8 sm:px-3 text-xs sm:text-sm"
                 >
                   <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -393,7 +472,42 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
         </div>
       </DialogContent>
 
-      {/* Edit Modal */}
+      {/* Selection Modal */}
+      <TripEditSelectionModal
+        isOpen={showSelectionModal}
+        onClose={() => setShowSelectionModal(false)}
+        onSelectOption={handleEditOptionSelect}
+        hasActivePackages={hasActivePackages}
+      />
+
+      {/* Receiving Window Modal */}
+      <TripEditReceivingWindowModal
+        isOpen={showReceivingWindowModal}
+        onClose={() => setShowReceivingWindowModal(false)}
+        onSubmit={handleReceivingWindowSubmit}
+        tripData={trip}
+        hasActivePackages={hasActivePackages}
+      />
+
+      {/* Delivery Date Modal */}
+      <TripEditDeliveryDateModal
+        isOpen={showDeliveryDateModal}
+        onClose={() => setShowDeliveryDateModal(false)}
+        onSubmit={handleDeliveryDateSubmit}
+        tripData={trip}
+        hasActivePackages={hasActivePackages}
+      />
+
+      {/* Address Modal */}
+      <TripEditAddressModal
+        isOpen={showAddressModal}
+        onClose={() => setShowAddressModal(false)}
+        onSubmit={handleAddressSubmit}
+        tripData={trip}
+        hasActivePackages={hasActivePackages}
+      />
+
+      {/* Full Edit Modal (for 'other' option) */}
       <EditTripModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
