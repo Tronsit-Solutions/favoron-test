@@ -24,6 +24,60 @@ const formatPrice = (price: number | string | null | undefined): string => {
   return `$${numPrice.toFixed(2)}`;
 };
 
+// Helper to get package status badge
+const getPackageStatusBadge = (status: string) => {
+  switch (status) {
+    case 'in_transit':
+      return (
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+          📦 En tránsito
+        </Badge>
+      );
+    case 'received_by_traveler':
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+          ✅ Recibido
+        </Badge>
+      );
+    case 'pending_office_confirmation':
+      return (
+        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+          🏢 Pendiente oficina
+        </Badge>
+      );
+    case 'delivered_to_office':
+      return (
+        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+          📍 En oficina
+        </Badge>
+      );
+    case 'ready_for_pickup':
+      return (
+        <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 text-xs">
+          🏠 Para recoger
+        </Badge>
+      );
+    case 'ready_for_delivery':
+      return (
+        <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 text-xs">
+          🚚 Para envío
+        </Badge>
+      );
+    case 'out_for_delivery':
+      return (
+        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs">
+          🚴 En reparto
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="secondary" className="text-xs">
+          {status}
+        </Badge>
+      );
+  }
+};
+
 // Package list item component with detailed product info
 const PackageListItem = ({
   pkg,
@@ -74,6 +128,7 @@ const PackageListItem = ({
             </p>
             <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
               <span>👤 {pkg.shopper_name}</span>
+              {getPackageStatusBadge(pkg.status)}
               {pkg.label_number && <span>🏷️ #{pkg.label_number}</span>}
             </div>
           </div>
