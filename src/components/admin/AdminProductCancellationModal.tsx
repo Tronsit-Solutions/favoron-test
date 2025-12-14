@@ -219,6 +219,10 @@ const AdminProductCancellationModal = ({
       // 4. Check if ALL products are now cancelled
       const allProductsCancelled = updatedProducts.every((p: any) => p.cancelled === true);
 
+      // 4b. Check if all ACTIVE products are confirmed (for status transition to received_by_traveler)
+      const activeProducts = updatedProducts.filter((p: any) => !p.cancelled);
+      const allActiveConfirmed = activeProducts.length > 0 && activeProducts.every((p: any) => p.receivedByTraveler === true);
+
       // 5. Build update payload
       const updatePayload: any = {
         products_data: updatedProducts,
@@ -228,6 +232,26 @@ const AdminProductCancellationModal = ({
       // If all products cancelled, mark package as cancelled
       if (allProductsCancelled) {
         updatePayload.status = 'cancelled';
+      } 
+      // If all active products are confirmed, transition to received_by_traveler
+      else if (allActiveConfirmed) {
+        // Check current status before transitioning
+        const { data: currentPackage } = await supabase
+          .from('packages')
+          .select('status')
+          .eq('id', packageId)
+          .single();
+        
+        // Only transition if currently in in_transit
+        if (currentPackage?.status === 'in_transit') {
+          updatePayload.status = 'received_by_traveler';
+          updatePayload.traveler_confirmation = {
+            confirmedAt: new Date().toISOString(),
+            allProductsConfirmed: true,
+            autoReconciled: true,
+            triggeredByCancellation: true
+          };
+        }
       }
 
       const { error: updateError } = await supabase
