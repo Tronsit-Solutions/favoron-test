@@ -133,6 +133,14 @@ const ShopperPackagePriorityActions = ({
           button: null
         };
       case 'quote_accepted':
+        if (isQuoteExpired) {
+          return {
+            icon: Clock,
+            title: "⏰ Cotización expirada",
+            description: "Esta cotización expiró antes de completar el pago. Solicita una nueva cotización.",
+            button: null
+          };
+        }
         return {
           icon: CreditCard,
           title: "¡Cotización aceptada!",
@@ -140,6 +148,14 @@ const ShopperPackagePriorityActions = ({
           button: null
         };
       case 'payment_pending':
+        if (isQuoteExpired) {
+          return {
+            icon: Clock,
+            title: "⏰ Cotización expirada",
+            description: "Esta cotización expiró antes de completar el pago. Solicita una nueva cotización.",
+            button: null
+          };
+        }
         return {
           icon: CreditCard,
           title: "💰 Realizar Pago",

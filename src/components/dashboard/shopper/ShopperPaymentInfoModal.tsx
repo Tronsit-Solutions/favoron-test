@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Copy, CreditCard, CheckCircle, X, Tag } from "lucide-react";
+import { Copy, CreditCard, CheckCircle, X, Tag, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,6 +69,9 @@ export default function ShopperPaymentInfoModal({
     setCurrentPkg(updatedPkg);
     onUploadComplete(updatedPkg);
   };
+
+  // Check if quote has expired
+  const isQuoteExpired = !!(currentPkg.quote_expires_at && new Date(currentPkg.quote_expires_at) <= new Date());
 
   // Show success state if receipt was uploaded
   const showSuccessState = currentPkg.payment_receipt && currentPkg.status === 'payment_pending_approval';
@@ -278,6 +281,20 @@ export default function ShopperPaymentInfoModal({
           </DialogDescription>
         </DialogHeader>
 
+        {isQuoteExpired ? (
+          <Card className="bg-destructive/10 border-destructive/30">
+            <CardContent className="p-6 text-center">
+              <Clock className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-destructive">Cotización Expirada</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Esta cotización ha expirado. Por favor cierra este modal y solicita una nueva cotización.
+              </p>
+              <Button variant="outline" className="mt-4" onClick={onClose}>
+                Cerrar
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
         <div className="space-y-6">
           {/* Payment Amount */}
           <Card>
@@ -503,6 +520,7 @@ export default function ShopperPaymentInfoModal({
             </div>
           )}
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );
