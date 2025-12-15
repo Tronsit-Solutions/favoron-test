@@ -102,7 +102,7 @@ export const useAdminData = (): AdminData => {
           admin_rejection, quote_rejection, traveler_rejection,
           admin_actions_log, internal_notes, admin_assigned_tip,
           confirmed_delivery_address, traveler_address, matched_trip_dates,
-          payment_receipt
+          payment_receipt, products_data
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + PACKAGES_PER_PAGE - 1);
