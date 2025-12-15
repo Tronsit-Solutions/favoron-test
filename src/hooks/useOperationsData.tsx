@@ -83,13 +83,25 @@ export interface TripWithPackages {
 
 // ============= Hook =============
 
+const CACHE_TTL_MS = 30000; // 30 seconds cache
+
 export const useOperationsData = () => {
   const [allPackages, setAllPackages] = useState<OperationsPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
-  const fetchAllData = useCallback(async () => {
-    setLoading(true);
+  const fetchAllData = useCallback(async (forceRefresh = false) => {
+    // Skip fetch if data is fresh (less than 30 seconds old) and not forcing refresh
+    if (!forceRefresh && lastFetched && Date.now() - lastFetched.getTime() < CACHE_TTL_MS) {
+      console.log('⏭️ Operations data cache still fresh, skipping fetch');
+      return;
+    }
+
+    // Only show loading spinner on initial load, not on refresh
+    if (allPackages.length === 0) {
+      setLoading(true);
+    }
+
     try {
       const { data, error } = await supabase.rpc('get_all_operations_data');
 
@@ -131,12 +143,12 @@ export const useOperationsData = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lastFetched, allPackages.length]);
 
   // Initial fetch
   useEffect(() => {
     fetchAllData();
-  }, [fetchAllData]);
+  }, []);
 
   // ============= Filtered data for each tab (computed in memory) =============
 
@@ -254,11 +266,14 @@ export const useOperationsData = () => {
     ));
   }, []);
 
+  // Force refresh wrapper for onClick handlers
+  const refresh = useCallback(() => fetchAllData(true), [fetchAllData]);
+
   return {
     // Loading state
     loading,
     lastFetched,
-    refresh: fetchAllData,
+    refresh,
     
     // All data
     allPackages,
