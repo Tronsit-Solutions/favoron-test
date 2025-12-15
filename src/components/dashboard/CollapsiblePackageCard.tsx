@@ -762,7 +762,12 @@ const CollapsiblePackageCard = ({
                     </h3>
                   </div>
                   <div className="p-3">
-                    <ShopperPackagePriorityActions pkg={pkg} onQuote={onQuote} />
+                    <ShopperPackagePriorityActions 
+                      pkg={pkg} 
+                      onQuote={onQuote}
+                      onDeletePackage={onDeletePackage}
+                      onRequestRequote={onRequestRequote}
+                    />
                   </div>
                 </div>
                 
