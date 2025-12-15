@@ -147,6 +147,47 @@ export const MatchCard = ({
     return { received: receivedCount, total: products.length };
   };
 
+  const getProductsDisplayTitle = () => {
+    if (!pkg.products_data || !Array.isArray(pkg.products_data) || pkg.products_data.length <= 1) {
+      return <span>{pkg.item_description}</span>;
+    }
+    
+    const products = pkg.products_data;
+    const hasCancelledProducts = products.some((p: any) => p.cancelled === true);
+    
+    if (!hasCancelledProducts) {
+      return <span>{pkg.item_description}</span>;
+    }
+    
+    // Build dynamic title with cancelled products styled differently
+    const productElements = products.map((product: any, index: number) => {
+      const description = product.itemDescription || 'Producto';
+      const isLast = index === products.length - 1;
+      
+      if (product.cancelled) {
+        return (
+          <span key={index}>
+            <span className="line-through text-muted-foreground">{description}</span>
+            <span className="text-red-500 text-xs ml-1">(cancelado)</span>
+            {!isLast && ', '}
+          </span>
+        );
+      }
+      return (
+        <span key={index}>
+          {description}
+          {!isLast && ', '}
+        </span>
+      );
+    });
+    
+    return (
+      <span>
+        Pedido de {products.length} productos: {productElements}
+      </span>
+    );
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -161,7 +202,7 @@ export const MatchCard = ({
                     <ChevronRight className="h-4 w-4" />
                   }
                 </div>
-                <h4 className={`font-medium truncate ${isMobile ? "text-base" : "text-sm"}`}>{pkg.item_description}</h4>
+                <h4 className={`font-medium ${isMobile ? "text-base" : "text-sm"}`}>{getProductsDisplayTitle()}</h4>
                 <MatchStatusBadge status={pkg.status} />
                 {pkg.label_number && (
                   <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
