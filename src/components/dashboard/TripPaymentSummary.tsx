@@ -50,18 +50,19 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
 
         if (error) throw error;
 
+        const deliveredStatuses = ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'];
         const total = data?.length || 0;
-        const completed = data?.filter(pkg => pkg.status === 'completed').length || 0;
+        const delivered = data?.filter(pkg => deliveredStatuses.includes(pkg.status)).length || 0;
         
         console.log('📦 TripPaymentSummary - Package counts:', {
           tripId: trip.id,
           total,
-          completed,
+          delivered,
           allStatuses: data?.map(p => p.status),
-          allPackagesCompleted: total > 0 && completed === total
+          hasDeliveredPackages: delivered > 0
         });
         
-        setPackageCounts({ total, completed });
+        setPackageCounts({ total, completed: delivered });
       } catch (error) {
         console.error('Error fetching package counts:', error);
         setPackageCounts({ total: 0, completed: 0 });
@@ -102,22 +103,23 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       return null; // Still loading package counts
     }
 
-    const allPackagesCompleted = packageCounts.total > 0 && packageCounts.completed === packageCounts.total;
+    // Mostrar botón cuando hay al menos un paquete entregado (no esperar a que todos estén completados)
+    const hasDeliveredPackages = packageCounts.completed > 0;
     
     console.log('🚨 TripPaymentSummary - No tripPayment found:', {
       tripId: trip.id,
       packageCounts,
-      allPackagesCompleted,
-      shouldShowButton: allPackagesCompleted
+      hasDeliveredPackages,
+      shouldShowButton: hasDeliveredPackages
     });
 
     return (
       <Card className="bg-muted/20 border">
         <CardContent className="p-3 text-center">
           <p className="text-xs text-muted-foreground mb-2">
-            {packageCounts.completed} de {packageCounts.total} paquetes completados. Podrás crear tu orden de cobro cuando todos estén completados.
+            {packageCounts.completed} de {packageCounts.total} paquetes entregados en oficina.
           </p>
-          {allPackagesCompleted && (
+          {hasDeliveredPackages && (
             <Button 
               onClick={handleCreateAccumulator}
               size="sm"
