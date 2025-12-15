@@ -84,6 +84,9 @@ const Footer = () => {
             <p className="text-gray-500 text-xs">
               Favorón es una marca operada por Ingenierías Reunidas, Sociedad Anónima.
             </p>
+            <p className="text-gray-500 text-xs">
+              © 2025 Ingenierías Reunidas, S.A. – Guatemala
+            </p>
           </div>
         </div>
       </div>
