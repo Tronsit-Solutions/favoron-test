@@ -426,7 +426,7 @@ const CollapsiblePackageCard = ({
                 onQuote(pkg, 'user');
               }} className="text-xs font-medium w-full">
                       Ver y Aceptar Cotización
-                    </Button> : pkg.status === 'payment_pending' ? <Button size="sm" variant="default" onClick={e => {
+                    </Button> : pkg.status === 'payment_pending' && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="default" onClick={e => {
                 e.stopPropagation();
                 setShowPaymentModal(true);
               }} className="text-xs font-medium w-full">
@@ -566,7 +566,7 @@ const CollapsiblePackageCard = ({
                 onQuote(pkg, 'user');
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full truncate">
                       <span className="truncate">Ver y Aceptar Cotización</span>
-                    </Button> : pkg.status === 'payment_pending' ? <Button size="sm" variant="default" onClick={e => {
+                    </Button> : pkg.status === 'payment_pending' && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="default" onClick={e => {
                 e.stopPropagation();
                 setShowPaymentModal(true);
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
