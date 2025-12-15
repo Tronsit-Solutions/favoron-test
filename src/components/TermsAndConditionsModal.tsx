@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Package, Plane, Shield, Users } from "lucide-react";
+import { FileText, MessageCircle, Package, Plane, Shield, Users } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TermsAndConditionsModalProps {
@@ -109,6 +109,30 @@ const TermsAndConditionsModal = ({ isOpen, onClose }: TermsAndConditionsModalPro
                   <li><strong>Retrasos y perjuicios:</strong> Si un paquete llega tarde al viajero, Favorón no se hace responsable por pérdidas, vencimientos o perjuicios derivados.</li>
                   <li><strong>Responsabilidad limitada:</strong> La responsabilidad de Favorón se limita al valor declarado y comprobable del producto.</li>
                 </ul>
+              </CardContent>
+            </Card>
+
+            {/* 5. Notificaciones por WhatsApp */}
+            <Card className="border-l-4 border-l-teal-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <MessageCircle className="h-5 w-5 text-teal-500" />
+                  📲 5. Notificaciones por WhatsApp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-gray-700">
+                  Al usar Favorón, aceptas recibir notificaciones automáticas por WhatsApp relacionadas con:
+                </p>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li>• Estado de pedidos</li>
+                  <li>• Confirmaciones</li>
+                  <li>• Recordatorios</li>
+                  <li>• Soporte operativo</li>
+                </ul>
+                <p className="text-xs text-gray-600 mt-3">
+                  Estas notificaciones son enviadas desde números oficiales operados por Ingenierías Reunidas, S.A.
+                </p>
               </CardContent>
             </Card>
           </div>
