@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
