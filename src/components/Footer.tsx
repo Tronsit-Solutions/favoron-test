@@ -71,6 +71,12 @@ const Footer = () => {
               >
                 Regulación Aduanera
               </Link>
+              <Link 
+                to="/aviso-legal"
+                className="block text-gray-300 hover:text-primary transition-colors text-sm"
+              >
+                Aviso Legal
+              </Link>
             </div>
           </div>
         </div>
