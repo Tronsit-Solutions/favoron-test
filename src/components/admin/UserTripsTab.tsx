@@ -10,7 +10,6 @@ import { es } from "date-fns/locale";
 import { Plane, Edit, Eye, MapPin, Calendar, Package as PackageIcon, User } from "lucide-react";
 import { formatCurrency, formatDollarPrice } from "@/lib/formatters";
 import TripPackagesModal from "./TripPackagesModal";
-import { ManualPaymentOrderButton } from "./ManualPaymentOrderButton";
 
 interface UserTripsTabProps {
   trips: Trip[];
@@ -91,13 +90,10 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Plane className="h-5 w-5" />
-              Viajes como Viajero ({trips.length})
-            </CardTitle>
-            <ManualPaymentOrderButton />
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Plane className="h-5 w-5" />
+            Viajes como Viajero ({trips.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
