@@ -200,7 +200,8 @@ export const useAdminData = (): AdminData => {
         confirmed_delivery_address,
         traveler_address,
         matched_trip_dates,
-        payment_receipt
+        payment_receipt,
+        products_data
       `)
         .not('matched_trip_id', 'is', null)
         .order('created_at', { ascending: false });
