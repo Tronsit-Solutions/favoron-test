@@ -1,7 +1,7 @@
 import NavBar from "@/components/NavBar";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Scale, Shield, Users, Package, Plane, AlertTriangle, CheckCircle } from "lucide-react";
+import { FileText, Scale, Shield, Users, Package, Plane, AlertTriangle, CheckCircle, MessageCircle } from "lucide-react";
 const TermsAndConditions = () => {
   const navigate = useNavigate();
   const openAuth = () => {
@@ -162,6 +162,30 @@ const TermsAndConditions = () => {
                   <li>La garantía aplica solo si se respetan nuestras políticas, incluyendo el envío y entrega autorizados.</li>
                   <li>El contenido del paquete es responsabilidad exclusiva del shopper y viajero.</li>
                 </ul>
+              </CardContent>
+            </Card>
+
+            {/* Notificaciones por WhatsApp */}
+            <Card className="border-l-4 border-l-teal-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <MessageCircle className="h-6 w-6 text-teal-500" />
+                  📲 Notificaciones por WhatsApp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-gray max-w-none">
+                <p className="text-gray-700 mb-4">
+                  Al usar Favorón, aceptas recibir notificaciones automáticas por WhatsApp relacionadas con:
+                </p>
+                <ul className="space-y-3 text-gray-700">
+                  <li>• Estado de pedidos</li>
+                  <li>• Confirmaciones</li>
+                  <li>• Recordatorios</li>
+                  <li>• Soporte operativo</li>
+                </ul>
+                <p className="text-gray-600 text-sm mt-4">
+                  Estas notificaciones son enviadas desde números oficiales operados por Ingenierías Reunidas, S.A.
+                </p>
               </CardContent>
             </Card>
 
