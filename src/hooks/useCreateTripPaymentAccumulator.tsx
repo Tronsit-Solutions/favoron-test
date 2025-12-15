@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 export const createOrUpdateTripPaymentAccumulator = async (tripId: string, travelerId: string) => {
   try {
     // Obtener todos los paquetes completados del viaje con quotes
+    // Incluir todos los estados de entrega: delivered_to_office, ready_for_pickup, ready_for_delivery, completed
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
       .select('id, quote, status, office_delivery')
       .eq('matched_trip_id', tripId)
-      .in('status', ['completed', 'delivered_to_office'])
+      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
       .not('quote', 'is', null);
 
     if (packagesError) throw packagesError;
@@ -21,8 +22,10 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       const isCompleted = pkg.status === 'completed';
       const isDeliveredToOffice = pkg.status === 'delivered_to_office' && 
         pkg.office_delivery?.admin_confirmation;
+      const isReadyForPickup = pkg.status === 'ready_for_pickup';
+      const isReadyForDelivery = pkg.status === 'ready_for_delivery';
       
-      if (!isCompleted && !isDeliveredToOffice) {
+      if (!isCompleted && !isDeliveredToOffice && !isReadyForPickup && !isReadyForDelivery) {
         console.log('⏭️ Skipping package (not delivered):', pkg.id, 'status:', pkg.status);
         return; // Skip paquetes sin confirmación
       }
@@ -45,7 +48,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     console.log('📊 Summary: delivered_count =', deliveredEligibleCount, 'accumulated =', accumulatedAmount);
 
     // Obtener total de paquetes del viaje con estado igual o posterior a 'in_transit'
-    const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered'];
+    const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered','ready_for_pickup','ready_for_delivery'];
     const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
       .from('packages')
       .select('id, status')
