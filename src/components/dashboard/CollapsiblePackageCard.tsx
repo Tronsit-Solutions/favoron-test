@@ -412,13 +412,19 @@ const CollapsiblePackageCard = ({
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
                 <div className="space-y-2 w-full max-w-full pl-5">
-                  {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
-                e.stopPropagation();
-                onRequestRequote(pkg);
-              }} className="text-xs w-full flex items-center gap-2">
+                  {/* Botón re-cotización para cotizaciones expiradas (status quote_expired O cotización expirada en quote_sent/payment_pending/quote_accepted) */}
+                  {(pkg.status === 'quote_expired' || 
+                    ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
+                     pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date())) && 
+                   onRequestRequote && (
+                    <Button size="sm" variant="shopper" onClick={e => {
+                      e.stopPropagation();
+                      onRequestRequote(pkg);
+                    }} className="text-xs w-full flex items-center gap-2">
                       <RefreshCw className="h-3 w-3" />
                       Solicitar Nueva Cotización
-                    </Button>}
+                    </Button>
+                  )}
                   
                   {/* Shopper Action Button - mobile optimized */}
                   {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="success" onClick={e => {
@@ -594,6 +600,16 @@ const CollapsiblePackageCard = ({
                           <span className="truncate">Recoger paquete</span>
                         </Button>
                       )
+                    ) : (pkg.status === 'quote_expired' || 
+                      ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
+                       pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date())) && onRequestRequote ? (
+                      <Button size="sm" variant="shopper" onClick={e => {
+                        e.stopPropagation();
+                        onRequestRequote(pkg);
+                      }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full flex items-center gap-2">
+                        <RefreshCw className="h-3 w-3" />
+                        <span className="truncate">Solicitar Nueva Cotización</span>
+                      </Button>
                     ) : null}
                   
                   {/* Show upload tracking button for purchased items without tracking */}
