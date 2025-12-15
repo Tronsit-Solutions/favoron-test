@@ -19,6 +19,7 @@ import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 import AdminDiscounts from "./pages/AdminDiscounts";
 import AdminPlatformFees from "./pages/AdminPlatformFees";
 import Operations from "./pages/Operations";
+import AvisoLegal from "./pages/AvisoLegal";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
             } />
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
             <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
+            <Route path="/aviso-legal" element={<AvisoLegal />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
