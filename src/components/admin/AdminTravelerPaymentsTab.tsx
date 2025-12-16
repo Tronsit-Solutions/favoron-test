@@ -242,8 +242,10 @@ const AdminTravelerPaymentsTab = () => {
       eligibleStatuses.includes(pkg.status)
     );
     
-    // Usar historical_packages si tiene contenido, sino usar fallback
-    const packages = normalizedHistorical.length > 0 ? normalizedHistorical : fallbackTripPackages;
+    // Usar fallback si historical_packages está incompleto (menos paquetes que el actual)
+    const packages = normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
+      ? normalizedHistorical 
+      : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical);
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0);
 
     return (
