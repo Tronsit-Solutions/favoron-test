@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -25,6 +25,7 @@ import { PartialDeliveryInfo } from "@/components/dashboard/PartialDeliveryInfo"
 import QuoteCountdown from "@/components/dashboard/QuoteCountdown";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { useAuth } from "@/hooks/useAuth";
+import { useFavoronCompanyInfo } from "@/hooks/useFavoronCompanyInfo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package as PackageType, UserType, DocumentType } from "@/types";
@@ -86,9 +87,15 @@ const CollapsiblePackageCard = ({
   } = useStatusHelpers();
   const expirationInfo = getExpirationInfo(pkg);
   const isMobile = useIsMobile();
+  const { companyInfo } = useFavoronCompanyInfo();
   const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase'
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
   );
+  
+  // Helper to check if we should show office pickup address
+  const shouldShowOfficeAddress = 
+    pkg.status === 'ready_for_pickup' || 
+    (pkg.status === 'delivered_to_office' && pkg.delivery_method === 'pickup');
   const getStatusDescription = (pkg: any): string => {
     console.log('Package status:', pkg.status, 'Package:', pkg);
     switch (pkg.status) {
@@ -409,6 +416,49 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
+                {/* Office Pickup Address Section - Mobile */}
+                {shouldShowOfficeAddress && companyInfo && (
+                  <div className="pl-5">
+                    <div className="bg-success/10 border-2 border-success/30 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-success text-sm mb-1">📦 Dirección de recolección:</p>
+                          <p className="text-sm text-foreground">{companyInfo.address_line_1}</p>
+                          {companyInfo.address_line_2 && (
+                            <p className="text-sm text-foreground">{companyInfo.address_line_2}</p>
+                          )}
+                          <p className="text-sm text-muted-foreground">
+                            {companyInfo.city}, {companyInfo.country} {companyInfo.postal_code}
+                          </p>
+                          {companyInfo.phone_number && (
+                            <a 
+                              href={`tel:${companyInfo.phone_number}`}
+                              className="flex items-center gap-1.5 text-sm text-primary mt-2 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Phone className="h-3.5 w-3.5" />
+                              {companyInfo.phone_number}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-3 w-full text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowOfficeModal(true);
+                        }}
+                      >
+                        <Clock className="h-3.5 w-3.5 mr-1.5" />
+                        Ver horarios de atención
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
                 <div className="space-y-2 w-full max-w-full pl-5">
@@ -561,6 +611,49 @@ const CollapsiblePackageCard = ({
                             Archivar
                           </Button>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                ) : shouldShowOfficeAddress && companyInfo ? (
+                  /* Office Pickup Address Section - Desktop */
+                  <div className="w-full">
+                    <div className="bg-success/10 border-2 border-success/30 rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3 flex-1">
+                          <MapPin className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-success mb-1">📦 Dirección de recolección:</p>
+                            <p className="text-sm text-foreground">{companyInfo.address_line_1}</p>
+                            {companyInfo.address_line_2 && (
+                              <p className="text-sm text-foreground">{companyInfo.address_line_2}</p>
+                            )}
+                            <p className="text-sm text-muted-foreground">
+                              {companyInfo.city}, {companyInfo.country} {companyInfo.postal_code}
+                            </p>
+                            {companyInfo.phone_number && (
+                              <a 
+                                href={`tel:${companyInfo.phone_number}`}
+                                className="flex items-center gap-1.5 text-sm text-primary mt-2 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Phone className="h-4 w-4" />
+                                {companyInfo.phone_number}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowOfficeModal(true);
+                          }}
+                        >
+                          <Clock className="h-4 w-4 mr-1.5" />
+                          Ver horarios
+                        </Button>
                       </div>
                     </div>
                   </div>
