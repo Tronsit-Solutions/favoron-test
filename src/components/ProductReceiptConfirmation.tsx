@@ -26,12 +26,15 @@ export const ProductReceiptConfirmation = ({
 }: ProductReceiptConfirmationProps) => {
   const [confirmingIndex, setConfirmingIndex] = useState<number | null>(null);
 
-  // Filter out cancelled products - they shouldn't need confirmation
-  const activeProducts = products.filter(p => !p.cancelled);
-  const cancelledCount = products.length - activeProducts.length;
+  // Map products with their original indices FIRST, then filter - preserves indices after React re-renders
+  const activeProductsWithIndex = products
+    .map((product, originalIndex) => ({ product, originalIndex }))
+    .filter(({ product }) => !product.cancelled);
+  
+  const cancelledCount = products.length - activeProductsWithIndex.length;
 
-  const confirmedCount = activeProducts.filter(p => p.receivedByTraveler).length;
-  const totalCount = activeProducts.length;
+  const confirmedCount = activeProductsWithIndex.filter(({ product }) => product.receivedByTraveler).length;
+  const totalCount = activeProductsWithIndex.length;
   const allConfirmed = confirmedCount === totalCount && totalCount > 0;
   const progressPercentage = totalCount > 0 ? (confirmedCount / totalCount) * 100 : 0;
 
@@ -111,21 +114,17 @@ export const ProductReceiptConfirmation = ({
             </Alert>
           )}
 
-          {/* Products list - only active (non-cancelled) products */}
+          {/* Products list - only active (non-cancelled) products with preserved indices */}
           <div className="space-y-3">
-            {activeProducts.map((product) => {
-              // Find original index for the callback
-              const originalIndex = products.findIndex(p => p === product);
-              return (
-                <ProductConfirmationItem
-                  key={originalIndex}
-                  product={product}
-                  index={originalIndex}
-                  onConfirm={handleConfirmProduct}
-                  isConfirming={confirmingIndex === originalIndex}
-                />
-              );
-            })}
+            {activeProductsWithIndex.map(({ product, originalIndex }) => (
+              <ProductConfirmationItem
+                key={originalIndex}
+                product={product}
+                index={originalIndex}
+                onConfirm={handleConfirmProduct}
+                isConfirming={confirmingIndex === originalIndex}
+              />
+            ))}
           </div>
         </div>
 

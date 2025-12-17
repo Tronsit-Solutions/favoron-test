@@ -66,8 +66,20 @@ export const usePackageActions = () => {
     pkg: any
   ) => {
     try {
+      // Defensive validation - ensure productIndex is valid
+      const productsData = pkg.products_data || [];
+      if (productIndex < 0 || productIndex >= productsData.length) {
+        console.error('❌ Invalid product index:', productIndex, 'for products count:', productsData.length, 'products:', productsData);
+        toast({
+          title: "Error",
+          description: "No se pudo encontrar el producto. Intenta refrescar la página.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // 1. Clone products_data
-      const updatedProducts = [...(pkg.products_data || [])];
+      const updatedProducts = [...productsData];
       
       // 2. Update specific product
       updatedProducts[productIndex] = {
