@@ -9,10 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ProductData } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductConfirmationItemProps {
   product: ProductData;
   index: number;
+  packageId: string;
   onConfirm: (productIndex: number, photo: string) => Promise<void>;
   isConfirming?: boolean;
 }
@@ -20,6 +23,7 @@ interface ProductConfirmationItemProps {
 export const ProductConfirmationItem = ({ 
   product, 
   index, 
+  packageId,
   onConfirm,
   isConfirming = false 
 }: ProductConfirmationItemProps) => {
@@ -27,12 +31,22 @@ export const ProductConfirmationItem = ({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
   const isConfirmed = product.receivedByTraveler;
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Archivo muy grande",
+          description: "La imagen debe ser menor a 5MB",
+          variant: "destructive"
+        });
+        return;
+      }
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -46,25 +60,58 @@ export const ProductConfirmationItem = ({
     setShowPhotoModal(true);
   };
 
+  const uploadPhotoToStorage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${packageId}/${index}_${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('product-receipts')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw error;
+      }
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('product-receipts')
+        .getPublicUrl(data.path);
+      
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading photo to storage:', error);
+      return null;
+    }
+  };
+
   const handleConfirmWithPhoto = async () => {
     setIsUploading(true);
     try {
+      let photoUrl = '';
+      
       if (photoFile) {
-        // Convert file to base64 for now (could be replaced with Supabase storage upload)
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64Photo = reader.result as string;
-          await onConfirm(index, base64Photo);
-          setShowPhotoModal(false);
-          setPhotoFile(null);
-          setPhotoPreview(null);
-        };
-        reader.readAsDataURL(photoFile);
-      } else {
-        // Confirm without photo
-        await onConfirm(index, '');
-        setShowPhotoModal(false);
+        // Upload to Supabase Storage instead of base64
+        const uploadedUrl = await uploadPhotoToStorage(photoFile);
+        if (uploadedUrl) {
+          photoUrl = uploadedUrl;
+        } else {
+          toast({
+            title: "Error al subir foto",
+            description: "No se pudo subir la foto, pero puedes continuar sin ella.",
+            variant: "destructive"
+          });
+        }
       }
+      
+      await onConfirm(index, photoUrl);
+      setShowPhotoModal(false);
+      setPhotoFile(null);
+      setPhotoPreview(null);
     } catch (error) {
       console.error('Error confirming product:', error);
     } finally {
