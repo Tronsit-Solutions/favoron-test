@@ -23,6 +23,8 @@ export function ReceiptViewerModal({
   title = "Comprobante de pago" 
 }: ReceiptViewerModalProps) {
   const [downloadingFile, setDownloadingFile] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const { url: signedUrl, loading, error, retryCount } = useSignedUrl(receiptUrl);
 
   const isImage = filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || receiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
@@ -95,6 +97,67 @@ export function ReceiptViewerModal({
       if (toRevoke) URL.revokeObjectURL(toRevoke);
     };
   }, [signedUrl, receiptUrl, isImage]);
+
+  // Load PDF as blob when modal opens
+  useEffect(() => {
+    if (isOpen && isPDF && !pdfBlobUrl) {
+      loadPdfAsBlob();
+    }
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+        setPdfBlobUrl(null);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, isPDF, receiptUrl]);
+
+  const loadPdfAsBlob = async () => {
+    if (!receiptUrl) return;
+
+    setLoadingPdf(true);
+    try {
+      // Try to find bucket and path from URL
+      const pathParts = receiptUrl.split('/');
+      const bucketIndex = pathParts.findIndex(part => 
+        part === 'payment-receipts' || 
+        part === 'receipts' || 
+        part === 'documents' ||
+        part === 'purchase-confirmations'
+      );
+      
+      if (bucketIndex > -1) {
+        const bucket = pathParts[bucketIndex];
+        const filePath = pathParts.slice(bucketIndex + 1).join('/');
+        
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .download(filePath);
+
+        if (!error && data) {
+          const url = URL.createObjectURL(data);
+          setPdfBlobUrl(url);
+          console.log('PDF blob URL created from bucket:', bucket);
+          return;
+        }
+      }
+      
+      // Fallback: try payment-receipts bucket with full path
+      const { data, error } = await supabase.storage
+        .from('payment-receipts')
+        .download(receiptUrl);
+
+      if (!error && data) {
+        const url = URL.createObjectURL(data);
+        setPdfBlobUrl(url);
+        console.log('PDF blob URL created from payment-receipts fallback');
+      }
+    } catch (error) {
+      console.error('Error loading PDF as blob:', error);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
   const handleDownload = async () => {
     if (!receiptUrl && !signedUrl) return;
     
@@ -259,11 +322,25 @@ export function ReceiptViewerModal({
                 </div>
               ) : isPDF ? (
                 <div className="relative">
-                  <iframe
-                    src={displayUrl || ''}
-                    title={title}
-                    className="w-full h-[70vh] rounded-lg border"
-                  />
+                  {loadingPdf ? (
+                    <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex items-center justify-center">
+                      <p className="text-gray-500">Cargando PDF...</p>
+                    </div>
+                  ) : pdfBlobUrl ? (
+                    <iframe
+                      src={pdfBlobUrl}
+                      title={title}
+                      className="w-full h-[70vh] rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex flex-col items-center justify-center">
+                      <FileText className="h-16 w-16 mb-4 text-gray-400" />
+                      <p className="text-gray-500 mb-4">No se pudo cargar el PDF</p>
+                      <Button variant="outline" onClick={handleDownload} disabled={downloadingFile}>
+                        <Download className="h-4 w-4 mr-1" /> {downloadingFile ? "Descargando..." : "Descargar"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8">

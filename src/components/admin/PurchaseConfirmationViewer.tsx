@@ -27,8 +27,10 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const [showModal, setShowModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const { toast } = useToast();
 
   const isImage = purchaseConfirmation.filename?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
@@ -41,6 +43,50 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedUrl]);
+
+  // Load PDF as blob when modal opens
+  useEffect(() => {
+    if (showModal && isPDF && !pdfBlobUrl) {
+      loadPdfAsBlob();
+    }
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal, isPDF]);
+
+  const loadPdfAsBlob = async () => {
+    setLoadingPdf(true);
+    try {
+      let filePath: string;
+      if ('filePath' in purchaseConfirmation && purchaseConfirmation.filePath) {
+        filePath = purchaseConfirmation.filePath;
+      } else {
+        filePath = `${packageId}/${purchaseConfirmation.filename}`;
+      }
+
+      const bucketsToTry = resolveBuckets();
+      for (const bucket of bucketsToTry) {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .download(filePath);
+
+        if (!error && data) {
+          const url = URL.createObjectURL(data);
+          setPdfBlobUrl(url);
+          console.log('PDF blob URL created from bucket:', bucket);
+          return;
+        }
+      }
+      console.error('Failed to load PDF as blob from any bucket');
+    } catch (error) {
+      console.error('Error loading PDF as blob:', error);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
 
   const resolveBuckets = (): string[] => {
     // Si viene bucket en el objeto, lo usamos primero; luego fallback al orden por defecto
@@ -228,12 +274,26 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
                 className="max-w-full max-h-[70vh] object-contain"
               />
             )}
-            {signedUrl && isPDF && (
-              <iframe
-                src={signedUrl}
-                title="Comprobante de compra"
-                className="w-full h-[70vh] rounded-lg border"
-              />
+            {isPDF && (
+              loadingPdf ? (
+                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex items-center justify-center">
+                  <p className="text-gray-500">Cargando PDF...</p>
+                </div>
+              ) : pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  title="Comprobante de compra"
+                  className="w-full h-[70vh] rounded-lg border"
+                />
+              ) : (
+                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex flex-col items-center justify-center">
+                  <FileText className="h-16 w-16 mb-4 text-gray-400" />
+                  <p className="text-gray-500 mb-4">No se pudo cargar el PDF</p>
+                  <Button variant="outline" onClick={handleDownload}>
+                    <Download className="h-4 w-4 mr-1" /> Descargar
+                  </Button>
+                </div>
+              )
             )}
           </div>
         </DialogContent>
