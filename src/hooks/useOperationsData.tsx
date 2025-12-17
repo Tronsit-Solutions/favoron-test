@@ -90,6 +90,35 @@ export const useOperationsData = () => {
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
+  // Fetch with retry logic for handling timeouts
+  const fetchWithRetry = async (retries = 2): Promise<any[]> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        console.log(`🔄 Operations data fetch attempt ${attempt + 1}/${retries + 1}`);
+        const { data, error } = await supabase.rpc('get_all_operations_data');
+        
+        if (error) {
+          // Check if it's a timeout error
+          if (error.code === '57014' || error.message?.includes('timeout')) {
+            console.warn(`⏱️ Timeout on attempt ${attempt + 1}, ${retries - attempt} retries left`);
+            if (attempt < retries) {
+              await new Promise(r => setTimeout(r, 1000)); // Wait 1 second before retry
+              continue;
+            }
+          }
+          throw error;
+        }
+        
+        return data || [];
+      } catch (err) {
+        if (attempt === retries) throw err;
+        console.warn(`❌ Attempt ${attempt + 1} failed, retrying...`);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    return [];
+  };
+
   const fetchAllData = useCallback(async (forceRefresh = false) => {
     // Skip fetch if data is fresh (less than 30 seconds old) and not forcing refresh
     if (!forceRefresh && lastFetched && Date.now() - lastFetched.getTime() < CACHE_TTL_MS) {
@@ -103,12 +132,10 @@ export const useOperationsData = () => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('get_all_operations_data');
-
-      if (error) throw error;
+      const data = await fetchWithRetry(2);
 
       // Transform RPC response to our internal format
-      const packages: OperationsPackage[] = (data || []).map((row: any) => ({
+      const packages: OperationsPackage[] = data.map((row: any) => ({
         id: row.id,
         item_description: row.item_description,
         status: row.status,
@@ -137,9 +164,10 @@ export const useOperationsData = () => {
 
       setAllPackages(packages);
       setLastFetched(new Date());
+      console.log(`✅ Operations data loaded: ${packages.length} packages`);
     } catch (error) {
       console.error('Error fetching operations data:', error);
-      toast.error('Error al cargar datos de operaciones');
+      toast.error('Error al cargar datos de operaciones. Por favor recarga la página.');
     } finally {
       setLoading(false);
     }
