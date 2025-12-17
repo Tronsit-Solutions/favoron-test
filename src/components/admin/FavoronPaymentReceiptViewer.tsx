@@ -244,14 +244,18 @@ const FavoronPaymentReceiptViewer = ({
                 </div>
               )
             ) : isPDF ? (
-              <div className="bg-gray-100 p-8 text-center rounded">
-                <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
-                <p className="text-gray-700 mb-4">Vista previa de PDF no disponible</p>
-                <Button onClick={handleDownload}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar PDF
-                </Button>
-              </div>
+              signedUrl ? (
+                <iframe
+                  src={signedUrl}
+                  title="Comprobante de pago de Favorón"
+                  className="w-full h-[70vh] rounded-lg border"
+                />
+              ) : (
+                <div className="bg-gray-100 p-8 text-center rounded">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
+                  <p className="text-gray-700 mb-4">Cargando PDF...</p>
+                </div>
+              )
             ) : (
               <div className="bg-gray-100 p-8 text-center rounded">
                 <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
