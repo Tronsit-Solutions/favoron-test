@@ -953,12 +953,12 @@ export const useDashboardActions = (
             }
             // If more than one product exists but no per-product tips provided, leave as is
           } else {
-            // Build products_data from legacy fields
+            // Build products_data from legacy fields - preserve any existing quantity info
             updatedProductsData = [{
               itemDescription: currentPackage.item_description || 'Producto',
               estimatedPrice: String(currentPackage.estimated_price ?? '0'),
               itemLink: currentPackage.item_link || null,
-              quantity: '1',
+              quantity: '1', // Legacy packages don't have quantity info
               adminAssignedTip: adminTip
             }];
           }

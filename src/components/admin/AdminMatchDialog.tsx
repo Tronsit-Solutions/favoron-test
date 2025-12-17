@@ -367,12 +367,12 @@ const AdminMatchDialog = ({
     const products = fullPackage.products_data.map((product: any, index: number) => {
       console.log(`🔍 DEBUG Product ${index}:`, product);
       
-      // Handle different data structure possibilities
+      // Handle different data structure possibilities - use ?? to preserve existing quantity
       const mappedProduct = {
         itemDescription: product.itemDescription || product.item_description || product.description || '',
         estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
         itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
-        quantity: product.quantity || product.qty || '1',
+        quantity: product.quantity ?? product.qty ?? '1', // Use ?? to preserve '0' or other falsy values
         adminAssignedTip: product.adminAssignedTip || 0
       };
       

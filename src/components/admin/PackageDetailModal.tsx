@@ -151,7 +151,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
           ...p, // Preserve all existing fields
           itemDescription: p.itemDescription || '',
           estimatedPrice: p.estimatedPrice?.toString() || '0',
-          quantity: p.quantity?.toString() || '1',
+          quantity: (p.quantity ?? '1').toString(), // Use ?? to preserve falsy values
           itemLink: p.itemLink || '',
           additionalNotes: p.additionalNotes || '',
           weight: p.weight || ''
@@ -482,7 +482,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
           ...p,
           itemDescription: p.itemDescription || '',
           estimatedPrice: p.estimatedPrice?.toString() || '0',
-          quantity: p.quantity?.toString() || '1',
+          quantity: (p.quantity ?? '1').toString(), // Use ?? to preserve falsy values
           itemLink: p.itemLink || '',
           additionalNotes: p.additionalNotes || '',
           weight: p.weight || ''
