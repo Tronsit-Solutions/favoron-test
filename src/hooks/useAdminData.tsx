@@ -260,7 +260,7 @@ export const useAdminData = (): AdminData => {
           admin_rejection, quote_rejection, traveler_rejection,
           admin_actions_log, internal_notes, admin_assigned_tip,
           confirmed_delivery_address, traveler_address, matched_trip_dates,
-          additional_notes
+          additional_notes, products_data
         `)
         .in('status', ['approved', 'quote_rejected'])
         .order('created_at', { ascending: false });
