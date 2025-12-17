@@ -52,6 +52,25 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getRequestTypeBadge = (pkg: any) => {
+  const requestType = pkg.products_data?.[0]?.requestType;
+  
+  if (requestType === 'personal') {
+    return (
+      <Badge className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+        👤 Personal
+      </Badge>
+    );
+  } else if (requestType === 'online') {
+    return (
+      <Badge className="bg-cyan-100 text-cyan-700 border-cyan-300 text-xs">
+        🛒 Online
+      </Badge>
+    );
+  }
+  return null;
+};
+
 const PendingRequestsTab = ({ 
   packages, 
   onOpenMatchDialog, 
@@ -66,6 +85,7 @@ const PendingRequestsTab = ({
   const [destinationFilter, setDestinationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [historyFilter, setHistoryFilter] = useState<'all' | 'new' | 'requoted'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'online' | 'personal'>('all');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
   const { filterPackagesByHistory, getReQuoteStats } = usePackageHistory();
@@ -89,7 +109,11 @@ const PendingRequestsTab = ({
     const matchesDestination = destinationFilter === "all" || pkg.package_destination === destinationFilter;
     const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
     
-    return matchesSearch && matchesDestination && matchesStatus;
+    // Type filter
+    const pkgType = pkg.products_data?.[0]?.requestType;
+    const matchesType = typeFilter === "all" || pkgType === typeFilter;
+    
+    return matchesSearch && matchesDestination && matchesStatus && matchesType;
   });
 
   return (
@@ -144,6 +168,16 @@ const PendingRequestsTab = ({
             </SelectContent>
           </Select>
 
+          <Select value={typeFilter} onValueChange={(value: 'all' | 'online' | 'personal') => setTypeFilter(value)}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Tipo de pedido" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="online">🛒 Compra Online</SelectItem>
+              <SelectItem value="personal">👤 Personal</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -165,10 +199,9 @@ const PendingRequestsTab = ({
           filteredPackages.map(pkg => (
             <div key={pkg.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-3 sm:gap-4 hover:shadow-md transition-shadow">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className={`font-medium ${
-                    pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600' : ''
-                  }`}>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  {getRequestTypeBadge(pkg)}
+                  <p className="font-medium">
                     {pkg.item_description || "Sin descripción"}
                   </p>
                   {getStatusBadge(pkg.status, { 
