@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Banknote, Package, Loader2, Crown, Shield } from 'lucide-react';
+import { AlertTriangle, Banknote, Package, Loader2, Crown, Shield, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRefundOrders } from '@/hooks/useRefundOrders';
 import { getRefundBreakdown, CANCELLATION_REASONS, CancellationReason, DEFAULT_CANCELLATION_PENALTY } from '@/lib/refundCalculations';
@@ -42,10 +42,20 @@ interface AdminProductCancellationModalProps {
   productIndex: number;
   packageId: string;
   shopperId: string;
+  packageStatus: string;
   quote: any;
   allProducts: ProductData[];
   onCancellationComplete: () => void;
 }
+
+// Estados pre-pago: no se ha pagado aún, no crear reembolso
+const PRE_PAYMENT_STATUSES = [
+  'matched',
+  'quote_sent',
+  'quote_accepted',
+  'payment_pending',
+  'payment_pending_approval'
+];
 
 const AdminProductCancellationModal = ({
   isOpen,
@@ -54,6 +64,7 @@ const AdminProductCancellationModal = ({
   productIndex,
   packageId,
   shopperId,
+  packageStatus,
   quote,
   allProducts,
   onCancellationComplete,
@@ -71,11 +82,13 @@ const AdminProductCancellationModal = ({
 
   const { createRefundOrder } = useRefundOrders();
 
-  // Calculate refund breakdown with penalty info
-  const refundBreakdown = getRefundBreakdown(product, quote, allProducts, {
-    penaltyAmount,
-    isPrimeUser
-  });
+  // Determinar si requiere reembolso (post-pago)
+  const requiresRefund = !PRE_PAYMENT_STATUSES.includes(packageStatus);
+
+  // Calculate refund breakdown with penalty info (only needed if requires refund)
+  const refundBreakdown = requiresRefund 
+    ? getRefundBreakdown(product, quote, allProducts, { penaltyAmount, isPrimeUser })
+    : null;
 
   // Load shopper's bank info, Prime status, and penalty amount
   useEffect(() => {
@@ -85,47 +98,57 @@ const AdminProductCancellationModal = ({
       try {
         setLoadingData(true);
 
-        // Load in parallel: shopper bank info, shopper profile, company info
-        const [financialResult, profileResult, companyResult] = await Promise.all([
-          supabase
-            .from('user_financial_data')
-            .select('bank_name, bank_account_holder, bank_account_number, bank_account_type')
-            .eq('user_id', shopperId)
-            .maybeSingle(),
-          supabase
+        // Solo cargar datos bancarios si requiere reembolso
+        if (requiresRefund) {
+          const [financialResult, profileResult, companyResult] = await Promise.all([
+            supabase
+              .from('user_financial_data')
+              .select('bank_name, bank_account_holder, bank_account_number, bank_account_type')
+              .eq('user_id', shopperId)
+              .maybeSingle(),
+            supabase
+              .from('profiles')
+              .select('trust_level, first_name, last_name')
+              .eq('id', shopperId)
+              .single(),
+            supabase
+              .from('favoron_company_information')
+              .select('cancellation_penalty_amount, prime_penalty_exempt')
+              .eq('is_active', true)
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .maybeSingle()
+          ]);
+
+          if (financialResult.data) {
+            setBankName(financialResult.data.bank_name || '');
+            setBankAccountHolder(financialResult.data.bank_account_holder || '');
+            setBankAccountNumber(financialResult.data.bank_account_number || '');
+            setBankAccountType(financialResult.data.bank_account_type || 'monetary');
+          }
+
+          const isUserPrime = profileResult.data?.trust_level === 'prime';
+          const primePenaltyExempt = companyResult.data?.prime_penalty_exempt !== false;
+          setIsPrimeUser(isUserPrime && primePenaltyExempt);
+          
+          if (profileResult.data) {
+            setShopperName(`${profileResult.data.first_name || ''} ${profileResult.data.last_name || ''}`.trim());
+          }
+
+          if (companyResult.data && companyResult.data.cancellation_penalty_amount != null) {
+            setPenaltyAmount(companyResult.data.cancellation_penalty_amount);
+          }
+        } else {
+          // Solo cargar nombre del shopper para pre-pago
+          const { data: profileData } = await supabase
             .from('profiles')
-            .select('trust_level, first_name, last_name')
+            .select('first_name, last_name')
             .eq('id', shopperId)
-            .single(),
-          supabase
-            .from('favoron_company_information')
-            .select('cancellation_penalty_amount, prime_penalty_exempt')
-            .eq('is_active', true)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-        ]);
-
-        // Set bank info from shopper
-        if (financialResult.data) {
-          setBankName(financialResult.data.bank_name || '');
-          setBankAccountHolder(financialResult.data.bank_account_holder || '');
-          setBankAccountNumber(financialResult.data.bank_account_number || '');
-          setBankAccountType(financialResult.data.bank_account_type || 'monetary');
-        }
-
-        // Set shopper's Prime status - only exempt if user is Prime AND system allows Prime exemption
-        const isUserPrime = profileResult.data?.trust_level === 'prime';
-        const primePenaltyExempt = companyResult.data?.prime_penalty_exempt !== false; // default true
-        setIsPrimeUser(isUserPrime && primePenaltyExempt);
-        
-        if (profileResult.data) {
-          setShopperName(`${profileResult.data.first_name || ''} ${profileResult.data.last_name || ''}`.trim());
-        }
-
-        // Set penalty amount
-        if (companyResult.data && companyResult.data.cancellation_penalty_amount != null) {
-          setPenaltyAmount(companyResult.data.cancellation_penalty_amount);
+            .single();
+          
+          if (profileData) {
+            setShopperName(`${profileData.first_name || ''} ${profileData.last_name || ''}`.trim());
+          }
         }
       } catch (error) {
         console.error('Error loading shopper data:', error);
@@ -137,11 +160,11 @@ const AdminProductCancellationModal = ({
     if (isOpen) {
       loadData();
     }
-  }, [isOpen, shopperId]);
+  }, [isOpen, shopperId, requiresRefund]);
 
   const handleSubmit = async () => {
-    // Validate bank info
-    if (!bankName.trim() || !bankAccountHolder.trim() || !bankAccountNumber.trim()) {
+    // Solo validar banco si requiere reembolso
+    if (requiresRefund && (!bankName.trim() || !bankAccountHolder.trim() || !bankAccountNumber.trim())) {
       toast.error('Por favor completa todos los datos bancarios del shopper');
       return;
     }
@@ -149,31 +172,35 @@ const AdminProductCancellationModal = ({
     setIsSubmitting(true);
 
     try {
-      // 1. Create refund order on behalf of shopper
-      const refundOrder = await createRefundOrder({
-        packageId,
-        shopperId,
-        bankName: bankName.trim(),
-        bankAccountHolder: bankAccountHolder.trim(),
-        bankAccountNumber: bankAccountNumber.trim(),
-        bankAccountType,
-        amount: refundBreakdown.totalRefund,
-        reason,
-        cancelledProducts: [{
-          index: productIndex,
-          description: product.itemDescription,
-          tip: refundBreakdown.productTip,
-          serviceFee: refundBreakdown.proportionalServiceFee,
-          grossRefund: refundBreakdown.grossRefund,
-          penaltyApplied: refundBreakdown.cancellationPenalty,
-          isPrimeExempt: refundBreakdown.isPrimeExempt,
-          totalRefund: refundBreakdown.totalRefund,
-          cancelledAt: new Date().toISOString(),
-          cancelledByAdmin: true
-        }]
-      });
+      let refundOrder = null;
 
-      if (!refundOrder) throw new Error('Failed to create refund order');
+      // 1. Solo crear orden de reembolso si es post-pago
+      if (requiresRefund && refundBreakdown) {
+        refundOrder = await createRefundOrder({
+          packageId,
+          shopperId,
+          bankName: bankName.trim(),
+          bankAccountHolder: bankAccountHolder.trim(),
+          bankAccountNumber: bankAccountNumber.trim(),
+          bankAccountType,
+          amount: refundBreakdown.totalRefund,
+          reason,
+          cancelledProducts: [{
+            index: productIndex,
+            description: product.itemDescription,
+            tip: refundBreakdown.productTip,
+            serviceFee: refundBreakdown.proportionalServiceFee,
+            grossRefund: refundBreakdown.grossRefund,
+            penaltyApplied: refundBreakdown.cancellationPenalty,
+            isPrimeExempt: refundBreakdown.isPrimeExempt,
+            totalRefund: refundBreakdown.totalRefund,
+            cancelledAt: new Date().toISOString(),
+            cancelledByAdmin: true
+          }]
+        });
+
+        if (!refundOrder) throw new Error('Failed to create refund order');
+      }
 
       // 2. Update product as cancelled in products_data
       const { data: packageData, error: fetchError } = await supabase
@@ -190,11 +217,14 @@ const AdminProductCancellationModal = ({
         cancelled: true,
         cancelledAt: new Date().toISOString(),
         cancellationReason: reason,
-        refundAmount: refundBreakdown.totalRefund,
-        refundOrderId: refundOrder.id,
-        penaltyApplied: refundBreakdown.cancellationPenalty,
-        isPrimeExempt: refundBreakdown.isPrimeExempt,
-        cancelledByAdmin: true
+        cancelledByAdmin: true,
+        // Solo agregar info de reembolso si aplica
+        ...(requiresRefund && refundBreakdown && refundOrder && {
+          refundAmount: refundBreakdown.totalRefund,
+          refundOrderId: refundOrder.id,
+          penaltyApplied: refundBreakdown.cancellationPenalty,
+          isPrimeExempt: refundBreakdown.isPrimeExempt
+        })
       };
 
       // 3. Update quote with cancellation info
@@ -205,21 +235,27 @@ const AdminProductCancellationModal = ({
           ...(currentQuote.cancellations || []),
           {
             productIndex,
-            refundAmount: refundBreakdown.totalRefund,
-            penaltyApplied: refundBreakdown.cancellationPenalty,
-            isPrimeExempt: refundBreakdown.isPrimeExempt,
             cancelledAt: new Date().toISOString(),
             reason,
-            cancelledByAdmin: true
+            cancelledByAdmin: true,
+            prePaid: !requiresRefund,
+            ...(requiresRefund && refundBreakdown && {
+              refundAmount: refundBreakdown.totalRefund,
+              penaltyApplied: refundBreakdown.cancellationPenalty,
+              isPrimeExempt: refundBreakdown.isPrimeExempt
+            })
           }
         ],
-        adjustedTotalPrice: (currentQuote.totalPrice || 0) - refundBreakdown.totalRefund
+        // Solo ajustar precio si había reembolso
+        ...(requiresRefund && refundBreakdown && {
+          adjustedTotalPrice: (currentQuote.totalPrice || 0) - refundBreakdown.totalRefund
+        })
       };
 
       // 4. Check if ALL products are now cancelled
       const allProductsCancelled = updatedProducts.every((p: any) => p.cancelled === true);
 
-      // 4b. Check if all ACTIVE products are confirmed (for status transition to received_by_traveler)
+      // 4b. Check if all ACTIVE products are confirmed (for status transition)
       const activeProducts = updatedProducts.filter((p: any) => !p.cancelled);
       const allActiveConfirmed = activeProducts.length > 0 && activeProducts.every((p: any) => p.receivedByTraveler === true);
 
@@ -235,14 +271,12 @@ const AdminProductCancellationModal = ({
       } 
       // If all active products are confirmed, transition to received_by_traveler
       else if (allActiveConfirmed) {
-        // Check current status before transitioning
         const { data: currentPackage } = await supabase
           .from('packages')
           .select('status')
           .eq('id', packageId)
           .single();
         
-        // Only transition if currently in in_transit
         if (currentPackage?.status === 'in_transit') {
           updatePayload.status = 'received_by_traveler';
           updatePayload.traveler_confirmation = {
@@ -263,8 +297,10 @@ const AdminProductCancellationModal = ({
 
       if (allProductsCancelled) {
         toast.success(`Todos los productos cancelados. El pedido ha sido cancelado.`);
-      } else {
+      } else if (requiresRefund && refundBreakdown) {
         toast.success(`Producto cancelado. Reembolso de ${formatCurrency(refundBreakdown.totalRefund)} creado para ${shopperName || 'el shopper'}.`);
+      } else {
+        toast.success(`Producto removido de la cotización.`);
       }
       onCancellationComplete();
       onClose();
@@ -282,10 +318,13 @@ const AdminProductCancellationModal = ({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Cancelar Producto (Admin)
+            {requiresRefund ? 'Cancelar Producto (Admin)' : 'Remover Producto de Cotización'}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Cancelación en nombre del shopper{shopperName ? `: ${shopperName}` : ''}
+            {requiresRefund 
+              ? `Cancelación en nombre del shopper${shopperName ? `: ${shopperName}` : ''}`
+              : `Remover producto antes de pago${shopperName ? ` - ${shopperName}` : ''}`
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -301,49 +340,61 @@ const AdminProductCancellationModal = ({
             </div>
           </div>
 
-          {/* Refund breakdown */}
-          <div className="space-y-1">
-            <h4 className="font-medium text-xs flex items-center gap-1">
-              <Banknote className="h-3 w-3" />
-              Cálculo de Reembolso para Shopper
-            </h4>
-            <div className="bg-green-50 border border-green-200 p-2 rounded-lg space-y-1 text-xs dark:bg-green-950/30 dark:border-green-800">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Costo del producto:</span>
-                <span>{formatCurrency(refundBreakdown.productTip)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Fee Favoron:</span>
-                <span>{formatCurrency(refundBreakdown.proportionalServiceFee)}</span>
-              </div>
-              <Separator className="my-1" />
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>{formatCurrency(refundBreakdown.grossRefund)}</span>
-              </div>
-              
-              {refundBreakdown.isPrimeExempt ? (
-                <div className="flex justify-between text-purple-600">
-                  <span className="flex items-center gap-1">
-                    <Crown className="h-3 w-3" />
-                    Penalización (Prime exento):
-                  </span>
-                  <span>Q0.00</span>
+          {/* Pre-payment info (no refund) */}
+          {!requiresRefund && (
+            <Alert className="py-2 bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+              <Info className="h-3 w-3 text-blue-600" />
+              <AlertDescription className="text-xs text-blue-700 dark:text-blue-300">
+                El producto será removido de la cotización. No se creará reembolso ya que el shopper aún no ha pagado.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Refund breakdown - only for post-payment */}
+          {requiresRefund && refundBreakdown && (
+            <div className="space-y-1">
+              <h4 className="font-medium text-xs flex items-center gap-1">
+                <Banknote className="h-3 w-3" />
+                Cálculo de Reembolso para Shopper
+              </h4>
+              <div className="bg-green-50 border border-green-200 p-2 rounded-lg space-y-1 text-xs dark:bg-green-950/30 dark:border-green-800">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Costo del producto:</span>
+                  <span>{formatCurrency(refundBreakdown.productTip)}</span>
                 </div>
-              ) : (
-                <div className="flex justify-between text-destructive">
-                  <span>Penalización:</span>
-                  <span>-{formatCurrency(refundBreakdown.cancellationPenalty)}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Fee Favoron:</span>
+                  <span>{formatCurrency(refundBreakdown.proportionalServiceFee)}</span>
                 </div>
-              )}
-              
-              <Separator className="my-1" />
-              <div className="flex justify-between font-semibold text-green-700 dark:text-green-400">
-                <span>Total a reembolsar:</span>
-                <span>{formatCurrency(refundBreakdown.totalRefund)}</span>
+                <Separator className="my-1" />
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>{formatCurrency(refundBreakdown.grossRefund)}</span>
+                </div>
+                
+                {refundBreakdown.isPrimeExempt ? (
+                  <div className="flex justify-between text-purple-600">
+                    <span className="flex items-center gap-1">
+                      <Crown className="h-3 w-3" />
+                      Penalización (Prime exento):
+                    </span>
+                    <span>Q0.00</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-destructive">
+                    <span>Penalización:</span>
+                    <span>-{formatCurrency(refundBreakdown.cancellationPenalty)}</span>
+                  </div>
+                )}
+                
+                <Separator className="my-1" />
+                <div className="flex justify-between font-semibold text-green-700 dark:text-green-400">
+                  <span>Total a reembolsar:</span>
+                  <span>{formatCurrency(refundBreakdown.totalRefund)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Reason */}
           <div className="space-y-1">
@@ -362,70 +413,73 @@ const AdminProductCancellationModal = ({
             </Select>
           </div>
 
-          <Separator />
-
-          {/* Bank info */}
-          <div className="space-y-2">
-            <h4 className="font-medium text-xs">Datos bancarios del shopper para reembolso</h4>
-            
-            {loadingData ? (
-              <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          {/* Bank info - only for post-payment refunds */}
+          {requiresRefund && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h4 className="font-medium text-xs">Datos bancarios del shopper para reembolso</h4>
+                
+                {loadingData ? (
+                  <div className="flex items-center justify-center py-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="bankName" className="text-xs">Banco</Label>
+                      <Input
+                        id="bankName"
+                        value={bankName}
+                        onChange={(e) => setBankName(e.target.value)}
+                        placeholder="Ej: Banrural"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="bankAccountType" className="text-xs">Tipo</Label>
+                      <Select value={bankAccountType} onValueChange={setBankAccountType}>
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monetary">Monetaria</SelectItem>
+                          <SelectItem value="savings">Ahorro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label htmlFor="bankAccountHolder" className="text-xs">Titular</Label>
+                      <Input
+                        id="bankAccountHolder"
+                        value={bankAccountHolder}
+                        onChange={(e) => setBankAccountHolder(e.target.value)}
+                        placeholder="Nombre completo"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label htmlFor="bankAccountNumber" className="text-xs">Número de cuenta</Label>
+                      <Input
+                        id="bankAccountNumber"
+                        value={bankAccountNumber}
+                        onChange={(e) => setBankAccountNumber(e.target.value)}
+                        placeholder="Número de cuenta"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="bankName" className="text-xs">Banco</Label>
-                  <Input
-                    id="bankName"
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    placeholder="Ej: Banrural"
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="bankAccountType" className="text-xs">Tipo</Label>
-                  <Select value={bankAccountType} onValueChange={setBankAccountType}>
-                    <SelectTrigger className="h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monetary">Monetaria</SelectItem>
-                      <SelectItem value="savings">Ahorro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="col-span-2 space-y-1">
-                  <Label htmlFor="bankAccountHolder" className="text-xs">Titular</Label>
-                  <Input
-                    id="bankAccountHolder"
-                    value={bankAccountHolder}
-                    onChange={(e) => setBankAccountHolder(e.target.value)}
-                    placeholder="Nombre completo"
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="col-span-2 space-y-1">
-                  <Label htmlFor="bankAccountNumber" className="text-xs">Número de cuenta</Label>
-                  <Input
-                    id="bankAccountNumber"
-                    value={bankAccountNumber}
-                    onChange={(e) => setBankAccountNumber(e.target.value)}
-                    placeholder="Número de cuenta"
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
 
-          <Alert className="py-2">
-            <AlertTriangle className="h-3 w-3" />
-            <AlertDescription className="text-xs">
-              Se creará una orden de reembolso pendiente de aprobación en el panel de Pagos.
-            </AlertDescription>
-          </Alert>
+              <Alert className="py-2">
+                <AlertTriangle className="h-3 w-3" />
+                <AlertDescription className="text-xs">
+                  Se creará una orden de reembolso pendiente de aprobación en el panel de Pagos.
+                </AlertDescription>
+              </Alert>
+            </>
+          )}
         </div>
 
         <DialogFooter className="gap-2 flex-shrink-0 pt-2">
@@ -443,8 +497,10 @@ const AdminProductCancellationModal = ({
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Procesando...
               </>
-            ) : (
+            ) : requiresRefund ? (
               'Confirmar Cancelación'
+            ) : (
+              'Confirmar Remoción'
             )}
           </Button>
         </DialogFooter>
