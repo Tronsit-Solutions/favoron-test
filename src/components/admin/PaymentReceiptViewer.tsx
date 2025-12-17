@@ -31,8 +31,13 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
   const [showModal, setShowModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const isImage = paymentReceipt?.filename?.match(/\.(jpg|jpeg|png|gif)$/i);
+  const isPDF = paymentReceipt?.filename?.match(/\.pdf$/i);
 
   // Generate signed URL for private files
   useEffect(() => {
@@ -73,6 +78,51 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
 
     getSignedUrl();
   }, [paymentReceipt?.filePath, paymentReceipt?.fileUrl]);
+
+  // Load PDF as blob when modal opens
+  useEffect(() => {
+    if (showModal && isPDF && !pdfBlobUrl) {
+      loadPdfAsBlob();
+    }
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showModal, isPDF]);
+
+  const loadPdfAsBlob = async () => {
+    const filePath = paymentReceipt?.filePath || paymentReceipt?.fileUrl;
+    if (!filePath) return;
+
+    setLoadingPdf(true);
+    try {
+      let actualFilePath = filePath;
+      
+      if (filePath.startsWith('http')) {
+        const url = new URL(filePath);
+        const pathParts = url.pathname.split('/');
+        const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+        if (bucketIndex === -1) return;
+        actualFilePath = pathParts.slice(bucketIndex + 1).join('/');
+      }
+
+      const { data, error } = await supabase.storage
+        .from('payment-receipts')
+        .download(actualFilePath);
+
+      if (!error && data) {
+        const url = URL.createObjectURL(data);
+        setPdfBlobUrl(url);
+        console.log('PDF blob URL created');
+      }
+    } catch (error) {
+      console.error('Error loading PDF as blob:', error);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
 
   if (!paymentReceipt?.filePath && !paymentReceipt?.fileUrl) {
     return (
@@ -117,8 +167,6 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
     );
   }
 
-  const isImage = paymentReceipt.filename?.match(/\.(jpg|jpeg|png|gif)$/i);
-  const isPDF = paymentReceipt.filename?.match(/\.pdf$/i);
 
   const handleDownload = async () => {
     const filePath = paymentReceipt.filePath || paymentReceipt.fileUrl;
@@ -302,16 +350,23 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
                 </div>
               )
             ) : isPDF ? (
-              signedUrl ? (
+              loadingPdf ? (
+                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex items-center justify-center">
+                  <p className="text-gray-500">Cargando PDF...</p>
+                </div>
+              ) : pdfBlobUrl ? (
                 <iframe
-                  src={signedUrl}
+                  src={pdfBlobUrl}
                   title="Comprobante de pago"
                   className="w-full h-[70vh] rounded-lg border"
                 />
               ) : (
-                <div className="bg-gray-100 p-8 text-center rounded">
-                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-600" />
-                  <p className="text-gray-700 mb-4">Cargando PDF...</p>
+                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex flex-col items-center justify-center">
+                  <FileText className="h-16 w-16 mb-4 text-gray-400" />
+                  <p className="text-gray-500 mb-4">No se pudo cargar el PDF</p>
+                  <Button variant="outline" onClick={handleDownload}>
+                    <Download className="h-4 w-4 mr-1" /> Descargar
+                  </Button>
                 </div>
               )
             ) : (
