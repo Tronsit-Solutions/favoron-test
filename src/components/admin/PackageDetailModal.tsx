@@ -2053,6 +2053,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
           productIndex={adminCancellationModal.productIndex}
           packageId={pkg.id}
           shopperId={pkg.user_id}
+          packageStatus={pkg.status}
           quote={pkg.quote}
           allProducts={pkg.products_data}
           onCancellationComplete={() => {
