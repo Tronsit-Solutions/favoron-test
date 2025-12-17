@@ -97,18 +97,21 @@ const PackageListItem = ({
   const products = pkg.products_data;
   const isMultiProduct = products && Array.isArray(products) && products.length > 1;
 
-  // Get total estimated price
-  const totalPrice = products && Array.isArray(products) && products.length > 0
-    ? products.reduce((sum, p) => {
+  // Filter active products (exclude cancelled)
+  const activeProducts = products?.filter(p => !p.cancelled) || [];
+
+  // Get total estimated price (only active products)
+  const totalPrice = activeProducts.length > 0
+    ? activeProducts.reduce((sum, p) => {
         const price = parseFloat(String(p.estimatedPrice || 0));
         const qty = parseInt(String(p.quantity || 1), 10);
         return sum + (isNaN(price) ? 0 : price * (isNaN(qty) ? 1 : qty));
       }, 0)
     : pkg.estimated_price || 0;
 
-  // Get total quantity
-  const totalQuantity = products && Array.isArray(products) && products.length > 0
-    ? products.reduce((sum, p) => sum + (parseInt(String(p.quantity || 1), 10) || 1), 0)
+  // Get total quantity (only active products)
+  const totalQuantity = activeProducts.length > 0
+    ? activeProducts.reduce((sum, p) => sum + (parseInt(String(p.quantity || 1), 10) || 1), 0)
     : 1;
 
   return (
@@ -160,18 +163,24 @@ const PackageListItem = ({
               const productPrice = parseFloat(String(product.estimatedPrice || 0));
               const productQty = parseInt(String(product.quantity || 1), 10) || 1;
               const productLink = product.itemLink;
+              const isCancelled = product.cancelled;
 
               return (
-                <div key={index} className="flex items-center gap-2 text-sm py-1 px-2 bg-muted/50 rounded">
-                  <span className="text-muted-foreground">📦</span>
-                  <span className="font-medium truncate flex-1">{product.itemDescription || `Producto ${index + 1}`}</span>
-                  {!isNaN(productPrice) && productPrice > 0 && (
+                <div key={index} className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${isCancelled ? 'bg-red-50/50' : 'bg-muted/50'}`}>
+                  <span className={isCancelled ? 'text-red-400' : 'text-muted-foreground'}>📦</span>
+                  <span className={`truncate flex-1 ${isCancelled ? 'line-through text-red-500' : 'font-medium'}`}>
+                    {product.itemDescription || `Producto ${index + 1}`}
+                  </span>
+                  {isCancelled && (
+                    <span className="text-red-600 text-xs font-medium">(cancelado)</span>
+                  )}
+                  {!isCancelled && !isNaN(productPrice) && productPrice > 0 && (
                     <span className="text-muted-foreground">{formatPrice(productPrice)}</span>
                   )}
-                  {productQty > 1 && (
+                  {!isCancelled && productQty > 1 && (
                     <span className="text-muted-foreground">x{productQty}</span>
                   )}
-                  {productLink && (
+                  {!isCancelled && productLink && (
                     <a
                       href={productLink}
                       target="_blank"
