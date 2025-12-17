@@ -25,6 +25,7 @@ import { useRefundOrders } from '@/hooks/useRefundOrders';
 import { getRefundBreakdown, CANCELLATION_REASONS, CancellationReason, DEFAULT_CANCELLATION_PENALTY } from '@/lib/refundCalculations';
 import { formatCurrency } from '@/lib/formatters';
 import { toast } from 'sonner';
+import { calculateServiceFee } from '@/lib/pricing';
 
 interface ProductData {
   itemDescription?: string;
@@ -79,6 +80,7 @@ const AdminProductCancellationModal = ({
   const [isPrimeUser, setIsPrimeUser] = useState(false);
   const [penaltyAmount, setPenaltyAmount] = useState(DEFAULT_CANCELLATION_PENALTY);
   const [shopperName, setShopperName] = useState('');
+  const [shopperTrustLevel, setShopperTrustLevel] = useState<string | undefined>(undefined);
 
   const { createRefundOrder } = useRefundOrders();
 
@@ -130,6 +132,7 @@ const AdminProductCancellationModal = ({
           const isUserPrime = profileResult.data?.trust_level === 'prime';
           const primePenaltyExempt = companyResult.data?.prime_penalty_exempt !== false;
           setIsPrimeUser(isUserPrime && primePenaltyExempt);
+          setShopperTrustLevel(profileResult.data?.trust_level || undefined);
           
           if (profileResult.data) {
             setShopperName(`${profileResult.data.first_name || ''} ${profileResult.data.last_name || ''}`.trim());
@@ -139,15 +142,16 @@ const AdminProductCancellationModal = ({
             setPenaltyAmount(companyResult.data.cancellation_penalty_amount);
           }
         } else {
-          // Solo cargar nombre del shopper para pre-pago
+          // Para pre-pago: cargar trust_level para recalcular quote
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('first_name, last_name')
+            .select('first_name, last_name, trust_level')
             .eq('id', shopperId)
             .single();
           
           if (profileData) {
             setShopperName(`${profileData.first_name || ''} ${profileData.last_name || ''}`.trim());
+            setShopperTrustLevel(profileData.trust_level || undefined);
           }
         }
       } catch (error) {
@@ -229,28 +233,60 @@ const AdminProductCancellationModal = ({
 
       // 3. Update quote with cancellation info
       const currentQuote = packageData.quote as any || {};
-      const updatedQuote = {
-        ...currentQuote,
-        cancellations: [
-          ...(currentQuote.cancellations || []),
-          {
-            productIndex,
-            cancelledAt: new Date().toISOString(),
-            reason,
-            cancelledByAdmin: true,
-            prePaid: !requiresRefund,
-            ...(requiresRefund && refundBreakdown && {
-              refundAmount: refundBreakdown.totalRefund,
-              penaltyApplied: refundBreakdown.cancellationPenalty,
-              isPrimeExempt: refundBreakdown.isPrimeExempt
-            })
-          }
-        ],
-        // Solo ajustar precio si había reembolso
-        ...(requiresRefund && refundBreakdown && {
-          adjustedTotalPrice: (currentQuote.totalPrice || 0) - refundBreakdown.totalRefund
-        })
-      };
+      let updatedQuote: any;
+      
+      if (!requiresRefund) {
+        // PRE-PAGO: Recalcular quote excluyendo el producto cancelado
+        const activeProducts = updatedProducts.filter((p: any) => !p.cancelled);
+        const newPrice = activeProducts.reduce((sum: number, p: any) => sum + (Number(p.adminAssignedTip) || 0), 0);
+        const newServiceFee = calculateServiceFee(newPrice, shopperTrustLevel);
+        const deliveryFee = Number(currentQuote.deliveryFee || 0);
+        const newTotalPrice = newPrice + newServiceFee + deliveryFee;
+        
+        updatedQuote = {
+          ...currentQuote,
+          price: newPrice,
+          serviceFee: newServiceFee,
+          totalPrice: newTotalPrice,
+          completePrice: newTotalPrice,
+          // Preserve discount info if exists
+          ...(currentQuote.discountCode && {
+            finalTotalPrice: Math.max(0, newTotalPrice - (Number(currentQuote.discountAmount) || 0))
+          }),
+          cancellations: [
+            ...(currentQuote.cancellations || []),
+            {
+              productIndex,
+              cancelledAt: new Date().toISOString(),
+              reason,
+              cancelledByAdmin: true,
+              prePaid: true,
+              previousPrice: currentQuote.price,
+              newPrice: newPrice
+            }
+          ],
+          prePaidCancellationAdjusted: true
+        };
+      } else {
+        // POST-PAGO: Solo ajustar adjustedTotalPrice
+        updatedQuote = {
+          ...currentQuote,
+          cancellations: [
+            ...(currentQuote.cancellations || []),
+            {
+              productIndex,
+              cancelledAt: new Date().toISOString(),
+              reason,
+              cancelledByAdmin: true,
+              prePaid: false,
+              refundAmount: refundBreakdown?.totalRefund,
+              penaltyApplied: refundBreakdown?.cancellationPenalty,
+              isPrimeExempt: refundBreakdown?.isPrimeExempt
+            }
+          ],
+          adjustedTotalPrice: (currentQuote.totalPrice || 0) - (refundBreakdown?.totalRefund || 0)
+        };
+      }
 
       // 4. Check if ALL products are now cancelled
       const allProductsCancelled = updatedProducts.every((p: any) => p.cancelled === true);
