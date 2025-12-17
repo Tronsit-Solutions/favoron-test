@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Banknote, Package, Loader2, Crown, Shield, Info } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertTriangle, Banknote, Package, Loader2, Crown, Shield, Info, Ban } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRefundOrders } from '@/hooks/useRefundOrders';
 import { getRefundBreakdown, CANCELLATION_REASONS, CancellationReason, DEFAULT_CANCELLATION_PENALTY } from '@/lib/refundCalculations';
@@ -81,6 +82,7 @@ const AdminProductCancellationModal = ({
   const [penaltyAmount, setPenaltyAmount] = useState(DEFAULT_CANCELLATION_PENALTY);
   const [shopperName, setShopperName] = useState('');
   const [shopperTrustLevel, setShopperTrustLevel] = useState<string | undefined>(undefined);
+  const [skipRefund, setSkipRefund] = useState(false);
 
   const { createRefundOrder } = useRefundOrders();
 
@@ -167,8 +169,8 @@ const AdminProductCancellationModal = ({
   }, [isOpen, shopperId, requiresRefund]);
 
   const handleSubmit = async () => {
-    // Solo validar banco si requiere reembolso
-    if (requiresRefund && (!bankName.trim() || !bankAccountHolder.trim() || !bankAccountNumber.trim())) {
+    // Solo validar banco si requiere reembolso Y no se está saltando el reembolso
+    if (requiresRefund && !skipRefund && (!bankName.trim() || !bankAccountHolder.trim() || !bankAccountNumber.trim())) {
       toast.error('Por favor completa todos los datos bancarios del shopper');
       return;
     }
@@ -178,8 +180,8 @@ const AdminProductCancellationModal = ({
     try {
       let refundOrder = null;
 
-      // 1. Solo crear orden de reembolso si es post-pago
-      if (requiresRefund && refundBreakdown) {
+      // 1. Solo crear orden de reembolso si es post-pago Y no se está saltando
+      if (requiresRefund && !skipRefund && refundBreakdown) {
         refundOrder = await createRefundOrder({
           packageId,
           shopperId,
@@ -222,8 +224,13 @@ const AdminProductCancellationModal = ({
         cancelledAt: new Date().toISOString(),
         cancellationReason: reason,
         cancelledByAdmin: true,
-        // Solo agregar info de reembolso si aplica
-        ...(requiresRefund && refundBreakdown && refundOrder && {
+        // Marcar si se saltó el reembolso
+        ...(requiresRefund && skipRefund && {
+          refundSkipped: true,
+          refundSkippedReason: reason
+        }),
+        // Solo agregar info de reembolso si aplica y no se saltó
+        ...(requiresRefund && !skipRefund && refundBreakdown && refundOrder && {
           refundAmount: refundBreakdown.totalRefund,
           refundOrderId: refundOrder.id,
           penaltyApplied: refundBreakdown.cancellationPenalty,
@@ -267,8 +274,25 @@ const AdminProductCancellationModal = ({
           ],
           prePaidCancellationAdjusted: true
         };
+      } else if (skipRefund) {
+        // POST-PAGO SIN REEMBOLSO: No ajustar el precio total
+        updatedQuote = {
+          ...currentQuote,
+          cancellations: [
+            ...(currentQuote.cancellations || []),
+            {
+              productIndex,
+              cancelledAt: new Date().toISOString(),
+              reason,
+              cancelledByAdmin: true,
+              prePaid: false,
+              refundSkipped: true,
+              refundSkippedReason: reason
+            }
+          ]
+        };
       } else {
-        // POST-PAGO: Solo ajustar adjustedTotalPrice
+        // POST-PAGO CON REEMBOLSO: Ajustar adjustedTotalPrice
         updatedQuote = {
           ...currentQuote,
           cancellations: [
@@ -333,6 +357,8 @@ const AdminProductCancellationModal = ({
 
       if (allProductsCancelled) {
         toast.success(`Todos los productos cancelados. El pedido ha sido cancelado.`);
+      } else if (requiresRefund && skipRefund) {
+        toast.success(`Producto cancelado sin reembolso.`);
       } else if (requiresRefund && refundBreakdown) {
         toast.success(`Producto cancelado. Reembolso de ${formatCurrency(refundBreakdown.totalRefund)} creado para ${shopperName || 'el shopper'}.`);
       } else {
@@ -386,8 +412,29 @@ const AdminProductCancellationModal = ({
             </Alert>
           )}
 
-          {/* Refund breakdown - only for post-payment */}
-          {requiresRefund && refundBreakdown && (
+          {/* Skip refund toggle - only for post-payment */}
+          {requiresRefund && (
+            <div className="flex items-start space-x-3 p-3 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-950/30 dark:border-amber-800">
+              <Checkbox 
+                id="skipRefund" 
+                checked={skipRefund} 
+                onCheckedChange={(checked) => setSkipRefund(checked === true)}
+                className="mt-0.5"
+              />
+              <div className="flex-1">
+                <Label htmlFor="skipRefund" className="text-sm font-medium cursor-pointer flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
+                  <Ban className="h-3.5 w-3.5" />
+                  No dar reembolso
+                </Label>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                  El producto será cancelado pero no se generará orden de reembolso para el shopper.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Refund breakdown - only for post-payment when NOT skipping refund */}
+          {requiresRefund && !skipRefund && refundBreakdown && (
             <div className="space-y-1">
               <h4 className="font-medium text-xs flex items-center gap-1">
                 <Banknote className="h-3 w-3" />
@@ -449,8 +496,8 @@ const AdminProductCancellationModal = ({
             </Select>
           </div>
 
-          {/* Bank info - only for post-payment refunds */}
-          {requiresRefund && (
+          {/* Bank info - only for post-payment refunds when NOT skipping */}
+          {requiresRefund && !skipRefund && (
             <>
               <Separator />
               <div className="space-y-2">
@@ -515,6 +562,16 @@ const AdminProductCancellationModal = ({
                 </AlertDescription>
               </Alert>
             </>
+          )}
+
+          {/* Alert when skipping refund */}
+          {requiresRefund && skipRefund && (
+            <Alert className="py-2 bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+              <Ban className="h-3 w-3 text-amber-600" />
+              <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+                El producto se cancelará sin generar reembolso. Esta acción quedará registrada.
+              </AlertDescription>
+            </Alert>
           )}
         </div>
 
