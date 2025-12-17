@@ -809,8 +809,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                                  return ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
                                })
                                .reduce((sum, pkg) => {
-                                 const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
-                                   ? (pkg as any).products_data.reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
+                                  const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
+                                    ? (pkg as any).products_data.filter((product: any) => !product.cancelled).reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
                                    : parseFloat(String((pkg as any).admin_assigned_tip || '0'));
                                  return sum + tip;
                                }, 0).toFixed(2)}

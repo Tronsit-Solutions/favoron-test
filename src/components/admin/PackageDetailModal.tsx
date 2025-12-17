@@ -696,7 +696,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
 
   const detailedProducts = getDetailedProductInfo();
   const totalOrderValue = detailedProducts.reduce((sum, product) => sum + product.subtotal, 0);
-  const totalAdminTips = detailedProducts.reduce((sum, product) => sum + product.adminTip, 0);
+  const totalAdminTips = detailedProducts.filter(product => !product.cancelled).reduce((sum, product) => sum + product.adminTip, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>

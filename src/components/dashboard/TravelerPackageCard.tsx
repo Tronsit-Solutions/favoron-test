@@ -174,9 +174,11 @@ const TravelerPackageCard = ({
                   // Calculate tip from products_data first, fallback to admin_assigned_tip
                   let totalTip = 0;
                   if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-                    totalTip = pkg.products_data.reduce((sum: number, product: any) => {
-                      return sum + parseFloat(product.adminAssignedTip || '0');
-                    }, 0);
+                    totalTip = pkg.products_data
+                      .filter((product: any) => !product.cancelled)
+                      .reduce((sum: number, product: any) => {
+                        return sum + parseFloat(product.adminAssignedTip || '0');
+                      }, 0);
                   } else {
                     totalTip = parseFloat(pkg.admin_assigned_tip || '0');
                   }
