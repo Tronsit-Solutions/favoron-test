@@ -121,6 +121,7 @@ export const ProductReceiptConfirmation = ({
                 key={originalIndex}
                 product={product}
                 index={originalIndex}
+                packageId={packageId}
                 onConfirm={handleConfirmProduct}
                 isConfirming={confirmingIndex === originalIndex}
               />
