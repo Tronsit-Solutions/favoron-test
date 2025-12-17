@@ -348,12 +348,13 @@ const AdminDashboard = ({
     }
     
     // PRIORITY 3: Final fallback for genuinely old single-product packages
+    // Legacy packages don't have quantity info, default to '1'
     if (!products && (pkg.item_description || pkg.item_link || pkg.estimated_price)) {
       products = [{
         itemDescription: pkg.item_description || 'Producto sin descripción',
         estimatedPrice: pkg.estimated_price || '0',
         itemLink: pkg.item_link || null,
-        quantity: '1'
+        quantity: '1' // Legacy packages don't have quantity info
       }];
       isMultipleProducts = false;
       console.log('✅ Created product from legacy fields (single product fallback):', products);

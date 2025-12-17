@@ -106,14 +106,14 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         itemDescription: product.itemDescription || '',
         estimatedPrice: product.estimatedPrice?.toString() || '0',
         itemLink: product.itemLink || pkg.item_link || '',
-        quantity: product.quantity || '1',
+        quantity: product.quantity ?? '1', // Use ?? to preserve '0' or other falsy values
         adminAssignedTip: product.adminAssignedTip || 0
       }))
     : [{
         itemDescription: pkg.item_description,
         estimatedPrice: pkg.estimated_price?.toString() || '0',
         itemLink: pkg.item_link,
-        quantity: '1'
+        quantity: '1' // Legacy packages don't have quantity info
       }];
 
   const statusOptions = [
