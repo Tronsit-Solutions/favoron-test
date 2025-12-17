@@ -826,7 +826,12 @@ const Dashboard = ({ user }: DashboardProps) => {
                                }
                                // Exclude packages from completed and paid trips
                                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                               return !(matchedTrip && matchedTrip.status === 'completed_paid');
+                               if (matchedTrip && matchedTrip.status === 'completed_paid') {
+                                 return false;
+                               }
+                               // Exclude expired, cancelled and rejected packages
+                               const inactiveStatuses = ['quote_expired', 'cancelled', 'rejected'];
+                               return !inactiveStatuses.includes(pkg.status);
                              }).length}
                            </div>
                           <div className="text-xs text-muted-foreground font-medium">Paquetes Asignados</div>
