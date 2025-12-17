@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UserStatusBadge from "./UserStatusBadge";
 import UserDetailModal from "./UserDetailModal";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import { useUserManagement } from "@/hooks/useUserManagement";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -56,6 +57,8 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDetail, setShowUserDetail] = useState(false);
   const [migrating, setMigrating] = useState(false);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
+  const [selectedAvatarName, setSelectedAvatarName] = useState<string>("");
   const { toast } = useToast();
 
   const getRoleLabel = (role: string) => {
@@ -422,7 +425,16 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                  users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <Avatar className="h-12 w-12">
+                      <Avatar 
+                        className={`h-12 w-12 ${(user as any).avatar_url ? 'cursor-pointer hover:ring-2 hover:ring-primary transition-all' : ''}`}
+                        onClick={() => {
+                          const avatarUrl = (user as any).avatar_url;
+                          if (avatarUrl) {
+                            setSelectedAvatarUrl(avatarUrl);
+                            setSelectedAvatarName(user.name);
+                          }
+                        }}
+                      >
                         <AvatarImage 
                           src={(user as any).avatar_url || undefined} 
                           alt={`Foto de ${user.name}`}
@@ -500,6 +512,15 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           onUpdateUserRole={handleUpdateUserRole}
         />
       )}
+
+      {/* Avatar Viewer Modal */}
+      <ImageViewerModal
+        isOpen={!!selectedAvatarUrl}
+        onClose={() => setSelectedAvatarUrl(null)}
+        imageUrl={selectedAvatarUrl || ''}
+        title={`Foto de ${selectedAvatarName}`}
+        filename={`avatar-${selectedAvatarName.toLowerCase().replace(/\s+/g, '-')}.jpg`}
+      />
     </div>
   );
 };
