@@ -1219,7 +1219,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     const cancellationCheck = canCancelProduct(
                       product.rawProduct || product,
                       pkg.status,
-                      activeProductCount
+                      activeProductCount,
+                      true // isAdmin = true
                     );
                     
                     // Check if product reception status should be shown

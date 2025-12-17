@@ -118,20 +118,41 @@ export const getRefundBreakdown = (
 
 /**
  * Check if a product can be cancelled
+ * @param isAdmin - If true, allows cancellation in more package states
  */
 export const canCancelProduct = (
   product: ProductData,
   packageStatus: string,
-  activeProductCount: number
+  activeProductCount: number,
+  isAdmin: boolean = false
 ): { canCancel: boolean; reason?: string } => {
-  // Status check - only certain statuses allow cancellation
-  const CANCELLABLE_STATUSES = [
+  // Estados permitidos para shoppers (restrictivo)
+  const SHOPPER_CANCELLABLE_STATUSES = [
     'pending_purchase',
     'in_transit',
     'purchased'
   ];
   
-  if (!CANCELLABLE_STATUSES.includes(packageStatus)) {
+  // Estados permitidos para admins (expandido)
+  const ADMIN_CANCELLABLE_STATUSES = [
+    'matched',
+    'quote_sent',
+    'quote_accepted',
+    'payment_pending',
+    'payment_pending_approval',
+    'pending_purchase',
+    'purchased',
+    'in_transit',
+    'received_by_traveler',
+    'pending_office_confirmation',
+    'delivered_to_office',
+    'ready_for_pickup',
+    'ready_for_delivery'
+  ];
+  
+  const allowedStatuses = isAdmin ? ADMIN_CANCELLABLE_STATUSES : SHOPPER_CANCELLABLE_STATUSES;
+  
+  if (!allowedStatuses.includes(packageStatus)) {
     return { 
       canCancel: false, 
       reason: 'El paquete no está en un estado que permita cancelaciones' 
