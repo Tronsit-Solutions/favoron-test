@@ -167,8 +167,8 @@ export const MatchCard = ({
       if (product.cancelled) {
         return (
           <span key={index}>
-            <span className="line-through text-muted-foreground">{description}</span>
-            <span className="text-red-500 text-xs ml-1">(cancelado)</span>
+            <span className="line-through text-red-500">{description}</span>
+            <span className="text-red-600 text-xs ml-1 font-medium">(cancelado)</span>
             {!isLast && ', '}
           </span>
         );
