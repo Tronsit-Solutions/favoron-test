@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck } from "lucide-react";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,6 +25,14 @@ interface Product {
   description?: string;
   estimatedPrice?: number;
   quantity?: number;
+}
+
+interface DeliveryAddress {
+  address?: string;
+  zone?: string;
+  municipality?: string;
+  department?: string;
+  reference?: string;
 }
 
 interface EditPackageModalProps {
@@ -63,6 +71,9 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     ? (pkg.products_data as Product[]) 
     : [];
 
+  // Parse existing data
+  const existingAddress = pkg.confirmed_delivery_address as DeliveryAddress | null;
+
   // Local state for editable fields
   const [products, setProducts] = useState<Product[]>(existingProducts);
   const [itemDescription, setItemDescription] = useState(pkg.item_description || "");
@@ -70,6 +81,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [additionalNotes, setAdditionalNotes] = useState(pkg.additional_notes || "");
   const [deliveryMethod, setDeliveryMethod] = useState(pkg.delivery_method || "pickup");
   const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
   const [isSaving, setIsSaving] = useState(false);
 
   // Determine what can be edited based on status
@@ -80,12 +92,14 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   // Reset form when package changes
   useEffect(() => {
     const prods = Array.isArray(pkg.products_data) ? (pkg.products_data as Product[]) : [];
+    const addr = pkg.confirmed_delivery_address as DeliveryAddress | null;
     setProducts(prods);
     setItemDescription(pkg.item_description || "");
     setItemLink(pkg.item_link || "");
     setAdditionalNotes(pkg.additional_notes || "");
     setDeliveryMethod(pkg.delivery_method || "pickup");
     setPackageDestination(pkg.package_destination || "");
+    setDeliveryAddress(addr || {});
   }, [pkg]);
 
   const updateProduct = (index: number, field: keyof Product, value: string | number) => {
@@ -94,6 +108,10 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+  };
+
+  const updateDeliveryAddress = (field: keyof DeliveryAddress, value: string) => {
+    setDeliveryAddress(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -111,6 +129,11 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
       // Only update destination if allowed
       if (canEditDestination) {
         updatedData.package_destination = packageDestination;
+      }
+
+      // Include delivery address if method is delivery
+      if (deliveryMethod === "delivery") {
+        updatedData.confirmed_delivery_address = deliveryAddress as unknown as PackageType["confirmed_delivery_address"];
       }
 
       await onSave(updatedData);
@@ -306,6 +329,69 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                   </div>
                 </RadioGroup>
               </div>
+
+              {/* Delivery Address - only show when delivery method is "delivery" */}
+              {deliveryMethod === "delivery" && (
+                <div className="mt-4 p-4 border rounded-lg bg-muted/30 space-y-3">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Home className="h-3 w-3" />
+                    Dirección de entrega
+                  </Label>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dirección</Label>
+                      <Input
+                        value={deliveryAddress.address || ""}
+                        onChange={(e) => updateDeliveryAddress("address", e.target.value)}
+                        placeholder="Calle, número, edificio, apartamento..."
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Zona</Label>
+                        <Input
+                          value={deliveryAddress.zone || ""}
+                          onChange={(e) => updateDeliveryAddress("zone", e.target.value)}
+                          placeholder="Ej: Zona 10"
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Municipio</Label>
+                        <Input
+                          value={deliveryAddress.municipality || ""}
+                          onChange={(e) => updateDeliveryAddress("municipality", e.target.value)}
+                          placeholder="Ej: Guatemala"
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Departamento</Label>
+                      <Input
+                        value={deliveryAddress.department || ""}
+                        onChange={(e) => updateDeliveryAddress("department", e.target.value)}
+                        placeholder="Ej: Guatemala"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Referencia</Label>
+                      <Input
+                        value={deliveryAddress.reference || ""}
+                        onChange={(e) => updateDeliveryAddress("reference", e.target.value)}
+                        placeholder="Cerca de..., frente a..."
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Additional Notes */}
