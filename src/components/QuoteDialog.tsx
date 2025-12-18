@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -885,70 +885,127 @@ const QuoteDialog = ({
                         );
                       })}
                       
-                      {/* Footer totals - Clean UX design */}
-                      <div className="bg-green-50/50 rounded-xl p-4 mt-3 space-y-3">
+                      {/* Footer totals - Redesigned invoice with clear Prime savings */}
+                      {(() => {
+                        const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
+                        const activeProducts = selectedProducts.filter(p => !p.excluded);
+                        const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+                        const isPrime = packageDetails.shopper_trust_level === 'prime';
+                        const isDelivery = packageDetails.delivery_method === 'delivery';
+                        const isGuatemala = isGuatemalaCityArea(cityArea);
                         
-                        {/* Delivery fee (if applicable) */}
-                        {packageDetails.delivery_method === 'delivery' && (
-                          <div className="flex justify-between text-sm text-green-700">
-                            <span>🚚 Entrega a domicilio:</span>
-                            <span className="font-semibold text-green-600">
-                              {formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea).deliveryFee)}
-                            </span>
-                          </div>
-                        )}
+                        // Calculate service fees
+                        const standardServiceFee = totalTip * 0.40;
+                        const primeServiceFee = totalTip * 0.20;
+                        const actualServiceFee = isPrime ? primeServiceFee : standardServiceFee;
+                        const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
                         
-                        {/* Total to pay - Clean design with anxiety reduction */}
-                        <div className="flex justify-between items-center py-3">
-                          <span className="text-green-700 font-medium">
-                            ✅ Total final (sin sorpresas):
-                          </span>
-                          {(() => {
-                            const total = calculateSelectedProductsTotal();
-                            const wholePart = Math.floor(total);
-                            const decimalPart = (total % 1).toFixed(2).slice(2);
-                            return (
-                              <span className="text-2xl font-bold text-green-600">
-                                Q{wholePart}<span className="text-base">.{decimalPart}</span>
-                              </span>
-                            );
-                          })()}
-                        </div>
+                        // Calculate delivery fees
+                        const standardDeliveryFee = isGuatemala ? 25 : 60;
+                        const primeDeliveryFee = isGuatemala ? 0 : 35;
+                        const actualDeliveryFee = isDelivery ? (isPrime ? primeDeliveryFee : standardDeliveryFee) : 0;
+                        const deliverySavings = isDelivery && isPrime ? standardDeliveryFee - primeDeliveryFee : 0;
                         
-                        {/* Prime savings display */}
-                        {packageDetails.shopper_trust_level === 'prime' && (() => {
-                          const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-                          const activeProducts = selectedProducts.filter(p => !p.excluded);
-                          const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
-                          
-                          // Calculate service fee savings (40% standard vs 20% Prime)
-                          const standardServiceFee = totalTip * 0.40;
-                          const primeServiceFee = totalTip * 0.20;
-                          const serviceFeeSavings = standardServiceFee - primeServiceFee;
-                          
-                          // Calculate delivery savings only if delivery method
-                          let deliverySavings = 0;
-                          if (packageDetails.delivery_method === 'delivery') {
-                            const isGuatemala = isGuatemalaCityArea(cityArea);
-                            const standardDelivery = isGuatemala ? 25 : 60;
-                            const primeDelivery = isGuatemala ? 0 : 35;
-                            deliverySavings = standardDelivery - primeDelivery;
-                          }
-                          
-                          const totalSavings = serviceFeeSavings + deliverySavings;
-                          
-                          if (totalSavings <= 0) return null;
-                          
-                          return (
-                            <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-2 mt-2">
-                              <Crown className="w-4 h-4 text-amber-500" />
-                              <span className="text-amber-700 font-semibold text-sm">
-                                ¡Ahorro Prime! Estás ahorrando {formatCurrency(totalSavings)} en este pedido
-                              </span>
+                        const totalSavings = serviceFeeSavings + deliverySavings;
+                        const total = calculateSelectedProductsTotal();
+                        const wholePart = Math.floor(total);
+                        const decimalPart = (total % 1).toFixed(2).slice(2);
+                        
+                        return (
+                          <div className="bg-gradient-to-br from-green-50 to-emerald-50/50 rounded-xl p-4 mt-3 border border-green-200/50">
+                            {/* Header */}
+                            <h4 className="font-semibold text-green-800 flex items-center gap-2 mb-4 text-sm">
+                              <Calculator className="w-4 h-4" />
+                              Desglose de tu pedido
+                            </h4>
+                            
+                            <div className="space-y-3">
+                              {/* Line 1: Products base */}
+                              <div className="flex justify-between text-sm">
+                                <span className="text-green-700">Productos:</span>
+                                <span className="font-medium text-green-800">{formatCurrency(totalTip)}</span>
+                              </div>
+                              
+                              {/* Line 2: Service fee with Prime savings */}
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-green-700">
+                                    Servicio Favorón {isPrime ? '(20%)' : '(40%)'}:
+                                  </span>
+                                  <span className="font-medium text-green-800">{formatCurrency(actualServiceFee)}</span>
+                                </div>
+                                {isPrime && serviceFeeSavings > 0 && (
+                                  <div className="flex justify-between text-xs pl-3 border-l-2 border-amber-300 ml-1">
+                                    <span className="text-amber-600 flex items-center gap-1">
+                                      <Crown className="w-3 h-3" /> Ahorro Prime (40% → 20%):
+                                    </span>
+                                    <span className="text-amber-600 font-semibold">-{formatCurrency(serviceFeeSavings)}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Line 3: Delivery fee with Prime savings */}
+                              {isDelivery && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-green-700 flex items-center gap-1">
+                                      <Truck className="w-3 h-3" /> Entrega a domicilio:
+                                    </span>
+                                    <span className={`font-medium ${actualDeliveryFee === 0 ? 'text-green-600' : 'text-green-800'}`}>
+                                      {actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee)}
+                                    </span>
+                                  </div>
+                                  {isPrime && deliverySavings > 0 && (
+                                    <div className="flex justify-between text-xs pl-3 border-l-2 border-amber-300 ml-1">
+                                      <span className="text-amber-600 flex items-center gap-1">
+                                        <Crown className="w-3 h-3" /> Ahorro Prime:
+                                      </span>
+                                      <span className="text-amber-600 font-semibold">-{formatCurrency(deliverySavings)}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Separator */}
+                              <div className="border-t-2 border-green-300/50 my-3" />
+                              
+                              {/* Total */}
+                              <div className="flex justify-between items-center">
+                                <span className="text-green-700 font-semibold flex items-center gap-1">
+                                  ✅ Total final:
+                                </span>
+                                <span className="text-2xl font-bold text-green-600">
+                                  Q{wholePart}<span className="text-base">.{decimalPart}</span>
+                                </span>
+                              </div>
+                              
+                              {/* Prime savings summary badge */}
+                              {isPrime && totalSavings > 0 && (
+                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-300 rounded-xl p-3 mt-2">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Crown className="w-5 h-5 text-amber-500" />
+                                    <span className="text-amber-800 font-bold text-sm">
+                                      ¡Ahorraste {formatCurrency(totalSavings)} con Prime!
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-center gap-3 mt-1.5 text-xs text-amber-700">
+                                    {serviceFeeSavings > 0 && (
+                                      <span className="bg-amber-200/50 px-2 py-0.5 rounded-full">
+                                        Servicio: -{formatCurrency(serviceFeeSavings)}
+                                      </span>
+                                    )}
+                                    {deliverySavings > 0 && (
+                                      <span className="bg-amber-200/50 px-2 py-0.5 rounded-full">
+                                        Envío: -{formatCurrency(deliverySavings)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          );
-                        })()}
-                      </div>
+                          </div>
+                        );
+                      })()}
                       
                       
                       
