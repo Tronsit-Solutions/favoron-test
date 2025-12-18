@@ -26,10 +26,26 @@ const destinationCountries = [
 ];
 
 const citiesByCountry: Record<string, string[]> = {
-  'Guatemala': ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'],
-  'USA': ['Miami', 'New York', 'Los Angeles', 'Houston', 'Otra ciudad'],
-  'España': ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Otra ciudad'],
-  'México': ['Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún', 'Otra ciudad'],
+  'Guatemala': [
+    'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
+    'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
+    'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
+  ],
+  'USA': [
+    'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
+    'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
+    'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
+  ],
+  'España': [
+    'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
+    'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
+    'San Sebastián', 'Otra ciudad'
+  ],
+  'México': [
+    'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
+    'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
+    'Toluca', 'Otra ciudad'
+  ],
   'Otro': ['Otra ciudad']
 };
 import AdminProductCancellationModal from "./AdminProductCancellationModal";
