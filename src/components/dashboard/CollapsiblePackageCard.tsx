@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Act
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
-import PackageRequestForm from "@/components/PackageRequestForm";
+import EditPackageModal from "@/components/dashboard/EditPackageModal";
 import ShopperPackagePriorityActions from "@/components/dashboard/shopper/ShopperPackagePriorityActions";
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -894,10 +894,16 @@ const CollapsiblePackageCard = ({
       </Collapsible>
 
       {/* Edit Package Modal */}
-      {showEditModal && onEditPackage && <PackageRequestForm isOpen={showEditModal} onClose={() => setShowEditModal(false)} onSubmit={data => {
-        onEditPackage({...data, id: pkg.id});
-        setShowEditModal(false);
-      }} editMode={true} initialData={pkg} />}
+      {showEditModal && onEditPackage && (
+        <EditPackageModal 
+          isOpen={showEditModal} 
+          onClose={() => setShowEditModal(false)} 
+          pkg={pkg}
+          onSave={(updatedData) => {
+            onEditPackage({ ...pkg, ...updatedData } as PackageType);
+          }}
+        />
+      )}
 
       {/* Edit Document Modal */}
       {editDocumentModal.isOpen && pkg && <EditDocumentModal isOpen={editDocumentModal.isOpen} onClose={() => setEditDocumentModal({
