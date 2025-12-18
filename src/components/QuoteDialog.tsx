@@ -520,9 +520,9 @@ const QuoteDialog = ({
     setShowTravelerRejectionModal(false);
   };
   return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} overflow-y-auto p-4 sm:p-6`}>
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} flex flex-col overflow-hidden p-4 sm:p-6`}>
 
-        <DialogHeader className="pr-12">
+        <DialogHeader className="pr-12 shrink-0">
           {isTravelerContext ? (
             <div>
               <DialogTitle className="text-lg font-bold text-left bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
@@ -544,7 +544,7 @@ const QuoteDialog = ({
           )}
         </DialogHeader>
 
-        <div className="space-y-4 sm:space-y-6 overflow-x-hidden">{/* Force no horizontal overflow */}
+        <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1">{/* Single scroll container */}
           
           {/* TRIP CONFIRMATION STEP - For travelers confirming their trip info */}
           {isTravelerContext && showTripConfirmation && tripInfo ? (
