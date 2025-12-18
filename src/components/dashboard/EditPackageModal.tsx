@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, FileText } from "lucide-react";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -144,50 +144,26 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
 
         <ScrollArea className="max-h-[60vh]">
           <div className="p-6 space-y-6">
-            {/* General Description */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium">
-                <FileText className="h-4 w-4" />
-                Descripción general
-              </Label>
-              <Input
-                value={itemDescription}
-                onChange={(e) => setItemDescription(e.target.value)}
-                placeholder="Describe lo que estás solicitando"
-              />
-            </div>
-
-            {/* General Link */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium">
-                <ExternalLink className="h-4 w-4" />
-                Link general (opcional)
-              </Label>
-              <Input
-                value={itemLink}
-                onChange={(e) => setItemLink(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-
             {/* Products Section */}
-            {products.length > 0 && (
-              <div className="space-y-4">
-                <Label className="text-sm font-medium">Productos ({products.length})</Label>
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Package className="h-4 w-4" />
+                Productos ({products.length || 1})
+              </Label>
+              
+              {products.length > 0 ? (
                 <div className="space-y-4">
                   {products.map((product, index) => (
                     <div key={index} className="p-4 border rounded-lg bg-muted/30 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">
-                          Producto {index + 1}
-                        </span>
-                      </div>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Producto {index + 1}
+                      </span>
                       
                       {/* Product Link */}
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground flex items-center gap-1">
                           <ExternalLink className="h-3 w-3" />
-                          Link
+                          Link del producto
                         </Label>
                         <Input
                           value={product.link || ""}
@@ -213,7 +189,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground flex items-center gap-1">
                             <DollarSign className="h-3 w-3" />
-                            Precio estimado
+                            Precio estimado (USD)
                           </Label>
                           <Input
                             type="number"
@@ -248,62 +224,92 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Destination */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium">
-                <MapPin className="h-4 w-4" />
-                Destino
-              </Label>
-              <Select 
-                value={packageDestination} 
-                onValueChange={setPackageDestination}
-                disabled={!canEditDestination}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Ciudad de Guatemala">Ciudad de Guatemala</SelectItem>
-                  <SelectItem value="Quetzaltenango">Quetzaltenango</SelectItem>
-                  <SelectItem value="Antigua Guatemala">Antigua Guatemala</SelectItem>
-                  <SelectItem value="Escuintla">Escuintla</SelectItem>
-                  <SelectItem value="Otro departamento">Otro departamento</SelectItem>
-                </SelectContent>
-              </Select>
-              {!canEditDestination && (
-                <p className="text-xs text-muted-foreground italic">
-                  El destino no se puede cambiar porque ya hay un viaje asignado.
-                </p>
+              ) : (
+                /* Fallback for packages without products_data - show general fields */
+                <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <ExternalLink className="h-3 w-3" />
+                      Link del producto
+                    </Label>
+                    <Input
+                      value={itemLink}
+                      onChange={(e) => setItemLink(e.target.value)}
+                      placeholder="https://..."
+                      className="text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Descripción</Label>
+                    <Input
+                      value={itemDescription}
+                      onChange={(e) => setItemDescription(e.target.value)}
+                      placeholder="Descripción del producto"
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* Delivery Method */}
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2 text-sm font-medium">
-                <Truck className="h-4 w-4" />
-                Método de entrega
+            {/* Separator */}
+            <div className="border-t pt-4">
+              <Label className="flex items-center gap-2 text-sm font-medium mb-4">
+                <MapPin className="h-4 w-4" />
+                Información de entrega
               </Label>
-              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pickup" id="pickup" />
-                  <Label htmlFor="pickup" className="font-normal cursor-pointer">
-                    Recoger en oficina
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="delivery" id="delivery" />
-                  <Label htmlFor="delivery" className="font-normal cursor-pointer">
-                    Entrega a domicilio
-                  </Label>
-                </div>
-              </RadioGroup>
+
+              {/* Destination */}
+              <div className="space-y-3 mb-4">
+                <Label className="text-xs text-muted-foreground">Destino</Label>
+                <Select 
+                  value={packageDestination} 
+                  onValueChange={setPackageDestination}
+                  disabled={!canEditDestination}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona el destino" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ciudad de Guatemala">Ciudad de Guatemala</SelectItem>
+                    <SelectItem value="Quetzaltenango">Quetzaltenango</SelectItem>
+                    <SelectItem value="Antigua Guatemala">Antigua Guatemala</SelectItem>
+                    <SelectItem value="Escuintla">Escuintla</SelectItem>
+                    <SelectItem value="Otro departamento">Otro departamento</SelectItem>
+                  </SelectContent>
+                </Select>
+                {!canEditDestination && (
+                  <p className="text-xs text-muted-foreground italic">
+                    El destino no se puede cambiar porque ya hay un viaje asignado.
+                  </p>
+                )}
+              </div>
+
+              {/* Delivery Method */}
+              <div className="space-y-3">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Truck className="h-3 w-3" />
+                  Método de entrega
+                </Label>
+                <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="pickup" id="pickup" />
+                    <Label htmlFor="pickup" className="font-normal cursor-pointer">
+                      Recoger en oficina
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="delivery" id="delivery" />
+                    <Label htmlFor="delivery" className="font-normal cursor-pointer">
+                      Entrega a domicilio
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
             </div>
 
             {/* Additional Notes */}
-            <div className="space-y-3">
+            <div className="border-t pt-4 space-y-3">
               <Label className="text-sm font-medium">Notas adicionales</Label>
               <Textarea
                 value={additionalNotes}
