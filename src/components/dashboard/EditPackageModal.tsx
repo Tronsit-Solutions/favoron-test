@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home, CalendarIcon } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 type PackageType = Tables<"packages">;
 
@@ -83,6 +88,9 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [deliveryMethod, setDeliveryMethod] = useState(pkg.delivery_method || "pickup");
   const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
+  const [deliveryDeadline, setDeliveryDeadline] = useState<Date | undefined>(
+    pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   // Determine what can be edited based on status
@@ -101,6 +109,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setDeliveryMethod(pkg.delivery_method || "pickup");
     setPackageDestination(pkg.package_destination || "");
     setDeliveryAddress(addr || {});
+    setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
   }, [pkg]);
 
   const updateProduct = (index: number, field: keyof Product, value: string | number) => {
@@ -124,6 +133,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
         item_link: itemLink,
         additional_notes: additionalNotes,
         delivery_method: deliveryMethod,
+        delivery_deadline: deliveryDeadline?.toISOString() || pkg.delivery_deadline,
         products_data: products as unknown as PackageType["products_data"],
       };
 
@@ -307,6 +317,39 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                     El destino no se puede cambiar porque ya hay un viaje asignado.
                   </p>
                 )}
+              </div>
+
+              {/* Delivery Deadline */}
+              <div className="space-y-3 mb-4">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CalendarIcon className="h-3 w-3" />
+                  Fecha límite de entrega
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !deliveryDeadline && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {deliveryDeadline 
+                        ? format(deliveryDeadline, "PPP", { locale: es }) 
+                        : "Selecciona una fecha"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={deliveryDeadline}
+                      onSelect={setDeliveryDeadline}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Delivery Method */}
