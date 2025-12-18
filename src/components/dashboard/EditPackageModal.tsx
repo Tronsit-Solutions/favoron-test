@@ -1,0 +1,331 @@
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, FileText } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+type PackageType = Tables<"packages">;
+
+interface Product {
+  link?: string;
+  description?: string;
+  estimatedPrice?: number;
+  quantity?: number;
+}
+
+interface EditPackageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  pkg: PackageType;
+  onSave: (updatedData: Partial<PackageType> & { id: string }) => void;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending_approval: "Pendiente de aprobación",
+  approved: "Aprobado",
+  pending_quote: "Pendiente de cotización",
+  quote_sent: "Cotización enviada",
+  quote_accepted: "Cotización aceptada",
+  paid: "Pagado",
+  in_transit: "En tránsito",
+  received_by_traveler: "Recibido por viajero",
+  pending_office_confirmation: "Pendiente confirmación oficina",
+  delivered_to_office: "Entregado en oficina",
+  completed: "Completado",
+  cancelled: "Cancelado",
+  rejected: "Rechazado",
+};
+
+const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  if (status === "completed") return "default";
+  if (status === "cancelled" || status === "rejected") return "destructive";
+  if (status.includes("pending")) return "secondary";
+  return "outline";
+};
+
+export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageModalProps) => {
+  // Parse existing products data
+  const existingProducts = Array.isArray(pkg.products_data) 
+    ? (pkg.products_data as Product[]) 
+    : [];
+
+  // Local state for editable fields
+  const [products, setProducts] = useState<Product[]>(existingProducts);
+  const [itemDescription, setItemDescription] = useState(pkg.item_description || "");
+  const [itemLink, setItemLink] = useState(pkg.item_link || "");
+  const [additionalNotes, setAdditionalNotes] = useState(pkg.additional_notes || "");
+  const [deliveryMethod, setDeliveryMethod] = useState(pkg.delivery_method || "pickup");
+  const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Determine what can be edited based on status
+  const quoteAcceptedStatuses = ["quote_accepted", "paid", "in_transit", "received_by_traveler", "pending_office_confirmation", "delivered_to_office", "completed"];
+  const canEditPrices = !quoteAcceptedStatuses.includes(pkg.status);
+  const canEditDestination = !pkg.matched_trip_id; // Can't change destination if trip is assigned
+
+  // Reset form when package changes
+  useEffect(() => {
+    const prods = Array.isArray(pkg.products_data) ? (pkg.products_data as Product[]) : [];
+    setProducts(prods);
+    setItemDescription(pkg.item_description || "");
+    setItemLink(pkg.item_link || "");
+    setAdditionalNotes(pkg.additional_notes || "");
+    setDeliveryMethod(pkg.delivery_method || "pickup");
+    setPackageDestination(pkg.package_destination || "");
+  }, [pkg]);
+
+  const updateProduct = (index: number, field: keyof Product, value: string | number) => {
+    setProducts(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const updatedData: Partial<PackageType> & { id: string } = {
+        id: pkg.id,
+        item_description: itemDescription,
+        item_link: itemLink,
+        additional_notes: additionalNotes,
+        delivery_method: deliveryMethod,
+        products_data: products as unknown as PackageType["products_data"],
+      };
+
+      // Only update destination if allowed
+      if (canEditDestination) {
+        updatedData.package_destination = packageDestination;
+      }
+
+      await onSave(updatedData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving package:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const labelNumber = pkg.label_number ? `#${pkg.label_number}` : `#${pkg.id.slice(0, 6)}`;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] p-0">
+        <DialogHeader className="p-6 pb-4 border-b">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Package className="h-5 w-5 text-primary" />
+              Editar Pedido {labelNumber}
+            </DialogTitle>
+            <Badge variant={getStatusVariant(pkg.status)}>
+              {STATUS_LABELS[pkg.status] || pkg.status}
+            </Badge>
+          </div>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Modifica los detalles de tu pedido. Algunos campos pueden estar bloqueados según el estado.
+          </DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="max-h-[60vh]">
+          <div className="p-6 space-y-6">
+            {/* General Description */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <FileText className="h-4 w-4" />
+                Descripción general
+              </Label>
+              <Input
+                value={itemDescription}
+                onChange={(e) => setItemDescription(e.target.value)}
+                placeholder="Describe lo que estás solicitando"
+              />
+            </div>
+
+            {/* General Link */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <ExternalLink className="h-4 w-4" />
+                Link general (opcional)
+              </Label>
+              <Input
+                value={itemLink}
+                onChange={(e) => setItemLink(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+
+            {/* Products Section */}
+            {products.length > 0 && (
+              <div className="space-y-4">
+                <Label className="text-sm font-medium">Productos ({products.length})</Label>
+                <div className="space-y-4">
+                  {products.map((product, index) => (
+                    <div key={index} className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          Producto {index + 1}
+                        </span>
+                      </div>
+                      
+                      {/* Product Link */}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <ExternalLink className="h-3 w-3" />
+                          Link
+                        </Label>
+                        <Input
+                          value={product.link || ""}
+                          onChange={(e) => updateProduct(index, "link", e.target.value)}
+                          placeholder="https://..."
+                          className="text-sm"
+                        />
+                      </div>
+
+                      {/* Product Description */}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Descripción</Label>
+                        <Input
+                          value={product.description || ""}
+                          onChange={(e) => updateProduct(index, "description", e.target.value)}
+                          placeholder="Descripción del producto"
+                          className="text-sm"
+                        />
+                      </div>
+
+                      {/* Price and Quantity Row */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            Precio estimado
+                          </Label>
+                          <Input
+                            type="number"
+                            value={product.estimatedPrice || ""}
+                            onChange={(e) => updateProduct(index, "estimatedPrice", parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                            className="text-sm"
+                            disabled={!canEditPrices}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Hash className="h-3 w-3" />
+                            Cantidad
+                          </Label>
+                          <Input
+                            type="number"
+                            value={product.quantity || 1}
+                            onChange={(e) => updateProduct(index, "quantity", parseInt(e.target.value) || 1)}
+                            min={1}
+                            className="text-sm"
+                            disabled={!canEditPrices}
+                          />
+                        </div>
+                      </div>
+
+                      {!canEditPrices && (
+                        <p className="text-xs text-muted-foreground italic">
+                          El precio y cantidad no se pueden modificar después de aceptar la cotización.
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Destination */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <MapPin className="h-4 w-4" />
+                Destino
+              </Label>
+              <Select 
+                value={packageDestination} 
+                onValueChange={setPackageDestination}
+                disabled={!canEditDestination}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona el destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Ciudad de Guatemala">Ciudad de Guatemala</SelectItem>
+                  <SelectItem value="Quetzaltenango">Quetzaltenango</SelectItem>
+                  <SelectItem value="Antigua Guatemala">Antigua Guatemala</SelectItem>
+                  <SelectItem value="Escuintla">Escuintla</SelectItem>
+                  <SelectItem value="Otro departamento">Otro departamento</SelectItem>
+                </SelectContent>
+              </Select>
+              {!canEditDestination && (
+                <p className="text-xs text-muted-foreground italic">
+                  El destino no se puede cambiar porque ya hay un viaje asignado.
+                </p>
+              )}
+            </div>
+
+            {/* Delivery Method */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Truck className="h-4 w-4" />
+                Método de entrega
+              </Label>
+              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="pickup" id="pickup" />
+                  <Label htmlFor="pickup" className="font-normal cursor-pointer">
+                    Recoger en oficina
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="delivery" id="delivery" />
+                  <Label htmlFor="delivery" className="font-normal cursor-pointer">
+                    Entrega a domicilio
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Additional Notes */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Notas adicionales</Label>
+              <Textarea
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                placeholder="Instrucciones especiales, detalles adicionales..."
+                rows={3}
+              />
+            </div>
+          </div>
+        </ScrollArea>
+
+        <DialogFooter className="p-6 pt-4 border-t">
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "Guardando..." : "Guardar cambios"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default EditPackageModal;
