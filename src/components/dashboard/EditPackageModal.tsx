@@ -21,18 +21,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type PackageType = Tables<"packages">;
 
 interface Product {
-  link?: string;
-  description?: string;
-  estimatedPrice?: number;
-  quantity?: number;
+  itemLink?: string;
+  itemDescription?: string;
+  estimatedPrice?: string | number;
+  quantity?: string | number;
+  requestType?: string;
+  additionalNotes?: string;
 }
 
 interface DeliveryAddress {
-  address?: string;
-  zone?: string;
-  municipality?: string;
-  department?: string;
-  reference?: string;
+  streetAddress?: string;
+  cityArea?: string;
+  hotelAirbnbName?: string;
+  contactNumber?: string;
 }
 
 interface EditPackageModalProps {
@@ -189,8 +190,8 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                           Link del producto
                         </Label>
                         <Input
-                          value={product.link || ""}
-                          onChange={(e) => updateProduct(index, "link", e.target.value)}
+                          value={product.itemLink || ""}
+                          onChange={(e) => updateProduct(index, "itemLink", e.target.value)}
                           placeholder="https://..."
                           className="text-sm"
                         />
@@ -200,8 +201,8 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Descripción</Label>
                         <Input
-                          value={product.description || ""}
-                          onChange={(e) => updateProduct(index, "description", e.target.value)}
+                          value={product.itemDescription || ""}
+                          onChange={(e) => updateProduct(index, "itemDescription", e.target.value)}
                           placeholder="Descripción del producto"
                           className="text-sm"
                         />
@@ -340,52 +341,41 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                   
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Dirección</Label>
+                      <Label className="text-xs text-muted-foreground">Dirección completa</Label>
                       <Input
-                        value={deliveryAddress.address || ""}
-                        onChange={(e) => updateDeliveryAddress("address", e.target.value)}
-                        placeholder="Calle, número, edificio, apartamento..."
-                        className="text-sm"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Zona</Label>
-                        <Input
-                          value={deliveryAddress.zone || ""}
-                          onChange={(e) => updateDeliveryAddress("zone", e.target.value)}
-                          placeholder="Ej: Zona 10"
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Municipio</Label>
-                        <Input
-                          value={deliveryAddress.municipality || ""}
-                          onChange={(e) => updateDeliveryAddress("municipality", e.target.value)}
-                          placeholder="Ej: Guatemala"
-                          className="text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Departamento</Label>
-                      <Input
-                        value={deliveryAddress.department || ""}
-                        onChange={(e) => updateDeliveryAddress("department", e.target.value)}
-                        placeholder="Ej: Guatemala"
+                        value={deliveryAddress.streetAddress || ""}
+                        onChange={(e) => updateDeliveryAddress("streetAddress", e.target.value)}
+                        placeholder="Calle, número, zona, edificio..."
                         className="text-sm"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Referencia</Label>
+                      <Label className="text-xs text-muted-foreground">Ciudad / Área</Label>
                       <Input
-                        value={deliveryAddress.reference || ""}
-                        onChange={(e) => updateDeliveryAddress("reference", e.target.value)}
-                        placeholder="Cerca de..., frente a..."
+                        value={deliveryAddress.cityArea || ""}
+                        onChange={(e) => updateDeliveryAddress("cityArea", e.target.value)}
+                        placeholder="Ej: Guatemala, Zona 10"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Referencia / Hotel / Airbnb</Label>
+                      <Input
+                        value={deliveryAddress.hotelAirbnbName || ""}
+                        onChange={(e) => updateDeliveryAddress("hotelAirbnbName", e.target.value)}
+                        placeholder="Cerca de..., nombre del hotel..."
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Teléfono de contacto</Label>
+                      <Input
+                        value={deliveryAddress.contactNumber || ""}
+                        onChange={(e) => updateDeliveryAddress("contactNumber", e.target.value)}
+                        placeholder="+502 1234 5678"
                         className="text-sm"
                       />
                     </div>
