@@ -895,9 +895,9 @@ const CollapsiblePackageCard = ({
 
       {/* Edit Package Modal */}
       {showEditModal && onEditPackage && <PackageRequestForm isOpen={showEditModal} onClose={() => setShowEditModal(false)} onSubmit={data => {
-        onEditPackage(data);
+        onEditPackage({...data, id: pkg.id});
         setShowEditModal(false);
-      }} initialData={pkg} />}
+      }} editMode={true} initialData={pkg} />}
 
       {/* Edit Document Modal */}
       {editDocumentModal.isOpen && pkg && <EditDocumentModal isOpen={editDocumentModal.isOpen} onClose={() => setEditDocumentModal({
