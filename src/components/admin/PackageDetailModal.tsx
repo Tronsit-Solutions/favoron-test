@@ -6,7 +6,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Country/city options (same as PackageRequestForm)
+const purchaseOrigins = [
+  { value: 'USA', label: 'USA' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
+
+const destinationCountries = [
+  { value: 'Guatemala', label: 'Guatemala' },
+  { value: 'USA', label: 'USA' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro país' }
+];
+
+const citiesByCountry: Record<string, string[]> = {
+  'Guatemala': ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'],
+  'USA': ['Miami', 'New York', 'Los Angeles', 'Houston', 'Otra ciudad'],
+  'España': ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Otra ciudad'],
+  'México': ['Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún', 'Otra ciudad'],
+  'Otro': ['Otra ciudad']
+};
 import AdminProductCancellationModal from "./AdminProductCancellationModal";
 import { canCancelProduct } from "@/lib/refundCalculations";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
@@ -111,6 +136,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     purchase_origin: '',
     package_destination: ''
   });
+  const [selectedDestinationCountry, setSelectedDestinationCountry] = useState<string>('');
   const [editProducts, setEditProducts] = useState<Array<{
     itemDescription: string;
     estimatedPrice: string;
@@ -173,6 +199,21 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         purchase_origin: pkg.purchase_origin || '',
         package_destination: pkg.package_destination || ''
       });
+      
+      // Determine destination country from package_destination
+      const destination = pkg.package_destination || '';
+      let foundCountry = '';
+      for (const [country, cities] of Object.entries(citiesByCountry)) {
+        if (cities.includes(destination)) {
+          foundCountry = country;
+          break;
+        }
+      }
+      // If not found in cities, check if it's a country name itself
+      if (!foundCountry && destinationCountries.some(c => c.value === destination || c.label === destination)) {
+        foundCountry = destination;
+      }
+      setSelectedDestinationCountry(foundCountry);
     }
   }, [pkg?.id, pkg?.products_data]); // Depend on stable values
 
@@ -1052,22 +1093,68 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                   {/* General package fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b">
                     <div>
-                      <label className="text-sm font-medium">País de compra</label>
-                      <Input
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        País de compra (Origen)
+                      </label>
+                      <Select
                         value={editForm.purchase_origin}
-                        onChange={(e) => handleFormChange('purchase_origin', e.target.value)}
-                        placeholder="País donde se comprará"
-                        className="mt-1"
-                      />
+                        onValueChange={(value) => handleFormChange('purchase_origin', value)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecciona país de origen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {purchaseOrigins.map((origin) => (
+                            <SelectItem key={origin.value} value={origin.value}>
+                              {origin.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Destino del paquete</label>
-                      <Input
-                        value={editForm.package_destination}
-                        onChange={(e) => handleFormChange('package_destination', e.target.value)}
-                        placeholder="Ciudad de destino"
-                        className="mt-1"
-                      />
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Destino del paquete
+                      </label>
+                      <Select
+                        value={selectedDestinationCountry}
+                        onValueChange={(value) => {
+                          setSelectedDestinationCountry(value);
+                          // Reset city when country changes
+                          handleFormChange('package_destination', '');
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona país de destino" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {destinationCountries.map((country) => (
+                            <SelectItem key={country.value} value={country.value}>
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {selectedDestinationCountry && (
+                        <Select
+                          value={editForm.package_destination}
+                          onValueChange={(value) => handleFormChange('package_destination', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona ciudad" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {citiesByCountry[selectedDestinationCountry]?.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
 
