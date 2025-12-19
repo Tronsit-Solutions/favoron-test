@@ -97,11 +97,8 @@ export const useOptimizedPackagesData = (userId?: string) => {
     console.log('📦 Fetching packages for user:', userId);
     
     try {
-      // Use SQL subquery for matched_trip_id - this avoids UUID formatting issues with .in()
-      // Fetches: packages owned by user OR packages assigned to any of user's trips
-      const orFilter = `user_id.eq.${userId},matched_trip_id.in.(select id from trips where user_id = ${userId})`;
-      // Select only essential fields, exclude heavy JSONB: purchase_confirmation, tracking_info, office_delivery
-      // products_data is included so shoppers can view/manage individual products
+      // RLS policies handle filtering: user sees own packages + packages assigned to their trips
+      // No need for .or() filter - RLS does: (user_id = auth.uid()) OR (matched_trip_id IN (SELECT trips.id FROM trips WHERE trips.user_id = auth.uid()))
       const { data, error } = await supabase
         .from('packages')
         .select(`
@@ -168,7 +165,6 @@ export const useOptimizedPackagesData = (userId?: string) => {
             )
           )
         `)
-        .or(orFilter)
         .order('created_at', { ascending: false });
 
       if (error) {
