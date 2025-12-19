@@ -4,7 +4,7 @@ import { Crown, Check, Truck, Percent, Sparkles, CreditCard, Clock } from "lucid
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import PrimePaymentModal from "./PrimePaymentModal";
-import { usePrimeMembership } from "@/hooks";
+import { usePrimeMembership, usePlatformFees } from "@/hooks";
 
 interface PrimeModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { memberships, loading } = usePrimeMembership();
+  const { fees } = usePlatformFees();
   
   // Check if user has a pending Prime membership request
   const pendingMembership = memberships?.find(
@@ -128,15 +129,8 @@ const PrimeModal = ({ isOpen, onClose, user }: PrimeModalProps) => {
             <div className="space-y-4">
               <div className="text-center p-4 bg-primary/5 rounded-lg border">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-center space-x-2">
-                    <span className="text-lg font-bold text-primary">Q300</span>
-                    <span className="text-sm text-muted-foreground line-through">Q500</span>
-                    <Badge variant="destructive" className="text-xs">60% OFF</Badge>
-                  </div>
+                  <span className="text-2xl font-bold text-primary">Q{fees?.prime_membership_price ?? 200}</span>
                   <p className="text-sm text-muted-foreground">Membresía anual</p>
-                  <p className="text-xs text-purple-600 font-medium">
-                    ¡Oferta por lanzamiento de página web!
-                  </p>
                 </div>
               </div>
 

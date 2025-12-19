@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileImage, X, CreditCard, Copy, CheckCircle } from "lucide-react";
 import { usePrimeMembership } from "@/hooks/usePrimeMembership";
+import { usePlatformFees } from "@/hooks/usePlatformFees";
 
 interface PrimePaymentModalProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
   const [notes, setNotes] = useState('');
   const { toast } = useToast();
   const { createPrimeMembership, isCreating, favoronAccount, bankingLoading } = usePrimeMembership();
+  const { fees } = usePlatformFees();
+  
+  const membershipPrice = fees?.prime_membership_price ?? 200;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -159,7 +163,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                   </div>
 
                   <div className="text-center p-3 bg-purple-100 rounded-lg">
-                    <p className="text-lg font-bold text-purple-800">Monto: Q300.00</p>
+                    <p className="text-lg font-bold text-purple-800">Monto: Q{membershipPrice.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -242,7 +246,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h5 className="font-semibold text-blue-800 mb-2">Instrucciones:</h5>
             <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-              <li>Realiza la transferencia bancaria por Q300.00</li>
+              <li>Realiza la transferencia bancaria por Q{membershipPrice.toFixed(2)}</li>
               <li>Toma una foto clara del comprobante</li>
               <li>Sube el comprobante usando el botón de arriba</li>
               <li>Confirma tu solicitud</li>

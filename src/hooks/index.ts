@@ -24,6 +24,7 @@ export { useUserManagement } from './useUserManagement';
 export { useToast } from './use-toast';
 export { useFavoronCompanyInfo, useFavoronBankingInfo } from './useFavoronCompanyInfo';
 export { usePrimeMembership } from './usePrimeMembership';
+export { usePlatformFees } from './usePlatformFees';
 export { useUrlState } from './useUrlState';
 export { usePersistedFormState } from './usePersistedFormState';
 export { useModalProtection } from './useModalProtection';
