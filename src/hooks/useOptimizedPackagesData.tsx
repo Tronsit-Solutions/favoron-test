@@ -97,25 +97,9 @@ export const useOptimizedPackagesData = (userId?: string) => {
     console.log('📦 Fetching packages for user:', userId);
     
     try {
-      // First, get the user's trip IDs to include packages assigned to their trips
-      const { data: userTrips, error: tripsError } = await supabase
-        .from('trips')
-        .select('id')
-        .eq('user_id', userId);
-
-      if (tripsError) {
-        console.error('Error fetching user trips:', tripsError);
-      }
-
-      const tripIds = userTrips?.map(t => t.id) || [];
-      console.log('📦 User trip IDs:', tripIds.length);
-
-      // Build the OR filter: packages owned by user OR assigned to user's trips
-      let orFilter = `user_id.eq.${userId}`;
-      if (tripIds.length > 0) {
-        orFilter += `,matched_trip_id.in.(${tripIds.join(',')})`;
-      }
-
+      // Use SQL subquery for matched_trip_id - this avoids UUID formatting issues with .in()
+      // Fetches: packages owned by user OR packages assigned to any of user's trips
+      const orFilter = `user_id.eq.${userId},matched_trip_id.in.(select id from trips where user_id = '${userId}')`;
       // Select only essential fields, exclude heavy JSONB: purchase_confirmation, tracking_info, office_delivery
       // products_data is included so shoppers can view/manage individual products
       const { data, error } = await supabase
