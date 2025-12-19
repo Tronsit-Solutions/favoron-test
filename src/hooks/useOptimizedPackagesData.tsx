@@ -87,6 +87,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
   }, []);
 
   // Optimized fetch function - excludes heavy JSONB fields for faster loading
+  // Fetches packages owned by user AND packages assigned to user's trips (as traveler)
   const fetchPackagesOptimized = useCallback(async (): Promise<Package[]> => {
     if (!userId) {
       console.log('📦 No user ID provided, returning empty');
@@ -96,6 +97,25 @@ export const useOptimizedPackagesData = (userId?: string) => {
     console.log('📦 Fetching packages for user:', userId);
     
     try {
+      // First, get the user's trip IDs to include packages assigned to their trips
+      const { data: userTrips, error: tripsError } = await supabase
+        .from('trips')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (tripsError) {
+        console.error('Error fetching user trips:', tripsError);
+      }
+
+      const tripIds = userTrips?.map(t => t.id) || [];
+      console.log('📦 User trip IDs:', tripIds.length);
+
+      // Build the OR filter: packages owned by user OR assigned to user's trips
+      let orFilter = `user_id.eq.${userId}`;
+      if (tripIds.length > 0) {
+        orFilter += `,matched_trip_id.in.(${tripIds.join(',')})`;
+      }
+
       // Select only essential fields, exclude heavy JSONB: purchase_confirmation, tracking_info, office_delivery
       // products_data is included so shoppers can view/manage individual products
       const { data, error } = await supabase
@@ -164,7 +184,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
             )
           )
         `)
-        .eq('user_id', userId)
+        .or(orFilter)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -177,7 +197,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
         throw error;
       }
 
-      console.log('📦 Fetched packages successfully:', data?.length || 0);
+      console.log('📦 Fetched packages successfully:', data?.length || 0, '(owned + assigned to trips)');
       // Cast to Package[] - missing heavy fields will be loaded on-demand via usePackageDetails
       return (data || []) as unknown as Package[];
     } catch (error) {
