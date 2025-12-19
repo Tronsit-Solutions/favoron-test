@@ -318,7 +318,10 @@ const QuoteDialog = ({
     
     if (productsToUse && Array.isArray(productsToUse) && productsToUse.length > 0) {
       // Exclude cancelled and excluded products from tip calculation
-      const activeProducts = productsToUse.filter((p: any) => !p.excluded && !p.cancelled);
+      const activeProducts = productsToUse.filter((p: any) => 
+        !(p.excluded === true || p.excluded === 'true') && 
+        !(p.cancelled === true || p.cancelled === 'true')
+      );
       const totalTip = activeProducts.reduce((sum: number, product: any) => {
         return sum + parseFloat(product.adminAssignedTip || '0');
       }, 0);
@@ -338,7 +341,10 @@ const QuoteDialog = ({
   
   // Calculate total from selected products with delivery fee (excluding excluded and cancelled products)
   const calculateSelectedProductsTotal = (): number => {
-    const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
+    const activeProducts = selectedProducts.filter(p => 
+      !(p.excluded === true || p.excluded === 'true') && 
+      !(p.cancelled === true || p.cancelled === 'true')
+    );
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
@@ -347,17 +353,22 @@ const QuoteDialog = ({
   };
   
   // Get count of active (non-excluded, non-cancelled) products
-  const activeProductsCount = selectedProducts.filter(p => !p.excluded && !p.cancelled).length;
+  const activeProductsCount = selectedProducts.filter(p => 
+    !(p.excluded === true || p.excluded === 'true') && 
+    !(p.cancelled === true || p.cancelled === 'true')
+  ).length;
   
   // Get count of cancelled products (by admin)
-  const cancelledProductsCount = selectedProducts.filter(p => p.cancelled).length;
+  const cancelledProductsCount = selectedProducts.filter(p => 
+    p.cancelled === true || p.cancelled === 'true'
+  ).length;
   
   // Toggle product exclusion (strike-through) instead of removing - not allowed for cancelled products
   const toggleProductExclusion = (indexToToggle: number) => {
     const product = selectedProducts[indexToToggle];
     
     // Cannot toggle cancelled products
-    if (product.cancelled) return;
+    if (product.cancelled === true || product.cancelled === 'true') return;
     
     const currentActiveCount = selectedProducts.filter(p => !p.excluded && !p.cancelled).length;
     
@@ -808,15 +819,24 @@ const QuoteDialog = ({
                     
                     <div className="space-y-3">
                       {selectedProducts.map((product: any, index: number) => {
-                        const isExcluded = product.excluded === true;
-                        const isCancelled = product.cancelled === true;
+                        const isExcluded = product.excluded === true || product.excluded === 'true';
+                        const isCancelled = product.cancelled === true || product.cancelled === 'true';
                         const isInactive = isExcluded || isCancelled;
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const tip = parseFloat(product.adminAssignedTip || '0');
                         const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
-                        const subtotal = tip + serviceFee;
-                        const nonCancelledProducts = selectedProducts.filter(p => !p.cancelled);
+                        const subtotal = isCancelled ? 0 : (tip + serviceFee);
+                        
+                        // Diagnóstico temporal - revisar en consola
+                        console.log(`🔍 Producto ${index}: ${product.itemDescription}`, {
+                          cancelled: product.cancelled,
+                          cancelledType: typeof product.cancelled,
+                          isCancelled,
+                          excluded: product.excluded,
+                          isExcluded
+                        });
+                        const nonCancelledProducts = selectedProducts.filter(p => !(p.cancelled === true || p.cancelled === 'true'));
                         const canToggle = nonCancelledProducts.length > 1 && !isCancelled;
                         const productLink = product.itemLink || packageDetails.item_link;
                         
@@ -914,7 +934,7 @@ const QuoteDialog = ({
                               }`}>Subtotal a pagar:</span>
                               <span className={`font-semibold ${
                                 isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-800"
-                              }`}>{formatCurrency(subtotal)}</span>
+                              }`}>{isCancelled ? 'Q0.00' : formatCurrency(subtotal)}</span>
                             </div>
                           </div>
                         );
@@ -923,7 +943,10 @@ const QuoteDialog = ({
                       {/* Footer totals - Redesigned invoice with clear Prime savings */}
                       {(() => {
                         const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-                        const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
+                        const activeProducts = selectedProducts.filter(p => 
+                          !(p.excluded === true || p.excluded === 'true') && 
+                          !(p.cancelled === true || p.cancelled === 'true')
+                        );
                         const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
                         const isPrime = packageDetails.shopper_trust_level === 'prime';
                         const isDelivery = packageDetails.delivery_method === 'delivery';
