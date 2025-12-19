@@ -38,9 +38,15 @@ export default function ShopperPaymentInfoModal({
   const quote = currentPkg.quote as any;
   const hasDiscount = quote?.finalTotalPrice !== undefined && quote?.discountAmount > 0;
   
-  // Calculate total from products_data admin tips + fees
+  // Calculate total from products_data admin tips + fees (excluding cancelled products)
   const productsData = (currentPkg.products_data as any[]) || [];
-  const sumOfAdminTips = productsData.reduce((sum, product) => {
+  const activeProducts = productsData.filter(
+    (product) => product.cancelled !== true && product.cancelled !== 'true'
+  );
+  const cancelledProducts = productsData.filter(
+    (product) => product.cancelled === true || product.cancelled === 'true'
+  );
+  const sumOfAdminTips = activeProducts.reduce((sum, product) => {
     const tip = parseFloat(product.adminAssignedTip || '0');
     return sum + tip;
   }, 0);
@@ -369,7 +375,12 @@ export default function ShopperPaymentInfoModal({
                 </>
               )}
               <p className="text-sm text-muted-foreground mt-2">
-                Por el paquete: {pkg.item_description}
+                Por el paquete: {activeProducts.length} producto{activeProducts.length !== 1 ? 's' : ''}: {activeProducts.map(p => p.itemDescription || p.item_description).join(', ')}
+                {cancelledProducts.length > 0 && (
+                  <span className="text-destructive ml-1">
+                    ({cancelledProducts.length} cancelado{cancelledProducts.length !== 1 ? 's' : ''})
+                  </span>
+                )}
               </p>
             </CardContent>
           </Card>
