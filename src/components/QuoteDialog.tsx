@@ -920,49 +920,40 @@ const QuoteDialog = ({
                             </h4>
                             
                             <div className="space-y-3">
-                              {/* Line 1: Products base */}
+                              {/* Line 1: Servicio Favorón (tips + fee combined) */}
                               <div className="flex justify-between text-sm">
-                                <span className="text-green-700">Productos:</span>
-                                <span className="font-medium text-green-800">{formatCurrency(totalTip)}</span>
+                                <span className="text-green-700">Servicio Favorón:</span>
+                                <span className="font-medium text-green-800">{formatCurrency(totalTip + actualServiceFee)}</span>
                               </div>
                               
-                              {/* Line 2: Service fee with Prime savings */}
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-green-700">
-                                    Servicio Favorón {isPrime ? '(20%)' : '(40%)'}:
-                                  </span>
-                                  <span className="font-medium text-green-800">{formatCurrency(actualServiceFee)}</span>
-                                </div>
-                                {isPrime && serviceFeeSavings > 0 && (
-                                  <div className="flex justify-between text-xs pl-3 border-l-2 border-amber-300 ml-1">
-                                    <span className="text-amber-600 flex items-center gap-1">
-                                      <Crown className="w-3 h-3" /> Ahorro Prime (40% → 20%):
-                                    </span>
-                                    <span className="text-amber-600 font-semibold">-{formatCurrency(serviceFeeSavings)}</span>
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Line 3: Delivery fee with Prime savings */}
+                              {/* Line 2: Delivery fee */}
                               {isDelivery && (
-                                <div className="space-y-1">
-                                  <div className="flex justify-between text-sm">
-                                    <span className="text-green-700 flex items-center gap-1">
-                                      <Truck className="w-3 h-3" /> Entrega a domicilio:
-                                    </span>
-                                    <span className={`font-medium ${actualDeliveryFee === 0 ? 'text-green-600' : 'text-green-800'}`}>
-                                      {actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee)}
-                                    </span>
-                                  </div>
-                                  {isPrime && deliverySavings > 0 && (
-                                    <div className="flex justify-between text-xs pl-3 border-l-2 border-amber-300 ml-1">
-                                      <span className="text-amber-600 flex items-center gap-1">
-                                        <Crown className="w-3 h-3" /> Ahorro Prime:
-                                      </span>
-                                      <span className="text-amber-600 font-semibold">-{formatCurrency(deliverySavings)}</span>
-                                    </div>
-                                  )}
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-green-700 flex items-center gap-1">
+                                    <Truck className="w-3 h-3" /> Entrega a domicilio:
+                                  </span>
+                                  <span className={`font-medium ${actualDeliveryFee === 0 ? 'text-green-600' : 'text-green-800'}`}>
+                                    {actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee)}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Prime savings - separate lines at same level */}
+                              {isPrime && serviceFeeSavings > 0 && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-amber-600 flex items-center gap-1">
+                                    <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Servicio):
+                                  </span>
+                                  <span className="text-amber-600 font-semibold">-{formatCurrency(serviceFeeSavings)}</span>
+                                </div>
+                              )}
+                              
+                              {isPrime && isDelivery && deliverySavings > 0 && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-amber-600 flex items-center gap-1">
+                                    <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Entrega):
+                                  </span>
+                                  <span className="text-amber-600 font-semibold">-{formatCurrency(deliverySavings)}</span>
                                 </div>
                               )}
                               
