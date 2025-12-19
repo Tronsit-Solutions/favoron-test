@@ -736,6 +736,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ab_test_group: string | null
           acquisition_source: string | null
           acquisition_source_answered_at: string | null
           avatar_url: string | null
@@ -762,6 +763,7 @@ export type Database = {
           whatsapp_notifications: boolean | null
         }
         Insert: {
+          ab_test_group?: string | null
           acquisition_source?: string | null
           acquisition_source_answered_at?: string | null
           avatar_url?: string | null
@@ -788,6 +790,7 @@ export type Database = {
           whatsapp_notifications?: boolean | null
         }
         Update: {
+          ab_test_group?: string | null
           acquisition_source?: string | null
           acquisition_source_answered_at?: string | null
           avatar_url?: string | null

@@ -4,7 +4,7 @@ project_id = "dfhoduirmqbarjnspbdh"
 verify_jwt = false
 
 [functions.test-whatsapp]
-verify_jwt = true
+verify_jwt = false
 
 [functions.recalculate-trip-accumulator]
 verify_jwt = false
@@ -39,8 +39,5 @@ verify_jwt = true
 [functions.fix-guatemala-city-delivery-fees-v2]
 verify_jwt = true
 
-[functions.send-whatsapp-notification]
-verify_jwt = false
-
-[functions.test-whatsapp]
+[functions.send-welcome-email]
 verify_jwt = false
