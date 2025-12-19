@@ -217,8 +217,8 @@ const QuoteDialog = ({
     setDiscountSuccess(false);
     
     try {
-      // Calculate Favorón subtotal (tip + service fee) WITHOUT delivery - discount only applies to this
-      const activeProducts = selectedProducts.filter(p => !p.excluded);
+        // Calculate Favorón subtotal (tip + service fee) WITHOUT delivery - discount only applies to this
+      const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
       const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
       const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
       const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea);
@@ -317,7 +317,9 @@ const QuoteDialog = ({
       : packageDetails.products_data;
     
     if (productsToUse && Array.isArray(productsToUse) && productsToUse.length > 0) {
-      const totalTip = productsToUse.reduce((sum: number, product: any) => {
+      // Exclude cancelled and excluded products from tip calculation
+      const activeProducts = productsToUse.filter((p: any) => !p.excluded && !p.cancelled);
+      const totalTip = activeProducts.reduce((sum: number, product: any) => {
         return sum + parseFloat(product.adminAssignedTip || '0');
       }, 0);
       return totalTip > 0 ? totalTip : null;
@@ -334,9 +336,9 @@ const QuoteDialog = ({
     return tip + serviceFee;
   };
   
-  // Calculate total from selected products with delivery fee (excluding excluded products)
+  // Calculate total from selected products with delivery fee (excluding excluded and cancelled products)
   const calculateSelectedProductsTotal = (): number => {
-    const activeProducts = selectedProducts.filter(p => !p.excluded);
+    const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
@@ -344,13 +346,20 @@ const QuoteDialog = ({
     return breakdown.totalPrice;
   };
   
-  // Get count of active (non-excluded) products
-  const activeProductsCount = selectedProducts.filter(p => !p.excluded).length;
+  // Get count of active (non-excluded, non-cancelled) products
+  const activeProductsCount = selectedProducts.filter(p => !p.excluded && !p.cancelled).length;
   
-  // Toggle product exclusion (strike-through) instead of removing
+  // Get count of cancelled products (by admin)
+  const cancelledProductsCount = selectedProducts.filter(p => p.cancelled).length;
+  
+  // Toggle product exclusion (strike-through) instead of removing - not allowed for cancelled products
   const toggleProductExclusion = (indexToToggle: number) => {
     const product = selectedProducts[indexToToggle];
-    const currentActiveCount = selectedProducts.filter(p => !p.excluded).length;
+    
+    // Cannot toggle cancelled products
+    if (product.cancelled) return;
+    
+    const currentActiveCount = selectedProducts.filter(p => !p.excluded && !p.cancelled).length;
     
     // Cannot exclude if it's the last active product
     if (!product.excluded && currentActiveCount <= 1) return;
@@ -790,32 +799,47 @@ const QuoteDialog = ({
                       <Package className="h-5 w-5 text-green-700" />
                       <p className="text-base font-semibold text-green-800">Tu Pedido</p>
                       <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                        {activeProductsCount} de {selectedProducts.length} productos
+                        {activeProductsCount} de {selectedProducts.length - cancelledProductsCount} producto{(selectedProducts.length - cancelledProductsCount) !== 1 ? 's' : ''}
+                        {cancelledProductsCount > 0 && (
+                          <span className="text-red-500 ml-1">({cancelledProductsCount} cancelado{cancelledProductsCount !== 1 ? 's' : ''})</span>
+                        )}
                       </Badge>
                     </div>
                     
                     <div className="space-y-3">
                       {selectedProducts.map((product: any, index: number) => {
                         const isExcluded = product.excluded === true;
+                        const isCancelled = product.cancelled === true;
+                        const isInactive = isExcluded || isCancelled;
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const tip = parseFloat(product.adminAssignedTip || '0');
                         const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
                         const subtotal = tip + serviceFee;
-                        const canToggle = selectedProducts.length > 1;
+                        const nonCancelledProducts = selectedProducts.filter(p => !p.cancelled);
+                        const canToggle = nonCancelledProducts.length > 1 && !isCancelled;
                         const productLink = product.itemLink || packageDetails.item_link;
                         
                         return (
                           <div 
                             key={index} 
                             className={`rounded-lg p-3 relative transition-all ${
-                              isExcluded 
-                                ? "bg-gray-100 border border-gray-300 opacity-60" 
-                                : "bg-white/90 border border-green-200"
+                              isCancelled
+                                ? "bg-red-50 border border-red-200 opacity-70"
+                                : isExcluded 
+                                  ? "bg-gray-100 border border-gray-300 opacity-60" 
+                                  : "bg-white/90 border border-green-200"
                             }`}
                           >
-                            {/* "Quitado" badge overlay */}
-                            {isExcluded && (
+                            {/* "Cancelado" badge overlay for admin-cancelled products */}
+                            {isCancelled && (
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-500/90 text-white text-xs px-3 py-1 rounded-full font-medium z-10">
+                                Cancelado
+                              </div>
+                            )}
+                            
+                            {/* "Quitado" badge overlay for shopper-excluded products */}
+                            {isExcluded && !isCancelled && (
                               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-500/80 text-white text-xs px-3 py-1 rounded-full font-medium z-10">
                                 Quitado
                               </div>
@@ -825,20 +849,25 @@ const QuoteDialog = ({
                             <div className="flex items-start justify-between gap-2 mb-2">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <span className={`flex items-center justify-center w-6 h-6 rounded font-bold text-xs shrink-0 ${
-                                  isExcluded 
-                                    ? "bg-gray-200 text-gray-500" 
-                                    : "bg-green-100 text-green-700"
+                                  isCancelled
+                                    ? "bg-red-100 text-red-500"
+                                    : isExcluded 
+                                      ? "bg-gray-200 text-gray-500" 
+                                      : "bg-green-100 text-green-700"
                                 }`}>
                                   {index + 1}
                                 </span>
                                 <p className={`font-medium text-sm truncate ${
-                                  isExcluded 
-                                    ? "line-through text-gray-500" 
-                                    : "text-green-800"
+                                  isCancelled
+                                    ? "line-through text-red-500"
+                                    : isExcluded 
+                                      ? "line-through text-gray-500" 
+                                      : "text-green-800"
                                 }`}>
                                   {product.itemDescription || `Producto ${index + 1}`}
                                 </p>
                               </div>
+                              {/* Toggle button - only for non-cancelled products */}
                               {canToggle && (
                                 <button
                                   onClick={() => toggleProductExclusion(index)}
@@ -857,10 +886,10 @@ const QuoteDialog = ({
                             
                             {/* Price USD + quantity + link */}
                             <div className={`flex items-center gap-3 text-xs mb-2 ${
-                              isExcluded ? "text-gray-400 line-through" : "text-muted-foreground"
+                              isInactive ? "text-gray-400 line-through" : "text-muted-foreground"
                             }`}>
                               <span>${unitPrice.toFixed(2)} × {quantity}</span>
-                              {productLink && !isExcluded && (
+                              {productLink && !isInactive && (
                                 <a 
                                   href={productLink} 
                                   target="_blank" 
@@ -874,12 +903,18 @@ const QuoteDialog = ({
                             </div>
                             
                             {/* Separator */}
-                            <div className={`border-t my-2 ${isExcluded ? "border-gray-200" : "border-green-200"}`} />
+                            <div className={`border-t my-2 ${
+                              isCancelled ? "border-red-200" : isExcluded ? "border-gray-200" : "border-green-200"
+                            }`} />
                             
                             {/* Subtotal in Quetzales */}
-                            <div className={`flex justify-between items-center ${isExcluded ? "line-through" : ""}`}>
-                              <span className={`text-xs ${isExcluded ? "text-gray-400" : "text-green-700"}`}>Subtotal a pagar:</span>
-                              <span className={`font-semibold ${isExcluded ? "text-gray-400" : "text-green-800"}`}>{formatCurrency(subtotal)}</span>
+                            <div className={`flex justify-between items-center ${isInactive ? "line-through" : ""}`}>
+                              <span className={`text-xs ${
+                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-700"
+                              }`}>Subtotal a pagar:</span>
+                              <span className={`font-semibold ${
+                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-800"
+                              }`}>{formatCurrency(subtotal)}</span>
                             </div>
                           </div>
                         );
@@ -888,7 +923,7 @@ const QuoteDialog = ({
                       {/* Footer totals - Redesigned invoice with clear Prime savings */}
                       {(() => {
                         const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-                        const activeProducts = selectedProducts.filter(p => !p.excluded);
+                        const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
                         const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
                         const isPrime = packageDetails.shopper_trust_level === 'prime';
                         const isDelivery = packageDetails.delivery_method === 'delivery';
