@@ -1496,6 +1496,39 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                             </div>
                           </div>
                         )}
+
+                        {/* Traveler Reception Photo - shown when product was confirmed received */}
+                        {product.receivedByTraveler && product.receivedPhoto && (
+                          <div className="mt-2 pt-2 border-t border-green-200 bg-green-50/50 rounded-b-lg -mx-3 -mb-3 px-3 pb-3">
+                            <p className="font-medium text-green-700 text-xs mb-2 flex items-center gap-1">
+                              <Camera className="h-3 w-3" />
+                              Foto de recepción del viajero:
+                            </p>
+                            <div className="grid grid-cols-3 gap-2">
+                              <ProductPhoto
+                                photo={product.receivedPhoto}
+                                idx={0}
+                                productId={product.id}
+                                productDescription={`Recepción: ${product.description}`}
+                                onImageClick={(url, title, filename) => {
+                                  setSelectedImage({ url, title, filename });
+                                  setImageViewerOpen(true);
+                                }}
+                              />
+                            </div>
+                            {product.receivedAt && (
+                              <p className="text-xs text-green-600 mt-1">
+                                Confirmado el {new Date(product.receivedAt).toLocaleDateString('es-GT', { 
+                                  day: '2-digit', 
+                                  month: 'short', 
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   )})}
