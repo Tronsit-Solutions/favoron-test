@@ -84,13 +84,13 @@ const Footer = () => {
         {/* Separator */}
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="text-center space-y-2">
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-300 text-sm">
               © {currentYear} Favoron. Todos los derechos reservados.
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-400 text-xs">
               Favorón es una marca operada por Ingenierías Reunidas, Sociedad Anónima.
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-400 text-xs">
               © 2025 Ingenierías Reunidas, S.A. – Guatemala
             </p>
           </div>
