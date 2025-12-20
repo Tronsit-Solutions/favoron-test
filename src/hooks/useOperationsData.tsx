@@ -78,6 +78,8 @@ export interface TripWithPackages {
     package_destination: string;
     confirmed_delivery_address?: any;
     products_data?: ProductData[];
+    shopper_name: string;
+    delivery_method?: string | null;
   }[];
 }
 
@@ -228,6 +230,8 @@ export const useOperationsData = () => {
         package_destination: pkg.package_destination,
         confirmed_delivery_address: pkg.confirmed_delivery_address,
         products_data: pkg.products_data || undefined,
+        shopper_name: pkg.shopper_name,
+        delivery_method: pkg.delivery_method,
       });
     });
 

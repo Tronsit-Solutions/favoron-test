@@ -9,8 +9,12 @@ interface PackageLabelProps {
 }
 
 export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, labelNumber }: PackageLabelProps) => {
-  console.log('PackageLabel rendering with labelNumber:', labelNumber);
   const getShopperName = () => {
+    // First try shopper_name (from useOperationsData)
+    if (pkg.shopper_name && pkg.shopper_name !== 'Shopper desconocido') {
+      return pkg.shopper_name;
+    }
+    // Fallback to profiles (from other sources like admin panel)
     if (pkg.profiles?.first_name || pkg.profiles?.last_name) {
       return `${pkg.profiles.first_name || ''} ${pkg.profiles.last_name || ''}`.trim();
     }
