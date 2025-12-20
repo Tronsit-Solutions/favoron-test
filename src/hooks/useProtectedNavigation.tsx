@@ -7,13 +7,16 @@ export const useProtectedNavigation = () => {
   const { navigateToForm: originalNavigateToForm } = useUrlState();
 
   const navigateToFormWithProfileCheck = useCallback((formType: 'package' | 'trip', onProfileIncomplete?: () => void) => {
-    // Always navigate to the form (no longer blocking)
-    originalNavigateToForm(formType);
-    
-    // Optionally show a reminder if profile is incomplete
-    if (!isComplete && onProfileIncomplete) {
-      onProfileIncomplete();
+    // Block navigation if profile is incomplete
+    if (!isComplete) {
+      if (onProfileIncomplete) {
+        onProfileIncomplete();
+      }
+      return; // Don't navigate
     }
+    
+    // Profile is complete, proceed with navigation
+    originalNavigateToForm(formType);
   }, [isComplete, originalNavigateToForm]);
 
   return {

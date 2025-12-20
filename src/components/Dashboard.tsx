@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import QuickActions from "./dashboard/QuickActions";
 import RecentActivity from "./dashboard/RecentActivity";
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
 import PrimeModal from "./PrimeModal";
+import ProfileCompletionModal from "./ProfileCompletionModal";
 import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
 import TripCard from "./dashboard/TripCard";
@@ -82,13 +83,16 @@ const Dashboard = ({ user }: DashboardProps) => {
     };
   }
 
-  // Simple navigation function (no longer blocking on profile completion)
+  // Navigation function that shows profile modal if incomplete
   navigateToForm = (formType: 'package' | 'trip') => {
-    navigateToFormWithProfileCheck(formType);
+    navigateToFormWithProfileCheck(formType, () => {
+      setShowProfileCompletionModal(true);
+    });
   };
   
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
+  const [showProfileCompletionModal, setShowProfileCompletionModal] = useState(false);
   
   // Acquisition Survey Logic
   const { needsSurvey } = useAcquisitionSurvey();
@@ -198,6 +202,17 @@ const Dashboard = ({ user }: DashboardProps) => {
 
   const navigate = useNavigate();
   const pendingActions = usePendingActions(packages, trips, currentUser);
+  
+  // Auto-show profile completion modal if profile is incomplete
+  useEffect(() => {
+    if (!isProfileComplete && profile && !showProfile && !showProfileCompletionModal) {
+      // Delay to avoid showing immediately on load
+      const timer = setTimeout(() => {
+        setShowProfileCompletionModal(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isProfileComplete, profile, showProfile, showProfileCompletionModal]);
 
   // Filter preference for inactive trips
   const {
@@ -1131,6 +1146,21 @@ const Dashboard = ({ user }: DashboardProps) => {
       <AcquisitionSurveyModal
         isOpen={showAcquisitionSurvey}
         onComplete={handleSurveyComplete}
+      />
+
+      {/* Profile Completion Modal - Auto-shows for incomplete profiles */}
+      <ProfileCompletionModal
+        isOpen={showProfileCompletionModal}
+        onClose={() => setShowProfileCompletionModal(false)}
+        onComplete={() => {
+          setShowProfileCompletionModal(false);
+          toast({
+            title: "¡Perfil completado!",
+            description: "Ahora puedes solicitar paquetes y registrar viajes.",
+          });
+        }}
+        title="Completa tu perfil"
+        description="Necesitamos tu información de contacto para que puedas usar la plataforma."
       />
 
     </div>
