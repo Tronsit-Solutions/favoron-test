@@ -225,19 +225,27 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 
-      // Calculate financial metrics with correct trust levels
+      // Use financial values from the saved quote in database (what client actually paid)
+      // Only fallback to recalculation if quote doesn't have these values
       const travelerTip = parseFloat(quote?.price || '0');
       
-      // Use shopper's trust level for service fee and delivery fee (what shopper pays)
-      // Get cityArea from confirmed_delivery_address for delivery fee calculation
+      // Get cityArea for fallback calculation only
       const confirmedAddress = pkg.confirmed_delivery_address as any;
       const cityArea = confirmedAddress?.cityArea;
       
-      const serviceFee = calculateServiceFee(travelerTip, shopperTrustLevel);
-      const deliveryFee = getDeliveryFee(pkg.delivery_method, shopperTrustLevel, cityArea);
+      // Use saved quote values - these represent what was actually charged
+      const serviceFee = quote?.serviceFee !== undefined 
+        ? parseFloat(quote.serviceFee) 
+        : calculateServiceFee(travelerTip, shopperTrustLevel);
       
-      // Total to pay = service fee + traveler tip + delivery fee
-      const totalToPay = serviceFee + travelerTip + deliveryFee;
+      const deliveryFee = quote?.deliveryFee !== undefined 
+        ? parseFloat(quote.deliveryFee) 
+        : getDeliveryFee(pkg.delivery_method, shopperTrustLevel, cityArea);
+      
+      // Use saved totalPrice - this is what the client actually paid
+      const totalToPay = quote?.totalPrice !== undefined 
+        ? parseFloat(quote.totalPrice) 
+        : (serviceFee + travelerTip + deliveryFee);
       
       // Favoron revenue is the service fee
       const favoronRevenue = serviceFee;
