@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatters";
-import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
+// Note: We use saved quote values from database instead of recalculating
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -102,20 +102,16 @@ const FinancialSummaryByTraveler = ({ packages }: FinancialSummaryByTravelerProp
       const travelerId = tripToUserMap[pkg.matched_trip_id];
       if (!travelerId) return;
 
+      // Use saved quote values from database (what client actually paid)
+      // This ensures consistency with historical data
       const quote = pkg.quote as any;
       const travelerTip = parseFloat(quote?.price || '0');
       const serviceFee = parseFloat(quote?.serviceFee || '0');
+      const deliveryFee = parseFloat(quote?.deliveryFee || '0');
       
-      // Get traveler's trust level for correct commission calculation
-      const travelerProfile = profilesMap[travelerId];
-      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
-      
-      // Get cityArea from confirmed_delivery_address for delivery fee calculation
-      const confirmedAddress = pkg.confirmed_delivery_address as any;
-      const cityArea = confirmedAddress?.cityArea;
-      
-      const favoronRevenue = calculateFavoronRevenue(travelerTip, serviceFee, travelerTrustLevel);
-      const messengerPayment = getDeliveryFee(pkg.delivery_method, travelerTrustLevel, cityArea);
+      // Use saved values - serviceFee IS Favoron revenue, deliveryFee IS messenger payment
+      const favoronRevenue = serviceFee;
+      const messengerPayment = deliveryFee;
 
       if (!travelerData[travelerId]) {
         const profile = profilesMap[travelerId];
