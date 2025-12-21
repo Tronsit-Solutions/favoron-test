@@ -70,6 +70,13 @@ export interface TripWithPackages {
   delivery_date: string;
   status: string;
   traveler_name: string;
+  traveler_id: string;
+  traveler_email?: string;
+  traveler_phone?: string;
+  available_space?: number;
+  first_day_packages?: string;
+  last_day_packages?: string;
+  last_mile_delivered?: boolean;
   packages: {
     id: string;
     item_description: string;
@@ -200,6 +207,37 @@ export const useOperationsData = () => {
     ), [allPackages]);
 
   // Labels tab: only packages in ACTIVE processing states (not completed/cancelled)
+  // Fetches additional trip data from DB for last_mile_delivered status
+  const [labelsTripsData, setLabelsTripsData] = useState<Map<string, { last_mile_delivered: boolean; available_space: number | null; first_day_packages: string | null; last_day_packages: string | null }>>(new Map());
+  
+  // Fetch additional trip data when we have trips
+  useEffect(() => {
+    const fetchTripData = async () => {
+      const tripIds = [...new Set(allPackages.filter(p => p.matched_trip_id).map(p => p.matched_trip_id!))];
+      if (tripIds.length === 0) return;
+      
+      const { data, error } = await supabase
+        .from('trips')
+        .select('id, last_mile_delivered, available_space, first_day_packages, last_day_packages')
+        .in('id', tripIds);
+      
+      if (!error && data) {
+        const map = new Map<string, { last_mile_delivered: boolean; available_space: number | null; first_day_packages: string | null; last_day_packages: string | null }>();
+        data.forEach(trip => {
+          map.set(trip.id, {
+            last_mile_delivered: trip.last_mile_delivered || false,
+            available_space: trip.available_space,
+            first_day_packages: trip.first_day_packages,
+            last_day_packages: trip.last_day_packages,
+          });
+        });
+        setLabelsTripsData(map);
+      }
+    };
+    
+    fetchTripData();
+  }, [allPackages]);
+
   const labelsTrips = useMemo((): TripWithPackages[] => {
     // Only include packages that actually need labels (active processing states)
     const activePackageStatuses = [
@@ -217,6 +255,8 @@ export const useOperationsData = () => {
       // Only include packages in active processing states
       if (!activePackageStatuses.includes(pkg.status)) return;
       
+      const tripExtra = labelsTripsData.get(pkg.matched_trip_id);
+      
       if (!tripMap.has(pkg.matched_trip_id)) {
         tripMap.set(pkg.matched_trip_id, {
           id: pkg.matched_trip_id,
@@ -226,6 +266,12 @@ export const useOperationsData = () => {
           delivery_date: pkg.trip_delivery_date || '',
           status: pkg.trip_status || '',
           traveler_name: pkg.traveler_name,
+          traveler_id: pkg.trip_user_id || '',
+          traveler_phone: pkg.traveler_phone || undefined,
+          available_space: tripExtra?.available_space || undefined,
+          first_day_packages: tripExtra?.first_day_packages || undefined,
+          last_day_packages: tripExtra?.last_day_packages || undefined,
+          last_mile_delivered: tripExtra?.last_mile_delivered || false,
           packages: [],
         });
       }
@@ -250,7 +296,7 @@ export const useOperationsData = () => {
         const dateB = b.arrival_date ? parseISO(b.arrival_date) : new Date();
         return dateA.getTime() - dateB.getTime();
       });
-  }, [allPackages]);
+  }, [allPackages, labelsTripsData]);
 
   // Reception tab grouped by trip
   const receptionTripGroups = useMemo((): TripGroup[] => {
