@@ -199,8 +199,14 @@ export const useOperationsData = () => {
       ['ready_for_pickup', 'ready_for_delivery'].includes(p.status)
     ), [allPackages]);
 
-  // Labels tab: all packages with trips in approved/active status (derived from all data)
+  // Labels tab: only packages in ACTIVE processing states (not completed/cancelled)
   const labelsTrips = useMemo((): TripWithPackages[] => {
+    // Only include packages that actually need labels (active processing states)
+    const activePackageStatuses = [
+      'paid', 'pending_purchase', 'purchased', 'in_transit', 
+      'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office'
+    ];
+    
     // Group by trip
     const tripMap = new Map<string, TripWithPackages>();
     
@@ -208,6 +214,8 @@ export const useOperationsData = () => {
       if (!pkg.matched_trip_id || !pkg.trip_from_city) return;
       // Only include trips with approved/active status
       if (!['approved', 'active'].includes(pkg.trip_status || '')) return;
+      // Only include packages in active processing states
+      if (!activePackageStatuses.includes(pkg.status)) return;
       
       if (!tripMap.has(pkg.matched_trip_id)) {
         tripMap.set(pkg.matched_trip_id, {
