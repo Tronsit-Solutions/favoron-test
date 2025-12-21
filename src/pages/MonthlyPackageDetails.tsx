@@ -96,8 +96,20 @@ const MonthlyPackageDetails = () => {
   const [selectedTripForModal, setSelectedTripForModal] = useState<any>(null);
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   
-  // Paid statuses group
-  const paidStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'];
+  // Paid statuses group - all states after payment has been received
+  const paidStatuses = [
+    'paid',
+    'pending_purchase', 
+    'purchased',
+    'in_transit',
+    'received_by_traveler',
+    'pending_office_confirmation',
+    'delivered_to_office',
+    'ready_for_pickup',
+    'ready_for_delivery',
+    'out_for_delivery',
+    'completed'
+  ];
 
   const handleViewTripPackages = () => {
     if (topEarningTrip) {
