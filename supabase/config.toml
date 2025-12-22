@@ -39,5 +39,8 @@ verify_jwt = true
 [functions.fix-guatemala-city-delivery-fees-v2]
 verify_jwt = true
 
+[functions.fix-delivery-fees-v3]
+verify_jwt = false
+
 [functions.send-welcome-email]
 verify_jwt = false
