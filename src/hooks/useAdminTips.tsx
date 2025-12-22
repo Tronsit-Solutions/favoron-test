@@ -77,7 +77,6 @@ export const useAdminTips = () => {
       price: totalTip.toFixed(2),
       serviceFee: newServiceFee.toFixed(2),
       totalPrice: newTotalPrice.toFixed(2),
-      completePrice: newTotalPrice.toFixed(2),
       manually_edited: true,
       edited_at: new Date().toISOString(),
       edited_by: user?.id || null,

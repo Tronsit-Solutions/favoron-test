@@ -311,7 +311,7 @@ const MonthlyPackageDetails = () => {
     const quote = pkg.quote;
     if (!quote) return 0;
     
-    const total = quote.totalPrice ?? quote.price ?? quote.completePrice ?? 0;
+    const total = quote.totalPrice ?? quote.price ?? 0;
     const numTotal = typeof total === 'string' ? parseFloat(total) : Number(total);
     const validTotal = Number.isFinite(numTotal) ? numTotal : 0;
     

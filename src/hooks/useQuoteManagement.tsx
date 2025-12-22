@@ -41,7 +41,6 @@ export const useQuoteManagement = () => {
         serviceFee: newServiceFee.toFixed(2),
         deliveryFee: currentDeliveryFee.toFixed(2),
         totalPrice: newTotal.toFixed(2),
-        completePrice: newTotal.toFixed(2),
         manually_edited: true,
         edited_at: new Date().toISOString(),
         edited_by: adminId
@@ -57,7 +56,7 @@ export const useQuoteManagement = () => {
           new_tip: newTip.toFixed(2),
           previous_service_fee: previousQuote?.serviceFee || '0',
           new_service_fee: newServiceFee.toFixed(2),
-          previous_total: previousQuote?.totalPrice || previousQuote?.completePrice || '0',
+          previous_total: previousQuote?.totalPrice || '0',
           new_total: newTotal.toFixed(2),
           reason: 'Manual quote adjustment by admin'
         }

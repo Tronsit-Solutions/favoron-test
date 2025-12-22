@@ -255,7 +255,6 @@ const AdminProductCancellationModal = ({
           price: newPrice,
           serviceFee: newServiceFee,
           totalPrice: newTotalPrice,
-          completePrice: newTotalPrice,
           // Preserve discount info if exists
           ...(currentQuote.discountCode && {
             finalTotalPrice: Math.max(0, newTotalPrice - (Number(currentQuote.discountAmount) || 0))

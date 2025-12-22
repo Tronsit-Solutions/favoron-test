@@ -170,7 +170,6 @@ serve(async (req) => {
         
         const feeDiff = correctDeliveryFee - currentDeliveryFee;
         const newTotalPrice = (quote.totalPrice || 0) + feeDiff;
-        const newCompletePrice = (quote.completePrice || quote.totalPrice || 0) + feeDiff;
 
         const detail = {
           packageId: pkg.id,
@@ -189,8 +188,7 @@ serve(async (req) => {
           const updatedQuote = {
             ...quote,
             deliveryFee: correctDeliveryFee,
-            totalPrice: newTotalPrice,
-            completePrice: newCompletePrice,
+            totalPrice: newTotalPrice
           };
 
           const { error: updateError } = await supabase
