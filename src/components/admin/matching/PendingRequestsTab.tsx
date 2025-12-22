@@ -104,8 +104,17 @@ const PendingRequestsTab = ({
 
   // Filter packages based on search and filters
   const filteredPackages = historyFilteredPackages.filter(pkg => {
-    const matchesSearch = (pkg.item_description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (pkg.user_id || '').toString().includes(searchTerm);
+    const searchLower = searchTerm.toLowerCase();
+    const userFirstName = ((pkg as any)?.profiles?.first_name || '').toLowerCase();
+    const userLastName = ((pkg as any)?.profiles?.last_name || '').toLowerCase();
+    const userName = `${userFirstName} ${userLastName}`.trim();
+    const username = ((pkg as any)?.profiles?.username || '').toLowerCase();
+    
+    const matchesSearch = (pkg.item_description || '').toLowerCase().includes(searchLower) ||
+                         userFirstName.includes(searchLower) ||
+                         userLastName.includes(searchLower) ||
+                         userName.includes(searchLower) ||
+                         username.includes(searchLower);
     const matchesDestination = destinationFilter === "all" || pkg.package_destination === destinationFilter;
     const matchesStatus = statusFilter === "all" || pkg.status === statusFilter;
     
