@@ -66,6 +66,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { usePackageDetails } from "@/hooks/usePackageDetails";
 import { QuoteRecalculator } from "./QuoteRecalculator";
+import QuoteEditModal from "./QuoteEditModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPhoneDisplay } from "@/lib/phoneUtils";
@@ -178,6 +179,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
     product: any;
     productIndex: number;
   } | null>(null);
+  
+  // State for quote edit modal
+  const [quoteEditModalOpen, setQuoteEditModalOpen] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -1655,14 +1659,25 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
           {/* Quote Information */}
           {pkg.quote && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <DollarSign className="h-4 w-4" />
-                  <span>Cotización Enviada al Shopper</span>
-                </CardTitle>
-                <CardDescription>
-                  Detalles de la cotización que recibió el cliente
-                </CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Cotización Enviada al Shopper</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Detalles de la cotización que recibió el cliente
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuoteEditModalOpen(true)}
+                  className="flex items-center gap-1"
+                >
+                  <Edit2 className="h-3.5 w-3.5" />
+                  Editar
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 <QuoteRecalculator pkg={pkg} onRecalculated={() => window.location.reload()} />
@@ -2245,6 +2260,25 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Quote Edit Modal */}
+      {pkg?.quote && (
+        <QuoteEditModal
+          isOpen={quoteEditModalOpen}
+          onClose={() => setQuoteEditModalOpen(false)}
+          packageData={{
+            id: pkg.id,
+            quote: pkg.quote,
+            matched_trip_id: pkg.matched_trip_id,
+            profiles: pkg.profiles,
+            delivery_method: pkg.delivery_method,
+            confirmed_delivery_address: pkg.confirmed_delivery_address,
+            package_destination: pkg.package_destination
+          }}
+          tripUserId={matchedTrip?.user_id}
+          onSuccess={() => window.location.reload()}
+        />
       )}
     </Dialog>
   );
