@@ -247,10 +247,49 @@ const AdminSupportTab = ({
     itemDescription: string;
     currentServiceFee: number;
     expectedServiceFee: number;
+    currentDeliveryFee: number;
+    expectedDeliveryFee: number;
     price: number;
     currentTotal: number;
     newTotal: number;
+    errorType: 'serviceFee' | 'deliveryFee' | 'both';
+    cityArea?: string;
   }> | null>(null);
+
+  // Helper to check if cityArea is Guatemala City
+  const isGuatemalaCityArea = (cityArea?: string): boolean => {
+    if (!cityArea) return false;
+    const normalized = cityArea.toLowerCase().trim();
+    
+    const excludedAreas = [
+      'mixco', 'villa nueva', 'villanueva', 'villa canales', 'villacanales',
+      'san miguel petapa', 'petapa', 'amatitlan', 'amatitlán', 'fraijanes',
+      'santa catarina pinula', 'chinautla', 'san jose pinula', 'san josé pinula',
+      'palencia', 'san pedro ayampuc', 'san juan sacatepequez', 'san juan sacatepéquez',
+      'condado naranjo', 'san cristobal', 'san cristóbal',
+      'carretera a el salvador', 'carretera el salvador',
+    ];
+    
+    if (excludedAreas.some(excluded => normalized.includes(excluded))) {
+      return false;
+    }
+    
+    const guatemalaCityPatterns = [
+      /^guatemala$/, /^guatemala\s*city$/i, /^ciudad\s*de\s*guatemala/i,
+      /^guatemala\s*,?\s*guatemala$/i, /^guatemala\s+zona\s*\d+/i,
+      /zona\s*\d+.*ciudad\s*de\s*guatemala/i, /^zona\s*\d+.*guatemala$/i, /^guate$/i,
+    ];
+    
+    return guatemalaCityPatterns.some(pattern => pattern.test(normalized));
+  };
+
+  // Calculate expected delivery fee for Prime user
+  const getExpectedDeliveryFee = (deliveryMethod?: string, cityArea?: string): number => {
+    if (deliveryMethod === 'pickup' || !deliveryMethod) return 0;
+    const isGuatemala = isGuatemalaCityArea(cityArea);
+    // Prime users: Q0 in Guatemala, Q35 outside
+    return isGuatemala ? 0 : 35;
+  };
 
   // Function to preview incorrectly calculated Prime quotes
   const previewPrimeQuotes = async () => {
@@ -282,7 +321,7 @@ const AdminSupportTab = ({
       // Get packages for Prime users that have quotes
       const { data: packages, error: pkgError } = await supabase
         .from('packages')
-        .select('id, user_id, quote, item_description')
+        .select('id, user_id, quote, item_description, delivery_method, confirmed_delivery_address')
         .in('user_id', primeUserIds)
         .not('quote', 'is', null);
       
@@ -301,40 +340,67 @@ const AdminSupportTab = ({
         
         const price = parseFloat(String(quote.price));
         const currentServiceFee = parseFloat(String(quote.serviceFee || '0'));
+        const currentDeliveryFee = parseFloat(String(quote.deliveryFee || '0'));
+        const currentTotal = parseFloat(String(quote.totalPrice || '0'));
+        
         const expectedServiceFee = price * 0.20; // Prime rate is 20%
         const wrongServiceFee = price * 0.40; // Incorrect 40% rate
-        const deliveryFee = parseFloat(String(quote.deliveryFee || '0'));
-        const currentTotal = parseFloat(String(quote.totalPrice || '0'));
+        
+        // Get cityArea from confirmed_delivery_address
+        const confirmedAddress = pkg.confirmed_delivery_address as any;
+        const cityArea = confirmedAddress?.cityArea || confirmedAddress?.city || '';
+        const deliveryMethod = pkg.delivery_method || 'pickup';
+        
+        const expectedDeliveryFee = getExpectedDeliveryFee(deliveryMethod, cityArea);
+        
+        // Check for errors
+        const hasServiceFeeError = Math.abs(currentServiceFee - wrongServiceFee) < 1;
+        const hasDeliveryFeeError = deliveryMethod === 'delivery' && 
+          Math.abs(currentDeliveryFee - expectedDeliveryFee) > 0.01;
         
         console.log(`📦 [Prime Preview] Package ${pkg.id.slice(0,8)}:`, {
           price,
           currentServiceFee,
           expectedServiceFee,
-          wrongServiceFee,
-          isWrong: Math.abs(currentServiceFee - wrongServiceFee) < 1,
-          diff: Math.abs(currentServiceFee - wrongServiceFee)
+          hasServiceFeeError,
+          deliveryMethod,
+          cityArea,
+          currentDeliveryFee,
+          expectedDeliveryFee,
+          hasDeliveryFeeError,
         });
         
-        // Check if service fee is wrong (using 40% instead of 20%)
-        if (Math.abs(currentServiceFee - wrongServiceFee) < 1) {
-          const newTotal = price + expectedServiceFee + deliveryFee;
+        if (hasServiceFeeError || hasDeliveryFeeError) {
+          const correctedServiceFee = hasServiceFeeError ? expectedServiceFee : currentServiceFee;
+          const correctedDeliveryFee = hasDeliveryFeeError ? expectedDeliveryFee : currentDeliveryFee;
+          const newTotal = price + correctedServiceFee + correctedDeliveryFee;
+          
+          let errorType: 'serviceFee' | 'deliveryFee' | 'both' = 'serviceFee';
+          if (hasServiceFeeError && hasDeliveryFeeError) errorType = 'both';
+          else if (hasDeliveryFeeError) errorType = 'deliveryFee';
           
           affectedPackages.push({
             packageId: pkg.id,
             userName: primeUserMap.get(pkg.user_id) || 'Desconocido',
             itemDescription: pkg.item_description || 'Sin descripción',
             currentServiceFee,
-            expectedServiceFee,
+            expectedServiceFee: correctedServiceFee,
+            currentDeliveryFee,
+            expectedDeliveryFee: correctedDeliveryFee,
             price,
             currentTotal,
-            newTotal
+            newTotal,
+            errorType,
+            cityArea,
           });
           
-          console.log(`⚠️ [Prime Preview] Package ${pkg.id.slice(0,8)} NEEDS CORRECTION:`, {
+          console.log(`⚠️ [Prime Preview] Package ${pkg.id.slice(0,8)} NEEDS CORRECTION (${errorType}):`, {
             user: primeUserMap.get(pkg.user_id),
             item: pkg.item_description?.slice(0, 50),
-            serviceFee: `${currentServiceFee} → ${expectedServiceFee}`,
-            total: `${currentTotal} → ${newTotal}`
+            serviceFee: hasServiceFeeError ? `${currentServiceFee} → ${correctedServiceFee}` : 'OK',
+            deliveryFee: hasDeliveryFeeError ? `${currentDeliveryFee} → ${correctedDeliveryFee}` : 'OK',
+            total: `${currentTotal} → ${newTotal}`,
+            cityArea,
           });
         }
       }
@@ -349,9 +415,11 @@ const AdminSupportTab = ({
           description: `Se revisaron ${packages?.length || 0} quotes Prime, ninguno necesitaba corrección.` 
         });
       } else {
+        const serviceFeeErrors = affectedPackages.filter(p => p.errorType === 'serviceFee' || p.errorType === 'both').length;
+        const deliveryFeeErrors = affectedPackages.filter(p => p.errorType === 'deliveryFee' || p.errorType === 'both').length;
         toast({ 
           title: `${affectedPackages.length} paquetes afectados`, 
-          description: 'Revisa el preview y haz clic en "Ejecutar Corrección" para aplicar los cambios.' 
+          description: `Service Fee: ${serviceFeeErrors}, Delivery Fee: ${deliveryFeeErrors}. Revisa el preview.` 
         });
       }
     } catch (error) {
@@ -394,16 +462,17 @@ const AdminSupportTab = ({
         }
         
         const quote = currentPkg.quote as any;
-        const deliveryFee = parseFloat(String(quote?.deliveryFee || '0'));
         
         const updatedQuote = {
           ...quote,
           serviceFee: pkg.expectedServiceFee.toFixed(2),
+          deliveryFee: pkg.expectedDeliveryFee.toFixed(2),
           totalPrice: pkg.newTotal.toFixed(2),
           serviceFeeRate: 0.20,
           manuallyEdited: true,
           primeRecalculatedAt: new Date().toISOString(),
-          primeRecalculatedBy: user?.id || 'unknown'
+          primeRecalculatedBy: user?.id || 'unknown',
+          primeRecalculationNote: `Corrected ${pkg.errorType}: serviceFee=${pkg.expectedServiceFee}, deliveryFee=${pkg.expectedDeliveryFee}`
         };
         
         const { error: updateError } = await supabase
@@ -413,7 +482,11 @@ const AdminSupportTab = ({
         
         if (!updateError) {
           fixedCount++;
-          console.log(`✅ [Prime Fix] Fixed package ${pkg.packageId.slice(0,8)}: serviceFee ${pkg.currentServiceFee} → ${pkg.expectedServiceFee}`);
+          console.log(`✅ [Prime Fix] Fixed package ${pkg.packageId.slice(0,8)} (${pkg.errorType}):`, {
+            serviceFee: `${pkg.currentServiceFee} → ${pkg.expectedServiceFee}`,
+            deliveryFee: `${pkg.currentDeliveryFee} → ${pkg.expectedDeliveryFee}`,
+            total: `${pkg.currentTotal} → ${pkg.newTotal}`
+          });
         } else {
           console.error(`❌ [Prime Fix] Failed to update package ${pkg.packageId}:`, updateError);
         }
@@ -764,9 +837,9 @@ const AdminSupportTab = ({
               {/* Prime Quote Recalculation Tool */}
               <div className="p-4 border rounded-lg space-y-4">
                 <div>
-                  <h4 className="font-medium">Recalcular Service Fees de usuarios Prime</h4>
+                  <h4 className="font-medium">Recalcular Quotes de usuarios Prime</h4>
                   <p className="text-sm text-muted-foreground">
-                    Corrige quotes de usuarios Prime que fueron calculados incorrectamente al 40% en lugar del 20%.
+                    Corrige quotes de usuarios Prime con errores en Service Fee (40% → 20%) y Delivery Fee (Guatemala gratis, fuera Q35).
                   </p>
                 </div>
                 
@@ -813,7 +886,11 @@ const AdminSupportTab = ({
                   <div className="border rounded-lg overflow-hidden">
                     <div className="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 border-b">
                       <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                        ⚠️ {primeQuotePreview.length} paquetes con Service Fee incorrecto (40% → 20%)
+                        ⚠️ {primeQuotePreview.length} paquetes con errores en quotes Prime
+                      </p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        Service Fee: {primeQuotePreview.filter(p => p.errorType === 'serviceFee' || p.errorType === 'both').length} | 
+                        Delivery Fee: {primeQuotePreview.filter(p => p.errorType === 'deliveryFee' || p.errorType === 'both').length}
                       </p>
                     </div>
                     <Table>
@@ -821,38 +898,69 @@ const AdminSupportTab = ({
                         <TableRow>
                           <TableHead>Usuario</TableHead>
                           <TableHead>Producto</TableHead>
-                          <TableHead className="text-right">Precio Base</TableHead>
-                          <TableHead className="text-right">Fee Actual</TableHead>
-                          <TableHead className="text-right">Fee Correcto</TableHead>
-                          <TableHead className="text-right">Ahorro</TableHead>
+                          <TableHead>Error</TableHead>
+                          <TableHead className="text-right">Service Fee</TableHead>
+                          <TableHead className="text-right">Delivery Fee</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {primeQuotePreview.map((pkg) => (
                           <TableRow key={pkg.packageId}>
                             <TableCell className="font-medium">{pkg.userName}</TableCell>
-                            <TableCell className="max-w-[200px] truncate" title={pkg.itemDescription}>
-                              {pkg.itemDescription.slice(0, 40)}{pkg.itemDescription.length > 40 ? '...' : ''}
+                            <TableCell className="max-w-[150px] truncate" title={pkg.itemDescription}>
+                              {pkg.itemDescription.slice(0, 30)}{pkg.itemDescription.length > 30 ? '...' : ''}
                             </TableCell>
-                            <TableCell className="text-right">Q{pkg.price.toFixed(2)}</TableCell>
-                            <TableCell className="text-right text-destructive">Q{pkg.currentServiceFee.toFixed(2)}</TableCell>
-                            <TableCell className="text-right text-green-600">Q{pkg.expectedServiceFee.toFixed(2)}</TableCell>
-                            <TableCell className="text-right font-medium text-green-600">
-                              -Q{(pkg.currentServiceFee - pkg.expectedServiceFee).toFixed(2)}
+                            <TableCell>
+                              <Badge variant={pkg.errorType === 'both' ? 'destructive' : 'secondary'} className="text-xs">
+                                {pkg.errorType === 'serviceFee' && 'Service'}
+                                {pkg.errorType === 'deliveryFee' && 'Delivery'}
+                                {pkg.errorType === 'both' && 'Ambos'}
+                              </Badge>
+                              {pkg.cityArea && (
+                                <div className="text-xs text-muted-foreground mt-1">{pkg.cityArea}</div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs">
+                              {(pkg.errorType === 'serviceFee' || pkg.errorType === 'both') ? (
+                                <div>
+                                  <span className="text-destructive">Q{pkg.currentServiceFee.toFixed(0)}</span>
+                                  <span className="mx-1">→</span>
+                                  <span className="text-green-600">Q{pkg.expectedServiceFee.toFixed(0)}</span>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">Q{pkg.currentServiceFee.toFixed(0)}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs">
+                              {(pkg.errorType === 'deliveryFee' || pkg.errorType === 'both') ? (
+                                <div>
+                                  <span className="text-destructive">Q{pkg.currentDeliveryFee.toFixed(0)}</span>
+                                  <span className="mx-1">→</span>
+                                  <span className="text-green-600">Q{pkg.expectedDeliveryFee.toFixed(0)}</span>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">Q{pkg.currentDeliveryFee.toFixed(0)}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs font-medium">
+                              <span className="text-destructive">Q{pkg.currentTotal.toFixed(0)}</span>
+                              <span className="mx-1">→</span>
+                              <span className="text-green-600">Q{pkg.newTotal.toFixed(0)}</span>
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                     <div className="bg-muted px-3 py-2 border-t text-sm">
-                      <strong>Total ahorro para clientes:</strong> Q{primeQuotePreview.reduce((sum, p) => sum + (p.currentServiceFee - p.expectedServiceFee), 0).toFixed(2)}
+                      <strong>Total ahorro para clientes:</strong> Q{primeQuotePreview.reduce((sum, p) => sum + (p.currentTotal - p.newTotal), 0).toFixed(2)}
                     </div>
                   </div>
                 )}
                 
                 {primeQuotePreview && primeQuotePreview.length === 0 && (
                   <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded text-sm text-green-800 dark:text-green-200">
-                    ✅ No se encontraron paquetes con service fee incorrecto. Todos los quotes Prime están correctos.
+                    ✅ No se encontraron paquetes con errores. Todos los quotes Prime están correctos.
                   </div>
                 )}
                 
