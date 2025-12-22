@@ -1697,7 +1697,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                       <p className="text-sm font-medium">
                         Service Fee ({pkg.profiles?.trust_level === 'prime' ? '20%' : '40%'})
                       </p>
-                      <p className="text-sm text-muted-foreground">Q{(() => {
+                      <p className="text-sm text-muted-foreground">Q{pkg.quote.serviceFee || (() => {
                         const travelerTip = parseFloat(pkg.quote.price || '0');
                         const rate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
                         return (travelerTip * rate).toFixed(2);
@@ -1744,36 +1744,17 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
                       <p className="text-lg font-bold text-primary">Q{(() => {
-                        // Calculate from products_data admin tips instead of quote.price
-                        const productsData = pkg.products_data || pkg.products || [];
-                        const sumOfAdminTips = productsData.reduce((sum: number, product: any) => {
-                          const raw = product?.adminAssignedTip;
-                          const tip = typeof raw === 'string' ? parseFloat(raw) : Number(raw || 0);
-                          return sum + (Number.isFinite(tip) ? tip : 0);
-                        }, 0);
-                        
-                        const serviceRate = pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40;
-                        const serviceFee = sumOfAdminTips * serviceRate;
-                        
-                        // Calculate delivery fee
-                        let deliveryFee = 0;
-                        if (pkg.delivery_method !== 'pickup') {
-                          const isGuatemalaCity = pkg.package_destination?.toLowerCase().match(
-                            /guatemala\s*city|ciudad\s*de\s*guatemala|^guatemala$|^guate$/
-                          );
-                          
-                          if (pkg.profiles?.trust_level === 'prime' && isGuatemalaCity) {
-                            deliveryFee = 0;
-                          } else if (pkg.profiles?.trust_level === 'prime' && !isGuatemalaCity) {
-                            deliveryFee = 35;
-                          } else if (isGuatemalaCity) {
-                            deliveryFee = 25;
-                          } else {
-                            deliveryFee = 60;
-                          }
+                        // Use saved totalPrice/completePrice if available
+                        if (pkg.quote.totalPrice || pkg.quote.completePrice) {
+                          return parseFloat(pkg.quote.totalPrice || pkg.quote.completePrice).toFixed(2);
                         }
                         
-                        return (sumOfAdminTips + serviceFee + deliveryFee).toFixed(2);
+                        // Fallback: calculate from quote fields
+                        const tip = parseFloat(pkg.quote.price || '0');
+                        const serviceFee = parseFloat(pkg.quote.serviceFee || String(tip * (pkg.profiles?.trust_level === 'prime' ? 0.20 : 0.40)));
+                        const deliveryFee = parseFloat(pkg.quote.deliveryFee || '0');
+                        
+                        return (tip + serviceFee + deliveryFee).toFixed(2);
                       })()}</p>
                     </div>
                   </div>

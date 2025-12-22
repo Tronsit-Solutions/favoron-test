@@ -63,10 +63,10 @@ export const useQuoteManagement = () => {
         }
       };
 
-      // Get current admin_actions_log
+      // Get current package data
       const { data: currentPkg, error: fetchError } = await supabase
         .from('packages')
-        .select('admin_actions_log, admin_assigned_tip')
+        .select('admin_actions_log, admin_assigned_tip, products_data')
         .eq('id', packageId)
         .single();
 
@@ -76,13 +76,26 @@ export const useQuoteManagement = () => {
         ? currentPkg.admin_actions_log 
         : [];
 
-      // Update the package with new quote and log
+      // Update products_data with new tip (for single product packages)
+      let updatedProductsData = currentPkg?.products_data;
+      if (updatedProductsData && Array.isArray(updatedProductsData) && updatedProductsData.length === 1) {
+        const firstProduct = updatedProductsData[0];
+        if (typeof firstProduct === 'object' && firstProduct !== null) {
+          updatedProductsData = [{
+            ...(firstProduct as Record<string, any>),
+            adminAssignedTip: newTip
+          }];
+        }
+      }
+
+      // Update the package with new quote, products_data, and log
       const { error: updateError } = await supabase
         .from('packages')
         .update({
           quote: updatedQuote,
           admin_assigned_tip: newTip,
-          admin_actions_log: [...currentLog, adminLogEntry],
+          products_data: updatedProductsData as any,
+          admin_actions_log: [...currentLog, adminLogEntry] as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', packageId);
