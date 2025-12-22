@@ -48,7 +48,7 @@ const AdminSupportTab = ({
   const [activeFilter, setActiveFilter] = useState("all");
   const [isSearching, setIsSearching] = useState(false);
   const [supportTab, setSupportTab] = useState("packages");
-  const [isRunningBackfill, setIsRunningBackfill] = useState(false);
+  
   const { toast } = useToast();
   
   // Client errors state
@@ -236,35 +236,6 @@ const AdminSupportTab = ({
     }
   };
 
-  const runCompletePrice = async () => {
-    setIsRunningBackfill(true);
-    try {
-      console.log('🔧 Running completePrice backfill...');
-      
-      const { data, error } = await supabase.functions.invoke('add-complete-price-to-quotes');
-      
-      if (error) {
-        throw error;
-      }
-      
-      console.log('✅ Backfill result:', data);
-      toast({
-        title: "✅ Backfill Completado",
-        description: `Actualizados: ${data.updatedPackages}, Omitidos: ${data.skippedPackages}`,
-        variant: "default"
-      });
-      
-    } catch (error) {
-      console.error('❌ Backfill error:', error);
-      toast({
-        title: "❌ Error en Backfill",
-        description: error.message || "Error desconocido",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRunningBackfill(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -584,28 +555,8 @@ const AdminSupportTab = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium mb-2">Backfill CompletePrice</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Agrega el campo completePrice a todos los quotes existentes en la base de datos.
-                </p>
-                <Button 
-                  onClick={runCompletePrice}
-                  disabled={isRunningBackfill}
-                  className="w-full"
-                >
-                  {isRunningBackfill ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Ejecutando...
-                    </>
-                  ) : (
-                    <>
-                      <Database className="w-4 h-4 mr-2" />
-                      Ejecutar Backfill
-                    </>
-                  )}
-                </Button>
+              <div className="p-4 border rounded-lg text-center text-muted-foreground">
+                <p>No hay herramientas del sistema disponibles actualmente.</p>
               </div>
             </CardContent>
           </Card>

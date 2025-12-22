@@ -138,8 +138,7 @@ export default function ShopperPaymentInfoModal({
         deliveryFee: currentQuote.deliveryFee,
         totalPrice: currentQuote.originalTotalPrice || currentQuote.totalPrice,
         message: currentQuote.message,
-        adminAssignedTipAccepted: currentQuote.adminAssignedTipAccepted,
-        completePrice: currentQuote.completePrice
+        adminAssignedTipAccepted: currentQuote.adminAssignedTipAccepted
       };
       
       const { error } = await supabase

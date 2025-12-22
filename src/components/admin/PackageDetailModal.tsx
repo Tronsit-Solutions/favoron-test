@@ -1744,9 +1744,9 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <div>
                       <p className="text-sm font-medium">Total a Pagar</p>
                       <p className="text-lg font-bold text-primary">Q{(() => {
-                        // Use saved totalPrice/completePrice if available
-                        if (pkg.quote.totalPrice || pkg.quote.completePrice) {
-                          return parseFloat(pkg.quote.totalPrice || pkg.quote.completePrice).toFixed(2);
+                        // Use saved totalPrice if available
+                        if (pkg.quote.totalPrice) {
+                          return parseFloat(pkg.quote.totalPrice).toFixed(2);
                         }
                         
                         // Fallback: calculate from quote fields

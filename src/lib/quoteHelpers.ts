@@ -5,7 +5,6 @@ export interface NormalizedQuote {
   serviceFee: number;
   deliveryFee: number;
   totalPrice: number;
-  completePrice: number;
   message?: string;
   adminAssignedTipAccepted?: boolean;
 }
@@ -30,8 +29,7 @@ export const normalizeQuote = (
       price: 0,
       serviceFee: 0,
       deliveryFee: 0,
-      totalPrice: 0,
-      completePrice: 0
+      totalPrice: 0
     };
   }
 
@@ -52,14 +50,12 @@ export const normalizeQuote = (
   
   // Calculate totalPrice with corrected deliveryFee
   const totalPrice = price + serviceFee + deliveryFee;
-  const completePrice = price + serviceFee + deliveryFee;
 
   return {
     price,
     serviceFee,
     deliveryFee,
     totalPrice,
-    completePrice,
     message: quote.message,
     adminAssignedTipAccepted: quote.adminAssignedTipAccepted
   };
@@ -90,7 +86,6 @@ export const createNormalizedQuote = (
     serviceFee: breakdown.serviceFee,
     deliveryFee: breakdown.deliveryFee,
     totalPrice: breakdown.totalPrice,
-    completePrice: breakdown.totalPrice,
     message,
     adminAssignedTipAccepted
   };

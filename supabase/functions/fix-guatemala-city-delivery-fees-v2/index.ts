@@ -132,9 +132,6 @@ serve(async (req) => {
         const difference = oldDeliveryFee - correctDeliveryFee;
 
         const newTotalPrice = parseFloat(currentQuote.totalPrice || '0') - difference;
-        const newCompletePrice = currentQuote.completePrice 
-          ? parseFloat(currentQuote.completePrice) - difference 
-          : null;
 
         // Update the package
         const { error: updateError } = await supabaseClient
@@ -143,8 +140,7 @@ serve(async (req) => {
             quote: {
               ...currentQuote,
               deliveryFee: correctDeliveryFee,
-              totalPrice: newTotalPrice,
-              completePrice: newCompletePrice
+              totalPrice: newTotalPrice
             },
             updated_at: new Date().toISOString()
           })

@@ -55,8 +55,7 @@ Deno.serve(async (req) => {
           const updatedQuote = {
             ...quote,
             deliveryFee: 25,
-            totalPrice: (parseFloat(quote.totalPrice) - difference).toFixed(2),
-            completePrice: quote.completePrice ? (parseFloat(quote.completePrice) - difference) : undefined
+            totalPrice: (parseFloat(quote.totalPrice) - difference).toFixed(2)
           }
 
           const { error: updateError } = await supabase
