@@ -396,7 +396,19 @@ const CollapsiblePackageCard = ({
                         <span className="text-sm">Este pedido ha sido cancelado</span>
                       </div>
                       <p className="text-xs text-muted-foreground mb-3">
-                        Todos los productos de este pedido fueron cancelados. Tu reembolso está siendo procesado.
+                        {(() => {
+                          const wasPaid = !!pkg.payment_receipt;
+                          const hasRefundOrder = (pkg.quote as any)?.cancellations?.length > 0 || 
+                            (pkg.products_data as any[])?.some((p: any) => p.refundOrderId);
+                          
+                          if (wasPaid && hasRefundOrder) {
+                            return "Todos los productos fueron cancelados. Tu reembolso está siendo procesado.";
+                          } else if (wasPaid) {
+                            return "Este pedido fue cancelado. Si tienes preguntas sobre reembolsos, contacta a soporte.";
+                          } else {
+                            return "Este pedido fue cancelado antes de completar el pago.";
+                          }
+                        })()}
                       </p>
                       {onArchivePackage && (
                         <Button 
@@ -594,7 +606,19 @@ const CollapsiblePackageCard = ({
                             <span className="text-sm">Este pedido ha sido cancelado</span>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Todos los productos fueron cancelados. Tu reembolso está siendo procesado.
+                            {(() => {
+                              const wasPaid = !!pkg.payment_receipt;
+                              const hasRefundOrder = (pkg.quote as any)?.cancellations?.length > 0 || 
+                                (pkg.products_data as any[])?.some((p: any) => p.refundOrderId);
+                              
+                              if (wasPaid && hasRefundOrder) {
+                                return "Todos los productos fueron cancelados. Tu reembolso está siendo procesado.";
+                              } else if (wasPaid) {
+                                return "Este pedido fue cancelado. Si tienes preguntas sobre reembolsos, contacta a soporte.";
+                              } else {
+                                return "Este pedido fue cancelado antes de completar el pago.";
+                              }
+                            })()}
                           </p>
                         </div>
                         {onArchivePackage && (
