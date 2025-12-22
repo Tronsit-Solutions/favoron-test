@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, DollarSign, Save, Loader2 } from 'lucide-react';
+import { AlertTriangle, DollarSign, Save, Loader2, Package } from 'lucide-react';
 import { useQuoteManagement } from '@/hooks/useQuoteManagement';
 import { useAuth } from '@/hooks/useAuth';
+import ProductTipAssignmentModal from './ProductTipAssignmentModal';
 
 interface QuoteEditModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface QuoteEditModalProps {
     delivery_method?: string;
     confirmed_delivery_address?: { cityArea?: string };
     package_destination?: string;
+    products_data?: any[];
   };
   tripUserId?: string | null;
   onSuccess?: () => void;
@@ -40,6 +42,11 @@ const QuoteEditModal = ({
 }: QuoteEditModalProps) => {
   const { user } = useAuth();
   const { updateQuoteManually, isUpdating } = useQuoteManagement();
+  const [showProductTipModal, setShowProductTipModal] = useState(false);
+
+  // Get products data
+  const productsData = packageData?.products_data || [];
+  const hasMultipleProducts = productsData.length > 1;
 
   // Parse current values from quote
   const currentQuote = packageData?.quote || {};
@@ -90,6 +97,90 @@ const QuoteEditModal = ({
     }
   };
 
+  const handleProductTipsSaved = () => {
+    setShowProductTipModal(false);
+    onSuccess?.();
+    onClose();
+  };
+
+  // For multiple products, show a simplified view with button to edit per-product
+  if (hasMultipleProducts) {
+    return (
+      <>
+        <Dialog open={isOpen && !showProductTipModal} onOpenChange={(open) => !open && onClose()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Editar Tips por Producto
+              </DialogTitle>
+              <DialogDescription>
+                Este paquete tiene {productsData.length} productos. Debes editar el tip de cada uno individualmente.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Current Summary */}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Tip Total Actual:</span>
+                  <Badge variant="outline" className="font-mono">Q{currentTip.toFixed(2)}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Service Fee ({trustLevel === 'prime' ? '20%' : '40%'}):</span>
+                  <Badge variant="outline" className="font-mono">Q{currentServiceFee.toFixed(2)}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Delivery Fee:</span>
+                  <Badge variant="outline" className="font-mono">Q{currentDeliveryFee.toFixed(2)}</Badge>
+                </div>
+                <div className="border-t pt-2 flex justify-between items-center">
+                  <span className="text-sm font-medium">Total:</span>
+                  <span className="font-bold text-primary">Q{(currentTip + currentServiceFee + currentDeliveryFee).toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Products Preview */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Productos:</p>
+                {productsData.map((product: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center text-sm bg-background border rounded-md p-2">
+                    <span className="truncate flex-1">{product.itemDescription || `Producto ${idx + 1}`}</span>
+                    <Badge variant="secondary" className="ml-2 font-mono">
+                      Tip: Q{parseFloat(product.adminAssignedTip || 0).toFixed(2)}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button onClick={() => setShowProductTipModal(true)}>
+                <Package className="h-4 w-4 mr-2" />
+                Editar Tips por Producto
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <ProductTipAssignmentModal
+          isOpen={showProductTipModal}
+          onClose={() => setShowProductTipModal(false)}
+          onSave={handleProductTipsSaved}
+          products={productsData}
+          packageId={packageData.id}
+          tripId={packageData.matched_trip_id}
+          travelerId={tripUserId}
+          trustLevel={trustLevel}
+        />
+      </>
+    );
+  }
+
+  // Single product: allow direct editing
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">

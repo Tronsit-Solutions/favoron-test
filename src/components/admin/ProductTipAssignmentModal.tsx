@@ -23,6 +23,9 @@ interface ProductTipAssignmentModalProps {
   onSave: (productsWithTips: Product[], totalTip: number) => void;
   products: Product[];
   packageId: string;
+  tripId?: string | null;
+  travelerId?: string | null;
+  trustLevel?: string;
 }
 
 const ProductTipAssignmentModal = ({ 
@@ -30,7 +33,10 @@ const ProductTipAssignmentModal = ({
   onClose, 
   onSave, 
   products: initialProducts,
-  packageId 
+  packageId,
+  tripId,
+  travelerId,
+  trustLevel
 }: ProductTipAssignmentModalProps) => {
   console.log('🔍 DEBUG ProductTipAssignmentModal - initialProducts:', initialProducts);
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
@@ -117,14 +123,19 @@ const ProductTipAssignmentModal = ({
       
       const totalTip = calculateTotalTip();
 
-      // Persist tips DIRECTLY into packages.products_data (new flow)
-      await saveProductTips(packageId, productsWithTips.map(p => ({
-        itemDescription: p.itemDescription,
-        estimatedPrice: p.estimatedPrice,
-        itemLink: p.itemLink,
-        quantity: p.quantity,
-        adminAssignedTip: p.adminAssignedTip || 0
-      })));
+      // Persist tips into packages.products_data and update quote
+      await saveProductTips(
+        packageId, 
+        productsWithTips.map(p => ({
+          itemDescription: p.itemDescription,
+          estimatedPrice: p.estimatedPrice,
+          itemLink: p.itemLink,
+          quantity: p.quantity,
+          adminAssignedTip: p.adminAssignedTip || 0,
+          additionalNotes: (p as any).additionalNotes || null,
+        })),
+        { tripId, travelerId, trustLevel }
+      );
 
       // Keep parent callback for UI refresh/side-effects (doesn't need to write)
       if (onSave) {
