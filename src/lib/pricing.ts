@@ -21,17 +21,51 @@ export const isGuatemalaCityArea = (cityArea?: string): boolean => {
   if (!cityArea) return false;
   const normalized = cityArea.toLowerCase().trim();
   
-  // Only exact matches for Guatemala city
-  const guatemalaCityNames = [
-    'guatemala',
-    'guatemala city', 
-    'ciudad de guatemala',
-    'guate'
+  // Lista de municipios/ciudades que NO son Guatemala Ciudad (Q60)
+  const excludedAreas = [
+    'mixco',
+    'villa nueva',
+    'villanueva',
+    'villa canales',
+    'villacanales',
+    'san miguel petapa',
+    'petapa',
+    'amatitlan',
+    'amatitlán',
+    'fraijanes',
+    'santa catarina pinula',
+    'chinautla',
+    'san jose pinula',
+    'san josé pinula',
+    'palencia',
+    'san pedro ayampuc',
+    'san juan sacatepequez',
+    'san juan sacatepéquez',
+    'condado naranjo',
+    'san cristobal',
+    'san cristóbal',
+    'carretera a el salvador',
+    'carretera el salvador',
   ];
   
-  return guatemalaCityNames.some(name => 
-    normalized === name || normalized.startsWith(name + ',')
-  );
+  // Si contiene algún área excluida, NO es Guatemala Ciudad
+  if (excludedAreas.some(excluded => normalized.includes(excluded))) {
+    return false;
+  }
+  
+  // Patrones que SÍ son Guatemala Ciudad
+  const guatemalaCityPatterns = [
+    /^guatemala$/,                           // "guatemala" exacto
+    /^guatemala\s*city$/i,                   // "guatemala city"
+    /^ciudad\s*de\s*guatemala/i,             // "ciudad de guatemala..."
+    /^guatemala\s*,?\s*guatemala$/i,         // "guatemala, guatemala"
+    /^guatemala\s+zona\s*\d+/i,              // "guatemala zona 10"
+    /zona\s*\d+.*ciudad\s*de\s*guatemala/i,  // "zona 2 de la Ciudad de Guatemala"
+    /^zona\s*\d+.*guatemala$/i,              // "zona 10 guatemala"
+    /^guate$/i,                              // "guate" exacto
+  ];
+  
+  return guatemalaCityPatterns.some(pattern => pattern.test(normalized));
 };
 
 /**
