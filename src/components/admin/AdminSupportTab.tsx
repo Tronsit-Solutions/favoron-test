@@ -239,95 +239,200 @@ const AdminSupportTab = ({
 
   // State for Prime service fee recalculation tool
   const [isRecalculatingPrimeQuotes, setIsRecalculatingPrimeQuotes] = useState(false);
+  const [isPreviewingPrimeQuotes, setIsPreviewingPrimeQuotes] = useState(false);
   const [primeQuoteResults, setPrimeQuoteResults] = useState<{ fixed: number; total: number } | null>(null);
+  const [primeQuotePreview, setPrimeQuotePreview] = useState<Array<{
+    packageId: string;
+    userName: string;
+    itemDescription: string;
+    currentServiceFee: number;
+    expectedServiceFee: number;
+    price: number;
+    currentTotal: number;
+    newTotal: number;
+  }> | null>(null);
 
-  // Function to recalculate incorrectly calculated Prime quotes
-  const recalculatePrimeQuotes = async () => {
-    setIsRecalculatingPrimeQuotes(true);
+  // Function to preview incorrectly calculated Prime quotes
+  const previewPrimeQuotes = async () => {
+    setIsPreviewingPrimeQuotes(true);
+    setPrimeQuotePreview(null);
     setPrimeQuoteResults(null);
     
     try {
+      console.log('🔍 [Prime Preview] Starting preview scan...');
+      
       // Get all Prime users
       const { data: primeUsers, error: primeError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, first_name, last_name')
         .eq('trust_level', 'prime');
       
       if (primeError) throw primeError;
       
-      const primeUserIds = primeUsers?.map(u => u.id) || [];
+      const primeUserMap = new Map(primeUsers?.map(u => [u.id, `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Sin nombre']) || []);
+      const primeUserIds = Array.from(primeUserMap.keys());
+      
+      console.log(`🔍 [Prime Preview] Found ${primeUserIds.length} Prime users:`, primeUsers?.map(u => `${u.first_name} ${u.last_name}`));
       
       if (primeUserIds.length === 0) {
         toast({ title: 'No hay usuarios Prime', description: 'No se encontraron usuarios con nivel Prime.' });
         return;
       }
       
-      // Get packages for Prime users that have quotes with incorrect service fees
+      // Get packages for Prime users that have quotes
       const { data: packages, error: pkgError } = await supabase
         .from('packages')
-        .select('id, user_id, quote, admin_assigned_tip, delivery_method, package_destination')
+        .select('id, user_id, quote, item_description')
         .in('user_id', primeUserIds)
         .not('quote', 'is', null);
       
       if (pkgError) throw pkgError;
       
-      let fixedCount = 0;
-      const totalToCheck = packages?.length || 0;
+      console.log(`🔍 [Prime Preview] Found ${packages?.length || 0} packages with quotes from Prime users`);
+      
+      const affectedPackages: typeof primeQuotePreview = [];
       
       for (const pkg of packages || []) {
         const quote = pkg.quote as any;
-        if (!quote?.price) continue;
+        if (!quote?.price) {
+          console.log(`⏭️ [Prime Preview] Skipping package ${pkg.id.slice(0,8)}: no price in quote`);
+          continue;
+        }
         
         const price = parseFloat(String(quote.price));
         const currentServiceFee = parseFloat(String(quote.serviceFee || '0'));
         const expectedServiceFee = price * 0.20; // Prime rate is 20%
+        const wrongServiceFee = price * 0.40; // Incorrect 40% rate
+        const deliveryFee = parseFloat(String(quote.deliveryFee || '0'));
+        const currentTotal = parseFloat(String(quote.totalPrice || '0'));
+        
+        console.log(`📦 [Prime Preview] Package ${pkg.id.slice(0,8)}:`, {
+          price,
+          currentServiceFee,
+          expectedServiceFee,
+          wrongServiceFee,
+          isWrong: Math.abs(currentServiceFee - wrongServiceFee) < 1,
+          diff: Math.abs(currentServiceFee - wrongServiceFee)
+        });
         
         // Check if service fee is wrong (using 40% instead of 20%)
-        // Allow small margin for rounding
-        if (Math.abs(currentServiceFee - (price * 0.40)) < 0.01) {
-          // This quote was incorrectly calculated at 40%
-          const deliveryFee = parseFloat(String(quote.deliveryFee || '0'));
-          const newTotalPrice = price + expectedServiceFee + deliveryFee;
+        if (Math.abs(currentServiceFee - wrongServiceFee) < 1) {
+          const newTotal = price + expectedServiceFee + deliveryFee;
           
-          const updatedQuote = {
-            ...quote,
-            serviceFee: expectedServiceFee.toFixed(2),
-            totalPrice: newTotalPrice.toFixed(2),
-            serviceFeeRate: 0.20,
-            manuallyEdited: true,
-            primeRecalculatedAt: new Date().toISOString()
-          };
+          affectedPackages.push({
+            packageId: pkg.id,
+            userName: primeUserMap.get(pkg.user_id) || 'Desconocido',
+            itemDescription: pkg.item_description || 'Sin descripción',
+            currentServiceFee,
+            expectedServiceFee,
+            price,
+            currentTotal,
+            newTotal
+          });
           
-          const { error: updateError } = await supabase
-            .from('packages')
-            .update({ quote: updatedQuote })
-            .eq('id', pkg.id);
-          
-          if (!updateError) {
-            fixedCount++;
-            console.log(`✅ Fixed Prime quote for package ${pkg.id}: serviceFee ${currentServiceFee} → ${expectedServiceFee}`);
-          }
+          console.log(`⚠️ [Prime Preview] Package ${pkg.id.slice(0,8)} NEEDS CORRECTION:`, {
+            user: primeUserMap.get(pkg.user_id),
+            item: pkg.item_description?.slice(0, 50),
+            serviceFee: `${currentServiceFee} → ${expectedServiceFee}`,
+            total: `${currentTotal} → ${newTotal}`
+          });
         }
       }
       
-      setPrimeQuoteResults({ fixed: fixedCount, total: totalToCheck });
+      setPrimeQuotePreview(affectedPackages);
       
-      if (fixedCount > 0) {
+      console.log(`✅ [Prime Preview] Scan complete. Found ${affectedPackages.length} packages needing correction`);
+      
+      if (affectedPackages.length === 0) {
         toast({ 
-          title: 'Quotes Prime recalculados', 
-          description: `Se corrigieron ${fixedCount} quotes de ${totalToCheck} paquetes Prime.` 
+          title: 'Sin correcciones necesarias', 
+          description: `Se revisaron ${packages?.length || 0} quotes Prime, ninguno necesitaba corrección.` 
         });
       } else {
         toast({ 
-          title: 'Sin correcciones necesarias', 
-          description: `Se revisaron ${totalToCheck} quotes Prime, ninguno necesitaba corrección.` 
+          title: `${affectedPackages.length} paquetes afectados`, 
+          description: 'Revisa el preview y haz clic en "Ejecutar Corrección" para aplicar los cambios.' 
         });
       }
     } catch (error) {
-      console.error('Error recalculating Prime quotes:', error);
+      console.error('❌ [Prime Preview] Error:', error);
       toast({ 
         title: 'Error', 
-        description: 'No se pudieron recalcular los quotes Prime.',
+        description: 'No se pudieron obtener los quotes Prime.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsPreviewingPrimeQuotes(false);
+    }
+  };
+
+  // Function to execute the correction on previewed packages
+  const executePrimeQuoteCorrection = async () => {
+    if (!primeQuotePreview || primeQuotePreview.length === 0) {
+      toast({ title: 'Sin paquetes para corregir', description: 'Primero ejecuta el preview.', variant: 'destructive' });
+      return;
+    }
+    
+    setIsRecalculatingPrimeQuotes(true);
+    
+    try {
+      console.log(`🔧 [Prime Fix] Starting correction of ${primeQuotePreview.length} packages...`);
+      
+      let fixedCount = 0;
+      
+      for (const pkg of primeQuotePreview) {
+        // Get current package data
+        const { data: currentPkg, error: fetchError } = await supabase
+          .from('packages')
+          .select('quote')
+          .eq('id', pkg.packageId)
+          .single();
+        
+        if (fetchError || !currentPkg) {
+          console.error(`❌ [Prime Fix] Failed to fetch package ${pkg.packageId}:`, fetchError);
+          continue;
+        }
+        
+        const quote = currentPkg.quote as any;
+        const deliveryFee = parseFloat(String(quote?.deliveryFee || '0'));
+        
+        const updatedQuote = {
+          ...quote,
+          serviceFee: pkg.expectedServiceFee.toFixed(2),
+          totalPrice: pkg.newTotal.toFixed(2),
+          serviceFeeRate: 0.20,
+          manuallyEdited: true,
+          primeRecalculatedAt: new Date().toISOString(),
+          primeRecalculatedBy: user?.id || 'unknown'
+        };
+        
+        const { error: updateError } = await supabase
+          .from('packages')
+          .update({ quote: updatedQuote })
+          .eq('id', pkg.packageId);
+        
+        if (!updateError) {
+          fixedCount++;
+          console.log(`✅ [Prime Fix] Fixed package ${pkg.packageId.slice(0,8)}: serviceFee ${pkg.currentServiceFee} → ${pkg.expectedServiceFee}`);
+        } else {
+          console.error(`❌ [Prime Fix] Failed to update package ${pkg.packageId}:`, updateError);
+        }
+      }
+      
+      setPrimeQuoteResults({ fixed: fixedCount, total: primeQuotePreview.length });
+      setPrimeQuotePreview(null); // Clear preview after execution
+      
+      console.log(`✅ [Prime Fix] Correction complete. Fixed ${fixedCount}/${primeQuotePreview.length} packages`);
+      
+      toast({ 
+        title: 'Corrección completada', 
+        description: `Se corrigieron ${fixedCount} de ${primeQuotePreview.length} quotes Prime.` 
+      });
+    } catch (error) {
+      console.error('❌ [Prime Fix] Error:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'No se pudieron corregir los quotes Prime.',
         variant: 'destructive'
       });
     } finally {
@@ -657,37 +762,104 @@ const AdminSupportTab = ({
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Prime Quote Recalculation Tool */}
-              <div className="p-4 border rounded-lg space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Recalcular Service Fees de usuarios Prime</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Corrige quotes de usuarios Prime que fueron calculados incorrectamente al 40% en lugar del 20%.
-                    </p>
-                  </div>
+              <div className="p-4 border rounded-lg space-y-4">
+                <div>
+                  <h4 className="font-medium">Recalcular Service Fees de usuarios Prime</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Corrige quotes de usuarios Prime que fueron calculados incorrectamente al 40% en lugar del 20%.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
                   <Button 
-                    onClick={recalculatePrimeQuotes} 
-                    disabled={isRecalculatingPrimeQuotes}
+                    onClick={previewPrimeQuotes} 
+                    disabled={isPreviewingPrimeQuotes || isRecalculatingPrimeQuotes}
                     variant="outline"
+                  >
+                    {isPreviewingPrimeQuotes ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Escaneando...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4 mr-2" />
+                        1. Preview Afectados
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={executePrimeQuoteCorrection} 
+                    disabled={isRecalculatingPrimeQuotes || !primeQuotePreview || primeQuotePreview.length === 0}
+                    variant="default"
                   >
                     {isRecalculatingPrimeQuotes ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Procesando...
+                        Corrigiendo...
                       </>
                     ) : (
                       <>
                         <RefreshCcw className="h-4 w-4 mr-2" />
-                        Recalcular Quotes Prime
+                        2. Ejecutar Corrección ({primeQuotePreview?.length || 0})
                       </>
                     )}
                   </Button>
                 </div>
                 
+                {/* Preview Table */}
+                {primeQuotePreview && primeQuotePreview.length > 0 && (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 px-3 py-2 border-b">
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        ⚠️ {primeQuotePreview.length} paquetes con Service Fee incorrecto (40% → 20%)
+                      </p>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Usuario</TableHead>
+                          <TableHead>Producto</TableHead>
+                          <TableHead className="text-right">Precio Base</TableHead>
+                          <TableHead className="text-right">Fee Actual</TableHead>
+                          <TableHead className="text-right">Fee Correcto</TableHead>
+                          <TableHead className="text-right">Ahorro</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {primeQuotePreview.map((pkg) => (
+                          <TableRow key={pkg.packageId}>
+                            <TableCell className="font-medium">{pkg.userName}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={pkg.itemDescription}>
+                              {pkg.itemDescription.slice(0, 40)}{pkg.itemDescription.length > 40 ? '...' : ''}
+                            </TableCell>
+                            <TableCell className="text-right">Q{pkg.price.toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-destructive">Q{pkg.currentServiceFee.toFixed(2)}</TableCell>
+                            <TableCell className="text-right text-green-600">Q{pkg.expectedServiceFee.toFixed(2)}</TableCell>
+                            <TableCell className="text-right font-medium text-green-600">
+                              -Q{(pkg.currentServiceFee - pkg.expectedServiceFee).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="bg-muted px-3 py-2 border-t text-sm">
+                      <strong>Total ahorro para clientes:</strong> Q{primeQuotePreview.reduce((sum, p) => sum + (p.currentServiceFee - p.expectedServiceFee), 0).toFixed(2)}
+                    </div>
+                  </div>
+                )}
+                
+                {primeQuotePreview && primeQuotePreview.length === 0 && (
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded text-sm text-green-800 dark:text-green-200">
+                    ✅ No se encontraron paquetes con service fee incorrecto. Todos los quotes Prime están correctos.
+                  </div>
+                )}
+                
                 {primeQuoteResults && (
                   <div className="bg-muted p-3 rounded text-sm">
                     <p>
-                      <strong>Resultado:</strong> Se corrigieron {primeQuoteResults.fixed} de {primeQuoteResults.total} quotes revisados.
+                      <strong>Resultado:</strong> Se corrigieron {primeQuoteResults.fixed} de {primeQuoteResults.total} quotes.
                     </p>
                   </div>
                 )}
