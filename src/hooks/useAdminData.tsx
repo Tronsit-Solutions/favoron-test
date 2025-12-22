@@ -546,10 +546,19 @@ export const useAdminData = (): AdminData => {
         fetchAdminTrips()
       ]);
 
-      // Merge packages: use Map to avoid duplicates
+      // Merge packages: use Map to avoid duplicates, preserving profiles data
       const allPackagesMap = new Map<string, any>();
       [...paginatedPackages, ...matchedPkgs, ...pendingMatchPkgs].forEach(pkg => {
-        allPackagesMap.set(pkg.id, pkg);
+        const existing = allPackagesMap.get(pkg.id);
+        if (existing) {
+          // Preserve profiles if existing has it and new one doesn't
+          allPackagesMap.set(pkg.id, {
+            ...pkg,
+            profiles: pkg.profiles || existing.profiles
+          });
+        } else {
+          allPackagesMap.set(pkg.id, pkg);
+        }
       });
       
       const mergedPackages = Array.from(allPackagesMap.values());
