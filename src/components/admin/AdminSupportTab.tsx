@@ -237,11 +237,109 @@ const AdminSupportTab = ({
   };
 
 
+  // State for Prime service fee recalculation tool
+  const [isRecalculatingPrimeQuotes, setIsRecalculatingPrimeQuotes] = useState(false);
+  const [primeQuoteResults, setPrimeQuoteResults] = useState<{ fixed: number; total: number } | null>(null);
+
+  // Function to recalculate incorrectly calculated Prime quotes
+  const recalculatePrimeQuotes = async () => {
+    setIsRecalculatingPrimeQuotes(true);
+    setPrimeQuoteResults(null);
+    
+    try {
+      // Get all Prime users
+      const { data: primeUsers, error: primeError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('trust_level', 'prime');
+      
+      if (primeError) throw primeError;
+      
+      const primeUserIds = primeUsers?.map(u => u.id) || [];
+      
+      if (primeUserIds.length === 0) {
+        toast({ title: 'No hay usuarios Prime', description: 'No se encontraron usuarios con nivel Prime.' });
+        return;
+      }
+      
+      // Get packages for Prime users that have quotes with incorrect service fees
+      const { data: packages, error: pkgError } = await supabase
+        .from('packages')
+        .select('id, user_id, quote, admin_assigned_tip, delivery_method, package_destination')
+        .in('user_id', primeUserIds)
+        .not('quote', 'is', null);
+      
+      if (pkgError) throw pkgError;
+      
+      let fixedCount = 0;
+      const totalToCheck = packages?.length || 0;
+      
+      for (const pkg of packages || []) {
+        const quote = pkg.quote as any;
+        if (!quote?.price) continue;
+        
+        const price = parseFloat(String(quote.price));
+        const currentServiceFee = parseFloat(String(quote.serviceFee || '0'));
+        const expectedServiceFee = price * 0.20; // Prime rate is 20%
+        
+        // Check if service fee is wrong (using 40% instead of 20%)
+        // Allow small margin for rounding
+        if (Math.abs(currentServiceFee - (price * 0.40)) < 0.01) {
+          // This quote was incorrectly calculated at 40%
+          const deliveryFee = parseFloat(String(quote.deliveryFee || '0'));
+          const newTotalPrice = price + expectedServiceFee + deliveryFee;
+          
+          const updatedQuote = {
+            ...quote,
+            serviceFee: expectedServiceFee.toFixed(2),
+            totalPrice: newTotalPrice.toFixed(2),
+            serviceFeeRate: 0.20,
+            manuallyEdited: true,
+            primeRecalculatedAt: new Date().toISOString()
+          };
+          
+          const { error: updateError } = await supabase
+            .from('packages')
+            .update({ quote: updatedQuote })
+            .eq('id', pkg.id);
+          
+          if (!updateError) {
+            fixedCount++;
+            console.log(`✅ Fixed Prime quote for package ${pkg.id}: serviceFee ${currentServiceFee} → ${expectedServiceFee}`);
+          }
+        }
+      }
+      
+      setPrimeQuoteResults({ fixed: fixedCount, total: totalToCheck });
+      
+      if (fixedCount > 0) {
+        toast({ 
+          title: 'Quotes Prime recalculados', 
+          description: `Se corrigieron ${fixedCount} quotes de ${totalToCheck} paquetes Prime.` 
+        });
+      } else {
+        toast({ 
+          title: 'Sin correcciones necesarias', 
+          description: `Se revisaron ${totalToCheck} quotes Prime, ninguno necesitaba corrección.` 
+        });
+      }
+    } catch (error) {
+      console.error('Error recalculating Prime quotes:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'No se pudieron recalcular los quotes Prime.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsRecalculatingPrimeQuotes(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Support Tabs */}
       <Tabs value={supportTab} onValueChange={setSupportTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="packages" className="relative">
             Solicitudes
             {packages.filter(p => p.incident_flag).length > 0 && (
@@ -252,6 +350,9 @@ const AdminSupportTab = ({
           </TabsTrigger>
           <TabsTrigger value="errors">
             Errores del Cliente
+          </TabsTrigger>
+          <TabsTrigger value="system">
+            Sistema
           </TabsTrigger>
         </TabsList>
 
@@ -555,8 +656,41 @@ const AdminSupportTab = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg text-center text-muted-foreground">
-                <p>No hay herramientas del sistema disponibles actualmente.</p>
+              {/* Prime Quote Recalculation Tool */}
+              <div className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Recalcular Service Fees de usuarios Prime</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Corrige quotes de usuarios Prime que fueron calculados incorrectamente al 40% en lugar del 20%.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={recalculatePrimeQuotes} 
+                    disabled={isRecalculatingPrimeQuotes}
+                    variant="outline"
+                  >
+                    {isRecalculatingPrimeQuotes ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCcw className="h-4 w-4 mr-2" />
+                        Recalcular Quotes Prime
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                {primeQuoteResults && (
+                  <div className="bg-muted p-3 rounded text-sm">
+                    <p>
+                      <strong>Resultado:</strong> Se corrigieron {primeQuoteResults.fixed} de {primeQuoteResults.total} quotes revisados.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

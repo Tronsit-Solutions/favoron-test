@@ -144,7 +144,7 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee:</span>
-                  <span className="font-medium">Q{(parseFloat(String(quote.serviceFee || '0')) || (parseFloat(String(quote.price || '0')) * 0.4)).toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.serviceFee || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee:</span>
@@ -247,7 +247,7 @@ const PaymentReceiptViewer = ({ paymentReceipt, packageId, className, quote, est
                 </div>
                 <div className="flex justify-between">
                   <span>Service Fee:</span>
-                  <span className="font-medium">Q{(parseFloat(String(quote.serviceFee || '0')) || (parseFloat(String(quote.price || '0')) * 0.4)).toFixed(2)}</span>
+                  <span className="font-medium">Q{parseFloat(String(quote.serviceFee || '0')).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee:</span>

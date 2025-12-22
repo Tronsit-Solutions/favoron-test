@@ -70,7 +70,15 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     currentPackage.package_destination // Pass destination for correct delivery fee
   );
 
-  console.log('📊 Generated quote:', normalizedQuote);
+  console.log('📊 Quote generation details:', {
+    shopperTrustLevel: shopperProfile.trust_level,
+    adminAssignedTip,
+    serviceFee: normalizedQuote.serviceFee,
+    expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? '20%' : '40%',
+    deliveryMethod: currentPackage.delivery_method,
+    destination: currentPackage.package_destination,
+    totalPrice: normalizedQuote.totalPrice
+  });
 
   return {
     quote: normalizedQuote,
