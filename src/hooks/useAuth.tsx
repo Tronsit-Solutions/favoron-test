@@ -171,18 +171,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Wrapper to avoid duplicate fetches and control loading state
-  const loadProfile = async (userId: string) => {
+  // IMPORTANT: Only show loading if we don't have a profile yet (avoids modal unmount on token refresh)
+  const loadProfile = async (userId: string, skipLoadingState: boolean = false) => {
     if (fetchingProfileRef.current && lastFetchedUserIdRef.current === userId) {
       return;
     }
     fetchingProfileRef.current = true;
     lastFetchedUserIdRef.current = userId;
-    setLoading(true);
+    
+    // Only show loading if we don't already have a profile (prevents modal unmount)
+    const shouldShowLoading = !profile && !skipLoadingState;
+    if (shouldShowLoading) {
+      setLoading(true);
+    }
+    
     try {
       await fetchProfile(userId);
     } finally {
       fetchingProfileRef.current = false;
-      setLoading(false);
+      if (shouldShowLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -199,6 +208,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         if (session?.user) {
           console.log('👤 User authenticated:', session.user.id, session.user.email);
+          
+          // OPTIMIZATION: Skip profile reload for TOKEN_REFRESHED if user is the same
+          // This prevents modals from being unmounted when returning from external links
+          if (event === 'TOKEN_REFRESHED' && lastFetchedUserIdRef.current === session.user.id) {
+            console.log('🔄 Token refreshed for same user - skipping profile reload to preserve UI state');
+            return;
+          }
+          
           SecurityMonitor.logEvent({
             type: 'auth_attempt',
             details: {
@@ -208,8 +225,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             },
             userId: session.user.id
           });
-          // Load profile immediately for faster auth
-          loadProfile(session.user.id);
+          
+          // Skip loading state for token refresh to prevent UI disruption
+          const skipLoading = event === 'TOKEN_REFRESHED';
+          loadProfile(session.user.id, skipLoading);
         } else {
           console.log('🚪 User signed out or no session');
           if (event === 'SIGNED_OUT') {
