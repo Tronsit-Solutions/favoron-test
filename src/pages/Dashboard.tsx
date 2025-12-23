@@ -78,8 +78,21 @@ const DashboardPage = () => {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [user, loading, hasOpenModals, tabJustBecameVisible]);
 
-  // Only show loading spinner if we're genuinely loading (not just transient states)
+  // Check if user was previously authenticated (prevents unmount during token refresh)
+  const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
+  const hasModalsOpen = typeof hasOpenModals === 'function' && hasOpenModals();
+  
+  // Only show loading spinner if we're genuinely loading AND no previous auth
+  // If modals are open or user was authenticated, preserve UI to prevent modal loss
   if (loading && !user) {
+    // If we have evidence of prior authentication, don't show spinner - preserve state
+    if (wasAuthenticated || hasModalsOpen) {
+      console.log('🔒 Preserving UI state during auth transition (modals open or was authenticated)');
+      // Return null but the auth effect will handle re-authentication
+      // This prevents modal unmount while auth refreshes
+      return null;
+    }
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
