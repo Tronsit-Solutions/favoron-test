@@ -296,7 +296,10 @@ const AdminMatchDialog = ({
         'shipped',
         'in_transit',
         'received_by_traveler',
+        'pending_office_confirmation',
         'delivered_to_office',
+        'ready_for_pickup',
+        'ready_for_delivery',
         'completed'
       ];
 
