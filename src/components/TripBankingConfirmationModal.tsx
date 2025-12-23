@@ -61,7 +61,7 @@ const TripBankingConfirmationModal = ({
         .from('packages')
         .select('id, item_description, quote, status, office_delivery')
         .eq('matched_trip_id', tripId)
-        .in('status', ['delivered_to_office', 'completed']);
+        .in('status', ['delivered_to_office', 'completed', 'ready_for_pickup', 'ready_for_delivery']);
       
       if (error) throw error;
       setPackageBreakdown(data || []);
@@ -146,6 +146,8 @@ const TripBankingConfirmationModal = ({
                 (() => {
                   const eligiblePackages = packageBreakdown.filter((pkg) =>
                     pkg.status === 'completed' ||
+                    pkg.status === 'ready_for_pickup' ||
+                    pkg.status === 'ready_for_delivery' ||
                     (pkg.status === 'delivered_to_office' && pkg.office_delivery && (pkg.office_delivery as any).admin_confirmation)
                   );
 
