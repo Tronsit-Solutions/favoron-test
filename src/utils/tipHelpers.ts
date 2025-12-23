@@ -9,6 +9,8 @@ export const getPackageTipFromQuote = (pkg: any): number => {
 export const isPackageEligibleForTripPayment = (pkg: any): boolean => {
   if (!pkg) return false;
   if (pkg.status === 'completed') return true;
+  
+  // Paquetes que ya están en oficina (confirmados por admin)
   if (
     pkg.status === 'delivered_to_office' &&
     pkg.office_delivery &&
@@ -16,5 +18,11 @@ export const isPackageEligibleForTripPayment = (pkg: any): boolean => {
   ) {
     return true;
   }
+  
+  // Estados post-entrega en oficina (listos para cliente)
+  if (pkg.status === 'ready_for_pickup' || pkg.status === 'ready_for_delivery') {
+    return true;
+  }
+  
   return false;
 };
