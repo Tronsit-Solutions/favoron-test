@@ -880,6 +880,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                              'received_by_traveler',
                              'pending_office_confirmation',
                              'delivered_to_office',
+                             'ready_for_pickup',
+                             'ready_for_delivery',
                              'completed'
                            ];
                             const isTimerActive = (pkg: any) => (
