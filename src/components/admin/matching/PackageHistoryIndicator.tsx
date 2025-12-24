@@ -39,11 +39,13 @@ export const PackageHistoryIndicator = ({ package: pkg }: PackageHistoryIndicato
   } else if (hasAdminLog) {
     // Check admin log for expiration
     const logs = pkg.admin_actions_log as any[];
-    const hasExpiration = logs.some(log => 
-      log.action?.includes('expire') || 
-      log.action?.includes('timeout') ||
-      log.details?.includes('expired')
-    );
+    const hasExpiration = logs.some(log => {
+      const action = typeof log.action === 'string' ? log.action : '';
+      const details = typeof log.details === 'string' ? log.details : '';
+      return action.includes('expire') || 
+             action.includes('timeout') ||
+             details.includes('expired');
+    });
     
     if (hasExpiration) {
       indicatorType = 'expired';
