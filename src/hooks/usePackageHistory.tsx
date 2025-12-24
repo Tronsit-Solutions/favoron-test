@@ -25,11 +25,13 @@ export const usePackageHistory = () => {
     // Check admin actions log for expiration
     if (pkg.admin_actions_log && Array.isArray(pkg.admin_actions_log)) {
       const logs = pkg.admin_actions_log as any[];
-      const expirationLog = logs.find(log => 
-        log.action?.includes('expire') || 
-        log.action?.includes('timeout') ||
-        log.details?.includes('expired')
-      );
+      const expirationLog = logs.find(log => {
+        const action = typeof log.action === 'string' ? log.action : '';
+        const details = typeof log.details === 'string' ? log.details : '';
+        return action.includes('expire') || 
+               action.includes('timeout') ||
+               details.includes('expired');
+      });
       
       if (expirationLog) {
         return {
