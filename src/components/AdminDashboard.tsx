@@ -17,7 +17,6 @@ import { MobileTabs } from "@/components/ui/mobile-tabs";
 import PackageDetailModal from "./admin/PackageDetailModal";
 import TripDetailModal from "./admin/TripDetailModal";
 import AdminStatsOverview from "./admin/AdminStatsOverview";
-import AdminOverviewTab from "./admin/AdminOverviewTab";
 import AdminApprovalsTab from "./admin/AdminApprovalsTab";
 import AdminPackagesTab from "./admin/AdminPackagesTab";
 
@@ -98,9 +97,11 @@ const AdminDashboard = ({
   // Persist activeTab in sessionStorage to prevent redirection on tab visibility changes
   const [activeTab, setActiveTab] = useState(() => {
     try {
-      return sessionStorage.getItem('admin_active_tab') || "overview";
+      const saved = sessionStorage.getItem('admin_active_tab');
+      // If saved tab is "overview" (removed), default to "approvals"
+      return saved && saved !== "overview" ? saved : "approvals";
     } catch {
-      return "overview";
+      return "approvals";
     }
   });
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
@@ -510,11 +511,6 @@ const AdminDashboard = ({
   // Create tabs array for mobile and desktop tabs
   const adminTabs = [
     {
-      value: "overview",
-      label: "Resumen",
-      badge: (approvalsNeeded + paymentsToConfirm) > 0 ? <NotificationBadge count={approvalsNeeded + paymentsToConfirm} /> : undefined
-    },
-    {
       value: "approvals",
       label: "Aprobaciones",
       badge: approvalsNeeded > 0 ? <NotificationBadge count={approvalsNeeded} /> : undefined
@@ -568,7 +564,7 @@ const AdminDashboard = ({
         ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-6">
                   {adminTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -583,18 +579,6 @@ const AdminDashboard = ({
               </div>
             </div>
         )}
-
-        <TabsContent value="overview" className="space-y-4">
-          <AdminOverviewTab 
-            packages={localPackages}
-            trips={localTrips}
-            onViewPackageDetail={handleViewPackageDetail}
-            onOpenMatchDialog={handleOpenMatchDialog}
-            onUpdateStatus={onUpdateStatus}
-            onApproveReject={onApproveReject}
-            getStatusBadge={getStatusBadge}
-          />
-        </TabsContent>
 
         <TabsContent value="approvals" className="space-y-4">
           <AdminApprovalsTab 
