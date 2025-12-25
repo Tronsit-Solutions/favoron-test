@@ -86,6 +86,7 @@ const PendingRequestsTab = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [historyFilter, setHistoryFilter] = useState<'all' | 'new' | 'requoted'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'online' | 'personal'>('all');
+  const [deadlineFilter, setDeadlineFilter] = useState<'all' | 'expired' | 'active'>('all');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { getStatusBadge } = useStatusHelpers();
   const { filterPackagesByHistory, getReQuoteStats } = usePackageHistory();
@@ -98,6 +99,17 @@ const PendingRequestsTab = ({
   
   // Get statistics
   const reQuoteStats = getReQuoteStats(pendingPackages);
+  
+  // Calculate deadline stats
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expiredCount = pendingPackages.filter(pkg => {
+    if (!pkg.delivery_deadline) return false;
+    const deadline = new Date(pkg.delivery_deadline);
+    deadline.setHours(0, 0, 0, 0);
+    return deadline < today;
+  }).length;
+  const activeCount = pendingPackages.length - expiredCount;
 
   // Apply history filter first
   const historyFilteredPackages = filterPackagesByHistory(pendingPackages, historyFilter);
@@ -122,7 +134,15 @@ const PendingRequestsTab = ({
     const pkgType = pkg.products_data?.[0]?.requestType;
     const matchesType = typeFilter === "all" || pkgType === typeFilter;
     
-    return matchesSearch && matchesDestination && matchesStatus && matchesType;
+    // Deadline filter
+    const pkgDeadline = pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : null;
+    if (pkgDeadline) pkgDeadline.setHours(0, 0, 0, 0);
+    const isExpired = pkgDeadline ? pkgDeadline < today : false;
+    const matchesDeadline = deadlineFilter === "all" || 
+      (deadlineFilter === "expired" && isExpired) ||
+      (deadlineFilter === "active" && !isExpired);
+    
+    return matchesSearch && matchesDestination && matchesStatus && matchesType && matchesDeadline;
   });
 
   return (
@@ -187,6 +207,17 @@ const PendingRequestsTab = ({
               <SelectItem value="personal">👤 Personal</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={deadlineFilter} onValueChange={(value: 'all' | 'expired' | 'active') => setDeadlineFilter(value)}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filtrar por fecha límite" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las fechas</SelectItem>
+              <SelectItem value="expired">⏰ Expiradas ({expiredCount})</SelectItem>
+              <SelectItem value="active">✅ Vigentes ({activeCount})</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -232,11 +263,16 @@ const PendingRequestsTab = ({
                     ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, (pkg as any)?.profiles?.trust_level, (pkg.confirmed_delivery_address as any)?.cityArea)})` 
                     : '🏢 Recojo en zona 14'}
                   {pkg.delivery_deadline && (
-                    <span className="text-orange-600 ml-2">
+                    <span className={`ml-2 ${new Date(pkg.delivery_deadline).setHours(0,0,0,0) < today.getTime() ? 'text-red-600 font-medium' : 'text-orange-600'}`}>
                       • Límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT')}
                     </span>
                   )}
                 </p>
+                {pkg.delivery_deadline && new Date(pkg.delivery_deadline).setHours(0,0,0,0) < today.getTime() && (
+                  <Badge className="bg-red-100 text-red-700 border-red-300 text-xs mt-1">
+                    ⏰ Fecha límite expirada
+                  </Badge>
+                )}
                 {pkg.rejection_reason && pkg.wants_requote && (
                   <div className="mt-2">
                     <RejectionTooltip
