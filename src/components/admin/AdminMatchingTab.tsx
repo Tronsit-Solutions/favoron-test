@@ -23,6 +23,7 @@ interface AdminMatchingTabProps {
   onViewTripDetail: (trip: any) => void;
   onOpenMatchDialog: (pkg: any) => void;
   onDiscardPackage: (pkg: any) => void;
+  onRejectPackage: (pkgId: string, reason: string) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onConfirmReception: (packageId: string) => void;
   onConfirmDelivery: (packageId: string) => void;
@@ -55,6 +56,7 @@ const AdminMatchingTab = ({
   onViewTripDetail,
   onOpenMatchDialog,
   onDiscardPackage,
+  onRejectPackage,
   onUpdateStatus,
   onConfirmReception,
   onConfirmDelivery,
@@ -226,6 +228,7 @@ const AdminMatchingTab = ({
             onViewPackageDetail={onViewPackageDetail}
             onOpenMatchDialog={onOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
+            onRejectPackage={onRejectPackage}
             availableTripsCount={availableTrips.length}
           />
         </TabsContent>

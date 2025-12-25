@@ -622,6 +622,7 @@ const AdminDashboard = ({
             onViewTripDetail={handleViewTripDetail}
             onOpenMatchDialog={handleOpenMatchDialog}
             onDiscardPackage={onDiscardPackage}
+            onRejectPackage={(pkgId, reason) => onApproveReject('package', pkgId, 'reject', reason)}
             onUpdateStatus={onUpdateStatus}
             onConfirmReception={onConfirmOfficeReception}
             onConfirmDelivery={onConfirmDeliveryComplete}
