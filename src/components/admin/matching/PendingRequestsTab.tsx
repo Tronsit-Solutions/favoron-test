@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Zap, Eye, CalendarDays, Trash2 } from "lucide-react";
+import { Search, Zap, Eye, CalendarDays, Trash2, XCircle } from "lucide-react";
+import RejectionReasonModal from "@/components/admin/RejectionReasonModal";
 
 import RejectionTooltip from "@/components/admin/RejectionTooltip";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
@@ -20,6 +21,7 @@ interface PendingRequestsTabProps {
   onOpenMatchDialog: (pkg: any) => void;
   onViewPackageDetail: (pkg: any) => void;
   onDiscardPackage: (pkg: any) => void;
+  onRejectPackage: (pkgId: string, reason: string) => void;
   availableTripsCount: number;
   loadMorePackages?: () => Promise<void>;
   hasMorePackages?: boolean;
@@ -76,6 +78,7 @@ const PendingRequestsTab = ({
   onOpenMatchDialog, 
   onViewPackageDetail,
   onDiscardPackage,
+  onRejectPackage,
   availableTripsCount,
   loadMorePackages,
   hasMorePackages = false,
@@ -88,6 +91,8 @@ const PendingRequestsTab = ({
   const [typeFilter, setTypeFilter] = useState<'all' | 'online' | 'personal'>('all');
   const [deadlineFilter, setDeadlineFilter] = useState<'all' | 'expired' | 'active'>('all');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [packageToReject, setPackageToReject] = useState<any>(null);
   const { getStatusBadge } = useStatusHelpers();
   const { filterPackagesByHistory, getReQuoteStats } = usePackageHistory();
 
@@ -293,6 +298,18 @@ const PendingRequestsTab = ({
                   <Eye className="h-4 w-4 mr-1" />
                   Ver Detalles
                 </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="text-orange-600 hover:text-orange-600"
+                  onClick={() => {
+                    setPackageToReject(pkg);
+                    setShowRejectModal(true);
+                  }}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Rechazar
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
@@ -354,6 +371,24 @@ const PendingRequestsTab = ({
           totalCount={totalPackages}
         />
       )}
+
+      {/* Rejection Modal */}
+      <RejectionReasonModal
+        isOpen={showRejectModal}
+        onClose={() => {
+          setShowRejectModal(false);
+          setPackageToReject(null);
+        }}
+        onConfirm={(reason) => {
+          if (packageToReject) {
+            onRejectPackage(packageToReject.id, reason);
+          }
+          setShowRejectModal(false);
+          setPackageToReject(null);
+        }}
+        type="package"
+        itemName={packageToReject?.item_description || packageToReject?.products_data?.[0]?.itemDescription || 'Solicitud'}
+      />
     </div>
   );
 };
