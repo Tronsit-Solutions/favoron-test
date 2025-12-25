@@ -2,7 +2,11 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock, XCircle, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PackageStatusTimeline from "@/components/PackageStatusTimeline";
 import UploadDocuments from "@/components/UploadDocuments";
@@ -78,6 +82,7 @@ const CollapsiblePackageCard = ({
   const [showOfficeModal, setShowOfficeModal] = React.useState(false);
   const [showProductStatusModal, setShowProductStatusModal] = React.useState(false);
   const [showCancellationModal, setShowCancellationModal] = React.useState(false);
+  const [isResubmitting, setIsResubmitting] = React.useState(false);
   const {
     profile
   } = useAuth();
@@ -152,6 +157,8 @@ const CollapsiblePackageCard = ({
         return 'Cotización rechazada';
       case 'quote_expired':
         return 'Cotización expirada - Solicita nueva cotización';
+      case 'rejected':
+        return 'Solicitud rechazada - Revisa el motivo y haz ajustes';
       default:
         return `Estado: ${pkg.status}`;
     }
@@ -292,7 +299,7 @@ const CollapsiblePackageCard = ({
             </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50" onClick={e => e.stopPropagation()}>
-                  {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                  {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired', 'rejected'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
                       <Edit className="mr-2 h-4 w-4" />
                       Editar pedido
                     </DropdownMenuItem>}
@@ -424,6 +431,67 @@ const CollapsiblePackageCard = ({
                           Archivar y mover al historial
                         </Button>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejected Package Banner - Mobile */}
+                {pkg.status === 'rejected' && viewMode === 'user' && (
+                  <div className="pl-5">
+                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                        <XCircle className="h-4 w-4" />
+                        <span className="text-sm">Solicitud Rechazada</span>
+                      </div>
+                      <p className="text-xs text-orange-700 mb-2">
+                        <strong>Motivo:</strong> {pkg.rejection_reason || (pkg.admin_rejection as any)?.reason || 'No especificado'}
+                      </p>
+                      {(pkg.admin_rejection as any)?.timestamp && (
+                        <p className="text-xs text-orange-500 mb-3">
+                          Rechazado el: {format(new Date((pkg.admin_rejection as any).timestamp), 'dd MMM yyyy HH:mm', { locale: es })}
+                        </p>
+                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEditModal(true);
+                          }}
+                          className="flex-1 text-xs"
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-2" />
+                          Editar Solicitud
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            setIsResubmitting(true);
+                            const { error } = await supabase
+                              .from('packages')
+                              .update({ 
+                                status: 'pending_approval',
+                                rejection_reason: null,
+                                admin_rejection: null 
+                              })
+                              .eq('id', pkg.id);
+                            
+                            setIsResubmitting(false);
+                            if (error) {
+                              toast.error('Error al re-enviar la solicitud');
+                            } else {
+                              toast.success('Solicitud re-enviada para aprobación');
+                            }
+                          }}
+                          disabled={isResubmitting}
+                          className="flex-1 text-xs bg-orange-600 hover:bg-orange-700"
+                        >
+                          <Send className="h-3.5 w-3.5 mr-2" />
+                          {isResubmitting ? 'Enviando...' : 'Re-enviar'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -635,6 +703,69 @@ const CollapsiblePackageCard = ({
                             Archivar
                           </Button>
                         )}
+                      </div>
+                    </div>
+                  </div>
+                ) : pkg.status === 'rejected' && viewMode === 'user' ? (
+                  /* Rejected Package Banner - Desktop */
+                  <div className="w-full">
+                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-orange-700 font-medium mb-1">
+                            <XCircle className="h-4 w-4" />
+                            <span className="text-sm">Solicitud Rechazada</span>
+                          </div>
+                          <p className="text-xs text-orange-700 mb-1">
+                            <strong>Motivo:</strong> {pkg.rejection_reason || (pkg.admin_rejection as any)?.reason || 'No especificado'}
+                          </p>
+                          {(pkg.admin_rejection as any)?.timestamp && (
+                            <p className="text-xs text-orange-500">
+                              Rechazado el: {format(new Date((pkg.admin_rejection as any).timestamp), 'dd MMM yyyy HH:mm', { locale: es })}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowEditModal(true);
+                            }}
+                            className="text-xs"
+                          >
+                            <Edit className="h-3.5 w-3.5 mr-2" />
+                            Editar
+                          </Button>
+                          <Button 
+                            size="sm"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              setIsResubmitting(true);
+                              const { error } = await supabase
+                                .from('packages')
+                                .update({ 
+                                  status: 'pending_approval',
+                                  rejection_reason: null,
+                                  admin_rejection: null 
+                                })
+                                .eq('id', pkg.id);
+                              
+                              setIsResubmitting(false);
+                              if (error) {
+                                toast.error('Error al re-enviar la solicitud');
+                              } else {
+                                toast.success('Solicitud re-enviada para aprobación');
+                              }
+                            }}
+                            disabled={isResubmitting}
+                            className="text-xs bg-orange-600 hover:bg-orange-700"
+                          >
+                            <Send className="h-3.5 w-3.5 mr-2" />
+                            {isResubmitting ? 'Enviando...' : 'Re-enviar'}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
