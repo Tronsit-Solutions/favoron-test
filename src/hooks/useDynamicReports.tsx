@@ -167,9 +167,13 @@ export const useDynamicReports = (months: number = 12) => {
       monthPackages.forEach(pkg => {
         if (pkg.quote && ['completed', 'delivered_to_office'].includes(pkg.status)) {
           const quote = pkg.quote as any;
-          gmv += parseFloat(quote.total_customer_price_gtq || quote.totalCustomerPriceGTQ || 0);
-          favoronRevenue += parseFloat(quote.favoron_service_fee_gtq || quote.favoronServiceFeeGTQ || 0);
-          travelerTips += parseFloat(quote.traveler_tip_gtq || quote.travelerTipGTQ || 0);
+          const totalPrice = parseFloat(quote.totalPrice || quote.completePrice || 0);
+          const serviceFee = parseFloat(quote.serviceFee || 0);
+          const deliveryFee = parseFloat(quote.deliveryFee || 0);
+          
+          gmv += totalPrice;
+          favoronRevenue += serviceFee;
+          travelerTips += Math.max(0, totalPrice - serviceFee - deliveryFee);
         }
       });
 
@@ -223,9 +227,13 @@ export const useDynamicReports = (months: number = 12) => {
     packagesData.forEach(pkg => {
       if (pkg.quote && ['completed', 'delivered_to_office'].includes(pkg.status)) {
         const quote = pkg.quote as any;
-        totalGMV += parseFloat(quote.total_customer_price_gtq || quote.totalCustomerPriceGTQ || 0);
-        totalRevenue += parseFloat(quote.favoron_service_fee_gtq || quote.favoronServiceFeeGTQ || 0);
-        totalTips += parseFloat(quote.traveler_tip_gtq || quote.travelerTipGTQ || 0);
+        const totalPrice = parseFloat(quote.totalPrice || quote.completePrice || 0);
+        const serviceFee = parseFloat(quote.serviceFee || 0);
+        const deliveryFee = parseFloat(quote.deliveryFee || 0);
+        
+        totalGMV += totalPrice;
+        totalRevenue += serviceFee;
+        totalTips += Math.max(0, totalPrice - serviceFee - deliveryFee);
       }
     });
 
