@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
 import { DollarSign, TrendingUp } from "lucide-react";
 
 interface RevenueChartProps {
@@ -21,24 +21,24 @@ const formatCurrency = (value: number) => {
 };
 
 const chartConfig = {
-  gmv: {
-    label: "GMV Total",
-    color: "hsl(var(--chart-2))",
-  },
   favoronRevenue: {
     label: "Ingresos Favorón",
     color: "hsl(var(--primary))",
   },
   travelerTips: {
     label: "Propinas Viajeros",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(142, 76%, 36%)", // Verde esmeralda
+  },
+  gmv: {
+    label: "GMV Total",
+    color: "hsl(var(--foreground))",
   },
 };
 
 export const RevenueChart = ({ data }: RevenueChartProps) => {
   const totalRevenue = data.reduce((acc, d) => acc + d.favoronRevenue, 0);
+  const totalTips = data.reduce((acc, d) => acc + d.travelerTips, 0);
   const totalGMV = data.reduce((acc, d) => acc + d.gmv, 0);
-  const overallMargin = totalGMV > 0 ? (totalRevenue / totalGMV * 100) : 0;
   
   const latestMonth = data[data.length - 1];
   const previousMonth = data[data.length - 2];
@@ -49,20 +49,24 @@ export const RevenueChart = ({ data }: RevenueChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              Evolución de Ingresos
+              Distribución de Ingresos
             </CardTitle>
             <CardDescription>
-              GMV, ingresos de Favorón y propinas a viajeros
+              Cómo se distribuye el GMV entre Favorón y viajeros
             </CardDescription>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div className="text-right">
               <div className="text-lg font-bold text-primary">Q{totalRevenue.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">Ingresos totales</div>
+              <div className="text-xs text-muted-foreground">Ingresos Favorón</div>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-bold text-emerald-600">Q{totalTips.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">Propinas Viajeros</div>
             </div>
             {revenueGrowth !== 0 && (
               <div className={`flex items-center gap-1 text-sm font-medium ${revenueGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -76,13 +80,7 @@ export const RevenueChart = ({ data }: RevenueChartProps) => {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <defs>
-                <linearGradient id="gmvGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.05}/>
-                </linearGradient>
-              </defs>
+            <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis 
                 dataKey="monthLabel" 
@@ -91,57 +89,81 @@ export const RevenueChart = ({ data }: RevenueChartProps) => {
                 axisLine={false}
               />
               <YAxis 
-                yAxisId="left"
-                tick={{ fontSize: 12 }}
-                tickFormatter={formatCurrency}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
                 tick={{ fontSize: 12 }}
                 tickFormatter={formatCurrency}
                 tickLine={false}
                 axisLine={false}
               />
               <ChartTooltip 
-                content={<ChartTooltipContent />}
-                formatter={(value: number) => [`Q${value.toLocaleString()}`, '']}
+                content={
+                  <ChartTooltipContent 
+                    formatter={(value: number, name: string) => {
+                      const labels: Record<string, string> = {
+                        favoronRevenue: "Ingresos Favorón",
+                        travelerTips: "Propinas Viajeros",
+                        gmv: "GMV Total"
+                      };
+                      return [`Q${value.toLocaleString()}`, labels[name] || name];
+                    }}
+                  />
+                }
               />
-              <Legend />
-              <Area
-                yAxisId="left"
+              <Legend 
+                formatter={(value) => {
+                  const labels: Record<string, string> = {
+                    favoronRevenue: "Ingresos Favorón",
+                    travelerTips: "Propinas Viajeros",
+                    gmv: "GMV Total"
+                  };
+                  return labels[value] || value;
+                }}
+              />
+              {/* Barras apiladas: Favorón + Propinas */}
+              <Bar
+                dataKey="favoronRevenue"
+                stackId="revenue"
+                fill="hsl(var(--primary))"
+                radius={[0, 0, 0, 0]}
+                name="favoronRevenue"
+              />
+              <Bar
+                dataKey="travelerTips"
+                stackId="revenue"
+                fill="hsl(142, 76%, 36%)"
+                radius={[4, 4, 0, 0]}
+                name="travelerTips"
+              />
+              {/* Línea de GMV total */}
+              <Line
                 type="monotone"
                 dataKey="gmv"
-                name="GMV Total"
-                fill="url(#gmvGradient)"
-                stroke="hsl(var(--chart-2))"
+                stroke="hsl(var(--foreground))"
                 strokeWidth={2}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="favoronRevenue"
-                name="Ingresos Favorón"
-                stroke="hsl(var(--primary))"
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                dot={{ fill: "hsl(var(--foreground))", r: 4 }}
                 activeDot={{ r: 6 }}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="travelerTips"
-                name="Propinas Viajeros"
-                stroke="hsl(var(--chart-3))"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ fill: "hsl(var(--chart-3))", r: 3 }}
+                name="gmv"
               />
             </ComposedChart>
           </ResponsiveContainer>
         </ChartContainer>
+        
+        {/* Leyenda explicativa */}
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-primary"></div>
+              <span>Ingresos Favorón (serviceFee)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }}></div>
+              <span>Propinas Viajeros</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-0.5 bg-foreground"></div>
+              <span>GMV Total (línea)</span>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
