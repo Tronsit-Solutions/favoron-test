@@ -57,9 +57,12 @@ const AdminSurveys = () => {
 
   const sourceLabels: Record<string, string> = {
     'instagram_facebook_ads': 'Instagram/Facebook Ads',
+    'instagram_ads': 'Instagram Ads',
+    'facebook_ads': 'Facebook Ads',
     'tiktok': 'TikTok',
     'reels': 'Reels',
-    'referral': 'Recomendación',
+    'friend_referral': 'Recomendación de amigo/familiar',
+    'referral': 'Recomendación', // Mantener por datos históricos
     'other': 'Otro'
   };
 
