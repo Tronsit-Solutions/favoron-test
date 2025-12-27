@@ -94,51 +94,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch {}
   };
 
-  const fetchProfile = async (userId: string, retryCount = 0): Promise<void> => {
+  const fetchProfile = async (userId: string, retryCount = 0, isInitialLoad = false): Promise<void> => {
     const MAX_RETRIES = 3;
-    const RETRY_DELAY = 1000; // 1 second base delay
+    const BASE_DELAY = 500; // Start with shorter delay
     
     try {
       console.log('🔍 fetchProfile called for userId:', userId, retryCount > 0 ? `(retry ${retryCount})` : '');
       
-      // Combinar queries en una sola para reducir requests
-      const [profileResult, rolesResult] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle(),
-        supabase
-          .from('user_roles')
-          .select('*')
-          .eq('user_id', userId)
-      ]);
+      // iOS Safari fix: Add initial delay after login to let the auth state settle
+      // This prevents the "Load failed" error on immediate requests after auth
+      if (isInitialLoad && retryCount === 0) {
+        console.log('⏳ Initial load - waiting 300ms for iOS Safari compatibility...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      
+      // Fetch profile first, then roles (sequential to avoid iOS Safari connection issues)
+      const profileResult = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
       console.log('📊 Profile result:', {
         success: !profileResult.error,
         data: profileResult.data,
         error: profileResult.error
       });
-      console.log('📊 Roles result:', {
-        success: !rolesResult.error,
-        count: rolesResult.data?.length || 0,
-        roles: rolesResult.data,
-        error: rolesResult.error
-      });
 
-      // Check for network errors that should trigger retry
-      const hasNetworkError = 
-        (profileResult.error?.message?.includes('Load failed') ||
-         profileResult.error?.message?.includes('Failed to fetch') ||
-         profileResult.error?.message?.includes('NetworkError') ||
-         rolesResult.error?.message?.includes('Load failed') ||
-         rolesResult.error?.message?.includes('Failed to fetch') ||
-         rolesResult.error?.message?.includes('NetworkError'));
-
-      if (hasNetworkError && retryCount < MAX_RETRIES) {
-        console.log(`⏳ Network error detected, retrying in ${RETRY_DELAY * (retryCount + 1)}ms...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
-        return fetchProfile(userId, retryCount + 1);
+      // Check for network error on profile fetch
+      if (profileResult.error?.message?.includes('Load failed') || 
+          profileResult.error?.message?.includes('Failed to fetch') ||
+          profileResult.error?.message?.includes('NetworkError')) {
+        throw new Error(profileResult.error.message);
       }
 
       if (profileResult.data) {
@@ -146,6 +133,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setProfile(profileResult.data);
       } else {
         console.log('⚠️ No profile data found');
+      }
+
+      // Small delay between requests for iOS Safari stability
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Now fetch roles
+      const rolesResult = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId);
+
+      console.log('📊 Roles result:', {
+        success: !rolesResult.error,
+        count: rolesResult.data?.length || 0,
+        roles: rolesResult.data,
+        error: rolesResult.error
+      });
+
+      // Check for network error on roles fetch
+      if (rolesResult.error?.message?.includes('Load failed') || 
+          rolesResult.error?.message?.includes('Failed to fetch') ||
+          rolesResult.error?.message?.includes('NetworkError')) {
+        throw new Error(rolesResult.error.message);
       }
       
       // Handle multiple roles and prioritize admin
@@ -176,30 +186,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
       
-      // Retry on network errors
+      // Retry on network errors with exponential backoff
       const errorMessage = error instanceof Error ? error.message : '';
       const isNetworkError = errorMessage.includes('Load failed') || 
                             errorMessage.includes('Failed to fetch') ||
                             errorMessage.includes('NetworkError');
       
       if (isNetworkError && retryCount < MAX_RETRIES) {
-        console.log(`⏳ Caught network error, retrying in ${RETRY_DELAY * (retryCount + 1)}ms...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
-        return fetchProfile(userId, retryCount + 1);
+        const delay = BASE_DELAY * Math.pow(2, retryCount); // Exponential backoff: 500, 1000, 2000ms
+        console.log(`⏳ Network error, retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchProfile(userId, retryCount + 1, false);
       }
       
       // After all retries failed, still set a fallback role so app doesn't break
-      if (retryCount >= MAX_RETRIES) {
-        console.log('⚠️ Max retries reached, setting fallback role');
-        setUserRole({ 
-          id: 'fallback', 
-          user_id: userId, 
-          role: 'user', 
-          assigned_by: null, 
-          assigned_at: new Date().toISOString() 
-        });
-        setRoleLoaded(true);
-      }
+      console.log('⚠️ Max retries reached or non-network error, setting fallback role');
+      setUserRole({ 
+        id: 'fallback', 
+        user_id: userId, 
+        role: 'user', 
+        assigned_by: null, 
+        assigned_at: new Date().toISOString() 
+      });
+      setRoleLoaded(true);
       
       SecurityMonitor.logEvent({
         type: 'data_access',
@@ -217,7 +226,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Wrapper to avoid duplicate fetches and control loading state
   // IMPORTANT: Only show loading if we don't have a profile yet (avoids modal unmount on token refresh)
-  const loadProfile = async (userId: string, skipLoadingState: boolean = false) => {
+  const loadProfile = async (userId: string, skipLoadingState: boolean = false, isInitialLoad: boolean = true) => {
     if (fetchingProfileRef.current && lastFetchedUserIdRef.current === userId) {
       return;
     }
@@ -231,7 +240,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
     
     try {
-      await fetchProfile(userId);
+      await fetchProfile(userId, 0, isInitialLoad);
     } finally {
       fetchingProfileRef.current = false;
       if (shouldShowLoading) {
