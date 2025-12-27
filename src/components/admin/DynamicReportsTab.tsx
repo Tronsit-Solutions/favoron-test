@@ -7,7 +7,6 @@ import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { UserGrowthChart } from "./charts/UserGrowthChart";
 import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
-import { RevenueChart } from "./charts/RevenueChart";
 import { KPICards } from "./charts/KPICards";
 import { BarChart3, Download, RefreshCw, Calendar } from "lucide-react";
 import * as XLSX from 'xlsx';
@@ -182,7 +181,6 @@ export const DynamicReportsTab = () => {
             <UserGrowthChart data={monthlyData} />
             <PackagesChart data={monthlyData} />
             <TripsChart data={monthlyData} />
-            <RevenueChart data={monthlyData} />
           </div>
         </>
       )}
