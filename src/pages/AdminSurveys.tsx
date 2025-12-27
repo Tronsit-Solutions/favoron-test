@@ -21,7 +21,7 @@ const AdminSurveys = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, acquisition_source, acquisition_source_answered_at, created_at')
+        .select('id, first_name, last_name, email, acquisition_source, acquisition_source_answered_at, referrer_name, created_at')
         .not('acquisition_source', 'is', null)
         .order('acquisition_source_answered_at', { ascending: false });
 
@@ -131,7 +131,10 @@ const AdminSurveys = () => {
               </CardContent>
             </Card>
 
-            {Object.entries(stats).slice(0, 3).map(([source, count]) => (
+            {Object.entries(stats)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 3)
+              .map(([source, count]) => (
               <Card key={source}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -233,6 +236,11 @@ const AdminSurveys = () => {
                           <div className="text-sm text-muted-foreground">
                             {response.email}
                           </div>
+                          {response.acquisition_source === 'friend_referral' && response.referrer_name && (
+                            <div className="text-sm text-primary">
+                              Recomendado por: <span className="font-medium">{response.referrer_name}</span>
+                            </div>
+                          )}
                           {response.acquisition_source_answered_at && (
                             <div className="text-xs text-muted-foreground">
                               Respondió el {format(new Date(response.acquisition_source_answered_at), 'PPpp', { locale: es })}
