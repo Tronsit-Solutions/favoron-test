@@ -95,17 +95,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const fetchProfile = async (userId: string, retryCount = 0, isInitialLoad = false): Promise<void> => {
-    const MAX_RETRIES = 3;
-    const BASE_DELAY = 500; // Start with shorter delay
+    const MAX_RETRIES = 5; // More retries for iOS Safari
+    const BASE_DELAY = 800; // Longer base delay
     
     try {
       console.log('🔍 fetchProfile called for userId:', userId, retryCount > 0 ? `(retry ${retryCount})` : '');
       
-      // iOS Safari fix: Add initial delay after login to let the auth state settle
+      // iOS Safari fix: Add longer initial delay after login to let the auth state settle
       // This prevents the "Load failed" error on immediate requests after auth
       if (isInitialLoad && retryCount === 0) {
-        console.log('⏳ Initial load - waiting 300ms for iOS Safari compatibility...');
-        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log('⏳ Initial load - waiting 600ms for iOS Safari compatibility...');
+        await new Promise(resolve => setTimeout(resolve, 600));
+      } else if (retryCount > 0) {
+        // Additional delay before each retry
+        const retryDelay = BASE_DELAY * Math.pow(1.5, retryCount);
+        console.log(`⏳ Waiting ${retryDelay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
       
       // Fetch profile first, then roles (sequential to avoid iOS Safari connection issues)
@@ -117,14 +122,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('📊 Profile result:', {
         success: !profileResult.error,
-        data: profileResult.data,
+        data: profileResult.data ? 'present' : null,
         error: profileResult.error
       });
 
       // Check for network error on profile fetch
       if (profileResult.error?.message?.includes('Load failed') || 
           profileResult.error?.message?.includes('Failed to fetch') ||
-          profileResult.error?.message?.includes('NetworkError')) {
+          profileResult.error?.message?.includes('NetworkError') ||
+          profileResult.error?.message?.includes('network') ||
+          profileResult.error?.message?.includes('aborted')) {
         throw new Error(profileResult.error.message);
       }
 
@@ -190,12 +197,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const errorMessage = error instanceof Error ? error.message : '';
       const isNetworkError = errorMessage.includes('Load failed') || 
                             errorMessage.includes('Failed to fetch') ||
-                            errorMessage.includes('NetworkError');
+                            errorMessage.includes('NetworkError') ||
+                            errorMessage.includes('network') ||
+                            errorMessage.includes('aborted') ||
+                            errorMessage.includes('timeout');
       
       if (isNetworkError && retryCount < MAX_RETRIES) {
-        const delay = BASE_DELAY * Math.pow(2, retryCount); // Exponential backoff: 500, 1000, 2000ms
-        console.log(`⏳ Network error, retry ${retryCount + 1}/${MAX_RETRIES} in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        console.log(`⏳ Network error, retry ${retryCount + 1}/${MAX_RETRIES}...`);
+        // Delay is now handled at the start of fetchProfile
         return fetchProfile(userId, retryCount + 1, false);
       }
       
