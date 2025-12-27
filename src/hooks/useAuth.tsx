@@ -94,9 +94,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch {}
   };
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retryCount = 0): Promise<void> => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 second base delay
+    
     try {
-      console.log('🔍 fetchProfile called for userId:', userId);
+      console.log('🔍 fetchProfile called for userId:', userId, retryCount > 0 ? `(retry ${retryCount})` : '');
       
       // Combinar queries en una sola para reducir requests
       const [profileResult, rolesResult] = await Promise.all([
@@ -122,6 +125,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         roles: rolesResult.data,
         error: rolesResult.error
       });
+
+      // Check for network errors that should trigger retry
+      const hasNetworkError = 
+        (profileResult.error?.message?.includes('Load failed') ||
+         profileResult.error?.message?.includes('Failed to fetch') ||
+         profileResult.error?.message?.includes('NetworkError') ||
+         rolesResult.error?.message?.includes('Load failed') ||
+         rolesResult.error?.message?.includes('Failed to fetch') ||
+         rolesResult.error?.message?.includes('NetworkError'));
+
+      if (hasNetworkError && retryCount < MAX_RETRIES) {
+        console.log(`⏳ Network error detected, retrying in ${RETRY_DELAY * (retryCount + 1)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+        return fetchProfile(userId, retryCount + 1);
+      }
 
       if (profileResult.data) {
         console.log('✅ Setting profile:', profileResult.data.email);
@@ -157,13 +175,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
+      
+      // Retry on network errors
+      const errorMessage = error instanceof Error ? error.message : '';
+      const isNetworkError = errorMessage.includes('Load failed') || 
+                            errorMessage.includes('Failed to fetch') ||
+                            errorMessage.includes('NetworkError');
+      
+      if (isNetworkError && retryCount < MAX_RETRIES) {
+        console.log(`⏳ Caught network error, retrying in ${RETRY_DELAY * (retryCount + 1)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+        return fetchProfile(userId, retryCount + 1);
+      }
+      
+      // After all retries failed, still set a fallback role so app doesn't break
+      if (retryCount >= MAX_RETRIES) {
+        console.log('⚠️ Max retries reached, setting fallback role');
+        setUserRole({ 
+          id: 'fallback', 
+          user_id: userId, 
+          role: 'user', 
+          assigned_by: null, 
+          assigned_at: new Date().toISOString() 
+        });
+        setRoleLoaded(true);
+      }
+      
       SecurityMonitor.logEvent({
         type: 'data_access',
         details: {
           success: false,
           context: 'profile_fetch',
           error: error instanceof Error ? error.message : 'Unknown error',
-          userId: userId
+          userId: userId,
+          retryCount
         },
         userId: userId
       });
