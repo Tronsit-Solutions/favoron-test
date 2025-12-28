@@ -90,6 +90,7 @@ const PendingRequestsTab = ({
   const [historyFilter, setHistoryFilter] = useState<'all' | 'new' | 'requoted'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'online' | 'personal'>('all');
   const [deadlineFilter, setDeadlineFilter] = useState<'all' | 'expired' | 'active'>('all');
+  const [originFilter, setOriginFilter] = useState("all");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [packageToReject, setPackageToReject] = useState<any>(null);
@@ -101,6 +102,9 @@ const PendingRequestsTab = ({
   
   // Get unique destinations for filter
   const destinations = [...new Set(pendingPackages.map(pkg => pkg.package_destination || 'Guatemala'))];
+  
+  // Get unique origins for filter
+  const origins = [...new Set(pendingPackages.map(pkg => pkg.purchase_origin).filter(Boolean))];
   
   // Get statistics
   const reQuoteStats = getReQuoteStats(pendingPackages);
@@ -147,7 +151,10 @@ const PendingRequestsTab = ({
       (deadlineFilter === "expired" && isExpired) ||
       (deadlineFilter === "active" && !isExpired);
     
-    return matchesSearch && matchesDestination && matchesStatus && matchesType && matchesDeadline;
+    // Origin filter
+    const matchesOrigin = originFilter === "all" || pkg.purchase_origin === originFilter;
+    
+    return matchesSearch && matchesDestination && matchesStatus && matchesType && matchesDeadline && matchesOrigin;
   });
 
   return (
@@ -221,6 +228,18 @@ const PendingRequestsTab = ({
               <SelectItem value="all">Todas las fechas</SelectItem>
               <SelectItem value="expired">⏰ Expiradas ({expiredCount})</SelectItem>
               <SelectItem value="active">✅ Vigentes ({activeCount})</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={originFilter} onValueChange={setOriginFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="País de origen" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los orígenes</SelectItem>
+              {origins.map(origin => (
+                <SelectItem key={origin} value={origin}>📦 {origin}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
