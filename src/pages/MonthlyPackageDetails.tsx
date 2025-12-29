@@ -263,15 +263,23 @@ const MonthlyPackageDetails = () => {
   };
 
   const getTotalPrice = (pkg: PackageData) => {
-    // Dynamic calculation to match what shoppers see
-    const tip = pkg.admin_assigned_tip || 0;
-    const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-    const validTip = Number.isFinite(numTip) ? numTip : 0;
+    // Sincronizado con RPC get_monthly_reports: price + serviceFee + deliveryFee - discountAmount
+    const price = pkg.quote?.price || 0;
+    const numPrice = typeof price === 'string' ? parseFloat(price) : Number(price);
+    const validPrice = Number.isFinite(numPrice) ? numPrice : 0;
     
     const serviceFee = getFavoronIncome(pkg);
     const deliveryFee = getMessengerCost(pkg);
+    const discount = getDiscountAmount(pkg);
     
-    return validTip + serviceFee + deliveryFee;
+    return validPrice + serviceFee + deliveryFee - discount;
+  };
+
+  const getTipAmount = (pkg: PackageData) => {
+    // Usar quote.price para consistencia con la RPC (no admin_assigned_tip)
+    const price = pkg.quote?.price || 0;
+    const numPrice = typeof price === 'string' ? parseFloat(price) : Number(price);
+    return Number.isFinite(numPrice) ? numPrice : 0;
   };
 
   const calculateTotals = (packagesToCalculate: PackageData[] = packages) => {
@@ -282,19 +290,22 @@ const MonthlyPackageDetails = () => {
     }, 0);
     
     const totalTips = packagesToCalculate.reduce((sum, pkg) => {
-      const tip = pkg.admin_assigned_tip || 0;
-      const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-      return sum + (Number.isFinite(numTip) ? numTip : 0);
+      return sum + getTipAmount(pkg);
     }, 0);
     
     const totalFavoronIncome = packagesToCalculate.reduce((sum, pkg) => {
       return sum + getFavoronIncome(pkg);
     }, 0);
 
+    const totalDiscounts = packagesToCalculate.reduce((sum, pkg) => {
+      return sum + getDiscountAmount(pkg);
+    }, 0);
+
     return { 
       totalRevenue: Number(totalRevenue) || 0, 
       totalTips: Number(totalTips) || 0, 
-      totalFavoronIncome: Number(totalFavoronIncome) || 0 
+      totalFavoronIncome: Number(totalFavoronIncome) || 0,
+      totalDiscounts: Number(totalDiscounts) || 0
     };
   };
 
@@ -427,8 +438,8 @@ const MonthlyPackageDetails = () => {
             bValue = getTotalPrice(b);
             break;
           case 'tip':
-            aValue = a.admin_assigned_tip || 0;
-            bValue = b.admin_assigned_tip || 0;
+            aValue = getTipAmount(a);
+            bValue = getTipAmount(b);
             break;
           case 'favoron_income':
             aValue = getFavoronIncome(a);
@@ -491,7 +502,7 @@ const MonthlyPackageDetails = () => {
   
   // Calculate totals for summary cards (only paid packages)
   const paidPackages = packages.filter(pkg => paidStatuses.includes(pkg.status));
-  const { totalRevenue: paidRevenue, totalTips: paidTips, totalFavoronIncome: paidFavoronIncome } = calculateTotals(paidPackages);
+  const { totalRevenue: paidRevenue, totalTips: paidTips, totalFavoronIncome: paidFavoronIncome, totalDiscounts: paidDiscounts } = calculateTotals(paidPackages);
   const totalDeliveryFees = paidPackages.reduce((sum, pkg) => sum + getMessengerCost(pkg), 0);
   
   // Calculate Prime income (approved memberships only)
@@ -499,7 +510,7 @@ const MonthlyPackageDetails = () => {
   const totalPrimeIncome = approvedPrimeMembers.reduce((sum, pm) => sum + pm.amount, 0);
   
   // Calculate totals based on displayed packages (respects filters for table)
-  const { totalRevenue, totalTips, totalFavoronIncome } = calculateTotals(displayedPackages);
+  const { totalRevenue, totalTips, totalFavoronIncome, totalDiscounts } = calculateTotals(displayedPackages);
 
   const handleDownloadExcel = () => {
     const displayed = getSortedAndFilteredPackages();
@@ -629,7 +640,7 @@ const MonthlyPackageDetails = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -694,6 +705,23 @@ const MonthlyPackageDetails = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {paidPackages.length} paquetes pagados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Descuentos Aplicados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-red-600" />
+              <p className="text-2xl font-bold text-red-600">-Q{paidDiscounts.toFixed(2)}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Restados del total
             </p>
           </CardContent>
         </Card>
@@ -1002,11 +1030,7 @@ const MonthlyPackageDetails = () => {
                        Q{displayedPackages.reduce((sum, pkg) => sum + getDiscountAmount(pkg), 0).toFixed(2)}
                      </TableCell>
                      <TableCell className="py-2 text-xs text-right text-blue-600">
-                       Q{displayedPackages.reduce((sum, pkg) => {
-                         const tip = pkg.admin_assigned_tip || 0;
-                         const numTip = typeof tip === 'string' ? parseFloat(tip) : Number(tip);
-                         return sum + (Number.isFinite(numTip) ? numTip : 0);
-                       }, 0).toFixed(2)}
+                       Q{displayedPackages.reduce((sum, pkg) => sum + getTipAmount(pkg), 0).toFixed(2)}
                      </TableCell>
                      <TableCell className="py-2 text-xs text-right text-purple-600">
                        Q{(
@@ -1049,7 +1073,7 @@ const MonthlyPackageDetails = () => {
                         {getDiscountAmount(pkg) > 0 ? `-Q${getDiscountAmount(pkg).toFixed(2)}` : "-"}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-semibold text-blue-600">
-                        {pkg.admin_assigned_tip ? `Q${(typeof pkg.admin_assigned_tip === 'string' ? parseFloat(pkg.admin_assigned_tip) : pkg.admin_assigned_tip).toFixed(2)}` : "-"}
+                        {getTipAmount(pkg) > 0 ? `Q${getTipAmount(pkg).toFixed(2)}` : "-"}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-medium text-purple-600">
                         Q{getFavoronIncome(pkg).toFixed(2)}
