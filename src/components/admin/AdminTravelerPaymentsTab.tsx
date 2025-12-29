@@ -246,7 +246,7 @@ const AdminTravelerPaymentsTab = () => {
     const packages = normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
       ? normalizedHistorical 
       : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical);
-    const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + (pkg.quote?.price || 0), 0);
+    const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
 
     return (
       <>
@@ -348,14 +348,14 @@ const AdminTravelerPaymentsTab = () => {
                           </div>
                         </div>
                         <div className="text-sm font-semibold text-green-600">
-                          Q{pkg.quote?.price || 0}
+                          Q{parseFloat(pkg.quote?.price || 0).toFixed(2)}
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between items-center">
                     <span className="text-sm font-medium">Total de Compensaciones:</span>
-                    <span className="text-base font-bold text-green-600">Q{totalCompensation}</span>
+                    <span className="text-base font-bold text-green-600">Q{totalCompensation.toFixed(2)}</span>
                   </div>
                 </div>
 
