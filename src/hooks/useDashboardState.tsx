@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizedPackagesData } from './useOptimizedPackagesData';
 import { useOptimizedTripsData } from './useOptimizedTripsData';
@@ -10,6 +10,13 @@ export type ViewMode = 'user' | 'admin' | 'operations';
 
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
+  
+  // Stable userId reference to prevent unnecessary refetches on tab switch
+  const stableUserId = useMemo(() => user?.id, [user?.id]);
+  const userIdRef = useRef(stableUserId);
+  if (stableUserId && userIdRef.current !== stableUserId) {
+    userIdRef.current = stableUserId;
+  }
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Read initial tab from URL, fallback to "overview"
@@ -118,7 +125,8 @@ export const useDashboardState = (user: any) => {
   const adminData = useAdminData();
   
   // Only fetch regular packages data if NOT on admin tab - prevents unnecessary queries and error toasts
-  const regularPackagesData = useOptimizedPackagesData(shouldUseAdminData ? undefined : user?.id);
+  // Use stable userId reference to prevent refetches when user object reference changes
+  const regularPackagesData = useOptimizedPackagesData(shouldUseAdminData ? undefined : userIdRef.current);
   const regularTripsData = useOptimizedTripsData();
   
   const {
