@@ -12,17 +12,33 @@ export const RequireAuth = ({ children, fallback }: RequireAuthProps) => {
   const { user, loading, userRole, roleLoaded } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Check if user was previously authenticated (preserves UI during token refresh/tab switch)
+  const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
+
+  // ONLY show loading spinner on genuine initial load with NO prior authentication evidence
+  if (loading && !user && !wasAuthenticated) {
     return <LoadingState message="Verificando autenticación..." />;
   }
 
+  // If loading but we have evidence of prior auth, wait silently (no spinner)
+  if (loading && wasAuthenticated && !user) {
+    return null;
+  }
+
   if (!user) {
+    // Clear the auth evidence since user is definitely not authenticated
+    if (!loading) {
+      try { sessionStorage.removeItem('was_authenticated'); } catch {}
+    }
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // User exists - ensure we have evidence stored for future tab switches
+  try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
+
   // Wait for role to be loaded before deciding access
   if (!roleLoaded) {
-    return <LoadingState message="Verificando permisos..." />;
+    return null; // Silent wait instead of spinner
   }
 
   // Operations users can ONLY access /operations - block all dashboard routes
