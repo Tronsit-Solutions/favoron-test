@@ -263,11 +263,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('🔐 Auth state changed:', event, 'Session exists:', !!session);
+      (event, newSession) => {
+        console.log('🔐 Auth state changed:', event, 'Session exists:', !!newSession);
         
-        setSession(session);
-        setUser(session?.user ?? null);
+        // OPTIMIZATION: Only update state if values actually changed to prevent unnecessary re-renders
+        setSession(prev => {
+          if (prev?.access_token === newSession?.access_token) return prev;
+          return newSession;
+        });
+        
+        setUser(prev => {
+          const newUserId = newSession?.user?.id;
+          if (prev?.id === newUserId) return prev; // Same user, don't update reference
+          return newSession?.user ?? null;
+        });
+
+        const session = newSession;
 
         if (session?.user) {
           console.log('👤 User authenticated:', session.user.id, session.user.email);

@@ -1,98 +1,23 @@
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useModalProtection } from "@/hooks/useModalProtection";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect } from "react";
 
 const DashboardPage = () => {
   // NOTE: Operations users are redirected by RequireAuth - they never reach this component
   const { user, profile, userRole, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { hasOpenModals } = useModalProtection();
-  const [tabJustBecameVisible, setTabJustBecameVisible] = useState(false);
 
-  // Track tab visibility changes with grace period
+  // Persist auth evidence for tab-switch recovery
   useEffect(() => {
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        setTabJustBecameVisible(true);
-        setTimeout(() => setTabJustBecameVisible(false), 5000); // 5s grace period
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = 'https://favoron.app';
-  };
-
-  useEffect(() => {
-    // Auth guard with grace period after tab visibility changes
-    const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
-    let cancelled = false;
-
-    const checkAndMaybeRedirect = async () => {
-      if (cancelled) return;
-
-      // If authenticated, persist flag and stop
-      if (user) {
-        try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
-        return;
-      }
-
-      // Don't redirect if:
-      // - Still loading
-      // - Tab is hidden
-      // - Tab just became visible (grace period)
-      // - Offline
-      // - User was previously authenticated this session
-      if (loading || document.hidden || tabJustBecameVisible || !navigator.onLine) return;
-      if (wasAuthenticated) return; // Trust this flag - user already authenticated
-
-      // Only verify with Supabase if it really seems there's no session
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (data?.session) {
-          try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
-          return;
-        }
-      } catch {
-        // If getSession fails, don't redirect
-        return;
-      }
-
-      // Only redirect if definitely no session
-      if (!cancelled) window.location.href = 'https://favoron.app';
-    };
-
-    // Longer delay if modal is open, shorter otherwise
-    const delay = (typeof hasOpenModals === 'function' && hasOpenModals()) ? 30000 : 15000;
-    const timer = setTimeout(checkAndMaybeRedirect, delay);
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [user, loading, hasOpenModals, tabJustBecameVisible]);
+    if (user) {
+      try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
+    }
+  }, [user]);
 
   // Check if user was previously authenticated (prevents unmount during token refresh)
   const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
-  const hasModalsOpen = typeof hasOpenModals === 'function' && hasOpenModals();
   
-  // Only show loading spinner if we're genuinely loading AND no previous auth
-  // If modals are open or user was authenticated, preserve UI to prevent modal loss
-  if (loading && !user) {
-    // If we have evidence of prior authentication, don't show spinner - preserve state
-    if (wasAuthenticated || hasModalsOpen) {
-      console.log('🔒 Preserving UI state during auth transition (modals open or was authenticated)');
-      // Return null but the auth effect will handle re-authentication
-      // This prevents modal unmount while auth refreshes
-      return null;
-    }
-    
+  // Only show loading spinner on genuine initial load with no prior auth evidence
+  if (loading && !user && !wasAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
         <div className="text-center">
@@ -103,9 +28,9 @@ const DashboardPage = () => {
     );
   }
 
-  // Don't render if no user/profile, but avoid unmounting during transient loading
+  // If no user/profile but was authenticated, wait silently for re-auth (no spinner)
   if (!user || !profile) {
-    return null; // Will redirect to auth
+    return null;
   }
 
   // Create user object compatible with existing Dashboard component
