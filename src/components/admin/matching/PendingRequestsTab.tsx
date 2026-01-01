@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Zap, Eye, CalendarDays, Trash2, XCircle } from "lucide-react";
+import { Search, Zap, Eye, CalendarDays, Trash2, XCircle, ExternalLink } from "lucide-react";
 import RejectionReasonModal from "@/components/admin/RejectionReasonModal";
 
 import RejectionTooltip from "@/components/admin/RejectionTooltip";
@@ -71,6 +71,25 @@ const getRequestTypeBadge = (pkg: any) => {
     );
   }
   return null;
+};
+
+const getProductLinks = (pkg: any) => {
+  // Check for products_data (new format)
+  if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+    return pkg.products_data
+      .filter((p: any) => p.link)
+      .map((p: any, index: number) => ({
+        link: p.link,
+        description: p.description || `Producto ${index + 1}`
+      }));
+  }
+  
+  // Fallback to item_link (legacy format)
+  if (pkg.item_link) {
+    return [{ link: pkg.item_link, description: pkg.item_description || 'Ver producto' }];
+  }
+  
+  return [];
 };
 
 const PendingRequestsTab = ({ 
@@ -292,6 +311,34 @@ const PendingRequestsTab = ({
                     </span>
                   )}
                 </p>
+                {/* Product Links */}
+                {(() => {
+                  const productLinks = getProductLinks(pkg);
+                  if (productLinks.length === 0) return null;
+                  
+                  return (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {productLinks.slice(0, 3).map((product: any, idx: number) => (
+                        <a
+                          key={idx}
+                          href={product.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {productLinks.length === 1 ? 'Ver producto' : `Producto ${idx + 1}`}
+                        </a>
+                      ))}
+                      {productLinks.length > 3 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{productLinks.length - 3} más
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
                 {pkg.delivery_deadline && new Date(pkg.delivery_deadline).setHours(0,0,0,0) < today.getTime() && (
                   <Badge className="bg-red-100 text-red-700 border-red-300 text-xs mt-1">
                     ⏰ Fecha límite expirada
