@@ -765,6 +765,7 @@ const TripForm = ({
               </Popover>
             </div>
           </div>
+          )}
 
           {/* 🟦 4. Información adicional */}
           <div className="space-y-4">
