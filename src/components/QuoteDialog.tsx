@@ -980,25 +980,25 @@ const QuoteDialog = ({
                             </h4>
                             
                             <div className="space-y-3">
-                              {/* Line 1: Servicio Favorón (tips + fee combined) */}
+                              {/* Line 1: Servicio Favorón - ALWAYS show standard rate (before Prime discount) */}
                               <div className="flex justify-between text-sm">
                                 <span className="text-green-700">Servicio Favorón:</span>
-                                <span className="font-medium text-green-800">{formatCurrency(totalTip + actualServiceFee)}</span>
+                                <span className="font-medium text-green-800">{formatCurrency(totalTip + standardServiceFee)}</span>
                               </div>
                               
-                              {/* Line 2: Delivery fee */}
+                              {/* Line 2: Delivery fee - show standard rate for Prime users, actual for non-Prime */}
                               {isDelivery && (
                                 <div className="flex justify-between text-sm">
                                   <span className="text-green-700 flex items-center gap-1">
                                     <Truck className="w-3 h-3" /> Entrega a domicilio:
                                   </span>
-                                  <span className={`font-medium ${actualDeliveryFee === 0 ? 'text-green-600' : 'text-green-800'}`}>
-                                    {actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee)}
+                                  <span className="font-medium text-green-800">
+                                    {isPrime ? formatCurrency(standardDeliveryFee) : (actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee))}
                                   </span>
                                 </div>
                               )}
                               
-                              {/* Prime savings - separate lines at same level */}
+                              {/* Prime savings - separate lines showing the discounts that reduce the total */}
                               {isPrime && serviceFeeSavings > 0 && (
                                 <div className="flex justify-between text-sm">
                                   <span className="text-amber-600 flex items-center gap-1">
