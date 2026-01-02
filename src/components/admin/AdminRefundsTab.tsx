@@ -148,10 +148,16 @@ const AdminRefundsTab = () => {
                 </div>
               </TableCell>
               <TableCell>
-                <div className="max-w-[200px]">
-                  {refund.cancelled_products?.map((p: any, i: number) => (
-                    <p key={i} className="text-xs truncate">{p.description}</p>
-                  ))}
+                <div className="max-w-[250px]">
+                  {refund.cancelled_products?.map((p: any, i: number) => {
+                    const productName = p.description || p.itemDescription || 'Producto';
+                    const qty = p.quantity && p.quantity > 1 ? ` (x${p.quantity})` : '';
+                    return (
+                      <p key={i} className="text-xs truncate" title={productName}>
+                        {productName}{qty}
+                      </p>
+                    );
+                  })}
                 </div>
               </TableCell>
               <TableCell className="font-semibold text-green-600">
@@ -349,14 +355,41 @@ const AdminRefundsTab = () => {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Productos Cancelados</p>
                 <div className="space-y-2">
-                  {selectedRefund.cancelled_products?.map((p: any, i: number) => (
-                    <div key={i} className="bg-muted p-2 rounded text-sm">
-                      <p className="font-medium">{p.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Reembolso: {formatCurrency(p.totalRefund)}
-                      </p>
-                    </div>
-                  ))}
+                  {selectedRefund.cancelled_products?.map((p: any, i: number) => {
+                    const productName = p.description || p.itemDescription || 'Producto sin descripción';
+                    const quantity = p.quantity || 1;
+                    const tip = p.tip || p.adminAssignedTip || 0;
+                    const serviceFee = p.serviceFee || 0;
+                    const penalty = p.cancellationPenalty || 0;
+                    const estimatedPrice = p.estimatedPrice;
+                    const totalRefund = p.totalRefund || p.grossRefund || tip;
+                    
+                    return (
+                      <div key={i} className="bg-muted p-3 rounded text-sm space-y-1">
+                        <p className="font-medium">{productName}</p>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          {quantity > 1 && (
+                            <p>Cantidad: <span className="text-foreground">{quantity}</span></p>
+                          )}
+                          {estimatedPrice && (
+                            <p>Precio est.: <span className="text-foreground">{formatCurrency(estimatedPrice)}</span></p>
+                          )}
+                          {tip > 0 && (
+                            <p>Propina: <span className="text-foreground">{formatCurrency(tip)}</span></p>
+                          )}
+                          {serviceFee > 0 && (
+                            <p>Servicio: <span className="text-foreground">{formatCurrency(serviceFee)}</span></p>
+                          )}
+                          {penalty > 0 && (
+                            <p>Penalización: <span className="text-destructive">-{formatCurrency(penalty)}</span></p>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-green-600 pt-1 border-t border-border/50">
+                          Reembolso: {formatCurrency(totalRefund)}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
