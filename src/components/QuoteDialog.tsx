@@ -827,7 +827,7 @@ const QuoteDialog = ({
                         const quantity = parseInt(product.quantity || '1');
                         const unitPrice = parseFloat(product.estimatedPrice || '0');
                         const tip = parseFloat(product.adminAssignedTip || '0');
-                        const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
+                        const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level, rates);
                         const subtotal = isCancelled ? 0 : (tip + serviceFee);
                         
                         // Diagnóstico temporal - revisar en consola
