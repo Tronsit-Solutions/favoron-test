@@ -6,6 +6,7 @@ import { RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { calculateServiceFee, getDeliveryFee } from "@/lib/pricing";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 
 interface QuoteRecalculatorProps {
   pkg: any;
@@ -14,6 +15,13 @@ interface QuoteRecalculatorProps {
 
 export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProps) => {
   const [recalculating, setRecalculating] = useState(false);
+  const { fees, getServiceFeeRate, getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
+  
+  // Get dynamic rates from context
+  const rates = {
+    standard: fees?.service_fee_rate_standard ?? 0.40,
+    prime: fees?.service_fee_rate_prime ?? 0.20
+  };
   
   // Calcular lo que DEBERÍA ser según trust level actual
   const travelerTip = parseFloat(pkg.quote?.price || '0');
@@ -25,8 +33,8 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
   const confirmedAddress = pkg.confirmed_delivery_address as any;
   const cityArea = confirmedAddress?.cityArea;
   
-  const correctServiceFee = calculateServiceFee(travelerTip, pkg.profiles?.trust_level);
-  const correctDeliveryFee = getDeliveryFee(
+  const correctServiceFee = calculateServiceFee(travelerTip, pkg.profiles?.trust_level, rates);
+  const correctDeliveryFee = getContextDeliveryFee(
     pkg.delivery_method || 'pickup',
     pkg.profiles?.trust_level,
     cityArea
@@ -105,7 +113,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-white rounded p-2 border border-purple-100">
               <p className="text-xs text-muted-foreground">Comisión Favorón</p>
-              <p className="font-semibold text-purple-700">20% (vs 40% estándar)</p>
+              <p className="font-semibold text-purple-700">{Math.round((fees?.service_fee_rate_prime ?? 0.20) * 100)}% (vs {Math.round((fees?.service_fee_rate_standard ?? 0.40) * 100)}% estándar)</p>
             </div>
             <div className="bg-white rounded p-2 border border-purple-100">
               <p className="text-xs text-muted-foreground">Envío</p>
@@ -114,7 +122,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
                   ? 'Pickup (Q0)' 
                   : correctDeliveryFee === 0
                     ? 'Gratis en Guatemala'
-                    : `Q${correctDeliveryFee} (vs Q60 estándar)`
+                    : `Q${correctDeliveryFee} (vs Q${fees?.delivery_fee_outside_city ?? 60} estándar)`
                 }
               </p>
             </div>
@@ -130,7 +138,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
             <div>
               <p className="font-semibold text-green-700">✓ Cotización correcta para usuario Prime</p>
               <p className="text-sm text-green-600 mt-1">
-                Service Fee: 20% (Q{correctServiceFee.toFixed(2)}) • 
+                Service Fee: {Math.round((fees?.service_fee_rate_prime ?? 0.20) * 100)}% (Q{correctServiceFee.toFixed(2)}) • 
                 Delivery: {correctDeliveryFee === 0 ? 'Gratis' : `Q${correctDeliveryFee.toFixed(2)}`} •
                 Total: Q{correctTotal.toFixed(2)}
               </p>

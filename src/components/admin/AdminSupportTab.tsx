@@ -842,7 +842,7 @@ const AdminSupportTab = ({
                 <div>
                   <h4 className="font-medium">Recalcular Quotes de usuarios Prime</h4>
                   <p className="text-sm text-muted-foreground">
-                    Corrige quotes de usuarios Prime con errores en Service Fee (40% → 20%) y Delivery Fee (Guatemala gratis, fuera Q35).
+                    Corrige quotes de usuarios Prime con errores en Service Fee y Delivery Fee según los valores configurados en Admin Control.
                   </p>
                 </div>
                 

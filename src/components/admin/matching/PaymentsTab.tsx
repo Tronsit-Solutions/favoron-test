@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
 import { getPriceBreakdown } from '@/lib/pricing';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -38,9 +39,16 @@ export function PaymentsTab({
   onRefresh
 }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
+  const { fees, getServiceFeeRate } = usePlatformFeesContext();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [markingAsReviewed, setMarkingAsReviewed] = useState<string | null>(null);
+  
+  // Get dynamic rates from context
+  const rates = useMemo(() => ({
+    standard: fees?.service_fee_rate_standard ?? 0.40,
+    prime: fees?.service_fee_rate_prime ?? 0.20
+  }), [fees]);
 
   // Lazy load data when tabs become active
   useEffect(() => {
@@ -162,7 +170,8 @@ export function PaymentsTab({
       basePrice,
       pkg.delivery_method || 'pickup',
       pkg.profiles?.trust_level,
-      pkg.package_destination
+      pkg.package_destination,
+      rates
     );
 
     return (
@@ -193,7 +202,7 @@ export function PaymentsTab({
                   <span className="font-medium">Precio base:</span> Q{correctPricing.basePrice.toFixed(2)}
                 </p>
                 <p className="text-xs text-amber-700">
-                  <span className="font-medium">Fee de servicio ({isPrime ? '20%' : '40%'}):</span> Q{correctPricing.serviceFee.toFixed(2)}
+                  <span className="font-medium">Fee de servicio ({Math.round(getServiceFeeRate(isPrime ? 'prime' : 'basic') * 100)}%):</span> Q{correctPricing.serviceFee.toFixed(2)}
                 </p>
                 {correctPricing.deliveryFee > 0 && (
                   <p className="text-xs text-amber-700">

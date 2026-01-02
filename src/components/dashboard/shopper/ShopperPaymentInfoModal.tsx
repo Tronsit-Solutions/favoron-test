@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
 import { getPriceBreakdown } from "@/lib/pricing";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
@@ -27,12 +28,19 @@ export default function ShopperPaymentInfoModal({
 }: ShopperPaymentInfoModalProps) {
   const { toast } = useToast();
   const { profile } = useAuth();
+  const { fees } = usePlatformFeesContext();
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
   const [removingDiscount, setRemovingDiscount] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
+  
+  // Get dynamic rates from context
+  const rates = useMemo(() => ({
+    standard: fees?.service_fee_rate_standard ?? 0.40,
+    prime: fees?.service_fee_rate_prime ?? 0.20
+  }), [fees]);
   
   // Extract quote data and check for discount - use currentPkg for dynamic updates
   const quote = currentPkg.quote as any;
@@ -55,7 +63,8 @@ export default function ShopperPaymentInfoModal({
     sumOfAdminTips,
     currentPkg.delivery_method || 'pickup', 
     profile?.trust_level,
-    currentPkg.package_destination
+    currentPkg.package_destination,
+    rates
   );
   
   // Use finalTotalPrice if discount exists, otherwise use calculated total
