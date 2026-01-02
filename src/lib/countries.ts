@@ -1,3 +1,18 @@
+// Países principales para selector rápido
+export const MAIN_COUNTRIES = [
+  { value: "estados-unidos", label: "Estados Unidos" },
+  { value: "espana", label: "España" },
+  { value: "guatemala", label: "Guatemala" },
+  { value: "mexico", label: "México" },
+];
+
+// Opción especial para mostrar lista completa
+export const OTHER_COUNTRY_OPTION = { value: "__otro__", label: "Otro país..." };
+
+// Lista combinada para selector inicial (4 países + "Otro")
+export const COUNTRY_QUICK_OPTIONS = [...MAIN_COUNTRIES, OTHER_COUNTRY_OPTION];
+
+// Lista completa de países
 export const COUNTRIES = [
   { value: "afganistan", label: "Afganistán" },
   { value: "albania", label: "Albania" },

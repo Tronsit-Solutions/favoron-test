@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2 } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Combobox } from "@/components/ui/combobox";
+import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 interface EditTripModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -99,7 +101,14 @@ const EditTripModal = ({
 
   const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
   const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
-  const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
+  
+  // State for showing full country list
+  const [showFullCountryListOrigin, setShowFullCountryListOrigin] = useState(false);
+  const [showFullCountryListDestination, setShowFullCountryListDestination] = useState(false);
+  
+  // Check if current country values are in main list
+  const isOriginInMainList = MAIN_COUNTRIES.some(c => c.value === formData.fromCountry);
+  const isDestinationInMainList = MAIN_COUNTRIES.some(c => c.value === formData.toCountry);
   const accommodationTypes = [{
     value: 'hotel',
     label: 'Hotel/Hostal'
@@ -180,19 +189,44 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="fromCountry">País de origen *</Label>
-              <Select value={formData.fromCountry} onValueChange={value => handleInputChange('fromCountry', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona el país de origen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map(country => <SelectItem key={country} value={country}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{country}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
+              {!showFullCountryListOrigin && isOriginInMainList ? (
+                <Select 
+                  value={formData.fromCountry}
+                  onValueChange={(value) => {
+                    if (value === '__otro__') {
+                      setShowFullCountryListOrigin(true);
+                    } else {
+                      handleInputChange('fromCountry', value);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona el país de origen">
+                      {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    {COUNTRY_QUICK_OPTIONS.map(country => (
+                      <SelectItem key={country.value} value={country.value}>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="h-4 w-4" />
+                          <span>{country.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Combobox
+                  options={COUNTRIES}
+                  value={formData.fromCountry}
+                  onValueChange={value => handleInputChange('fromCountry', value)}
+                  placeholder="Buscar país..."
+                  searchPlaceholder="Buscar país..."
+                  emptyMessage="No se encontraron países"
+                  className="w-full"
+                />
+              )}
             </div>
 
             <div className="space-y-2">

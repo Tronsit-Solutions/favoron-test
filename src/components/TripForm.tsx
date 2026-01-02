@@ -19,7 +19,7 @@ import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, MAIN_COUNTRIES, OTHER_COUNTRY_OPTION, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 import { getCitiesByCountry, countryHasCities, GUATEMALAN_CITIES } from "@/lib/cities";
 import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
@@ -104,7 +104,10 @@ const TripForm = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
-
+  
+  // Estado para mostrar lista completa de países
+  const [showFullCountryListOrigin, setShowFullCountryListOrigin] = useState(false);
+  const [showFullCountryListDestination, setShowFullCountryListDestination] = useState(false);
   // Generate a client request id each time the modal opens
   useEffect(() => {
     if (isOpen) {
@@ -279,6 +282,8 @@ const TripForm = ({
       setMessengerData(null);
       setAcceptedTerms(false);
       setShowTermsModal(false);
+      setShowFullCountryListOrigin(false);
+      setShowFullCountryListDestination(false);
       
       // Clear form draft
       resetFormDraft();
@@ -392,18 +397,47 @@ const TripForm = ({
               <div className="grid grid-cols-2 gap-1 sm:gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fromCountry" className="text-xs sm:text-sm">País de origen *</Label>
-                  <div className="mobile-safe-combobox">
-                    <Combobox
-                      key="fromCountry-combobox"
-                      options={COUNTRIES}
-                      value={formData.fromCountry}
-                      onValueChange={value => handleInputChange('fromCountry', value)}
-                      placeholder="País"
-                      searchPlaceholder="Buscar país..."
-                      emptyMessage="No se encontraron países"
-                      className="w-full text-sm h-8"
-                    />
-                  </div>
+                  {!showFullCountryListOrigin ? (
+                    <Select 
+                      value={MAIN_COUNTRIES.some(c => c.value === formData.fromCountry) ? formData.fromCountry : ''}
+                      onValueChange={(value) => {
+                        if (value === '__otro__') {
+                          setShowFullCountryListOrigin(true);
+                        } else {
+                          handleInputChange('fromCountry', value);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full text-sm h-9">
+                        <SelectValue placeholder="País de origen">
+                          {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {COUNTRY_QUICK_OPTIONS.map(country => (
+                          <SelectItem key={country.value} value={country.value}>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{country.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="mobile-safe-combobox">
+                      <Combobox
+                        key="fromCountry-combobox"
+                        options={COUNTRIES}
+                        value={formData.fromCountry}
+                        onValueChange={value => handleInputChange('fromCountry', value)}
+                        placeholder="Buscar país..."
+                        searchPlaceholder="Buscar país..."
+                        emptyMessage="No se encontraron países"
+                        className="w-full text-sm h-8"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -447,22 +481,53 @@ const TripForm = ({
               <div className="grid grid-cols-2 gap-1 sm:gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="toCountry" className="text-xs sm:text-sm">País de destino *</Label>
-                  <div className="mobile-safe-combobox">
-                    <Combobox
-                      key="toCountry-combobox"
-                      options={COUNTRIES}
-                      value={formData.toCountry}
-                      onValueChange={value => {
-                        handleInputChange('toCountry', value);
-                        handleInputChange('toCity', ''); // Reset city when country changes
-                        handleInputChange('deliveryMethod', ''); // Reset delivery method
+                  {!showFullCountryListDestination ? (
+                    <Select 
+                      value={MAIN_COUNTRIES.some(c => c.value === formData.toCountry) ? formData.toCountry : ''}
+                      onValueChange={(value) => {
+                        if (value === '__otro__') {
+                          setShowFullCountryListDestination(true);
+                        } else {
+                          handleInputChange('toCountry', value);
+                          handleInputChange('toCity', ''); // Reset city when country changes
+                          handleInputChange('deliveryMethod', ''); // Reset delivery method
+                        }
                       }}
-                      placeholder="País"
-                      searchPlaceholder="Buscar país..."
-                      emptyMessage="No se encontraron países"
-                      className="w-full text-sm h-8"
-                    />
-                  </div>
+                    >
+                      <SelectTrigger className="w-full text-sm h-9">
+                        <SelectValue placeholder="País de destino">
+                          {formData.toCountry && MAIN_COUNTRIES.find(c => c.value === formData.toCountry)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {COUNTRY_QUICK_OPTIONS.map(country => (
+                          <SelectItem key={country.value} value={country.value}>
+                            <div className="flex items-center space-x-2">
+                              <Target className="h-4 w-4" />
+                              <span>{country.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="mobile-safe-combobox">
+                      <Combobox
+                        key="toCountry-combobox"
+                        options={COUNTRIES}
+                        value={formData.toCountry}
+                        onValueChange={value => {
+                          handleInputChange('toCountry', value);
+                          handleInputChange('toCity', ''); // Reset city when country changes
+                          handleInputChange('deliveryMethod', ''); // Reset delivery method
+                        }}
+                        placeholder="Buscar país..."
+                        searchPlaceholder="Buscar país..."
+                        emptyMessage="No se encontraron países"
+                        className="w-full text-sm h-8"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
