@@ -27,7 +27,8 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'delivered': { icon: '📦', label: 'Entregado al destinatario', color: 'bg-success/10 text-black border-success/20' },
   'completed': { icon: '🎉', label: 'Completado', color: 'bg-success/10 text-black border-success/20' },
   'rejected': { icon: '❌', label: 'Rechazado', color: 'bg-destructive/10 text-black border-destructive/20' },
-  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-black border-muted' }
+  'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-black border-muted' },
+  'archived_by_shopper': { icon: '📁', label: 'Archivado por shopper', color: 'bg-muted/50 text-black border-muted' }
 };
 
 export const getStatusInfo = (status: string): StatusInfo => {
