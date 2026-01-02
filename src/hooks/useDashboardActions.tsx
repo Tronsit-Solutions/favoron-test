@@ -373,13 +373,57 @@ export const useDashboardActions = (
             
           } else {
             // Original logic for other rejections (shoppers rejecting quotes)
+            
+            // Capture traveler info before clearing matched_trip_id
+            let rejectedTravelerInfo = null;
+            if (selectedPackage.matched_trip_id) {
+              // Try to find the trip in local state first
+              let matchedTrip = trips.find(trip => trip.id === selectedPackage.matched_trip_id);
+              
+              // If not found locally, try to fetch from database
+              if (!matchedTrip) {
+                try {
+                  const { data: tripData, error } = await supabase
+                    .from('trips')
+                    .select(`
+                      id, from_city, to_city, arrival_date, delivery_date, user_id,
+                      profiles (first_name, last_name, username)
+                    `)
+                    .eq('id', selectedPackage.matched_trip_id)
+                    .single();
+                  
+                  if (!error && tripData) {
+                    matchedTrip = tripData;
+                  }
+                } catch (e) {
+                  console.warn('Could not fetch rejected traveler info:', e);
+                }
+              }
+              
+              if (matchedTrip) {
+                const profile = matchedTrip.profiles;
+                rejectedTravelerInfo = {
+                  trip_id: matchedTrip.id,
+                  traveler_id: matchedTrip.user_id,
+                  traveler_name: profile ? 
+                    `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username : 
+                    'Desconocido',
+                  arrival_date: matchedTrip.arrival_date,
+                  delivery_date: matchedTrip.delivery_date,
+                  from_city: matchedTrip.from_city,
+                  to_city: matchedTrip.to_city,
+                };
+              }
+            }
+            
             const updateData: any = {
-              // Contextual JSON payload
+              // Contextual JSON payload with rejected traveler history
               quote_rejection: {
                 reason: quoteData.rejectionReason || null,
                 wants_requote: !!quoteData.wantsRequote,
                 additional_notes: quoteData.additionalNotes || null,
                 rejected_at: new Date().toISOString(),
+                rejected_traveler: rejectedTravelerInfo, // NEW: Preserve traveler info
               },
               // Legacy fields for backward compatibility
               rejection_reason: quoteData.rejectionReason || null,
