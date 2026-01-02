@@ -19,6 +19,22 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Fetch platform fees from DB (with fallbacks)
+    let serviceFeeRatePrime = 0.20;
+    
+    const { data: feesData, error: feesError } = await supabase
+      .from('favoron_company_information')
+      .select('service_fee_rate_prime')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (!feesError && feesData) {
+      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.20;
+      console.log(`📊 Using DB Prime rate: ${serviceFeeRatePrime}`);
+    } else {
+      console.log('⚠️ Using fallback Prime rate: 0.20');
+    }
+
     // Get Prime memberships with approval dates
     const { data: primeData, error: primeError } = await supabase
       .from('prime_memberships')
@@ -106,9 +122,9 @@ Deno.serve(async (req) => {
       const currentServiceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
       const currentTotalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
 
-      // Calculate correct values using the exact formula
-      // Service fee: 20% for Prime users
-      const correctServiceFee = currentPrice * 0.20;
+      // Calculate correct values using DB rate
+      // Service fee: use DB rate for Prime users
+      const correctServiceFee = currentPrice * serviceFeeRatePrime;
       
       // Delivery fee: Q0 for Prime users (regardless of delivery method)
       const correctDeliveryFee = 0;

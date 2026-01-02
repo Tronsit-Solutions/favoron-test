@@ -285,12 +285,12 @@ const AdminSupportTab = ({
     return guatemalaCityPatterns.some(pattern => pattern.test(normalized));
   };
 
-  // Calculate expected delivery fee for Prime user
+  // Calculate expected delivery fee for Prime user using context
+  const { getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
   const getExpectedDeliveryFee = (deliveryMethod?: string, cityArea?: string): number => {
     if (deliveryMethod === 'pickup' || !deliveryMethod) return 0;
-    const isGuatemala = isGuatemalaCityArea(cityArea);
-    // Prime users: Q0 in Guatemala, Q35 outside
-    return isGuatemala ? 0 : 35;
+    // Use context for Prime users
+    return getContextDeliveryFee(deliveryMethod, 'prime', cityArea);
   };
 
   // Function to preview incorrectly calculated Prime quotes

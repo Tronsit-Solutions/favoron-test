@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, DollarSign, Save, Loader2, Package } from 'lucide-react';
 import { useQuoteManagement } from '@/hooks/useQuoteManagement';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
 import ProductTipAssignmentModal from './ProductTipAssignmentModal';
 
 interface QuoteEditModalProps {
@@ -42,6 +43,7 @@ const QuoteEditModal = ({
 }: QuoteEditModalProps) => {
   const { user } = useAuth();
   const { updateQuoteManually, isUpdating } = useQuoteManagement();
+  const { getServiceFeeRate } = usePlatformFeesContext();
   const [showProductTipModal, setShowProductTipModal] = useState(false);
 
   // Get products data
@@ -67,10 +69,10 @@ const QuoteEditModal = ({
     }
   }, [isOpen, currentTip, currentServiceFee]);
 
-  // Calculate expected service fee based on trust level
+  // Calculate expected service fee based on trust level (using DB rates)
   const tipValue = parseFloat(tip) || 0;
   const serviceFeeValue = parseFloat(serviceFee) || 0;
-  const expectedRate = trustLevel === 'prime' ? 0.20 : 0.40;
+  const expectedRate = getServiceFeeRate(trustLevel);
   const expectedServiceFee = tipValue * expectedRate;
   const isServiceFeeNonStandard = Math.abs(serviceFeeValue - expectedServiceFee) > 0.01;
 
@@ -126,8 +128,8 @@ const QuoteEditModal = ({
                   <span className="text-sm text-muted-foreground">Tip Total Actual:</span>
                   <Badge variant="outline" className="font-mono">Q{currentTip.toFixed(2)}</Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Service Fee ({trustLevel === 'prime' ? '20%' : '40%'}):</span>
+              <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Service Fee ({Math.round(expectedRate * 100)}%):</span>
                   <Badge variant="outline" className="font-mono">Q{currentServiceFee.toFixed(2)}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
@@ -199,7 +201,7 @@ const QuoteEditModal = ({
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Nivel del Shopper:</span>
             <Badge variant={trustLevel === 'prime' ? 'default' : 'secondary'}>
-              {trustLevel === 'prime' ? '⭐ Prime (20%)' : `Estándar (40%)`}
+              {trustLevel === 'prime' ? `⭐ Prime (${Math.round(expectedRate * 100)}%)` : `Estándar (${Math.round(expectedRate * 100)}%)`}
             </Badge>
           </div>
 

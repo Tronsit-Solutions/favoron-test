@@ -4,7 +4,8 @@ export const APP_URL = import.meta.env.VITE_APP_URL || 'https://favoron.app';
 export const APP_CONFIG = {
   DEFAULT_LOCALE: 'es-GT',
   PRICE_CURRENCY: 'Q',
-  FAVARON_FEE_PERCENTAGE: 0.40, // 40% - corrected from 15%
+  // DEPRECATED: Use PlatformFeesContext instead. This field is kept for backward compatibility only.
+  // FAVARON_FEE_PERCENTAGE: 0.40,
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   ALLOWED_DOCUMENT_TYPES: ['application/pdf', 'image/jpeg', 'image/png']
