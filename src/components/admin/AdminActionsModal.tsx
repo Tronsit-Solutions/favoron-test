@@ -38,6 +38,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
@@ -66,6 +67,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
   const { getStatusBadge } = useStatusHelpers();
+  const { fees } = usePlatformFeesContext();
 
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
@@ -170,7 +172,11 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           packageId: pkg.id,
           currentPackage: pkg,
           trips: trips,
-          adminAssignedTip: pkg.admin_assigned_tip
+          adminAssignedTip: pkg.admin_assigned_tip,
+          rates: {
+            standard: fees?.service_fee_rate_standard ?? 0.40,
+            prime: fees?.service_fee_rate_prime ?? 0.20
+          }
         });
 
         updateData = {
