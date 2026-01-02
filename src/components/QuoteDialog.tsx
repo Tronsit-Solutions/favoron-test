@@ -14,6 +14,7 @@ import { useState, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { useToast } from "@/hooks/use-toast";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import PrimeModal from "./PrimeModal";
@@ -123,6 +124,7 @@ const QuoteDialog = ({
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { rates } = usePlatformFeesContext();
   const [imageModalState, setImageModalState] = useState<{ isOpen: boolean; imageUrl: string; title: string }>({
     isOpen: false,
     imageUrl: '',
@@ -952,9 +954,9 @@ const QuoteDialog = ({
                         const isDelivery = packageDetails.delivery_method === 'delivery';
                         const isGuatemala = isGuatemalaCityArea(cityArea);
                         
-                        // Calculate service fees
-                        const standardServiceFee = totalTip * 0.40;
-                        const primeServiceFee = totalTip * 0.20;
+                        // Calculate service fees using dynamic rates from DB
+                        const standardServiceFee = totalTip * rates.standard;
+                        const primeServiceFee = totalTip * rates.prime;
                         const actualServiceFee = isPrime ? primeServiceFee : standardServiceFee;
                         const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
                         

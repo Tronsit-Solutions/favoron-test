@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { createOrUpdateTripPaymentAccumulator } from '@/hooks/useCreateTripPaymentAccumulator';
+import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
 
 export interface AdminTipProduct {
   itemDescription: string;
@@ -25,6 +26,7 @@ interface SaveProductTipsOptions {
 export const useAdminTips = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { rates } = usePlatformFeesContext();
 
   const saveProductTips = async (
     packageId: string, 
@@ -64,9 +66,9 @@ export const useAdminTips = () => {
       ? currentPkg.admin_actions_log 
       : [];
 
-    // Calculate service fee based on trust level
+    // Calculate service fee based on trust level using dynamic rates from DB
     const trustLevel = options?.trustLevel || 'basic';
-    const serviceRate = trustLevel === 'prime' ? 0.20 : 0.40;
+    const serviceRate = trustLevel === 'prime' ? rates.prime : rates.standard;
     const newServiceFee = totalTip * serviceRate;
     const currentDeliveryFee = parseFloat(String(currentQuote.deliveryFee || '0'));
     const newTotalPrice = totalTip + newServiceFee + currentDeliveryFee;

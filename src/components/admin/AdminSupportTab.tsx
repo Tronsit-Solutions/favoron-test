@@ -9,6 +9,7 @@ import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 
 interface ClientErrorRow {
   id: string;
@@ -50,6 +51,7 @@ const AdminSupportTab = ({
   const [supportTab, setSupportTab] = useState("packages");
   
   const { toast } = useToast();
+  const { rates } = usePlatformFeesContext();
   
   // Client errors state
   const [errors, setErrors] = useState<ClientErrorRow[]>([]);
@@ -343,8 +345,9 @@ const AdminSupportTab = ({
         const currentDeliveryFee = parseFloat(String(quote.deliveryFee || '0'));
         const currentTotal = parseFloat(String(quote.totalPrice || '0'));
         
-        const expectedServiceFee = price * 0.20; // Prime rate is 20%
-        const wrongServiceFee = price * 0.40; // Incorrect 40% rate
+        // Use dynamic rates from DB for Prime users
+        const expectedServiceFee = price * rates.prime;
+        const wrongServiceFee = price * rates.standard; // What a non-Prime user would pay
         
         // Get cityArea from confirmed_delivery_address
         const confirmedAddress = pkg.confirmed_delivery_address as any;
