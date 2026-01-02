@@ -3,6 +3,8 @@ import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
 import { calculateServiceFee, getDeliveryFee } from "@/lib/pricing";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+
 interface PackageQuoteInfoProps {
   quote: {
     totalPrice: string;
@@ -36,7 +38,14 @@ const PackageQuoteInfo = ({
   if (!quote) return null;
   
   const { profile } = useAuth();
+  const { fees, getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
   const effectiveTrust = shopperTrustLevel ?? profile?.trust_level;
+  
+  // Get dynamic rates from context
+  const rates = {
+    standard: fees?.service_fee_rate_standard ?? 0.40,
+    prime: fees?.service_fee_rate_prime ?? 0.20
+  };
   
   // Calculate base from products_data admin tips
   const products = productsData || [];
@@ -48,11 +57,11 @@ const PackageQuoteInfo = ({
   
   // Recalculate fees correctly based on trust level and delivery method
   // Use cityArea for delivery fee calculation (fall back to packageDestination for backwards compat)
-  const serviceFee = calculateServiceFee(sumOfAdminTips, effectiveTrust);
-  const deliveryFee = getDeliveryFee(deliveryMethod, effectiveTrust, cityArea || packageDestination);
+  const serviceFee = calculateServiceFee(sumOfAdminTips, effectiveTrust, rates);
+  const contextDeliveryFee = getContextDeliveryFee(deliveryMethod, effectiveTrust, cityArea || packageDestination);
   
   const favoronTotal = sumOfAdminTips + serviceFee;
-  const displayTotal = sumOfAdminTips + serviceFee + deliveryFee;
+  const displayTotal = sumOfAdminTips + serviceFee + contextDeliveryFee;
   
   // Only show countdown for states where quote is still pending acceptance/payment
   const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);
@@ -65,10 +74,10 @@ const PackageQuoteInfo = ({
             <span>Favorón:</span>
             <span className="font-medium">{formatCurrency(favoronTotal)}</span>
           </div>
-          {deliveryFee > 0 && (
+          {contextDeliveryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span>Envío a domicilio:</span>
-              <span className="font-medium">{formatCurrency(deliveryFee)}</span>
+              <span className="font-medium">{formatCurrency(contextDeliveryFee)}</span>
             </div>
           )}
           <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200">

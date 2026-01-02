@@ -5,12 +5,21 @@ import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
 import { calculateFavoronRevenue, calculateServiceFee } from '@/lib/pricing';
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+
 interface FinancialDashboardProps {
   packages: Package[];
 }
 const FinancialDashboard = ({
   packages
 }: FinancialDashboardProps) => {
+  const { fees } = usePlatformFeesContext();
+  
+  // Get dynamic rates from context
+  const rates = useMemo(() => ({
+    standard: fees?.service_fee_rate_standard ?? 0.40,
+    prime: fees?.service_fee_rate_prime ?? 0.20
+  }), [fees]);
   const [dateFilter, setDateFilter] = useState("all");
   const filteredPackages = useMemo(() => {
     if (dateFilter === "all") return packages;
@@ -57,11 +66,11 @@ const FinancialDashboard = ({
       return sum + discountAmount;
     }, 0);
 
-    // Ingresos Favorón (40% del precio base + fees adicionales - descuentos)
+    // Ingresos Favorón (calculados con rates dinámicos desde admin)
     const favoronRevenueGross = completedPackages.reduce((sum, pkg) => {
       const quote = pkg.quote as any;
       const basePrice = parseFloat(quote?.price || '0');
-      const serviceFee = calculateServiceFee(basePrice);
+      const serviceFee = calculateServiceFee(basePrice, undefined, rates);
       // For now, use standard rate as we don't have trust_level in Package type
       const revenue = calculateFavoronRevenue(basePrice, serviceFee, undefined);
       return sum + revenue;
@@ -84,7 +93,7 @@ const FinancialDashboard = ({
       travelerTips,
       completedOrders: completedPackages.length
     };
-  }, [filteredPackages]);
+  }, [filteredPackages, rates]);
   const formatCurrencyGTQ = (amount: number) => {
     return new Intl.NumberFormat('es-GT', {
       style: 'currency',
