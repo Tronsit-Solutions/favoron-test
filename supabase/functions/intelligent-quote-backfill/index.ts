@@ -63,6 +63,24 @@ serve(async (req) => {
 
     console.log('🚀 Starting intelligent quote backfill...')
 
+    // Fetch platform fees from DB (with fallbacks)
+    let serviceFeeRatePrime = 0.20;
+    let serviceFeeRateStandard = 0.40;
+    
+    const { data: feesData, error: feesError } = await supabaseClient
+      .from('favoron_company_information')
+      .select('service_fee_rate_prime, service_fee_rate_standard')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (!feesError && feesData) {
+      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.20;
+      serviceFeeRateStandard = feesData.service_fee_rate_standard ?? 0.40;
+      console.log(`📊 Using DB rates: Prime=${serviceFeeRatePrime}, Standard=${serviceFeeRateStandard}`);
+    } else {
+      console.log('⚠️ Using fallback rates: Prime=0.20, Standard=0.40');
+    }
+
     // Step 1: Get Prime membership start dates for each user
     const { data: primeData, error: primeError } = await supabaseClient
       .from('prime_memberships')
@@ -130,11 +148,11 @@ serve(async (req) => {
       let correctDeliveryFee: number
 
       if (currentTrustLevel === 'prime') {
-        // Prime users: 20% service fee
-        correctServiceFee = basePrice * 0.20
+        // Prime users: use DB rate
+        correctServiceFee = basePrice * serviceFeeRatePrime
       } else {
-        // Standard users: 40% service fee
-        correctServiceFee = basePrice * 0.40
+        // Standard users: use DB rate
+        correctServiceFee = basePrice * serviceFeeRateStandard
       }
       
       // Delivery fee based on cityArea
