@@ -337,7 +337,7 @@ const QuoteDialog = ({
   // Calculate subtotal for a single product (tip + service fee)
   const calculateProductSubtotal = (product: any): number => {
     const tip = parseFloat(product.adminAssignedTip || '0');
-    const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level);
+    const serviceFee = calculateServiceFee(tip, packageDetails.shopper_trust_level, rates);
     return tip + serviceFee;
   };
   
@@ -350,7 +350,7 @@ const QuoteDialog = ({
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea);
+    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates);
     return breakdown.totalPrice;
   };
   
