@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getPriceBreakdown } from "@/lib/pricing";
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
+import PaymentMethodSelector, { PaymentMethod } from "@/components/payment/PaymentMethodSelector";
+import RecurrenteCheckout from "@/components/payment/RecurrenteCheckout";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
 
@@ -35,6 +37,7 @@ export default function ShopperPaymentInfoModal({
   const [removingDiscount, setRemovingDiscount] = useState(false);
   const [discountCode, setDiscountCode] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
   
   // Get dynamic rates from context
   const rates = useMemo(() => ({
@@ -393,98 +396,175 @@ export default function ShopperPaymentInfoModal({
             </CardContent>
           </Card>
 
-          {/* Banking Information */}
+          {/* Payment Method Selector */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Datos Bancarios de Favorón</CardTitle>
+              <CardTitle className="text-lg">Método de Pago</CardTitle>
             </CardHeader>
             <CardContent>
-              {bankLoading ? (
-                <p className="text-sm text-muted-foreground">Cargando información bancaria...</p>
-              ) : bankAccount ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Banco</p>
-                        <p className="font-medium">{bankAccount.bank_name}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(bankAccount.bank_name, "Nombre del banco")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Número de Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_number}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(bankAccount.account_number, "Número de cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Titular de la Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_holder}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Tipo de Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_type}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(bankAccount.account_type, "Tipo de cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No se pudo cargar la información bancaria. Por favor contacta al soporte.
-                </p>
-              )}
+              <PaymentMethodSelector
+                selectedMethod={paymentMethod}
+                onMethodChange={setPaymentMethod}
+                disabled={showSuccessState}
+              />
             </CardContent>
           </Card>
 
-          {/* Payment Instructions */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Instrucciones de Pago</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong>{hasDiscount && <span className="text-green-600 ml-1">(con descuento aplicado)</span>}</p>
-                <p>2. Utiliza los datos bancarios de Favorón mostrados arriba</p>
-                <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
-                <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Conditional Payment Section based on method */}
+          {paymentMethod === 'bank_transfer' ? (
+            <>
+              {/* Banking Information */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Datos Bancarios de Favorón</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {bankLoading ? (
+                    <p className="text-sm text-muted-foreground">Cargando información bancaria...</p>
+                  ) : bankAccount ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Banco</p>
+                            <p className="font-medium">{bankAccount.bank_name}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(bankAccount.bank_name, "Nombre del banco")}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Número de Cuenta</p>
+                            <p className="font-medium">{bankAccount.account_number}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(bankAccount.account_number, "Número de cuenta")}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Titular de la Cuenta</p>
+                            <p className="font-medium">{bankAccount.account_holder}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Tipo de Cuenta</p>
+                            <p className="font-medium">{bankAccount.account_type}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(bankAccount.account_type, "Tipo de cuenta")}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No se pudo cargar la información bancaria. Por favor contacta al soporte.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Payment Instructions */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Instrucciones de Pago</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong>{hasDiscount && <span className="text-green-600 ml-1">(con descuento aplicado)</span>}</p>
+                    <p>2. Utiliza los datos bancarios de Favorón mostrados arriba</p>
+                    <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
+                    <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Upload Receipt Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Subir Comprobante de Pago</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {showSuccessState ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/30 rounded-lg">
+                        <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-success">¡Comprobante subido exitosamente!</p>
+                          <p className="text-sm text-success/80">
+                            Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando sea aprobado.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button onClick={onClose} variant="default">
+                          Aceptar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <PaymentReceiptUpload 
+                      pkg={currentPkg} 
+                      onUploadComplete={handleUploadComplete}
+                      onPickerOpen={handlePickerOpen}
+                      onPickerClose={handlePickerClose}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            /* Card Payment via Recurrente */
+            <RecurrenteCheckout
+              pkg={currentPkg}
+              amount={totalAmount}
+              onSuccess={() => {
+                // Refresh package data after successful payment
+                handleUploadComplete({
+                  ...currentPkg,
+                  status: 'payment_pending_approval',
+                  payment_method: 'card'
+                } as any);
+              }}
+              onCancel={() => {
+                setPaymentMethod('bank_transfer');
+              }}
+              onError={(error) => {
+                toast({
+                  title: 'Error en el pago',
+                  description: error,
+                  variant: 'destructive'
+                });
+              }}
+            />
+          )}
 
           {/* Partial Delivery Information */}
           <Card>
@@ -493,40 +573,6 @@ export default function ShopperPaymentInfoModal({
             </CardHeader>
             <CardContent>
               <PartialDeliveryInfo pkg={currentPkg} />
-            </CardContent>
-          </Card>
-
-          {/* Upload Receipt Section */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Subir Comprobante de Pago</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {showSuccessState ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/30 rounded-lg">
-                    <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-success">¡Comprobante subido exitosamente!</p>
-                      <p className="text-sm text-success/80">
-                        Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando sea aprobado.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button onClick={onClose} variant="default">
-                      Aceptar
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <PaymentReceiptUpload 
-                  pkg={currentPkg} 
-                  onUploadComplete={handleUploadComplete}
-                  onPickerOpen={handlePickerOpen}
-                  onPickerClose={handlePickerClose}
-                />
-              )}
             </CardContent>
           </Card>
 
