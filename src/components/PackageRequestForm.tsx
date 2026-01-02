@@ -221,6 +221,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const purchaseOrigins = [
+    { value: 'Guatemala', label: 'Guatemala' },
     { value: 'USA', label: 'USA' },
     { value: 'España', label: 'España' },
     { value: 'México', label: 'México' },
