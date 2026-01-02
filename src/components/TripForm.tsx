@@ -20,6 +20,8 @@ import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 
 import { COUNTRIES } from "@/lib/countries";
+import { getCitiesByCountry, countryHasCities, GUATEMALAN_CITIES } from "@/lib/cities";
+import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
 import "./ui/mobile-safe-form.css";
 interface TripFormProps {
@@ -42,7 +44,7 @@ const TripForm = ({
       fromCountry: '',
       toCity: '',
       toCityOther: '',
-      toCountry: 'Guatemala',
+      toCountry: '',  // Now dynamic, not hardcoded
       arrivalDate: null as Date | null,
       availableSpace: '',
       deliveryMethod: '',
@@ -97,6 +99,9 @@ const TripForm = ({
   const setShowTermsModal = (show: boolean) => updateField('showTermsModal', show);
   const setShowMessengerForm = (show: boolean) => updateField('showMessengerForm', show);
 
+  // Fetch delivery points for international destinations
+  const { deliveryPoints, getDeliveryPointByCity } = useDeliveryPoints();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
 
@@ -125,50 +130,20 @@ const TripForm = ({
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [isDirty]);
   
-  const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
-  const countries = ['Estados Unidos', 'España', 'México', 'El Salvador', 'Honduras', 'Costa Rica', 'Otro país'];
+  // Use centralized city data
+  const originCities = getCitiesByCountry(formData.fromCountry);
+  const destinationCities = getCitiesByCountry(formData.toCountry);
   
-  const usCities = [
-    { value: 'New York', label: 'New York, NY' },
-    { value: 'Los Angeles', label: 'Los Angeles, CA' },
-    { value: 'Chicago', label: 'Chicago, IL' },
-    { value: 'Houston', label: 'Houston, TX' },
-    { value: 'Phoenix', label: 'Phoenix, AZ' },
-    { value: 'Philadelphia', label: 'Philadelphia, PA' },
-    { value: 'San Antonio', label: 'San Antonio, TX' },
-    { value: 'San Diego', label: 'San Diego, CA' },
-    { value: 'Dallas', label: 'Dallas, TX' },
-    { value: 'Austin', label: 'Austin, TX' },
-    { value: 'San Jose', label: 'San Jose, CA' },
-    { value: 'Fort Worth', label: 'Fort Worth, TX' },
-    { value: 'Jacksonville', label: 'Jacksonville, FL' },
-    { value: 'Columbus', label: 'Columbus, OH' },
-    { value: 'Charlotte', label: 'Charlotte, NC' },
-    { value: 'San Francisco', label: 'San Francisco, CA' },
-    { value: 'Indianapolis', label: 'Indianapolis, IN' },
-    { value: 'Seattle', label: 'Seattle, WA' },
-    { value: 'Denver', label: 'Denver, CO' },
-    { value: 'Washington', label: 'Washington, DC' },
-    { value: 'Boston', label: 'Boston, MA' },
-    { value: 'El Paso', label: 'El Paso, TX' },
-    { value: 'Nashville', label: 'Nashville, TN' },
-    { value: 'Detroit', label: 'Detroit, MI' },
-    { value: 'Oklahoma City', label: 'Oklahoma City, OK' },
-    { value: 'Portland', label: 'Portland, OR' },
-    { value: 'Las Vegas', label: 'Las Vegas, NV' },
-    { value: 'Memphis', label: 'Memphis, TN' },
-    { value: 'Louisville', label: 'Louisville, KY' },
-    { value: 'Baltimore', label: 'Baltimore, MD' },
-    { value: 'Milwaukee', label: 'Milwaukee, WI' },
-    { value: 'Albuquerque', label: 'Albuquerque, NM' },
-    { value: 'Tucson', label: 'Tucson, AZ' },
-    { value: 'Fresno', label: 'Fresno, CA' },
-    { value: 'Sacramento', label: 'Sacramento, CA' },
-    { value: 'Atlanta', label: 'Atlanta, GA' },
-    { value: 'Miami', label: 'Miami, FL' },
-    { value: 'Orlando', label: 'Orlando, FL' },
-    { value: 'Tampa', label: 'Tampa, FL' },
-  ];
+  // Check if destination has a delivery point configured
+  const destinationDeliveryPoint = formData.toCity && formData.toCountry 
+    ? getDeliveryPointByCity(formData.toCity, formData.toCountry)
+    : null;
+  
+  // Determine if we should show the Guatemala delivery section
+  const isDestinationGuatemala = formData.toCountry === 'guatemala';
+  const hasInternationalDeliveryPoint = !!destinationDeliveryPoint;
+  const showDeliverySection = isDestinationGuatemala || hasInternationalDeliveryPoint;
+
   const accommodationTypes = [{
     value: 'hotel',
     label: 'Hotel/Hostal'
@@ -433,11 +408,11 @@ const TripForm = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="fromCity" className="text-xs sm:text-sm">Ciudad de origen *</Label>
-                  {formData.fromCountry === 'estados-unidos' ? (
+                  {countryHasCities(formData.fromCountry) ? (
                     <div className="mobile-safe-combobox">
                       <Combobox
                         key="fromCity-combobox"
-                        options={usCities}
+                        options={originCities}
                         value={formData.fromCity}
                         onValueChange={value => handleInputChange('fromCity', value)}
                         placeholder="Escribe o selecciona tu ciudad"
@@ -469,23 +444,57 @@ const TripForm = ({
                 <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO DEL VIAJE</h4>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="toCity">Ciudad de destino *</Label>
-                <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona la ciudad de destino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {guatemalanCities.map(city => <SelectItem key={city} value={city}>
-                        <div className="flex items-center space-x-2">
-                          <Target className="h-4 w-4" />
-                          <span>{city}</span>
-                        </div>
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+              <div className="grid grid-cols-2 gap-1 sm:gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="toCountry" className="text-xs sm:text-sm">País de destino *</Label>
+                  <div className="mobile-safe-combobox">
+                    <Combobox
+                      key="toCountry-combobox"
+                      options={COUNTRIES}
+                      value={formData.toCountry}
+                      onValueChange={value => {
+                        handleInputChange('toCountry', value);
+                        handleInputChange('toCity', ''); // Reset city when country changes
+                        handleInputChange('deliveryMethod', ''); // Reset delivery method
+                      }}
+                      placeholder="País"
+                      searchPlaceholder="Buscar país..."
+                      emptyMessage="No se encontraron países"
+                      className="w-full text-sm h-8"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="toCity" className="text-xs sm:text-sm">Ciudad de destino *</Label>
+                  {countryHasCities(formData.toCountry) ? (
+                    <div className="mobile-safe-combobox">
+                      <Combobox
+                        key="toCity-combobox"
+                        options={destinationCities}
+                        value={formData.toCity}
+                        onValueChange={value => handleInputChange('toCity', value)}
+                        placeholder="Ciudad"
+                        searchPlaceholder="Buscar ciudad..."
+                        emptyMessage="No encontrada"
+                        className="w-full text-sm h-8"
+                        allowCustomValue={true}
+                      />
+                    </div>
+                  ) : (
+                    <Input 
+                      id="toCity"
+                      type="text" 
+                      placeholder="Ciudad" 
+                      value={formData.toCity} 
+                      onChange={e => handleInputChange('toCity', e.target.value)} 
+                      required 
+                      className="w-full text-sm"
+                    />
+                  )}
+                </div>
               </div>
+              {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
             </div>
 
             <div className="space-y-2">
@@ -653,13 +662,16 @@ const TripForm = ({
             </div>
           </div>
 
-          {/* 🟦 3. Entrega de paquetes en Guatemala */}
+          {/* 🟦 3. Entrega de paquetes - Conditional based on destination */}
+          {showDeliverySection && (
           <div className="space-y-4">
             <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
               <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
                 <span className="text-xs text-primary-foreground font-bold">3</span>
               </div>
-              <h3 className="text-lg font-semibold text-primary">Entrega de paquetes en Guatemala</h3>
+              <h3 className="text-lg font-semibold text-primary">
+                Entrega de paquetes en {isDestinationGuatemala ? 'Guatemala' : destinationDeliveryPoint?.name || 'destino'}
+              </h3>
             </div>
             
             <div className="space-y-3">

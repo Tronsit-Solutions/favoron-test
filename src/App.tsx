@@ -20,6 +20,7 @@ import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 import AdminDiscounts from "./pages/AdminDiscounts";
 import AdminPlatformFees from "./pages/AdminPlatformFees";
 import AdminReports from "./pages/AdminReports";
+import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
 
@@ -74,6 +75,11 @@ const App = () => (
             <Route path="/admin/reports" element={
               <RequireAuth>
                 <AdminReports />
+              </RequireAuth>
+            } />
+            <Route path="/admin/delivery-points" element={
+              <RequireAuth>
+                <AdminDeliveryPoints />
               </RequireAuth>
             } />
             <Route path="/operations" element={

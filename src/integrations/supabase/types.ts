@@ -151,6 +151,60 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_points: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          city: string
+          country: string
+          created_at: string | null
+          email: string | null
+          id: string
+          instructions: string | null
+          is_active: boolean | null
+          name: string
+          phone_number: string | null
+          postal_code: string | null
+          schedule: string | null
+          state_province: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city: string
+          country: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          name: string
+          phone_number?: string | null
+          postal_code?: string | null
+          schedule?: string | null
+          state_province?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          city?: string
+          country?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          name?: string
+          phone_number?: string | null
+          postal_code?: string | null
+          schedule?: string | null
+          state_province?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       discount_code_usage: {
         Row: {
           discount_amount: number
@@ -978,6 +1032,7 @@ export type Database = {
           created_at: string
           delivery_date: string
           delivery_method: string | null
+          delivery_point_id: string | null
           first_day_packages: string
           from_city: string
           from_country: string | null
@@ -989,6 +1044,7 @@ export type Database = {
           rejection_reason: string | null
           status: string
           to_city: string
+          to_country: string | null
           updated_at: string
           user_id: string
         }
@@ -1000,6 +1056,7 @@ export type Database = {
           created_at?: string
           delivery_date: string
           delivery_method?: string | null
+          delivery_point_id?: string | null
           first_day_packages: string
           from_city: string
           from_country?: string | null
@@ -1011,6 +1068,7 @@ export type Database = {
           rejection_reason?: string | null
           status?: string
           to_city: string
+          to_country?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1022,6 +1080,7 @@ export type Database = {
           created_at?: string
           delivery_date?: string
           delivery_method?: string | null
+          delivery_point_id?: string | null
           first_day_packages?: string
           from_city?: string
           from_country?: string | null
@@ -1033,10 +1092,18 @@ export type Database = {
           rejection_reason?: string | null
           status?: string
           to_city?: string
+          to_country?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "trips_delivery_point_id_fkey"
+            columns: ["delivery_point_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_points"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trips_user_id_fkey"
             columns: ["user_id"]
