@@ -126,6 +126,13 @@ const TRAVELER_STATUS_MAP: Record<string, StatusConfig> = {
     textColor: "text-amber-600",
     actionMessage: "Puedes descartar este paquete de tu lista de viajes.",
   },
+  archived_by_shopper: {
+    emoji: "📁",
+    label: "Archivado",
+    description: "El shopper archivó este paquete.",
+    bgColor: "bg-gray-50",
+    textColor: "text-gray-500",
+  },
 };
 
 interface TravelerPackageStatusBadgeProps {

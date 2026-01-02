@@ -30,6 +30,7 @@ export const getStatusBadge = (status: string) => {
     // Trip statuses
     active: { label: 'Activo', variant: 'default' },
     completed: { label: 'Completado', variant: 'default' },
+    archived_by_shopper: { label: 'Archivado', variant: 'secondary' },
   } as const;
 
   const config = (statusConfig as any)[status] || { 
