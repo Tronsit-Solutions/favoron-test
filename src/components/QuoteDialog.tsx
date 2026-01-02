@@ -1584,7 +1584,7 @@ const QuoteDialog = ({
                     <Button variant="outline" onClick={handleReject} className="flex-1 sm:flex-none border-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all duration-200">
                       Rechazar
                     </Button>
-                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && (!acceptedTerms || !confirmedDeliveryTime) || isQuoteExpired} className="flex-1 sm:flex-none bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25 disabled:opacity-50 disabled:shadow-none transition-all duration-200">
+                    <Button variant="default" onClick={handleSubmit} disabled={userType === 'user' && (!acceptedTerms || !confirmedDeliveryTime) || isQuoteExpired} className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 transition-all duration-200">
                       {isQuoteExpired ? 'Cotización Expirada' : 'Aceptar Cotización'}
                     </Button>
                   </> : <>
