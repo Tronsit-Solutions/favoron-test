@@ -354,39 +354,57 @@ const AdminRefundsTab = () => {
 
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Productos Cancelados</p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {selectedRefund.cancelled_products?.map((p: any, i: number) => {
                     const productName = p.description || p.itemDescription || 'Producto sin descripción';
                     const quantity = p.quantity || 1;
                     const tip = p.tip || p.adminAssignedTip || 0;
-                    const serviceFee = p.serviceFee || 0;
-                    const penalty = p.cancellationPenalty || 0;
+                    // Calculate serviceFee: use stored value or calculate as 40% of tip
+                    const serviceFee = p.serviceFee ?? Math.round(tip * 0.4 * 100) / 100;
+                    // Calculate penalty: use stored value or default to Q5 (unless Prime exempt)
+                    const isPrimeExempt = p.isPrimeExempt || false;
+                    const penalty = isPrimeExempt ? 0 : (p.cancellationPenalty ?? p.penaltyApplied ?? 5);
                     const estimatedPrice = p.estimatedPrice;
-                    const totalRefund = p.totalRefund || p.grossRefund || tip;
+                    // Calculate total: tip + serviceFee - penalty
+                    const calculatedTotal = tip + serviceFee - penalty;
+                    const totalRefund = p.totalRefund || p.grossRefund || calculatedTotal;
                     
                     return (
-                      <div key={i} className="bg-muted p-3 rounded text-sm space-y-1">
-                        <p className="font-medium">{productName}</p>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <div key={i} className="bg-muted p-3 rounded text-sm">
+                        <p className="font-medium mb-2">{productName}</p>
+                        
+                        {/* Product info */}
+                        <div className="flex gap-4 text-xs text-muted-foreground mb-2">
                           {quantity > 1 && (
                             <p>Cantidad: <span className="text-foreground">{quantity}</span></p>
                           )}
                           {estimatedPrice && (
-                            <p>Precio est.: <span className="text-foreground">{formatCurrency(estimatedPrice)}</span></p>
-                          )}
-                          {tip > 0 && (
-                            <p>Propina: <span className="text-foreground">{formatCurrency(tip)}</span></p>
-                          )}
-                          {serviceFee > 0 && (
-                            <p>Servicio: <span className="text-foreground">{formatCurrency(serviceFee)}</span></p>
-                          )}
-                          {penalty > 0 && (
-                            <p>Penalización: <span className="text-destructive">-{formatCurrency(penalty)}</span></p>
+                            <p>Precio estimado: <span className="text-foreground">{formatCurrency(estimatedPrice)}</span></p>
                           )}
                         </div>
-                        <p className="text-sm font-semibold text-green-600 pt-1 border-t border-border/50">
-                          Reembolso: {formatCurrency(totalRefund)}
-                        </p>
+                        
+                        {/* Refund breakdown */}
+                        <div className="border-t border-border/50 pt-2 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Desglose del Reembolso:</p>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Tip del viajero:</span>
+                            <span className="text-foreground">{formatCurrency(tip)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Fee de Favoron (40%):</span>
+                            <span className="text-foreground">+{formatCurrency(serviceFee)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Penalización por cancelación:</span>
+                            <span className={penalty > 0 ? "text-destructive" : "text-muted-foreground"}>
+                              {penalty > 0 ? `-${formatCurrency(penalty)}` : formatCurrency(0)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border/50 mt-1">
+                            <span>Total Reembolso:</span>
+                            <span className="text-green-600">{formatCurrency(totalRefund)}</span>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
