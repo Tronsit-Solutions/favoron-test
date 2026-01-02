@@ -6,13 +6,15 @@ export interface QuoteGenerationData {
   currentPackage: any;
   trips: any[];
   adminAssignedTip: number;
+  /** Dynamic rates from PlatformFeesContext - if not provided, will use fallback */
+  rates?: { standard: number; prime: number };
 }
 
 /**
  * Generates a quote when admin changes status from "matched" to "quote_sent"
  */
 export async function generateQuoteForAdminStatusChange(data: QuoteGenerationData) {
-  const { currentPackage, trips, adminAssignedTip } = data;
+  const { currentPackage, trips, adminAssignedTip, rates } = data;
   
   // Check if we have admin_assigned_tip
   if (!adminAssignedTip || adminAssignedTip <= 0) {
@@ -60,24 +62,26 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     }
   }
 
-  // Generate quote using admin_assigned_tip as base price
+  // Generate quote using admin_assigned_tip as base price, with dynamic rates
   const normalizedQuote = createNormalizedQuote(
     adminAssignedTip,
     currentPackage.delivery_method || 'pickup',
     shopperProfile.trust_level,
     undefined, // No automatic message
     true, // adminAssignedTipAccepted
-    currentPackage.package_destination // Pass destination for correct delivery fee
+    currentPackage.package_destination, // Pass destination for correct delivery fee
+    rates // Pass dynamic rates from DB
   );
 
   console.log('📊 Quote generation details:', {
     shopperTrustLevel: shopperProfile.trust_level,
     adminAssignedTip,
     serviceFee: normalizedQuote.serviceFee,
-    expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? '20%' : '40%',
+    expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? `${(rates?.prime ?? 0.20) * 100}%` : `${(rates?.standard ?? 0.40) * 100}%`,
     deliveryMethod: currentPackage.delivery_method,
     destination: currentPackage.package_destination,
-    totalPrice: normalizedQuote.totalPrice
+    totalPrice: normalizedQuote.totalPrice,
+    usingDynamicRates: !!rates
   });
 
   return {

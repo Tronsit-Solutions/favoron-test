@@ -70,6 +70,7 @@ export const normalizeQuote = (
  * @param message - optional message from traveler
  * @param adminAssignedTipAccepted - whether the admin-assigned tip was accepted
  * @param cityArea - the cityArea from confirmed_delivery_address (e.g., 'Guatemala', 'Mixco')
+ * @param rates - optional dynamic rates from DB (standard/prime)
  */
 export const createNormalizedQuote = (
   basePrice: number,
@@ -77,9 +78,10 @@ export const createNormalizedQuote = (
   shopperTrustLevel?: string,
   message?: string,
   adminAssignedTipAccepted?: boolean,
-  cityArea?: string
+  cityArea?: string,
+  rates?: { standard: number; prime: number }
 ): NormalizedQuote => {
-  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel, cityArea);
+  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel, cityArea, rates);
 
   return {
     price: breakdown.basePrice,

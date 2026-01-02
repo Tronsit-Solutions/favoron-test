@@ -109,12 +109,23 @@ export const getDeliveryFee = (
 
 /**
  * Calculate the service fee based on trust level
+ * 
+ * @param basePrice - the base price to calculate fee from
+ * @param trustLevel - user's trust level
+ * @param rates - optional dynamic rates from DB (standard/prime). If not provided, uses PRICING_CONFIG fallback.
  */
-export const calculateServiceFee = (basePrice: number, trustLevel?: TrustLevel | string): number => {
+export const calculateServiceFee = (
+  basePrice: number, 
+  trustLevel?: TrustLevel | string,
+  rates?: { standard: number; prime: number }
+): number => {
+  const standardRate = rates?.standard ?? PRICING_CONFIG.SERVICE_FEE_RATE_STANDARD;
+  const primeRate = rates?.prime ?? PRICING_CONFIG.SERVICE_FEE_RATE_PRIME;
+  
   if (trustLevel === 'prime') {
-    return basePrice * PRICING_CONFIG.SERVICE_FEE_RATE_PRIME;
+    return basePrice * primeRate;
   }
-  return basePrice * PRICING_CONFIG.SERVICE_FEE_RATE_STANDARD;
+  return basePrice * standardRate;
 };
 
 /**
@@ -160,14 +171,21 @@ export const calculateTravelerTip = (
 
 /**
  * Get a breakdown of price components for transparency
+ * 
+ * @param basePrice - the base price (traveler tip)
+ * @param deliveryMethod - 'pickup' or 'delivery'
+ * @param trustLevel - user's trust level
+ * @param destination - cityArea for delivery fee calculation
+ * @param rates - optional dynamic rates from DB
  */
 export const getPriceBreakdown = (
   basePrice: number,
   deliveryMethod: string = 'pickup',
   trustLevel?: TrustLevel | string,
-  destination?: string
+  destination?: string,
+  rates?: { standard: number; prime: number }
 ) => {
-  const serviceFee = calculateServiceFee(basePrice, trustLevel);
+  const serviceFee = calculateServiceFee(basePrice, trustLevel, rates);
   const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination);
   const totalPrice = basePrice + serviceFee + deliveryFee;
   const favoronRevenue = calculateFavoronRevenue(basePrice, serviceFee, trustLevel);
