@@ -49,7 +49,8 @@ serve(async (req) => {
         name: item_description || `Pago Paquete Favorón`,
         currency: 'GTQ',
         amount_in_cents: amountInCents,
-        quantity: 1
+        quantity: 1,
+        charge_type: 'one_time'
       }],
       success_url: success_url || 'https://preview--favoron.lovable.app/dashboard?payment=success',
       cancel_url: cancel_url || 'https://preview--favoron.lovable.app/dashboard?payment=cancelled',
