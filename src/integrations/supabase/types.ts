@@ -528,6 +528,7 @@ export type Database = {
           matched_trip_id: string | null
           office_delivery: Json | null
           package_destination: string
+          payment_method: string | null
           payment_receipt: Json | null
           products_data: Json | null
           purchase_confirmation: Json | null
@@ -535,6 +536,8 @@ export type Database = {
           quote: Json | null
           quote_expires_at: string | null
           quote_rejection: Json | null
+          recurrente_checkout_id: string | null
+          recurrente_payment_id: string | null
           rejection_reason: string | null
           status: string
           tracking_info: Json | null
@@ -567,6 +570,7 @@ export type Database = {
           matched_trip_id?: string | null
           office_delivery?: Json | null
           package_destination: string
+          payment_method?: string | null
           payment_receipt?: Json | null
           products_data?: Json | null
           purchase_confirmation?: Json | null
@@ -574,6 +578,8 @@ export type Database = {
           quote?: Json | null
           quote_expires_at?: string | null
           quote_rejection?: Json | null
+          recurrente_checkout_id?: string | null
+          recurrente_payment_id?: string | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
@@ -606,6 +612,7 @@ export type Database = {
           matched_trip_id?: string | null
           office_delivery?: Json | null
           package_destination?: string
+          payment_method?: string | null
           payment_receipt?: Json | null
           products_data?: Json | null
           purchase_confirmation?: Json | null
@@ -613,6 +620,8 @@ export type Database = {
           quote?: Json | null
           quote_expires_at?: string | null
           quote_rejection?: Json | null
+          recurrente_checkout_id?: string | null
+          recurrente_payment_id?: string | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
