@@ -1088,6 +1088,27 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                         </div>
                       )}
                       
+                      {/* Rejected Traveler Info */}
+                      {(pkg.quote_rejection as any)?.rejected_traveler && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-2">
+                          <p className="text-sm font-medium text-yellow-800 flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Viajero rechazado: {(pkg.quote_rejection as any).rejected_traveler.traveler_name}
+                          </p>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-yellow-700">
+                            <span>
+                              📍 {(pkg.quote_rejection as any).rejected_traveler.from_city} → {(pkg.quote_rejection as any).rejected_traveler.to_city}
+                            </span>
+                            <span>
+                              📅 Llegada: {formatSafeDate((pkg.quote_rejection as any).rejected_traveler.arrival_date)}
+                            </span>
+                            <span>
+                              🚚 Entrega: {formatSafeDate((pkg.quote_rejection as any).rejected_traveler.delivery_date)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between pt-2 border-t border-red-300">
                         <div className="flex items-center space-x-2">
                           {(pkg.quote_rejection as any)?.wants_requote ? (

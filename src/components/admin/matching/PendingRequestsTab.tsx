@@ -344,6 +344,12 @@ const PendingRequestsTab = ({
                     ⏰ Fecha límite expirada
                   </Badge>
                 )}
+                {/* Rejected Traveler Badge */}
+                {(pkg.quote_rejection as any)?.rejected_traveler && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 text-xs mt-1">
+                    🔄 Rechazo previo: {(pkg.quote_rejection as any).rejected_traveler.traveler_name}
+                  </Badge>
+                )}
                 {pkg.rejection_reason && pkg.wants_requote && (
                   <div className="mt-2">
                     <RejectionTooltip
