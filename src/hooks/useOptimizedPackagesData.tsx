@@ -258,24 +258,30 @@ export const useOptimizedPackagesData = (userId?: string) => {
       // Get current package data for trust level checking
       const currentPackage = packages.find(pkg => pkg.id === id);
       
-      // Quote validation and normalization
+      // Quote validation and normalization - SKIP if manually edited by admin
       if (updates.quote && currentPackage) {
-        const shopperTrustLevel = (currentPackage as any).profiles?.trust_level || 'basic';
-        const deliveryMethod = currentPackage.delivery_method || 'pickup';
-        const destination = currentPackage.package_destination;
+        const isManuallyEdited = (updates.quote as any).manually_edited === true;
         
-        // Check if the quote needs recalculation
-        if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination)) {
-          console.warn('⚠️ Quote discrepancy detected for package', id, {
-            provided: updates.quote,
-            deliveryMethod,
-            shopperTrustLevel,
-            destination
-          });
+        if (isManuallyEdited) {
+          console.log('✅ Quote was manually edited, preserving all values for package', id);
+        } else {
+          const shopperTrustLevel = (currentPackage as any).profiles?.trust_level || 'basic';
+          const deliveryMethod = currentPackage.delivery_method || 'pickup';
+          const destination = currentPackage.package_destination;
           
-          // Normalize the quote to ensure consistency (with corrected deliveryFee)
-          updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination) as any;
-          console.log('🔧 Quote normalized:', updates.quote);
+          // Check if the quote needs recalculation
+          if (shouldRecalculateQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination)) {
+            console.warn('⚠️ Quote discrepancy detected for package', id, {
+              provided: updates.quote,
+              deliveryMethod,
+              shopperTrustLevel,
+              destination
+            });
+            
+            // Normalize the quote to ensure consistency (with corrected deliveryFee)
+            updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination) as any;
+            console.log('🔧 Quote normalized:', updates.quote);
+          }
         }
       }
       
