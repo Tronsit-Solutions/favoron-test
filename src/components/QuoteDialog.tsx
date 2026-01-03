@@ -28,6 +28,11 @@ import { createNormalizedQuote } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
 import './ui/mobile-input-fix.css';
 import { resolveSignedUrl } from "@/lib/storageUrls";
+import { TripEditSelectionModal } from "./dashboard/TripEditSelectionModal";
+import { TripEditReceivingWindowModal } from "./dashboard/TripEditReceivingWindowModal";
+import { TripEditDeliveryDateModal } from "./dashboard/TripEditDeliveryDateModal";
+import { TripEditAddressModal } from "./dashboard/TripEditAddressModal";
+import EditTripModal from "./EditTripModal";
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -167,6 +172,20 @@ const QuoteDialog = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showTravelerRejectionModal, setShowTravelerRejectionModal] = useState(false);
+  
+  // Inline trip editing state
+  const [showInlineEditSelection, setShowInlineEditSelection] = useState(false);
+  const [showInlineReceivingWindow, setShowInlineReceivingWindow] = useState(false);
+  const [showInlineDeliveryDate, setShowInlineDeliveryDate] = useState(false);
+  const [showInlineAddress, setShowInlineAddress] = useState(false);
+  const [showInlineFullEdit, setShowInlineFullEdit] = useState(false);
+  const [tripEditPending, setTripEditPending] = useState(false);
+  const [localTripInfo, setLocalTripInfo] = useState(tripInfo);
+  
+  // Keep localTripInfo in sync with tripInfo prop
+  useEffect(() => {
+    setLocalTripInfo(tripInfo);
+  }, [tripInfo]);
   const [showTripConfirmation, setShowTripConfirmation] = useState(false);
   
   // Selected products state for multi-product orders (shoppers can remove products)
@@ -541,6 +560,62 @@ const QuoteDialog = ({
     });
     setShowTravelerRejectionModal(false);
   };
+
+  // Handle inline trip edit selection
+  const handleInlineEditSelection = (option: 'receiving_window' | 'delivery_date' | 'address' | 'other') => {
+    setShowInlineEditSelection(false);
+    switch (option) {
+      case 'receiving_window':
+        setShowInlineReceivingWindow(true);
+        break;
+      case 'delivery_date':
+        setShowInlineDeliveryDate(true);
+        break;
+      case 'address':
+        setShowInlineAddress(true);
+        break;
+      case 'other':
+        setShowInlineFullEdit(true);
+        break;
+    }
+  };
+
+  // Handle inline trip edit submission
+  const handleInlineTripEdit = async (editData: any) => {
+    try {
+      if (localTripInfo?.id) {
+        const updateData: any = {
+          status: 'pending_approval',
+          ...editData
+        };
+        
+        const { error } = await supabase
+          .from('trips')
+          .update(updateData)
+          .eq('id', localTripInfo.id);
+        
+        if (error) throw error;
+        
+        // Update local trip info with new data
+        setLocalTripInfo((prev: any) => prev ? { ...prev, ...editData } : prev);
+        
+        // Mark that trip edit is pending admin approval
+        setTripEditPending(true);
+        
+        toast({
+          title: "Viaje actualizado",
+          description: "Los cambios requieren aprobación del administrador antes de continuar.",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating trip:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el viaje.",
+        variant: "destructive"
+      });
+    }
+  };
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} flex flex-col overflow-hidden p-4 sm:p-6`}>
 
@@ -569,7 +644,7 @@ const QuoteDialog = ({
         <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1">{/* Single scroll container */}
           
           {/* TRIP CONFIRMATION STEP - For travelers confirming their trip info */}
-          {isTravelerContext && showTripConfirmation && tripInfo ? (
+          {isTravelerContext && showTripConfirmation && localTripInfo ? (
             <div className="space-y-4">
               {/* Header */}
               <div className="text-center pb-2">
@@ -586,9 +661,9 @@ const QuoteDialog = ({
               <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-primary shrink-0" />
-                  <span className="text-muted-foreground">{tripInfo.from_country || tripInfo.from_city}</span>
+                  <span className="text-muted-foreground">{localTripInfo.from_country || localTripInfo.from_city}</span>
                   <span className="text-muted-foreground">→</span>
-                  <span className="font-semibold text-foreground">{tripInfo.to_city}</span>
+                  <span className="font-semibold text-foreground">{localTripInfo.to_city}</span>
                 </div>
               </div>
               
@@ -601,53 +676,67 @@ const QuoteDialog = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Llegada:</span>
-                    <span className="font-medium text-foreground">{formatDateUTC(tripInfo.arrival_date)}</span>
+                    <span className="font-medium text-foreground">{formatDateUTC(localTripInfo.arrival_date)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Recibo paquetes:</span>
                     <span className="font-medium text-foreground">
-                      {formatDateUTC(tripInfo.first_day_packages)} - {formatDateUTC(tripInfo.last_day_packages)}
+                      {formatDateUTC(localTripInfo.first_day_packages)} - {formatDateUTC(localTripInfo.last_day_packages)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Entrega en oficina:</span>
-                    <span className="font-medium text-foreground">{formatDateUTC(tripInfo.delivery_date)}</span>
+                    <span className="font-medium text-foreground">{formatDateUTC(localTripInfo.delivery_date)}</span>
                   </div>
                 </div>
               </div>
               
               {/* Delivery Address */}
-              {tripInfo.package_receiving_address && (
+              {localTripInfo.package_receiving_address && (
                 <div className="bg-muted/30 rounded-lg p-4 space-y-2 border border-muted/40">
                   <div className="flex items-center gap-2 mb-2">
                     <Home className="h-4 w-4 text-primary" />
                     <span className="font-medium text-foreground">Dirección de recepción de paquetes</span>
                   </div>
                   <div className="space-y-1 text-sm">
-                    {tripInfo.package_receiving_address.recipientName && (
-                      <p className="font-semibold text-foreground">{tripInfo.package_receiving_address.recipientName}</p>
+                    {localTripInfo.package_receiving_address.recipientName && (
+                      <p className="font-semibold text-foreground">{localTripInfo.package_receiving_address.recipientName}</p>
                     )}
-                    {tripInfo.package_receiving_address.streetAddress && (
-                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.streetAddress}</p>
+                    {localTripInfo.package_receiving_address.streetAddress && (
+                      <p className="text-muted-foreground">{localTripInfo.package_receiving_address.streetAddress}</p>
                     )}
-                    {tripInfo.package_receiving_address.streetAddress2 && (
-                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.streetAddress2}</p>
+                    {localTripInfo.package_receiving_address.streetAddress2 && (
+                      <p className="text-muted-foreground">{localTripInfo.package_receiving_address.streetAddress2}</p>
                     )}
-                    {tripInfo.package_receiving_address.cityArea && (
-                      <p className="text-muted-foreground">{tripInfo.package_receiving_address.cityArea}</p>
+                    {localTripInfo.package_receiving_address.cityArea && (
+                      <p className="text-muted-foreground">{localTripInfo.package_receiving_address.cityArea}</p>
                     )}
-                    {tripInfo.package_receiving_address.postalCode && (
-                      <p className="text-muted-foreground">CP: {tripInfo.package_receiving_address.postalCode}</p>
+                    {localTripInfo.package_receiving_address.postalCode && (
+                      <p className="text-muted-foreground">CP: {localTripInfo.package_receiving_address.postalCode}</p>
                     )}
-                    {tripInfo.package_receiving_address.hotelAirbnbName && (
-                      <p className="text-muted-foreground">🏨 {tripInfo.package_receiving_address.hotelAirbnbName}</p>
+                    {localTripInfo.package_receiving_address.hotelAirbnbName && (
+                      <p className="text-muted-foreground">🏨 {localTripInfo.package_receiving_address.hotelAirbnbName}</p>
                     )}
-                    {tripInfo.package_receiving_address.contactNumber && (
+                    {localTripInfo.package_receiving_address.contactNumber && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">{tripInfo.package_receiving_address.contactNumber}</span>
+                        <span className="text-muted-foreground">{localTripInfo.package_receiving_address.contactNumber}</span>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Trip Edit Pending Warning */}
+              {tripEditPending && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-700">
+                    <p className="font-medium">Cambios pendientes de aprobación</p>
+                    <p className="text-xs mt-1">
+                      Has modificado la información del viaje. El administrador debe aprobar los cambios 
+                      antes de que la cotización se envíe al shopper.
+                    </p>
                   </div>
                 </div>
               )}
@@ -656,12 +745,9 @@ const QuoteDialog = ({
               <div className="flex gap-3 pt-2">
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setShowTripConfirmation(false);
-                    onClose();
-                    onEditTrip?.();
-                  }}
+                  onClick={() => setShowInlineEditSelection(true)}
                   className="flex-1"
+                  disabled={tripEditPending}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editar viaje
@@ -669,9 +755,10 @@ const QuoteDialog = ({
                 <Button 
                   onClick={handleSubmit}
                   className="flex-1 bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25"
+                  disabled={tripEditPending}
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Confirmar y enviar
+                  {tripEditPending ? 'Esperando aprobación' : 'Confirmar y enviar'}
                 </Button>
               </div>
             </div>
@@ -1617,6 +1704,64 @@ const QuoteDialog = ({
           onClose={() => setShowTravelerRejectionModal(false)}
           onConfirm={handleTravelerRejectionConfirm}
           packageDescription={packageDetails.item_description}
+        />
+        
+        {/* Inline Trip Edit Modals */}
+        <TripEditSelectionModal
+          isOpen={showInlineEditSelection}
+          onClose={() => setShowInlineEditSelection(false)}
+          onSelectOption={handleInlineEditSelection}
+          hasActivePackages={true}
+        />
+
+        <TripEditReceivingWindowModal
+          isOpen={showInlineReceivingWindow}
+          onClose={() => setShowInlineReceivingWindow(false)}
+          onSubmit={async (data) => {
+            await handleInlineTripEdit({
+              first_day_packages: data.firstDayPackages,
+              last_day_packages: data.lastDayPackages
+            });
+            setShowInlineReceivingWindow(false);
+          }}
+          tripData={localTripInfo}
+          hasActivePackages={true}
+        />
+
+        <TripEditDeliveryDateModal
+          isOpen={showInlineDeliveryDate}
+          onClose={() => setShowInlineDeliveryDate(false)}
+          onSubmit={async (data) => {
+            await handleInlineTripEdit({
+              delivery_date: data.deliveryDate
+            });
+            setShowInlineDeliveryDate(false);
+          }}
+          tripData={localTripInfo}
+          hasActivePackages={true}
+        />
+
+        <TripEditAddressModal
+          isOpen={showInlineAddress}
+          onClose={() => setShowInlineAddress(false)}
+          onSubmit={async (data) => {
+            await handleInlineTripEdit({
+              package_receiving_address: data.packageReceivingAddress
+            });
+            setShowInlineAddress(false);
+          }}
+          tripData={localTripInfo}
+          hasActivePackages={true}
+        />
+
+        <EditTripModal
+          isOpen={showInlineFullEdit}
+          onClose={() => setShowInlineFullEdit(false)}
+          tripData={localTripInfo}
+          onSubmit={async (data) => {
+            await handleInlineTripEdit(data);
+            setShowInlineFullEdit(false);
+          }}
         />
       </DialogContent>
 
