@@ -7,7 +7,7 @@ import { Copy, CreditCard, CheckCircle, X, Tag, Clock, ArrowLeft, Shield } from 
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
-import { getPriceBreakdown } from "@/lib/pricing";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import PaymentMethodSelector, { PaymentMethod } from "@/components/payment/PaymentMethodSelector";
@@ -63,21 +63,16 @@ export default function ShopperPaymentInfoModal({
     return sum + tip;
   }, 0);
   
-  // Use cityArea from confirmed_delivery_address for accurate delivery fee calculation
-  const confirmedAddress = currentPkg.confirmed_delivery_address as any;
-  const cityArea = confirmedAddress?.cityArea;
+  // Use saved quote values instead of recalculating - respects manual admin edits
+  const quoteValues = getQuoteValues(quote);
   
-  const breakdown = getPriceBreakdown(
-    sumOfAdminTips,
-    currentPkg.delivery_method || 'pickup', 
-    profile?.trust_level,
-    cityArea || currentPkg.package_destination, // Prioritize cityArea over package_destination
-    rates
-  );
-  
-  // Use finalTotalPrice if discount exists, otherwise use calculated total
-  const totalAmount = hasDiscount ? parseFloat(quote.finalTotalPrice) : breakdown.totalPrice;
-  const originalAmount = hasDiscount ? parseFloat(quote.originalTotalPrice) : totalAmount;
+  // Use finalTotalPrice if discount exists, otherwise use saved totalPrice
+  const totalAmount = hasDiscount 
+    ? quoteValues.finalTotalPrice 
+    : quoteValues.totalPrice;
+  const originalAmount = hasDiscount 
+    ? (parseFloat(quote.originalTotalPrice) || quoteValues.totalPrice)
+    : quoteValues.totalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -199,7 +194,7 @@ export default function ShopperPaymentInfoModal({
     try {
       const { supabase } = await import('@/integrations/supabase/client');
       const currentQuote = currentPkg.quote as any;
-      const orderAmount = breakdown.totalPrice;
+      const orderAmount = quoteValues.totalPrice;
 
       // Validate discount code
       const { data: validationResult, error: rpcError } = await supabase.rpc('validate_discount_code', {
