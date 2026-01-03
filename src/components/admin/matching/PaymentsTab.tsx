@@ -6,10 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles, CheckCheck } from 'lucide-react';
 import { usePrimeMembership } from '@/hooks';
 import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
-// getPriceBreakdown removed - we display original quote values instead of recalculating
+import { getQuoteValues, getServiceFeePercentage } from '@/lib/quoteHelpers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
 
 interface PaymentsTabProps {
   packages: any[];
@@ -39,16 +38,9 @@ export function PaymentsTab({
   onRefresh
 }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
-  const { fees } = usePlatformFeesContext();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [markingAsReviewed, setMarkingAsReviewed] = useState<string | null>(null);
-  
-  // Get dynamic rates from context
-  const rates = useMemo(() => ({
-    standard: fees?.service_fee_rate_standard ?? 0.40,
-    prime: fees?.service_fee_rate_prime ?? 0.20
-  }), [fees]);
 
   // Lazy load data when tabs become active
   useEffect(() => {
@@ -164,20 +156,9 @@ export function PaymentsTab({
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false, isAutoApproved: boolean = false) => {
     const isPrime = pkg.profiles?.trust_level === 'prime';
     
-    // Extract original values from the stored quote (use these instead of recalculating)
-    const storedQuote = pkg.quote || {};
-    const basePrice = Number(storedQuote.price || pkg.estimated_price || 0);
-    const originalServiceFee = Number(storedQuote.serviceFee || 0);
-    const originalDeliveryFee = Number(storedQuote.deliveryFee || 0);
-    const originalTotalPrice = Number(storedQuote.totalPrice || 0);
-    const finalTotalPrice = storedQuote.finalTotalPrice 
-      ? Number(storedQuote.finalTotalPrice) 
-      : originalTotalPrice;
-    
-    // Calculate the actual service fee percentage that was used when the quote was created
-    const actualServiceFeeRate = basePrice > 0 
-      ? Math.round((originalServiceFee / basePrice) * 100) 
-      : 0;
+    // Use centralized getQuoteValues for consistent reading
+    const quoteValues = getQuoteValues(pkg.quote);
+    const actualServiceFeeRate = getServiceFeePercentage(pkg.quote);
 
     return (
       <Card key={pkg.id} className="hover:shadow-md transition-shadow">
@@ -202,25 +183,28 @@ export function PaymentsTab({
               <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
                 <p className="text-xs text-amber-800 font-medium mb-1">
                   💰 Cotización Original del Shopper {isPrime && '(Prime)'}:
+                  {quoteValues.manuallyEdited && (
+                    <span className="ml-2 text-purple-600">(Editada manualmente)</span>
+                  )}
                 </p>
                 <p className="text-xs text-amber-700">
-                  <span className="font-medium">Precio base:</span> Q{basePrice.toFixed(2)}
+                  <span className="font-medium">Precio base:</span> Q{quoteValues.price.toFixed(2)}
                 </p>
                 <p className="text-xs text-amber-700">
-                  <span className="font-medium">Fee de servicio ({actualServiceFeeRate}%):</span> Q{originalServiceFee.toFixed(2)}
+                  <span className="font-medium">Fee de servicio ({actualServiceFeeRate}%):</span> Q{quoteValues.serviceFee.toFixed(2)}
                 </p>
-                {originalDeliveryFee > 0 && (
+                {quoteValues.deliveryFee > 0 && (
                   <p className="text-xs text-amber-700">
-                    <span className="font-medium">Fee de entrega:</span> Q{originalDeliveryFee.toFixed(2)}
+                    <span className="font-medium">Fee de entrega:</span> Q{quoteValues.deliveryFee.toFixed(2)}
                   </p>
                 )}
-                {storedQuote.discountAmount > 0 && (
+                {quoteValues.discountAmount > 0 && (
                   <p className="text-xs text-green-700">
-                    <span className="font-medium">Descuento ({storedQuote.discountCode}):</span> -Q{Number(storedQuote.discountAmount).toFixed(2)}
+                    <span className="font-medium">Descuento{quoteValues.discountCode ? ` (${quoteValues.discountCode})` : ''}:</span> -Q{quoteValues.discountAmount.toFixed(2)}
                   </p>
                 )}
                 <p className="text-xs text-amber-700 font-semibold mt-1 pt-1 border-t border-amber-300">
-                  <span className="font-medium">Total que debía pagar:</span> Q{finalTotalPrice.toFixed(2)}
+                  <span className="font-medium">Total que debía pagar:</span> Q{quoteValues.finalTotalPrice.toFixed(2)}
                 </p>
               </div>
             {pkg.payment_receipt && (

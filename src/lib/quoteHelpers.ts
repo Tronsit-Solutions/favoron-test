@@ -10,6 +10,87 @@ export interface NormalizedQuote {
 }
 
 /**
+ * UNIFIED QUOTE VALUES READER
+ * 
+ * This is THE SINGLE SOURCE OF TRUTH for reading quote values.
+ * All components must use this function instead of extracting values manually.
+ * 
+ * When admin edits a quote, the values are saved in the quote object.
+ * This function reads those saved values WITHOUT recalculating.
+ */
+export interface QuoteValues {
+  price: number;        // Traveler tip / base price
+  serviceFee: number;   // Service fee
+  deliveryFee: number;  // Delivery fee
+  totalPrice: number;   // Total before discount
+  discountAmount: number;
+  discountCode?: string;
+  finalTotalPrice: number; // Total after discount (what shopper actually pays)
+  message?: string;
+  manuallyEdited?: boolean;
+  editedAt?: string;
+  editedBy?: string;
+}
+
+/**
+ * Extract quote values from a saved quote object WITHOUT recalculating.
+ * Use this everywhere you need to display quote information.
+ */
+export const getQuoteValues = (quote: any): QuoteValues => {
+  if (!quote) {
+    return {
+      price: 0,
+      serviceFee: 0,
+      deliveryFee: 0,
+      totalPrice: 0,
+      discountAmount: 0,
+      finalTotalPrice: 0
+    };
+  }
+
+  const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
+  const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
+  const deliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
+  const totalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
+  const discountAmount = typeof quote.discountAmount === 'string' ? parseFloat(quote.discountAmount) : Number(quote.discountAmount || 0);
+  
+  // finalTotalPrice is what the shopper actually pays (total minus discount)
+  const finalTotalPrice = quote.finalTotalPrice 
+    ? (typeof quote.finalTotalPrice === 'string' ? parseFloat(quote.finalTotalPrice) : Number(quote.finalTotalPrice))
+    : totalPrice - discountAmount;
+
+  return {
+    price,
+    serviceFee,
+    deliveryFee,
+    totalPrice,
+    discountAmount,
+    discountCode: quote.discountCode,
+    finalTotalPrice,
+    message: quote.message,
+    manuallyEdited: quote.manually_edited || quote.manuallyEdited,
+    editedAt: quote.edited_at || quote.editedAt,
+    editedBy: quote.edited_by || quote.editedBy
+  };
+};
+
+/**
+ * Calculate the service fee percentage from saved quote values
+ */
+export const getServiceFeePercentage = (quote: any): number => {
+  const { price, serviceFee } = getQuoteValues(quote);
+  return price > 0 ? Math.round((serviceFee / price) * 100) : 0;
+};
+
+/**
+ * Get Favorón's total revenue from a quote (price + serviceFee)
+ */
+export const getFavoronTotal = (quote: any): number => {
+  const { price, serviceFee } = getQuoteValues(quote);
+  return price + serviceFee;
+};
+
+/**
  * Normalize a quote object to ensure consistent numeric values
  * Recalculates deliveryFee based on cityArea to fix any incorrect values
  * 

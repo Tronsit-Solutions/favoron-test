@@ -1,9 +1,13 @@
 // Utilities for tip calculation and eligibility
+import { getQuoteValues } from '@/lib/quoteHelpers';
 
+/**
+ * Get the traveler tip amount from a package's quote
+ * Uses the centralized getQuoteValues function for consistency
+ */
 export const getPackageTipFromQuote = (pkg: any): number => {
-  const raw = pkg?.quote?.price ?? pkg?.quote?.totalPrice ?? 0;
-  const num = typeof raw === 'string' ? parseFloat(raw) : Number(raw);
-  return Number.isFinite(num) ? num : 0;
+  const { price } = getQuoteValues(pkg?.quote);
+  return Number.isFinite(price) ? price : 0;
 };
 
 export const isPackageEligibleForTripPayment = (pkg: any): boolean => {

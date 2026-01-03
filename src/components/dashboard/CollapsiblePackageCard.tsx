@@ -972,12 +972,7 @@ const CollapsiblePackageCard = ({
                           <PackageQuoteInfo 
                             quote={pkg.quote as any} 
                             quoteExpiresAt={pkg.quote_expires_at} 
-                            deliveryMethod={pkg.delivery_method} 
-                            shopperTrustLevel={(pkg as any).shopper_trust_level} 
-                            adminTipAmount={pkg.admin_assigned_tip}
                             packageStatus={pkg.status}
-                            packageDestination={pkg.package_destination}
-                            productsData={pkg.products_data as any[]}
                           />
                         </div>
                       </CollapsibleContent>
