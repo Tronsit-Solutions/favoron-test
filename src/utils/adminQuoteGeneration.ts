@@ -62,6 +62,10 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     }
   }
 
+  // Use cityArea from confirmed_delivery_address for accurate delivery fee calculation
+  const confirmedAddress = currentPackage.confirmed_delivery_address as any;
+  const cityArea = confirmedAddress?.cityArea;
+
   // Generate quote using admin_assigned_tip as base price, with dynamic rates
   const normalizedQuote = createNormalizedQuote(
     adminAssignedTip,
@@ -69,7 +73,7 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     shopperProfile.trust_level,
     undefined, // No automatic message
     true, // adminAssignedTipAccepted
-    currentPackage.package_destination, // Pass destination for correct delivery fee
+    cityArea || currentPackage.package_destination, // Prioritize cityArea over package_destination
     rates // Pass dynamic rates from DB
   );
 
@@ -79,6 +83,7 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     serviceFee: normalizedQuote.serviceFee,
     expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? `${(rates?.prime ?? 0.20) * 100}%` : `${(rates?.standard ?? 0.40) * 100}%`,
     deliveryMethod: currentPackage.delivery_method,
+    cityArea: cityArea,
     destination: currentPackage.package_destination,
     totalPrice: normalizedQuote.totalPrice,
     usingDynamicRates: !!rates
