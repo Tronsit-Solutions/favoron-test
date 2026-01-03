@@ -34,8 +34,8 @@ interface PlatformFeesContextValue {
 
 // Fallback values from PRICING_CONFIG (used if DB fetch fails)
 const FALLBACK_FEES: PlatformFeesConfig = {
-  service_fee_rate_standard: PRICING_CONFIG.SERVICE_FEE_RATE_STANDARD, // 0.40
-  service_fee_rate_prime: PRICING_CONFIG.SERVICE_FEE_RATE_PRIME, // 0.20
+  service_fee_rate_standard: PRICING_CONFIG.SERVICE_FEE_RATE_STANDARD, // 0.50
+  service_fee_rate_prime: PRICING_CONFIG.SERVICE_FEE_RATE_PRIME, // 0.25
   delivery_fee_guatemala_city: PRICING_CONFIG.STANDARD_DELIVERY_FEE, // 25
   delivery_fee_outside_city: PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE, // 60
   prime_delivery_discount: PRICING_CONFIG.PRIME_DISCOUNT, // 25

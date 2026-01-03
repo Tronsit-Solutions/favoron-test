@@ -471,7 +471,7 @@ const AdminSupportTab = ({
           serviceFee: pkg.expectedServiceFee.toFixed(2),
           deliveryFee: pkg.expectedDeliveryFee.toFixed(2),
           totalPrice: pkg.newTotal.toFixed(2),
-          serviceFeeRate: 0.20,
+          serviceFeeRate: 0.25,
           manuallyEdited: true,
           primeRecalculatedAt: new Date().toISOString(),
           primeRecalculatedBy: user?.id || 'unknown',
