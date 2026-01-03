@@ -60,24 +60,27 @@ const QuoteEditModal = ({
   // Form state
   const [tip, setTip] = useState<string>(currentTip.toFixed(2));
   const [serviceFee, setServiceFee] = useState<string>(currentServiceFee.toFixed(2));
+  const [deliveryFee, setDeliveryFee] = useState<string>(currentDeliveryFee.toFixed(2));
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setTip(currentTip.toFixed(2));
       setServiceFee(currentServiceFee.toFixed(2));
+      setDeliveryFee(currentDeliveryFee.toFixed(2));
     }
-  }, [isOpen, currentTip, currentServiceFee]);
+  }, [isOpen, currentTip, currentServiceFee, currentDeliveryFee]);
 
   // Calculate expected service fee based on trust level (using DB rates)
   const tipValue = parseFloat(tip) || 0;
   const serviceFeeValue = parseFloat(serviceFee) || 0;
+  const deliveryFeeValue = parseFloat(deliveryFee) || 0;
   const expectedRate = getServiceFeeRate(trustLevel);
   const expectedServiceFee = tipValue * expectedRate;
   const isServiceFeeNonStandard = Math.abs(serviceFeeValue - expectedServiceFee) > 0.01;
 
   // Calculate total
-  const totalPrice = tipValue + serviceFeeValue + currentDeliveryFee;
+  const totalPrice = tipValue + serviceFeeValue + deliveryFeeValue;
 
   const handleSave = async () => {
     if (!user?.id) return;
@@ -86,7 +89,7 @@ const QuoteEditModal = ({
       packageId: packageData.id,
       newTip: tipValue,
       newServiceFee: serviceFeeValue,
-      currentDeliveryFee: currentDeliveryFee,
+      newDeliveryFee: deliveryFeeValue,
       tripId: packageData.matched_trip_id || null,
       travelerId: tripUserId || null,
       adminId: user.id,
@@ -244,12 +247,18 @@ const QuoteEditModal = ({
             )}
           </div>
 
-          {/* Delivery Fee (Read Only) */}
+          {/* Delivery Fee Input */}
           <div className="space-y-2">
-            <Label className="text-muted-foreground">Delivery Fee (solo lectura)</Label>
-            <div className="flex items-center h-10 px-3 bg-muted rounded-md border">
-              <span className="text-sm">Q{currentDeliveryFee.toFixed(2)}</span>
-            </div>
+            <Label htmlFor="deliveryFee">Delivery Fee (Q)</Label>
+            <Input
+              id="deliveryFee"
+              type="number"
+              step="0.01"
+              min="0"
+              value={deliveryFee}
+              onChange={(e) => setDeliveryFee(e.target.value)}
+              placeholder="0.00"
+            />
           </div>
 
           {/* Separator */}
@@ -263,7 +272,7 @@ const QuoteEditModal = ({
           </div>
 
           {/* Changes Summary */}
-          {(tipValue !== currentTip || serviceFeeValue !== currentServiceFee) && (
+          {(tipValue !== currentTip || serviceFeeValue !== currentServiceFee || deliveryFeeValue !== currentDeliveryFee) && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-xs">
               <p className="font-medium text-blue-800 mb-1">Cambios:</p>
               <ul className="text-blue-700 space-y-0.5">
@@ -272,6 +281,9 @@ const QuoteEditModal = ({
                 )}
                 {serviceFeeValue !== currentServiceFee && (
                   <li>• Service Fee: Q{currentServiceFee.toFixed(2)} → Q{serviceFeeValue.toFixed(2)}</li>
+                )}
+                {deliveryFeeValue !== currentDeliveryFee && (
+                  <li>• Delivery Fee: Q{currentDeliveryFee.toFixed(2)} → Q{deliveryFeeValue.toFixed(2)}</li>
                 )}
               </ul>
             </div>

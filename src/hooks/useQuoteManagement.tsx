@@ -7,7 +7,7 @@ interface QuoteUpdateParams {
   packageId: string;
   newTip: number;
   newServiceFee: number;
-  currentDeliveryFee: number;
+  newDeliveryFee: number;
   tripId: string | null;
   travelerId: string | null;
   adminId: string;
@@ -22,7 +22,7 @@ export const useQuoteManagement = () => {
     packageId,
     newTip,
     newServiceFee,
-    currentDeliveryFee,
+    newDeliveryFee,
     tripId,
     travelerId,
     adminId,
@@ -32,14 +32,14 @@ export const useQuoteManagement = () => {
 
     try {
       // Calculate new total
-      const newTotal = newTip + newServiceFee + currentDeliveryFee;
+      const newTotal = newTip + newServiceFee + newDeliveryFee;
 
       // Build updated quote object
       const updatedQuote = {
         ...previousQuote,
         price: newTip.toFixed(2),
         serviceFee: newServiceFee.toFixed(2),
-        deliveryFee: currentDeliveryFee.toFixed(2),
+        deliveryFee: newDeliveryFee.toFixed(2),
         totalPrice: newTotal.toFixed(2),
         manually_edited: true,
         edited_at: new Date().toISOString(),
@@ -56,6 +56,8 @@ export const useQuoteManagement = () => {
           new_tip: newTip.toFixed(2),
           previous_service_fee: previousQuote?.serviceFee || '0',
           new_service_fee: newServiceFee.toFixed(2),
+          previous_delivery_fee: previousQuote?.deliveryFee || '0',
+          new_delivery_fee: newDeliveryFee.toFixed(2),
           previous_total: previousQuote?.totalPrice || '0',
           new_total: newTotal.toFixed(2),
           reason: 'Manual quote adjustment by admin'
@@ -121,7 +123,7 @@ export const useQuoteManagement = () => {
 
       toast({
         title: "Cotización actualizada",
-        description: `Tip: Q${newTip.toFixed(2)}, Service Fee: Q${newServiceFee.toFixed(2)}, Total: Q${newTotal.toFixed(2)}`,
+        description: `Tip: Q${newTip.toFixed(2)}, Service Fee: Q${newServiceFee.toFixed(2)}, Delivery: Q${newDeliveryFee.toFixed(2)}, Total: Q${newTotal.toFixed(2)}`,
       });
 
       return { success: true };
