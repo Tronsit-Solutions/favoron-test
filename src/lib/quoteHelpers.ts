@@ -7,6 +7,9 @@ export interface NormalizedQuote {
   totalPrice: number;
   message?: string;
   adminAssignedTipAccepted?: boolean;
+  manually_edited?: boolean;
+  edited_at?: string;
+  edited_by?: string;
 }
 
 /**
@@ -114,22 +117,33 @@ export const normalizeQuote = (
     };
   }
 
+  // Check if quote was manually edited by admin
+  const wasManuallyEdited = quote.manually_edited === true;
+
   // Get the stored values (always numeric)
   const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
   const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
-  
-  // Recalculate deliveryFee based on cityArea to ensure correctness
-  const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, cityArea);
   const storedDeliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
   
-  // Use the correct delivery fee and log if there's a discrepancy
-  if (Math.abs(correctDeliveryFee - storedDeliveryFee) > 0.01) {
-    console.warn(`🔧 DeliveryFee corrected: Q${storedDeliveryFee} → Q${correctDeliveryFee} for cityArea: ${cityArea}`);
+  let deliveryFee: number;
+  
+  if (wasManuallyEdited) {
+    // Preserve manually edited delivery fee
+    deliveryFee = storedDeliveryFee;
+    console.log(`✅ Preserving manually edited deliveryFee: Q${deliveryFee}`);
+  } else {
+    // Recalculate deliveryFee based on cityArea to ensure correctness
+    const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, cityArea);
+    
+    // Use the correct delivery fee and log if there's a discrepancy
+    if (Math.abs(correctDeliveryFee - storedDeliveryFee) > 0.01) {
+      console.warn(`🔧 DeliveryFee corrected: Q${storedDeliveryFee} → Q${correctDeliveryFee} for cityArea: ${cityArea}`);
+    }
+    
+    deliveryFee = correctDeliveryFee;
   }
   
-  const deliveryFee = correctDeliveryFee;
-  
-  // Calculate totalPrice with corrected deliveryFee
+  // Calculate totalPrice
   const totalPrice = price + serviceFee + deliveryFee;
 
   return {
@@ -138,7 +152,11 @@ export const normalizeQuote = (
     deliveryFee,
     totalPrice,
     message: quote.message,
-    adminAssignedTipAccepted: quote.adminAssignedTipAccepted
+    adminAssignedTipAccepted: quote.adminAssignedTipAccepted,
+    // Preserve manual edit metadata
+    manually_edited: quote.manually_edited,
+    edited_at: quote.edited_at,
+    edited_by: quote.edited_by
   };
 };
 
@@ -191,6 +209,12 @@ export const shouldRecalculateQuote = (
   tolerance: number = 0.01
 ): boolean => {
   if (!quote) return false;
+
+  // NEVER recalculate quotes that were manually edited by admin
+  if (quote.manually_edited === true) {
+    console.log('✅ Quote was manually edited, skipping recalculation check');
+    return false;
+  }
 
   const normalized = normalizeQuote(quote, deliveryMethod, shopperTrustLevel, cityArea);
   const storedTotal = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
