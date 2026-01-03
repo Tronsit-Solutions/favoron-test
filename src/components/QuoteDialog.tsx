@@ -1018,9 +1018,9 @@ const QuoteDialog = ({
                       
                       {/* CARD 2: Cotización del Viajero - INDEPENDIENTE */}
                       {existingQuote && tripDates && localTripInfo && (
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mt-4">
+                        <div className="bg-white border border-slate-200 rounded-xl p-4 mt-4">
                           {/* Header con avatar, nombre y ruta */}
-                          <div className="flex items-center gap-3 pb-3 border-b border-slate-200 mb-3">
+                          <div className="flex items-center gap-3 mb-4">
                             <div className="h-11 w-11 rounded-full border-2 border-slate-200 bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold shrink-0">
                               {((localTripInfo as any)?.traveler_first_name?.charAt(0) || 'V').toUpperCase()}
                             </div>
@@ -1072,6 +1072,15 @@ const QuoteDialog = ({
                                   const packageDeliveryDate = addBusinessDays(new Date(tripDates.delivery_date), 2);
                                   return packageDeliveryDate.toLocaleDateString('es-GT');
                                 })()}
+                              </span>
+                            </div>
+                            
+                            {/* Ciudad de entrega */}
+                            <div className="flex items-center gap-2">
+                              <Home className="h-4 w-4 text-slate-400 shrink-0" />
+                              <span className="text-slate-600">Ciudad:</span>
+                              <span className="font-medium text-slate-800">
+                                {localTripInfo?.to_city || 'Guatemala'}
                               </span>
                             </div>
                             
@@ -1143,12 +1152,12 @@ const QuoteDialog = ({
                             const decimalPart = (total % 1).toFixed(2).slice(2);
                             
                             return (
-                              <div className="border-t border-slate-200 mt-3 pt-3 space-y-2">
-                                {/* Servicio Favorón - solo service_fee */}
+                              <div className="mt-4 pt-3 space-y-2">
+                                {/* Servicio Favorón - usa cálculo dinámico */}
                                 <div className="flex justify-between items-center text-sm">
                                   <span className="text-slate-600">Servicio Favorón:</span>
                                   <span className="font-medium text-slate-800">
-                                    {formatCurrency(Number(existingQuote?.service_fee || 0))}
+                                    {formatCurrency(isPrime ? primeServiceFee : standardServiceFee)}
                                   </span>
                                 </div>
                                 
@@ -1183,8 +1192,8 @@ const QuoteDialog = ({
                                   </div>
                                 )}
                                 
-                                {/* Separador + Total */}
-                                <div className="border-t border-slate-200 pt-2 mt-2">
+                                {/* Total */}
+                                <div className="pt-2 mt-2">
                                   <div className="flex justify-between items-center">
                                     <span className="text-slate-700 font-semibold text-sm">Total final:</span>
                                     <span className="text-xl font-bold text-primary">
