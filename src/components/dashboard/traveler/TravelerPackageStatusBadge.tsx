@@ -51,6 +51,21 @@ const TRAVELER_STATUS_MAP: Record<string, StatusConfig> = {
     bgColor: "bg-green-50",
     textColor: "text-green-600",
   },
+  payment_pending: {
+    emoji: "💰",
+    label: "Pendiente de pago",
+    description: "El shopper aceptó la cotización y está pendiente de realizar el pago.",
+    bgColor: "bg-amber-50",
+    textColor: "text-amber-600",
+    actionMessage: "Esperando que el shopper complete el pago.",
+  },
+  rejected: {
+    emoji: "❌",
+    label: "Rechazado",
+    description: "El viajero rechazó este paquete.",
+    bgColor: "bg-red-50",
+    textColor: "text-red-600",
+  },
   pending_purchase: {
     emoji: "💳",
     label: "Pago confirmado",
