@@ -1011,120 +1011,10 @@ const QuoteDialog = ({
                               )}
                             </div>
                             
-                            {/* Separator */}
-                            <div className={`border-t my-2 ${
-                              isCancelled ? "border-red-200" : isExcluded ? "border-gray-200" : "border-slate-200"
-                            }`} />
-                            
-                            {/* Subtotal in Quetzales */}
-                            <div className={`flex justify-between items-center ${isInactive ? "line-through" : ""}`}>
-                              <span className={`text-xs ${
-                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-slate-600"
-                              }`}>Servicio Favorón:</span>
-                              <span className={`font-semibold ${
-                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-slate-800"
-                              }`}>{isCancelled ? 'Q0.00' : formatCurrency(subtotal)}</span>
-                            </div>
                           </div>
                         );
                       })}
                       
-                      {/* Footer totals - Redesigned invoice with clear Prime savings */}
-                      {(() => {
-                        const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-                        const activeProducts = selectedProducts.filter(p => 
-                          !(p.excluded === true || p.excluded === 'true') && 
-                          !(p.cancelled === true || p.cancelled === 'true')
-                        );
-                        const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
-                        const isPrime = packageDetails.shopper_trust_level === 'prime';
-                        const isDelivery = packageDetails.delivery_method === 'delivery';
-                        const isGuatemala = isGuatemalaCityArea(cityArea);
-                        
-                        // Calculate service fees using dynamic rates from DB
-                        const standardServiceFee = totalTip * rates.standard;
-                        const primeServiceFee = totalTip * rates.prime;
-                        const actualServiceFee = isPrime ? primeServiceFee : standardServiceFee;
-                        const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
-                        
-                        // Calculate delivery fees
-                        const standardDeliveryFee = isGuatemala ? 25 : 60;
-                        const primeDeliveryFee = isGuatemala ? 0 : 35;
-                        const actualDeliveryFee = isDelivery ? (isPrime ? primeDeliveryFee : standardDeliveryFee) : 0;
-                        const deliverySavings = isDelivery && isPrime ? standardDeliveryFee - primeDeliveryFee : 0;
-                        
-                        const totalSavings = serviceFeeSavings + deliverySavings;
-                        const total = calculateSelectedProductsTotal();
-                        const wholePart = Math.floor(total);
-                        const decimalPart = (total % 1).toFixed(2).slice(2);
-                        
-                        return (
-                          <div className="bg-slate-50 rounded-xl p-4 mt-3 border border-slate-200">
-                            {/* Section 1: Desglose del pedido */}
-                            <h4 className="font-semibold text-slate-800 flex items-center gap-2 mb-3 text-sm">
-                              <Calculator className="w-4 h-4" />
-                              Desglose de tu pedido
-                            </h4>
-                            
-                            <div className="space-y-2">
-                              
-                              {/* Line 2: Delivery fee - show standard rate for Prime users, actual for non-Prime */}
-                              {isDelivery && (
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-slate-600 flex items-center gap-1">
-                                    <Truck className="w-3 h-3" /> Entrega a domicilio:
-                                  </span>
-                                  <span className="font-medium text-slate-800">
-                                    {isPrime ? formatCurrency(standardDeliveryFee) : (actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee))}
-                                  </span>
-                                </div>
-                              )}
-                              
-                              {/* Prime savings - separate lines showing the discounts that reduce the total */}
-                              {isPrime && serviceFeeSavings > 0 && (
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-amber-600 flex items-center gap-1">
-                                    <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Servicio):
-                                  </span>
-                                  <span className="text-amber-600 font-semibold">-{formatCurrency(serviceFeeSavings)}</span>
-                                </div>
-                              )}
-                              
-                              {isPrime && isDelivery && deliverySavings > 0 && (
-                                <div className="flex justify-between text-sm">
-                                  <span className="text-amber-600 flex items-center gap-1">
-                                    <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Entrega):
-                                  </span>
-                                  <span className="text-amber-600 font-semibold">-{formatCurrency(deliverySavings)}</span>
-                                </div>
-                              )}
-                              
-                              {/* Separator */}
-                              <div className="border-t border-slate-200 pt-2 mt-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-slate-700 font-semibold text-sm">Total final:</span>
-                                  <span className="text-xl font-bold text-primary">
-                                    Q{wholePart}<span className="text-base">.{decimalPart}</span>
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Prime savings summary badge */}
-                              {isPrime && totalSavings > 0 && (
-                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-300 rounded-lg p-2.5 mt-2">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <Crown className="w-4 h-4 text-amber-500" />
-                                    <span className="text-amber-800 font-bold text-xs">
-                                      ¡Ahorraste {formatCurrency(totalSavings)} con Prime!
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                            
-                          </div>
-                        );
-                      })()}
                       
                       {/* CARD 2: Cotización del Viajero - INDEPENDIENTE */}
                       {existingQuote && tripDates && localTripInfo && (
@@ -1224,15 +1114,99 @@ const QuoteDialog = ({
                             )}
                           </div>
                           
-                          {/* Precio del servicio - dentro del card para comparación futura */}
-                          <div className="border-t border-slate-200 mt-3 pt-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-slate-600 text-sm">Servicio Favorón:</span>
-                              <span className="font-semibold text-primary">
-                                {formatCurrency(Number(existingQuote?.service_fee || 0) + Number(existingQuote?.price || 0))}
-                              </span>
-                            </div>
-                          </div>
+                          {/* Sección de precios completa dentro del card del viajero */}
+                          {(() => {
+                            const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
+                            const activeProducts = selectedProducts.filter(p => 
+                              !(p.excluded === true || p.excluded === 'true') && 
+                              !(p.cancelled === true || p.cancelled === 'true')
+                            );
+                            const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
+                            const isPrime = packageDetails.shopper_trust_level === 'prime';
+                            const isDelivery = packageDetails.delivery_method === 'delivery';
+                            const isGuatemala = isGuatemalaCityArea(cityArea);
+                            
+                            // Calculate service fees using dynamic rates from DB
+                            const standardServiceFee = totalTip * rates.standard;
+                            const primeServiceFee = totalTip * rates.prime;
+                            const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
+                            
+                            // Calculate delivery fees
+                            const standardDeliveryFee = isGuatemala ? 25 : 60;
+                            const primeDeliveryFee = isGuatemala ? 0 : 35;
+                            const actualDeliveryFee = isDelivery ? (isPrime ? primeDeliveryFee : standardDeliveryFee) : 0;
+                            const deliverySavings = isDelivery && isPrime ? standardDeliveryFee - primeDeliveryFee : 0;
+                            
+                            const totalSavings = serviceFeeSavings + deliverySavings;
+                            const total = calculateSelectedProductsTotal();
+                            const wholePart = Math.floor(total);
+                            const decimalPart = (total % 1).toFixed(2).slice(2);
+                            
+                            return (
+                              <div className="border-t border-slate-200 mt-3 pt-3 space-y-2">
+                                {/* Servicio Favorón - solo service_fee */}
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="text-slate-600">Servicio Favorón:</span>
+                                  <span className="font-medium text-slate-800">
+                                    {formatCurrency(Number(existingQuote?.service_fee || 0))}
+                                  </span>
+                                </div>
+                                
+                                {/* Entrega a domicilio */}
+                                {isDelivery && (
+                                  <div className="flex justify-between items-center text-sm">
+                                    <span className="text-slate-600 flex items-center gap-1">
+                                      <Truck className="w-3 h-3" /> Entrega a domicilio:
+                                    </span>
+                                    <span className="font-medium text-slate-800">
+                                      {isPrime ? formatCurrency(standardDeliveryFee) : (actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee))}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Ahorros Prime */}
+                                {isPrime && serviceFeeSavings > 0 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-amber-600 flex items-center gap-1">
+                                      <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Servicio):
+                                    </span>
+                                    <span className="text-amber-600 font-semibold">-{formatCurrency(serviceFeeSavings)}</span>
+                                  </div>
+                                )}
+                                
+                                {isPrime && isDelivery && deliverySavings > 0 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-amber-600 flex items-center gap-1">
+                                      <Crown className="w-3.5 h-3.5" /> Ahorro Prime (Entrega):
+                                    </span>
+                                    <span className="text-amber-600 font-semibold">-{formatCurrency(deliverySavings)}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Separador + Total */}
+                                <div className="border-t border-slate-200 pt-2 mt-2">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-slate-700 font-semibold text-sm">Total final:</span>
+                                    <span className="text-xl font-bold text-primary">
+                                      Q{wholePart}<span className="text-base">.{decimalPart}</span>
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                {/* Badge Prime si hubo ahorros */}
+                                {isPrime && totalSavings > 0 && (
+                                  <div className="bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-300 rounded-lg p-2.5 mt-2">
+                                    <div className="flex items-center justify-center gap-2">
+                                      <Crown className="w-4 h-4 text-amber-500" />
+                                      <span className="text-amber-800 font-bold text-xs">
+                                        ¡Ahorraste {formatCurrency(totalSavings)} con Prime!
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                           
                           {/* Nota informativa */}
                           {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
