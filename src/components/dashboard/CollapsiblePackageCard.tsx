@@ -973,6 +973,7 @@ const CollapsiblePackageCard = ({
                             quote={pkg.quote as any} 
                             quoteExpiresAt={pkg.quote_expires_at} 
                             packageStatus={pkg.status}
+                            adminAssignedTip={pkg.admin_assigned_tip}
                             travelerInfo={{
                               firstName: (pkg as any).trips?.profiles?.first_name,
                               lastName: (pkg as any).trips?.profiles?.last_name,
