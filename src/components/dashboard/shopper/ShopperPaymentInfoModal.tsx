@@ -66,13 +66,29 @@ export default function ShopperPaymentInfoModal({
   // Use saved quote values instead of recalculating - respects manual admin edits
   const quoteValues = getQuoteValues(quote);
   
-  // Use finalTotalPrice if discount exists, otherwise use saved totalPrice
+  // Validate quote consistency with current rates (detect outdated service fees)
+  const userRate = profile?.trust_level === 'prime' ? rates.prime : rates.standard;
+  const expectedServiceFee = sumOfAdminTips * userRate;
+  const storedServiceFee = quoteValues.serviceFee;
+  const hasInconsistentQuote = sumOfAdminTips > 0 && Math.abs(expectedServiceFee - storedServiceFee) > 0.01;
+  
+  // If quote is inconsistent with current rates, use recalculated values
+  const correctedServiceFee = hasInconsistentQuote ? expectedServiceFee : storedServiceFee;
+  const correctedTotalPrice = hasInconsistentQuote 
+    ? (quoteValues.price + correctedServiceFee + quoteValues.deliveryFee)
+    : quoteValues.totalPrice;
+  
+  if (hasInconsistentQuote) {
+    console.warn(`⚠️ Quote inconsistency for ${currentPkg.id}: stored serviceFee=${storedServiceFee.toFixed(2)}, expected=${expectedServiceFee.toFixed(2)} (rate: ${(userRate * 100).toFixed(0)}%)`);
+  }
+  
+  // Use finalTotalPrice if discount exists, otherwise use corrected totalPrice
   const totalAmount = hasDiscount 
     ? quoteValues.finalTotalPrice 
-    : quoteValues.totalPrice;
+    : correctedTotalPrice;
   const originalAmount = hasDiscount 
-    ? (parseFloat(quote.originalTotalPrice) || quoteValues.totalPrice)
-    : quoteValues.totalPrice;
+    ? (parseFloat(quote.originalTotalPrice) || correctedTotalPrice)
+    : correctedTotalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
