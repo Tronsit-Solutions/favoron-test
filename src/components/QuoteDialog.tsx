@@ -1153,11 +1153,11 @@ const QuoteDialog = ({
                             
                             return (
                               <div className="mt-4 pt-3 space-y-2">
-                                {/* Servicio Favorón - usa cálculo dinámico */}
+                                {/* Favorón = tip + service fee */}
                                 <div className="flex justify-between items-center text-sm">
-                                  <span className="text-slate-600">Servicio Favorón:</span>
+                                  <span className="text-slate-600">Favorón:</span>
                                   <span className="font-medium text-slate-800">
-                                    {formatCurrency(isPrime ? primeServiceFee : standardServiceFee)}
+                                    {formatCurrency(totalTip + (isPrime ? primeServiceFee : standardServiceFee))}
                                   </span>
                                 </div>
                                 
