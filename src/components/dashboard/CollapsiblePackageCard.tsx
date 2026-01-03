@@ -350,7 +350,7 @@ const CollapsiblePackageCard = ({
                 </div>
                 
                 {/* Timer positioned below title for better mobile layout */}
-                {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && (
+                {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && (
                   <div className="-mt-1">
                     <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
                   </div>
