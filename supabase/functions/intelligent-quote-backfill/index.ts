@@ -64,8 +64,8 @@ serve(async (req) => {
     console.log('🚀 Starting intelligent quote backfill...')
 
     // Fetch platform fees from DB (with fallbacks)
-    let serviceFeeRatePrime = 0.20;
-    let serviceFeeRateStandard = 0.40;
+    let serviceFeeRatePrime = 0.25;
+    let serviceFeeRateStandard = 0.50;
     
     const { data: feesData, error: feesError } = await supabaseClient
       .from('favoron_company_information')
@@ -74,11 +74,11 @@ serve(async (req) => {
       .maybeSingle();
     
     if (!feesError && feesData) {
-      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.20;
-      serviceFeeRateStandard = feesData.service_fee_rate_standard ?? 0.40;
+      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.25;
+      serviceFeeRateStandard = feesData.service_fee_rate_standard ?? 0.50;
       console.log(`📊 Using DB rates: Prime=${serviceFeeRatePrime}, Standard=${serviceFeeRateStandard}`);
     } else {
-      console.log('⚠️ Using fallback rates: Prime=0.20, Standard=0.40');
+      console.log('⚠️ Using fallback rates: Prime=0.25, Standard=0.50');
     }
 
     // Step 1: Get Prime membership start dates for each user
