@@ -142,7 +142,7 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const isOpen = isModalOpen(modalId);
   
   // Load heavy fields on-demand when modal opens
-  const { details: heavyDetails, loading: loadingDetails } = usePackageDetails(isOpen ? pkgLight?.id : null);
+  const { details: heavyDetails, loading: loadingDetails, refetch: refetchPackageDetails } = usePackageDetails(isOpen ? pkgLight?.id : null);
   
   // Merge light and heavy data
   const pkg = pkgLight && heavyDetails ? { ...pkgLight, ...heavyDetails } : pkgLight;
@@ -2265,7 +2265,13 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
             package_destination: pkg.package_destination
           }}
           tripUserId={matchedTrip?.user_id}
-          onSuccess={() => window.location.reload()}
+          onSuccess={() => {
+            refetchPackageDetails();
+            toast({
+              title: "Cotización actualizada",
+              description: "Los datos se han refrescado correctamente"
+            });
+          }}
         />
       )}
     </Dialog>
