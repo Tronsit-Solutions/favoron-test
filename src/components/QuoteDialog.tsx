@@ -1018,9 +1018,9 @@ const QuoteDialog = ({
                             
                             {/* Subtotal in Quetzales */}
                             <div className={`flex justify-between items-center ${isInactive ? "line-through" : ""}`}>
-                              <span className={`text-xs ${
-                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-700"
-                              }`}>Subtotal a pagar:</span>
+<span className={`text-xs ${
+                                    isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-700"
+                                  }`}>Servicio Favorón:</span>
                               <span className={`font-semibold ${
                                 isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-800"
                               }`}>{isCancelled ? 'Q0.00' : formatCurrency(subtotal)}</span>
