@@ -58,19 +58,20 @@ serve(async (req) => {
 
     // Handle different event types - include Recurrente's payment_intent events
     if (eventType === 'payment.succeeded' || eventType === 'checkout.completed' || eventType === 'payment_intent.succeeded') {
-      // Payment successful - update package status
+      // Payment successful - update package status to pending_purchase (card payments are auto-approved)
       const { error: updateError } = await supabase
         .from('packages')
         .update({
           recurrente_payment_id: paymentId,
-          status: 'payment_pending_approval',
+          status: 'pending_purchase',
           payment_receipt: {
             method: 'card',
             provider: 'recurrente',
             checkout_id: checkoutId,
             payment_id: paymentId,
             paid_at: new Date().toISOString(),
-            auto_captured: true
+            auto_captured: true,
+            auto_approved: true
           },
           updated_at: new Date().toISOString()
         })
@@ -79,16 +80,16 @@ serve(async (req) => {
       if (updateError) {
         console.error('Failed to update package status:', updateError);
       } else {
-        console.log('Package status updated to payment_pending_approval');
+        console.log('Package status updated to pending_purchase (card payment auto-approved)');
         
-        // Notify admins about the payment
+        // Notify user about successful payment
         const { error: notifyError } = await supabase.rpc('create_notification', {
           _user_id: packageData.user_id,
-          _title: '💳 Pago con tarjeta recibido',
-          _message: `Tu pago con tarjeta para "${packageData.item_description}" ha sido procesado exitosamente. Nuestro equipo lo verificará pronto.`,
+          _title: '💳 Pago con tarjeta confirmado',
+          _message: `Tu pago con tarjeta para "${packageData.item_description}" ha sido confirmado. Procederemos con la compra de tu producto.`,
           _type: 'payment',
           _priority: 'high',
-          _metadata: { package_id: packageData.id, payment_method: 'card' }
+          _metadata: { package_id: packageData.id, payment_method: 'card', auto_approved: true }
         });
 
         if (notifyError) {
