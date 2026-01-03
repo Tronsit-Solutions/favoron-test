@@ -894,11 +894,34 @@ const QuoteDialog = ({
                 
                 {/* Show unified section for all products with existing quote */}
                 {existingQuote ? (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    {/* Traveler info header */}
+                    {localTripInfo && (
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-100 mb-4">
+                        <div className="h-10 w-10 rounded-full border-2 border-slate-200 bg-primary/10 flex items-center justify-center text-primary text-sm font-medium shrink-0">
+                          {((localTripInfo as any).traveler_first_name?.charAt(0) || '').toUpperCase()}
+                          {((localTripInfo as any).traveler_last_name?.charAt(0) || '').toUpperCase() || 'V'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-800 truncate text-sm">
+                            {(localTripInfo as any).traveler_first_name || 'Viajero'} {((localTripInfo as any).traveler_last_name?.charAt(0) || '')}.
+                          </p>
+                          <div className="flex items-center gap-1 text-xs text-slate-500">
+                            <Plane className="h-3 w-3" />
+                            <span>{localTripInfo.from_country || localTripInfo.from_city} → {localTripInfo.to_city}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Entrega: {formatDateUTC(localTripInfo.delivery_date)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center gap-2 mb-3">
-                      <Package className="h-5 w-5 text-green-700" />
-                      <p className="text-base font-semibold text-green-800">Tu Pedido</p>
-                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                      <Package className="h-5 w-5 text-slate-600" />
+                      <p className="text-base font-semibold text-slate-800">Tu Pedido</p>
+                      <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
                         {activeProductsCount} de {selectedProducts.length - cancelledProductsCount} producto{(selectedProducts.length - cancelledProductsCount) !== 1 ? 's' : ''}
                         {cancelledProductsCount > 0 && (
                           <span className="text-red-500 ml-1">({cancelledProductsCount} cancelado{cancelledProductsCount !== 1 ? 's' : ''})</span>
@@ -937,7 +960,7 @@ const QuoteDialog = ({
                                 ? "bg-red-50 border border-red-200 opacity-70"
                                 : isExcluded 
                                   ? "bg-gray-100 border border-gray-300 opacity-60" 
-                                  : "bg-white/90 border border-green-200"
+                                  : "bg-white border border-slate-200"
                             }`}
                           >
                             {/* "Cancelado" badge overlay for admin-cancelled products */}
@@ -962,7 +985,7 @@ const QuoteDialog = ({
                                     ? "bg-red-100 text-red-500"
                                     : isExcluded 
                                       ? "bg-gray-200 text-gray-500" 
-                                      : "bg-green-100 text-green-700"
+                                      : "bg-primary/10 text-primary"
                                 }`}>
                                   {index + 1}
                                 </span>
@@ -971,7 +994,7 @@ const QuoteDialog = ({
                                     ? "line-through text-red-500"
                                     : isExcluded 
                                       ? "line-through text-gray-500" 
-                                      : "text-green-800"
+                                      : "text-slate-800"
                                 }`}>
                                   {product.itemDescription || `Producto ${index + 1}`}
                                 </p>
@@ -1013,16 +1036,16 @@ const QuoteDialog = ({
                             
                             {/* Separator */}
                             <div className={`border-t my-2 ${
-                              isCancelled ? "border-red-200" : isExcluded ? "border-gray-200" : "border-green-200"
+                              isCancelled ? "border-red-200" : isExcluded ? "border-gray-200" : "border-slate-200"
                             }`} />
                             
                             {/* Subtotal in Quetzales */}
                             <div className={`flex justify-between items-center ${isInactive ? "line-through" : ""}`}>
-<span className={`text-xs ${
-                                    isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-700"
-                                  }`}>Servicio Favorón:</span>
+                              <span className={`text-xs ${
+                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-slate-600"
+                              }`}>Servicio Favorón:</span>
                               <span className={`font-semibold ${
-                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-green-800"
+                                isCancelled ? "text-red-400" : isExcluded ? "text-gray-400" : "text-slate-800"
                               }`}>{isCancelled ? 'Q0.00' : formatCurrency(subtotal)}</span>
                             </div>
                           </div>
@@ -1059,9 +1082,9 @@ const QuoteDialog = ({
                         const decimalPart = (total % 1).toFixed(2).slice(2);
                         
                         return (
-                          <div className="bg-gradient-to-br from-green-50 to-emerald-50/50 rounded-xl p-4 mt-3 border border-green-200/50">
+                          <div className="bg-slate-100/50 rounded-xl p-4 mt-3 border border-slate-200">
                             {/* Header */}
-                            <h4 className="font-semibold text-green-800 flex items-center gap-2 mb-4 text-sm">
+                            <h4 className="font-semibold text-slate-800 flex items-center gap-2 mb-4 text-sm">
                               <Calculator className="w-4 h-4" />
                               Desglose de tu pedido
                             </h4>
@@ -1069,17 +1092,17 @@ const QuoteDialog = ({
                             <div className="space-y-3">
                               {/* Line 1: Servicio Favorón - ALWAYS show standard rate (before Prime discount) */}
                               <div className="flex justify-between text-sm">
-                                <span className="text-green-700">Servicio Favorón:</span>
-                                <span className="font-medium text-green-800">{formatCurrency(totalTip + standardServiceFee)}</span>
+                                <span className="text-slate-600">Servicio Favorón:</span>
+                                <span className="font-medium text-slate-800">{formatCurrency(totalTip + standardServiceFee)}</span>
                               </div>
                               
                               {/* Line 2: Delivery fee - show standard rate for Prime users, actual for non-Prime */}
                               {isDelivery && (
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-green-700 flex items-center gap-1">
+                                  <span className="text-slate-600 flex items-center gap-1">
                                     <Truck className="w-3 h-3" /> Entrega a domicilio:
                                   </span>
-                                  <span className="font-medium text-green-800">
+                                  <span className="font-medium text-slate-800">
                                     {isPrime ? formatCurrency(standardDeliveryFee) : (actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee))}
                                   </span>
                                 </div>
@@ -1105,14 +1128,14 @@ const QuoteDialog = ({
                               )}
                               
                               {/* Separator */}
-                              <div className="border-t-2 border-green-300/50 my-3" />
+                              <div className="border-t-2 border-slate-300/50 my-3" />
                               
                               {/* Total */}
                               <div className="flex justify-between items-center">
-                                <span className="text-green-700 font-semibold flex items-center gap-1">
+                                <span className="text-slate-700 font-semibold flex items-center gap-1">
                                   ✅ Total final:
                                 </span>
-                                <span className="text-2xl font-bold text-green-600">
+                                <span className="text-2xl font-bold text-primary">
                                   Q{wholePart}<span className="text-base">.{decimalPart}</span>
                                 </span>
                               </div>
@@ -1147,10 +1170,10 @@ const QuoteDialog = ({
                       
                       
                       
-                      {/* Discount Code Section - Inside green container */}
+                      {/* Discount Code Section */}
                       {existingQuote && userType === 'user' && !isQuoteExpired && (
-                        <div className="bg-green-100/50 border border-green-300 rounded-lg p-3 mt-2">
-                          <Label className="text-sm font-semibold text-green-800 mb-2 block">
+                        <div className="bg-slate-100/50 border border-slate-300 rounded-lg p-3 mt-2">
+                          <Label className="text-sm font-semibold text-slate-800 mb-2 block">
                             💳 ¿Tienes un código de descuento?
                           </Label>
                           
@@ -1170,7 +1193,6 @@ const QuoteDialog = ({
                                 <Button 
                                   onClick={validateDiscountCode} 
                                   disabled={!discountCode.trim() || isValidatingCode}
-                                  className="bg-green-600 hover:bg-green-700"
                                 >
                                   {isValidatingCode ? 'Validando...' : 'Aplicar'}
                                 </Button>
@@ -1183,10 +1205,10 @@ const QuoteDialog = ({
                               )}
                             </>
                           ) : (
-                            <div className="mt-2 bg-white/80 rounded-lg p-3 border border-green-300">
+                            <div className="mt-2 bg-white/80 rounded-lg p-3 border border-slate-300">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1">
-                                  <p className="text-green-700 font-semibold text-sm flex items-center gap-2">
+                                  <p className="text-primary font-semibold text-sm flex items-center gap-2">
                                     ✅ Código aplicado: <span className="font-mono">{discountCode}</span>
                                   </p>
                                   <div className="mt-2 space-y-1">
@@ -1194,11 +1216,11 @@ const QuoteDialog = ({
                                       <span className="text-muted-foreground">Subtotal Favorón:</span>
                                       <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
                                     </div>
-                                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                                    <div className="flex justify-between text-sm text-primary font-medium">
                                       <span>Descuento:</span>
                                       <span>-{formatCurrency(discountAmount)}</span>
                                     </div>
-                                    <div className="flex justify-between text-sm font-medium text-green-700">
+                                    <div className="flex justify-between text-sm font-medium text-slate-700">
                                       <span>Subtotal con descuento:</span>
                                       <span>{formatCurrency(originalTotal - discountAmount)}</span>
                                     </div>
@@ -1220,24 +1242,24 @@ const QuoteDialog = ({
                       
                       {/* Final total after discount - clear breakdown with delivery */}
                       {discountSuccess && (
-                        <div className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-400 rounded-lg p-4 mt-3">
+                        <div className="bg-primary/5 border-2 border-primary/30 rounded-lg p-4 mt-3">
                           <div className="space-y-2">
-                            <div className="flex justify-between text-sm text-green-800">
+                            <div className="flex justify-between text-sm text-slate-700">
                               <span>Subtotal con descuento:</span>
                               <span>{formatCurrency(originalTotal - discountAmount)}</span>
                             </div>
                             {packageDetails.delivery_method === 'delivery' && (
-                              <div className="flex justify-between text-sm text-green-800">
+                              <div className="flex justify-between text-sm text-slate-700">
                                 <span>🚚 Entrega a domicilio:</span>
                                 <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea).deliveryFee)}</span>
                               </div>
                             )}
-                            <div className="flex justify-between items-center pt-2 border-t border-green-300">
-                              <span className="text-green-800 font-bold text-base flex items-center gap-2">
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-300">
+                              <span className="text-slate-800 font-bold text-base flex items-center gap-2">
+                                <CheckCircle2 className="w-5 h-5 text-primary" />
                                 Total a pagar:
                               </span>
-                              <span className="text-2xl font-bold text-green-700">
+                              <span className="text-2xl font-bold text-primary">
                                 {formatCurrency(finalTotal)}
                               </span>
                             </div>
