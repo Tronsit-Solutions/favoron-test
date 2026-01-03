@@ -1067,11 +1067,6 @@ const QuoteDialog = ({
                             </h4>
                             
                             <div className="space-y-2">
-                              {/* Line 1: Servicio Favorón - ALWAYS show standard rate (before Prime discount) */}
-                              <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Servicio Favorón:</span>
-                                <span className="font-medium text-slate-800">{formatCurrency(totalTip + standardServiceFee)}</span>
-                              </div>
                               
                               {/* Line 2: Delivery fee - show standard rate for Prime users, actual for non-Prime */}
                               {isDelivery && (
@@ -1227,6 +1222,16 @@ const QuoteDialog = ({
                                 )}
                               </>
                             )}
+                          </div>
+                          
+                          {/* Precio del servicio - dentro del card para comparación futura */}
+                          <div className="border-t border-slate-200 mt-3 pt-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-600 text-sm">Servicio Favorón:</span>
+                              <span className="font-semibold text-primary">
+                                {formatCurrency(Number(existingQuote?.service_fee || 0) + Number(existingQuote?.price || 0))}
+                              </span>
+                            </div>
                           </div>
                           
                           {/* Nota informativa */}
