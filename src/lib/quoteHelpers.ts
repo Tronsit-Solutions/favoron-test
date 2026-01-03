@@ -96,17 +96,20 @@ export const getFavoronTotal = (quote: any): number => {
 /**
  * Normalize a quote object to ensure consistent numeric values
  * Recalculates deliveryFee based on cityArea to fix any incorrect values
+ * Validates serviceFee against current rates if provided
  * 
  * @param quote - the quote object to normalize
  * @param deliveryMethod - 'pickup' or 'delivery'
  * @param shopperTrustLevel - the shopper's trust level
  * @param cityArea - the cityArea from confirmed_delivery_address (e.g., 'Guatemala', 'Mixco')
+ * @param rates - optional dynamic rates from DB (standard/prime) for validation
  */
 export const normalizeQuote = (
   quote: any,
   deliveryMethod: string = 'pickup',
   shopperTrustLevel?: string,
-  cityArea?: string
+  cityArea?: string,
+  rates?: { standard: number; prime: number }
 ): NormalizedQuote => {
   if (!quote) {
     return {
@@ -122,15 +125,16 @@ export const normalizeQuote = (
 
   // Get the stored values (always numeric)
   const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
-  const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
+  const storedServiceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
   const storedDeliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
   
+  let serviceFee = storedServiceFee;
   let deliveryFee: number;
   
   if (wasManuallyEdited) {
-    // Preserve manually edited delivery fee
+    // Preserve manually edited values
     deliveryFee = storedDeliveryFee;
-    console.log(`✅ Preserving manually edited deliveryFee: Q${deliveryFee}`);
+    console.log(`✅ Preserving manually edited quote values: serviceFee=Q${serviceFee}, deliveryFee=Q${deliveryFee}`);
   } else {
     // Recalculate deliveryFee based on cityArea to ensure correctness
     const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, cityArea);
@@ -141,6 +145,17 @@ export const normalizeQuote = (
     }
     
     deliveryFee = correctDeliveryFee;
+    
+    // Validate serviceFee against current rates if provided
+    if (rates && price > 0) {
+      const applicableRate = shopperTrustLevel === 'prime' ? rates.prime : rates.standard;
+      const expectedServiceFee = price * applicableRate;
+      
+      if (Math.abs(expectedServiceFee - storedServiceFee) > 0.01) {
+        console.warn(`🔧 ServiceFee corrected: Q${storedServiceFee.toFixed(2)} → Q${expectedServiceFee.toFixed(2)} (rate: ${(applicableRate * 100).toFixed(0)}%)`);
+        serviceFee = expectedServiceFee;
+      }
+    }
   }
   
   // Calculate totalPrice

@@ -9,7 +9,7 @@ export type Package = Tables<'packages'>;
 export type PackageInsert = TablesInsert<'packages'>;
 export type PackageUpdate = TablesUpdate<'packages'>;
 
-export const useOptimizedPackagesData = (userId?: string) => {
+export const useOptimizedPackagesData = (userId?: string, rates?: { standard: number; prime: number }) => {
   const { toast } = useToast();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
@@ -279,7 +279,7 @@ export const useOptimizedPackagesData = (userId?: string) => {
             });
             
             // Normalize the quote to ensure consistency (with corrected deliveryFee)
-            updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination) as any;
+            updates.quote = normalizeQuote(updates.quote, deliveryMethod, shopperTrustLevel, destination, rates) as any;
             console.log('🔧 Quote normalized:', updates.quote);
           }
         }
