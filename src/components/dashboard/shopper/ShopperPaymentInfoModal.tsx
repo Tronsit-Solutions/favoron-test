@@ -63,11 +63,15 @@ export default function ShopperPaymentInfoModal({
     return sum + tip;
   }, 0);
   
+  // Use cityArea from confirmed_delivery_address for accurate delivery fee calculation
+  const confirmedAddress = currentPkg.confirmed_delivery_address as any;
+  const cityArea = confirmedAddress?.cityArea;
+  
   const breakdown = getPriceBreakdown(
     sumOfAdminTips,
     currentPkg.delivery_method || 'pickup', 
     profile?.trust_level,
-    currentPkg.package_destination,
+    cityArea || currentPkg.package_destination, // Prioritize cityArea over package_destination
     rates
   );
   
