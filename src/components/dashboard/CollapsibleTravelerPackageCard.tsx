@@ -409,9 +409,34 @@ const CollapsibleTravelerPackageCard = ({
                            )}
                          </div>
                        )}
+                      {pkg.status === 'payment_pending' && (
+                        <div className="space-y-2">
+                          <div className="font-medium text-amber-600">
+                            💰 Pendiente de pago - El shopper aceptó la cotización
+                          </div>
+                          {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                            <div className="flex flex-col gap-2">
+                              <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                              <p className="text-xs text-amber-600">
+                                ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {pkg.status === 'quote_accepted' && (
-                        <div className="font-medium text-green-600">
-                          ✅ Cotización aceptada - Esperando pago
+                        <div className="space-y-2">
+                          <div className="font-medium text-green-600">
+                            ✅ Cotización aceptada - Esperando pago del shopper
+                          </div>
+                          {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                            <div className="flex flex-col gap-2">
+                              <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                              <p className="text-xs text-amber-600">
+                                ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                       {pkg.status === 'pending_purchase' && (
