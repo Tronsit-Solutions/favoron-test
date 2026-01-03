@@ -100,20 +100,28 @@ export function ReceiptViewerModal({
 
   // Load PDF as blob when modal opens
   useEffect(() => {
-    if (isOpen && isPDF && !pdfBlobUrl) {
+    if (isOpen && isPDF) {
       loadPdfAsBlob();
     }
-    return () => {
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl);
-        setPdfBlobUrl(null);
-      }
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isPDF, receiptUrl]);
 
+  // Separate cleanup effect - only revoke when modal closes
+  useEffect(() => {
+    if (!isOpen && pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
+  }, [isOpen, pdfBlobUrl]);
+
   const loadPdfAsBlob = async () => {
     if (!receiptUrl) return;
+
+    // Clean up any existing blob URL before creating a new one
+    if (pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+      setPdfBlobUrl(null);
+    }
 
     setLoadingPdf(true);
     try {
@@ -130,30 +138,44 @@ export function ReceiptViewerModal({
         const bucket = pathParts[bucketIndex];
         const filePath = pathParts.slice(bucketIndex + 1).join('/');
         
+        console.log('📁 Descargando PDF desde bucket:', bucket, 'path:', filePath);
+        
         const { data, error } = await supabase.storage
           .from(bucket)
           .download(filePath);
 
         if (!error && data) {
-          const url = URL.createObjectURL(data);
+          // Ensure correct MIME type for PDF
+          const pdfBlob = data.type === 'application/pdf' 
+            ? data 
+            : new Blob([data], { type: 'application/pdf' });
+          const url = URL.createObjectURL(pdfBlob);
           setPdfBlobUrl(url);
-          console.log('PDF blob URL created from bucket:', bucket);
+          console.log('✅ PDF blob URL created from bucket:', bucket);
           return;
+        } else {
+          console.error('❌ Error descargando PDF:', error);
         }
       }
       
       // Fallback: try payment-receipts bucket with full path
+      console.log('🔄 Intentando fallback payment-receipts con path:', receiptUrl);
       const { data, error } = await supabase.storage
         .from('payment-receipts')
         .download(receiptUrl);
 
       if (!error && data) {
-        const url = URL.createObjectURL(data);
+        const pdfBlob = data.type === 'application/pdf' 
+          ? data 
+          : new Blob([data], { type: 'application/pdf' });
+        const url = URL.createObjectURL(pdfBlob);
         setPdfBlobUrl(url);
-        console.log('PDF blob URL created from payment-receipts fallback');
+        console.log('✅ PDF blob URL created from payment-receipts fallback');
+      } else {
+        console.error('❌ Fallback también falló:', error);
       }
     } catch (error) {
-      console.error('Error loading PDF as blob:', error);
+      console.error('❌ Error loading PDF as blob:', error);
     } finally {
       setLoadingPdf(false);
     }
