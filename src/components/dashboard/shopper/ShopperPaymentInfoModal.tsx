@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Copy, CreditCard, CheckCircle, X, Tag, Clock } from "lucide-react";
+import { Copy, CreditCard, CheckCircle, X, Tag, Clock, ArrowLeft, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,7 @@ export default function ShopperPaymentInfoModal({
   const [discountCode, setDiscountCode] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
+  const [currentStep, setCurrentStep] = useState<'payment-selection' | 'card-checkout'>('payment-selection');
   
   // Get dynamic rates from context
   const rates = useMemo(() => ({
@@ -288,6 +289,70 @@ export default function ShopperPaymentInfoModal({
           if (closeLocked) e.preventDefault();
         }}
       >
+        {/* Card Checkout Step - Full modal takeover */}
+        {currentStep === 'card-checkout' ? (
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setCurrentStep('payment-selection')} 
+                className="gap-2 -ml-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Regresar
+              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Shield className="h-4 w-4 text-primary" />
+                <span>Pago seguro</span>
+              </div>
+            </div>
+
+            {/* Amount reminder */}
+            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-primary/10">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Pago con Tarjeta</p>
+                  <p className="text-sm text-muted-foreground">
+                    {activeProducts.length} producto{activeProducts.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              <span className="text-2xl font-bold text-primary">Q{totalAmount.toFixed(2)}</span>
+            </div>
+
+            {/* Recurrente Checkout */}
+            <RecurrenteCheckout
+              pkg={currentPkg}
+              amount={totalAmount}
+              isEmbedded={true}
+              onBack={() => setCurrentStep('payment-selection')}
+              onSuccess={() => {
+                handleUploadComplete({
+                  ...currentPkg,
+                  status: 'payment_pending_approval',
+                  payment_method: 'card'
+                } as any);
+              }}
+              onCancel={() => {
+                setCurrentStep('payment-selection');
+                setPaymentMethod('bank_transfer');
+              }}
+              onError={(error) => {
+                toast({
+                  title: 'Error en el pago',
+                  description: error,
+                  variant: 'destructive'
+                });
+              }}
+            />
+          </div>
+        ) : (
+        <>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
@@ -541,29 +606,40 @@ export default function ShopperPaymentInfoModal({
               </Card>
             </>
           ) : (
-            /* Card Payment via Recurrente */
-            <RecurrenteCheckout
-              pkg={currentPkg}
-              amount={totalAmount}
-              onSuccess={() => {
-                // Refresh package data after successful payment
-                handleUploadComplete({
-                  ...currentPkg,
-                  status: 'payment_pending_approval',
-                  payment_method: 'card'
-                } as any);
-              }}
-              onCancel={() => {
-                setPaymentMethod('bank_transfer');
-              }}
-              onError={(error) => {
-                toast({
-                  title: 'Error en el pago',
-                  description: error,
-                  variant: 'destructive'
-                });
-              }}
-            />
+            /* Card Payment - Show button to go to checkout step */
+            <div className="p-4 border border-primary/20 bg-primary/5 rounded-lg space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-primary/10">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Pago con Tarjeta</p>
+                  <p className="text-sm text-muted-foreground">
+                    Continúa para ingresar los datos de tu tarjeta de forma segura
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-card rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Monto a pagar:</span>
+                  <span className="text-lg font-bold text-primary">Q{totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => setCurrentStep('card-checkout')}
+                className="w-full"
+                size="lg"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Pagar Q{totalAmount.toFixed(2)} con tarjeta
+              </Button>
+
+              <p className="text-xs text-center text-muted-foreground">
+                🔒 Pago procesado de forma segura por Recurrente
+              </p>
+            </div>
           )}
 
           {/* Partial Delivery Information */}
@@ -585,6 +661,8 @@ export default function ShopperPaymentInfoModal({
             </div>
           )}
         </div>
+        )}
+        </>
         )}
       </DialogContent>
     </Dialog>
