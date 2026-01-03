@@ -1,10 +1,12 @@
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
-import { getQuoteValues, getFavoronTotal } from "@/lib/quoteHelpers";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plane, Calendar, User } from "lucide-react";
+import { Plane, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TravelerInfo {
   firstName?: string;
@@ -29,6 +31,7 @@ interface PackageQuoteInfoProps {
   packageStatus?: string;
   travelerInfo?: TravelerInfo;
   tripInfo?: TripInfo;
+  adminAssignedTip?: number;
 }
 
 const getInitials = (firstName?: string, lastName?: string) => {
@@ -48,8 +51,7 @@ const formatDate = (dateString?: string) => {
 
 /**
  * Displays quote information to the shopper with traveler info.
- * Uses saved quote values from the database - NO recalculation.
- * When admin edits a quote, this component will show the updated values.
+ * Validates serviceFee against current rates and corrects display if needed.
  */
 const PackageQuoteInfo = ({
   quote,
@@ -57,18 +59,39 @@ const PackageQuoteInfo = ({
   onQuoteExpire,
   packageStatus,
   travelerInfo,
-  tripInfo
+  tripInfo,
+  adminAssignedTip
 }: PackageQuoteInfoProps) => {
+  const { rates } = usePlatformFeesContext();
+  const { profile } = useAuth();
+  
   if (!quote) return null;
   
   // Use centralized function to read saved quote values
   const quoteValues = getQuoteValues(quote);
   
-  // Favorón total = price (traveler tip) + serviceFee
-  const favoronTotal = getFavoronTotal(quote);
+  // Validate serviceFee against current rates
+  const tipValue = adminAssignedTip || quoteValues.price;
+  const expectedServiceFee = tipValue * (profile?.trust_level === 'prime' ? rates.prime : rates.standard);
+  const hasInconsistentQuote = Math.abs(expectedServiceFee - quoteValues.serviceFee) > 0.01 && tipValue > 0;
   
-  // Display total is what the shopper pays (after any discount)
-  const displayTotal = quoteValues.finalTotalPrice;
+  // Use corrected values if discrepancy found
+  const correctedServiceFee = hasInconsistentQuote ? expectedServiceFee : quoteValues.serviceFee;
+  const correctedTotalPrice = hasInconsistentQuote 
+    ? (quoteValues.price + correctedServiceFee + quoteValues.deliveryFee)
+    : quoteValues.totalPrice;
+  
+  // Favorón total = price (traveler tip) + corrected serviceFee
+  const favoronTotal = quoteValues.price + correctedServiceFee;
+  
+  // Display total (after any discount correction)
+  const displayTotal = hasInconsistentQuote 
+    ? (correctedTotalPrice - quoteValues.discountAmount)
+    : quoteValues.finalTotalPrice;
+  
+  if (hasInconsistentQuote) {
+    console.warn(`⚠️ PackageQuoteInfo correction: stored serviceFee=${quoteValues.serviceFee}, expected=${expectedServiceFee}`);
+  }
   
   // Only show countdown for states where quote is still pending acceptance/payment
   const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);
