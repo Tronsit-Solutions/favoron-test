@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOptimizedPackagesData } from './useOptimizedPackagesData';
 import { useOptimizedTripsData } from './useOptimizedTripsData';
 import { useAdminData } from './useAdminData';
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import type { Package } from "@/types";
 import { useSearchParams } from "react-router-dom";
 
@@ -10,6 +11,7 @@ export type ViewMode = 'user' | 'admin' | 'operations';
 
 export const useDashboardState = (user: any) => {
   const [currentUser, setCurrentUser] = useState(user);
+  const { rates } = usePlatformFeesContext();
   
   // Stable userId reference to prevent unnecessary refetches on tab switch
   const stableUserId = useMemo(() => user?.id, [user?.id]);
@@ -126,7 +128,7 @@ export const useDashboardState = (user: any) => {
   
   // Only fetch regular packages data if NOT on admin tab - prevents unnecessary queries and error toasts
   // Use stable userId reference to prevent refetches when user object reference changes
-  const regularPackagesData = useOptimizedPackagesData(shouldUseAdminData ? undefined : userIdRef.current);
+  const regularPackagesData = useOptimizedPackagesData(shouldUseAdminData ? undefined : userIdRef.current, rates);
   const regularTripsData = useOptimizedTripsData();
   
   const {
