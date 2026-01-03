@@ -46,7 +46,8 @@ export const usePackagesData = () => {
               last_name,
               username,
               email,
-              phone_number
+              phone_number,
+              avatar_url
             )
           )
         `)

@@ -973,6 +973,16 @@ const CollapsiblePackageCard = ({
                             quote={pkg.quote as any} 
                             quoteExpiresAt={pkg.quote_expires_at} 
                             packageStatus={pkg.status}
+                            travelerInfo={{
+                              firstName: (pkg as any).trips?.profiles?.first_name,
+                              lastName: (pkg as any).trips?.profiles?.last_name,
+                              avatarUrl: (pkg as any).trips?.profiles?.avatar_url,
+                            }}
+                            tripInfo={{
+                              fromCity: (pkg as any).trips?.from_city,
+                              toCity: (pkg as any).trips?.to_city,
+                              deliveryDate: (pkg as any).trips?.delivery_date,
+                            }}
                           />
                         </div>
                       </CollapsibleContent>
