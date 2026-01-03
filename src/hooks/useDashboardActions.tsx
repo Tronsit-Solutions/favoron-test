@@ -1,7 +1,8 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRef } from 'react';
-import { normalizeQuote, shouldRecalculateQuote } from '@/lib/quoteHelpers';
+import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@/lib/quoteHelpers';
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 
 export const useDashboardActions = (
   packages: any[],
@@ -26,6 +27,7 @@ export const useDashboardActions = (
   refreshTrips?: () => Promise<void>
 ) => {
   const { toast } = useToast();
+  const { rates } = usePlatformFeesContext();
   const tripSubmitInProgressRef = useRef<boolean>(false);
 
   const handlePackageSubmit = async (packageData: any) => {
@@ -1153,7 +1155,8 @@ export const useDashboardActions = (
               shopperProfile.trust_level,
               `Cotización generada automáticamente por admin`,
               true, // adminAssignedTipAccepted
-              currentPackage.package_destination
+              currentPackage.package_destination,
+              rates
             );
 
             // Update package with quote, address, and dates

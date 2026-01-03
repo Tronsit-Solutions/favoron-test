@@ -473,7 +473,8 @@ const QuoteDialog = ({
           packageDetails.shopper_trust_level,
           existingQuote.message,
           true,
-          packageDetails.package_destination
+          packageDetails.package_destination,
+          rates
         );
         submitData.recalculatedQuote = recalculatedQuote;
         
@@ -499,7 +500,8 @@ const QuoteDialog = ({
         packageDetails.shopper_trust_level,
         message || '',
         true,
-        packageDetails.package_destination
+        packageDetails.package_destination,
+        rates
       );
       
       clearPersistedState(); // Clear form data on successful submission
@@ -514,7 +516,8 @@ const QuoteDialog = ({
         shopperTrustLevel,
         message,
         undefined,
-        packageDetails.package_destination
+        packageDetails.package_destination,
+        rates
       );
       
       // Logging for verification
