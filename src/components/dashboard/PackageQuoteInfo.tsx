@@ -1,9 +1,7 @@
 import StatusAlert from "@/components/ui/status-alert";
 import QuoteCountdown from "./QuoteCountdown";
 import { formatCurrency } from "@/lib/formatters";
-import { calculateServiceFee, getDeliveryFee } from "@/lib/pricing";
-import { useAuth } from "@/hooks/useAuth";
-import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { getQuoteValues, getFavoronTotal } from "@/lib/quoteHelpers";
 
 interface PackageQuoteInfoProps {
   quote: {
@@ -13,55 +11,30 @@ interface PackageQuoteInfoProps {
   } | null;
   quoteExpiresAt?: string | Date | null;
   onQuoteExpire?: () => void;
-  deliveryMethod?: string;
-  shopperTrustLevel?: string;
-  adminTipAmount?: number;
   packageStatus?: string;
-  /** @deprecated Use cityArea instead */
-  packageDestination?: string;
-  /** cityArea from confirmed_delivery_address - used for delivery fee calculation */
-  cityArea?: string;
-  productsData?: any[];
 }
+
+/**
+ * Displays quote information to the shopper.
+ * Uses saved quote values from the database - NO recalculation.
+ * When admin edits a quote, this component will show the updated values.
+ */
 const PackageQuoteInfo = ({
   quote,
   quoteExpiresAt,
   onQuoteExpire,
-  deliveryMethod = 'pickup',
-  shopperTrustLevel,
-  adminTipAmount,
-  packageStatus,
-  packageDestination,
-  cityArea,
-  productsData
+  packageStatus
 }: PackageQuoteInfoProps) => {
   if (!quote) return null;
   
-  const { profile } = useAuth();
-  const { fees, getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
-  const effectiveTrust = shopperTrustLevel ?? profile?.trust_level;
+  // Use centralized function to read saved quote values
+  const quoteValues = getQuoteValues(quote);
   
-  // Get dynamic rates from context
-  const rates = {
-    standard: fees?.service_fee_rate_standard ?? 0.40,
-    prime: fees?.service_fee_rate_prime ?? 0.20
-  };
+  // Favorón total = price (traveler tip) + serviceFee
+  const favoronTotal = getFavoronTotal(quote);
   
-  // Calculate base from products_data admin tips
-  const products = productsData || [];
-  const sumOfAdminTips = products.reduce((sum, product) => {
-    const raw = product?.adminAssignedTip;
-    const tip = typeof raw === 'string' ? parseFloat(raw) : Number(raw || 0);
-    return sum + (Number.isFinite(tip) ? tip : 0);
-  }, 0);
-  
-  // Recalculate fees correctly based on trust level and delivery method
-  // Use cityArea for delivery fee calculation (fall back to packageDestination for backwards compat)
-  const serviceFee = calculateServiceFee(sumOfAdminTips, effectiveTrust, rates);
-  const contextDeliveryFee = getContextDeliveryFee(deliveryMethod, effectiveTrust, cityArea || packageDestination);
-  
-  const favoronTotal = sumOfAdminTips + serviceFee;
-  const displayTotal = sumOfAdminTips + serviceFee + contextDeliveryFee;
+  // Display total is what the shopper pays (after any discount)
+  const displayTotal = quoteValues.finalTotalPrice;
   
   // Only show countdown for states where quote is still pending acceptance/payment
   const shouldShowCountdown = packageStatus && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(packageStatus);
@@ -74,10 +47,16 @@ const PackageQuoteInfo = ({
             <span>Favorón:</span>
             <span className="font-medium">{formatCurrency(favoronTotal)}</span>
           </div>
-          {contextDeliveryFee > 0 && (
+          {quoteValues.deliveryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span>Envío a domicilio:</span>
-              <span className="font-medium">{formatCurrency(contextDeliveryFee)}</span>
+              <span className="font-medium">{formatCurrency(quoteValues.deliveryFee)}</span>
+            </div>
+          )}
+          {quoteValues.discountAmount > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Descuento{quoteValues.discountCode ? ` (${quoteValues.discountCode})` : ''}:</span>
+              <span className="font-medium">-{formatCurrency(quoteValues.discountAmount)}</span>
             </div>
           )}
           <div className="flex justify-between text-sm font-semibold pt-1 border-t border-gray-200">
@@ -85,8 +64,8 @@ const PackageQuoteInfo = ({
             <span>{formatCurrency(displayTotal)}</span>
           </div>
         </div>
-        {quote.message && (
-          <p className="text-sm text-muted-foreground">Mensaje del viajero: "{quote.message}"</p>
+        {quoteValues.message && (
+          <p className="text-sm text-muted-foreground">Mensaje del viajero: "{quoteValues.message}"</p>
         )}
         {quoteExpiresAt && shouldShowCountdown && (
           <QuoteCountdown 

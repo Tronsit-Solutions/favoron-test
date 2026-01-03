@@ -8,6 +8,7 @@ import { Eye, Package as PackageIcon, Calendar, Download } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { format } from "date-fns";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
+import { getQuoteValues } from '@/lib/quoteHelpers';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProductDetailModal from "./ProductDetailModal";
@@ -225,27 +226,18 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 
-      // Use financial values from the saved quote in database (what client actually paid)
-      // Only fallback to recalculation if quote doesn't have these values
-      const travelerTip = parseFloat(quote?.price || '0');
+      // Use centralized getQuoteValues for consistent reading across the app
+      const quoteValues = getQuoteValues(quote);
       
-      // Get cityArea for fallback calculation only
-      const confirmedAddress = pkg.confirmed_delivery_address as any;
-      const cityArea = confirmedAddress?.cityArea;
+      // Traveler tip is the base price
+      const travelerTip = quoteValues.price;
       
       // Use saved quote values - these represent what was actually charged
-      const serviceFee = quote?.serviceFee !== undefined 
-        ? parseFloat(quote.serviceFee) 
-        : calculateServiceFee(travelerTip, shopperTrustLevel);
+      const serviceFee = quoteValues.serviceFee;
+      const deliveryFee = quoteValues.deliveryFee;
       
-      const deliveryFee = quote?.deliveryFee !== undefined 
-        ? parseFloat(quote.deliveryFee) 
-        : getDeliveryFee(pkg.delivery_method, shopperTrustLevel, cityArea);
-      
-      // Use saved totalPrice - this is what the client actually paid
-      const totalToPay = quote?.totalPrice !== undefined 
-        ? parseFloat(quote.totalPrice) 
-        : (serviceFee + travelerTip + deliveryFee);
+      // Total is what the client actually paid (after discount)
+      const totalToPay = quoteValues.finalTotalPrice;
       
       // Favoron revenue is the service fee
       const favoronRevenue = serviceFee;
@@ -253,8 +245,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Messenger payment = delivery fee (what we pay to messenger)
       const messengerPayment = deliveryFee;
 
-      // Extract discount amount from quote
-      const discountAmount = parseFloat(quote?.discountAmount || '0');
+      // Discount from quote
+      const discountAmount = quoteValues.discountAmount;
 
       return {
         package: pkg,
