@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     );
 
     // Fetch platform fees from DB (with fallbacks)
-    let serviceFeeRatePrime = 0.20;
+    let serviceFeeRatePrime = 0.25;
     
     const { data: feesData, error: feesError } = await supabase
       .from('favoron_company_information')
@@ -29,10 +29,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
     
     if (!feesError && feesData) {
-      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.20;
+      serviceFeeRatePrime = feesData.service_fee_rate_prime ?? 0.25;
       console.log(`📊 Using DB Prime rate: ${serviceFeeRatePrime}`);
     } else {
-      console.log('⚠️ Using fallback Prime rate: 0.20');
+      console.log('⚠️ Using fallback Prime rate: 0.25');
     }
 
     // Get Prime memberships with approval dates
