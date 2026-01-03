@@ -1082,14 +1082,14 @@ const QuoteDialog = ({
                         const decimalPart = (total % 1).toFixed(2).slice(2);
                         
                         return (
-                          <div className="bg-slate-100/50 rounded-xl p-4 mt-3 border border-slate-200">
-                            {/* Header */}
-                            <h4 className="font-semibold text-slate-800 flex items-center gap-2 mb-4 text-sm">
+                          <div className="bg-slate-50 rounded-xl p-4 mt-3 border border-slate-200">
+                            {/* Section 1: Desglose del pedido */}
+                            <h4 className="font-semibold text-slate-800 flex items-center gap-2 mb-3 text-sm">
                               <Calculator className="w-4 h-4" />
                               Desglose de tu pedido
                             </h4>
                             
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {/* Line 1: Servicio Favorón - ALWAYS show standard rate (before Prime discount) */}
                               <div className="flex justify-between text-sm">
                                 <span className="text-slate-600">Servicio Favorón:</span>
@@ -1128,42 +1128,133 @@ const QuoteDialog = ({
                               )}
                               
                               {/* Separator */}
-                              <div className="border-t-2 border-slate-300/50 my-3" />
-                              
-                              {/* Total */}
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-700 font-semibold flex items-center gap-1">
-                                  ✅ Total final:
-                                </span>
-                                <span className="text-2xl font-bold text-primary">
-                                  Q{wholePart}<span className="text-base">.{decimalPart}</span>
-                                </span>
+                              <div className="border-t border-slate-200 pt-2 mt-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-slate-700 font-semibold text-sm">Total final:</span>
+                                  <span className="text-xl font-bold text-primary">
+                                    Q{wholePart}<span className="text-base">.{decimalPart}</span>
+                                  </span>
+                                </div>
                               </div>
                               
                               {/* Prime savings summary badge */}
                               {isPrime && totalSavings > 0 && (
-                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-300 rounded-xl p-3 mt-2">
+                                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-300 rounded-lg p-2.5 mt-2">
                                   <div className="flex items-center justify-center gap-2">
-                                    <Crown className="w-5 h-5 text-amber-500" />
-                                    <span className="text-amber-800 font-bold text-sm">
+                                    <Crown className="w-4 h-4 text-amber-500" />
+                                    <span className="text-amber-800 font-bold text-xs">
                                       ¡Ahorraste {formatCurrency(totalSavings)} con Prime!
                                     </span>
-                                  </div>
-                                  <div className="flex justify-center gap-3 mt-1.5 text-xs text-amber-700">
-                                    {serviceFeeSavings > 0 && (
-                                      <span className="bg-amber-200/50 px-2 py-0.5 rounded-full">
-                                        Servicio: -{formatCurrency(serviceFeeSavings)}
-                                      </span>
-                                    )}
-                                    {deliverySavings > 0 && (
-                                      <span className="bg-amber-200/50 px-2 py-0.5 rounded-full">
-                                        Envío: -{formatCurrency(deliverySavings)}
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                               )}
                             </div>
+                            
+                            {/* Section 2: Cotización del Viajero */}
+                            {existingQuote && tripDates && (
+                              <>
+                                <div className="border-t border-slate-300 my-4" />
+                                
+                                {/* Traveler header */}
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="h-10 w-10 rounded-full border-2 border-slate-200 bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold shrink-0">
+                                    {((localTripInfo as any)?.traveler_first_name?.charAt(0) || 'V').toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Cotización de</p>
+                                    <p className="font-semibold text-slate-800">
+                                      {(localTripInfo as any)?.traveler_first_name || 'Viajero'} {((localTripInfo as any)?.traveler_last_name?.charAt(0) || '')}.
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Trip details */}
+                                <div className="space-y-2 text-sm">
+                                  {/* Ventana de recepción */}
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-slate-400 shrink-0" />
+                                    <span className="text-slate-600">Ventana de recepción:</span>
+                                    <span className="font-medium text-slate-800">
+                                      {(() => {
+                                        const dateFirst = new Date(tripDates.first_day_packages);
+                                        const dateLast = new Date(tripDates.last_day_packages);
+                                        return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT')} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT')}`;
+                                      })()}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Fecha de entrega */}
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
+                                    <span className="text-slate-600">Fecha de entrega:</span>
+                                    <span className="font-medium text-slate-800">
+                                      {(() => {
+                                        const addBusinessDays = (date: Date, days: number) => {
+                                          const result = new Date(date);
+                                          let addedDays = 0;
+                                          while (addedDays < days) {
+                                            result.setDate(result.getDate() + 1);
+                                            if (result.getDay() !== 0 && result.getDay() !== 6) {
+                                              addedDays++;
+                                            }
+                                          }
+                                          return result;
+                                        };
+                                        const packageDeliveryDate = addBusinessDays(new Date(tripDates.delivery_date), 2);
+                                        return packageDeliveryDate.toLocaleDateString('es-GT');
+                                      })()}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Dirección parcial */}
+                                  {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
+                                    <>
+                                      <div className="flex items-start gap-2">
+                                        <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                                        <div>
+                                          <span className="text-slate-600">Dirección:</span>
+                                          <span className="font-medium text-slate-800 ml-1">
+                                            {packageDetails.traveler_address.streetAddress}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Ciudad/Estado */}
+                                      {(packageDetails.traveler_address.city || packageDetails.traveler_address.state) && (
+                                        <div className="flex items-center gap-2">
+                                          <Home className="h-4 w-4 text-slate-400 shrink-0" />
+                                          <span className="text-slate-600">Ciudad/Estado:</span>
+                                          <span className="font-medium text-slate-800">
+                                            {packageDetails.traveler_address.city}
+                                            {packageDetails.traveler_address.state && `, ${packageDetails.traveler_address.state}`}
+                                          </span>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Código postal */}
+                                      {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
+                                        <div className="flex items-center gap-2">
+                                          <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                                          <span className="text-slate-600">Código postal:</span>
+                                          <span className="font-medium text-slate-800">
+                                            {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                                
+                                {/* Nota informativa */}
+                                {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
+                                  <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <p className="text-xs text-amber-700">
+                                      ⚠️ Esta es información parcial del viajero. La dirección completa se proporcionará después de confirmar el pago.
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
                         );
                       })()}
@@ -1434,75 +1525,7 @@ const QuoteDialog = ({
             )}
           </div>
 
-          {/* UNIFIED IMPORTANT INFO - Show for shoppers viewing quotes */}
-          {existingQuote && tripDates && (
-            <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 shadow-md">
-              <div className="flex items-start space-x-2 mb-3">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 animate-pulse" />
-                <p className="text-sm font-medium text-amber-800">📋 Información importante previo a aceptar cotización</p>
-              </div>
-              <div className="text-sm text-amber-700 ml-6 space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-3 w-3" />
-                  <span><strong>Ventana de recepción:</strong> {(() => {
-                    const dateFirst = new Date(tripDates.first_day_packages);
-                    const dateLast = new Date(tripDates.last_day_packages);
-                    return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT')} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT')}`;
-                  })()}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-3 w-3" />
-                  <span><strong>Fecha de entrega del paquete:</strong> {(() => {
-                    const addBusinessDays = (date: Date, days: number) => {
-                      const result = new Date(date);
-                      let addedDays = 0;
-                      while (addedDays < days) {
-                        result.setDate(result.getDate() + 1);
-                        // Skip weekends (0 = Sunday, 6 = Saturday)
-                        if (result.getDay() !== 0 && result.getDay() !== 6) {
-                          addedDays++;
-                        }
-                      }
-                      return result;
-                    };
-                    const packageDeliveryDate = addBusinessDays(new Date(tripDates.delivery_date), 2);
-                    return packageDeliveryDate.toLocaleDateString('es-GT');
-                  })()}</span>
-                </div>
-                
-                {/* Traveler location info if available */}
-                {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <Home className="h-3 w-3" />
-                      <span className="text-red-600 font-semibold"><strong>Dirección #1:</strong> {packageDetails.traveler_address.streetAddress}{packageDetails.traveler_address.city && `, ${packageDetails.traveler_address.city}`}{packageDetails.traveler_address.state && `, ${packageDetails.traveler_address.state}`}</span>
-                    </div>
-                    {packageDetails.traveler_address?.cityArea && (
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-3 w-3" />
-                        <span className="text-red-600 font-semibold"><strong>Ciudad/Estado:</strong> {packageDetails.traveler_address.cityArea}</span>
-                      </div>
-                    )}
-                    {(packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code) && (
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-3 w-3" />
-                        <span><strong>Código postal:</strong> {packageDetails.traveler_address?.postalCode || existingQuote?.traveler_postal_code}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-                
-                <div className="bg-amber-100 border border-amber-300 rounded p-3 mt-3">
-                  <p className="text-xs text-amber-800 font-medium space-y-1">
-                    
-                    {userType === 'user' && !isTravelerContext && packageDetails.traveler_address?.streetAddress && (
-                      <span className="block">⚠️ <strong>IMPORTANTE:</strong> Esta es información parcial del viajero. La dirección completa y datos del destinatario se proporcionarán después de confirmar el pago.</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Traveler quote info is now integrated in the unified card above */}
 
           {/* Existing Quote Display */}
           {existingQuote && <div className="space-y-4">
