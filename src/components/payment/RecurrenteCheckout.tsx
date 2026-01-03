@@ -78,13 +78,26 @@ export default function RecurrenteCheckout({
     }
   };
 
-  // Handle messages from iframe (if Recurrente supports postMessage)
+  // Handle messages from iframe - both from Recurrente and our callback page
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Only process messages from Recurrente domain
+      console.log('Payment message received:', event.data, 'from:', event.origin);
+      
+      // Handle messages from our payment callback page
+      if (event.origin === window.location.origin) {
+        if (event.data?.type === 'payment_success') {
+          console.log('Payment success detected from callback');
+          onSuccess?.();
+          return;
+        } else if (event.data?.type === 'payment_cancelled') {
+          console.log('Payment cancelled detected from callback');
+          handleCancel();
+          return;
+        }
+      }
+      
+      // Handle messages from Recurrente domain (fallback)
       if (event.origin.includes('recurrente.com')) {
-        console.log('Recurrente message:', event.data);
-        
         if (event.data?.type === 'success' || event.data?.status === 'paid') {
           onSuccess?.();
         } else if (event.data?.type === 'cancel' || event.data?.status === 'cancelled') {

@@ -23,6 +23,7 @@ import AdminReports from "./pages/AdminReports";
 import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
+import PaymentCallback from "./pages/PaymentCallback";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
             <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
             <Route path="/aviso-legal" element={<AvisoLegal />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
