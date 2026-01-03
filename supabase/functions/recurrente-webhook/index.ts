@@ -20,12 +20,14 @@ serve(async (req) => {
     
     console.log('Recurrente webhook received:', JSON.stringify(payload));
 
-    const eventType = payload.event_type || payload.type;
-    const checkoutId = payload.checkout?.id || payload.data?.checkout_id;
-    const paymentId = payload.payment?.id || payload.data?.payment_id;
-    const metadata = payload.checkout?.metadata || payload.metadata || {};
+    const eventType = payload.event_type || payload.type || payload.event;
+    const checkoutId = payload.checkout?.id || payload.data?.checkout_id || payload.data?.object?.checkout_id || payload.checkout_id;
+    const paymentId = payload.payment?.id || payload.data?.payment_id || payload.data?.object?.id || payload.payment_intent_id;
+    const metadata = payload.checkout?.metadata || payload.metadata || payload.data?.object?.metadata || {};
 
-    console.log('Webhook details:', { eventType, checkoutId, paymentId, metadata });
+    console.log('Recurrente webhook received - Event:', eventType);
+    console.log('Extracted IDs - Checkout:', checkoutId, 'Payment:', paymentId);
+    console.log('Full payload:', JSON.stringify(payload, null, 2));
 
     if (!checkoutId) {
       console.error('No checkout ID in webhook payload');
@@ -54,8 +56,8 @@ serve(async (req) => {
 
     console.log('Found package:', packageData.id);
 
-    // Handle different event types
-    if (eventType === 'payment.succeeded' || eventType === 'checkout.completed') {
+    // Handle different event types - include Recurrente's payment_intent events
+    if (eventType === 'payment.succeeded' || eventType === 'checkout.completed' || eventType === 'payment_intent.succeeded') {
       // Payment successful - update package status
       const { error: updateError } = await supabase
         .from('packages')
@@ -94,7 +96,7 @@ serve(async (req) => {
         }
       }
 
-    } else if (eventType === 'payment.failed' || eventType === 'checkout.failed') {
+    } else if (eventType === 'payment.failed' || eventType === 'checkout.failed' || eventType === 'payment_intent.failed') {
       // Payment failed - log but don't change status
       console.log('Payment failed for package:', packageData.id);
       
