@@ -174,8 +174,8 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           trips: trips,
           adminAssignedTip: pkg.admin_assigned_tip,
           rates: {
-            standard: fees?.service_fee_rate_standard ?? 0.40,
-            prime: fees?.service_fee_rate_prime ?? 0.20
+            standard: fees?.service_fee_rate_standard ?? 0.50,
+            prime: fees?.service_fee_rate_prime ?? 0.25
           }
         });
 

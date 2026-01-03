@@ -81,7 +81,7 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     shopperTrustLevel: shopperProfile.trust_level,
     adminAssignedTip,
     serviceFee: normalizedQuote.serviceFee,
-    expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? `${(rates?.prime ?? 0.20) * 100}%` : `${(rates?.standard ?? 0.40) * 100}%`,
+    expectedServiceFeeRate: shopperProfile.trust_level === 'prime' ? `${(rates?.prime ?? 0.25) * 100}%` : `${(rates?.standard ?? 0.50) * 100}%`,
     deliveryMethod: currentPackage.delivery_method,
     cityArea: cityArea,
     destination: currentPackage.package_destination,

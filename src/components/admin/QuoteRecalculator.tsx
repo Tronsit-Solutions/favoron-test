@@ -19,8 +19,8 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
   
   // Get dynamic rates from context
   const rates = {
-    standard: fees?.service_fee_rate_standard ?? 0.40,
-    prime: fees?.service_fee_rate_prime ?? 0.20
+    standard: fees?.service_fee_rate_standard ?? 0.50,
+    prime: fees?.service_fee_rate_prime ?? 0.25
   };
   
   // Calcular lo que DEBERÍA ser según trust level actual
@@ -113,7 +113,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-white rounded p-2 border border-purple-100">
               <p className="text-xs text-muted-foreground">Comisión Favorón</p>
-              <p className="font-semibold text-purple-700">{Math.round((fees?.service_fee_rate_prime ?? 0.20) * 100)}% (vs {Math.round((fees?.service_fee_rate_standard ?? 0.40) * 100)}% estándar)</p>
+              <p className="font-semibold text-purple-700">{Math.round((fees?.service_fee_rate_prime ?? 0.25) * 100)}% (vs {Math.round((fees?.service_fee_rate_standard ?? 0.50) * 100)}% estándar)</p>
             </div>
             <div className="bg-white rounded p-2 border border-purple-100">
               <p className="text-xs text-muted-foreground">Envío</p>
@@ -138,7 +138,7 @@ export const QuoteRecalculator = ({ pkg, onRecalculated }: QuoteRecalculatorProp
             <div>
               <p className="font-semibold text-green-700">✓ Cotización correcta para usuario Prime</p>
               <p className="text-sm text-green-600 mt-1">
-                Service Fee: {Math.round((fees?.service_fee_rate_prime ?? 0.20) * 100)}% (Q{correctServiceFee.toFixed(2)}) • 
+                Service Fee: {Math.round((fees?.service_fee_rate_prime ?? 0.25) * 100)}% (Q{correctServiceFee.toFixed(2)}) • 
                 Delivery: {correctDeliveryFee === 0 ? 'Gratis' : `Q${correctDeliveryFee.toFixed(2)}`} •
                 Total: Q{correctTotal.toFixed(2)}
               </p>

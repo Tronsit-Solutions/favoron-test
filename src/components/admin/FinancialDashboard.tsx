@@ -17,8 +17,8 @@ const FinancialDashboard = ({
   
   // Get dynamic rates from context
   const rates = useMemo(() => ({
-    standard: fees?.service_fee_rate_standard ?? 0.40,
-    prime: fees?.service_fee_rate_prime ?? 0.20
+    standard: fees?.service_fee_rate_standard ?? 0.50,
+    prime: fees?.service_fee_rate_prime ?? 0.25
   }), [fees]);
   const [dateFilter, setDateFilter] = useState("all");
   const filteredPackages = useMemo(() => {
