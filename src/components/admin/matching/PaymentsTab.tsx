@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Eye, Check, AlertCircle, Receipt, DollarSign, User, CreditCard, CheckCircle, Crown, Sparkles, CheckCheck } from 'lucide-react';
 import { usePrimeMembership } from '@/hooks';
 import { ReceiptViewerModal } from '@/components/ui/receipt-viewer-modal';
-import { getPriceBreakdown } from '@/lib/pricing';
+// getPriceBreakdown removed - we display original quote values instead of recalculating
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
@@ -39,7 +39,7 @@ export function PaymentsTab({
   onRefresh
 }: PaymentsTabProps) {
   const { memberships, updateMembershipStatus } = usePrimeMembership();
-  const { fees, getServiceFeeRate } = usePlatformFeesContext();
+  const { fees } = usePlatformFeesContext();
   const [selectedReceipt, setSelectedReceipt] = useState<{url: string, filename: string, title: string} | null>(null);
   const [activeTab, setActiveTab] = useState("pending");
   const [markingAsReviewed, setMarkingAsReviewed] = useState<string | null>(null);
@@ -162,17 +162,22 @@ export function PaymentsTab({
   };
 
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false, isAutoApproved: boolean = false) => {
-    // Recalculate the correct pricing based on shopper's trust level
     const isPrime = pkg.profiles?.trust_level === 'prime';
-    const basePrice = Number(pkg.quote?.price || pkg.estimated_price || 0);
     
-    const correctPricing = getPriceBreakdown(
-      basePrice,
-      pkg.delivery_method || 'pickup',
-      pkg.profiles?.trust_level,
-      pkg.package_destination,
-      rates
-    );
+    // Extract original values from the stored quote (use these instead of recalculating)
+    const storedQuote = pkg.quote || {};
+    const basePrice = Number(storedQuote.price || pkg.estimated_price || 0);
+    const originalServiceFee = Number(storedQuote.serviceFee || 0);
+    const originalDeliveryFee = Number(storedQuote.deliveryFee || 0);
+    const originalTotalPrice = Number(storedQuote.totalPrice || 0);
+    const finalTotalPrice = storedQuote.finalTotalPrice 
+      ? Number(storedQuote.finalTotalPrice) 
+      : originalTotalPrice;
+    
+    // Calculate the actual service fee percentage that was used when the quote was created
+    const actualServiceFeeRate = basePrice > 0 
+      ? Math.round((originalServiceFee / basePrice) * 100) 
+      : 0;
 
     return (
       <Card key={pkg.id} className="hover:shadow-md transition-shadow">
@@ -199,23 +204,23 @@ export function PaymentsTab({
                   💰 Cotización Original del Shopper {isPrime && '(Prime)'}:
                 </p>
                 <p className="text-xs text-amber-700">
-                  <span className="font-medium">Precio base:</span> Q{correctPricing.basePrice.toFixed(2)}
+                  <span className="font-medium">Precio base:</span> Q{basePrice.toFixed(2)}
                 </p>
                 <p className="text-xs text-amber-700">
-                  <span className="font-medium">Fee de servicio ({Math.round(getServiceFeeRate(isPrime ? 'prime' : 'basic') * 100)}%):</span> Q{correctPricing.serviceFee.toFixed(2)}
+                  <span className="font-medium">Fee de servicio ({actualServiceFeeRate}%):</span> Q{originalServiceFee.toFixed(2)}
                 </p>
-                {correctPricing.deliveryFee > 0 && (
+                {originalDeliveryFee > 0 && (
                   <p className="text-xs text-amber-700">
-                    <span className="font-medium">Fee de entrega:</span> Q{correctPricing.deliveryFee.toFixed(2)}
+                    <span className="font-medium">Fee de entrega:</span> Q{originalDeliveryFee.toFixed(2)}
                   </p>
                 )}
-                {pkg.quote?.discountAmount > 0 && (
+                {storedQuote.discountAmount > 0 && (
                   <p className="text-xs text-green-700">
-                    <span className="font-medium">Descuento ({pkg.quote.discountCode}):</span> -Q{Number(pkg.quote.discountAmount).toFixed(2)}
+                    <span className="font-medium">Descuento ({storedQuote.discountCode}):</span> -Q{Number(storedQuote.discountAmount).toFixed(2)}
                   </p>
                 )}
                 <p className="text-xs text-amber-700 font-semibold mt-1 pt-1 border-t border-amber-300">
-                  <span className="font-medium">Total que debía pagar:</span> Q{pkg.quote?.finalTotalPrice ? Number(pkg.quote.finalTotalPrice).toFixed(2) : correctPricing.totalPrice.toFixed(2)}
+                  <span className="font-medium">Total que debía pagar:</span> Q{finalTotalPrice.toFixed(2)}
                 </p>
               </div>
             {pkg.payment_receipt && (
@@ -540,14 +545,12 @@ export function PaymentsTab({
               ) : (
                 <div className="space-y-3">
                   {auditPayments.map(pkg => {
-                    // Calculate correct total price
-                    const basePrice = Number(pkg.quote?.price || pkg.estimated_price || 0);
-                    const correctPricing = getPriceBreakdown(
-                      basePrice,
-                      pkg.delivery_method || 'pickup',
-                      pkg.profiles?.trust_level,
-                      pkg.package_destination
-                    );
+                    // Use original quote values instead of recalculating
+                    const storedQuote = pkg.quote || {};
+                    const originalTotalPrice = Number(storedQuote.totalPrice || 0);
+                    const finalTotalPrice = storedQuote.finalTotalPrice 
+                      ? Number(storedQuote.finalTotalPrice) 
+                      : originalTotalPrice;
                     
                     return (
                       <Card key={pkg.id} className="border-green-200 bg-green-50">
@@ -559,7 +562,7 @@ export function PaymentsTab({
                               </Badge>
                               <h4 className="font-medium">{pkg.item_description}</h4>
                               <p className="text-sm text-muted-foreground">
-                                Monto Total: Q{correctPricing.totalPrice.toFixed(2)} • Shopper: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
+                                Monto Total: Q{finalTotalPrice.toFixed(2)} • Shopper: {pkg.profiles?.first_name} {pkg.profiles?.last_name || 'Usuario sin nombre'}
                               </p>
                               <p className="text-xs text-green-700 mt-1">
                                 📄 {pkg.payment_receipt?.filename}
