@@ -215,12 +215,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         }
       }
 
-      // Extract payment date
+      // Extract payment date - support both bank transfer (uploadedAt) and card (paid_at)
       let paymentDate = 'Pendiente';
       if (pkg.payment_receipt && typeof pkg.payment_receipt === 'object') {
         const receipt = pkg.payment_receipt as any;
-        if (receipt.uploadedAt) {
-          paymentDate = new Date(receipt.uploadedAt).toLocaleDateString('es-GT');
+        const paidDate = receipt.uploadedAt || receipt.paid_at;
+        if (paidDate) {
+          paymentDate = new Date(paidDate).toLocaleDateString('es-GT');
         }
       } else if (['pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
