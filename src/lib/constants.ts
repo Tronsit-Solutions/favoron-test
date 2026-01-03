@@ -22,8 +22,8 @@ export const APP_CONFIG = {
  */
 export const PRICING_CONFIG = {
   // Commission rates by trust level (fallback)
-  STANDARD_COMMISSION_RATE: 0.40,
-  PRIME_COMMISSION_RATE: 0.20,
+  STANDARD_COMMISSION_RATE: 0.50,
+  PRIME_COMMISSION_RATE: 0.25,
   
   // Delivery fees by trust level and location (fallback)
   STANDARD_DELIVERY_FEE: 25,        // Q25 for Guatemala City
@@ -32,8 +32,8 @@ export const PRICING_CONFIG = {
   
   // Service fee calculation by trust level (fallback)
   // These are the DEFAULT rates - actual rates come from DB
-  SERVICE_FEE_RATE_STANDARD: 0.40,
-  SERVICE_FEE_RATE_PRIME: 0.20,
+  SERVICE_FEE_RATE_STANDARD: 0.50,
+  SERVICE_FEE_RATE_PRIME: 0.25,
 } as const;
 
 export const DELIVERY_PRIORITIES = {

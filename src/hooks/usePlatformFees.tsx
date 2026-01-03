@@ -15,8 +15,8 @@ export interface PlatformFees {
 }
 
 const DEFAULT_FEES: Omit<PlatformFees, 'id'> = {
-  service_fee_rate_standard: 0.40,
-  service_fee_rate_prime: 0.20,
+  service_fee_rate_standard: 0.50,
+  service_fee_rate_prime: 0.25,
   delivery_fee_guatemala_city: 25,
   delivery_fee_outside_city: 60,
   prime_delivery_discount: 25,
