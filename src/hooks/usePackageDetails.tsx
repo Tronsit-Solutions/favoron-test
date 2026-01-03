@@ -7,6 +7,7 @@ interface PackageDetails {
   purchase_confirmation?: any;
   tracking_info?: any;
   office_delivery?: any;
+  quote?: any;
 }
 
 interface UsePackageDetailsReturn {
@@ -44,7 +45,8 @@ export const usePackageDetails = (packageId: string | null): UsePackageDetailsRe
           payment_receipt,
           purchase_confirmation,
           tracking_info,
-          office_delivery
+          office_delivery,
+          quote
         `)
         .eq('id', packageId)
         .single();
