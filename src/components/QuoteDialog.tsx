@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -1021,13 +1022,21 @@ const QuoteDialog = ({
                         <div className="bg-white border border-slate-200 rounded-xl p-4 mt-4">
                           {/* Header con avatar, nombre y ruta */}
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="h-11 w-11 rounded-full border-2 border-slate-200 bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold shrink-0">
-                              {((localTripInfo as any)?.traveler_first_name?.charAt(0) || 'V').toUpperCase()}
-                            </div>
+                            <Avatar className="h-11 w-11 border-2 border-slate-200 shrink-0">
+                              {(localTripInfo as any)?.profiles?.avatar_url ? (
+                                <AvatarImage 
+                                  src={(localTripInfo as any).profiles.avatar_url} 
+                                  alt={(localTripInfo as any)?.profiles?.first_name || 'Viajero'} 
+                                />
+                              ) : null}
+                              <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                                {((localTripInfo as any)?.profiles?.first_name?.charAt(0) || 'V').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold text-slate-800">
-                                  {(localTripInfo as any)?.traveler_first_name || 'Viajero'} {((localTripInfo as any)?.traveler_last_name?.charAt(0) || '')}.
+                                  {(localTripInfo as any)?.profiles?.first_name || 'Viajero'}
                                 </p>
                               </div>
                               <div className="flex items-center gap-1 text-xs text-slate-500">
