@@ -1718,13 +1718,15 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">
-                        Service Fee ({Math.round(getServiceFeeRate(pkg.profiles?.trust_level) * 100)}%)
+                        Service Fee ({(() => {
+                          const tip = parseFloat(pkg.quote.price || '0');
+                          const fee = parseFloat(pkg.quote.serviceFee || '0');
+                          return tip > 0 ? Math.round((fee / tip) * 100) : 0;
+                        })()}%)
                       </p>
-                      <p className="text-sm text-muted-foreground">Q{pkg.quote.serviceFee || (() => {
-                        const travelerTip = parseFloat(pkg.quote.price || '0');
-                        const rate = getServiceFeeRate(pkg.profiles?.trust_level);
-                        return (travelerTip * rate).toFixed(2);
-                      })()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Q{parseFloat(pkg.quote.serviceFee || '0').toFixed(2)}
+                      </p>
                     </div>
                   </div>
 
