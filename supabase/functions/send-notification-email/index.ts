@@ -9,25 +9,47 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Security function to validate origin
+// Security function to validate origin using exact hostname matching
 const isValidOrigin = (req: Request): boolean => {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   
-  // Allow calls from our Supabase domain or from database functions (no origin)
+  // Allow calls from database functions (no origin/referer)
   if (!origin && !referer) {
-    // Internal database function call
     return true;
   }
   
-  // Allow our production and staging domains
-  const allowedOrigins = [
-    'https://dfhoduirmqbarjnspbdh.supabase.co',
-    'https://favoron.lovable.app',
-    'https://favoron.app',
+  // List of exact allowed hostnames
+  const allowedHostnames = [
+    'dfhoduirmqbarjnspbdh.supabase.co',
+    'favoron.lovable.app',
+    'favoron.app',
+    'www.favoron.app'
   ];
   
-  return origin ? allowedOrigins.some(allowed => origin.includes(allowed)) : false;
+  // Also allow Lovable preview domains (exact suffix match)
+  const allowedSuffixes = [
+    '.lovableproject.com',
+    '.lovable.app'
+  ];
+  
+  if (!origin) return false;
+  
+  try {
+    const url = new URL(origin);
+    
+    // Require HTTPS
+    if (url.protocol !== 'https:') return false;
+    
+    // Check exact hostname match
+    if (allowedHostnames.includes(url.hostname)) return true;
+    
+    // Check allowed suffixes for preview domains
+    return allowedSuffixes.some(suffix => url.hostname.endsWith(suffix));
+  } catch {
+    // Invalid URL format
+    return false;
+  }
 };
 
 // Create Supabase client for this function with service role key
