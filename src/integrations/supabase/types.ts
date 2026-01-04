@@ -1297,6 +1297,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      audit_payment_order_admin_access: {
+        Args: { _access_type: string; _order_id: string }
+        Returns: undefined
+      }
       check_all_packages_delivered: {
         Args: { _trip_id: string }
         Returns: boolean
@@ -1544,6 +1548,10 @@ export type Database = {
       validate_discount_code: {
         Args: { _code: string; _order_amount: number; _user_id: string }
         Returns: Json
+      }
+      validate_payment_order_data: {
+        Args: { _amount: number; _traveler_id: string; _trip_id: string }
+        Returns: boolean
       }
       verify_admin_access: { Args: never; Returns: boolean }
       verify_authenticated: { Args: never; Returns: boolean }
