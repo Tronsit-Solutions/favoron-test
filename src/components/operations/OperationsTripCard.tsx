@@ -166,29 +166,32 @@ const PackageListItem = ({
               const isCancelled = product.cancelled;
 
               return (
-                <div key={index} className={`flex items-center gap-2 text-sm py-1 px-2 rounded ${isCancelled ? 'bg-red-50/50' : 'bg-muted/50'}`}>
-                  <span className={isCancelled ? 'text-red-400' : 'text-muted-foreground'}>📦</span>
-                  <span className={`truncate flex-1 ${isCancelled ? 'line-through text-red-500' : 'font-medium'}`}>
-                    {product.itemDescription || `Producto ${index + 1}`}
-                  </span>
-                  {isCancelled && (
-                    <span className="text-red-600 text-xs font-medium">(cancelado)</span>
-                  )}
-                  {!isCancelled && !isNaN(productPrice) && productPrice > 0 && (
-                    <span className="text-muted-foreground">{formatPrice(productPrice)}</span>
-                  )}
-                  {!isCancelled && productQty > 1 && (
-                    <span className="text-muted-foreground">x{productQty}</span>
-                  )}
+                <div key={index} className={`text-sm py-1 px-2 rounded ${isCancelled ? 'bg-red-50/50' : 'bg-muted/50'}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={isCancelled ? 'text-red-400' : 'text-muted-foreground'}>📦</span>
+                    <span className={`truncate flex-1 ${isCancelled ? 'line-through text-red-500' : 'font-medium'}`}>
+                      {product.itemDescription || `Producto ${index + 1}`}
+                    </span>
+                    {isCancelled && (
+                      <span className="text-red-600 text-xs font-medium">(cancelado)</span>
+                    )}
+                    {!isCancelled && !isNaN(productPrice) && productPrice > 0 && (
+                      <span className="text-muted-foreground">{formatPrice(productPrice)}</span>
+                    )}
+                    {!isCancelled && productQty > 1 && (
+                      <span className="text-muted-foreground">x{productQty}</span>
+                    )}
+                  </div>
                   {!isCancelled && productLink && (
                     <a
                       href={productLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-0.5"
+                      className="text-primary hover:underline flex items-center gap-1 text-sm ml-6 mt-0.5"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
+                      Ver producto
                     </a>
                   )}
                 </div>
