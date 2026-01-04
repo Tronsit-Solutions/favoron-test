@@ -15,13 +15,38 @@ interface WhatsAppNotificationRequest {
   action_url?: string;
 }
 
+// Security function to validate origin using exact hostname matching
 const isValidOrigin = (origin: string | null): boolean => {
-  const allowedOrigins = [
-    'https://favoron.app',
-    'https://dfhoduirmqbarjnspbdh.supabase.co',
-    'lovableproject.com' // Lovable preview domains
+  if (!origin) return false;
+  
+  // List of exact allowed hostnames
+  const allowedHostnames = [
+    'dfhoduirmqbarjnspbdh.supabase.co',
+    'favoron.app',
+    'www.favoron.app'
   ];
-  return origin ? allowedOrigins.some(allowed => origin.includes(allowed)) : false;
+  
+  // Also allow Lovable preview domains (exact suffix match)
+  const allowedSuffixes = [
+    '.lovableproject.com',
+    '.lovable.app'
+  ];
+  
+  try {
+    const url = new URL(origin);
+    
+    // Require HTTPS
+    if (url.protocol !== 'https:') return false;
+    
+    // Check exact hostname match
+    if (allowedHostnames.includes(url.hostname)) return true;
+    
+    // Check allowed suffixes for preview domains
+    return allowedSuffixes.some(suffix => url.hostname.endsWith(suffix));
+  } catch {
+    // Invalid URL format
+    return false;
+  }
 };
 
 const sendWhatsAppMessage = async (
