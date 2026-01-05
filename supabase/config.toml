@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.recurrente-webhook]
 verify_jwt = false
+
+[functions.whatsapp-test-safe]
+verify_jwt = false
