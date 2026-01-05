@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Copy, CreditCard, CheckCircle, X, Tag, Clock, ArrowLeft, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoronBankingInfo } from "@/hooks";
-import { useAuth } from "@/hooks/useAuth";
 import { getQuoteValues } from "@/lib/quoteHelpers";
-import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import PaymentMethodSelector, { PaymentMethod } from "@/components/payment/PaymentMethodSelector";
 import RecurrenteCheckout from "@/components/payment/RecurrenteCheckout";
@@ -29,8 +27,6 @@ export default function ShopperPaymentInfoModal({
   onUploadComplete 
 }: ShopperPaymentInfoModalProps) {
   const { toast } = useToast();
-  const { profile } = useAuth();
-  const { fees } = usePlatformFeesContext();
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
   const [currentPkg, setCurrentPkg] = useState(pkg);
   const [closeLocked, setCloseLocked] = useState(false);
@@ -40,17 +36,11 @@ export default function ShopperPaymentInfoModal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
   const [currentStep, setCurrentStep] = useState<'payment-selection' | 'card-checkout'>('payment-selection');
   
-  // Get dynamic rates from context
-  const rates = useMemo(() => ({
-    standard: fees?.service_fee_rate_standard ?? 0.50,
-    prime: fees?.service_fee_rate_prime ?? 0.25
-  }), [fees]);
-  
   // Extract quote data and check for discount - use currentPkg for dynamic updates
   const quote = currentPkg.quote as any;
   const hasDiscount = quote?.finalTotalPrice !== undefined && quote?.discountAmount > 0;
   
-  // Calculate total from products_data admin tips + fees (excluding cancelled products)
+  // Calculate active/cancelled products for display
   const productsData = (currentPkg.products_data as any[]) || [];
   const activeProducts = productsData.filter(
     (product) => product.cancelled !== true && product.cancelled !== 'true'
@@ -58,37 +48,17 @@ export default function ShopperPaymentInfoModal({
   const cancelledProducts = productsData.filter(
     (product) => product.cancelled === true || product.cancelled === 'true'
   );
-  const sumOfAdminTips = activeProducts.reduce((sum, product) => {
-    const tip = parseFloat(product.adminAssignedTip || '0');
-    return sum + tip;
-  }, 0);
   
-  // Use saved quote values instead of recalculating - respects manual admin edits
+  // Use saved quote values directly from DB - single source of truth
   const quoteValues = getQuoteValues(quote);
   
-  // Validate quote consistency with current rates (detect outdated service fees)
-  const userRate = profile?.trust_level === 'prime' ? rates.prime : rates.standard;
-  const expectedServiceFee = sumOfAdminTips * userRate;
-  const storedServiceFee = quoteValues.serviceFee;
-  const hasInconsistentQuote = sumOfAdminTips > 0 && Math.abs(expectedServiceFee - storedServiceFee) > 0.01;
-  
-  // If quote is inconsistent with current rates, use recalculated values
-  const correctedServiceFee = hasInconsistentQuote ? expectedServiceFee : storedServiceFee;
-  const correctedTotalPrice = hasInconsistentQuote 
-    ? (quoteValues.price + correctedServiceFee + quoteValues.deliveryFee)
-    : quoteValues.totalPrice;
-  
-  if (hasInconsistentQuote) {
-    console.warn(`⚠️ Quote inconsistency for ${currentPkg.id}: stored serviceFee=${storedServiceFee.toFixed(2)}, expected=${expectedServiceFee.toFixed(2)} (rate: ${(userRate * 100).toFixed(0)}%)`);
-  }
-  
-  // Use finalTotalPrice if discount exists, otherwise use corrected totalPrice
+  // Total amounts from DB - no recalculation
   const totalAmount = hasDiscount 
     ? quoteValues.finalTotalPrice 
-    : correctedTotalPrice;
+    : quoteValues.totalPrice;
   const originalAmount = hasDiscount 
-    ? (parseFloat(quote.originalTotalPrice) || correctedTotalPrice)
-    : correctedTotalPrice;
+    ? (parseFloat(quote.originalTotalPrice) || quoteValues.totalPrice)
+    : quoteValues.totalPrice;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
