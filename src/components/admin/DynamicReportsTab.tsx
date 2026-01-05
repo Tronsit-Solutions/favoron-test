@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
+import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { UserGrowthChart } from "./charts/UserGrowthChart";
 import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
+import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { KPICards } from "./charts/KPICards";
 import { BarChart3, Download, RefreshCw, Calendar } from "lucide-react";
 import * as XLSX from 'xlsx';
@@ -15,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 export const DynamicReportsTab = () => {
   const [months, setMonths] = useState<number>(12);
   const { monthlyData, kpis, isLoading } = useDynamicReports(months);
+  const { acquisitionData, summaryKPIs, isLoading: acquisitionLoading } = useAcquisitionAnalytics();
   const { toast } = useToast();
 
   const handleExportExcel = () => {
@@ -77,6 +80,18 @@ export const DynamicReportsTab = () => {
         'Crecimiento Ingresos MoM (%)': kpis.momRevenueGrowth.toFixed(1),
       }];
 
+      // Acquisition sheet
+      const acquisitionSheetData = acquisitionData.map(d => ({
+        'Canal': d.channelLabel,
+        'Usuarios': d.totalUsers,
+        'Paquetes Totales': d.totalPackages,
+        'Paquetes Pagados': d.paidPackages,
+        'Tasa Conversión (%)': d.conversionRate.toFixed(1),
+        'Service Fee (Q)': d.totalServiceFee.toFixed(2),
+        'Revenue Total (Q)': d.totalRevenue.toFixed(2),
+        'Revenue por Usuario (Q)': d.avgRevenuePerUser.toFixed(2),
+      }));
+
       const wb = XLSX.utils.book_new();
       
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(kpisData), "KPIs");
@@ -84,6 +99,7 @@ export const DynamicReportsTab = () => {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(packagesData), "Paquetes");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tripsData), "Viajes");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(revenueData), "Ingresos");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(acquisitionSheetData), "Adquisición");
 
       const filename = `Reportes_Dinamicos_Favoron_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(wb, filename);
@@ -102,7 +118,7 @@ export const DynamicReportsTab = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || acquisitionLoading) {
     return (
       <div className="flex items-center justify-center h-48">
         <div className="text-center">
@@ -182,6 +198,9 @@ export const DynamicReportsTab = () => {
             <PackagesChart data={monthlyData} />
             <TripsChart data={monthlyData} />
           </div>
+
+          {/* Acquisition Analysis */}
+          <AcquisitionChart data={acquisitionData} summaryKPIs={summaryKPIs} />
         </>
       )}
     </div>
