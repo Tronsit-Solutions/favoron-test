@@ -2,13 +2,50 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare, Loader2, Mail } from 'lucide-react';
+import { MessageSquare, Loader2, Mail, Shield } from 'lucide-react';
 import { WhatsAppTemplates } from '@/lib/whatsappNotifications';
 
 export const WhatsAppTestButton = () => {
   const [isSending, setIsSending] = useState(false);
   const [isSendingAll, setIsSendingAll] = useState(false);
+  const [isSendingSafe, setIsSendingSafe] = useState(false);
   const { toast } = useToast();
+
+  // Test secure endpoint with allowlist validation
+  const handleTestSafeWhatsApp = async () => {
+    setIsSendingSafe(true);
+    try {
+      console.log('🔒 Testing SAFE WhatsApp endpoint...');
+      
+      const { data, error } = await supabase.functions.invoke('whatsapp-test-safe', {
+        body: {
+          to: '+34699591457',
+          contentVariables: { '1': 'Prueba desde Favoron Admin' }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: '✅ WhatsApp Seguro Enviado',
+          description: `SID: ${data.data?.sid || 'OK'}`,
+        });
+        console.log('🔒 Safe endpoint response:', data);
+      } else {
+        throw new Error(data?.error || 'Error desconocido');
+      }
+    } catch (error: any) {
+      console.error('🔒 Safe endpoint error:', error);
+      toast({
+        title: '❌ Error en endpoint seguro',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSendingSafe(false);
+    }
+  };
 
   const handleTestWhatsApp = async () => {
     setIsSending(true);
@@ -215,10 +252,10 @@ export const WhatsAppTestButton = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           onClick={handleTestWhatsApp}
-          disabled={isSending || isSendingAll}
+          disabled={isSending || isSendingAll || isSendingSafe}
           variant="outline"
           size="sm"
           className="gap-2"
@@ -233,7 +270,7 @@ export const WhatsAppTestButton = () => {
         
         <Button
           onClick={handleTestAllNotifications}
-          disabled={isSending || isSendingAll}
+          disabled={isSending || isSendingAll || isSendingSafe}
           variant="outline"
           size="sm"
           className="gap-2"
@@ -243,12 +280,28 @@ export const WhatsAppTestButton = () => {
           ) : (
             <Mail className="h-4 w-4" />
           )}
-          {isSendingAll ? 'Enviando...' : 'Probar Todas (13 notificaciones)'}
+          {isSendingAll ? 'Enviando...' : 'Probar Todas (13)'}
+        </Button>
+
+        <Button
+          onClick={handleTestSafeWhatsApp}
+          disabled={isSending || isSendingAll || isSendingSafe}
+          variant="default"
+          size="sm"
+          className="gap-2 bg-green-600 hover:bg-green-700"
+        >
+          {isSendingSafe ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Shield className="h-4 w-4" />
+          )}
+          {isSendingSafe ? 'Enviando...' : '🔒 Endpoint Seguro'}
         </Button>
       </div>
       
       <p className="text-xs text-muted-foreground">
-        💡 Modo testing: Solo recibirás notificaciones tú.
+        💡 Modo testing: Solo recibirás notificaciones tú.<br/>
+        🔒 El endpoint seguro usa Content Templates y solo envía a números allowlisted.
       </p>
     </div>
   );
