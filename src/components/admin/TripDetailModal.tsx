@@ -410,7 +410,7 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   {getDeliveryMethodIcon(trip.delivery_method)}
-                  <p className="text-base font-semibold text-blue-800">Método de Entrega en Guatemala</p>
+                  <p className="text-base font-semibold text-blue-800">Método de Entrega</p>
                 </div>
                 <div className="ml-6">
                   <p className="text-sm text-blue-700">
