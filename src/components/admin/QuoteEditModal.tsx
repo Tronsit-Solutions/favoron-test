@@ -239,10 +239,21 @@ const QuoteEditModal = ({
             {isServiceFeeNonStandard && tipValue > 0 && (
               <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
                 <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-amber-700">
-                  El {expectedRate * 100}% del tip sería Q{expectedServiceFee.toFixed(2)}. 
-                  Estás usando Q{serviceFeeValue.toFixed(2)}.
-                </p>
+                <div className="flex-1">
+                  <p className="text-xs text-amber-700">
+                    El {Math.round(expectedRate * 100)}% del tip sería Q{expectedServiceFee.toFixed(2)}. 
+                    Estás usando Q{serviceFeeValue.toFixed(2)}.
+                  </p>
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    size="sm"
+                    onClick={() => setServiceFee(expectedServiceFee.toFixed(2))}
+                    className="text-amber-700 p-0 h-auto text-xs underline mt-1"
+                  >
+                    Usar tarifa correcta (Q{expectedServiceFee.toFixed(2)})
+                  </Button>
+                </div>
               </div>
             )}
           </div>
