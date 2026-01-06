@@ -153,8 +153,20 @@ export function PaymentsTab({
     }
   };
 
+  // Helper functions to detect payment type
+  const isCardPayment = (receipt: any) => {
+    return receipt?.method === 'card' || receipt?.provider === 'recurrente';
+  };
+
+  const hasReceiptFile = (receipt: any) => {
+    return receipt?.filePath || receipt?.fileUrl || receipt?.filename;
+  };
+
   const renderPaymentCard = (pkg: any, showConfirmButton: boolean = false, isAutoApproved: boolean = false) => {
     const isPrime = pkg.profiles?.trust_level === 'prime';
+    const receipt = pkg.payment_receipt;
+    const cardPayment = isCardPayment(receipt);
+    const hasFile = hasReceiptFile(receipt);
     
     // Use centralized getQuoteValues for consistent reading
     const quoteValues = getQuoteValues(pkg.quote);
@@ -207,53 +219,79 @@ export function PaymentsTab({
                   <span className="font-medium">Total que debía pagar:</span> Q{quoteValues.finalTotalPrice.toFixed(2)}
                 </p>
               </div>
-            {pkg.payment_receipt && (
-              <div className="mt-2 p-2 bg-blue-50 rounded">
-                <p className="text-xs text-blue-800 font-medium">Comprobante de pago:</p>
-                <p className="text-xs text-blue-600 truncate">
-                  📄 {pkg.payment_receipt.filename}
+            {receipt && (
+              <div className={`mt-2 p-2 rounded ${cardPayment ? 'bg-green-50 border border-green-200' : 'bg-blue-50'}`}>
+                <p className={`text-xs font-medium ${cardPayment ? 'text-green-800' : 'text-blue-800'}`}>
+                  {cardPayment ? '💳 Pago con tarjeta:' : 'Comprobante de pago:'}
                 </p>
-                <p className="text-xs text-blue-600">
-                  📅 Subido: {new Date(pkg.payment_receipt.uploadedAt).toLocaleDateString('es-GT')}
-                </p>
+                {cardPayment ? (
+                  <>
+                    <p className="text-xs text-green-600">
+                      Proveedor: {receipt.provider || 'Recurrente'}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      📅 Pagado: {receipt.paid_at ? new Date(receipt.paid_at).toLocaleDateString('es-GT') : 'N/A'}
+                    </p>
+                    <p className="text-xs text-green-700 font-medium">
+                      ✅ ID: {receipt.payment_id || 'N/A'}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-blue-600 truncate">
+                      📄 {receipt.filename}
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      📅 Subido: {receipt.uploadedAt ? new Date(receipt.uploadedAt).toLocaleDateString('es-GT') : 'N/A'}
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                if (pkg.payment_receipt) {
-                  // Extract the correct file path for Supabase storage
-                  let filePath = pkg.payment_receipt.fileUrl || pkg.payment_receipt.filePath || '';
-                  
-                  // If it's a full URL, extract just the file path
-                  if (filePath.startsWith('http')) {
-                    try {
-                      const url = new URL(filePath);
-                      const pathParts = url.pathname.split('/');
-                      const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
-                      if (bucketIndex !== -1) {
-                        filePath = pathParts.slice(bucketIndex + 1).join('/');
+            {cardPayment ? (
+              <Badge variant="secondary" className="text-green-700 bg-green-100 flex items-center gap-1 px-3 py-1.5">
+                <CreditCard className="h-3 w-3" />
+                Pago Automático
+              </Badge>
+            ) : (
+              <Button 
+                size="sm" 
+                variant="outline"
+                disabled={!hasFile}
+                onClick={() => {
+                  if (receipt && hasFile) {
+                    // Extract the correct file path for Supabase storage
+                    let filePath = receipt.fileUrl || receipt.filePath || '';
+                    
+                    // If it's a full URL, extract just the file path
+                    if (filePath.startsWith('http')) {
+                      try {
+                        const url = new URL(filePath);
+                        const pathParts = url.pathname.split('/');
+                        const bucketIndex = pathParts.findIndex(part => part === 'payment-receipts');
+                        if (bucketIndex !== -1) {
+                          filePath = pathParts.slice(bucketIndex + 1).join('/');
+                        }
+                      } catch (e) {
+                        console.error('Error parsing receipt URL:', e);
                       }
-                    } catch (e) {
-                      console.error('Error parsing receipt URL:', e);
                     }
+                    
+                    setSelectedReceipt({
+                      url: `payment-receipts/${filePath}`,
+                      filename: receipt.filename || 'comprobante.jpg',
+                      title: `Comprobante de pago - ${pkg.item_description}`
+                    });
                   }
-                  
-                  setSelectedReceipt({
-                    url: `payment-receipts/${filePath}`,
-                    filename: pkg.payment_receipt.filename || 'comprobante.jpg',
-                    title: `Comprobante de pago - ${pkg.item_description}`
-                  });
-                }
-              }}
-              className="w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              <span className="sm:inline">Ver Comprobante</span>
-            </Button>
+                }}
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                <span className="sm:inline">Ver Comprobante</span>
+              </Button>
+            )}
             {showConfirmButton && (
               isAutoApproved ? (
                 <Button 
