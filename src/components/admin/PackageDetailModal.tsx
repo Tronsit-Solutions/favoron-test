@@ -151,9 +151,10 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [editForm, setEditForm] = useState({
+const [editForm, setEditForm] = useState({
     purchase_origin: '',
-    package_destination: ''
+    package_destination: '',
+    additional_notes: ''
   });
   const [selectedDestinationCountry, setSelectedDestinationCountry] = useState<string>('');
   const [editProducts, setEditProducts] = useState<Array<{
@@ -219,7 +220,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
       // General package fields
       setEditForm({
         purchase_origin: pkg.purchase_origin || '',
-        package_destination: pkg.package_destination || ''
+        package_destination: pkg.package_destination || '',
+        additional_notes: pkg.additional_notes || ''
       });
       
       // Determine destination country from package_destination
@@ -563,7 +565,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
       
       setEditForm({
         purchase_origin: pkg.purchase_origin || '',
-        package_destination: pkg.package_destination || ''
+        package_destination: pkg.package_destination || '',
+        additional_notes: pkg.additional_notes || ''
       });
     }
     setEditMode(!editMode);
@@ -611,7 +614,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
         item_link: normalizedProducts[0]?.itemLink || null, // First link for legacy field
         estimated_price: totalPrice,
         purchase_origin: editForm.purchase_origin,
-        package_destination: editForm.package_destination
+        package_destination: editForm.package_destination,
+        additional_notes: editForm.additional_notes?.trim() || null
       };
       
       onUpdatePackage(pkg.id, updates);
@@ -1596,12 +1600,29 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
                   </div>
                   
                   {/* Additional Notes from Shopper */}
-                  {pkg.additional_notes && (
-                    <div className="mt-3 pt-3 border-t border-primary/20">
-                      <h5 className="font-medium text-xs text-muted-foreground mb-2">Notas Adicionales del Shopper:</h5>
-                      <p className="text-xs text-foreground bg-muted/30 p-2 rounded">{pkg.additional_notes}</p>
-                    </div>
-                  )}
+                  <div className="mt-3 pt-3 border-t border-primary/20">
+                    <h5 className="font-medium text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                      Notas Adicionales del Shopper:
+                      {!editMode && (
+                        <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setEditMode(true)}>
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </h5>
+                    {editMode ? (
+                      <Textarea
+                        value={editForm.additional_notes}
+                        onChange={(e) => handleFormChange('additional_notes', e.target.value)}
+                        placeholder="Notas adicionales del shopper..."
+                        className="text-xs"
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-xs text-foreground bg-muted/30 p-2 rounded">
+                        {pkg.additional_notes || 'Sin notas adicionales'}
+                      </p>
+                    )}
+                  </div>
 
                   {/* Internal Notes for Favoron Team */}
                   {pkg.internal_notes && (
