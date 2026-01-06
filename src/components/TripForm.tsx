@@ -259,7 +259,7 @@ const TripForm = ({
         fromCountry: '',
         toCity: '',
         toCityOther: '',
-        toCountry: 'Guatemala',
+        toCountry: '',
         arrivalDate: null as Date | null,
         availableSpace: '',
         deliveryMethod: '',
