@@ -32,7 +32,8 @@ import {
   Banknote,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  FileText
 } from 'lucide-react';
 
 const AdminRefundsTab = () => {
@@ -45,6 +46,7 @@ const AdminRefundsTab = () => {
   const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [approveFile, setApproveFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
@@ -70,10 +72,23 @@ const AdminRefundsTab = () => {
   const handleApprove = async () => {
     if (!actionModal) return;
     setProcessing(true);
-    await updateRefundStatus(actionModal.refund.id, 'approved', notes || undefined);
+    
+    let receiptUrl: string | undefined;
+    let receiptFilename: string | undefined;
+    
+    if (approveFile) {
+      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, approveFile);
+      if (uploadedPath) {
+        receiptUrl = uploadedPath;
+        receiptFilename = approveFile.name;
+      }
+    }
+    
+    await updateRefundStatus(actionModal.refund.id, 'approved', notes || undefined, receiptUrl, receiptFilename);
     setProcessing(false);
     setActionModal(null);
     setNotes('');
+    setApproveFile(null);
   };
 
   const handleReject = async () => {
@@ -435,7 +450,7 @@ const AdminRefundsTab = () => {
       </Dialog>
 
       {/* Action Modal */}
-      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); }}>
+      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setApproveFile(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -464,6 +479,24 @@ const AdminRefundsTab = () => {
                 rows={3}
               />
             </div>
+
+            {actionModal?.type === 'approve' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Comprobante (opcional)</label>
+                <Input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => setApproveFile(e.target.files?.[0] || null)}
+                  disabled={processing}
+                />
+                {approveFile && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    {approveFile.name}
+                  </p>
+                )}
+              </div>
+            )}
 
             {actionModal?.type === 'complete' && (
               <div className="space-y-2">
