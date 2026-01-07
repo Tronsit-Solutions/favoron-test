@@ -1,17 +1,18 @@
+import { memo } from "react";
 import { formatDateTime } from "@/utils/dateHelpers";
 import StatusAlert from "@/components/ui/status-alert";
-import { useCountdown } from "@/hooks/useCountdown";
+import { useGlobalCountdown } from "@/hooks/useGlobalCountdown";
 import { Clock, AlertTriangle } from "lucide-react";
 
 interface QuoteCountdownProps {
   expiresAt: string | Date;
   onExpire?: () => void;
   compact?: boolean;
-  micro?: boolean; // New ultra-compact version
+  micro?: boolean;
 }
 
-const QuoteCountdown = ({ expiresAt, onExpire, compact = false, micro = false }: QuoteCountdownProps) => {
-  const timeLeft = useCountdown({ expiresAt, onExpire });
+const QuoteCountdown = memo(({ expiresAt, onExpire, compact = false, micro = false }: QuoteCountdownProps) => {
+  const timeLeft = useGlobalCountdown(expiresAt, onExpire);
 
   if (timeLeft.isExpired) {
     if (micro) {
@@ -104,6 +105,8 @@ const QuoteCountdown = ({ expiresAt, onExpire, compact = false, micro = false }:
       </div>
     </StatusAlert>
   );
-};
+});
+
+QuoteCountdown.displayName = 'QuoteCountdown';
 
 export default QuoteCountdown;
