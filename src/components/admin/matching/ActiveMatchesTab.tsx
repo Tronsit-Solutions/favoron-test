@@ -1,9 +1,6 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -19,6 +16,7 @@ import { MatchCard } from "./MatchCard";
 import { MatchStatsHeader } from "./MatchStatsHeader";
 import { MatchChatModal } from "./MatchChatModal";
 import { getStatusInfo } from "./MatchStatusBadge";
+import debounce from "lodash.debounce";
 
 interface ActiveMatchesTabProps {
   packages: any[];
@@ -53,6 +51,8 @@ const ActiveMatchesTab = ({
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
 
   const {
     searchTerm,
@@ -62,6 +62,21 @@ const ActiveMatchesTab = ({
     statsData
   } = useMatchFilters(packages, trips);
 
+  // Debounce search to avoid filtering on every keystroke
+  const debouncedSetSearch = useMemo(
+    () => debounce((value: string) => {
+      setSearchTerm(value);
+      setDebouncedSearchTerm(value);
+    }, 300),
+    [setSearchTerm]
+  );
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    debouncedSetSearch(value);
+  }, [debouncedSetSearch]);
+
   // Estado para los checkboxes de filtros
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
 
@@ -69,112 +84,93 @@ const ActiveMatchesTab = ({
   useEffect(() => {
     setSelectedStatuses(prev => {
       if (prev.size === 0 && statuses.length > 0) {
-        console.log('🔧 Selecting all statuses by default:', statuses);
-        return new Set(statuses); // seleccionar todos por defecto al inicio
+        return new Set(statuses);
       }
-      // Mantener elección del usuario, removiendo estados que ya no existan
       const next = new Set([...prev].filter(s => statuses.includes(s)));
       return next;
     });
   }, [statuses]);
 
-  // Filtrar matches basado en búsqueda y estados seleccionados
-  const filteredMatches = matchedPackages.filter(pkg => {
-    const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+  // Memoized filtered and sorted matches
+  const filteredMatches = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
     
-    // Combinar nombres para búsqueda con espacios (ej: "Luis Flores")
-    const shopperFullName = `${(pkg as any)?.profiles?.first_name || ''} ${(pkg as any)?.profiles?.last_name || ''}`.toLowerCase().trim();
-    const travelerFullName = `${(matchedTrip as any)?.profiles?.first_name || ''} ${(matchedTrip as any)?.profiles?.last_name || ''}`.toLowerCase().trim();
-    
-    const matchesSearch = !search ||
-      (pkg.item_description || '').toLowerCase().includes(search) ||
-      (pkg.user_id || '').toString().includes(search) ||
-      (pkg.label_number || '').toString().includes(search) ||
-      (matchedTrip?.from_city || '').toLowerCase().includes(search) ||
-      (matchedTrip?.to_city || '').toLowerCase().includes(search) ||
-      // Búsqueda por nombre completo del shopper
-      shopperFullName.includes(search) ||
-      ((pkg as any)?.profiles?.username || '').toLowerCase().includes(search) ||
-      // Búsqueda por nombre completo del viajero
-      travelerFullName.includes(search) ||
-      ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(search);
-    
-    // Si no hay estados seleccionados, se trata como "todos seleccionados"
-    const matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(pkg.status);
-    
-    return matchesSearch && matchesStatus;
-  }).sort((a, b) => {
     // Helper function to check if package has active timers
     const hasActiveTimer = (pkg: any) => {
-      const now = new Date();
-      const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at) : null;
-      const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at) : null;
-      
+      const now = Date.now();
+      const assignmentExpiry = pkg.matched_assignment_expires_at ? new Date(pkg.matched_assignment_expires_at).getTime() : null;
+      const quoteExpiry = pkg.quote_expires_at ? new Date(pkg.quote_expires_at).getTime() : null;
       return (assignmentExpiry && assignmentExpiry > now) || (quoteExpiry && quoteExpiry > now);
     };
 
-    // Define priority categories
+    // Priority categories (defined once)
     const adminActionStatuses = ['pending_office_confirmation', 'delivered_to_office'];
     const timerStatuses = ['matched', 'quote_sent', 'payment_pending'];
     const receivedByTravelerStatuses = ['received_by_traveler'];
     const completedStatuses = ['completed'];
-    
-    // Check category for each package
-    const aAdminAction = adminActionStatuses.includes(a.status);
-    const bAdminAction = adminActionStatuses.includes(b.status);
-    
-    const aHasTimer = timerStatuses.includes(a.status) && hasActiveTimer(a);
-    const bHasTimer = timerStatuses.includes(b.status) && hasActiveTimer(b);
-    
-    const aReceivedByTraveler = receivedByTravelerStatuses.includes(a.status);
-    const bReceivedByTraveler = receivedByTravelerStatuses.includes(b.status);
-    
-    const aCompleted = completedStatuses.includes(a.status);
-    const bCompleted = completedStatuses.includes(b.status);
-    
-    // Priority 1: Admin actions pending
-    if (aAdminAction && !bAdminAction) return -1;
-    if (!aAdminAction && bAdminAction) return 1;
-    
-    // Priority 2: Packages with active timers
-    if (!aAdminAction && !bAdminAction) {
-      if (aHasTimer && !bHasTimer) return -1;
-      if (!aHasTimer && bHasTimer) return 1;
-      
-      // Priority 3: Regular packages (not received or completed)
-      if (!aHasTimer && !bHasTimer) {
-        const aOtherStatus = !aReceivedByTraveler && !aCompleted;
-        const bOtherStatus = !bReceivedByTraveler && !bCompleted;
-        
-        if (aOtherStatus && !bOtherStatus) return -1;
-        if (!aOtherStatus && bOtherStatus) return 1;
-        
-        // Priority 4: Received by traveler (penultimate)
-        if (!aOtherStatus && !bOtherStatus) {
-          if (aReceivedByTraveler && !bReceivedByTraveler) return -1;
-          if (!aReceivedByTraveler && bReceivedByTraveler) return 1;
-          
-          // Priority 5: Completed (last)
-          if (aCompleted && !bCompleted) return 1;
-          if (!aCompleted && bCompleted) return -1;
-        }
-      }
-    }
-    
-    // Secondary sort: Creation date (newest first)
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
 
-  // Logs de diagnóstico
-  useEffect(() => {
-    console.log('📊 ActiveMatchesTab Debug:', {
-      matchedPackagesLength: matchedPackages.length,
-      statuses,
-      selectedStatuses: Array.from(selectedStatuses),
-      filteredMatchesLength: filteredMatches.length
-    });
-  }, [matchedPackages.length, statuses, selectedStatuses, filteredMatches.length]);
+    return matchedPackages
+      .filter(pkg => {
+        const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+        
+        // Combinar nombres para búsqueda con espacios
+        const shopperFullName = `${(pkg as any)?.profiles?.first_name || ''} ${(pkg as any)?.profiles?.last_name || ''}`.toLowerCase();
+        const travelerFullName = `${(matchedTrip as any)?.profiles?.first_name || ''} ${(matchedTrip as any)?.profiles?.last_name || ''}`.toLowerCase();
+        
+        const matchesSearch = !search ||
+          (pkg.item_description || '').toLowerCase().includes(search) ||
+          (pkg.user_id || '').toString().includes(search) ||
+          (pkg.label_number || '').toString().includes(search) ||
+          (matchedTrip?.from_city || '').toLowerCase().includes(search) ||
+          (matchedTrip?.to_city || '').toLowerCase().includes(search) ||
+          shopperFullName.includes(search) ||
+          ((pkg as any)?.profiles?.username || '').toLowerCase().includes(search) ||
+          travelerFullName.includes(search) ||
+          ((matchedTrip as any)?.profiles?.username || '').toLowerCase().includes(search);
+        
+        const matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(pkg.status);
+        
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const aAdminAction = adminActionStatuses.includes(a.status);
+        const bAdminAction = adminActionStatuses.includes(b.status);
+        
+        if (aAdminAction && !bAdminAction) return -1;
+        if (!aAdminAction && bAdminAction) return 1;
+        
+        const aHasTimer = timerStatuses.includes(a.status) && hasActiveTimer(a);
+        const bHasTimer = timerStatuses.includes(b.status) && hasActiveTimer(b);
+        
+        if (!aAdminAction && !bAdminAction) {
+          if (aHasTimer && !bHasTimer) return -1;
+          if (!aHasTimer && bHasTimer) return 1;
+          
+          if (!aHasTimer && !bHasTimer) {
+            const aReceivedByTraveler = receivedByTravelerStatuses.includes(a.status);
+            const bReceivedByTraveler = receivedByTravelerStatuses.includes(b.status);
+            const aCompleted = completedStatuses.includes(a.status);
+            const bCompleted = completedStatuses.includes(b.status);
+            
+            const aOtherStatus = !aReceivedByTraveler && !aCompleted;
+            const bOtherStatus = !bReceivedByTraveler && !bCompleted;
+            
+            if (aOtherStatus && !bOtherStatus) return -1;
+            if (!aOtherStatus && bOtherStatus) return 1;
+            
+            if (!aOtherStatus && !bOtherStatus) {
+              if (aReceivedByTraveler && !bReceivedByTraveler) return -1;
+              if (!aReceivedByTraveler && bReceivedByTraveler) return 1;
+              
+              if (aCompleted && !bCompleted) return 1;
+              if (!aCompleted && bCompleted) return -1;
+            }
+          }
+        }
+        
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+  }, [matchedPackages, trips, searchTerm, selectedStatuses]);
 
   const togglePackage = (packageId: string) => {
     setExpandedPackages(prev => {
@@ -225,8 +221,8 @@ const ActiveMatchesTab = ({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por descripción, nombres, usuario o ruta..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={inputValue}
+            onChange={handleSearchChange}
             className="pl-10"
           />
         </div>
