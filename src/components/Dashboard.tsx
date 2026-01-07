@@ -151,7 +151,12 @@ const Dashboard = ({ user }: DashboardProps) => {
     loadAutoApprovedPayments,
     loadApprovedPayments,
     viewMode,
-    setViewMode
+    setViewMode,
+    // URL-based navigation (from notifications)
+    urlPackageId,
+    urlOpenChat,
+    urlTripId,
+    clearUrlNavigation
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -729,6 +734,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                          onArchivePackage={handleArchivePackage}
                          onRequestRequote={handleRequestRequote}
                         viewMode="user"
+                        // URL-based navigation from notifications
+                        forceOpen={urlPackageId === pkg.id}
+                        forceTab={urlPackageId === pkg.id && urlOpenChat ? "chat" : undefined}
+                        onExternalControlHandled={urlPackageId === pkg.id ? clearUrlNavigation : undefined}
                       />
                 ))}
               </div>

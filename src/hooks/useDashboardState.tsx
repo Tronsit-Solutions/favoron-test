@@ -43,6 +43,11 @@ export const useDashboardState = (user: any) => {
   const [selectedPackageForAddress, setSelectedPackageForAddress] = useState<Package | null>(null);
   const [selectedPackageForQuote, setSelectedPackageForQuote] = useState<Package | null>(null);
   const [quoteUserType, setQuoteUserType] = useState<'user' | 'admin' | 'operations'>('user');
+  
+  // URL-based package/chat navigation (for notifications)
+  const [urlPackageId, setUrlPackageId] = useState<string | null>(() => searchParams.get('package'));
+  const [urlOpenChat, setUrlOpenChat] = useState<boolean>(() => searchParams.get('openChat') === 'true');
+  const [urlTripId, setUrlTripId] = useState<string | null>(() => searchParams.get('trip'));
   const [selectedTripId, setSelectedTripId] = useState<string | null>(() => {
     try {
       // Load saved trip selection for this user
@@ -209,7 +214,34 @@ export const useDashboardState = (user: any) => {
     if (validTabs.includes(tabFromUrl || '') && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
-  }, [searchParams, activeTab]);
+    
+    // Sync URL-based package/chat params
+    const packageFromUrl = searchParams.get('package');
+    const openChatFromUrl = searchParams.get('openChat') === 'true';
+    const tripFromUrl = searchParams.get('trip');
+    
+    if (packageFromUrl !== urlPackageId) {
+      setUrlPackageId(packageFromUrl);
+    }
+    if (openChatFromUrl !== urlOpenChat) {
+      setUrlOpenChat(openChatFromUrl);
+    }
+    if (tripFromUrl !== urlTripId) {
+      setUrlTripId(tripFromUrl);
+    }
+  }, [searchParams, activeTab, urlPackageId, urlOpenChat, urlTripId]);
+  
+  // Function to clear URL navigation params after handling
+  const clearUrlNavigation = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('package');
+    newParams.delete('openChat');
+    newParams.delete('trip');
+    setSearchParams(newParams, { replace: true });
+    setUrlPackageId(null);
+    setUrlOpenChat(false);
+    setUrlTripId(null);
+  };
 
   // Update URL when tab changes
   const handleSetActiveTab = (tab: string) => {
@@ -306,6 +338,11 @@ export const useDashboardState = (user: any) => {
     loadApprovedPayments,
     // View mode for admin role switching
     viewMode,
-    setViewMode
+    setViewMode,
+    // URL-based navigation (for notifications)
+    urlPackageId,
+    urlOpenChat,
+    urlTripId,
+    clearUrlNavigation
   };
 };
