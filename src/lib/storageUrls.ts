@@ -2,6 +2,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type StorageRef = { bucket: string; filePath: string };
 
+/**
+ * Converts Google avatar URLs to high resolution (400px instead of 96px)
+ */
+export function getHighResGoogleAvatar(url: string): string {
+  if (!url || !url.includes('googleusercontent.com')) {
+    return url;
+  }
+  // Replace size parameter: =s96-c -> =s400-c, =s96 -> =s400
+  return url.replace(/=s\d+(-c)?$/, '=s400$1');
+}
+
 export function parseStorageRef(input?: string | null): StorageRef | null {
   if (!input) return null;
   const val = input.trim();
