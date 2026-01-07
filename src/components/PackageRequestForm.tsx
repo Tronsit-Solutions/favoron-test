@@ -17,6 +17,7 @@ import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
 import ProductPhotoUpload from "@/components/ProductPhotoUpload";
 import type { Product } from "@/types";
+import { MetaPixel } from "@/lib/metaPixel";
 
 
 interface PackageRequestFormProps {
@@ -303,6 +304,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       await onSubmit(submitData);
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
       
+      // Track package lead in Meta Pixel
+      MetaPixel.trackPackageLead({
+        destination: submitData.packageDestination,
+        origin: submitData.purchaseOrigin
+      });
       // Reset form and clear persisted data on success (only in create mode)
       if (!editMode) {
         const initialProducts: Product[] = [{

@@ -16,6 +16,7 @@ import { supabaseWithRetry } from '@/lib/supabaseWithRetry';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { logAuthError, getEmailDomain, detectAuthErrorFromUrl } from '@/lib/authErrorLogger';
 import { APP_URL } from '@/lib/constants';
+import { MetaPixel } from '@/lib/metaPixel';
 
 
 const Auth = () => {
@@ -281,6 +282,9 @@ const Auth = () => {
         description: "Ya puedes iniciar sesión con tu cuenta.",
         duration: 4000,
       });
+
+      // Track registration in Meta Pixel
+      MetaPixel.trackCompleteRegistration(data?.user?.id);
 
       // Cambiar a pestaña de iniciar sesión después de 1 segundo
       setTimeout(() => {
