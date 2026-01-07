@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, X, ZoomIn, ZoomOut } from "lucide-react";
 
-import { resolveSignedUrl } from "@/lib/storageUrls";
+import { resolveSignedUrl, getHighResGoogleAvatar } from "@/lib/storageUrls";
 
 interface ImageViewerModalProps {
   isOpen: boolean;
@@ -41,12 +41,15 @@ export const ImageViewerModal = ({
     setError(null);
     
     try {
-      // Genera siempre una URL firmada si es un path de Storage o una URL de Supabase Storage
-      const resolved = await resolveSignedUrl(imageUrl, 3600);
-      setCurrentImageUrl(resolved ?? imageUrl);
+      // Get high-res version for Google avatars
+      const highResUrl = getHighResGoogleAvatar(imageUrl);
+      
+      // Resolve signed URL if it's a Supabase Storage path
+      const resolved = await resolveSignedUrl(highResUrl, 3600);
+      setCurrentImageUrl(resolved ?? highResUrl);
     } catch (err) {
       console.error('Error refreshing image URL:', err);
-      setCurrentImageUrl(imageUrl); // Fallback to original
+      setCurrentImageUrl(imageUrl);
     } finally {
       setIsLoading(false);
     }
