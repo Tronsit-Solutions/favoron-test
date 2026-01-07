@@ -721,7 +721,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
           {/* 3. DESTINO DEL PAQUETE - Tercera sección */}
           <div className="space-y-2">
-            <Label>¿A dónde lo enviamos? *</Label>
+            <Label>Destino final del paquete *</Label>
             <p className="text-xs text-muted-foreground">
               El país y ciudad donde deseas recibir tu paquete
             </p>
