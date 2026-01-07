@@ -13,7 +13,7 @@ import UserProfile from "./UserProfile";
 import EditProfileModal from "./profile/EditProfileModal";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
-import RecentActivity from "./dashboard/RecentActivity";
+
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
 import PrimeModal from "./PrimeModal";
 import ProfileCompletionModal from "./ProfileCompletionModal";
@@ -648,12 +648,6 @@ const Dashboard = ({ user }: DashboardProps) => {
             />
             <AvailableTripsCard 
               onViewTrips={() => setShowAvailableTripsModal(true)}
-            />
-            <RecentActivity 
-              packages={packages}
-              trips={trips}
-              getStatusBadge={getStatusBadge}
-              currentUserId={user?.id}
             />
           </TabsContent>
 
