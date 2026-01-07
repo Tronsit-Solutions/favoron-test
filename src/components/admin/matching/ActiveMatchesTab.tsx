@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import { MatchCard } from "./MatchCard";
 import { MatchStatsHeader } from "./MatchStatsHeader";
 import { MatchChatModal } from "./MatchChatModal";
 import { getStatusInfo } from "./MatchStatusBadge";
-import debounce from "lodash.debounce";
 
 interface ActiveMatchesTabProps {
   packages: any[];
@@ -51,8 +50,8 @@ const ActiveMatchesTab = ({
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [inputValue, setInputValue] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const {
     searchTerm,
@@ -62,20 +61,27 @@ const ActiveMatchesTab = ({
     statsData
   } = useMatchFilters(packages, trips);
 
-  // Debounce search to avoid filtering on every keystroke
-  const debouncedSetSearch = useMemo(
-    () => debounce((value: string) => {
-      setSearchTerm(value);
-      setDebouncedSearchTerm(value);
-    }, 300),
-    [setSearchTerm]
-  );
-
+  // Debounce search with useRef to avoid lodash dependency issues
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    debouncedSetSearch(value);
-  }, [debouncedSetSearch]);
+    
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setSearchTerm(value);
+    }, 300);
+  }, [setSearchTerm]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   // Estado para los checkboxes de filtros
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());

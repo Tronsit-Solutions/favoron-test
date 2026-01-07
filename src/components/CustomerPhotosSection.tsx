@@ -199,7 +199,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                   plugins={[
                     Autoplay({
                       delay: 4000,
-                    }),
+                    }) as any,
                   ]}
                   opts={{
                     align: "start",
@@ -268,7 +268,7 @@ export const CustomerPhotosSection = ({ isAdmin = false }: CustomerPhotosSection
                 plugins={[
                   Autoplay({
                     delay: 4000,
-                  }),
+                  }) as any,
                 ]}
                 opts={{
                   align: "start",
