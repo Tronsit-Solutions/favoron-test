@@ -7,7 +7,8 @@ export const CSP_DIRECTIVES = {
     "'unsafe-inline'", // Required for Vite development
     "'unsafe-eval'", // Required for Vite development
     "https://dfhoduirmqbarjnspbdh.supabase.co",
-    "https://api.resend.com"
+    "https://api.resend.com",
+    "https://connect.facebook.net"
   ],
   'style-src': [
     "'self'",
@@ -24,13 +25,16 @@ export const CSP_DIRECTIVES = {
     "data:",
     "blob:",
     "https:",
-    "https://dfhoduirmqbarjnspbdh.supabase.co"
+    "https://dfhoduirmqbarjnspbdh.supabase.co",
+    "https://www.facebook.com"
   ],
   'connect-src': [
     "'self'",
     "https://dfhoduirmqbarjnspbdh.supabase.co",
     "wss://dfhoduirmqbarjnspbdh.supabase.co",
     "https://api.resend.com",
+    "https://www.facebook.com",
+    "https://connect.facebook.net",
     process.env.NODE_ENV === 'development' ? 'ws://localhost:*' : '',
     process.env.NODE_ENV === 'development' ? 'http://localhost:*' : ''
   ].filter(Boolean),

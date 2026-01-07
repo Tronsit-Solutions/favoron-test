@@ -23,6 +23,7 @@ import { COUNTRIES, MAIN_COUNTRIES, OTHER_COUNTRY_OPTION, COUNTRY_QUICK_OPTIONS 
 import { getCitiesByCountry, countryHasCities, GUATEMALAN_CITIES } from "@/lib/cities";
 import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { logFormError, logFormValidationError } from "@/lib/formErrorLogger";
+import { MetaPixel } from "@/lib/metaPixel";
 import "./ui/mobile-safe-form.css";
 interface TripFormProps {
   isOpen: boolean;
@@ -249,6 +250,12 @@ const TripForm = ({
       await Promise.resolve(onSubmit(submitData));
       
       console.log('✅ Form submitted successfully');
+      
+      // Track trip lead in Meta Pixel
+      MetaPixel.trackTripLead({
+        from: `${finalFromCity}, ${formData.fromCountry}`,
+        to: `${finalToCity}, ${formData.toCountry}`
+      });
       
       // Close modal after successful submission
       onClose();

@@ -1,14 +1,22 @@
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { MetaPixel } from '@/lib/metaPixel';
 
 export default function PaymentCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const status = searchParams.get('payment');
   const packageId = searchParams.get('package_id');
+  const amount = searchParams.get('amount');
   
   useEffect(() => {
+    // Track purchase event on success
+    if (status === 'success') {
+      const purchaseAmount = amount ? parseFloat(amount) : 0;
+      MetaPixel.trackPurchase(purchaseAmount, 'GTQ', packageId || undefined);
+    }
+
     // Send message to parent (iframe)
     if (window.parent !== window) {
       console.log('Sending postMessage to parent:', { status, packageId });
@@ -24,7 +32,7 @@ export default function PaymentCallback() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [status, packageId, navigate]);
+  }, [status, packageId, amount, navigate]);
 
   const isSuccess = status === 'success';
 
