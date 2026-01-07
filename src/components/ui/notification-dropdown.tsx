@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface NotificationDropdownProps {
   userId?: string;
@@ -52,23 +53,84 @@ const getPriorityColor = (priority: Notification['priority']) => {
   }
 };
 
+// Build action URL based on notification type and metadata
+const getActionUrl = (notification: Notification): string | null => {
+  // If explicit action_url exists, use it
+  if (notification.action_url) {
+    return notification.action_url;
+  }
+
+  const metadata = (notification.metadata || {}) as Record<string, any>;
+  
+  switch (notification.type) {
+    case 'package':
+      // Chat messages, new packages, quote accepted
+      if (metadata.package_id) {
+        return `/dashboard?package=${metadata.package_id}&openChat=true`;
+      }
+      break;
+      
+    case 'quote':
+      // Quote reminders, expirations
+      if (metadata.package_id) {
+        return `/dashboard?package=${metadata.package_id}`;
+      }
+      break;
+      
+    case 'trip':
+      // Trip updates
+      if (metadata.trip_id) {
+        return `/dashboard?tab=trips&trip=${metadata.trip_id}`;
+      }
+      break;
+      
+    case 'payment':
+      // Payment notifications for admin
+      return '/dashboard?tab=admin&matching=payments';
+      
+    case 'delivery':
+      // Office delivery confirmations
+      if (metadata.package_id) {
+        return `/dashboard?package=${metadata.package_id}`;
+      }
+      break;
+      
+    case 'approval':
+      // Approval notifications
+      if (metadata.package_id) {
+        return `/dashboard?package=${metadata.package_id}`;
+      }
+      if (metadata.trip_id) {
+        return `/dashboard?tab=trips&trip=${metadata.trip_id}`;
+      }
+      break;
+  }
+  
+  return '/dashboard';
+};
+
 export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownProps) => {
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   const handleNotificationClick = (notification: Notification) => {
+    // Close the popover
+    setOpen(false);
+    
     if (!notification.read) {
       markAsRead(notification.id);
     }
     
-    // Navigate to action URL if provided
-    if (notification.action_url) {
-      navigate(notification.action_url);
+    // Navigate to action URL
+    const url = getActionUrl(notification);
+    if (url) {
+      navigate(url);
     }
   };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
           <Bell className="h-4 w-4" />

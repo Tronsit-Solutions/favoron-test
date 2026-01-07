@@ -51,6 +51,10 @@ interface CollapsiblePackageCardProps {
   onArchivePackage?: (pkg: PackageType) => void;
   onRequestRequote?: (pkg: PackageType) => void;
   viewMode?: 'user';
+  // External control props (for URL navigation from notifications)
+  forceOpen?: boolean;
+  forceTab?: string;
+  onExternalControlHandled?: () => void;
 }
 const CollapsiblePackageCard = ({
   pkg,
@@ -61,10 +65,27 @@ const CollapsiblePackageCard = ({
   onDeletePackage,
   onArchivePackage,
   onRequestRequote,
-  viewMode = 'user'
+  viewMode = 'user',
+  forceOpen,
+  forceTab,
+  onExternalControlHandled
 }: CollapsiblePackageCardProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("producto");
+  const [isOpen, setIsOpen] = React.useState(forceOpen || false);
+  const [activeTab, setActiveTab] = React.useState(forceTab || "producto");
+  
+  // Handle external control changes (e.g., from URL params)
+  React.useEffect(() => {
+    if (forceOpen && !isOpen) {
+      setIsOpen(true);
+    }
+    if (forceTab && activeTab !== forceTab) {
+      setActiveTab(forceTab);
+    }
+    if ((forceOpen || forceTab) && onExternalControlHandled) {
+      // Notify parent that we've handled the external control
+      onExternalControlHandled();
+    }
+  }, [forceOpen, forceTab]);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [shippingInfoOpen, setShippingInfoOpen] = React.useState(false);
   const [quoteInfoOpen, setQuoteInfoOpen] = React.useState(false);
