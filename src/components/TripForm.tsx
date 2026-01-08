@@ -85,7 +85,7 @@ const TripForm = ({
 
   // Wizard step state (not persisted - resets when modal opens)
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   // Reset step when modal opens
   useEffect(() => {
@@ -281,8 +281,10 @@ const TripForm = ({
           setCurrentStep(1);
         } else if (!step2Valid) {
           setCurrentStep(2);
-        } else {
+        } else if (!step3Valid) {
           setCurrentStep(3);
+        } else {
+          setCurrentStep(4);
         }
         
         setIsSubmitting(false);
@@ -292,7 +294,7 @@ const TripForm = ({
       if (!acceptedTerms) {
         toast.error('Debes aceptar los términos y condiciones para continuar');
         console.error('❌ Terms not accepted');
-        setCurrentStep(3);
+        setCurrentStep(4);
         setIsSubmitting(false);
         return;
       }
@@ -474,7 +476,7 @@ const TripForm = ({
         </button>
 
         {/* Connector 2-3 */}
-        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
+        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${
           currentStep >= 3 ? 'bg-primary' : 'bg-muted'
         }`} />
 
@@ -493,6 +495,29 @@ const TripForm = ({
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Entrega
+          </span>
+        </button>
+
+        {/* Connector 3-4 */}
+        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${
+          currentStep >= 4 ? 'bg-primary' : 'bg-muted'
+        }`} />
+
+        {/* Step 4 */}
+        <button
+          type="button"
+          onClick={() => goToStep(4)}
+          className="flex items-center cursor-pointer group"
+        >
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
+            currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          }`}>
+            4
+          </div>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
+            currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
+          }`}>
+            Confirmar
           </span>
         </button>
       </div>
@@ -982,7 +1007,7 @@ const TripForm = ({
     </div>
   );
 
-  // Step 3 content (Entrega en Guatemala)
+  // Step 3 content (Solo Entrega)
   const renderStep3 = () => (
     <div className="space-y-8 animate-fade-in">
       {/* 🟦 Entrega de paquetes */}
@@ -1155,69 +1180,179 @@ const TripForm = ({
         </div>
       )}
 
-      {/* Info box */}
-      <div className="bg-traveler/10 border border-traveler/30 rounded-lg p-4">
-        <div className="flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 text-traveler mt-0.5" />
-          <div className="text-sm text-traveler">
-            <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
-            <ul className="space-y-1 text-xs">
-              <li>• Recibirás solicitudes con propina asignada - tú decides si aceptar o rechazar cada paquete</li>
-              <li>• Los paquetes llegaran a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
-              <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
-              <li>• Favorón coordina la entrega final al comprador</li>
-              <li>• Ganas entre Q150-800+ por viaje</li>
-            </ul>
-            <div className="mt-3 pt-2 border-t border-traveler/20">
-              <p className="text-xs font-medium text-traveler">
-                🔒 Tu dirección nunca se comparte hasta que apruebes un pedido.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Terms and Conditions Checkbox */}
-      <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group">
-        <div className="flex items-start space-x-3">
-          <Checkbox 
-            id="acceptTerms" 
-            checked={acceptedTerms} 
-            onCheckedChange={checked => setAcceptedTerms(!!checked)} 
-            className="mt-1" 
-          />
-          <div className="flex-1">
-            <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
-              Entiendo y acepto los términos y condiciones de Favorón
-            </Label>
-            <p className="text-xs text-black/70 mt-1">
-              Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
-            </p>
-            <Button type="button" variant="link" className="h-auto p-0 text-xs text-black hover:text-black/80" onClick={() => setShowTermsModal(true)}>
-              <FileText className="h-3 w-3 mr-1" />
-              Leer términos y condiciones
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Navigation buttons */}
       <div className="flex space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
           <ChevronLeft className="mr-2 h-4 w-4" />
           Atrás
         </Button>
-        <Button 
-          type="submit" 
-          variant="traveler" 
-          className="flex-1" 
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Enviando...' : 'Registrar Viaje'}
+        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1">
+          Siguiente
+          <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>
   );
+
+  // Step 4 content (Resumen y Confirmación)
+  const renderStep4 = () => {
+    const getDeliveryMethodLabel = () => {
+      switch (formData.deliveryMethod) {
+        case 'oficina': return 'Entrega en oficina Favorón';
+        case 'mensajero': return 'Entrega a mensajero Favorón';
+        case 'correo': return 'Envío por correo';
+        case 'coordinacion_shopper': return 'Coordinación con shopper';
+        default: return 'No seleccionado';
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* 🟦 Resumen del viaje */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+            <Plane className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-primary">Resumen del viaje</h3>
+          </div>
+          
+          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Ruta:</span>
+              <span className="text-sm font-medium">
+                {formData.fromCity || '-'} → {displayToCity || '-'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Fecha de llegada:</span>
+              <span className="text-sm font-medium">
+                {formData.arrivalDate ? format(formData.arrivalDate, "PPP", { locale: es }) : '-'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Espacio disponible:</span>
+              <span className="text-sm font-medium">{formData.availableSpace || '-'} kg</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Método de entrega:</span>
+              <span className="text-sm font-medium">{getDeliveryMethodLabel()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Fecha de entrega:</span>
+              <span className="text-sm font-medium">
+                {formData.deliveryDate ? format(formData.deliveryDate, "PPP", { locale: es }) : '-'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 🟦 Resumen de dirección */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+            <Home className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-primary">Dirección de recepción</h3>
+          </div>
+          
+          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <span className="text-sm text-muted-foreground">Recipiente:</span>
+              <span className="text-sm font-medium text-right">
+                {formData.packageReceivingAddress.recipientName || '-'}
+              </span>
+            </div>
+            <div className="flex justify-between items-start">
+              <span className="text-sm text-muted-foreground">Dirección:</span>
+              <span className="text-sm font-medium text-right max-w-[60%]">
+                {formData.packageReceivingAddress.streetAddress || '-'}
+                {formData.packageReceivingAddress.streetAddress2 && `, ${formData.packageReceivingAddress.streetAddress2}`}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Ciudad/Estado:</span>
+              <span className="text-sm font-medium">{formData.packageReceivingAddress.cityArea || '-'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Código postal:</span>
+              <span className="text-sm font-medium">{formData.packageReceivingAddress.postalCode || '-'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Contacto:</span>
+              <span className="text-sm font-medium">{formData.packageReceivingAddress.contactNumber || '-'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Ventana de recepción:</span>
+              <span className="text-sm font-medium">
+                {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", { locale: es }) : '-'} 
+                {' - '}
+                {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", { locale: es }) : '-'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Info box - Cómo funciona */}
+        <div className="bg-traveler/10 border border-traveler/30 rounded-lg p-4">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="h-5 w-5 text-traveler mt-0.5" />
+            <div className="text-sm text-traveler">
+              <p className="font-medium mb-1">¿Cómo funciona para viajeros?</p>
+              <ul className="space-y-1 text-xs">
+                <li>• Recibirás solicitudes con propina asignada - tú decides si aceptar o rechazar cada paquete</li>
+                <li>• Los paquetes llegaran a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
+                <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
+                <li>• Favorón coordina la entrega final al comprador</li>
+                <li>• Ganas entre Q150-800+ por viaje</li>
+              </ul>
+              <div className="mt-3 pt-2 border-t border-traveler/20">
+                <p className="text-xs font-medium text-traveler">
+                  🔒 Tu dirección nunca se comparte hasta que apruebes un pedido.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Terms and Conditions Checkbox */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group">
+          <div className="flex items-start space-x-3">
+            <Checkbox 
+              id="acceptTerms" 
+              checked={acceptedTerms} 
+              onCheckedChange={checked => setAcceptedTerms(!!checked)} 
+              className="mt-1" 
+            />
+            <div className="flex-1">
+              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
+                Entiendo y acepto los términos y condiciones de Favorón
+              </Label>
+              <p className="text-xs text-black/70 mt-1">
+                Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
+              </p>
+              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black hover:text-black/80" onClick={() => setShowTermsModal(true)}>
+                <FileText className="h-3 w-3 mr-1" />
+                Leer términos y condiciones
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="flex space-x-3 pt-4">
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Atrás
+          </Button>
+          <Button 
+            type="submit" 
+            variant="traveler" 
+            className="flex-1" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Enviando...' : 'Registrar Viaje'}
+          </Button>
+        </div>
+      </div>
+    );
+  };
   
   const renderTripForm = () => (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -1238,6 +1373,7 @@ const TripForm = ({
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
+          {currentStep === 4 && renderStep4()}
         </form>
         
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
