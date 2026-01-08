@@ -116,6 +116,23 @@ export const GoogleAddressInput: React.FC<GoogleAddressInputProps> = ({
     }
   };
 
+  // Prevent Radix Dialog from capturing clicks on Google Places dropdown
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.pac-container')) {
+        e.stopPropagation();
+      }
+    };
+
+    // Use capture phase to intercept before Radix
+    document.addEventListener('mousedown', handleMouseDown, true);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown, true);
+    };
+  }, []);
+
   // Sync value to input when it changes externally
   useEffect(() => {
     if (inputRef.current && inputRef.current.value !== value) {
