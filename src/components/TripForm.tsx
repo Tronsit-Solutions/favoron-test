@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
@@ -850,9 +851,8 @@ const TripForm = ({
               if (addressData.cityArea) {
                 handleAddressChange('cityArea', addressData.cityArea);
               }
-              if (addressData.postalCode) {
-                handleAddressChange('postalCode', addressData.postalCode);
-              }
+              // SIEMPRE actualizar código postal - limpiar si no viene
+              handleAddressChange('postalCode', addressData.postalCode || '');
             }}
             countryRestriction={formData.fromCountry}
             placeholder="Buscar dirección..."
@@ -892,7 +892,20 @@ const TripForm = ({
               value={formData.packageReceivingAddress.postalCode} 
               onChange={e => handleAddressChange('postalCode', e.target.value)} 
               required 
+              className={cn(
+                !formData.packageReceivingAddress.postalCode && 
+                formData.packageReceivingAddress.streetAddress 
+                  ? "border-amber-500 focus:ring-amber-500" 
+                  : ""
+              )}
             />
+            {!formData.packageReceivingAddress.postalCode && 
+             formData.packageReceivingAddress.streetAddress && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Por favor ingresa el código postal manualmente
+              </p>
+            )}
           </div>
         </div>
 
