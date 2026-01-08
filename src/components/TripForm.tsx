@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
+import { toast } from "sonner";
 
 import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
@@ -222,31 +223,22 @@ const TripForm = ({
     return { valid: missingFields.length === 0, missingFields };
   };
 
+  // Free navigation - no validation required to move between steps
   const handleNextStep = () => {
-    if (currentStep === 1) {
-      const { valid, missingFields } = validateStep1();
-      if (!valid) {
-        const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
-        logFormValidationError(missingFields, 'traveler-form-step1');
-        alert(errorMsg);
-        return;
-      }
-      setCurrentStep(2);
-    } else if (currentStep === 2) {
-      const { valid, missingFields } = validateStep2();
-      if (!valid) {
-        const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
-        logFormValidationError(missingFields, 'traveler-form-step2');
-        alert(errorMsg);
-        return;
-      }
-      setCurrentStep(3);
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
   const handlePrevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const goToStep = (step: number) => {
+    if (step >= 1 && step <= totalSteps) {
+      setCurrentStep(step);
     }
   };
 
@@ -270,21 +262,35 @@ const TripForm = ({
       const finalFromCity = formData.fromCity;
       const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
       
-      // Validate step 3 fields
+      // Validate ALL steps before submitting
+      const { valid: step1Valid, missingFields: step1Missing } = validateStep1();
+      const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
       const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
-      if (!step3Valid) {
-        const errorMsg = `Por favor completa los campos: ${step3Missing.join(', ')}`;
-        console.error('❌ Form validation failed:', errorMsg);
-        logFormValidationError(step3Missing, 'traveler-form-step3');
-        alert(errorMsg);
+      
+      const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing];
+      
+      if (allMissingFields.length > 0) {
+        console.error('❌ Form validation failed:', allMissingFields);
+        logFormValidationError(allMissingFields, 'traveler-form-complete');
+        toast.error(`Campos faltantes: ${allMissingFields.join(', ')}`);
+        
+        // Navigate to the first step with errors
+        if (!step1Valid) {
+          setCurrentStep(1);
+        } else if (!step2Valid) {
+          setCurrentStep(2);
+        } else {
+          setCurrentStep(3);
+        }
+        
         setIsSubmitting(false);
         return;
       }
 
       if (!acceptedTerms) {
-        const errorMsg = 'Debes aceptar los términos y condiciones para continuar';
+        toast.error('Debes aceptar los términos y condiciones para continuar');
         console.error('❌ Terms not accepted');
-        alert(errorMsg);
+        setCurrentStep(3);
         setIsSubmitting(false);
         return;
       }
@@ -366,7 +372,7 @@ const TripForm = ({
         ? 'Error al enviar el formulario. Si usas Safari en iPhone, intenta: 1) Refrescar la página, 2) Usar Chrome/Firefox, o 3) Contactar soporte.'
         : 'Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.';
       
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -420,23 +426,27 @@ const TripForm = ({
 
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
 
-  // Progress indicator component
+  // Progress indicator component - now clickable for free navigation
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-6">
       <div className="flex items-center space-x-2 sm:space-x-3">
         {/* Step 1 */}
-        <div className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+        <button
+          type="button"
+          onClick={() => goToStep(1)}
+          className="flex items-center cursor-pointer group"
+        >
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
             currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             1
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
             currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Viaje
           </span>
-        </div>
+        </button>
 
         {/* Connector 1-2 */}
         <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
@@ -444,18 +454,22 @@ const TripForm = ({
         }`} />
 
         {/* Step 2 */}
-        <div className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+        <button
+          type="button"
+          onClick={() => goToStep(2)}
+          className="flex items-center cursor-pointer group"
+        >
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
             currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             2
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Dirección
           </span>
-        </div>
+        </button>
 
         {/* Connector 2-3 */}
         <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
@@ -463,18 +477,22 @@ const TripForm = ({
         }`} />
 
         {/* Step 3 */}
-        <div className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+        <button
+          type="button"
+          onClick={() => goToStep(3)}
+          className="flex items-center cursor-pointer group"
+        >
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
             currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             3
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Entrega
           </span>
-        </div>
+        </button>
       </div>
     </div>
   );
