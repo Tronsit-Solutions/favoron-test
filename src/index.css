@@ -625,6 +625,7 @@
   border-radius: var(--radius) !important;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2) !important;
   font-family: inherit !important;
+  pointer-events: auto !important;
 }
 
 .pac-item {
@@ -632,6 +633,7 @@
   cursor: pointer !important;
   border-top: 1px solid hsl(var(--border)) !important;
   color: hsl(var(--foreground)) !important;
+  pointer-events: auto !important;
 }
 
 .pac-item:first-child {
