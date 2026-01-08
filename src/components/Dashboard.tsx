@@ -991,6 +991,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             <TabsContent value="ultima-milla">
               <LastMileTab 
                 trips={trips}
+                packages={packages}
                 getStatusBadge={getStatusBadge}
               />
             </TabsContent>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Printer, CheckCircle, Package, User, MapPin, Calendar, Eye, Tag, AlertTriangle } from "lucide-react";
@@ -11,129 +11,76 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import ReactDOM from 'react-dom/client';
 import { WhatsAppTestButton } from './WhatsAppTestButton';
 import { formatDateUTC } from "@/lib/formatters";
 
 // Helper function to check if delivery is overdue
 const isDeliveryOverdue = (deliveryDate: string): boolean => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset to midnight for accurate day comparison
+  today.setHours(0, 0, 0, 0);
   const delivery = new Date(deliveryDate);
   delivery.setHours(0, 0, 0, 0);
-  return delivery < today; // True if delivery date has passed
+  return delivery < today;
 };
+
+// Eligible statuses for last mile processing
+const ELIGIBLE_TRIP_STATUSES = ['approved', 'active'];
+const ELIGIBLE_PACKAGE_STATUSES = [
+  'paid', 
+  'pending_purchase', 
+  'shipped',
+  'in_transit', 
+  'received_by_traveler',
+  'pending_office_confirmation', 
+  'delivered_to_office', 
+  'out_for_delivery', 
+  'completed'
+];
 
 interface LastMileTabProps {
   trips: any[];
+  packages: any[]; // Now receiving packages from Dashboard
   getStatusBadge: (status: string) => JSX.Element;
 }
 
-const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
+const LastMileTab = ({ trips, packages, getStatusBadge }: LastMileTabProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [tripsWithPackages, setTripsWithPackages] = useState<any[]>([]);
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [previewPackage, setPreviewPackage] = useState<any>(null);
   const [selectedTripDetail, setSelectedTripDetail] = useState<any>(null);
+  const [deliveredTrips, setDeliveredTrips] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    fetchTripsWithPackages();
-  }, [trips]);
-
-  const fetchTripsWithPackages = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch trips with last_mile_delivered field from database
-    const { data: tripsFromDB, error: tripsError } = await supabase
-      .from('trips')
-      .select(`
-        id, from_city, to_city, from_country, arrival_date, delivery_date,
-        first_day_packages, last_day_packages, delivery_method, messenger_pickup_info,
-        package_receiving_address, status, created_at, updated_at, user_id,
-        available_space, last_mile_delivered, rejection_reason, admin_rejection,
-        client_request_id
-      `)
-      .in('status', ['approved', 'active']);
-
-      if (tripsError) {
-        console.error('Error fetching trips:', tripsError);
-        setLoading(false);
-        return;
-      }
-
-      const eligibleTrips = tripsFromDB || [];
-
-      const tripsData = await Promise.all(
-        eligibleTrips.map(async (trip) => {
-          // Get traveler profile information
-          const { data: travelerProfile, error: travelerError } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email, phone_number')
-            .eq('id', trip.user_id)
-            .single();
-
-          if (travelerError) {
-            console.error('Error fetching traveler profile:', travelerError);
+  // Process trips with packages in memory - NO database queries needed!
+  const tripsWithPackages = useMemo(() => {
+    return trips
+      .filter(trip => ELIGIBLE_TRIP_STATUSES.includes(trip.status) && !trip.last_mile_delivered)
+      .map(trip => {
+        // Filter packages that belong to this trip
+        const tripPackages = packages.filter(pkg => 
+          pkg.matched_trip_id === trip.id && 
+          ELIGIBLE_PACKAGE_STATUSES.includes(pkg.status)
+        ).map(pkg => ({
+          ...pkg,
+          profiles: pkg.profiles || { 
+            first_name: pkg.shopper_first_name, 
+            last_name: pkg.shopper_last_name 
           }
-
-          // Get packages for this trip that can generate labels (same conditions as matches area)
-          const { data: packages, error } = await supabase
-            .from('packages')
-            .select(`
-              *,
-              profiles:user_id (
-                first_name,
-                last_name,
-                email
-              )
-            `)
-            .eq('matched_trip_id', trip.id)
-            .in('status', [
-              'paid', 
-              'pending_purchase', 
-              
-              'shipped',
-              'in_transit', 
-              'received_by_traveler',
-              'pending_office_confirmation', 
-              'delivered_to_office', 
-              'out_for_delivery', 
-              'completed'
-            ]);
-
-          if (error) {
-            console.error('Error fetching packages:', error);
-            return null;
-          }
-
-          if (packages && packages.length > 0) {
-            return {
-              ...trip,
-              packages,
-              packageCount: packages.length,
-              travelerProfile: travelerProfile || null
-            };
-          }
-
-          return null;
-        })
-      );
-
-      // Filter out null results and sort by arrival date
-      const validTrips = tripsData
-        .filter(trip => trip !== null)
-        .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
-
-      setTripsWithPackages(validTrips);
-    } catch (error) {
-      console.error('Error fetching trips with packages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        }));
+        
+        if (tripPackages.length === 0) return null;
+        
+        return {
+          ...trip,
+          packages: tripPackages,
+          packageCount: tripPackages.length,
+          // Profile data comes from the trip's profiles relation
+          travelerProfile: trip.profiles || null
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => new Date(a!.arrival_date).getTime() - new Date(b!.arrival_date).getTime());
+  }, [trips, packages]);
 
   const handleMarkAsDelivered = async (tripId: string) => {
     try {
@@ -144,21 +91,16 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
 
       if (error) {
         console.error('Error marking trip as delivered:', error);
-        alert('Error al marcar como entregado. Inténtalo de nuevo.');
+        toast({ title: 'Error', description: 'Error al marcar como entregado. Inténtalo de nuevo.', variant: 'destructive' });
         return;
       }
 
-      // Update local state to immediately hide the trip
-      setTripsWithPackages(prev => 
-        prev.map(trip => 
-          trip.id === tripId 
-            ? { ...trip, last_mile_delivered: true }
-            : trip
-        )
-      );
+      // Track locally which trips have been marked as delivered (optimistic update)
+      setDeliveredTrips(prev => new Set([...prev, tripId]));
+      toast({ title: 'Éxito', description: 'Viaje marcado como entregado' });
     } catch (error) {
       console.error('Error marking trip as delivered:', error);
-      alert('Error al marcar como entregado. Inténtalo de nuevo.');
+      toast({ title: 'Error', description: 'Error al marcar como entregado. Inténtalo de nuevo.', variant: 'destructive' });
     }
   };
 
@@ -289,19 +231,10 @@ const LastMileTab = ({ trips, getStatusBadge }: LastMileTabProps) => {
     }
   };
 
-  const filteredTrips = tripsWithPackages.filter(trip => !trip.last_mile_delivered);
+  // Filter out trips that have been locally marked as delivered
+  const filteredTrips = tripsWithPackages.filter(trip => !deliveredTrips.has(trip.id));
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">Cargando viajes con paquetes...</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // No loading state needed - data comes from props!
 
   return (
     <div className="space-y-4">
