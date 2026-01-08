@@ -12,7 +12,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
@@ -898,14 +899,23 @@ const TripForm = ({
         <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
           <CalendarIcon className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold text-primary">Ventana de recepción de paquetes</h3>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="ml-1">
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-help" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <p>Indica las fechas en las que estarás disponible para recibir paquetes en tu dirección de destino. Los shoppers enviarán los productos dentro de esta ventana de tiempo.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <p className="text-sm text-muted-foreground">
-          ¿En qué fechas puedes recibir paquetes en tu dirección de {getDisplayFromCity()}?
-        </p>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Primer día para recibir paquetes *</Label>
+            <Label>Primer día *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
@@ -927,7 +937,7 @@ const TripForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Último día para recibir paquetes *</Label>
+            <Label>Último día *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
