@@ -19,6 +19,7 @@ import { es } from "date-fns/locale";
 import MessengerPickupForm from "@/components/MessengerPickupForm";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { toast } from "sonner";
+import { GoogleAddressInput } from "@/components/ui/google-address-input";
 
 import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
@@ -816,13 +817,20 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-          <Input 
-            id="streetAddress" 
-            type="text" 
-            placeholder="Ej: 123 Main Street" 
-            value={formData.packageReceivingAddress.streetAddress} 
-            onChange={e => handleAddressChange('streetAddress', e.target.value)} 
-            required 
+          <GoogleAddressInput
+            value={formData.packageReceivingAddress.streetAddress}
+            onChange={(value) => handleAddressChange('streetAddress', value)}
+            onPlaceSelected={(addressData) => {
+              handleAddressChange('streetAddress', addressData.streetAddress);
+              if (addressData.cityArea) {
+                handleAddressChange('cityArea', addressData.cityArea);
+              }
+              if (addressData.postalCode) {
+                handleAddressChange('postalCode', addressData.postalCode);
+              }
+            }}
+            countryRestriction={formData.fromCountry}
+            placeholder="Buscar dirección..."
           />
         </div>
 
