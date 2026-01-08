@@ -132,6 +132,7 @@ export const GoogleAddressInput: React.FC<GoogleAddressInputProps> = ({
         options={{
           types: ['address'],
           componentRestrictions: countryCode ? { country: countryCode } : undefined,
+          fields: ['address_components', 'formatted_address', 'geometry', 'place_id'],
         }}
         defaultValue={value}
         placeholder={placeholder}
