@@ -72,8 +72,14 @@ const parseAddressComponents = (place: google.maps.places.PlaceResult): AddressD
     if (types.includes('administrative_area_level_1')) {
       adminArea = component.short_name;
     }
-    if (types.includes('postal_code')) {
-      postalCode = component.long_name;
+    // Buscar código postal en todas las variantes usadas por diferentes países
+    if (types.includes('postal_code') || 
+        types.includes('postal_code_prefix') ||
+        types.includes('postal_code_suffix')) {
+      // Preferir postal_code completo si existe
+      if (!postalCode || types.includes('postal_code')) {
+        postalCode = component.long_name;
+      }
     }
   });
 
