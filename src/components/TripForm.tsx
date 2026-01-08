@@ -82,7 +82,7 @@ const TripForm = ({
 
   // Wizard step state (not persisted - resets when modal opens)
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 2;
+  const totalSteps = 3;
 
   // Reset step when modal opens
   useEffect(() => {
@@ -172,7 +172,7 @@ const TripForm = ({
     label: 'Casa/Apartamento'
   }];
 
-  // Step 1 validation
+  // Step 1 validation (Viaje)
   const validateStep1 = (): { valid: boolean; missingFields: string[] } => {
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
     
@@ -183,20 +183,13 @@ const TripForm = ({
       { field: finalToCity, name: 'ciudad de destino' },
       { field: formData.arrivalDate, name: 'fecha de llegada' },
       { field: formData.availableSpace, name: 'espacio disponible' },
-      { field: formData.deliveryMethod, name: 'método de entrega' },
-      { field: formData.deliveryDate, name: 'fecha de entrega' },
     ];
-
-    // Validar información de mensajero si seleccionó mensajero
-    if (formData.deliveryMethod === 'mensajero' && !messengerData) {
-      requiredFields.push({ field: null, name: 'información de recolección por mensajero' });
-    }
 
     const missingFields = requiredFields.filter(({ field }) => !field).map(({ name }) => name);
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Step 2 validation
+  // Step 2 validation (Dirección y Fechas)
   const validateStep2 = (): { valid: boolean; missingFields: string[] } => {
     const requiredFields = [
       { field: formData.packageReceivingAddress.recipientName, name: 'nombre del recipiente' },
@@ -213,19 +206,48 @@ const TripForm = ({
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  const handleNextStep = () => {
-    const { valid, missingFields } = validateStep1();
-    if (!valid) {
-      const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
-      logFormValidationError(missingFields, 'traveler-form-step1');
-      alert(errorMsg);
-      return;
+  // Step 3 validation (Entrega)
+  const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
+    const requiredFields = [
+      { field: formData.deliveryMethod, name: 'método de entrega' },
+      { field: formData.deliveryDate, name: 'fecha de entrega' },
+    ];
+
+    // Validar información de mensajero si seleccionó mensajero
+    if (formData.deliveryMethod === 'mensajero' && !messengerData) {
+      requiredFields.push({ field: null, name: 'información de recolección por mensajero' });
     }
-    setCurrentStep(2);
+
+    const missingFields = requiredFields.filter(({ field }) => !field).map(({ name }) => name);
+    return { valid: missingFields.length === 0, missingFields };
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1) {
+      const { valid, missingFields } = validateStep1();
+      if (!valid) {
+        const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
+        logFormValidationError(missingFields, 'traveler-form-step1');
+        alert(errorMsg);
+        return;
+      }
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
+      const { valid, missingFields } = validateStep2();
+      if (!valid) {
+        const errorMsg = `Por favor completa los campos: ${missingFields.join(', ')}`;
+        logFormValidationError(missingFields, 'traveler-form-step2');
+        alert(errorMsg);
+        return;
+      }
+      setCurrentStep(3);
+    }
   };
 
   const handlePrevStep = () => {
-    setCurrentStep(1);
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -248,12 +270,12 @@ const TripForm = ({
       const finalFromCity = formData.fromCity;
       const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
       
-      // Validate step 2 fields
-      const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
-      if (!step2Valid) {
-        const errorMsg = `Por favor completa los campos: ${step2Missing.join(', ')}`;
+      // Validate step 3 fields
+      const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
+      if (!step3Valid) {
+        const errorMsg = `Por favor completa los campos: ${step3Missing.join(', ')}`;
         console.error('❌ Form validation failed:', errorMsg);
-        logFormValidationError(step2Missing, 'traveler-form-step2');
+        logFormValidationError(step3Missing, 'traveler-form-step3');
         alert(errorMsg);
         setIsSubmitting(false);
         return;
@@ -401,7 +423,7 @@ const TripForm = ({
   // Progress indicator component
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-6">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         {/* Step 1 */}
         <div className="flex items-center">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
@@ -416,8 +438,8 @@ const TripForm = ({
           </span>
         </div>
 
-        {/* Connector */}
-        <div className={`w-8 sm:w-12 h-0.5 transition-colors ${
+        {/* Connector 1-2 */}
+        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
           currentStep >= 2 ? 'bg-primary' : 'bg-muted'
         }`} />
 
@@ -432,6 +454,25 @@ const TripForm = ({
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Dirección
+          </span>
+        </div>
+
+        {/* Connector 2-3 */}
+        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
+          currentStep >= 3 ? 'bg-primary' : 'bg-muted'
+        }`} />
+
+        {/* Step 3 */}
+        <div className="flex items-center">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-colors ${
+            currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          }`}>
+            3
+          </div>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline ${
+            currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
+          }`}>
+            Entrega
           </span>
         </div>
       </div>
@@ -676,183 +717,11 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 2. Entrega de paquetes */}
-      {showDeliverySection && (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-            <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-              <span className="text-xs text-primary-foreground font-bold">2</span>
-            </div>
-            <h3 className="text-lg font-semibold text-primary">
-              {hasOfficialDeliveryOptions 
-                ? `Entrega de paquetes en ${isDestinationGuatemala ? 'Guatemala' : destinationDeliveryPoint?.name || 'destino'}`
-                : `¿Cómo entregarás los paquetes en ${formData.toCity || 'destino'}?`
-              }
-            </h3>
-          </div>
-          
-          <div className="space-y-3">
-            <Label className="text-base font-medium">
-              {hasOfficialDeliveryOptions 
-                ? '¿Cómo vas a entregar los paquetes a Favorón? *'
-                : 'Selecciona cómo planeas entregar los paquetes *'
-              }
-            </Label>
-            <div className="grid grid-cols-1 gap-3">
-              {hasOfficialDeliveryOptions && (
-                <>
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      formData.deliveryMethod === 'oficina' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                    onClick={() => handleInputChange('deliveryMethod', 'oficina')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
-                        {formData.deliveryMethod === 'oficina' && (
-                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">Entrego en oficina de Favorón</p>
-                        <p className="text-sm text-muted-foreground">Zona 14, Ciudad de Guatemala</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      formData.deliveryMethod === 'mensajero' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                    onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
-                        {formData.deliveryMethod === 'mensajero' && (
-                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">Entrega a mensajero Favorón</p>
-                        <p className="text-sm text-muted-foreground">Q25–Q40 según dirección</p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-              
-              {!hasOfficialDeliveryOptions && (
-                <>
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      formData.deliveryMethod === 'correo' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                    onClick={() => handleInputChange('deliveryMethod', 'correo')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
-                        {formData.deliveryMethod === 'correo' && (
-                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">📦 Lo enviaré por correo</p>
-                        <p className="text-sm text-muted-foreground">Enviaré el paquete por servicio postal desde mi destino</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      formData.deliveryMethod === 'coordinacion_shopper' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                    onClick={() => handleInputChange('deliveryMethod', 'coordinacion_shopper')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
-                        {formData.deliveryMethod === 'coordinacion_shopper' && (
-                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">🤝 Me coordino con el shopper</p>
-                        <p className="text-sm text-muted-foreground">Acordaré la entrega directamente con el comprador</p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-            
-            {showMessengerForm && (
-              <MessengerPickupForm 
-                onSubmit={handleMessengerSubmit} 
-                onCancel={handleMessengerCancel} 
-                initialData={messengerData} 
-              />
-            )}
-            
-            {formData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && (
-              <div className="bg-green-50 border border-green-200 rounded p-3">
-                <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
-                <p className="text-xs text-green-700">{messengerData.streetAddress}, {messengerData.cityArea}</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowMessengerForm(true)} className="mt-2">
-                  Editar información
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>
-              {hasOfficialDeliveryOptions 
-                ? 'Fecha en la que entregarás los paquetes *'
-                : 'Fecha estimada de entrega *'
-              }
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.deliveryDate ? format(formData.deliveryDate, "PPP", { locale: es }) : <span>Selecciona fecha de entrega</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-50" align="start">
-                <Calendar 
-                  mode="single" 
-                  selected={formData.deliveryDate || undefined} 
-                  onSelect={date => handleInputChange('deliveryDate', date)} 
-                  disabled={date => date < new Date()} 
-                  initialFocus 
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      )}
-
-      {/* 🟦 3. Información adicional */}
+      {/* 🟦 2. Información adicional */}
       <div className="space-y-4">
         <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
           <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">3</span>
+            <span className="text-xs text-primary-foreground font-bold">2</span>
           </div>
           <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
         </div>
@@ -1063,6 +932,193 @@ const TripForm = ({
         </div>
       </div>
 
+      {/* Navigation buttons */}
+      <div className="flex space-x-3 pt-4">
+        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Atrás
+        </Button>
+        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1">
+          Siguiente
+          <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Step 3 content (Entrega en Guatemala)
+  const renderStep3 = () => (
+    <div className="space-y-8 animate-fade-in">
+      {/* 🟦 Entrega de paquetes */}
+      {showDeliverySection && (
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+            <Package className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-primary">
+              {hasOfficialDeliveryOptions 
+                ? `Entrega de paquetes en ${isDestinationGuatemala ? 'Guatemala' : destinationDeliveryPoint?.name || 'destino'}`
+                : `¿Cómo entregarás los paquetes en ${formData.toCity || 'destino'}?`
+              }
+            </h3>
+          </div>
+          
+          <div className="space-y-3">
+            <Label className="text-base font-medium">
+              {hasOfficialDeliveryOptions 
+                ? '¿Cómo vas a entregar los paquetes a Favorón? *'
+                : 'Selecciona cómo planeas entregar los paquetes *'
+              }
+            </Label>
+            <div className="grid grid-cols-1 gap-3">
+              {hasOfficialDeliveryOptions && (
+                <>
+                  <div 
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      formData.deliveryMethod === 'oficina' 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    }`}
+                    onClick={() => handleInputChange('deliveryMethod', 'oficina')}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
+                      }`}>
+                        {formData.deliveryMethod === 'oficina' && (
+                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Entrego en oficina de Favorón</p>
+                        <p className="text-sm text-muted-foreground">Zona 14, Ciudad de Guatemala</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      formData.deliveryMethod === 'mensajero' 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    }`}
+                    onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
+                      }`}>
+                        {formData.deliveryMethod === 'mensajero' && (
+                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">Entrega a mensajero Favorón</p>
+                        <p className="text-sm text-muted-foreground">Q25–Q40 según dirección</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {!hasOfficialDeliveryOptions && (
+                <>
+                  <div 
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      formData.deliveryMethod === 'correo' 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    }`}
+                    onClick={() => handleInputChange('deliveryMethod', 'correo')}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
+                      }`}>
+                        {formData.deliveryMethod === 'correo' && (
+                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">📦 Lo enviaré por correo</p>
+                        <p className="text-sm text-muted-foreground">Enviaré el paquete por servicio postal desde mi destino</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      formData.deliveryMethod === 'coordinacion_shopper' 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    }`}
+                    onClick={() => handleInputChange('deliveryMethod', 'coordinacion_shopper')}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
+                      }`}>
+                        {formData.deliveryMethod === 'coordinacion_shopper' && (
+                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">🤝 Me coordino con el shopper</p>
+                        <p className="text-sm text-muted-foreground">Acordaré la entrega directamente con el comprador</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {showMessengerForm && (
+              <MessengerPickupForm 
+                onSubmit={handleMessengerSubmit} 
+                onCancel={handleMessengerCancel} 
+                initialData={messengerData} 
+              />
+            )}
+            
+            {formData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && (
+              <div className="bg-green-50 border border-green-200 rounded p-3">
+                <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
+                <p className="text-xs text-green-700">{messengerData.streetAddress}, {messengerData.cityArea}</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowMessengerForm(true)} className="mt-2">
+                  Editar información
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>
+              {hasOfficialDeliveryOptions 
+                ? 'Fecha en la que entregarás los paquetes *'
+                : 'Fecha estimada de entrega *'
+              }
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.deliveryDate ? format(formData.deliveryDate, "PPP", { locale: es }) : <span>Selecciona fecha de entrega</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-50" align="start">
+                <Calendar 
+                  mode="single" 
+                  selected={formData.deliveryDate || undefined} 
+                  onSelect={date => handleInputChange('deliveryDate', date)} 
+                  disabled={date => date < new Date()} 
+                  initialFocus 
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      )}
+
       {/* Info box */}
       <div className="bg-traveler/10 border border-traveler/30 rounded-lg p-4">
         <div className="flex items-start space-x-2">
@@ -1145,6 +1201,7 @@ const TripForm = ({
         <form onSubmit={handleSubmit} className="mobile-safe-form">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
         </form>
         
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
