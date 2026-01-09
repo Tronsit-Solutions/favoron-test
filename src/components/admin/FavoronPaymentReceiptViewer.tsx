@@ -107,7 +107,11 @@ const FavoronPaymentReceiptViewer = ({
         .download(actualFilePath);
 
       if (!error && data) {
-        const url = URL.createObjectURL(data);
+        // Ensure the blob has the correct MIME type for PDF rendering
+        const pdfBlob = data instanceof Blob && data.type === 'application/pdf'
+          ? data
+          : new Blob([data], { type: 'application/pdf' });
+        const url = URL.createObjectURL(pdfBlob);
         setPdfBlobUrl(url);
         console.log('PDF blob URL created');
       }
