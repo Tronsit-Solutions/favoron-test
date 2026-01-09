@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import Autocomplete from 'react-google-autocomplete';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
+import { getCountryIsoCode } from '@/lib/countries';
 
 export interface AddressData {
   streetAddress: string;
@@ -19,34 +20,6 @@ interface GoogleAddressInputProps {
   className?: string;
   disabled?: boolean;
 }
-
-// Map country names to ISO codes for Places API
-const countryNameToCode: Record<string, string> = {
-  'Estados Unidos': 'us',
-  'USA': 'us',
-  'United States': 'us',
-  'México': 'mx',
-  'Mexico': 'mx',
-  'Guatemala': 'gt',
-  'España': 'es',
-  'Spain': 'es',
-  'Canadá': 'ca',
-  'Canada': 'ca',
-  'Reino Unido': 'gb',
-  'UK': 'gb',
-  'United Kingdom': 'gb',
-  'Francia': 'fr',
-  'France': 'fr',
-  'Alemania': 'de',
-  'Germany': 'de',
-  'Italia': 'it',
-  'Italy': 'it',
-  'China': 'cn',
-  'Japón': 'jp',
-  'Japan': 'jp',
-  'Corea del Sur': 'kr',
-  'South Korea': 'kr',
-};
 
 const parseAddressComponents = (place: google.maps.places.PlaceResult): AddressData => {
   let streetNumber = '';
@@ -110,8 +83,9 @@ export const GoogleAddressInput: React.FC<GoogleAddressInputProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   
+  // Get ISO code from country value using centralized helper
   const countryCode = countryRestriction 
-    ? countryNameToCode[countryRestriction] || countryRestriction.toLowerCase().slice(0, 2)
+    ? getCountryIsoCode(countryRestriction)
     : undefined;
 
   const handlePlaceSelected = (place: google.maps.places.PlaceResult) => {
