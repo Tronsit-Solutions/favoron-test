@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAdminRefundOrders } from '@/hooks/useRefundOrders';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -339,12 +340,13 @@ const AdminRefundsTab = () => {
 
       {/* Detail Modal */}
       <Dialog open={!!selectedRefund} onOpenChange={() => setSelectedRefund(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Detalle de Reembolso</DialogTitle>
           </DialogHeader>
           {selectedRefund && (
-            <div className="space-y-4">
+            <ScrollArea className="max-h-[calc(85vh-100px)] pr-4">
+              <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Shopper</p>
@@ -444,7 +446,8 @@ const AdminRefundsTab = () => {
                 </p>
                 {getStatusBadge(selectedRefund.status)}
               </div>
-            </div>
+              </div>
+            </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
