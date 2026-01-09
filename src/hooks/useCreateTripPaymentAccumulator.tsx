@@ -6,10 +6,9 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     // Incluir todos los estados de entrega: delivered_to_office, ready_for_pickup, ready_for_delivery, completed
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote, status, office_delivery')
+      .select('id, quote, status, office_delivery, admin_assigned_tip')
       .eq('matched_trip_id', tripId)
-      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
-      .not('quote', 'is', null);
+      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery']);
 
     if (packagesError) throw packagesError;
 
@@ -32,16 +31,14 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       
       deliveredEligibleCount += 1;
       
-      if (pkg.quote) {
-        const tip = Number(pkg.quote?.price ?? 0);
-        if (tip > 0) {
-          accumulatedAmount += tip;
-          console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
-        } else {
-          console.log('⚠️ Package has no tip:', pkg.id, 'status:', pkg.status);
-        }
+      // Prioridad: admin_assigned_tip > quote.price
+      const tip = Number(pkg.admin_assigned_tip) || Number(pkg.quote?.price ?? 0);
+      if (tip > 0) {
+        accumulatedAmount += tip;
+        console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip, 
+          'source:', pkg.admin_assigned_tip ? 'admin_assigned_tip' : 'quote.price');
       } else {
-        console.log('⚠️ Package has no quote:', pkg.id, 'status:', pkg.status);
+        console.log('⚠️ Package has no tip:', pkg.id, 'status:', pkg.status);
       }
     });
     
