@@ -589,7 +589,7 @@ const AdminTravelerPaymentsTab = () => {
           setPackageBreakdownLoading(false);
         }
       }}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {confirmDialog.action === 'complete' ? 'Completar Pago' : 'Rechazar Pago'}
