@@ -763,27 +763,6 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 2. Información adicional */}
-      <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">2</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
-          <Textarea 
-            id="additionalInfo" 
-            placeholder="Horarios disponibles, zonas de entrega, experiencia previa, etc." 
-            value={formData.additionalInfo} 
-            onChange={e => handleInputChange('additionalInfo', e.target.value)} 
-            className="min-h-[80px]" 
-          />
-        </div>
-      </div>
-
       {/* Navigation buttons */}
       <div className="flex space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onClose} className="flex-1">
@@ -1003,6 +982,25 @@ const TripForm = ({
               </PopoverContent>
             </Popover>
           </div>
+        </div>
+      </div>
+
+      {/* 🟦 Información adicional */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
+          <Info className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
+          <Textarea 
+            id="additionalInfo" 
+            placeholder="Horarios disponibles, zonas de entrega, experiencia previa, etc." 
+            value={formData.additionalInfo} 
+            onChange={e => handleInputChange('additionalInfo', e.target.value)} 
+            className="min-h-[80px]" 
+          />
         </div>
       </div>
 
