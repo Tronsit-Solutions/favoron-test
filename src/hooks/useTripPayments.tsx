@@ -177,8 +177,9 @@ export const useTripPayments = (tripId?: string) => {
       }
 
       toast({
-        title: "¡Éxito!",
-        description: "Solicitud de pago creada correctamente",
+        title: "¡Orden de pago creada!",
+        description: "Tu solicitud fue registrada. Recibirás el pago en un máximo de 7 días hábiles.",
+        duration: 6000,
       });
 
       return paymentOrderId;
