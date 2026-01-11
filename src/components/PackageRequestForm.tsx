@@ -129,7 +129,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Wizard step state (not persisted - resets when modal opens)
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   // Reset step when modal opens
   useEffect(() => {
@@ -244,8 +244,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP VALIDATION =============
   
-  // Step 1 validation (Productos)
+  // Step 1 validation (Tipo de solicitud)
   const validateStep1 = (): { valid: boolean; missingFields: string[] } => {
+    const missingFields: string[] = [];
+    if (!formRequestType) missingFields.push('tipo de solicitud');
+    return { valid: missingFields.length === 0, missingFields };
+  };
+
+  // Step 2 validation (Productos)
+  const validateStep2 = (): { valid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
     
     const isValidProduct = (p: Product) => {
@@ -267,8 +274,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Step 2 validation (Origen y Destino)
-  const validateStep2 = (): { valid: boolean; missingFields: string[] } => {
+  // Step 3 validation (Origen y Destino)
+  const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     
@@ -281,8 +288,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Step 3 validation (Entrega)
-  const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
+  // Step 4 validation (Entrega)
+  const validateStep4 = (): { valid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
     
     if (!formData.deliveryMethod) missingFields.push('método de entrega');
@@ -327,8 +334,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     const { valid: step1Valid, missingFields: step1Missing } = validateStep1();
     const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
     const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
+    const { valid: step4Valid, missingFields: step4Missing } = validateStep4();
     
-    const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing];
+    const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing, ...step4Missing];
     
     if (allMissingFields.length > 0) {
       console.error('❌ Form validation failed:', allMissingFields);
@@ -341,6 +349,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setCurrentStep(2);
       } else if (!step3Valid) {
         setCurrentStep(3);
+      } else if (!step4Valid) {
+        setCurrentStep(4);
       }
       
       setIsSubmitting(false);
@@ -491,7 +501,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-6">
       <div className="flex items-center space-x-2 sm:space-x-3">
-        {/* Step 1 */}
+        {/* Step 1 - Tipo */}
         <button
           type="button"
           onClick={() => goToStep(1)}
@@ -507,14 +517,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
           )}>
-            Productos
+            Tipo
           </span>
         </button>
 
         {/* Connector 1-2 */}
-        <div className={cn("w-6 sm:w-10 h-0.5 transition-colors", currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
 
-        {/* Step 2 */}
+        {/* Step 2 - Productos */}
         <button
           type="button"
           onClick={() => goToStep(2)}
@@ -530,14 +540,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           )}>
-            Ruta
+            Productos
           </span>
         </button>
 
         {/* Connector 2-3 */}
-        <div className={cn("w-6 sm:w-8 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
 
-        {/* Step 3 */}
+        {/* Step 3 - Ruta */}
         <button
           type="button"
           onClick={() => goToStep(3)}
@@ -553,14 +563,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           )}>
-            Entrega
+            Ruta
           </span>
         </button>
 
         {/* Connector 3-4 */}
-        <div className={cn("w-6 sm:w-8 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
 
-        {/* Step 4 */}
+        {/* Step 4 - Entrega */}
         <button
           type="button"
           onClick={() => goToStep(4)}
@@ -576,6 +586,29 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
           )}>
+            Entrega
+          </span>
+        </button>
+
+        {/* Connector 4-5 */}
+        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 5 ? 'bg-primary' : 'bg-muted')} />
+
+        {/* Step 5 - Confirmar */}
+        <button
+          type="button"
+          onClick={() => goToStep(5)}
+          className="flex items-center cursor-pointer group"
+        >
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            currentStep >= 5 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
+            5
+          </div>
+          <span className={cn(
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            currentStep === 5 ? 'text-primary' : 'text-muted-foreground'
+          )}>
             Confirmar
           </span>
         </button>
@@ -583,38 +616,108 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 1: PRODUCTOS =============
-  const renderStep1 = () => (
-    <div className="space-y-6 animate-fade-in">
-      {/* Request Type Selector */}
-      <div className="border-b pb-4">
-        <Label className="text-base font-medium">Tipo de solicitud *</Label>
-        <RadioGroup
-          value={formRequestType}
-          onValueChange={(value: 'online' | 'personal') => setFormRequestType(value)}
-          className="flex gap-6 mt-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="online" id="type-online" />
-            <Label htmlFor="type-online" className="cursor-pointer font-medium">
-              Compra Online
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="personal" id="type-personal" />
-            <Label htmlFor="type-personal" className="cursor-pointer font-medium">
-              Pedido Personal
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
+  // ============= STEP 1: TIPO DE SOLICITUD =============
+  const renderStep1 = () => {
+    const handleTypeSelect = (type: 'online' | 'personal') => {
+      setFormRequestType(type);
+      setCurrentStep(2);
+    };
 
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold">¿Qué tipo de pedido necesitas?</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Selecciona el tipo de solicitud para continuar
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Compra Online Card */}
+          <button
+            type="button"
+            onClick={() => handleTypeSelect('online')}
+            className={cn(
+              "p-6 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              formRequestType === 'online' 
+                ? 'border-primary bg-primary/5 shadow-md' 
+                : 'border-border hover:border-primary/50'
+            )}
+          >
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center transition-colors",
+                formRequestType === 'online' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted group-hover:bg-primary/20'
+              )}>
+                <ShoppingCart className="h-8 w-8" />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">Compra Online</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Productos de tiendas como Amazon, eBay, Best Buy, etc.
+                </p>
+              </div>
+              {formRequestType === 'online' && (
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-4 w-4 text-primary-foreground" />
+                </div>
+              )}
+            </div>
+          </button>
+
+          {/* Pedido Personal Card */}
+          <button
+            type="button"
+            onClick={() => handleTypeSelect('personal')}
+            className={cn(
+              "p-6 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              formRequestType === 'personal' 
+                ? 'border-primary bg-primary/5 shadow-md' 
+                : 'border-border hover:border-primary/50'
+            )}
+          >
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className={cn(
+                "w-16 h-16 rounded-full flex items-center justify-center transition-colors",
+                formRequestType === 'personal' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted group-hover:bg-primary/20'
+              )}>
+                <Package className="h-8 w-8" />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">Pedido Personal</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Artículos físicos que un viajero debe recoger o recibir por ti
+                </p>
+              </div>
+              {formRequestType === 'personal' && (
+                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-4 w-4 text-primary-foreground" />
+                </div>
+              )}
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  };
+  // ============= STEP 2: PRODUCTOS =============
+  const renderStep2 = () => (
+    <div className="space-y-6 animate-fade-in">
       {/* Products Section */}
       <div className="space-y-4">
         <div>
           <Label className="text-base font-medium">
             {formRequestType === 'online' ? `¿Qué vas a comprar? * (${products.length}/5)` : '¿Qué vas a comprar? *'}
           </Label>
+          <p className="text-xs text-muted-foreground mt-1">
+            {formRequestType === 'online' 
+              ? 'Agrega los productos que deseas comprar online'
+              : 'Describe el producto que necesitas que un viajero recoja'}
+          </p>
         </div>
         
         <div className="space-y-3">
@@ -827,8 +930,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 2: ORIGEN Y DESTINO =============
-  const renderStep2 = () => (
+  // ============= STEP 3: ORIGEN Y DESTINO =============
+  const renderStep3 = () => (
     <div className="space-y-6 animate-fade-in">
       {/* Origen del paquete */}
       <div className="space-y-2">
@@ -958,8 +1061,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 3: ENTREGA =============
-  const renderStep3 = () => (
+  // ============= STEP 4: ENTREGA =============
+  const renderStep4 = () => (
     <div className="space-y-6 animate-fade-in">
       {isGuatemalaDestination ? (
         <div className="space-y-4">
@@ -1068,7 +1171,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => goToStep(2)}
+            onClick={() => goToStep(3)}
             className="mt-3"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -1079,8 +1182,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 4: CONFIRMAR =============
-  const renderStep4 = () => {
+  // ============= STEP 5: CONFIRMAR =============
+  const renderStep5 = () => {
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     
@@ -1247,6 +1350,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
+          {currentStep === 5 && renderStep5()}
           
           {renderNavigationButtons()}
         </form>
