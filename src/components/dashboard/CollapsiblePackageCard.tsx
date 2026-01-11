@@ -659,7 +659,6 @@ const CollapsiblePackageCard = ({
                       <span className="truncate max-w-full text-muted-foreground">
                         ID: #{pkg.id.substring(0, 6)}
                       </span>
-                      <span className="truncate max-w-full">Precio: ${pkg.estimated_price}</span>
                       <span className="truncate max-w-full text-muted-foreground">
                         {getStatusDescription(pkg)}
                       </span>
