@@ -499,8 +499,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP INDICATOR COMPONENT =============
   const StepIndicator = () => (
-    <div className="flex items-center justify-center mb-6">
-      <div className="flex items-center space-x-2 sm:space-x-3">
+    <div className="flex items-center justify-center mb-6 overflow-hidden">
+      <div className="flex items-center space-x-1 sm:space-x-2">
         {/* Step 1 - Tipo */}
         <button
           type="button"
@@ -522,7 +522,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </button>
 
         {/* Connector 1-2 */}
-        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 2 - Productos */}
         <button
@@ -545,7 +545,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </button>
 
         {/* Connector 2-3 */}
-        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 3 - Ruta */}
         <button
@@ -568,7 +568,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </button>
 
         {/* Connector 3-4 */}
-        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 4 - Entrega */}
         <button
@@ -591,7 +591,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </button>
 
         {/* Connector 4-5 */}
-        <div className={cn("w-4 sm:w-6 h-0.5 transition-colors", currentStep >= 5 ? 'bg-primary' : 'bg-muted')} />
+        <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 5 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 5 - Confirmar */}
         <button
@@ -1328,7 +1328,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const renderPackageForm = () => (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
+      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden px-6 md:px-8">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
