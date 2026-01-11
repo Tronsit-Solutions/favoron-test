@@ -1537,6 +1537,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_has_package_on_trip: {
+        Args: { trip_id: string; user_id: string }
+        Returns: boolean
+      }
       validate_banking_info: {
         Args: {
           _account_holder: string
