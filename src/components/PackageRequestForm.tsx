@@ -198,7 +198,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const destinationCountries = [
     { value: 'Guatemala', label: 'Guatemala' },
-    { value: 'USA', label: 'USA' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
     { value: 'España', label: 'España' },
     { value: 'México', label: 'México' },
     { value: 'Otro', label: 'Otro país' }
@@ -230,7 +230,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const purchaseOrigins = [
     { value: 'Guatemala', label: 'Guatemala' },
-    { value: 'USA', label: 'USA' },
+    { value: 'Estados Unidos', label: 'Estados Unidos' },
     { value: 'España', label: 'España' },
     { value: 'México', label: 'México' },
     { value: 'Otro', label: 'Otro' }

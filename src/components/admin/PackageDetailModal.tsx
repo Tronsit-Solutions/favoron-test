@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // Country/city options (same as PackageRequestForm)
 const purchaseOrigins = [
-  { value: 'USA', label: 'USA' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
   { value: 'España', label: 'España' },
   { value: 'México', label: 'México' },
   { value: 'Otro', label: 'Otro' }
@@ -19,7 +19,7 @@ const purchaseOrigins = [
 
 const destinationCountries = [
   { value: 'Guatemala', label: 'Guatemala' },
-  { value: 'USA', label: 'USA' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
   { value: 'España', label: 'España' },
   { value: 'México', label: 'México' },
   { value: 'Otro', label: 'Otro país' }
