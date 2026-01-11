@@ -669,18 +669,6 @@ const CollapsiblePackageCard = ({
                   {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
                     <TripChangeAlertBadge packageId={pkg.id} compact />
                   )}
-                  
-                  {/* Action buttons - responsive layout */}
-                  <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:gap-2 sm:flex-shrink-0">
-                    {pkg.status === 'quote_expired' && onRequestRequote && <Button size="sm" variant="shopper" onClick={e => {
-                  e.stopPropagation();
-                  onRequestRequote(pkg);
-                }} className="text-xs sm:text-sm w-full sm:w-auto flex items-center gap-2">
-                      <RefreshCw className="h-3 w-3" />
-                      <span className="hidden sm:inline">Solicitar Nueva Cotización</span>
-                      <span className="sm:hidden">Nueva Cotización</span>
-                    </Button>}
-                  </div>
                 </div>
                 
                 {/* Cancelled Package Banner - Desktop */}
