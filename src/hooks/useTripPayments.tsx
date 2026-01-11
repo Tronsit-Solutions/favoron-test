@@ -176,12 +176,7 @@ export const useTripPayments = (tripId?: string) => {
         });
       }
 
-      toast({
-        title: "¡Orden de pago creada!",
-        description: "Tu solicitud fue registrada. Recibirás el pago en un máximo de 7 días hábiles.",
-        duration: 6000,
-      });
-
+      // Toast removido - el mensaje ahora se muestra en el paso de éxito del wizard
       return paymentOrderId;
     } catch (error: any) {
       console.error('Error creating payment order:', error);
