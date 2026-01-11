@@ -618,10 +618,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP 1: TIPO DE SOLICITUD =============
   const renderStep1 = () => {
-    const handleTypeSelect = (type: 'online' | 'personal') => {
-      setFormRequestType(type);
-      setCurrentStep(2);
-    };
+  const handleTypeSelect = (type: 'online' | 'personal') => {
+    setFormRequestType(type);
+  };
 
     return (
       <div className="space-y-6 animate-fade-in">
