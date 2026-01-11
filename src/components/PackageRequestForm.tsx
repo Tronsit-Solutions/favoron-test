@@ -244,10 +244,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP VALIDATION =============
   
-  // Step 1 validation (Tipo de solicitud)
+  // Step 1 validation (Tipo de solicitud + Origen)
   const validateStep1 = (): { valid: boolean; missingFields: string[] } => {
+    const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const missingFields: string[] = [];
     if (!formRequestType) missingFields.push('tipo de solicitud');
+    if (!finalOrigin) missingFields.push('país de origen');
     return { valid: missingFields.length === 0, missingFields };
   };
 
@@ -274,14 +276,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Step 3 validation (Origen y Destino)
+  // Step 3 validation (Destino)
   const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
-    const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     
     const missingFields: string[] = [];
     
-    if (!finalOrigin) missingFields.push('país de origen');
     if (!selectedCountry) missingFields.push('país de destino');
     if (!finalDestination) missingFields.push('ciudad de destino');
     
@@ -627,7 +627,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold">¿Qué tipo de pedido necesitas?</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Selecciona el tipo de solicitud para continuar
+            Selecciona el tipo de solicitud y el país de origen
           </p>
         </div>
         
@@ -699,6 +699,40 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               )}
             </div>
           </button>
+        </div>
+
+        {/* Origen del paquete */}
+        <div className="space-y-2 pt-2">
+          <Label htmlFor="purchaseOrigin">¿Desde dónde {formRequestType === 'personal' ? 'viene el paquete' : 'compras'}? *</Label>
+          <p className="text-xs text-muted-foreground">
+            {formRequestType === 'personal' 
+              ? "El país desde donde sale tu paquete personal" 
+              : "El país donde se encuentra la tienda"}
+          </p>
+          <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona el país de origen" />
+            </SelectTrigger>
+            <SelectContent>
+              {purchaseOrigins.map((origin) => (
+                <SelectItem key={origin.value} value={origin.value}>
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-4 w-4" />
+                    <span>{origin.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {formData.purchaseOrigin === 'Otro' && (
+            <Input
+              placeholder="Escribe el país de origen"
+              value={formData.purchaseOriginOther}
+              onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
+              className="mt-2"
+              required
+            />
+          )}
         </div>
       </div>
     );
@@ -929,42 +963,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 3: ORIGEN Y DESTINO =============
+  // ============= STEP 3: DESTINO =============
   const renderStep3 = () => (
     <div className="space-y-6 animate-fade-in">
-      {/* Origen del paquete */}
-      <div className="space-y-2">
-        <Label htmlFor="purchaseOrigin">¿Desde dónde compras? *</Label>
-        <p className="text-xs text-muted-foreground">
-          {formRequestType === 'personal' 
-            ? "El país desde donde sale tu paquete personal" 
-            : "El país donde se encuentra la tienda"}
-        </p>
-        <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona el país de origen" />
-          </SelectTrigger>
-          <SelectContent>
-            {purchaseOrigins.map((origin) => (
-              <SelectItem key={origin.value} value={origin.value}>
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>{origin.label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {formData.purchaseOrigin === 'Otro' && (
-          <Input
-            placeholder="Escribe el país de origen"
-            value={formData.purchaseOriginOther}
-            onChange={(e) => handleInputChange('purchaseOriginOther', e.target.value)}
-            className="mt-2"
-            required
-          />
-        )}
-      </div>
 
       {/* Destino del paquete */}
       <div className="space-y-2">
