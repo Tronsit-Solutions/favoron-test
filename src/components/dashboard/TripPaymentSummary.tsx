@@ -31,9 +31,10 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   const handlePaymentRequest = async (bankingInfo: any) => {
     try {
       await createPaymentOrder(bankingInfo);
-      setShowBankingModal(false);
+      // No cerrar el modal aquí - el modal mostrará el paso de éxito
     } catch (error) {
       console.error('Error requesting payment:', error);
+      throw error; // Re-lanzar para que el modal maneje el error
     }
   };
 
