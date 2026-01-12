@@ -129,7 +129,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // Wizard step state (not persisted - resets when modal opens)
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  // Track which wizard step we're on (1-4)
+  const totalSteps = 4;
 
   // Reset step when modal opens
   useEffect(() => {
@@ -276,7 +277,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Step 3 validation (Destino)
+  // Step 3 validation (Destino + Entrega combinados)
   const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     
@@ -284,14 +285,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     
     if (!selectedCountry) missingFields.push('país de destino');
     if (!finalDestination) missingFields.push('ciudad de destino');
-    
-    return { valid: missingFields.length === 0, missingFields };
-  };
-
-  // Step 4 validation (Entrega)
-  const validateStep4 = (): { valid: boolean; missingFields: string[] } => {
-    const missingFields: string[] = [];
-    
     if (!formData.deliveryMethod) missingFields.push('método de entrega');
     if (formData.deliveryMethod === 'delivery' && !addressData) {
       missingFields.push('dirección de entrega');
@@ -334,9 +327,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     const { valid: step1Valid, missingFields: step1Missing } = validateStep1();
     const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
     const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
-    const { valid: step4Valid, missingFields: step4Missing } = validateStep4();
     
-    const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing, ...step4Missing];
+    const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing];
     
     if (allMissingFields.length > 0) {
       console.error('❌ Form validation failed:', allMissingFields);
@@ -349,8 +341,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         setCurrentStep(2);
       } else if (!step3Valid) {
         setCurrentStep(3);
-      } else if (!step4Valid) {
-        setCurrentStep(4);
       }
       
       setIsSubmitting(false);
@@ -547,7 +537,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {/* Connector 2-3 */}
         <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
 
-        {/* Step 3 - Ruta */}
+        {/* Step 3 - Ruta y Entrega */}
         <button
           type="button"
           onClick={() => goToStep(3)}
@@ -570,7 +560,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {/* Connector 3-4 */}
         <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
 
-        {/* Step 4 - Entrega */}
+        {/* Step 4 - Confirmar */}
         <button
           type="button"
           onClick={() => goToStep(4)}
@@ -585,29 +575,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <span className={cn(
             "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
-          )}>
-            Entrega
-          </span>
-        </button>
-
-        {/* Connector 4-5 */}
-        <div className={cn("w-2 sm:w-4 h-0.5 transition-colors", currentStep >= 5 ? 'bg-primary' : 'bg-muted')} />
-
-        {/* Step 5 - Confirmar */}
-        <button
-          type="button"
-          onClick={() => goToStep(5)}
-          className="flex items-center cursor-pointer group"
-        >
-          <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
-            currentStep >= 5 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          )}>
-            5
-          </div>
-          <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
-            currentStep === 5 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Confirmar
           </span>
@@ -733,6 +700,39 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               required
             />
           )}
+        </div>
+
+        {/* Fecha límite opcional - movida del paso 3 */}
+        <div className="space-y-2 pt-2">
+          <Label>Fecha límite de entrega</Label>
+          <p className="text-xs text-muted-foreground">
+            ¿Para cuándo necesitas el producto? (opcional)
+          </p>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+                type="button"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formData.deliveryDeadline ? (
+                  format(formData.deliveryDeadline, "PPP", { locale: es })
+                ) : (
+                  <span>Selecciona una fecha (opcional)</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.deliveryDeadline || undefined}
+                onSelect={(date) => handleInputChange('deliveryDeadline', date)}
+                disabled={(date) => date < new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     );
@@ -963,7 +963,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 3: DESTINO =============
+  // ============= STEP 3: DESTINO + ENTREGA (COMBINADOS) =============
   const renderStep3 = () => (
     <div className="space-y-6 animate-fade-in">
 
@@ -979,6 +979,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             setSelectedCountry(value);
             handleInputChange('packageDestination', '');
             handleInputChange('packageDestinationOther', '');
+            handleInputChange('deliveryMethod', ''); // Reset delivery method when country changes
           }}
         >
           <SelectTrigger>
@@ -1026,46 +1027,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         )}
       </div>
 
-      {/* Fecha límite opcional */}
-      <div className="space-y-2">
-        <Label>Fecha límite de entrega</Label>
-        <p className="text-xs text-muted-foreground">
-          ¿Para cuándo necesitas el producto? (opcional)
-        </p>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-left font-normal"
-              type="button"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {formData.deliveryDeadline ? (
-                format(formData.deliveryDeadline, "PPP", { locale: es })
-              ) : (
-                <span>Selecciona una fecha (opcional)</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={formData.deliveryDeadline || undefined}
-              onSelect={(date) => handleInputChange('deliveryDeadline', date)}
-              disabled={(date) => date < new Date()}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
-  );
-
-  // ============= STEP 4: ENTREGA =============
-  const renderStep4 = () => (
-    <div className="space-y-6 animate-fade-in">
+      {/* Sección de Entrega - solo se muestra si hay destino seleccionado */}
       {isGuatemalaDestination ? (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-2 border-t border-border">
           <Label className="text-base font-medium">
             Forma de entrega en {formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination} *
           </Label>
@@ -1161,29 +1125,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-muted/50 border border-border rounded-lg p-6 text-center">
-          <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">
-            Primero selecciona el destino de tu paquete en el paso anterior
+      ) : selectedCountry ? (
+        <div className="bg-muted/50 border border-border rounded-lg p-4 text-center">
+          <Truck className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">
+            Selecciona una ciudad para ver las opciones de entrega
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => goToStep(3)}
-            className="mt-3"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Ir a Ruta
-          </Button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 
-  // ============= STEP 5: CONFIRMAR =============
-  const renderStep5 = () => {
+  // ============= STEP 4: CONFIRMAR =============
+  const renderStep4 = () => {
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     
@@ -1350,7 +1304,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
-          {currentStep === 5 && renderStep5()}
           
           {renderNavigationButtons()}
         </form>
