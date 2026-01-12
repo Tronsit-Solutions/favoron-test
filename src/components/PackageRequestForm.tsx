@@ -315,6 +315,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Only allow submission on the final step (step 4)
+    if (currentStep < totalSteps) {
+      console.log('📝 FORM SUBMIT blocked - not on final step', { currentStep, totalSteps });
+      return;
+    }
+    
     if (isSubmitting) return;
     
     console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
