@@ -161,19 +161,25 @@ export const useTripPayments = (tripId?: string) => {
       // Actualizar estado local
       setTripPayment(prev => prev ? { ...prev, payment_order_created: true } : null);
 
-      // Notificar al viajero que su solicitud de pago fue creada
+      // Notificar al viajero (no-bloqueante - no interrumpe el flujo si falla)
       if (user?.id) {
-        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const { formatCurrency } = await import('@/lib/formatters');
-        const template = WhatsAppTemplates.tipPaymentReceiptUploaded(
-          formatCurrency(tripPayment.accumulated_amount || 0)
-        );
-        
-        await sendWhatsAppNotification({
-          userId: user.id,
-          ...template,
-          actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-        });
+        (async () => {
+          try {
+            const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
+            const { formatCurrency } = await import('@/lib/formatters');
+            const template = WhatsAppTemplates.tipPaymentReceiptUploaded(
+              formatCurrency(tripPayment.accumulated_amount || 0)
+            );
+            
+            await sendWhatsAppNotification({
+              userId: user.id,
+              ...template,
+              actionUrl: 'https://favoron.app/dashboard?tab=viajes'
+            });
+          } catch (notifError) {
+            console.warn('⚠️ WhatsApp notification failed (non-blocking):', notifError);
+          }
+        })();
       }
 
       // Toast removido - el mensaje ahora se muestra en el paso de éxito del wizard
