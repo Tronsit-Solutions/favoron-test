@@ -312,12 +312,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Manual submit handler - no event, no form element
+  const handleManualSubmit = async () => {
+    console.log('🚨 MANUAL SUBMIT TRIGGERED', { currentStep, totalSteps });
     
-    console.log('🚨 FORM SUBMIT TRIGGERED', { currentStep, totalSteps });
-    
-    // Only allow submission on the final step (step 4) - explicit check
+    // Double-check we're on step 4
     if (currentStep !== 4) {
       console.log('❌ BLOCKED - Not on final step (step 4)');
       return;
@@ -1278,7 +1277,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       ) : (
-        <Button type="submit" variant="shopper" className="flex-1" disabled={isSubmitting}>
+        <Button 
+          type="button" 
+          variant="shopper" 
+          className="flex-1" 
+          disabled={isSubmitting}
+          onClick={handleManualSubmit}
+        >
           {isSubmitting 
             ? (editMode ? 'Guardando...' : 'Enviando...') 
             : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
@@ -1307,23 +1312,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {/* Step Indicator */}
         <StepIndicator />
 
-        <form 
-          onSubmit={handleSubmit} 
-          onKeyDown={(e) => {
-            // Prevent Enter key from submitting the form on steps 1-3
-            if (e.key === 'Enter' && currentStep !== 4) {
-              e.preventDefault();
-            }
-          }}
-          className="space-y-6"
-        >
+        {/* Using div instead of form to prevent browser auto-submit behavior */}
+        <div className="space-y-6">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
           
           {renderNavigationButtons()}
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
