@@ -47,6 +47,7 @@ const AdminMatchDialog = ({
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
   const [showAllTrips, setShowAllTrips] = useState(false);
+  const [showOtherCities, setShowOtherCities] = useState(false);
 
   const MODAL_ID = 'admin-match-dialog';
 
@@ -148,6 +149,7 @@ const AdminMatchDialog = ({
     
     const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
     const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+    const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
     
     // Si no hay paquete seleccionado, no mostrar ningún viaje
     if (!selectedPackage?.purchase_origin) {
@@ -163,16 +165,25 @@ const AdminMatchDialog = ({
         const tripOriginNormalized = normalizeCountry(trip.from_country || '');
         const matchesOrigin = showAllTrips || tripOriginNormalized === packageOriginNormalized;
         
-        // Filter by destination country (normalized) - always required
+        // Filter by destination
         const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
-        const matchesDestination = !packageDestinationNormalized || 
-                                   tripDestinationNormalized === packageDestinationNormalized;
+        const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
+        
+        let matchesDestination = false;
+        if (showOtherCities) {
+          // Show trips to any city in Guatemala
+          matchesDestination = tripDestinationNormalized === 'guatemala';
+        } else {
+          // Exact destination match (by country or city name)
+          matchesDestination = !packageDestinationNormalized || 
+                               tripDestinationNormalized === packageDestinationNormalized;
+        }
         
         return isNotExpired && matchesOrigin && matchesDestination;
       })
       // Sort by arrival date (soonest first)
       .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
-  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination, showAllTrips]);
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination, showAllTrips, showOtherCities]);
 
   // Count trips that match destination only (for showing "other countries" option)
   const allDestinationTrips = useMemo(() => {
@@ -193,9 +204,36 @@ const AdminMatchDialog = ({
     });
   }, [availableTrips, selectedPackage?.package_destination, selectedPackage?.purchase_origin]);
 
-  // Reset showAllTrips when selected package changes
+  // Count trips to OTHER cities in Guatemala (same country, different city)
+  const otherCityTrips = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+    const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+    const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
+    
+    return availableTrips.filter(trip => {
+      const isNotExpired = new Date(trip.arrival_date) >= today;
+      const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+      const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
+      const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
+      
+      // Same origin country
+      const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
+      // Same destination COUNTRY (Guatemala) but DIFFERENT city
+      const sameCountryDifferentCity = tripDestinationNormalized === 'guatemala' && 
+                                        packageDestinationNormalized === 'guatemala' &&
+                                        tripDestinationCity !== packageDestinationCity;
+      
+      return isNotExpired && matchesOrigin && sameCountryDifferentCity;
+    }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
+
+  // Reset showAllTrips and showOtherCities when selected package changes
   useEffect(() => {
     setShowAllTrips(false);
+    setShowOtherCities(false);
   }, [selectedPackage?.id]);
 
   // Handle modal state persistence
@@ -637,10 +675,52 @@ const AdminMatchDialog = ({
               </div>
             )}
 
+            {/* Show Other Cities Indicator */}
+            {showOtherCities && (
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3 flex-shrink-0">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    Mostrando viajes a todas las ciudades de Guatemala
+                  </span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowOtherCities(false)}
+                  className="text-blue-800 hover:bg-blue-100 h-7 px-2"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Solo {selectedPackage?.package_destination}
+                </Button>
+              </div>
+            )}
+
             <ScrollArea className="flex-1 w-full min-h-0">
               <div className="space-y-2 pr-4 pb-4">
-                {/* Empty State with Option to Show Other Countries */}
-                {validTrips.length === 0 && !showAllTrips && allDestinationTrips.length > 0 && (
+                {/* Empty State - Check for trips to other cities first */}
+                {validTrips.length === 0 && !showAllTrips && !showOtherCities && otherCityTrips.length > 0 && (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <MapPin className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground mb-2">
+                      No hay viajes disponibles a {selectedPackage?.package_destination}
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Pero hay {otherCityTrips.length} viaje(s) a otras ciudades de Guatemala
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowOtherCities(true)}
+                      className="gap-2"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Ver viajes a otras ciudades
+                    </Button>
+                  </div>
+                )}
+
+                {/* Empty State with Option to Show Other Countries (after checking other cities) */}
+                {validTrips.length === 0 && !showAllTrips && (showOtherCities || otherCityTrips.length === 0) && allDestinationTrips.length > 0 && (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <Globe className="h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground mb-2">
@@ -661,7 +741,7 @@ const AdminMatchDialog = ({
                 )}
 
                 {/* No trips at all */}
-                {validTrips.length === 0 && (showAllTrips || allDestinationTrips.length === 0) && (
+                {validTrips.length === 0 && (showAllTrips || allDestinationTrips.length === 0) && (showOtherCities || otherCityTrips.length === 0) && (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
                     <p className="text-muted-foreground">
@@ -675,6 +755,8 @@ const AdminMatchDialog = ({
                   const tripOriginNormalized = normalizeCountry(trip.from_country || '');
                   const isDifferentCountry = showAllTrips && tripOriginNormalized !== packageOriginNormalized;
                   const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                  const isDifferentCity = showOtherCities && 
+                    trip.to_city?.toLowerCase().trim() !== selectedPackage?.package_destination?.toLowerCase().trim();
                   
                   return (
                     <Card 
@@ -713,7 +795,7 @@ const AdminMatchDialog = ({
                               {/* Route */}
                               <div className="flex items-center space-x-2 min-w-fit">
                                 <MapPin className="h-4 w-4 text-gray-400" />
-                                 <div className="flex items-center space-x-2">
+                                 <div className="flex items-center space-x-2 flex-wrap">
                                    <span className="text-sm font-medium text-gray-700">
                                      {trip.from_city || 'No especificado'}
                                    </span>
@@ -724,6 +806,11 @@ const AdminMatchDialog = ({
                                    {isDifferentCountry && (
                                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs ml-1">
                                        ⚠️ País diferente
+                                     </Badge>
+                                   )}
+                                   {isDifferentCity && (
+                                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-xs ml-1">
+                                       📍 Ciudad diferente
                                      </Badge>
                                    )}
                                  </div>
