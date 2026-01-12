@@ -1047,7 +1047,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Lo recojo en zona 14</p>
+                    <p className="font-medium">Pickup en Oficina (zona 14)</p>
                     <p className="text-sm text-muted-foreground">Gratis - Recoge en nuestra oficina</p>
                   </div>
                   {formData.deliveryMethod === 'pickup' && (
