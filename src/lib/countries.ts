@@ -2,7 +2,6 @@
 export const MAIN_COUNTRIES = [
   { value: "estados-unidos", label: "Estados Unidos", isoCode: "us" },
   { value: "espana", label: "España", isoCode: "es" },
-  { value: "guatemala", label: "Guatemala", isoCode: "gt" },
   { value: "mexico", label: "México", isoCode: "mx" },
 ];
 
@@ -87,7 +86,6 @@ export const COUNTRIES = [
   { value: "ghana", label: "Ghana", isoCode: "gh" },
   { value: "granada", label: "Granada", isoCode: "gd" },
   { value: "grecia", label: "Grecia", isoCode: "gr" },
-  { value: "guatemala", label: "Guatemala", isoCode: "gt" },
   { value: "guinea", label: "Guinea", isoCode: "gn" },
   { value: "guinea-bissau", label: "Guinea-Bissau", isoCode: "gw" },
   { value: "guinea-ecuatorial", label: "Guinea Ecuatorial", isoCode: "gq" },
