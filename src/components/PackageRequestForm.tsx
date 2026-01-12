@@ -315,9 +315,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Only allow submission on the final step (step 4)
-    if (currentStep < totalSteps) {
-      console.log('📝 FORM SUBMIT blocked - not on final step', { currentStep, totalSteps });
+    console.log('🚨 FORM SUBMIT TRIGGERED', { currentStep, totalSteps });
+    
+    // Only allow submission on the final step (step 4) - explicit check
+    if (currentStep !== 4) {
+      console.log('❌ BLOCKED - Not on final step (step 4)');
       return;
     }
     
@@ -1270,7 +1272,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </Button>
       )}
       
-      {currentStep < totalSteps ? (
+      {currentStep !== 4 ? (
         <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
           Siguiente
           <ChevronRight className="h-4 w-4 ml-1" />
@@ -1305,7 +1307,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {/* Step Indicator */}
         <StepIndicator />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form 
+          onSubmit={handleSubmit} 
+          onKeyDown={(e) => {
+            // Prevent Enter key from submitting the form on steps 1-3
+            if (e.key === 'Enter' && currentStep !== 4) {
+              e.preventDefault();
+            }
+          }}
+          className="space-y-6"
+        >
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
