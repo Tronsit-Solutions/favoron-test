@@ -604,30 +604,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('online')}
             className={cn(
-              "p-6 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
               formRequestType === 'online' 
                 ? 'border-primary bg-primary/5 shadow-md' 
                 : 'border-border hover:border-primary/50'
             )}
           >
-            <div className="flex flex-col items-center text-center space-y-3">
+            <div className="flex flex-col items-center text-center space-y-2">
               <div className={cn(
-                "w-16 h-16 rounded-full flex items-center justify-center transition-colors",
+                "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
                 formRequestType === 'online' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted group-hover:bg-primary/20'
               )}>
-                <ShoppingCart className="h-8 w-8" />
+                <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-lg">Compra Online</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="font-semibold text-base">Compra Online</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Productos de tiendas como Amazon, eBay, Best Buy, etc.
                 </p>
               </div>
               {formRequestType === 'online' && (
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="h-4 w-4 text-primary-foreground" />
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
             </div>
@@ -638,30 +638,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('personal')}
             className={cn(
-              "p-6 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
               formRequestType === 'personal' 
                 ? 'border-primary bg-primary/5 shadow-md' 
                 : 'border-border hover:border-primary/50'
             )}
           >
-            <div className="flex flex-col items-center text-center space-y-3">
+            <div className="flex flex-col items-center text-center space-y-2">
               <div className={cn(
-                "w-16 h-16 rounded-full flex items-center justify-center transition-colors",
+                "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
                 formRequestType === 'personal' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted group-hover:bg-primary/20'
               )}>
-                <Package className="h-8 w-8" />
+                <Package className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-lg">Pedido Personal</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="font-semibold text-base">Pedido Personal</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Artículos físicos que un viajero debe recoger o recibir por ti
                 </p>
               </div>
               {formRequestType === 'personal' && (
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="h-4 w-4 text-primary-foreground" />
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
             </div>
