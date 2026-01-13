@@ -29,8 +29,13 @@ const isNumberAllowed = (phone: string): boolean => {
 interface WhatsAppTemplateRequest {
   user_id?: string;
   phone_number?: string;
-  template_id: string;
-  variables: Record<string, string>;
+  template_id?: string; // Optional - if not provided, will skip gracefully
+  variables?: Record<string, string>;
+  // Legacy fields (for backwards compatibility - will be skipped)
+  title?: string;
+  message?: string;
+  type?: string;
+  priority?: string;
 }
 
 // Normalize phone number to E.164 format
@@ -144,11 +149,21 @@ serve(async (req) => {
 
     console.log("📱 WhatsApp notification request:", { user_id, phone_number, template_id, variables });
 
-    // Validate template_id is provided
+    // Handle legacy API calls gracefully (without template_id)
+    // These are calls that haven't been migrated yet - skip them without error
     if (!template_id) {
+      console.log("⏭️ Legacy API call detected (no template_id), skipping:", { 
+        user_id, 
+        title: (req as any).title,
+        type: (req as any).type 
+      });
       return new Response(
-        JSON.stringify({ success: false, error: "template_id is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          success: true, 
+          skipped: true, 
+          reason: "Legacy API call - WhatsApp templates pending migration" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
