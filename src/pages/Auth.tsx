@@ -286,6 +286,26 @@ const Auth = () => {
       // Track registration in Meta Pixel
       MetaPixel.trackCompleteRegistration(data?.user?.id);
 
+      // Send welcome WhatsApp notification
+      if (phoneNumber && firstName) {
+        try {
+          const fullPhone = `${countryCode}${phoneNumber}`;
+          console.log('📱 Sending welcome WhatsApp to:', fullPhone);
+          
+          await supabase.functions.invoke('send-whatsapp-notification', {
+            body: {
+              phone_number: fullPhone,
+              template_id: 'welcome',
+              variables: { "1": firstName }
+            }
+          });
+          console.log('✅ Welcome WhatsApp sent');
+        } catch (whatsappError) {
+          // Don't block registration if WhatsApp fails
+          console.error('⚠️ WhatsApp welcome failed:', whatsappError);
+        }
+      }
+
       // Cambiar a pestaña de iniciar sesión después de 1 segundo
       setTimeout(() => {
         setCurrentTab('signin');
