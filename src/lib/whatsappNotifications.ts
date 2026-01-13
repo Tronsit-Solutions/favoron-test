@@ -1,6 +1,16 @@
 import { supabase } from '@/integrations/supabase/client';
 
-interface SendWhatsAppNotificationParams {
+// Template IDs that match the Twilio Content Templates configured in the edge function
+export type WhatsAppTemplateId = 'welcome';
+
+interface SendWhatsAppTemplateParams {
+  userId: string;
+  templateId: WhatsAppTemplateId;
+  variables?: Record<string, string>;
+}
+
+// Legacy interface - kept for backwards compatibility
+interface SendWhatsAppLegacyParams {
   userId: string;
   title: string;
   message: string;
@@ -9,34 +19,55 @@ interface SendWhatsAppNotificationParams {
   actionUrl?: string;
 }
 
-export const sendWhatsAppNotification = async ({
-  userId,
-  title,
-  message,
-  type,
-  priority = 'medium',
-  actionUrl
-}: SendWhatsAppNotificationParams) => {
-  try {
-    const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
-      body: {
-        user_id: userId,
-        title,
-        message,
-        type,
-        priority,
-        action_url: actionUrl || 'https://favoron.app/dashboard'
-      }
-    });
+type SendWhatsAppNotificationParams = SendWhatsAppTemplateParams | SendWhatsAppLegacyParams;
 
-    if (error) throw error;
-    console.log('✅ WhatsApp notification sent:', { userId, title });
-    return { success: true, data };
+// Type guard to check if using new template-based API
+const isTemplateParams = (params: SendWhatsAppNotificationParams): params is SendWhatsAppTemplateParams => {
+  return 'templateId' in params;
+};
+
+// Send WhatsApp notification
+// Currently only supports pre-approved Twilio templates
+// Legacy calls are logged but not sent until templates are approved
+export const sendWhatsAppNotification = async (params: SendWhatsAppNotificationParams) => {
+  try {
+    // If using new template-based API
+    if (isTemplateParams(params)) {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
+        body: {
+          user_id: params.userId,
+          template_id: params.templateId,
+          variables: params.variables || {}
+        }
+      });
+
+      if (error) throw error;
+      console.log('✅ WhatsApp notification sent:', { userId: params.userId, templateId: params.templateId });
+      return { success: true, data };
+    }
+    
+    // Legacy API - log but don't send (templates need to be approved first)
+    console.log('📱 WhatsApp notification queued (pending template approval):', {
+      userId: params.userId,
+      title: params.title,
+      type: params.type
+    });
+    
+    // Return success to not break flows, but indicate it was skipped
+    return { 
+      success: true, 
+      skipped: true, 
+      reason: 'WhatsApp templates pending approval in Twilio' 
+    };
   } catch (error) {
     console.error('❌ Error sending WhatsApp notification:', error);
     return { success: false, error };
   }
 };
+
+// Note: The templates below are for planning purposes only.
+// Each template needs to be created and approved in Twilio Console before use.
+// Once approved, add the Content SID to TEMPLATE_SIDS in the edge function.
 
 // Templates específicos para cada evento
 export const WhatsAppTemplates = {
