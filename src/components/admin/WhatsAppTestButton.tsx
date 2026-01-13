@@ -50,24 +50,14 @@ export const WhatsAppTestButton = () => {
   const handleTestWhatsApp = async () => {
     setIsSending(true);
     try {
-      console.log('🧪 Testing WhatsApp notification...');
+      console.log('🧪 Testing WhatsApp notification with Content Template...');
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('No user found');
-      }
-
-      // Call the WhatsApp notification edge function
+      // Send directly to the test phone number using the new template format
       const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
         body: {
-          user_id: user.id,
-          title: '🧪 Prueba WhatsApp Favorón',
-          message: 'Este es un mensaje de prueba del sistema de notificaciones. Si recibes este mensaje, significa que todo está funcionando correctamente. ✅',
-          type: 'general',
-          priority: 'high',
-          action_url: 'https://favoron.app/dashboard'
+          phone_number: '+34699591457', // Direct to test number
+          template_id: 'welcome',
+          variables: { "1": "Usuario de Prueba" }
         }
       });
 
@@ -84,7 +74,7 @@ export const WhatsAppTestButton = () => {
       } else if (data?.success) {
         toast({
           title: '✅ WhatsApp enviado',
-          description: `Mensaje enviado correctamente. SID: ${data.message_sid || 'N/A'}`,
+          description: `Mensaje enviado correctamente. SID: ${data.data?.sid || 'OK'}`,
           variant: 'default'
         });
       }
