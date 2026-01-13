@@ -7,8 +7,23 @@ const corsHeaders = {
 };
 
 // Template SIDs mapping - add more templates here as they get approved
+// 🧪 TESTING MODE - Solo enviar a números en whitelist
+const TESTING_MODE = true;
+const ALLOWED_TEST_NUMBERS = [
+  "+34699591457", // Número de prueba autorizado
+];
+
 const TEMPLATE_SIDS: Record<string, string | undefined> = {
   welcome: Deno.env.get("TWILIO_CONTENT_SID_WELCOME"),
+};
+
+// Verificar si el número está en la whitelist
+const isNumberAllowed = (phone: string): boolean => {
+  if (!TESTING_MODE) return true;
+  const normalized = normalizePhoneNumber(phone);
+  return ALLOWED_TEST_NUMBERS.some(allowed => 
+    normalized === allowed || normalized.replace(/\s/g, '') === allowed
+  );
 };
 
 interface WhatsAppTemplateRequest {
@@ -200,6 +215,23 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // 🧪 Verificar whitelist en modo testing
+    if (!isNumberAllowed(targetPhone)) {
+      console.log("⏭️ Testing mode: Número no está en whitelist:", targetPhone);
+      console.log("🧪 Números permitidos:", ALLOWED_TEST_NUMBERS);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          skipped: true, 
+          reason: `Testing mode: solo se permite enviar a números autorizados`,
+          targetPhone: targetPhone
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("✅ Número autorizado para envío:", targetPhone);
 
     // Send the WhatsApp template message
     const result = await sendWhatsAppTemplate(targetPhone, contentSid, variables || {});
