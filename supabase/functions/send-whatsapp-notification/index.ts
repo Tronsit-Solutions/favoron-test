@@ -6,239 +6,220 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface WhatsAppNotificationRequest {
-  user_id: string;
-  title: string;
-  message: string;
-  type?: string;
-  priority?: string;
-  action_url?: string;
-}
-
-// Security function to validate origin using exact hostname matching
-const isValidOrigin = (origin: string | null): boolean => {
-  if (!origin) return false;
-  
-  // List of exact allowed hostnames
-  const allowedHostnames = [
-    'dfhoduirmqbarjnspbdh.supabase.co',
-    'favoron.app',
-    'www.favoron.app'
-  ];
-  
-  // Also allow Lovable preview domains (exact suffix match)
-  const allowedSuffixes = [
-    '.lovableproject.com',
-    '.lovable.app'
-  ];
-  
-  try {
-    const url = new URL(origin);
-    
-    // Require HTTPS
-    if (url.protocol !== 'https:') return false;
-    
-    // Check exact hostname match
-    if (allowedHostnames.includes(url.hostname)) return true;
-    
-    // Check allowed suffixes for preview domains
-    return allowedSuffixes.some(suffix => url.hostname.endsWith(suffix));
-  } catch {
-    // Invalid URL format
-    return false;
-  }
+// Template SIDs mapping - add more templates here as they get approved
+const TEMPLATE_SIDS: Record<string, string | undefined> = {
+  welcome: Deno.env.get("TWILIO_CONTENT_SID_WELCOME"),
 };
 
-const sendWhatsAppMessage = async (
+interface WhatsAppTemplateRequest {
+  user_id?: string;
+  phone_number?: string;
+  template_id: string;
+  variables: Record<string, string>;
+}
+
+// Normalize phone number to E.164 format
+const normalizePhoneNumber = (phone: string): string => {
+  // Remove all non-digit characters except +
+  let cleaned = phone.replace(/[^\d+]/g, "");
+  
+  // Ensure it starts with +
+  if (!cleaned.startsWith("+")) {
+    // Assume Guatemala if 8 digits
+    if (cleaned.length === 8) {
+      cleaned = "+502" + cleaned;
+    } else if (cleaned.startsWith("502") && cleaned.length === 11) {
+      cleaned = "+" + cleaned;
+    } else {
+      cleaned = "+" + cleaned;
+    }
+  }
+  
+  return cleaned;
+};
+
+// Send WhatsApp using Content Template API
+const sendWhatsAppTemplate = async (
   to: string,
-  message: string
-): Promise<any> => {
+  contentSid: string,
+  contentVariables: Record<string, string>
+): Promise<{ success: boolean; data?: any; error?: string; errorCode?: number }> => {
   const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
   const fromNumber = Deno.env.get("TWILIO_WHATSAPP_FROM");
 
   if (!accountSid || !authToken || !fromNumber) {
-    throw new Error("Twilio credentials not configured");
+    console.error("❌ Missing Twilio credentials");
+    return { success: false, error: "Missing Twilio credentials" };
   }
 
-  // Format phone numbers for WhatsApp - ADD PREFIX TO BOTH NUMBERS
-  const fromWhatsApp = fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber}`;
-  const toWhatsApp = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
-
-  console.log(`📞 Sending WhatsApp from ${fromWhatsApp} to ${toWhatsApp}`);
-
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+  const normalizedTo = normalizePhoneNumber(to);
+  const fromWhatsApp = fromNumber.startsWith("whatsapp:") ? fromNumber : `whatsapp:${fromNumber}`;
+  const toWhatsApp = `whatsapp:${normalizedTo}`;
   
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+
+  console.log("📤 Sending WhatsApp template:", {
+    from: fromWhatsApp,
+    to: toWhatsApp,
+    contentSid,
+    variables: contentVariables,
+  });
+
   const body = new URLSearchParams({
     From: fromWhatsApp,
     To: toWhatsApp,
-    Body: message,
+    ContentSid: contentSid,
+    ContentVariables: JSON.stringify(contentVariables),
   });
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: "Basic " + btoa(`${accountSid}:${authToken}`),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Twilio API error: ${response.status} - ${errorText}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorCode = data.code || response.status;
+      const errorMessage = getTwilioErrorMessage(errorCode, data.message);
+      console.error("❌ Twilio error:", { 
+        status: response.status, 
+        code: errorCode, 
+        message: data.message,
+        moreInfo: data.more_info 
+      });
+      return { success: false, error: errorMessage, errorCode };
+    }
+
+    console.log("✅ WhatsApp sent successfully:", { sid: data.sid, status: data.status });
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("❌ Network error sending WhatsApp:", error);
+    return { success: false, error: error.message };
   }
-
-  return await response.json();
 };
 
-const formatWhatsAppMessage = (
-  title: string,
-  message: string,
-  actionUrl?: string
-): string => {
-  let formattedMessage = `*${title}*\n\n${message}`;
-  
-  if (actionUrl) {
-    formattedMessage += `\n\n🔗 Ver detalles: ${actionUrl}`;
-  }
-  
-  formattedMessage += `\n\n_Mensaje automático de Favoron_`;
-  
-  return formattedMessage;
+// Get human-readable error message for common Twilio errors
+const getTwilioErrorMessage = (errorCode: number, defaultMessage: string): string => {
+  const errorMessages: Record<number, string> = {
+    20003: "Credenciales inválidas (Account SID o Auth Token)",
+    21211: "Número de teléfono inválido",
+    21608: "Número no registrado en WhatsApp o formato inválido",
+    63007: "Usuario bloqueó el número de WhatsApp",
+    63016: "Template no aprobado o ventana de 24h expirada",
+    63018: "Límite de mensajes alcanzado para este número",
+  };
+  return errorMessages[errorCode] || defaultMessage;
 };
 
-// 🧪 TESTING MODE - Only send to whitelisted users
-const TESTING_MODE = true; // Set to false to enable for all users
-const WHITELISTED_USER_IDS = [
-  '5e3c944e-9130-4ea7-8165-b8ec9d5abf6f' // Admin - lucas@unfavoron.com (+34699591457)
-];
-
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('📱 WhatsApp notification function called');
-    
-    const origin = req.headers.get('origin');
-    if (!isValidOrigin(origin)) {
-      console.warn('⚠️ Invalid origin:', origin);
+    const { user_id, phone_number, template_id, variables } = await req.json() as WhatsAppTemplateRequest;
+
+    console.log("📱 WhatsApp notification request:", { user_id, phone_number, template_id, variables });
+
+    // Validate template_id is provided
+    if (!template_id) {
       return new Response(
-        JSON.stringify({ error: 'Invalid origin' }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { user_id, title, message, type, priority, action_url }: WhatsAppNotificationRequest = await req.json();
-
-    // Check if testing mode is enabled and user is whitelisted
-    if (TESTING_MODE && !WHITELISTED_USER_IDS.includes(user_id)) {
-      console.log(`⏭️ Testing mode enabled: Skipping notification for user ${user_id}`);
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          skipped: true, 
-          reason: 'Testing mode - user not whitelisted',
-          user_id 
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log('✅ Testing mode: User is whitelisted, proceeding with notification');
-
-    if (!user_id || !title || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: user_id, title, message' }),
+        JSON.stringify({ success: false, error: "template_id is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get user profile with WhatsApp preferences
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('country_code, phone_number, whatsapp_notifications, whatsapp_notification_preferences')
-      .eq('id', user_id)
-      .single();
-
-    if (profileError || !profile) {
-      console.error('❌ Error fetching user profile:', profileError);
+    // Validate template exists
+    const contentSid = TEMPLATE_SIDS[template_id];
+    if (!contentSid) {
+      console.error("❌ Template not found:", template_id);
       return new Response(
-        JSON.stringify({ error: 'User profile not found' }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: `Template '${template_id}' not configured` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log('👤 User profile:', {
-      country_code: profile.country_code,
-      phone_number: profile.phone_number,
-      whatsapp_enabled: profile.whatsapp_notifications,
-      preferences: profile.whatsapp_notification_preferences
-    });
+    // Get phone number (from request or from user profile)
+    let targetPhone = phone_number;
 
-    // Check if user has WhatsApp notifications enabled
-    if (!profile.whatsapp_notifications) {
-      console.log('⏭️ WhatsApp notifications disabled for user');
-      return new Response(
-        JSON.stringify({ success: true, skipped: true, reason: 'WhatsApp notifications disabled' }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!targetPhone && user_id) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if user has both country code and phone number
-    if (!profile.country_code || !profile.phone_number) {
-      console.log('⏭️ No phone number registered for user');
-      return new Response(
-        JSON.stringify({ success: true, skipped: true, reason: 'No phone number' }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("phone_number, country_code, whatsapp_notifications, first_name")
+        .eq("id", user_id)
+        .single();
 
-    // Check notification type preferences
-    if (type && profile.whatsapp_notification_preferences) {
-      const typeEnabled = profile.whatsapp_notification_preferences[type];
-      if (typeEnabled === false) {
-        console.log(`⏭️ WhatsApp notifications disabled for type: ${type}`);
+      if (profileError || !profile) {
+        console.error("❌ Could not get user profile:", profileError);
         return new Response(
-          JSON.stringify({ success: true, skipped: true, reason: `Type ${type} disabled` }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ success: false, error: "User profile not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+
+      // Check if user has WhatsApp notifications enabled
+      if (profile.whatsapp_notifications === false) {
+        console.log("⏭️ WhatsApp notifications disabled for user:", user_id);
+        return new Response(
+          JSON.stringify({ success: true, skipped: true, reason: "WhatsApp notifications disabled" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!profile.phone_number) {
+        console.log("⏭️ No phone number for user:", user_id);
+        return new Response(
+          JSON.stringify({ success: false, error: "User has no phone number" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Combine country code and phone number if both exist
+      if (profile.country_code && profile.phone_number) {
+        targetPhone = `${profile.country_code}${profile.phone_number}`;
+      } else {
+        targetPhone = profile.phone_number;
       }
     }
 
-    // Combine country code and phone number
-    const fullPhoneNumber = `${profile.country_code}${profile.phone_number}`;
-    
-    // Format and send WhatsApp message
-    const formattedMessage = formatWhatsAppMessage(title, message, action_url);
-    console.log('📤 Sending WhatsApp message to:', fullPhoneNumber);
-    
-    const twilioResponse = await sendWhatsAppMessage(fullPhoneNumber, formattedMessage);
-    console.log('✅ WhatsApp message sent successfully:', twilioResponse.sid);
+    if (!targetPhone) {
+      return new Response(
+        JSON.stringify({ success: false, error: "No phone number provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Send the WhatsApp template message
+    const result = await sendWhatsAppTemplate(targetPhone, contentSid, variables || {});
+
+    if (!result.success) {
+      return new Response(
+        JSON.stringify({ success: false, error: result.error, errorCode: result.errorCode }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message_sid: twilioResponse.sid,
-        to: fullPhoneNumber
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, data: result.data }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error: any) {
-    console.error("❌ Error sending WhatsApp notification:", error);
+    console.error("❌ Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-};
-
-serve(handler);
+});

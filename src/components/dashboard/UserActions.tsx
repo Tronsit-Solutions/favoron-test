@@ -101,11 +101,11 @@ const UserActions = ({ onLoadTestData, onLoadTestPackage, onLoadTestTrip }: User
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('test-whatsapp', {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
         body: { 
           phone_number: profile.phone_number,
-          title: 'Prueba de WhatsApp desde Favoron',
-          message: 'Este es un mensaje de prueba. Si recibes esto, la integración está funcionando correctamente.'
+          template_id: 'welcome',
+          variables: { "1": "Usuario de Prueba" }
         }
       });
 
