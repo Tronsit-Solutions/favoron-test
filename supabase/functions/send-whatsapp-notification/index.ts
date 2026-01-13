@@ -164,15 +164,16 @@ serve(async (req) => {
 
     // Get phone number (from request or from user profile)
     let targetPhone = phone_number;
+    let userFullName: string | null = null;
 
-    if (!targetPhone && user_id) {
+    if (user_id) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("phone_number, country_code, whatsapp_notifications, first_name")
+        .select("phone_number, country_code, whatsapp_notifications, first_name, last_name")
         .eq("id", user_id)
         .single();
 
@@ -184,6 +185,14 @@ serve(async (req) => {
         );
       }
 
+      // Extract user's full name for template variables
+      if (profile.first_name) {
+        userFullName = profile.last_name 
+          ? `${profile.first_name} ${profile.last_name}`
+          : profile.first_name;
+      }
+      console.log("👤 User name extracted:", userFullName);
+
       // Check if user has WhatsApp notifications enabled
       if (profile.whatsapp_notifications === false) {
         console.log("⏭️ WhatsApp notifications disabled for user:", user_id);
@@ -193,19 +202,22 @@ serve(async (req) => {
         );
       }
 
-      if (!profile.phone_number) {
-        console.log("⏭️ No phone number for user:", user_id);
-        return new Response(
-          JSON.stringify({ success: false, error: "User has no phone number" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+      // Only use profile phone if no direct phone_number was provided
+      if (!targetPhone) {
+        if (!profile.phone_number) {
+          console.log("⏭️ No phone number for user:", user_id);
+          return new Response(
+            JSON.stringify({ success: false, error: "User has no phone number" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
-      // Combine country code and phone number if both exist
-      if (profile.country_code && profile.phone_number) {
-        targetPhone = `${profile.country_code}${profile.phone_number}`;
-      } else {
-        targetPhone = profile.phone_number;
+        // Combine country code and phone number if both exist
+        if (profile.country_code && profile.phone_number) {
+          targetPhone = `${profile.country_code}${profile.phone_number}`;
+        } else {
+          targetPhone = profile.phone_number;
+        }
       }
     }
 
@@ -233,8 +245,22 @@ serve(async (req) => {
 
     console.log("✅ Número autorizado para envío:", targetPhone);
 
+    // Enrich variables with user's name automatically
+    // Variable "1" is used for the user's name in most templates
+    const enrichedVariables: Record<string, string> = {};
+    
+    // Set user's name as variable "1" if we have it
+    if (userFullName) {
+      enrichedVariables["1"] = userFullName;
+    }
+    
+    // Merge with explicitly passed variables (explicit ones take precedence)
+    const finalVariables = { ...enrichedVariables, ...(variables || {}) };
+    
+    console.log("📝 Final template variables:", finalVariables);
+
     // Send the WhatsApp template message
-    const result = await sendWhatsAppTemplate(targetPhone, contentSid, variables || {});
+    const result = await sendWhatsAppTemplate(targetPhone, contentSid, finalVariables);
 
     if (!result.success) {
       return new Response(
