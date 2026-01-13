@@ -119,7 +119,7 @@ const AdminMatchDialog = ({
       return 'mexico';
     }
     
-    // Map Guatemala variations (including cities and departments)
+    // Map Guatemala variations (including all 22 departments and major cities)
     if (normalized.includes('guatemala') || normalized.includes('quetzaltenango') ||
         normalized.includes('xela') || normalized.includes('antigua') ||
         normalized.includes('zona 14') || normalized.includes('guatemala city') ||
@@ -135,7 +135,18 @@ const AdminMatchDialog = ({
         normalized.includes('huehuetenango') || normalized.includes('coban') ||
         normalized.includes('cobán') || normalized.includes('alta verapaz') ||
         normalized.includes('retalhuleu') || normalized.includes('mazatenango') ||
-        normalized.includes('suchitepequez') || normalized.includes('suchitepéquez')) {
+        normalized.includes('suchitepequez') || normalized.includes('suchitepéquez') ||
+        // Additional departments
+        normalized.includes('san marcos') || normalized.includes('peten') ||
+        normalized.includes('petén') || normalized.includes('flores') ||
+        normalized.includes('puerto barrios') || normalized.includes('izabal') ||
+        normalized.includes('zacapa') || normalized.includes('gualan') ||
+        normalized.includes('gualán') || normalized.includes('el progreso') ||
+        normalized.includes('jalapa') || normalized.includes('jutiapa') ||
+        normalized.includes('santa rosa') || normalized.includes('chiquimulilla') ||
+        normalized.includes('totonicapan') || normalized.includes('totonicapán') ||
+        normalized.includes('san pedro sacatepequez') || normalized.includes('baja verapaz') ||
+        normalized.includes('salama') || normalized.includes('salamá')) {
       return 'guatemala';
     }
     
@@ -171,8 +182,9 @@ const AdminMatchDialog = ({
         
         let matchesDestination = false;
         if (showOtherCities) {
-          // Show trips to any city in Guatemala
-          matchesDestination = tripDestinationNormalized === 'guatemala';
+          // Show trips to any city in Guatemala (using to_country field OR normalized city)
+          matchesDestination = trip.to_country?.toLowerCase().includes('guatemala') ||
+                               tripDestinationNormalized === 'guatemala';
         } else {
           // Exact destination match (by country or city name)
           matchesDestination = !packageDestinationNormalized || 
@@ -216,17 +228,22 @@ const AdminMatchDialog = ({
     return availableTrips.filter(trip => {
       const isNotExpired = new Date(trip.arrival_date) >= today;
       const tripOriginNormalized = normalizeCountry(trip.from_country || '');
-      const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
       const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
       
       // Same origin country
       const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
-      // Same destination COUNTRY (Guatemala) but DIFFERENT city
-      const sameCountryDifferentCity = tripDestinationNormalized === 'guatemala' && 
-                                        packageDestinationNormalized === 'guatemala' &&
-                                        tripDestinationCity !== packageDestinationCity;
       
-      return isNotExpired && matchesOrigin && sameCountryDifferentCity;
+      // Trip goes to Guatemala (using to_country field OR normalized city name)
+      const tripToGuatemala = trip.to_country?.toLowerCase().includes('guatemala') || 
+                              normalizeCountry(trip.to_city || '') === 'guatemala';
+      
+      // Package destination is in Guatemala
+      const packageToGuatemala = packageDestinationNormalized === 'guatemala';
+      
+      // Different city within Guatemala
+      const differentCity = tripDestinationCity !== packageDestinationCity;
+      
+      return isNotExpired && matchesOrigin && tripToGuatemala && packageToGuatemala && differentCity;
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
