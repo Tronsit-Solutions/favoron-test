@@ -1169,9 +1169,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         href={product.itemLink} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline truncate block max-w-[250px]"
+                        className="text-xs text-primary hover:underline"
                       >
-                        {product.itemLink}
+                        link
                       </a>
                     )}
                   </div>
