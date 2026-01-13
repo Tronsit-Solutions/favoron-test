@@ -1159,11 +1159,26 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           {/* Productos */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Productos ({products.length})</p>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {products.map((product, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span className="truncate max-w-[200px]">{product.itemDescription || 'Sin descripción'}</span>
-                  <span className="font-medium">${parseFloat(product.estimatedPrice || '0').toFixed(2)}</span>
+                <div key={idx} className="flex justify-between items-start text-sm py-1">
+                  <div className="flex-1 min-w-0 mr-4">
+                    <span className="truncate block">{product.itemDescription || 'Sin descripción'}</span>
+                    {product.itemLink && (
+                      <a 
+                        href={product.itemLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline truncate block max-w-[250px]"
+                      >
+                        {product.itemLink}
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-muted-foreground">x{product.quantity || 1}</span>
+                    <span className="font-medium">${parseFloat(product.estimatedPrice || '0').toFixed(2)}</span>
+                  </div>
                 </div>
               ))}
             </div>
