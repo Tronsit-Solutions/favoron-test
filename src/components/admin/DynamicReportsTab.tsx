@@ -8,6 +8,7 @@ import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { UserGrowthChart } from "./charts/UserGrowthChart";
 import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
+import { AvgPackageValueChart } from "./charts/AvgPackageValueChart";
 import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { KPICards } from "./charts/KPICards";
 import { BarChart3, Download, RefreshCw, Calendar } from "lucide-react";
@@ -197,6 +198,7 @@ export const DynamicReportsTab = () => {
             <UserGrowthChart data={monthlyData} />
             <PackagesChart data={monthlyData} />
             <TripsChart data={monthlyData} />
+            <AvgPackageValueChart data={monthlyData} overallAvg={kpis.avgPackageValue} />
           </div>
 
           {/* Acquisition Analysis */}

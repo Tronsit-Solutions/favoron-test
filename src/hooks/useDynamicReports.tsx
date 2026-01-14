@@ -22,6 +22,7 @@ interface MonthlyDataPoint {
   favoronRevenue: number;
   travelerTips: number;
   profitMargin: number;
+  avgPackageValue: number;
 }
 
 interface KPIData {
@@ -213,6 +214,8 @@ export const useDynamicReports = (months: number = 12) => {
         t.status === 'completed'
       ).length;
 
+      const avgPackageValue = completedPackages > 0 ? gmv / completedPackages : 0;
+
       monthlyData.push({
         month: monthKey,
         monthLabel,
@@ -231,6 +234,7 @@ export const useDynamicReports = (months: number = 12) => {
         favoronRevenue,
         travelerTips,
         profitMargin: gmv > 0 ? (favoronRevenue / gmv) * 100 : 0,
+        avgPackageValue,
       });
     }
 
