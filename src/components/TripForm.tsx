@@ -458,22 +458,22 @@ const TripForm = ({
     {
       icon: Plane,
       title: "Registra tu viaje",
-      description: "Indica tu origen, destino, y cuánto espacio tienes disponible en tu equipaje"
+      description: "Indica origen, destino y comparte la dirección para recibir paquetes"
     },
     {
       icon: Users,
       title: "Recibe solicitudes de paquetes",
-      description: "Los shoppers te envían sus paquetes a tu dirección en el exterior"
+      description: "Recibe solicitudes de paquetes con la propina que ganarías por llevarlo. Tú decides si aceptas o no"
     },
     {
       icon: DollarSign,
-      title: "Gana propinas por cada entrega",
-      description: "Tú decides cuánto cobrar por traer cada paquete"
+      title: "El shopper acepta tu cotización",
+      description: "Si el shopper acepta la cotización, recibirás el paquete en la dirección indicada"
     },
     {
       icon: Truck,
       title: "Entrega en oficina o mensajero",
-      description: "Al llegar, entregas los paquetes en oficina Favoron o programas recolección"
+      description: "Al llegar al destino, entrega los paquetes en la oficina de Favoron o programa recolección"
     }
   ];
 
