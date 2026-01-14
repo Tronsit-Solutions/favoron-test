@@ -9,171 +9,22 @@ interface SendWhatsAppTemplateParams {
   variables?: Record<string, string>;
 }
 
-// Legacy interface - kept for backwards compatibility
-interface SendWhatsAppLegacyParams {
-  userId: string;
-  title: string;
-  message: string;
-  type: 'package' | 'trip' | 'payment' | 'general';
-  priority?: 'low' | 'medium' | 'high';
-  actionUrl?: string;
-}
-
-type SendWhatsAppNotificationParams = SendWhatsAppTemplateParams | SendWhatsAppLegacyParams;
-
-// Type guard to check if using new template-based API
-const isTemplateParams = (params: SendWhatsAppNotificationParams): params is SendWhatsAppTemplateParams => {
-  return 'templateId' in params;
-};
-
-// Send WhatsApp notification
-// Currently only supports pre-approved Twilio templates
-// Legacy calls are logged but not sent until templates are approved
-export const sendWhatsAppNotification = async (params: SendWhatsAppNotificationParams) => {
+// Send WhatsApp notification using pre-approved Twilio templates
+export const sendWhatsAppNotification = async (params: SendWhatsAppTemplateParams) => {
   try {
-    // If using new template-based API
-    if (isTemplateParams(params)) {
-      const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
-        body: {
-          user_id: params.userId,
-          template_id: params.templateId,
-          variables: params.variables || {}
-        }
-      });
-
-      if (error) throw error;
-      console.log('✅ WhatsApp notification sent:', { userId: params.userId, templateId: params.templateId });
-      return { success: true, data };
-    }
-    
-    // Legacy API - log but don't send (templates need to be approved first)
-    console.log('📱 WhatsApp notification queued (pending template approval):', {
-      userId: params.userId,
-      title: params.title,
-      type: params.type
+    const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
+      body: {
+        user_id: params.userId,
+        template_id: params.templateId,
+        variables: params.variables || {}
+      }
     });
-    
-    // Return success to not break flows, but indicate it was skipped
-    return { 
-      success: true, 
-      skipped: true, 
-      reason: 'WhatsApp templates pending approval in Twilio' 
-    };
+
+    if (error) throw error;
+    console.log('✅ WhatsApp notification sent:', { userId: params.userId, templateId: params.templateId });
+    return { success: true, data };
   } catch (error) {
     console.error('❌ Error sending WhatsApp notification:', error);
     return { success: false, error };
   }
-};
-
-// Note: The templates below are for planning purposes only.
-// Each template needs to be created and approved in Twilio Console before use.
-// Once approved, add the Content SID to TEMPLATE_SIDS in the edge function.
-
-// Templates específicos para cada evento
-export const WhatsAppTemplates = {
-  // Para shoppers
-  quoteReceived: (amount: string, packageDescription: string) => ({
-    title: '💰 Nueva cotización recibida',
-    message: `Has recibido una cotización de ${amount} para tu pedido "${packageDescription}".\n\n⏰ Tienes 48 horas para aceptar o rechazar esta cotización.\n\nRevisa los detalles en tu dashboard.`,
-    type: 'package' as const,
-    priority: 'high' as const
-  }),
-  
-  packageReceivedByTraveler: (packageDescription: string, travelerName?: string) => ({
-    title: '✅ Paquete recibido por viajero',
-    message: `El viajero${travelerName ? ` ${travelerName}` : ''} ha confirmado la recepción de tu paquete "${packageDescription}".`,
-    type: 'package' as const,
-    priority: 'high' as const
-  }),
-  
-  packageReadyAtOffice: (packageDescription: string, deliveryMethod: string) => ({
-    title: '📦 Paquete listo en oficina Favorón',
-    message: `Tu paquete "${packageDescription}" está listo ${deliveryMethod === 'delivery' ? 'para entrega a domicilio. Pronto la recibirás' : 'para recoger en nuestra oficina. ¡Ya puedes pasar por él'}!`,
-    type: 'package' as const,
-    priority: 'high' as const
-  }),
-  
-  // Para viajeros
-  newPackageRequest: (packageDescription: string, from: string, to: string) => ({
-    title: '📦 Nuevo pedido disponible',
-    message: `Hay un nuevo pedido "${packageDescription}" para tu viaje de ${from} a ${to}.\n\n⏰ Tienes 24 horas para aceptar este pedido.\n\nRevisa los detalles en tu dashboard.`,
-    type: 'trip' as const,
-    priority: 'high' as const
-  }),
-  
-  quoteAcceptedByShopper: (packageDescription: string) => ({
-    title: '💳 Cotización aceptada',
-    message: `El shopper ha aceptado y pagado la cotización por el paquete "${packageDescription}".\n\nPronto compartirá el comprobante de compra del producto y el tracking para que puedas estar atento a la llegada del paquete.`,
-    type: 'payment' as const,
-    priority: 'high' as const
-  }),
-  
-  purchaseConfirmationUploaded: (packageDescription: string) => ({
-    title: '📄 Comprobante de compra subido',
-    message: `El shopper subió el comprobante de compra para "${packageDescription}". Revísalo en el chat del paquete.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-  
-  trackingInfoUploaded: (packageDescription: string) => ({
-    title: '📦 Información de seguimiento actualizada',
-    message: `El shopper actualizó la información de seguimiento para "${packageDescription}". Revisa los detalles en tu dashboard.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-  
-  tipPaymentReceiptUploaded: (amount: string) => ({
-    title: '💵 Comprobante de pago de tips subido',
-    message: `Se ha subido el comprobante de pago por ${amount}. Verifica en tu perfil.`,
-    type: 'payment' as const,
-    priority: 'high' as const
-  }),
-  
-  // Low-priority notification for individual product confirmation
-  productReceivedByTraveler: (productName: string, remainingProducts: number, packageDescription: string) => ({
-    title: '✅ Producto recibido',
-    message: `El viajero confirmó la recepción de:\n📦 ${productName}\n\n${remainingProducts > 0 
-      ? `⏳ Quedan ${remainingProducts} productos por confirmar.` 
-      : '🎉 ¡Todos los productos han sido confirmados!'
-    }\n\nPaquete: ${packageDescription}`,
-    type: 'package' as const,
-    priority: 'low' as const
-  }),
-  
-  // Para mensajes del chat
-  newChatMessageFromShopper: (shopperName: string, packageDescription: string) => ({
-    title: '💬 Nuevo mensaje del comprador',
-    message: `${shopperName} te envió un mensaje sobre el paquete "${packageDescription}".\n\nResponde en el chat del paquete.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-
-  newChatMessageFromTraveler: (travelerName: string, packageDescription: string) => ({
-    title: '💬 Nuevo mensaje del viajero',
-    message: `${travelerName} te envió un mensaje sobre tu paquete "${packageDescription}".\n\nResponde en el chat del paquete.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-
-  newFileFromShopper: (shopperName: string, packageDescription: string) => ({
-    title: '📎 Nuevo archivo del comprador',
-    message: `${shopperName} subió un archivo sobre el paquete "${packageDescription}".\n\nRevísalo en el chat del paquete.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-
-  newFileFromTraveler: (travelerName: string, packageDescription: string) => ({
-    title: '📎 Nuevo archivo del viajero',
-    message: `${travelerName} subió un archivo sobre tu paquete "${packageDescription}".\n\nRevísalo en el chat del paquete.`,
-    type: 'package' as const,
-    priority: 'medium' as const
-  }),
-
-  // Notificación cuando shopper elimina productos de pedido multi-producto
-  productsRemovedByShopper: (packageDescription: string, removedProducts: string[], remainingCount: number) => ({
-    title: '⚠️ Productos removidos del pedido',
-    message: `El shopper ha removido ${removedProducts.length} producto(s) de "${packageDescription}":\n\n❌ ${removedProducts.join('\n❌ ')}\n\n📦 Quedan ${remainingCount} producto(s) en el pedido.\n\nEl tip del viaje se ha ajustado automáticamente.`,
-    type: 'package' as const,
-    priority: 'high' as const
-  })
 };

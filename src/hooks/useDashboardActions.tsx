@@ -542,21 +542,8 @@ export const useDashboardActions = (
             quote: normalizedQuoteData
           });
           
-          // Enviar notificación al shopper
-          if (selectedPackage.user_id) {
-            const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-            const quoteAmount = `Q${normalizedQuoteData.totalPrice.toFixed(2)}`;
-            const template = WhatsAppTemplates.quoteReceived(
-              quoteAmount, 
-              selectedPackage.item_description || 'tu pedido'
-            );
-            
-            await sendWhatsAppNotification({
-              userId: selectedPackage.user_id,
-              ...template,
-              actionUrl: 'https://favoron.app/dashboard?tab=pedidos'
-            });
-          }
+          // WhatsApp notifications removed - only welcome template available
+          console.log('📧 Quote sent to shopper:', selectedPackage.user_id);
           
           toast({
             title: "¡Cotización enviada!",
@@ -602,28 +589,9 @@ export const useDashboardActions = (
               internal_notes: updatedInternalNotes
             });
             
-            // Notify traveler about removed products
+            // WhatsApp notifications removed - only welcome template available
             if (quoteData.removedProducts?.length > 0 && selectedPackage.matched_trip_id) {
-              const matchedTrip = trips.find(t => t.id === selectedPackage.matched_trip_id);
-              if (matchedTrip?.user_id) {
-                try {
-                  const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-                  const template = WhatsAppTemplates.productsRemovedByShopper(
-                    selectedPackage.item_description || 'tu pedido',
-                    quoteData.removedProducts,
-                    quoteData.updatedProducts.length
-                  );
-                  
-                  await sendWhatsAppNotification({
-                    userId: matchedTrip.user_id,
-                    ...template,
-                    actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-                  });
-                  console.log('✅ Traveler notified about removed products');
-                } catch (notifError) {
-                  console.error('⚠️ Error notifying traveler about removed products:', notifError);
-                }
-              }
+              console.log('📧 Products removed notification would go to traveler');
             }
           } else if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
             // Existing discount-only logic (no products removed)
@@ -743,42 +711,14 @@ export const useDashboardActions = (
           newStatus = 'in_transit';
         }
         
-        // Notificar al viajero
-        if (pkg.matched_trip_id) {
-          const matchedTrip = trips.find(t => t.id === pkg.matched_trip_id);
-          if (matchedTrip?.user_id) {
-            const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-            const template = WhatsAppTemplates.purchaseConfirmationUploaded(
-              pkg.item_description || 'el paquete'
-            );
-            
-            await sendWhatsAppNotification({
-              userId: matchedTrip.user_id,
-              ...template,
-              actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-            });
-          }
-        }
+        // WhatsApp notifications removed - only welcome template available
+        console.log('📧 Purchase confirmation uploaded for package');
       } else if (type === 'tracking') {
         updatedData.tracking_info = data;
         // Tracking upload doesn't change status - only confirmation does
         
-        // Notificar al viajero
-        if (pkg.matched_trip_id) {
-          const matchedTrip = trips.find(t => t.id === pkg.matched_trip_id);
-          if (matchedTrip?.user_id) {
-            const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-            const template = WhatsAppTemplates.trackingInfoUploaded(
-              pkg.item_description || 'el paquete'
-            );
-            
-            await sendWhatsAppNotification({
-              userId: matchedTrip.user_id,
-              ...template,
-              actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-            });
-          }
-        }
+        // WhatsApp notifications removed - only welcome template available
+        console.log('📧 Tracking info uploaded for package');
       } else if (type === 'payment_receipt') {
         updatedData.payment_receipt = data;
         // Don't set status here - let the database trigger handle it based on trust_level
@@ -900,19 +840,8 @@ export const useDashboardActions = (
         matched_trip_dates: matchedTripDates
       });
       
-      // Notificar al viajero del pago confirmado
-      if (matchedTrip?.user_id) {
-        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const template = WhatsAppTemplates.quoteAcceptedByShopper(
-          pkg.item_description || 'el paquete'
-        );
-        
-        await sendWhatsAppNotification({
-          userId: matchedTrip.user_id,
-          ...template,
-          actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-        });
-      }
+      // WhatsApp notifications removed - only welcome template available
+      console.log('📧 Payment confirmed, traveler would be notified');
       
       toast({
         title: "¡Pago confirmado!",
@@ -1017,22 +946,8 @@ export const useDashboardActions = (
 
       await updatePackage(packageId, updateData);
       
-      // Notificar al viajero del nuevo pedido asignado
-      if (matchedTrip?.user_id) {
-        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const pkg = packages.find(p => p.id === packageId);
-        const template = WhatsAppTemplates.newPackageRequest(
-          pkg?.item_description || 'un paquete',
-          matchedTrip.from_city || 'origen',
-          matchedTrip.to_city || 'destino'
-        );
-        
-        await sendWhatsAppNotification({
-          userId: matchedTrip.user_id,
-          ...template,
-          actionUrl: 'https://favoron.app/dashboard?tab=viajes'
-        });
-      }
+      // WhatsApp notifications removed - only welcome template available
+      console.log('📧 Package matched, traveler would be notified');
       
       toast({
         title: "¡Match realizado!",
@@ -1364,21 +1279,8 @@ export const useDashboardActions = (
       
       console.log('✅ Package updated successfully');
       
-      // Notificar al shopper
-      const pkg = packages.find(p => p.id === packageId);
-      if (pkg?.user_id) {
-        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const template = WhatsAppTemplates.packageReceivedByTraveler(
-          pkg.item_description || 'tu paquete',
-          currentUser?.full_name
-        );
-        
-        await sendWhatsAppNotification({
-          userId: pkg.user_id,
-          ...template,
-          actionUrl: 'https://favoron.app/dashboard?tab=pedidos'
-        });
-      }
+      // WhatsApp notifications removed - only welcome template available
+      console.log('📧 Package confirmed by traveler, shopper would be notified');
       
       toast({
         title: "¡Paquete confirmado!",
@@ -1490,21 +1392,8 @@ export const useDashboardActions = (
       );
       setPackages(optimisticPackages);
       
-      // Notificar al shopper que su paquete está listo
-      const pkg = packages.find(p => p.id === packageId);
-      if (pkg?.user_id) {
-        const { sendWhatsAppNotification, WhatsAppTemplates } = await import('@/lib/whatsappNotifications');
-        const template = WhatsAppTemplates.packageReadyAtOffice(
-          pkg.item_description || 'tu paquete',
-          pkg.delivery_method || 'pickup'
-        );
-        
-        await sendWhatsAppNotification({
-          userId: pkg.user_id,
-          ...template,
-          actionUrl: 'https://favoron.app/dashboard?tab=pedidos'
-        });
-      }
+      // WhatsApp notifications removed - only welcome template available
+      console.log('📧 Package ready at office, shopper would be notified');
 
       // Ensure we have a valid session (prevents auth.uid() = NULL in RPC)
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();

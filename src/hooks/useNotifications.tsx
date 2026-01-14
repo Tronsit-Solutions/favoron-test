@@ -140,32 +140,8 @@ export const useNotifications = (userId?: string) => {
         }
       }
 
-      // Send WhatsApp notification for high priority notifications
-      if (priority === 'high' || priority === 'urgent') {
-        try {
-          const { sendWhatsAppNotification } = await import('@/lib/whatsappNotifications');
-          
-          // Map notification type to WhatsApp type
-          const whatsappType = (['package', 'trip', 'payment'].includes(type)) 
-            ? type as 'package' | 'trip' | 'payment' 
-            : 'general';
-          
-          // Map notification priority to WhatsApp priority
-          const whatsappPriority = priority === 'urgent' ? 'high' : priority;
-          
-          await sendWhatsAppNotification({
-            userId: targetUserId,
-            title,
-            message,
-            type: whatsappType,
-            priority: whatsappPriority,
-            actionUrl: actionUrl || 'https://favoron.app/dashboard'
-          });
-        } catch (whatsappError) {
-          console.error('Error sending WhatsApp notification:', whatsappError);
-          // Don't fail the notification creation if WhatsApp fails
-        }
-      }
+      // WhatsApp notifications removed - only welcome template available
+      // High priority notifications are handled via email above
 
       return data;
     } catch (error) {
