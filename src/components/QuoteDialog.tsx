@@ -467,6 +467,11 @@ const QuoteDialog = ({
         message: 'accepted'
       };
       
+      // If traveler is accepting admin-assigned tip via existing quote, include flag
+      if (isTravelerContext) {
+        submitData.adminAssignedTipAccepted = true;
+      }
+      
       if (discountSuccess && discountCodeId) {
         submitData.discountCode = discountCode;
         submitData.discountCodeId = discountCodeId;
