@@ -24,11 +24,12 @@ export const useUserManagement = () => {
       console.log('Fetching all users via admin function...');
       
       // Use the new admin function to get all users efficiently
+      // Note: _row_limit parameter is used instead of .limit() which doesn't work with RPC
       const { data: profiles, error } = await supabase
         .rpc('admin_view_all_users', {
-          _access_reason: 'User management dashboard access'
-        })
-        .limit(5000); // Aumentar límite para mostrar todos los usuarios
+          _access_reason: 'User management dashboard access',
+          _row_limit: 10000
+        });
 
       if (error) {
         console.error('Error fetching users:', error);
