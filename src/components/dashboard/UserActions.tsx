@@ -104,7 +104,7 @@ const UserActions = ({ onLoadTestData, onLoadTestPackage, onLoadTestTrip }: User
       const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
         body: { 
           phone_number: profile.phone_number,
-          template_id: 'welcome',
+          template_id: 'welcome_v2',
           variables: { "1": "Usuario de Prueba" }
         }
       });
