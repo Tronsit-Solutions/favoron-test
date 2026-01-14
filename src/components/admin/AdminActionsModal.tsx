@@ -43,6 +43,7 @@ import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { formatDateUTC } from "@/lib/formatters";
+import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 
 interface AdminActionsModalProps {
   modalId: string;
@@ -193,6 +194,21 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
       if (error) throw error;
 
       await logAction('status_changed', `Estado cambiado de ${pkg.status} a ${newStatus}`);
+      
+      // 📱 Enviar notificación WhatsApp cuando admin cambia a quote_sent
+      if (newStatus === 'quote_sent' && pkg.user_id && updateData.quote) {
+        const quoteTotal = updateData.quote.totalPrice || 0;
+        const productName = pkg.products_data?.[0]?.itemDescription || pkg.item_description || 'Tu pedido';
+        
+        sendWhatsAppNotification({
+          userId: pkg.user_id,
+          templateId: 'quote_received',
+          variables: {
+            "2": `${quoteTotal.toFixed(2)}`,
+            "3": productName.substring(0, 50)
+          }
+        });
+      }
       
       toast({
         title: "Estado actualizado",
