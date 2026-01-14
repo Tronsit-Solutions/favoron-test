@@ -16,6 +16,7 @@ const ALLOWED_TEST_NUMBERS = [
 const TEMPLATE_SIDS: Record<string, string | undefined> = {
   welcome: Deno.env.get("TWILIO_CONTENT_SID_WELCOME"),
   quote_received: Deno.env.get("TWILIO_CONTENT_SID_QUOTE_RECEIVED"),
+  package_assigned: Deno.env.get("TWILIO_CONTENT_SID_PACKAGE_ASSIGNED"),
 };
 
 // Verificar si el número está en la whitelist

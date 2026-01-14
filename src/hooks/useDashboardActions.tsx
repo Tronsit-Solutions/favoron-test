@@ -968,8 +968,21 @@ export const useDashboardActions = (
 
       await updatePackage(packageId, updateData);
       
-      // WhatsApp notifications removed - only welcome template available
-      console.log('📧 Package matched, traveler would be notified');
+      // 📱 Enviar notificación WhatsApp al viajero
+      if (matchedTrip?.user_id) {
+        const currentPackage = packages.find(pkg => pkg.id === packageId);
+        const destination = currentPackage?.package_destination || 'Guatemala';
+        
+        sendWhatsAppNotification({
+          userId: matchedTrip.user_id,
+          templateId: 'package_assigned',
+          variables: {
+            "2": destination,
+            "3": `${adminTip?.toFixed(2) || '0.00'}`
+          }
+        });
+        console.log('📱 WhatsApp enviado al viajero:', matchedTrip.user_id);
+      }
       
       toast({
         title: "¡Match realizado!",
