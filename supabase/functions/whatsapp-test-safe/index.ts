@@ -58,7 +58,15 @@ async function sendWhatsAppTemplate(
   formData.append('From', formattedFrom);
   formData.append('To', formattedTo);
   formData.append('ContentSid', contentSid);
-  formData.append('ContentVariables', JSON.stringify(contentVariables));
+  
+  // Only include ContentVariables if the object has keys (non-empty)
+  // Twilio error 21656 occurs when sending variables to templates that don't expect them
+  if (contentVariables && Object.keys(contentVariables).length > 0) {
+    formData.append('ContentVariables', JSON.stringify(contentVariables));
+    console.log(`[TWILIO] ContentVariables included: ${JSON.stringify(contentVariables)}`);
+  } else {
+    console.log(`[TWILIO] ContentVariables omitted (template has no variables)`);
+  }
 
   try {
     const response = await fetch(url, {
@@ -137,8 +145,9 @@ serve(async (req) => {
       );
     }
 
-    // Default content variables if not provided
-    const variables = contentVariables || { "1": "Test message from Favoron" };
+    // Use provided content variables - pass empty object if template has no variables
+    // Important: Don't set default variables as template may not expect any
+    const variables = contentVariables || {};
 
     // Send the message
     const result = await sendWhatsAppTemplate(to, templateSid, variables);

@@ -18,7 +18,8 @@ export const WhatsAppTestButton = () => {
       const { data, error } = await supabase.functions.invoke('whatsapp-test-safe', {
         body: {
           to: '+34699591457',
-          contentVariables: { '1': 'Prueba desde Favoron Admin' }
+          // Don't send contentVariables if template doesn't expect them
+          // contentVariables: { '1': 'Prueba desde Favoron Admin' }
         }
       });
 
