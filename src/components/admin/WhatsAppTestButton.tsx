@@ -51,11 +51,11 @@ export const WhatsAppTestButton = () => {
     try {
       console.log('🧪 Testing WhatsApp notification with Content Template...');
       
-      // Send directly to the test phone number using the welcome template
+      // Send directly to the test phone number using the welcome_v2 template
       const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
         body: {
           phone_number: '+34699591457', // Direct to test number
-          template_id: 'welcome',
+          template_id: 'welcome_v2',
           variables: { "1": "Usuario de Prueba" }
         }
       });
@@ -104,7 +104,7 @@ export const WhatsAppTestButton = () => {
           ) : (
             <MessageSquare className="h-4 w-4" />
           )}
-          {isSending ? 'Enviando...' : 'Probar WhatsApp (Welcome)'}
+          {isSending ? 'Enviando...' : 'Probar WhatsApp (Welcome v2)'}
         </Button>
 
         <Button
@@ -124,7 +124,7 @@ export const WhatsAppTestButton = () => {
       </div>
       
       <p className="text-xs text-muted-foreground">
-        💡 Solo está activo el template "welcome" de Twilio.<br/>
+        💡 Usando template "welcome_v2" (welcome_favoron) de Twilio.<br/>
         🔒 El endpoint seguro usa Content Templates y solo envía a números allowlisted.
       </p>
     </div>

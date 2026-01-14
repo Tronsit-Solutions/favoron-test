@@ -4,12 +4,31 @@ Este documento describe los templates de WhatsApp configurados en Twilio para no
 
 ## 📋 Templates Activos
 
-### 1. `welcome` - Bienvenida
-**Secret:** `TWILIO_CONTENT_SID_WELCOME`
+### 1. `welcome_v2` - Bienvenida (Actual)
+**Secret:** `TWILIO_CONTENT_SID_WELCOME_V2`
+**Twilio Template Name:** `welcome_favoron`
+**Content SID:** `HX761d6450b7d693c1a1b072fc10d10827`
 
 | Variable | Campo | Ejemplo |
 |----------|-------|---------|
 | `{{1}}` | Nombre del usuario (auto-enriquecido) | "Carlos García" |
+
+**Contenido:**
+```
+¡{{1}}, ya eres parte de Favoron!  🎉
+
+En Favoron puedes:
+
+🛒 Comprar productos de cualquier parte del mundo
+
+✈️ Ganar dinero extra en tus viajes
+
+Miles de usuarios ya confían en nosotros.
+
+Empieza ahora:👉 www.favoron.app
+
+_Este es un mensaje automático. No responder._
+```
 
 **Uso:** Se envía cuando un nuevo usuario completa el registro.
 
@@ -60,6 +79,16 @@ _Este es un mensaje automático. No responder._
 
 ## ⚠️ Templates Deprecados
 
+### `welcome` (Deprecado - Usar `welcome_v2`)
+**Secret:** `TWILIO_CONTENT_SID_WELCOME`
+
+Este template está deprecado. Usar `welcome_v2` que incluye:
+- Propuesta de valor global (comprar de cualquier parte del mundo)
+- Roles de comprador y viajero
+- Social proof (miles de usuarios)
+- CTA al dashboard (www.favoron.app)
+- Disclaimer de mensaje automático
+
 ### `quote_received` (Deprecado - Usar `quote_received_v2`)
 **Secret:** `TWILIO_CONTENT_SID_QUOTE_RECEIVED`
 
@@ -75,7 +104,8 @@ Los Content SIDs de cada template deben configurarse como secrets en Supabase:
 
 | Secret Name | Descripción |
 |-------------|-------------|
-| `TWILIO_CONTENT_SID_WELCOME` | Content SID del template de bienvenida |
+| `TWILIO_CONTENT_SID_WELCOME` | ⚠️ Deprecado - Content SID del template de bienvenida v1 |
+| `TWILIO_CONTENT_SID_WELCOME_V2` | Content SID del template de bienvenida v2 (actual) |
 | `TWILIO_CONTENT_SID_QUOTE_RECEIVED` | ⚠️ Deprecado - Content SID del template de cotización v1 |
 | `TWILIO_CONTENT_SID_QUOTE_RECEIVED_V2` | Content SID del template de cotización v2 (actual) |
 | `TWILIO_CONTENT_SID_PACKAGE_ASSIGNED` | Content SID del template de paquete asignado |
@@ -113,6 +143,15 @@ Esto significa que no necesitas enviar la variable `1` manualmente en la mayorí
 ## 📝 Ejemplo de Uso
 
 ```typescript
+// Enviar notificación de bienvenida (v2)
+await supabase.functions.invoke('send-whatsapp-notification', {
+  body: {
+    user_id: 'uuid-del-usuario',
+    template_id: 'welcome_v2'
+    // Variable 1 se auto-enriquece con el nombre del usuario
+  }
+});
+
 // Enviar notificación de cotización recibida (v2)
 await supabase.functions.invoke('send-whatsapp-notification', {
   body: {
