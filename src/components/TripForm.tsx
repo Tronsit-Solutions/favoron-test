@@ -932,7 +932,7 @@ const TripForm = ({
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Si te hospedas en hotel, coloca el número del hotel
+            Este número se usará para coordinar la entrega del paquete. Si te hospedas en hotel, coloca el número del hotel.
           </p>
         </div>
       </div>
