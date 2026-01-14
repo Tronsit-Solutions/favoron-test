@@ -558,8 +558,20 @@ export const useDashboardActions = (
             quote: normalizedQuoteData
           });
           
-          // WhatsApp notifications removed - only welcome template available
-          console.log('📧 Quote sent to shopper:', selectedPackage.user_id);
+          // 📱 Enviar notificación WhatsApp al shopper
+          if (selectedPackage.user_id) {
+            const quoteTotal = normalizedQuoteData.totalPrice || 0;
+            const productName = selectedPackage.products_data?.[0]?.itemDescription || selectedPackage.item_description || 'Tu pedido';
+            
+            sendWhatsAppNotification({
+              userId: selectedPackage.user_id,
+              templateId: 'quote_received',
+              variables: {
+                "2": `${quoteTotal.toFixed(2)}`,
+                "3": productName.substring(0, 50)
+              }
+            });
+          }
           
           toast({
             title: "¡Cotización enviada!",
@@ -1106,6 +1118,21 @@ export const useDashboardActions = (
         }
 
         await updatePackage(id, updateData);
+        
+        // 📱 Enviar notificación WhatsApp cuando admin cambia a quote_sent
+        if (status === 'quote_sent' && currentPackage?.user_id && updateData.quote) {
+          const quoteTotal = updateData.quote.totalPrice || 0;
+          const productName = currentPackage.products_data?.[0]?.itemDescription || currentPackage.item_description || 'Tu pedido';
+          
+          sendWhatsAppNotification({
+            userId: currentPackage.user_id,
+            templateId: 'quote_received',
+            variables: {
+              "2": `${quoteTotal.toFixed(2)}`,
+              "3": productName.substring(0, 50)
+            }
+          });
+        }
         
         toast({
           title: "Estado actualizado",
