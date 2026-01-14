@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -11,16 +11,24 @@ interface UserWithProfileId extends User {
 }
 
 const PAGE_SIZE = 50;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export const useUserManagement = () => {
   const [users, setUsers] = useState<UserWithProfileId[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isServerSearch, setIsServerSearch] = useState(false);
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Debounce ref for search
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  // Store original paginated users to restore when search is cleared
+  const paginatedUsersRef = useRef<UserWithProfileId[]>([]);
 
   // Format profile data to user format
   const formatProfile = (profile: any, index: number): UserWithProfileId => {
@@ -141,6 +149,7 @@ export const useUserManagement = () => {
       
       console.log('Users fetched:', formattedUsers.length);
       setUsers(formattedUsers);
+      paginatedUsersRef.current = formattedUsers; // Store for restoring after search
       setHasMore(formattedUsers.length >= PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -149,6 +158,110 @@ export const useUserManagement = () => {
       setLoading(false);
     }
   };
+
+  // Server-side search function
+  const searchUsersInDatabase = useCallback(async (term: string) => {
+    if (term.length < 2) {
+      // Restore paginated users when search is cleared
+      setIsServerSearch(false);
+      setUsers(paginatedUsersRef.current);
+      return;
+    }
+
+    try {
+      setSearching(true);
+      setIsServerSearch(true);
+      console.log('Searching users in database for:', term);
+
+      // Search across multiple fields using OR conditions
+      const searchPattern = `%${term}%`;
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          username,
+          avatar_url,
+          phone_number,
+          country_code,
+          created_at,
+          trust_level,
+          is_banned,
+          banned_until,
+          ban_reason,
+          banned_by,
+          banned_at
+        `)
+        .or(`first_name.ilike.${searchPattern},last_name.ilike.${searchPattern},email.ilike.${searchPattern},phone_number.ilike.${searchPattern},username.ilike.${searchPattern}`)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error('Error searching users:', error);
+        throw error;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        setUsers([]);
+        return;
+      }
+
+      // Fetch roles and financial data for found users
+      const userIds = profiles.map(p => p.id);
+      const [{ data: roles }, { data: financialData }] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
+        supabase.from('user_financial_data').select('user_id, bank_account_holder, bank_name, bank_account_type, bank_account_number, bank_swift_code, document_type, document_number').in('user_id', userIds)
+      ]);
+
+      const profilesWithRoles = profiles.map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.id);
+        const financial = financialData?.find(f => f.user_id === profile.id);
+        return {
+          ...profile,
+          user_role: userRole?.role || 'user',
+          bank_account_holder: financial?.bank_account_holder,
+          bank_name: financial?.bank_name,
+          bank_account_type: financial?.bank_account_type,
+          bank_account_number: financial?.bank_account_number,
+          bank_swift_code: financial?.bank_swift_code,
+          document_type: financial?.document_type,
+          document_number: financial?.document_number
+        };
+      });
+
+      const formattedUsers = profilesWithRoles.map((profile, index) => formatProfile(profile, index));
+      console.log('Search results:', formattedUsers.length);
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  // Debounced search handler
+  const handleSearchTermChange = useCallback((term: string) => {
+    setSearchTerm(term);
+
+    // Clear existing timeout
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    // If term is empty or less than 2 chars, restore immediately
+    if (term.length < 2) {
+      setIsServerSearch(false);
+      setUsers(paginatedUsersRef.current);
+      return;
+    }
+
+    // Debounce the search
+    searchDebounceRef.current = setTimeout(() => {
+      searchUsersInDatabase(term);
+    }, SEARCH_DEBOUNCE_MS);
+  }, [searchUsersInDatabase]);
 
   // Load more users
   const loadMore = useCallback(async () => {
@@ -227,9 +340,13 @@ export const useUserManagement = () => {
     fetchUsers();
   }, []);
 
+  // For server-side search, only apply role/status filters locally
+  // For local search (when search term < 2 chars), also filter by search term
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = searchTerm === '' || 
+      // When in server search mode, search is already done server-side
+      // Only apply local search filter when NOT in server search mode
+      const matchesSearch = isServerSearch || searchTerm === '' || 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -239,7 +356,7 @@ export const useUserManagement = () => {
       
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [users, searchTerm, roleFilter, statusFilter]);
+  }, [users, searchTerm, roleFilter, statusFilter, isServerSearch]);
 
   const updateUser = (userId: number, updates: Partial<UserWithProfileId>) => {
     setUsers(prev => prev.map(user => 
@@ -400,10 +517,12 @@ export const useUserManagement = () => {
     totalCount,
     loading,
     loadingMore,
-    hasMore,
+    searching,
+    isServerSearch,
+    hasMore: isServerSearch ? false : hasMore, // Disable "load more" during search
     loadMore,
     searchTerm,
-    setSearchTerm,
+    setSearchTerm: handleSearchTermChange,
     roleFilter, 
     setRoleFilter,
     statusFilter,

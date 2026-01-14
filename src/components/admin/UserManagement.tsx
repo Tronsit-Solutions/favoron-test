@@ -41,6 +41,8 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     totalCount,
     loading,
     loadingMore,
+    searching,
+    isServerSearch,
     hasMore,
     loadMore,
     searchTerm,
@@ -362,12 +364,27 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, email o username..."
+                  placeholder="Buscar en TODOS los usuarios por nombre, email, teléfono..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
+                {searching && (
+                  <div className="absolute right-3 top-3">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                )}
               </div>
+              {isServerSearch && !searching && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ✓ Buscando en todos los {totalCount} usuarios
+                </p>
+              )}
+              {searchTerm.length === 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Escribe al menos 2 caracteres para buscar...
+                </p>
+              )}
             </div>
             
             <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -399,7 +416,11 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Usuarios ({users.length})</CardTitle>
+          <CardTitle>
+            {isServerSearch 
+              ? `Resultados de búsqueda (${users.length})` 
+              : `Lista de Usuarios (${users.length} de ${totalCount})`}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
