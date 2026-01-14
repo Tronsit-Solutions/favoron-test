@@ -1229,34 +1229,63 @@ export type Database = {
         }
         Returns: undefined
       }
-      admin_view_all_users: {
-        Args: { _access_reason?: string }
-        Returns: {
-          avatar_url: string
-          ban_reason: string
-          bank_account_holder: string
-          bank_account_number: string
-          bank_account_type: string
-          bank_name: string
-          bank_swift_code: string
-          banned_at: string
-          banned_by: string
-          banned_until: string
-          country_code: string
-          created_at: string
-          document_number: string
-          document_type: string
-          email: string
-          first_name: string
-          id: string
-          is_banned: boolean
-          last_name: string
-          phone_number: string
-          trust_level: string
-          user_role: string
-          username: string
-        }[]
-      }
+      admin_view_all_users:
+        | {
+            Args: { _access_reason?: string }
+            Returns: {
+              avatar_url: string
+              ban_reason: string
+              bank_account_holder: string
+              bank_account_number: string
+              bank_account_type: string
+              bank_name: string
+              bank_swift_code: string
+              banned_at: string
+              banned_by: string
+              banned_until: string
+              country_code: string
+              created_at: string
+              document_number: string
+              document_type: string
+              email: string
+              first_name: string
+              id: string
+              is_banned: boolean
+              last_name: string
+              phone_number: string
+              trust_level: string
+              user_role: string
+              username: string
+            }[]
+          }
+        | {
+            Args: { _access_reason?: string; _row_limit?: number }
+            Returns: {
+              avatar_url: string
+              ban_reason: string
+              bank_account_holder: string
+              bank_account_number: string
+              bank_account_type: string
+              bank_name: string
+              bank_swift_code: string
+              banned_at: string
+              banned_by: string
+              banned_until: string
+              country_code: string
+              created_at: string
+              document_number: string
+              document_type: string
+              email: string
+              first_name: string
+              id: string
+              is_banned: boolean
+              last_name: string
+              phone_number: string
+              trust_level: string
+              user_role: string
+              username: string
+            }[]
+          }
       admin_view_profile_banking: {
         Args: { access_reason: string; target_user_id: string }
         Returns: {
