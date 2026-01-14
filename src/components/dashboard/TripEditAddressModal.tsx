@@ -17,7 +17,7 @@ interface TripEditAddressModalProps {
 }
 
 const accommodationTypes = [
-  { value: 'hotel', label: 'Hotel/Hostal' },
+  { value: 'hotel', label: 'Hotel' },
   { value: 'airbnb', label: 'Airbnb' },
   { value: 'casa', label: 'Casa/Apartamento' }
 ];

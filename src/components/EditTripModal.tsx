@@ -111,7 +111,7 @@ const EditTripModal = ({
   const isDestinationInMainList = MAIN_COUNTRIES.some(c => c.value === formData.toCountry);
   const accommodationTypes = [{
     value: 'hotel',
-    label: 'Hotel/Hostal'
+    label: 'Hotel'
   }, {
     value: 'airbnb',
     label: 'Airbnb'
