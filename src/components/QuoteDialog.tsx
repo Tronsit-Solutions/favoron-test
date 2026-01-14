@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck, CreditCard } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +34,7 @@ import { TripEditReceivingWindowModal } from "./dashboard/TripEditReceivingWindo
 import { TripEditDeliveryDateModal } from "./dashboard/TripEditDeliveryDateModal";
 import { TripEditAddressModal } from "./dashboard/TripEditAddressModal";
 import EditTripModal from "./EditTripModal";
+import QuotePaymentStep from "./quote/QuotePaymentStep";
 interface QuoteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -74,6 +75,10 @@ interface QuoteDialogProps {
     package_receiving_address?: any;
   };
   onEditTrip?: () => void;
+  // Wizard props for payment step
+  fullPackage?: any; // Full package object for payment step
+  onQuoteAccepted?: (pkg: any) => void; // Callback when quote is accepted, to transition to payment
+  onPaymentComplete?: (pkg: any) => void; // Callback when payment is complete
 }
 const ResolvedImage = ({ src, alt, className, onClick }: { src: any; alt: string; className?: string; onClick?: () => void }) => {
   const [url, setUrl] = useState<string>("");
@@ -126,7 +131,10 @@ const QuoteDialog = ({
   existingQuote,
   tripDates,
   tripInfo,
-  onEditTrip
+  onEditTrip,
+  fullPackage,
+  onQuoteAccepted,
+  onPaymentComplete
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -173,6 +181,18 @@ const QuoteDialog = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showTravelerRejectionModal, setShowTravelerRejectionModal] = useState(false);
+  
+  // Wizard step state: 'quote' or 'payment'
+  const [wizardStep, setWizardStep] = useState<'quote' | 'payment'>('quote');
+  const [acceptedPackage, setAcceptedPackage] = useState<any>(null);
+  
+  // Reset wizard step when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setWizardStep('quote');
+      setAcceptedPackage(null);
+    }
+  }, [isOpen]);
   
   // Inline trip editing state
   const [showInlineEditSelection, setShowInlineEditSelection] = useState(false);
@@ -435,7 +455,7 @@ const QuoteDialog = ({
     return adminTipAmount;
   };
   const displayAmount = getDisplayAmount();
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (existingQuote) {
       if (isQuoteExpired) {
         return; // Prevent submission if quote is expired
@@ -485,7 +505,26 @@ const QuoteDialog = ({
         }
       }
       
+      // Call onSubmit and if fullPackage is provided, transition to payment step
       onSubmit(submitData);
+      
+      // If fullPackage is available and this is a shopper accepting a quote, transition to payment
+      if (fullPackage && userType === 'user' && !isTravelerContext) {
+        // Fetch updated package with accepted quote
+        try {
+          const { data: updatedPkg } = await supabase
+            .from('packages')
+            .select('*')
+            .eq('id', fullPackage.id)
+            .single();
+          
+          if (updatedPkg) {
+            handleQuoteAccepted(updatedPkg);
+          }
+        } catch (e) {
+          console.error('Error fetching updated package for payment step:', e);
+        }
+      }
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip - show trip confirmation first if tripInfo available
       if (tripInfo && !showTripConfirmation) {
@@ -619,10 +658,53 @@ const QuoteDialog = ({
         variant: "destructive"
       });
     }
+  
+  // Handle transition to payment step after quote acceptance
+  const handleQuoteAccepted = (updatedPkg: any) => {
+    setAcceptedPackage(updatedPkg);
+    setWizardStep('payment');
+    onQuoteAccepted?.(updatedPkg);
   };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+
+  // Handle payment completion
+  const handlePaymentComplete = (updatedPkg: any) => {
+    onPaymentComplete?.(updatedPkg);
+    onClose();
+  };
+  
+  return <Dialog open={isOpen} onOpenChange={(open) => {
+    if (!open) {
+      // Reset wizard state when closing
+      setWizardStep('quote');
+      setAcceptedPackage(null);
+    }
+    onClose();
+  }}>
       <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[85vh] m-2 p-3 rounded-lg' : 'sm:max-w-2xl max-w-[98vw] max-h-[92vh] m-1 sm:m-4'} flex flex-col overflow-hidden p-4 sm:p-6`}>
 
+        {/* PAYMENT STEP - Wizard step 2 */}
+        {wizardStep === 'payment' && acceptedPackage ? (
+          <>
+            <DialogHeader className="pr-12 shrink-0">
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-left flex items-center gap-2">
+                <CreditCard className="h-6 w-6 text-primary" />
+                Completar Pago
+              </DialogTitle>
+              <DialogDescription className="text-base sm:text-sm text-muted-foreground leading-relaxed text-left">
+                Tu cotización fue aceptada. Ahora completa el pago para continuar.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-1">
+              <QuotePaymentStep
+                pkg={acceptedPackage}
+                onPaymentComplete={handlePaymentComplete}
+                onClose={onClose}
+              />
+            </div>
+          </>
+        ) : (
+        <>
+        {/* QUOTE STEP - Wizard step 1 (original content) */}
         <DialogHeader className="pr-12 shrink-0">
           {isTravelerContext ? (
             <div>
@@ -1788,6 +1870,8 @@ const QuoteDialog = ({
             setShowInlineFullEdit(false);
           }}
         />
+        </>
+        )}
       </DialogContent>
 
       <ImageViewerModal 
