@@ -1035,7 +1035,7 @@ const TripForm = ({
             maxLength={300}
           />
           <p className="text-xs text-muted-foreground">
-            Esta información será visible para el vendedor que envíe tu paquete
+            Esta información será visible para el shopper
           </p>
         </div>
       </div>
