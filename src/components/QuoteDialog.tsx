@@ -658,6 +658,7 @@ const QuoteDialog = ({
         variant: "destructive"
       });
     }
+  };
   
   // Handle transition to payment step after quote acceptance
   const handleQuoteAccepted = (updatedPkg: any) => {
