@@ -202,7 +202,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         
         sendWhatsAppNotification({
           userId: pkg.user_id,
-          templateId: 'quote_received',
+          templateId: 'quote_received_v2',
           variables: {
             "2": `${quoteTotal.toFixed(2)}`,
             "3": productName.substring(0, 50)

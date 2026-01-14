@@ -15,14 +15,31 @@ Este documento describe los templates de WhatsApp configurados en Twilio para no
 
 ---
 
-### 2. `quote_received` - Cotización Recibida
-**Secret:** `TWILIO_CONTENT_SID_QUOTE_RECEIVED`
+### 2. `quote_received_v2` - Cotización Recibida (Actual)
+**Secret:** `TWILIO_CONTENT_SID_QUOTE_RECEIVED_V2`
 
 | Variable | Campo | Ejemplo |
 |----------|-------|---------|
 | `{{1}}` | Nombre del usuario (auto-enriquecido) | "María López" |
-| `{{2}}` | Total de la cotización en Quetzales | "Q 1,250.00" |
-| `{{3}}` | Nombre/descripción del producto | "iPhone 15 Pro Max" |
+| `{{2}}` | Total de la cotización en Quetzales | "1,250.00" |
+| `{{3}}` | Nombre/descripción del pedido | "iPhone 15 Pro Max" |
+
+**Contenido:**
+```
+¡Hola {{1}}! 🎉
+
+Has recibido una cotización para tu pedido.
+
+💰 Total: Q{{2}} 
+
+📦 Pedido: {{3}}
+
+Ingresa a tu dashboard para ver los detalles y aceptar:
+
+👉 www.favoron.app
+
+_Este es un mensaje automático. No responder._
+```
 
 **Uso:** Se envía cuando el admin genera una cotización para un paquete.
 
@@ -41,6 +58,17 @@ Este documento describe los templates de WhatsApp configurados en Twilio para no
 
 ---
 
+## ⚠️ Templates Deprecados
+
+### `quote_received` (Deprecado - Usar `quote_received_v2`)
+**Secret:** `TWILIO_CONTENT_SID_QUOTE_RECEIVED`
+
+Este template está deprecado. Usar `quote_received_v2` que incluye:
+- CTA al dashboard (www.favoron.app)
+- Disclaimer de mensaje automático
+
+---
+
 ## 🔧 Configuración de Secrets en Supabase
 
 Los Content SIDs de cada template deben configurarse como secrets en Supabase:
@@ -48,7 +76,8 @@ Los Content SIDs de cada template deben configurarse como secrets en Supabase:
 | Secret Name | Descripción |
 |-------------|-------------|
 | `TWILIO_CONTENT_SID_WELCOME` | Content SID del template de bienvenida |
-| `TWILIO_CONTENT_SID_QUOTE_RECEIVED` | Content SID del template de cotización |
+| `TWILIO_CONTENT_SID_QUOTE_RECEIVED` | ⚠️ Deprecado - Content SID del template de cotización v1 |
+| `TWILIO_CONTENT_SID_QUOTE_RECEIVED_V2` | Content SID del template de cotización v2 (actual) |
 | `TWILIO_CONTENT_SID_PACKAGE_ASSIGNED` | Content SID del template de paquete asignado |
 
 ### Secrets Base de Twilio (Requeridos)
@@ -84,14 +113,14 @@ Esto significa que no necesitas enviar la variable `1` manualmente en la mayorí
 ## 📝 Ejemplo de Uso
 
 ```typescript
-// Enviar notificación de cotización recibida
+// Enviar notificación de cotización recibida (v2)
 await supabase.functions.invoke('send-whatsapp-notification', {
   body: {
     user_id: 'uuid-del-usuario',
-    template_id: 'quote_received',
+    template_id: 'quote_received_v2',
     variables: {
       // Variable 1 se auto-enriquece con el nombre del usuario
-      '2': 'Q 1,250.00',  // Total en Quetzales
+      '2': '1,250.00',  // Total en Quetzales
       '3': 'iPhone 15 Pro Max'  // Nombre del producto
     }
   }
