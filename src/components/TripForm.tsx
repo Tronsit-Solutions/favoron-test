@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, DollarSign, Truck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -41,6 +42,7 @@ const TripForm = ({
   onSubmit
 }: TripFormProps) => {
   const { openModal, closeModal } = useModalState();
+  const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
 
   // Estado inicial del formulario completo
@@ -85,15 +87,18 @@ const TripForm = ({
   );
 
   // Wizard step state (not persisted - resets when modal opens)
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [skipIntroduction, setSkipIntroduction] = useState(false);
   const totalSteps = 4;
 
-  // Reset step when modal opens
+  // Reset step when modal opens - check if user wants to skip intro
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(1);
+      const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
+      setCurrentStep(shouldSkip ? 1 : 0);
+      setSkipIntroduction(false);
     }
-  }, [isOpen]);
+  }, [isOpen, profile]);
 
   // Desestructurar estado para facilitar acceso
   const formData = formState.formData;
@@ -430,6 +435,102 @@ const TripForm = ({
   };
 
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
+
+  // Handle continue from intro step
+  const handleContinueFromIntro = async () => {
+    if (skipIntroduction) {
+      try {
+        await updateProfile({
+          ui_preferences: {
+            ...profile?.ui_preferences,
+            skip_trip_intro: true
+          }
+        });
+      } catch (error) {
+        console.error('Error saving preference:', error);
+      }
+    }
+    setCurrentStep(1);
+  };
+
+  // Intro steps for traveler onboarding
+  const introSteps = [
+    {
+      icon: Plane,
+      title: "Registra tu viaje",
+      description: "Indica tu origen, destino, y cuánto espacio tienes disponible en tu equipaje"
+    },
+    {
+      icon: Users,
+      title: "Recibe solicitudes de paquetes",
+      description: "Los shoppers te envían sus paquetes a tu dirección en el exterior"
+    },
+    {
+      icon: DollarSign,
+      title: "Gana propinas por cada entrega",
+      description: "Tú decides cuánto cobrar por traer cada paquete"
+    },
+    {
+      icon: Truck,
+      title: "Entrega en oficina o mensajero",
+      description: "Al llegar, entregas los paquetes en oficina Favoron o programas recolección"
+    }
+  ];
+
+  // Render intro step (Step 0)
+  const renderStep0 = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-semibold">¡Conviértete en Viajero Favoron!</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Conoce cómo funciona el proceso:
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {introSteps.map((step, index) => (
+          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-traveler/5 border border-traveler/10">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-traveler/20 flex items-center justify-center">
+              <span className="text-sm font-bold text-traveler">{index + 1}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-2">
+                <step.icon className="h-4 w-4 text-traveler flex-shrink-0" />
+                <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center space-x-2 pt-4 border-t border-border/50">
+        <Checkbox 
+          id="skip-trip-intro" 
+          checked={skipIntroduction}
+          onCheckedChange={(checked) => setSkipIntroduction(checked === true)}
+        />
+        <Label 
+          htmlFor="skip-trip-intro" 
+          className="text-sm text-muted-foreground cursor-pointer"
+        >
+          No volver a mostrar esta introducción
+        </Label>
+      </div>
+
+      <div className="flex space-x-3 pt-4">
+        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+          Cancelar
+        </Button>
+        <Button type="button" variant="traveler" onClick={handleContinueFromIntro} className="flex-1">
+          Continuar
+          <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   // Progress indicator component - now clickable for free navigation
   const StepIndicator = () => (
@@ -1378,14 +1479,18 @@ const TripForm = ({
           </DialogDescription>
         </DialogHeader>
 
-        <StepIndicator />
+        {currentStep >= 1 && <StepIndicator />}
 
-        <form onSubmit={handleSubmit} className="mobile-safe-form">
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-          {currentStep === 4 && renderStep4()}
-        </form>
+        {currentStep === 0 ? (
+          renderStep0()
+        ) : (
+          <form onSubmit={handleSubmit} className="mobile-safe-form">
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+          </form>
+        )}
         
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
       </DialogContent>
