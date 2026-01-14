@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Sparkles, Search, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -128,14 +128,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   );
 
   // Wizard step state (not persisted - resets when modal opens)
-  const [currentStep, setCurrentStep] = useState(1);
-  // Track which wizard step we're on (1-4)
+  // Step 0 = intro/onboarding, Steps 1-4 = actual form wizard
+  const [currentStep, setCurrentStep] = useState(0);
+  // Track which wizard step we're on (1-4 for the actual form)
   const totalSteps = 4;
 
-  // Reset step when modal opens
+  // Reset step when modal opens - always start at intro (step 0)
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(1);
+      setCurrentStep(0);
     }
   }, [isOpen]);
 
@@ -292,7 +293,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return { valid: missingFields.length === 0, missingFields };
   };
 
-  // Free navigation between steps
+  // Free navigation between steps (0 = intro, 1-4 = form wizard)
   const handleNextStep = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
@@ -300,7 +301,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -585,6 +586,71 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             Confirmar
           </span>
         </button>
+      </div>
+    </div>
+  );
+
+  // ============= STEP 0: INTRODUCTION/ONBOARDING =============
+  const introSteps = [
+    {
+      icon: Search,
+      title: "Crea tu solicitud",
+      description: "Describe el producto que necesitas y desde dónde"
+    },
+    {
+      icon: Users,
+      title: "Te emparejamos con un viajero",
+      description: "Conectamos tu solicitud con viajeros verificados"
+    },
+    {
+      icon: DollarSign,
+      title: "Recibe cotización por el servicio",
+      description: "El viajero te envía el costo solo por traer tu paquete (tú compras el producto por tu cuenta)"
+    },
+    {
+      icon: ShoppingCart,
+      title: "Compras y envías al viajero",
+      description: "Realizas la compra del producto y lo envías a la dirección del viajero en el exterior"
+    },
+    {
+      icon: Package,
+      title: "Retira en oficina Favoron",
+      description: "Recoge tu producto cuando el viajero lo entregue"
+    }
+  ];
+
+  const renderStep0 = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-4">
+        <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-shopper/10 flex items-center justify-center">
+          <Sparkles className="h-7 w-7 text-shopper" />
+        </div>
+        <h3 className="text-xl font-semibold">¡Bienvenido a Favoron!</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Conoce cómo funciona el proceso:
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {introSteps.map((step, index) => (
+          <div 
+            key={index}
+            className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border/50 hover:border-shopper/30 transition-colors"
+          >
+            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-shopper/10 flex items-center justify-center text-shopper font-semibold text-sm">
+              {index + 1}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <step.icon className="h-4 w-4 text-shopper flex-shrink-0" />
+                <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {step.description}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1272,40 +1338,58 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   // ============= NAVIGATION BUTTONS =============
-  const renderNavigationButtons = () => (
-    <div className="flex space-x-3 pt-4 border-t border-border">
-      {currentStep === 1 ? (
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-          Cancelar
-        </Button>
-      ) : (
-        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Atrás
-        </Button>
-      )}
-      
-      {currentStep !== 4 ? (
-        <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
-          Siguiente
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      ) : (
-        <Button 
-          type="button" 
-          variant="shopper" 
-          className="flex-1" 
-          disabled={isSubmitting}
-          onClick={handleManualSubmit}
-        >
-          {isSubmitting 
-            ? (editMode ? 'Guardando...' : 'Enviando...') 
-            : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
-          }
-        </Button>
-      )}
-    </div>
-  );
+  const renderNavigationButtons = () => {
+    // Step 0 (intro) has special navigation
+    if (currentStep === 0) {
+      return (
+        <div className="flex space-x-3 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            Cancelar
+          </Button>
+          <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
+            Continuar
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex space-x-3 pt-4 border-t border-border">
+        {currentStep === 1 ? (
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Atrás
+          </Button>
+        ) : (
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Atrás
+          </Button>
+        )}
+        
+        {currentStep !== 4 ? (
+          <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
+            Siguiente
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        ) : (
+          <Button 
+            type="button" 
+            variant="shopper" 
+            className="flex-1" 
+            disabled={isSubmitting}
+            onClick={handleManualSubmit}
+          >
+            {isSubmitting 
+              ? (editMode ? 'Guardando...' : 'Enviando...') 
+              : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
+            }
+          </Button>
+        )}
+      </div>
+    );
+  };
 
   const renderPackageForm = () => (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
@@ -1323,11 +1407,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </DialogDescription>
         </DialogHeader>
 
-        {/* Step Indicator */}
-        <StepIndicator />
+        {/* Step Indicator - only show for actual form steps (1-4) */}
+        {currentStep >= 1 && <StepIndicator />}
 
         {/* Using div instead of form to prevent browser auto-submit behavior */}
         <div className="space-y-6">
+          {currentStep === 0 && renderStep0()}
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
