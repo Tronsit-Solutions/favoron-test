@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Sparkles, Search, Users } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -603,36 +603,29 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     {
       icon: Search,
       title: "Crea tu solicitud",
-      description: "Describe el producto que necesitas y desde dónde"
-    },
-    {
-      icon: Users,
-      title: "Te emparejamos con un viajero",
-      description: "Conectamos tu solicitud con viajeros verificados"
+      description: "Describe el producto que necesitas y desde qué país haces la compra"
     },
     {
       icon: DollarSign,
-      title: "Recibe cotización por el servicio",
-      description: "El viajero te envía el costo solo por traer tu paquete (tú compras el producto por tu cuenta)"
+      title: "Recibe cotización de un viajero",
+      description: "solo", // Special marker for custom rendering
+      highlightWord: true
     },
     {
       icon: ShoppingCart,
       title: "Compras y envías al viajero",
-      description: "Realizas la compra del producto y lo envías a la dirección del viajero en el exterior"
+      description: "Realizas la compra y lo envías a la dirección del viajero"
     },
     {
       icon: Package,
-      title: "Retira en oficina Favoron",
-      description: "Recoge tu producto cuando el viajero lo entregue"
+      title: "Retira en oficina o a domicilio",
+      description: "Recoge tu producto en oficina Favoron o recíbelo en tu casa"
     }
   ];
 
   const renderStep0 = () => (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-4">
-        <div className="mx-auto mb-3 h-14 w-14 rounded-full bg-shopper/10 flex items-center justify-center">
-          <Sparkles className="h-7 w-7 text-shopper" />
-        </div>
         <h3 className="text-xl font-semibold">¡Bienvenido a Favoron!</h3>
         <p className="text-sm text-muted-foreground mt-1">
           Conoce cómo funciona el proceso:
@@ -654,7 +647,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {step.description}
+                {step.highlightWord ? (
+                  <>El viajero te envía cotización <strong className="underline text-foreground">solo</strong> por el costo de traer tu paquete</>
+                ) : (
+                  step.description
+                )}
               </p>
             </div>
           </div>
