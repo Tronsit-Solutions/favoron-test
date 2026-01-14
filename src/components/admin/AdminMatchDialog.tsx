@@ -319,9 +319,13 @@ const AdminMatchDialog = ({
 
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
-    if (showMatchDialog && validTrips.length > 0) {
+    // Combine all trips from different sections
+    const allTrips = [...validTrips, ...otherCityTrips, ...otherUSCityTrips];
+    
+    if (showMatchDialog && allTrips.length > 0) {
       const fetchTravelerProfiles = async () => {
-        const userIds = [...new Set(validTrips.map(trip => trip.user_id))];
+        // Get unique IDs from ALL available trips
+        const userIds = [...new Set(allTrips.map(trip => trip.user_id))];
         
         try {
           console.log('Fetching traveler profiles for user IDs:', userIds);
@@ -353,7 +357,7 @@ const AdminMatchDialog = ({
       
       fetchTravelerProfiles();
     }
-  }, [showMatchDialog, validTrips]);
+  }, [showMatchDialog, validTrips, otherCityTrips, otherUSCityTrips]);
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
