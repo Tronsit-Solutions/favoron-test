@@ -78,8 +78,10 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
                   <p className="text-xs opacity-75">Inicia la conversación</p>
                 </div>
               ) : (
-                messages.map((message) => {
-                  const role = getUserRole(message.user_id, pkg, message.user_id === user?.id ? userRole?.toString() : undefined);
+              messages.map((message) => {
+                  // Get the role from user_roles for the message author
+                  const messageUserRole = message.user_roles?.[0]?.role;
+                  const role = getUserRole(message.user_id, pkg, messageUserRole);
                   
                   return (
                     <MessageBubble

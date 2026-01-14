@@ -127,4 +127,5 @@ export interface PackageMessage {
     username?: string;
     avatar_url?: string;
   };
+  user_roles?: Array<{ role: string }>;
 }
