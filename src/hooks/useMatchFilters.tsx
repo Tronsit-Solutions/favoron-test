@@ -1,15 +1,34 @@
 import { useState, useMemo } from "react";
 
+// Statuses considered "broken" - these get deprioritized
+const BROKEN_STATUSES = ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'];
+
 export const useMatchFilters = (packages: any[], trips: any[]) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Separate active matches from broken matches
+  const { activeMatches, brokenMatches } = useMemo(() => {
+    const active: any[] = [];
+    const broken: any[] = [];
+    
+    packages.forEach(pkg => {
+      if (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) {
+        if (BROKEN_STATUSES.includes(pkg.status)) {
+          broken.push(pkg);
+        } else {
+          active.push(pkg);
+        }
+      }
+    });
+    
+    return { activeMatches: active, brokenMatches: broken };
+  }, [packages]);
+
+  // Combined matched packages (active first, then broken when loaded)
   const matchedPackages = useMemo(() => 
-    packages.filter(pkg => {
-      // Include ALL packages with a matched trip, regardless of expiration or status
-      return pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
-    }), 
-    [packages]
+    [...activeMatches], 
+    [activeMatches]
   );
 
   const statuses = useMemo(() => 
@@ -41,10 +60,10 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
   }, [matchedPackages, trips, searchTerm, statusFilter]);
 
   const statsData = useMemo(() => ({
-    completed: matchedPackages.filter(p => p.status === 'completed').length,
-    inProgress: matchedPackages.filter(p => ['payment_pending', 'in_transit', 'matched', 'quote_sent', 'payment_pending_approval', 'pending_purchase', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(p.status)).length,
-    broken: matchedPackages.filter(p => ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'].includes(p.status)).length
-  }), [matchedPackages]);
+    completed: activeMatches.filter(p => p.status === 'completed').length,
+    inProgress: activeMatches.filter(p => ['payment_pending', 'in_transit', 'matched', 'quote_sent', 'payment_pending_approval', 'pending_purchase', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'].includes(p.status)).length,
+    broken: brokenMatches.length
+  }), [activeMatches, brokenMatches]);
 
   return {
     searchTerm,
@@ -52,6 +71,9 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
     statusFilter,
     setStatusFilter,
     matchedPackages,
+    activeMatches,
+    brokenMatches,
+    brokenMatchesCount: brokenMatches.length,
     statuses,
     filteredMatches,
     statsData
