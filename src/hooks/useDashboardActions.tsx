@@ -625,21 +625,15 @@ export const useDashboardActions = (
             return;
           }
 
-          // Opcional: refrescar paquetes para ver el cambio inmediato
+          // NOTE: Dialog closing is now handled by QuoteDialog's wizard flow
+          // The wizard will transition to payment step and close when complete
+          // Only refresh packages here - don't close dialog
           if (refreshPackages) {
             await refreshPackages();
           }
 
-          // Cerrar diálogo y limpiar selección
-          setShowQuoteDialog(false);
-          setSelectedPackageForQuote(null);
-          
-          toast({
-            title: "¡Cotización aceptada!",
-            description: quoteData.discountCodeId 
-              ? `Código de descuento aplicado. Ahora sube tu comprobante de pago.`
-              : "Ahora sube tu comprobante de pago.",
-          });
+          // Toast is shown by QuoteDialog when transitioning to payment step
+          // Don't show duplicate toast here
         } else {
           await updatePackage(selectedPackage.id, {
             status: 'quote_rejected',
@@ -656,8 +650,8 @@ export const useDashboardActions = (
         }
       }
       
-      // Only close dialog here if not already closed above
-      if (quoteData.message !== 'accepted') {
+      // Close dialog for rejections - acceptance is handled by QuoteDialog wizard
+      if (quoteData.message === 'rejected') {
         setShowQuoteDialog(false);
         setSelectedPackageForQuote(null);
       }

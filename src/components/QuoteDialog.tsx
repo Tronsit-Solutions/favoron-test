@@ -505,25 +505,31 @@ const QuoteDialog = ({
         }
       }
       
-      // Call onSubmit and if fullPackage is provided, transition to payment step
+      // If fullPackage is available and this is a shopper accepting a quote, 
+      // call onSubmit first (to trigger RPC), then transition to payment
       onSubmit(submitData);
       
-      // If fullPackage is available and this is a shopper accepting a quote, transition to payment
       if (fullPackage && userType === 'user' && !isTravelerContext) {
-        // Fetch updated package with accepted quote
-        try {
-          const { data: updatedPkg } = await supabase
-            .from('packages')
-            .select('*')
-            .eq('id', fullPackage.id)
-            .single();
-          
-          if (updatedPkg) {
-            handleQuoteAccepted(updatedPkg);
+        // Wait a moment for the RPC to complete, then fetch updated package
+        setTimeout(async () => {
+          try {
+            const { data: updatedPkg } = await supabase
+              .from('packages')
+              .select('*')
+              .eq('id', fullPackage.id)
+              .single();
+            
+            if (updatedPkg) {
+              toast({
+                title: "¡Cotización aceptada!",
+                description: "Ahora completa el pago para confirmar tu pedido."
+              });
+              handleQuoteAccepted(updatedPkg);
+            }
+          } catch (e) {
+            console.error('Error fetching updated package for payment step:', e);
           }
-        } catch (e) {
-          console.error('Error fetching updated package for payment step:', e);
-        }
+        }, 500); // Small delay to ensure RPC completes
       }
     } else if (isAdminAssignedTip) {
       // Traveler accepting admin assigned tip - show trip confirmation first if tripInfo available
