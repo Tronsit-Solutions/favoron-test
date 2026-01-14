@@ -48,8 +48,14 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         .select('user_id, role')
         .in('user_id', userIds);
 
-      // Map roles to messages
-      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+      // Create roles map, prioritizing 'admin' role when user has multiple roles
+      const rolesMap = new Map<string, string>();
+      rolesData?.forEach(r => {
+        // Only update if no role exists yet, or if the new role is 'admin'
+        if (!rolesMap.has(r.user_id) || r.role === 'admin') {
+          rolesMap.set(r.user_id, r.role);
+        }
+      });
       const messagesWithRoles = (data || []).map(m => ({
         ...m,
         user_roles: rolesMap.has(m.user_id) ? [{ role: rolesMap.get(m.user_id)! }] : undefined
