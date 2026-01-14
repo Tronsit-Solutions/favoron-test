@@ -12,6 +12,12 @@ interface SendWhatsAppTemplateParams {
 // Send WhatsApp notification using pre-approved Twilio templates
 export const sendWhatsAppNotification = async (params: SendWhatsAppTemplateParams) => {
   try {
+    console.log('📤 Sending WhatsApp notification:', {
+      userId: params.userId,
+      templateId: params.templateId,
+      variables: params.variables
+    });
+    
     const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
       body: {
         user_id: params.userId,
