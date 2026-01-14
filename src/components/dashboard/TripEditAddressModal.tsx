@@ -254,7 +254,7 @@ export const TripEditAddressModal = ({
               maxLength={300}
             />
             <p className="text-xs text-muted-foreground">
-              Esta información será visible para el vendedor
+              Esta información será visible para el shopper
             </p>
           </div>
         </div>
