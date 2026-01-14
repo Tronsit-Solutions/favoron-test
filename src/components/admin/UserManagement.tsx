@@ -40,6 +40,9 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
     users,
     totalCount,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     searchTerm,
     setSearchTerm,
     roleFilter,
@@ -490,6 +493,27 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           {!loading && users.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No se encontraron usuarios con los filtros aplicados
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loading && hasMore && users.length > 0 && (
+            <div className="flex justify-center pt-4">
+              <Button 
+                variant="outline" 
+                onClick={loadMore} 
+                disabled={loadingMore}
+                className="w-full max-w-xs"
+              >
+                {loadingMore ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    Cargando...
+                  </>
+                ) : (
+                  <>Cargar más usuarios ({users.length} de {totalCount})</>
+                )}
+              </Button>
             </div>
           )}
         </CardContent>
