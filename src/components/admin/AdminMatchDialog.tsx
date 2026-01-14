@@ -247,6 +247,41 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
+  // Count trips to OTHER cities in USA (same origin, different US city)
+  const otherUSCityTrips = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+    const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
+    
+    // Check if package destination is in USA
+    const usCities = ['miami', 'new york', 'los angeles', 'chicago', 'houston', 'phoenix', 'philadelphia', 
+                      'san antonio', 'san diego', 'dallas', 'austin', 'san jose', 'fort worth', 'jacksonville',
+                      'columbus', 'charlotte', 'san francisco', 'indianapolis', 'seattle', 'denver', 'washington',
+                      'boston', 'el paso', 'nashville', 'detroit', 'oklahoma city', 'portland', 'las vegas',
+                      'memphis', 'louisville', 'baltimore', 'milwaukee', 'albuquerque', 'tucson', 'fresno',
+                      'sacramento', 'atlanta', 'orlando', 'tampa'];
+    
+    const isPackageToUS = usCities.some(city => packageDestinationCity.includes(city));
+    if (!isPackageToUS) return [];
+    
+    return availableTrips.filter(trip => {
+      const isNotExpired = new Date(trip.arrival_date) >= today;
+      const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+      const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
+      
+      // Same origin country (e.g., Guatemala)
+      const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
+      
+      // Trip goes to a US city (different from package destination)
+      const tripToUSCity = usCities.some(city => tripDestinationCity.includes(city));
+      const differentCity = tripDestinationCity !== packageDestinationCity;
+      
+      return isNotExpired && matchesOrigin && tripToUSCity && differentCity;
+    }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
+
   // Reset showAllTrips and showOtherCities when selected package changes
   useEffect(() => {
     setShowAllTrips(false);
@@ -968,6 +1003,125 @@ const AdminMatchDialog = ({
                   </Card>
                   );
                 })}
+
+                {/* Other US Cities Section */}
+                {otherUSCityTrips.length > 0 && validTrips.length > 0 && (
+                  <>
+                    <div className="border-t border-dashed border-gray-300 my-4 pt-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Globe className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">
+                          Otras ciudades en Estados Unidos ({otherUSCityTrips.length})
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {otherUSCityTrips.map((trip) => {
+                      const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                      
+                      return (
+                        <Card 
+                          key={`us-${trip.id}`} 
+                          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                            selectedTripId === trip.id 
+                              ? 'ring-2 ring-primary bg-primary/5' 
+                              : wasPreviouslyRejected
+                                ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
+                                : 'hover:bg-amber-50/50 border-amber-200'
+                          }`}
+                          onClick={() => handleTripSelection(trip.id)}
+                        >
+                          <CardContent className="p-2 sm:p-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
+                                {/* Traveler */}
+                                <div className="flex items-center space-x-2 min-w-fit">
+                                  <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center text-xs font-medium text-amber-800">
+                                    {trip.user_id?.toString().slice(-2) || '00'}
+                                  </div>
+                                  <div>
+                                    <p 
+                                      className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleTravelerClick(trip);
+                                      }}
+                                    >
+                                      {getTravelerName(trip.user_id)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Route */}
+                                <div className="flex items-center space-x-2 min-w-fit">
+                                  <MapPin className="h-4 w-4 text-gray-400" />
+                                  <div className="flex items-center space-x-2 flex-wrap">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {trip.from_city || 'No especificado'}
+                                    </span>
+                                    <span className="text-gray-400">→</span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {trip.to_city}
+                                    </span>
+                                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs ml-1">
+                                      📍 Ciudad diferente
+                                    </Badge>
+                                  </div>
+                                </div>
+
+                                {/* Total Value Container */}
+                                {(() => {
+                                  const total = calculateTripPackagesTotal(trip.id);
+                                  return total > 0 ? (
+                                    <div className="flex items-center space-x-2 min-w-fit">
+                                      <div>
+                                        <p className="text-xs text-green-600 font-medium">Maleta</p>
+                                        <p className="text-sm font-medium text-green-700">
+                                          ${total.toFixed(2)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ) : null;
+                                })()}
+                              </div>
+
+                              {/* Right side - Dates and Badges */}
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                <div className="flex items-center justify-between sm:justify-start space-x-4 min-w-fit">
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-500 font-medium">LLEGADA</p>
+                                    <p className="text-sm font-semibold text-gray-800">
+                                      {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-500 font-medium">ENTREGA</p>
+                                    <p className="text-sm font-semibold text-gray-800">
+                                      {trip.delivery_date ? new Date(trip.delivery_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center sm:flex-col sm:items-center justify-between sm:justify-start space-x-2 sm:space-x-0 sm:space-y-1 min-w-fit">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${trip.delivery_method === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
+                                  >
+                                    <Truck className="h-3 w-3 mr-1" />
+                                    {trip.delivery_method === 'oficina' ? 'Oficina' : 'Mensajero'}
+                                  </Badge>
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                                    {trip.available_space}kg
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </ScrollArea>
           </div>
