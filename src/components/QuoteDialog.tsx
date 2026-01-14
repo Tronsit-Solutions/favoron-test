@@ -1134,6 +1134,12 @@ const QuoteDialog = ({
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold text-slate-800">
                                   {(localTripInfo as any)?.profiles?.first_name || 'Viajero'}
+                                  {(localTripInfo as any)?.profiles?.last_name && (
+                                    <span className="ml-1">
+                                      {(localTripInfo as any).profiles.last_name.charAt(0)}
+                                      <span className="blur-[3px] select-none">●●●●●●</span>
+                                    </span>
+                                  )}
                                 </p>
                               </div>
                               <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -1181,12 +1187,14 @@ const QuoteDialog = ({
                               </span>
                             </div>
                             
-                            {/* Ciudad de entrega */}
+                            {/* Ciudad de origen (donde enviar paquete) */}
                             <div className="flex items-center gap-2">
                               <Home className="h-4 w-4 text-slate-400 shrink-0" />
                               <span className="text-slate-600">Ciudad:</span>
                               <span className="font-medium text-slate-800">
-                                {localTripInfo?.to_city || 'Guatemala'}
+                                {packageDetails.traveler_address?.city || 
+                                 packageDetails.traveler_address?.cityArea || 
+                                 localTripInfo?.from_city || 'Ciudad no especificada'}
                               </span>
                             </div>
                             
@@ -1199,6 +1207,17 @@ const QuoteDialog = ({
                                     <span className="text-slate-600">Dirección:</span>
                                     <span className="font-medium text-slate-800 ml-1">
                                       {packageDetails.traveler_address.streetAddress}
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                {/* Dirección 2 - mostrar borrosa para indicar info parcial */}
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5 opacity-50" />
+                                  <div>
+                                    <span className="text-slate-600">Dirección 2:</span>
+                                    <span className="ml-1 blur-[4px] select-none text-slate-400">
+                                      {packageDetails.traveler_address?.streetAddress2 || 'Información adicional'}
                                     </span>
                                   </div>
                                 </div>
