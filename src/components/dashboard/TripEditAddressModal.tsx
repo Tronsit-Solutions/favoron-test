@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Phone, Building2, AlertTriangle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +42,8 @@ export const TripEditAddressModal = ({
     cityArea: '',
     postalCode: '',
     hotelAirbnbName: '',
-    contactNumber: ''
+    contactNumber: '',
+    additionalInstructions: ''
   });
 
   useEffect(() => {
@@ -55,7 +57,8 @@ export const TripEditAddressModal = ({
         cityArea: addr.cityArea || '',
         postalCode: addr.postalCode || '',
         hotelAirbnbName: addr.hotelAirbnbName || '',
-        contactNumber: addr.contactNumber || ''
+        contactNumber: addr.contactNumber || '',
+        additionalInstructions: addr.additionalInstructions || ''
       });
     }
   }, [tripData]);
@@ -237,6 +240,21 @@ export const TripEditAddressModal = ({
             </div>
             <p className="text-xs text-muted-foreground">
               Si te hospedas en hotel, coloca el número del hotel
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="additionalInstructions">Instrucciones adicionales (opcional)</Label>
+            <Textarea
+              id="additionalInstructions"
+              value={address.additionalInstructions}
+              onChange={(e) => handleChange('additionalInstructions', e.target.value)}
+              placeholder="Ej: Dejar en recepción, llamar al llegar, horarios específicos..."
+              className="min-h-[60px]"
+              maxLength={300}
+            />
+            <p className="text-xs text-muted-foreground">
+              Esta información será visible para el vendedor
             </p>
           </div>
         </div>
