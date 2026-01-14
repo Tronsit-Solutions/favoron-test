@@ -295,7 +295,7 @@ const Auth = () => {
           await supabase.functions.invoke('send-whatsapp-notification', {
             body: {
               phone_number: fullPhone,
-              template_id: 'welcome',
+              template_id: 'welcome_v2',
               variables: { "1": firstName }
             }
           });
