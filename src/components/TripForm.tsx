@@ -628,9 +628,9 @@ const TripForm = ({
 
   // Step 1 content
   const renderStep1 = () => (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* 🟦 1. Información básica del viaje */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
           <h3 className="text-base font-medium">Información básica del viaje</h3>
           <p className="text-xs text-muted-foreground mt-1">
@@ -639,12 +639,12 @@ const TripForm = ({
         </div>
 
         {/* Sección ORIGEN */}
-        <div className="space-y-4">
-          <Label className="text-sm font-medium">Origen del viaje</Label>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Origen</Label>
           
-          <div className="grid grid-cols-2 gap-1 sm:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="fromCountry" className="text-xs sm:text-sm">País de origen *</Label>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="fromCountry" className="text-xs text-muted-foreground">País *</Label>
               {!showFullCountryListOrigin ? (
                 <Select 
                   value={MAIN_COUNTRIES.some(c => c.value === formData.fromCountry) ? formData.fromCountry : ''}
@@ -688,8 +688,8 @@ const TripForm = ({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fromCity" className="text-xs sm:text-sm">Ciudad de origen *</Label>
+            <div className="space-y-1">
+              <Label htmlFor="fromCity" className="text-xs text-muted-foreground">Ciudad *</Label>
               {countryHasCities(formData.fromCountry) ? (
                 <div className="mobile-safe-combobox">
                   <Combobox
@@ -720,12 +720,12 @@ const TripForm = ({
         </div>
 
         {/* Sección DESTINO */}
-        <div className="space-y-4">
-          <Label className="text-sm font-medium">Destino del viaje</Label>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Destino</Label>
           
-          <div className="grid grid-cols-2 gap-1 sm:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="toCountry" className="text-xs sm:text-sm">País de destino *</Label>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="toCountry" className="text-xs text-muted-foreground">País *</Label>
               {!showFullCountryListDestination ? (
                 <Select 
                   value={MAIN_COUNTRIES.some(c => c.value === formData.toCountry) ? formData.toCountry : ''}
@@ -775,8 +775,8 @@ const TripForm = ({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="toCity" className="text-xs sm:text-sm">Ciudad de destino *</Label>
+            <div className="space-y-1">
+              <Label htmlFor="toCity" className="text-xs text-muted-foreground">Ciudad *</Label>
               {countryHasCities(formData.toCountry) ? (
                 <div className="mobile-safe-combobox">
                   <Combobox
@@ -815,8 +815,8 @@ const TripForm = ({
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label>Fecha de llegada a {displayToCity || 'destino'} *</Label>
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Fecha de llegada *</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
@@ -837,21 +837,17 @@ const TripForm = ({
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
-          <div className="relative">
-            <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="availableSpace" 
-              type="number" 
-              step="0.5" 
-              placeholder="5.0" 
-              value={formData.availableSpace} 
-              onChange={e => handleInputChange('availableSpace', e.target.value)} 
-              className="pl-10" 
-              required 
-            />
-          </div>
+        <div className="space-y-1">
+          <Label htmlFor="availableSpace" className="text-xs text-muted-foreground">Espacio disponible (kg) *</Label>
+          <Input 
+            id="availableSpace" 
+            type="number" 
+            step="0.5" 
+            placeholder="5.0" 
+            value={formData.availableSpace} 
+            onChange={e => handleInputChange('availableSpace', e.target.value)} 
+            required 
+          />
         </div>
       </div>
 
