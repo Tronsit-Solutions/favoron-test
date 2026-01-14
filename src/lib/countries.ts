@@ -1,9 +1,9 @@
 // Países principales para selector rápido
 export const MAIN_COUNTRIES = [
+  { value: "guatemala", label: "Guatemala", isoCode: "gt" },
   { value: "estados-unidos", label: "Estados Unidos", isoCode: "us" },
   { value: "espana", label: "España", isoCode: "es" },
   { value: "mexico", label: "México", isoCode: "mx" },
-  { value: "guatemala", label: "Guatemala", isoCode: "gt" },
 ];
 
 // Opción especial para mostrar lista completa
