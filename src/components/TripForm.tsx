@@ -172,7 +172,7 @@ const TripForm = ({
 
   const accommodationTypes = [{
     value: 'hotel',
-    label: 'Hotel/Hostal'
+    label: 'Hotel'
   }, {
     value: 'airbnb',
     label: 'Airbnb'
