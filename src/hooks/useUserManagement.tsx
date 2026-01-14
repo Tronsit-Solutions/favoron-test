@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,21 +10,68 @@ interface UserWithProfileId extends User {
   avatar_url?: string;
 }
 
+const PAGE_SIZE = 50;
+
 export const useUserManagement = () => {
   const [users, setUsers] = useState<UserWithProfileId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Fetch users from Supabase using the admin function
+  // Format profile data to user format
+  const formatProfile = (profile: any, index: number): UserWithProfileId => {
+    let role: 'user' | 'admin' | 'operations' = 'user';
+    if (profile.user_role === 'admin') {
+      role = 'admin';
+    } else if (profile.user_role === 'operations') {
+      role = 'operations';
+    }
+
+    return {
+      id: index + 1,
+      profileId: profile.id,
+      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
+      email: profile.email || 'Email no disponible',
+      username: profile.username || undefined,
+      avatarUrl: profile.avatar_url,
+      avatar_url: profile.avatar_url,
+      role,
+      phoneNumber: profile.phone_number || undefined,
+      whatsappNumber: profile.phone_number || undefined,
+      registrationDate: profile.created_at,
+      status: (profile.is_banned && (!profile.banned_until || new Date(profile.banned_until) > new Date())) 
+        ? 'blocked' as const 
+        : 'verified' as const,
+      trustLevel: profile.trust_level === 'confiable' ? 'confiable' as const :
+                 profile.trust_level === 'prime' ? 'prime' as const : 'basic' as const,
+      adminNotes: '',
+      bankAccountHolder: profile.bank_account_holder || undefined,
+      bankName: profile.bank_name || undefined,
+      bankAccountType: profile.bank_account_type || undefined,
+      bankAccountNumber: profile.bank_account_number || undefined,
+      bankSwiftCode: profile.bank_swift_code || undefined,
+      documentType: profile.document_type || undefined,
+      documentNumber: profile.document_number || undefined,
+      countryCode: profile.country_code || '+502',
+      is_banned: profile.is_banned || false,
+      banned_until: profile.banned_until || undefined,
+      ban_reason: profile.ban_reason || undefined,
+      banned_by: profile.banned_by || undefined,
+      banned_at: profile.banned_at || undefined
+    };
+  };
+
+  // Fetch initial users with pagination
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      console.log('Fetching all users via admin function...');
+      console.log('Fetching users with pagination...');
       
-      // Get total count first (independent query)
+      // Get total count
       const { count } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
@@ -32,69 +79,69 @@ export const useUserManagement = () => {
       setTotalCount(count ?? 0);
       console.log('Total users count:', count);
       
-      // Use the admin function to get users (uses default limit of 10000 in DB)
+      // Fetch first page ordered by most recent
       const { data: profiles, error } = await supabase
-        .rpc('admin_view_all_users', {
-          _access_reason: 'User management dashboard access'
-        });
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          username,
+          avatar_url,
+          phone_number,
+          country_code,
+          created_at,
+          trust_level,
+          is_banned,
+          banned_until,
+          ban_reason,
+          banned_by,
+          banned_at
+        `)
+        .order('created_at', { ascending: false })
+        .range(0, PAGE_SIZE - 1);
 
       if (error) {
         console.error('Error fetching users:', error);
         throw error;
       }
 
-      console.log('Users fetched successfully:', profiles?.length);
+      // Fetch roles separately
+      const userIds = profiles?.map(p => p.id) || [];
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
 
-      const formattedUsers: UserWithProfileId[] = profiles?.map((profile: any, index: number) => {
-        // Map roles correctly
-        let role: 'user' | 'admin' | 'operations' = 'user';
-        if (profile.user_role === 'admin') {
-          role = 'admin';
-        } else if (profile.user_role === 'operations') {
-          role = 'operations';
-        } else {
-          role = 'user'; // Default for regular users
-        }
+      // Fetch banking info
+      const { data: financialData } = await supabase
+        .from('user_financial_data')
+        .select('user_id, bank_account_holder, bank_name, bank_account_type, bank_account_number, bank_swift_code, document_type, document_number')
+        .in('user_id', userIds);
 
+      // Merge data
+      const profilesWithRoles = profiles?.map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.id);
+        const financial = financialData?.find(f => f.user_id === profile.id);
         return {
-          id: index + 1, // Using index as ID since our types expect number
-          profileId: profile.id, // Store the real UUID for database operations
-          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Usuario Sin Nombre',
-          email: profile.email || 'Email no disponible',
-          username: profile.username || undefined,
-          avatarUrl: profile.avatar_url, // Include avatar URL from profiles
-          avatar_url: profile.avatar_url, // Also include in snake_case for compatibility
-          role,
-          phoneNumber: profile.phone_number || undefined,
-          whatsappNumber: profile.phone_number || undefined,
-          registrationDate: profile.created_at,
-          status: (profile.is_banned && (!profile.banned_until || new Date(profile.banned_until) > new Date())) 
-            ? 'blocked' as const 
-            : 'verified' as const,
-          trustLevel: profile.trust_level === 'confiable' ? 'confiable' as const :
-                     profile.trust_level === 'prime' ? 'prime' as const : 'basic' as const,
-          adminNotes: '',
-          // Banking information now included
-          bankAccountHolder: profile.bank_account_holder || undefined,
-          bankName: profile.bank_name || undefined,
-          bankAccountType: profile.bank_account_type || undefined,
-          bankAccountNumber: profile.bank_account_number || undefined,
-          bankSwiftCode: profile.bank_swift_code || undefined,
-          // Additional sensitive data
-          documentType: profile.document_type || undefined,
-          documentNumber: profile.document_number || undefined,
-          countryCode: profile.country_code || '+502',
-          // Ban information
-          is_banned: profile.is_banned || false,
-          banned_until: profile.banned_until || undefined,
-          ban_reason: profile.ban_reason || undefined,
-          banned_by: profile.banned_by || undefined,
-          banned_at: profile.banned_at || undefined
+          ...profile,
+          user_role: userRole?.role || 'user',
+          bank_account_holder: financial?.bank_account_holder,
+          bank_name: financial?.bank_name,
+          bank_account_type: financial?.bank_account_type,
+          bank_account_number: financial?.bank_account_number,
+          bank_swift_code: financial?.bank_swift_code,
+          document_type: financial?.document_type,
+          document_number: financial?.document_number
         };
       }) || [];
 
-      console.log('Formatted users:', formattedUsers);
+      const formattedUsers = profilesWithRoles.map((profile, index) => formatProfile(profile, index));
+      
+      console.log('Users fetched:', formattedUsers.length);
       setUsers(formattedUsers);
+      setHasMore(formattedUsers.length >= PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching users:', error);
       setUsers([]);
@@ -102,6 +149,79 @@ export const useUserManagement = () => {
       setLoading(false);
     }
   };
+
+  // Load more users
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const currentCount = users.length;
+      
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          username,
+          avatar_url,
+          phone_number,
+          country_code,
+          created_at,
+          trust_level,
+          is_banned,
+          banned_until,
+          ban_reason,
+          banned_by,
+          banned_at
+        `)
+        .order('created_at', { ascending: false })
+        .range(currentCount, currentCount + PAGE_SIZE - 1);
+
+      if (error) throw error;
+
+      if (!profiles || profiles.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      // Fetch roles and financial data for new users
+      const userIds = profiles.map(p => p.id);
+      const [{ data: roles }, { data: financialData }] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role').in('user_id', userIds),
+        supabase.from('user_financial_data').select('user_id, bank_account_holder, bank_name, bank_account_type, bank_account_number, bank_swift_code, document_type, document_number').in('user_id', userIds)
+      ]);
+
+      const profilesWithRoles = profiles.map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.id);
+        const financial = financialData?.find(f => f.user_id === profile.id);
+        return {
+          ...profile,
+          user_role: userRole?.role || 'user',
+          bank_account_holder: financial?.bank_account_holder,
+          bank_name: financial?.bank_name,
+          bank_account_type: financial?.bank_account_type,
+          bank_account_number: financial?.bank_account_number,
+          bank_swift_code: financial?.bank_swift_code,
+          document_type: financial?.document_type,
+          document_number: financial?.document_number
+        };
+      });
+
+      const newUsers = profilesWithRoles.map((profile, index) => 
+        formatProfile(profile, currentCount + index)
+      );
+
+      setUsers(prev => [...prev, ...newUsers]);
+      setHasMore(profiles.length >= PAGE_SIZE);
+    } catch (error) {
+      console.error('Error loading more users:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [users.length, loadingMore, hasMore]);
 
   useEffect(() => {
     fetchUsers();
@@ -129,8 +249,6 @@ export const useUserManagement = () => {
 
   const updateUserStatus = async (userId: number, status: User['status']) => {
     try {
-      // For now, just update local state since status is not in the profiles table
-      // You might want to add a status column to profiles table in the future
       updateUser(userId, { status });
       console.log('User status updated locally');
     } catch (error) {
@@ -148,18 +266,14 @@ export const useUserManagement = () => {
     }
   ) => {
     try {
-      // Find the user's profile ID from the users array
       const user = users.find(u => u.id === userId);
       if (!user || !user.profileId) {
-        console.error('User or profile ID not found');
         throw new Error('User or profile ID not found');
       }
 
-      // Map the trust level to the database enum (confiable consolidates trusted and premium)
       const dbTrustLevel = trustLevel === 'confiable' ? 'confiable' :
                           trustLevel === 'prime' ? 'prime' : 'basic';
 
-      // If setting to prime, use the RPC function which handles everything
       if (dbTrustLevel === 'prime') {
         const { error: rpcError } = await supabase.rpc('admin_assign_prime_membership', {
           _target_user_id: user.profileId,
@@ -168,33 +282,18 @@ export const useUserManagement = () => {
           _notes: primePaymentInfo?.notes || null
         });
 
-        if (rpcError) {
-          console.error('Error assigning Prime membership via RPC:', rpcError);
-          throw rpcError;
-        }
-
-        console.log('Prime membership assigned successfully via RPC');
+        if (rpcError) throw rpcError;
       } else {
-        // For other trust levels (basic/confiable), use secure admin function
         const { error: rpcError } = await supabase.rpc('admin_update_trust_level', {
           _target_user_id: user.profileId,
           _trust_level: dbTrustLevel
         });
 
-        if (rpcError) {
-          console.error('Error updating trust level via RPC:', rpcError);
-          throw rpcError;
-        }
-
-        console.log('Trust level updated successfully to:', dbTrustLevel);
+        if (rpcError) throw rpcError;
       }
 
-      // Optimistic local update
       updateUser(userId, { trustLevel });
-
-      // Refresh users from database after successful update
       await fetchUsers();
-      
     } catch (error) {
       console.error('Error updating trust level:', error);
       throw error;
@@ -203,10 +302,7 @@ export const useUserManagement = () => {
 
   const updateAdminNotes = async (userId: number, adminNotes: string) => {
     try {
-      // For now, just update local state since admin_notes is not in the profiles table
-      // You might want to add an admin_notes column to profiles table in the future
       updateUser(userId, { adminNotes });
-      console.log('Admin notes updated locally');
     } catch (error) {
       console.error('Error updating admin notes:', error);
     }
@@ -225,25 +321,11 @@ export const useUserManagement = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('ban-user', {
-        body: {
-          userId: user.profileId,
-          duration,
-          customDate,
-          reason,
-          action: 'ban'
-        }
+        body: { userId: user.profileId, duration, customDate, reason, action: 'ban' }
       });
 
-      if (error) {
-        console.error('Error banning user:', error);
-        throw error;
-      }
-
-      console.log('User banned successfully:', data);
-      
-      // Refresh users to get updated ban status
+      if (error) throw error;
       await fetchUsers();
-      
       return data;
     } catch (error) {
       console.error('Error banning user:', error);
@@ -259,22 +341,11 @@ export const useUserManagement = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('ban-user', {
-        body: {
-          userId: user.profileId,
-          action: 'unban'
-        }
+        body: { userId: user.profileId, action: 'unban' }
       });
 
-      if (error) {
-        console.error('Error unbanning user:', error);
-        throw error;
-      }
-
-      console.log('User unbanned successfully:', data);
-      
-      // Refresh users to get updated ban status
+      if (error) throw error;
       await fetchUsers();
-      
       return data;
     } catch (error) {
       console.error('Error unbanning user:', error);
@@ -289,35 +360,23 @@ export const useUserManagement = () => {
         throw new Error('User or profile ID not found');
       }
 
-      // Get current user (the admin making the change)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('No authenticated user');
-      }
+      if (!currentUser) throw new Error('No authenticated user');
 
       if (newRole === 'user') {
-        // Remove all special roles (admin and operations)
         const { error } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', user.profileId)
           .in('role', ['admin', 'operations']);
-
-        if (error) {
-          console.error('Error removing special roles:', error);
-          throw error;
-        }
-
-        console.log('User demoted to regular user successfully');
+        if (error) throw error;
       } else {
-        // First, remove any existing special roles
         await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', user.profileId)
           .in('role', ['admin', 'operations']);
 
-        // Insert new role
         const { error } = await supabase
           .from('user_roles')
           .insert({
@@ -326,18 +385,10 @@ export const useUserManagement = () => {
             assigned_by: currentUser.id,
             assigned_at: new Date().toISOString()
           });
-
-        if (error) {
-          console.error(`Error assigning ${newRole} role:`, error);
-          throw error;
-        }
-
-        console.log(`User promoted to ${newRole} successfully`);
+        if (error) throw error;
       }
       
-      // Refresh users to get updated role
       await fetchUsers();
-      
     } catch (error) {
       console.error('Error updating user role:', error);
       throw error;
@@ -348,6 +399,9 @@ export const useUserManagement = () => {
     users: filteredUsers,
     totalCount,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     searchTerm,
     setSearchTerm,
     roleFilter, 
