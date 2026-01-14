@@ -109,27 +109,10 @@ export const usePackageActions = () => {
       // 6. Update in DB
       await updatePackage(packageId, updates);
       
-      // 7. Send low-priority notification to shopper
+      // Log product confirmation (WhatsApp notifications removed - only welcome template available)
       const productName = updatedProducts[productIndex].itemDescription;
       const remainingProducts = updatedProducts.filter((p: any) => !p.receivedByTraveler && !p.cancelled).length;
-      
-      try {
-        await supabase.functions.invoke('send-whatsapp-notification', {
-          body: {
-            user_id: pkg.user_id,
-            title: '✅ Producto recibido',
-            message: `El viajero confirmó la recepción de:\n📦 ${productName}\n\n${remainingProducts > 0 
-              ? `⏳ Quedan ${remainingProducts} productos por confirmar.` 
-              : '🎉 ¡Todos los productos han sido confirmados!'
-            }\n\nPaquete: ${pkg.item_description}`,
-            type: 'package',
-            priority: 'low'
-          }
-        });
-      } catch (notificationError) {
-        console.error('Error sending notification:', notificationError);
-        // Don't fail the confirmation if notification fails
-      }
+      console.log('📦 Product confirmed:', { productName, remainingProducts, packageId });
       
       toast({
         title: allConfirmed ? "¡Todos los productos confirmados!" : "Producto confirmado",

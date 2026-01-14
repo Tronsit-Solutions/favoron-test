@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PackageMessage } from '@/types';
-import { sendWhatsAppNotification, WhatsAppTemplates } from '@/lib/whatsappNotifications';
 
 interface UsePackageChatProps {
   packageId: string;
@@ -80,10 +79,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
-      // Send WhatsApp notification to recipient (only for text messages, not status updates)
-      if (type === 'text') {
-        await sendChatNotification(user.id, 'text');
-      }
+      // WhatsApp chat notifications removed - only welcome template available
 
       await fetchMessages(); // Refresh messages
       return true;
@@ -93,86 +89,8 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
     }
   };
 
-  const sendChatNotification = async (senderId: string, messageType: 'text' | 'file_upload') => {
-    try {
-      // Get package and trip information to determine recipient
-      const { data: pkg, error: pkgError } = await supabase
-        .from('packages')
-        .select('user_id, item_description, matched_trip_id')
-        .eq('id', packageId)
-        .single();
-
-      if (pkgError || !pkg) {
-        console.error('Error fetching package for notification:', pkgError);
-        return;
-      }
-
-      let recipientId: string | null = null;
-      let senderRole: 'shopper' | 'traveler' = 'shopper';
-
-      // Determine recipient based on sender
-      if (senderId === pkg.user_id) {
-        // Sender is shopper, recipient is traveler
-        senderRole = 'shopper';
-        if (pkg.matched_trip_id) {
-          const { data: trip } = await supabase
-            .from('trips')
-            .select('user_id')
-            .eq('id', pkg.matched_trip_id)
-            .single();
-          
-          recipientId = trip?.user_id || null;
-        }
-      } else {
-        // Sender is traveler, recipient is shopper
-        senderRole = 'traveler';
-        recipientId = pkg.user_id;
-      }
-
-      // Skip if no recipient (e.g., no traveler assigned yet)
-      if (!recipientId) {
-        return;
-      }
-
-      // Get sender name
-      const { data: senderProfile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', senderId)
-        .single();
-
-      const senderName = senderProfile 
-        ? [senderProfile.first_name, senderProfile.last_name].filter(Boolean).join(' ')
-        : 'un usuario';
-
-      // Prepare short package description
-      const packageDesc = pkg.item_description.length > 50 
-        ? pkg.item_description.substring(0, 50) + '...'
-        : pkg.item_description;
-
-      // Select appropriate template
-      let notification;
-      if (messageType === 'file_upload') {
-        notification = senderRole === 'shopper'
-          ? WhatsAppTemplates.newFileFromShopper(senderName, packageDesc)
-          : WhatsAppTemplates.newFileFromTraveler(senderName, packageDesc);
-      } else {
-        notification = senderRole === 'shopper'
-          ? WhatsAppTemplates.newChatMessageFromShopper(senderName, packageDesc)
-          : WhatsAppTemplates.newChatMessageFromTraveler(senderName, packageDesc);
-      }
-
-      // Send notification
-      await sendWhatsAppNotification({
-        userId: recipientId,
-        ...notification,
-        actionUrl: 'https://favoron.app/dashboard'
-      });
-    } catch (error) {
-      console.error('Error sending chat notification:', error);
-      // Don't throw - notification failure shouldn't block the message
-    }
-  };
+  // WhatsApp chat notifications removed - only welcome template available
+  // Chat messages are visible in the dashboard, no push notification needed
 
   const uploadFile = async (file: File, description?: string) => {
     try {
@@ -243,8 +161,7 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
-      // Send WhatsApp notification for file upload
-      await sendChatNotification(user.id, 'file_upload');
+      // WhatsApp notifications removed - only welcome template available
 
       await fetchMessages(); // Refresh messages
       toast({
