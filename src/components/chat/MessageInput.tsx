@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip } from 'lucide-react';
+import { Send, Paperclip, Upload } from 'lucide-react';
 import { validateFile } from '@/utils/chatHelpers';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -16,29 +17,11 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || isSending || disabled) return;
-
-    setIsSending(true);
-    try {
-      await onSendMessage(message.trim());
-      setMessage('');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo enviar el mensaje",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || isUploading || disabled) return;
+  const processFile = async (file: File) => {
+    if (isUploading || disabled) return;
 
     const validation = validateFile(file);
     if (!validation.valid) {
@@ -65,9 +48,33 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
       });
     } finally {
       setIsUploading(false);
-      // Reset input
-      event.target.value = '';
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || isSending || disabled) return;
+
+    setIsSending(true);
+    try {
+      await onSendMessage(message.trim());
+      setMessage('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo enviar el mensaje",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    await processFile(file);
+    event.target.value = '';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -77,8 +84,61 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
     }
   };
 
+  // Drag & drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled && !isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await processFile(files[0]);
+    }
+  };
+
   return (
-    <div className="bg-background/80 backdrop-blur-sm rounded-md border border-border/60 p-2">
+    <div 
+      className={cn(
+        "relative bg-background/80 backdrop-blur-sm rounded-md border p-2 transition-all duration-200",
+        isDragging 
+          ? "border-primary border-2 bg-primary/5" 
+          : "border-border/60"
+      )}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="absolute inset-0 flex items-center justify-center bg-primary/10 backdrop-blur-sm rounded-md z-10 pointer-events-none">
+          <div className="flex flex-col items-center gap-2 text-primary">
+            <Upload className="h-8 w-8 animate-bounce" />
+            <p className="text-sm font-medium">Suelta el archivo aquí</p>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-2">
         <div className="relative">
           <Textarea
