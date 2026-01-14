@@ -3,12 +3,13 @@ export const MAIN_COUNTRIES = [
   { value: "estados-unidos", label: "Estados Unidos", isoCode: "us" },
   { value: "espana", label: "España", isoCode: "es" },
   { value: "mexico", label: "México", isoCode: "mx" },
+  { value: "guatemala", label: "Guatemala", isoCode: "gt" },
 ];
 
 // Opción especial para mostrar lista completa
 export const OTHER_COUNTRY_OPTION = { value: "__otro__", label: "Otro país...", isoCode: undefined };
 
-// Lista combinada para selector inicial (4 países + "Otro")
+// Lista combinada para selector inicial (países principales + "Otro")
 export const COUNTRY_QUICK_OPTIONS = [...MAIN_COUNTRIES, OTHER_COUNTRY_OPTION];
 
 // Lista completa de países con códigos ISO
