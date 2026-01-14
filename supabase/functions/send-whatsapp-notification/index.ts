@@ -16,6 +16,7 @@ const ALLOWED_TEST_NUMBERS = [
 const TEMPLATE_SIDS: Record<string, string | undefined> = {
   welcome: Deno.env.get("TWILIO_CONTENT_SID_WELCOME"),
   quote_received: Deno.env.get("TWILIO_CONTENT_SID_QUOTE_RECEIVED"),
+  quote_received_v2: Deno.env.get("TWILIO_CONTENT_SID_QUOTE_RECEIVED_V2"),
   package_assigned: Deno.env.get("TWILIO_CONTENT_SID_PACKAGE_ASSIGNED"),
 };
 

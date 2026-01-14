@@ -320,7 +320,7 @@ export const useDashboardActions = (
               
               sendWhatsAppNotification({
                 userId: selectedPackage.user_id,
-                templateId: 'quote_received',
+                templateId: 'quote_received_v2',
                 variables: {
                   "2": `${quoteTotal.toFixed(2)}`,
                   "3": productName.substring(0, 50)
@@ -565,7 +565,7 @@ export const useDashboardActions = (
             
             sendWhatsAppNotification({
               userId: selectedPackage.user_id,
-              templateId: 'quote_received',
+              templateId: 'quote_received_v2',
               variables: {
                 "2": `${quoteTotal.toFixed(2)}`,
                 "3": productName.substring(0, 50)
@@ -1139,7 +1139,7 @@ export const useDashboardActions = (
           
           sendWhatsAppNotification({
             userId: currentPackage.user_id,
-            templateId: 'quote_received',
+            templateId: 'quote_received_v2',
             variables: {
               "2": `${quoteTotal.toFixed(2)}`,
               "3": productName.substring(0, 50)
