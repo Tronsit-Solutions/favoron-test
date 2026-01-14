@@ -25,6 +25,7 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
+import ShopperOnboarding from "./dashboard/ShopperOnboarding";
 import { TripSelector } from "./dashboard/TripSelector";
 
 import AvailableTripsCard from "./AvailableTripsCard";
@@ -679,7 +680,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               }
               return true;
             }).length === 0 ? (
-              <ProtectedEmptyState type="packages" onAction={() => navigateToForm('package')} />
+              <ShopperOnboarding onCreatePackage={() => navigateToForm('package')} />
             ) : (
               <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
