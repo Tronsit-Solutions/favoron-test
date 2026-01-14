@@ -13,6 +13,7 @@ interface UserWithProfileId extends User {
 export const useUserManagement = () => {
   const [users, setUsers] = useState<UserWithProfileId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -23,12 +24,18 @@ export const useUserManagement = () => {
       setLoading(true);
       console.log('Fetching all users via admin function...');
       
-      // Use the new admin function to get all users efficiently
-      // Note: _row_limit parameter is used instead of .limit() which doesn't work with RPC
+      // Get total count first (independent query)
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      
+      setTotalCount(count ?? 0);
+      console.log('Total users count:', count);
+      
+      // Use the admin function to get users (uses default limit of 10000 in DB)
       const { data: profiles, error } = await supabase
         .rpc('admin_view_all_users', {
-          _access_reason: 'User management dashboard access',
-          _row_limit: 10000
+          _access_reason: 'User management dashboard access'
         });
 
       if (error) {
@@ -339,6 +346,7 @@ export const useUserManagement = () => {
 
   return {
     users: filteredUsers,
+    totalCount,
     loading,
     searchTerm,
     setSearchTerm,

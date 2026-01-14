@@ -38,6 +38,7 @@ interface UserManagementProps {
 const UserManagement = ({ packages, trips }: UserManagementProps) => {
   const {
     users,
+    totalCount,
     loading,
     searchTerm,
     setSearchTerm,
@@ -307,7 +308,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{users.length}</p>
+              <p className="text-2xl font-bold text-primary">{totalCount || users.length}</p>
               <p className="text-sm text-muted-foreground">Total Usuarios</p>
             </div>
           </CardContent>
