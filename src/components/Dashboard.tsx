@@ -25,7 +25,6 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
-import ShopperOnboarding from "./dashboard/ShopperOnboarding";
 import { TripSelector } from "./dashboard/TripSelector";
 
 import AvailableTripsCard from "./AvailableTripsCard";
@@ -34,7 +33,7 @@ import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 import { useUrlState } from "@/hooks/useUrlState";
 import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
-import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
 import { useStickyState } from "@/hooks/useStickyState";
@@ -65,11 +64,6 @@ interface DashboardProps {
 const Dashboard = ({ user }: DashboardProps) => {
   const { signOut, profile, userRole } = useAuth();
   const { isPhoneNumberMissing } = usePhoneNumberValidation();
-  
-  // Admin preview mode for onboarding
-  const [searchParams] = useSearchParams();
-  const previewOnboarding = searchParams.get('preview-onboarding') === 'true';
-  const isAdminUser = userRole?.role === 'admin';
   
   // Use protected navigation that checks profile completion
   const { navigateToFormWithProfileCheck, isProfileComplete } = useProtectedNavigation();
@@ -674,21 +668,22 @@ const Dashboard = ({ user }: DashboardProps) => {
               </div>
             </div>
 
-            {(() => {
-              const hasNoPackages = userPackages.filter(pkg => {
-                if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
-                if (pkg.matched_trip_id) {
-                  const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                  if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
-                }
-                return true;
-              }).length === 0;
+            {userPackages.filter(pkg => {
+              // Excluir paquetes completados y archivados (pero mantener rechazados y cancelados para que shopper pueda ver/archivar)
+              if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
               
-              const showOnboarding = hasNoPackages || (previewOnboarding && isAdminUser);
-              
-              return showOnboarding ? (
-                <ShopperOnboarding onCreatePackage={() => navigateToForm('package')} />
-              ) : (
+              // Excluir paquetes que pertenecen a viajes completados y pagados
+              if (pkg.matched_trip_id) {
+                const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+                if (matchedTrip && matchedTrip.status === 'completed_paid') return false;
+              }
+              return true;
+            }).length === 0 ? (
+              <ProtectedEmptyState
+                type="packages"
+                onAction={() => navigateToForm('package')}
+              />
+            ) : (
               <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes completados y archivados (pero mantener rechazados y cancelados para que shopper pueda ver/archivar)
@@ -743,8 +738,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                       />
                 ))}
               </div>
-              );
-            })()}
+            )}
           </TabsContent>
 
           <TabsContent value="trips" className="space-y-6">
