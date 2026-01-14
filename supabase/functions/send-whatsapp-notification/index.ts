@@ -92,8 +92,16 @@ const sendWhatsAppTemplate = async (
     From: fromWhatsApp,
     To: toWhatsApp,
     ContentSid: contentSid,
-    ContentVariables: JSON.stringify(contentVariables),
   });
+
+  // Only include ContentVariables if the object has keys (non-empty)
+  // Twilio error 21656 occurs when sending variables to templates that don't expect them
+  if (contentVariables && Object.keys(contentVariables).length > 0) {
+    body.append('ContentVariables', JSON.stringify(contentVariables));
+    console.log(`📝 ContentVariables included: ${JSON.stringify(contentVariables)}`);
+  } else {
+    console.log(`📝 ContentVariables omitted (template has no variables)`);
+  }
 
   try {
     const response = await fetch(url, {
