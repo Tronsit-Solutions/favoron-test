@@ -1126,6 +1126,13 @@ const Dashboard = ({ user }: DashboardProps) => {
               handleEditTrip(trip);
             }
           }}
+          fullPackage={selectedPackageForQuote}
+          onPaymentComplete={(updatedPkg) => {
+            // Refresh packages after payment
+            if (refreshPackages) refreshPackages();
+            setShowQuoteDialog(false);
+            setSelectedPackageForQuote(null);
+          }}
         />
       )}
 
