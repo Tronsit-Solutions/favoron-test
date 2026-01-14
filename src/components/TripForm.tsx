@@ -631,22 +631,16 @@ const TripForm = ({
     <div className="space-y-8 animate-fade-in">
       {/* 🟦 1. Información básica del viaje */}
       <div className="space-y-6">
-        <div className="flex items-center space-x-2 border-b border-primary/20">
-          <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-xs text-primary-foreground font-bold">1</span>
-          </div>
-          <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
+        <div>
+          <h3 className="text-base font-medium">Información básica del viaje</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Si tu viaje es de ida y vuelta, registra dos viajes separados
+          </p>
         </div>
-        <p className="text-sm text-destructive -mt-1 mb-1">
-          Si tu viaje es de ida y vuelta (round trip), deberás registrar dos viajes separados: uno de ida y otro de regreso.
-        </p>
 
         {/* Sección ORIGEN */}
         <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-primary">
-            <MapPin className="h-4 w-4" />
-            <h4 className="text-sm font-semibold uppercase tracking-wide">ORIGEN DEL VIAJE</h4>
-          </div>
+          <Label className="text-sm font-medium">Origen del viaje</Label>
           
           <div className="grid grid-cols-2 gap-1 sm:gap-4">
             <div className="space-y-2">
@@ -727,10 +721,7 @@ const TripForm = ({
 
         {/* Sección DESTINO */}
         <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-primary">
-            <Target className="h-4 w-4" />
-            <h4 className="text-sm font-semibold uppercase tracking-wide">DESTINO DEL VIAJE</h4>
-          </div>
+          <Label className="text-sm font-medium">Destino del viaje</Label>
           
           <div className="grid grid-cols-2 gap-1 sm:gap-4">
             <div className="space-y-2">
@@ -882,13 +873,12 @@ const TripForm = ({
     <div className="space-y-8 animate-fade-in">
       {/* 🟦 Dirección para recibir paquetes en destino */}
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <Home className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-primary">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
+        <div>
+          <h3 className="text-base font-medium">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Esta información se comparte únicamente con el shopper si el pedido es aprobado
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Esta información se comparte únicamente con el shopper si el pedido es aprobado.
-        </p>
 
         <div className="space-y-2">
           <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
@@ -1022,21 +1012,25 @@ const TripForm = ({
 
       {/* 🟦 Ventana de recepción de paquetes */}
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <CalendarIcon className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-primary">Ventana de recepción de paquetes</h3>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="ml-1">
-                  <Info className="h-4 w-4 text-muted-foreground hover:text-primary cursor-help" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs">
-                <p>Indica las fechas en las que estarás disponible para recibir paquetes en tu dirección de destino. Los shoppers enviarán los productos dentro de esta ventana de tiempo.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div>
+          <div className="flex items-center space-x-1">
+            <h3 className="text-base font-medium">Ventana de recepción de paquetes</h3>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button">
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p>Indica las fechas en las que estarás disponible para recibir paquetes en tu dirección de destino.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Indica las fechas disponibles para recibir paquetes
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -1088,9 +1082,8 @@ const TripForm = ({
 
       {/* 🟦 Información adicional */}
       <div className="space-y-4">
-        <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-          <Info className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
+        <div>
+          <h3 className="text-base font-medium">Información adicional (opcional)</h3>
         </div>
 
         <div className="space-y-2">
@@ -1125,9 +1118,8 @@ const TripForm = ({
       {/* 🟦 Entrega de paquetes */}
       {showDeliverySection && (
         <div className="space-y-4">
-          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-            <Package className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-primary">
+          <div>
+            <h3 className="text-base font-medium">
               {hasOfficialDeliveryOptions 
                 ? `Entrega de paquetes en ${isDestinationGuatemala ? 'Guatemala' : destinationDeliveryPoint?.name || 'destino'}`
                 : `¿Cómo entregarás los paquetes en ${formData.toCity || 'destino'}?`
@@ -1322,9 +1314,8 @@ const TripForm = ({
       <div className="space-y-6 animate-fade-in">
         {/* 🟦 Resumen del viaje */}
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-            <Plane className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-primary">Resumen del viaje</h3>
+          <div>
+            <h3 className="text-base font-medium">Resumen del viaje</h3>
           </div>
           
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -1359,9 +1350,8 @@ const TripForm = ({
 
         {/* 🟦 Resumen de dirección */}
         <div className="space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
-            <Home className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-primary">Dirección de recepción</h3>
+          <div>
+            <h3 className="text-base font-medium">Dirección de recepción</h3>
           </div>
           
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
