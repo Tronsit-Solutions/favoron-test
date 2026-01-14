@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Template IDs that match the Twilio Content Templates configured in the edge function
-export type WhatsAppTemplateId = 'welcome' | 'quote_received';
+export type WhatsAppTemplateId = 'welcome' | 'quote_received' | 'package_assigned';
 
 interface SendWhatsAppTemplateParams {
   userId: string;
