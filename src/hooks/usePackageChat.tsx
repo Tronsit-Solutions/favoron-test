@@ -23,7 +23,8 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
           user_profile:profiles!user_id (
             first_name,
             last_name,
-            username
+            username,
+            avatar_url
           )
         `)
         .eq('package_id', packageId)
@@ -40,7 +41,21 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return;
       }
 
-      setMessages((data as PackageMessage[]) || []);
+      // Fetch user roles for all message authors
+      const userIds = [...new Set((data || []).map(m => m.user_id))];
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      // Map roles to messages
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+      const messagesWithRoles = (data || []).map(m => ({
+        ...m,
+        user_roles: rolesMap.has(m.user_id) ? [{ role: rolesMap.get(m.user_id)! }] : undefined
+      }));
+
+      setMessages(messagesWithRoles as PackageMessage[]);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
