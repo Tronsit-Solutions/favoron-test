@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRef } from 'react';
 import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@/lib/quoteHelpers';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 
 export const useDashboardActions = (
   packages: any[],
@@ -311,6 +312,21 @@ export const useDashboardActions = (
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates
             });
+            
+            // 📱 Enviar notificación WhatsApp al shopper
+            if (selectedPackage.user_id) {
+              const quoteTotal = normalizedQuoteData.totalPrice || 0;
+              const productName = selectedPackage.products_data?.[0]?.itemDescription || selectedPackage.item_description || 'Tu pedido';
+              
+              sendWhatsAppNotification({
+                userId: selectedPackage.user_id,
+                templateId: 'quote_received',
+                variables: {
+                  "2": `${quoteTotal.toFixed(2)}`,
+                  "3": productName.substring(0, 50)
+                }
+              });
+            }
             
             toast({
               title: "¡Tip aceptado!",
