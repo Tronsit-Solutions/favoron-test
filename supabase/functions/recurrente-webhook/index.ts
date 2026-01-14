@@ -6,6 +6,49 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Verify checkout status with Recurrente API
+async function verifyCheckoutWithRecurrente(checkoutId: string): Promise<{ verified: boolean; status: string | null; error?: string }> {
+  const publicKey = Deno.env.get('RECURRENTE_PUBLIC_KEY');
+  const secretKey = Deno.env.get('RECURRENTE_SECRET_KEY');
+
+  if (!publicKey || !secretKey) {
+    console.error('Missing Recurrente API keys');
+    return { verified: false, status: null, error: 'Missing API keys' };
+  }
+
+  try {
+    const response = await fetch(`https://app.recurrente.com/api/checkouts/${checkoutId}`, {
+      method: 'GET',
+      headers: {
+        'X-PUBLIC-KEY': publicKey,
+        'X-SECRET-KEY': secretKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Recurrente API error:', response.status, await response.text());
+      return { verified: false, status: null, error: `API returned ${response.status}` };
+    }
+
+    const checkoutData = await response.json();
+    console.log('Recurrente checkout verification:', JSON.stringify(checkoutData, null, 2));
+
+    // Valid paid statuses from Recurrente
+    const paidStatuses = ['paid', 'completed', 'succeeded'];
+    const isPaid = paidStatuses.includes(checkoutData.status?.toLowerCase());
+
+    return { 
+      verified: isPaid, 
+      status: checkoutData.status,
+      error: isPaid ? undefined : `Checkout status is ${checkoutData.status}, not paid`
+    };
+  } catch (error) {
+    console.error('Error verifying checkout with Recurrente:', error);
+    return { verified: false, status: null, error: error.message };
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -23,11 +66,9 @@ serve(async (req) => {
     const eventType = payload.event_type || payload.type || payload.event;
     const checkoutId = payload.checkout?.id || payload.data?.checkout_id || payload.data?.object?.checkout_id || payload.checkout_id;
     const paymentId = payload.payment?.id || payload.data?.payment_id || payload.data?.object?.id || payload.payment_intent_id;
-    const metadata = payload.checkout?.metadata || payload.metadata || payload.data?.object?.metadata || {};
 
     console.log('Recurrente webhook received - Event:', eventType);
     console.log('Extracted IDs - Checkout:', checkoutId, 'Payment:', paymentId);
-    console.log('Full payload:', JSON.stringify(payload, null, 2));
 
     if (!checkoutId) {
       console.error('No checkout ID in webhook payload');
@@ -58,7 +99,31 @@ serve(async (req) => {
 
     // Handle different event types - include Recurrente's payment_intent events
     if (eventType === 'payment.succeeded' || eventType === 'checkout.completed' || eventType === 'payment_intent.succeeded') {
-      // Payment successful - update package status to pending_purchase (card payments are auto-approved)
+      
+      // SECURITY: Verify the checkout status with Recurrente API before updating
+      console.log('Verifying checkout status with Recurrente API...');
+      const verification = await verifyCheckoutWithRecurrente(checkoutId);
+      
+      if (!verification.verified) {
+        console.error('Checkout verification failed:', verification.error);
+        console.error('Webhook claims payment succeeded but Recurrente API shows:', verification.status);
+        
+        // Log the suspicious webhook attempt
+        console.warn('SECURITY: Potential spoofed webhook detected for checkout:', checkoutId);
+        
+        return new Response(
+          JSON.stringify({ 
+            received: true, 
+            error: 'Payment verification failed',
+            details: 'Checkout status could not be verified with Recurrente API'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('Checkout verified as paid with Recurrente API');
+      
+      // Payment successful and verified - update package status to pending_purchase
       const { error: updateError } = await supabase
         .from('packages')
         .update({
@@ -71,7 +136,9 @@ serve(async (req) => {
             payment_id: paymentId,
             paid_at: new Date().toISOString(),
             auto_captured: true,
-            auto_approved: true
+            auto_approved: true,
+            verified_with_api: true,
+            verified_status: verification.status
           },
           updated_at: new Date().toISOString()
         })
@@ -80,7 +147,7 @@ serve(async (req) => {
       if (updateError) {
         console.error('Failed to update package status:', updateError);
       } else {
-        console.log('Package status updated to pending_purchase (card payment auto-approved)');
+        console.log('Package status updated to pending_purchase (card payment verified and auto-approved)');
         
         // Notify user about successful payment
         const { error: notifyError } = await supabase.rpc('create_notification', {
