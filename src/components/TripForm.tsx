@@ -66,7 +66,8 @@ const TripForm = ({
         cityArea: '',
         postalCode: '',
         hotelAirbnbName: '',
-        contactNumber: ''
+        contactNumber: '',
+        additionalInstructions: ''
       },
       firstDayPackages: null as Date | null,
       lastDayPackages: null as Date | null,
@@ -345,7 +346,8 @@ const TripForm = ({
           cityArea: '',
           postalCode: '',
           hotelAirbnbName: '',
-          contactNumber: ''
+          contactNumber: '',
+          additionalInstructions: ''
         },
         firstDayPackages: null as Date | null,
         lastDayPackages: null as Date | null,
@@ -1018,6 +1020,23 @@ const TripForm = ({
             value={formData.packageReceivingAddress.hotelAirbnbName} 
             onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="additionalInstructions" className="text-xs text-muted-foreground">
+            Instrucciones adicionales para envío (opcional)
+          </Label>
+          <Textarea 
+            id="additionalInstructions" 
+            placeholder="Ej: Dejar paquete en recepción, llamar al llegar, horarios específicos de entrega..."
+            value={formData.packageReceivingAddress.additionalInstructions || ''} 
+            onChange={e => handleAddressChange('additionalInstructions', e.target.value)} 
+            className="min-h-[60px]"
+            maxLength={300}
+          />
+          <p className="text-xs text-muted-foreground">
+            Esta información será visible para el vendedor que envíe tu paquete
+          </p>
         </div>
       </div>
 
