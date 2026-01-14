@@ -17,7 +17,8 @@ import {
   Settings,
   Star,
   Tag,
-  PackageCheck
+  PackageCheck,
+  Ban
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -147,6 +148,16 @@ export const MatchCard = ({
     return { received: receivedCount, total: products.length };
   };
 
+  const getCancelledProductsInfo = () => {
+    if (!pkg.products_data || !Array.isArray(pkg.products_data)) return null;
+    const products = pkg.products_data;
+    
+    const cancelledCount = products.filter((p: any) => p.cancelled === true).length;
+    if (cancelledCount === 0) return null;
+    
+    return { cancelled: cancelledCount, total: products.length };
+  };
+
   const getProductsDisplayTitle = () => {
     if (!pkg.products_data || !Array.isArray(pkg.products_data) || pkg.products_data.length <= 1) {
       return <span>{pkg.item_description}</span>;
@@ -220,6 +231,15 @@ export const MatchCard = ({
                   >
                     <PackageCheck className="h-3 w-3 mr-1" />
                     {getReceivedProductsInfo()?.received}/{getReceivedProductsInfo()?.total}
+                  </Badge>
+                )}
+                {getCancelledProductsInfo() && (
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs bg-red-50 text-red-700 border-red-300"
+                  >
+                    <Ban className="h-3 w-3 mr-1" />
+                    {getCancelledProductsInfo()?.cancelled} cancelado{(getCancelledProductsInfo()?.cancelled || 0) > 1 ? 's' : ''}
                   </Badge>
                 )}
               </div>
