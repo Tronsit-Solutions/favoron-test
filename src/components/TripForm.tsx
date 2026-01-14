@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, DollarSign, Truck } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -866,128 +866,57 @@ const TripForm = ({
 
   // Step 2 content
   const renderStep2 = () => (
-    <div className="space-y-8 animate-fade-in">
-      {/* 🟦 Dirección para recibir paquetes en destino */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-base font-medium">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Esta información se comparte únicamente con el shopper si el pedido es aprobado
-          </p>
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div>
+        <h3 className="text-base font-medium">Dirección para recibir paquetes en {getDisplayFromCity()}</h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          Esta información se comparte únicamente con el shopper si el pedido es aprobado
+        </p>
+      </div>
+
+      {/* Sección 1: Información del receptor */}
+      <div className="bg-muted/30 rounded-xl border border-border/50 p-4 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-traveler">
+          <User className="h-4 w-4" />
+          Información del receptor
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-          <Input 
-            id="recipientName" 
-            type="text" 
-            placeholder="Ej: Juan Pérez" 
-            value={formData.packageReceivingAddress.recipientName} 
-            onChange={e => handleAddressChange('recipientName', e.target.value)} 
-            required 
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="accommodationType">Tipo de alojamiento *</Label>
-          <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecciona el tipo de alojamiento" />
-            </SelectTrigger>
-            <SelectContent>
-              {accommodationTypes.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  <div className="flex items-center space-x-2">
-                    <Building2 className="h-4 w-4" />
-                    <span>{type.label}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-          <GoogleAddressInput
-            value={formData.packageReceivingAddress.streetAddress}
-            onChange={(value) => handleAddressChange('streetAddress', value)}
-            onPlaceSelected={(addressData) => {
-              handleAddressChange('streetAddress', addressData.streetAddress);
-              if (addressData.cityArea) {
-                handleAddressChange('cityArea', addressData.cityArea);
-              }
-              // SIEMPRE actualizar código postal - limpiar si no viene
-              handleAddressChange('postalCode', addressData.postalCode || '');
-            }}
-            countryRestriction={formData.fromCountry}
-            placeholder="Buscar dirección..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="streetAddress2">Dirección línea 2 (opcional)</Label>
-          <Input 
-            id="streetAddress2" 
-            type="text" 
-            placeholder="Ej: Apt 4B, Suite 100" 
-            value={formData.packageReceivingAddress.streetAddress2} 
-            onChange={e => handleAddressChange('streetAddress2', e.target.value)} 
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
+            <Label htmlFor="recipientName" className="text-xs text-muted-foreground">Nombre del receptor *</Label>
             <Input 
-              id="cityArea" 
+              id="recipientName" 
               type="text" 
-              placeholder="Ej: Miami, FL" 
-              value={formData.packageReceivingAddress.cityArea} 
-              onChange={e => handleAddressChange('cityArea', e.target.value)} 
+              placeholder="Ej: Juan Pérez" 
+              value={formData.packageReceivingAddress.recipientName} 
+              onChange={e => handleAddressChange('recipientName', e.target.value)} 
               required 
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="postalCode">Código postal *</Label>
-            <Input 
-              id="postalCode" 
-              type="text" 
-              placeholder="Ej: 33101" 
-              value={formData.packageReceivingAddress.postalCode} 
-              onChange={e => handleAddressChange('postalCode', e.target.value)} 
-              required 
-              className={cn(
-                !formData.packageReceivingAddress.postalCode && 
-                formData.packageReceivingAddress.streetAddress 
-                  ? "border-amber-500 focus:ring-amber-500" 
-                  : ""
-              )}
-            />
-            {!formData.packageReceivingAddress.postalCode && 
-             formData.packageReceivingAddress.streetAddress && (
-              <p className="text-xs text-amber-600 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Por favor ingresa el código postal manualmente
-              </p>
-            )}
+            <Label htmlFor="accommodationType" className="text-xs text-muted-foreground">Tipo de alojamiento *</Label>
+            <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona tipo" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                {accommodationTypes.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <div className="flex items-center space-x-2">
+                      <Building2 className="h-4 w-4" />
+                      <span>{type.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio FAV, etc.)</Label>
-          <Input 
-            id="hotelAirbnbName" 
-            type="text" 
-            placeholder="Ej: Hotel InterContinental Miami" 
-            value={formData.packageReceivingAddress.hotelAirbnbName} 
-            onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="contactNumber">Número de contacto *</Label>
+          <Label htmlFor="contactNumber" className="text-xs text-muted-foreground">Número de contacto *</Label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -1006,37 +935,119 @@ const TripForm = ({
         </div>
       </div>
 
-      {/* 🟦 Ventana de recepción de paquetes */}
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center space-x-1">
-            <h3 className="text-base font-medium">Ventana de recepción de paquetes</h3>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button">
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
-                  <p>Indica las fechas en las que estarás disponible para recibir paquetes en tu dirección de destino.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Indica las fechas disponibles para recibir paquetes
-          </p>
+      {/* Sección 2: Dirección de recepción */}
+      <div className="bg-muted/30 rounded-xl border border-border/50 p-4 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-traveler">
+          <MapPin className="h-4 w-4" />
+          Dirección de recepción
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="streetAddress" className="text-xs text-muted-foreground">Dirección línea 1 *</Label>
+          <GoogleAddressInput
+            value={formData.packageReceivingAddress.streetAddress}
+            onChange={(value) => handleAddressChange('streetAddress', value)}
+            onPlaceSelected={(addressData) => {
+              handleAddressChange('streetAddress', addressData.streetAddress);
+              if (addressData.cityArea) {
+                handleAddressChange('cityArea', addressData.cityArea);
+              }
+              handleAddressChange('postalCode', addressData.postalCode || '');
+            }}
+            countryRestriction={formData.fromCountry}
+            placeholder="Buscar dirección..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="streetAddress2" className="text-xs text-muted-foreground">Dirección línea 2 (opcional)</Label>
+          <Input 
+            id="streetAddress2" 
+            type="text" 
+            placeholder="Ej: Apt 4B, Suite 100" 
+            value={formData.packageReceivingAddress.streetAddress2} 
+            onChange={e => handleAddressChange('streetAddress2', e.target.value)} 
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>Primer día *</Label>
+            <Label htmlFor="cityArea" className="text-xs text-muted-foreground">Ciudad / Estado *</Label>
+            <Input 
+              id="cityArea" 
+              type="text" 
+              placeholder="Ej: Miami, FL" 
+              value={formData.packageReceivingAddress.cityArea} 
+              onChange={e => handleAddressChange('cityArea', e.target.value)} 
+              required 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="postalCode" className="text-xs text-muted-foreground">Código postal *</Label>
+            <Input 
+              id="postalCode" 
+              type="text" 
+              placeholder="Ej: 33101" 
+              value={formData.packageReceivingAddress.postalCode} 
+              onChange={e => handleAddressChange('postalCode', e.target.value)} 
+              required 
+              className={cn(
+                !formData.packageReceivingAddress.postalCode && 
+                formData.packageReceivingAddress.streetAddress 
+                  ? "border-amber-500 focus:ring-amber-500" 
+                  : ""
+              )}
+            />
+            {!formData.packageReceivingAddress.postalCode && 
+             formData.packageReceivingAddress.streetAddress && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Ingresa código postal
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="hotelAirbnbName" className="text-xs text-muted-foreground">Nombre del lugar (opcional)</Label>
+          <Input 
+            id="hotelAirbnbName" 
+            type="text" 
+            placeholder="Ej: Hotel InterContinental Miami" 
+            value={formData.packageReceivingAddress.hotelAirbnbName} 
+            onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
+          />
+        </div>
+      </div>
+
+      {/* Sección 3: Ventana de recepción */}
+      <div className="bg-muted/30 rounded-xl border border-border/50 p-4 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-traveler">
+          <CalendarIcon className="h-4 w-4" />
+          Fechas disponibles para recibir
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <p>Indica las fechas en las que estarás disponible para recibir paquetes en tu dirección de destino.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Primer día *</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
+                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation h-10">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", { locale: es }) : <span className="text-xs">Fecha inicio</span>}
+                  {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM/yy", { locale: es }) : <span className="text-muted-foreground">Seleccionar</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50" align="start">
@@ -1053,12 +1064,12 @@ const TripForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label>Último día *</Label>
+            <Label className="text-xs text-muted-foreground">Último día *</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation">
+                <Button variant="outline" className="w-full justify-start text-left font-normal touch-manipulation h-10">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", { locale: es }) : <span className="text-xs">Fecha fin</span>}
+                  {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM/yy", { locale: es }) : <span className="text-muted-foreground">Seleccionar</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50" align="start">
@@ -1073,24 +1084,6 @@ const TripForm = ({
               </PopoverContent>
             </Popover>
           </div>
-        </div>
-      </div>
-
-      {/* 🟦 Información adicional */}
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-base font-medium">Información adicional (opcional)</h3>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
-          <Textarea 
-            id="additionalInfo" 
-            placeholder="Horarios disponibles, zonas de entrega, experiencia previa, etc." 
-            value={formData.additionalInfo} 
-            onChange={e => handleInputChange('additionalInfo', e.target.value)} 
-            className="min-h-[80px]" 
-          />
         </div>
       </div>
 
