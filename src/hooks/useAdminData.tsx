@@ -163,46 +163,50 @@ export const useAdminData = (): AdminData => {
     }
   }, [toast, PACKAGES_PER_PAGE]);
 
+  // Broken statuses that are excluded from initial load
+  const BROKEN_STATUSES = ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'];
+
+  // Fetch only ACTIVE matched packages (excluding broken ones)
   const fetchMatchedPackages = useCallback(async () => {
     try {
-      console.log('🔄 Admin: Fetching ALL matched packages...');
+      console.log('🔄 Admin: Fetching ACTIVE matched packages (excluding broken)...');
       
-      // Load ALL packages with a matched_trip_id - ONLY lightweight fields
-      // Heavy JSONB fields (products_data, payment_receipt, etc.) loaded on-demand
+      // Load only active packages with a matched_trip_id - excluding broken statuses
       const { data: matchedData, error: matchedError } = await supabase
         .from('packages')
-      .select(`
-        id,
-        user_id,
-        status,
-        item_description,
-        estimated_price,
-        purchase_origin,
-        package_destination,
-        matched_trip_id,
-        created_at,
-        updated_at,
-        delivery_deadline,
-        quote_expires_at,
-        matched_assignment_expires_at,
-        label_number,
-        incident_flag,
-        delivery_method,
-        quote,
-        rejection_reason,
-        wants_requote,
-        admin_rejection,
-        quote_rejection,
-        traveler_rejection,
-        admin_actions_log,
-        internal_notes,
-        admin_assigned_tip,
-        confirmed_delivery_address,
-        traveler_address,
-        matched_trip_dates,
-        payment_receipt
-      `)
+        .select(`
+          id,
+          user_id,
+          status,
+          item_description,
+          estimated_price,
+          purchase_origin,
+          package_destination,
+          matched_trip_id,
+          created_at,
+          updated_at,
+          delivery_deadline,
+          quote_expires_at,
+          matched_assignment_expires_at,
+          label_number,
+          incident_flag,
+          delivery_method,
+          quote,
+          rejection_reason,
+          wants_requote,
+          admin_rejection,
+          quote_rejection,
+          traveler_rejection,
+          admin_actions_log,
+          internal_notes,
+          admin_assigned_tip,
+          confirmed_delivery_address,
+          traveler_address,
+          matched_trip_dates,
+          payment_receipt
+        `)
         .not('matched_trip_id', 'is', null)
+        .not('status', 'in', `(${BROKEN_STATUSES.join(',')})`)
         .order('created_at', { ascending: false });
 
       if (matchedError) {
@@ -210,7 +214,7 @@ export const useAdminData = (): AdminData => {
         throw matchedError;
       }
 
-      console.log('✅ Admin: Fetched matched packages:', matchedData?.length || 0);
+      console.log('✅ Admin: Fetched active matched packages:', matchedData?.length || 0);
 
       // Enrich with profiles if we have packages
       if (matchedData && matchedData.length > 0) {

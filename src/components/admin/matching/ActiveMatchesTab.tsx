@@ -10,12 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { Search, Filter, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronDown, Archive, Loader2 } from "lucide-react";
 import { useMatchFilters } from "@/hooks/useMatchFilters";
 import { MatchCard } from "./MatchCard";
 import { MatchStatsHeader } from "./MatchStatsHeader";
 import { MatchChatModal } from "./MatchChatModal";
 import { getStatusInfo } from "./MatchStatusBadge";
+import { supabase } from "@/integrations/supabase/client";
+
+const MATCHES_PER_PAGE = 30;
+const BROKEN_STATUSES = ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'];
 
 interface ActiveMatchesTabProps {
   packages: any[];
@@ -52,11 +56,19 @@ const ActiveMatchesTab = ({
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
   const [inputValue, setInputValue] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  
+  // Lazy loading state
+  const [visibleCount, setVisibleCount] = useState(MATCHES_PER_PAGE);
+  const [brokenMatches, setBrokenMatches] = useState<any[]>([]);
+  const [loadingBroken, setLoadingBroken] = useState(false);
+  const [showBrokenMatches, setShowBrokenMatches] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const {
     searchTerm,
     setSearchTerm,
     matchedPackages,
+    brokenMatchesCount,
     statuses,
     statsData
   } = useMatchFilters(packages, trips);
@@ -83,19 +95,90 @@ const ActiveMatchesTab = ({
     };
   }, []);
 
+  // Load broken matches on demand
+  const loadBrokenMatches = useCallback(async () => {
+    setLoadingBroken(true);
+    try {
+      console.log('🔄 Loading broken matches on demand...');
+      
+      const { data: brokenData, error } = await supabase
+        .from('packages')
+        .select(`
+          id, user_id, status, item_description, estimated_price,
+          purchase_origin, package_destination, matched_trip_id,
+          created_at, updated_at, delivery_deadline, quote_expires_at,
+          matched_assignment_expires_at, label_number, incident_flag,
+          delivery_method, quote, rejection_reason, wants_requote,
+          admin_rejection, quote_rejection, traveler_rejection,
+          admin_actions_log, internal_notes, admin_assigned_tip,
+          confirmed_delivery_address, traveler_address, matched_trip_dates,
+          payment_receipt
+        `)
+        .not('matched_trip_id', 'is', null)
+        .in('status', BROKEN_STATUSES)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Enrich with profiles
+      if (brokenData && brokenData.length > 0) {
+        const userIds = [...new Set(brokenData.map(pkg => pkg.user_id))];
+        
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code, trust_level, prime_expires_at')
+          .in('id', userIds);
+
+        if (profilesData) {
+          const profilesMap = new Map(profilesData.map(p => [p.id, p]));
+          
+          const enriched = brokenData.map(pkg => ({
+            ...pkg,
+            profiles: profilesMap.get(pkg.user_id) || null
+          }));
+          
+          setBrokenMatches(enriched);
+          setShowBrokenMatches(true);
+          console.log('✅ Loaded broken matches:', enriched.length);
+        }
+      } else {
+        setBrokenMatches([]);
+        setShowBrokenMatches(true);
+      }
+    } catch (error) {
+      console.error('❌ Error loading broken matches:', error);
+    } finally {
+      setLoadingBroken(false);
+    }
+  }, []);
+
   // Estado para los checkboxes de filtros
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
+
+  // Combine active and broken matches when broken are loaded
+  const allMatchedPackages = useMemo(() => {
+    if (showBrokenMatches) {
+      return [...matchedPackages, ...brokenMatches];
+    }
+    return matchedPackages;
+  }, [matchedPackages, brokenMatches, showBrokenMatches]);
+
+  // Get all statuses including broken ones when loaded
+  const allStatuses = useMemo(() => {
+    const statusSet = new Set(allMatchedPackages.map(pkg => pkg.status));
+    return [...statusSet];
+  }, [allMatchedPackages]);
 
   // Sincronizar estados seleccionados al cargar
   useEffect(() => {
     setSelectedStatuses(prev => {
-      if (prev.size === 0 && statuses.length > 0) {
-        return new Set(statuses);
+      if (prev.size === 0 && allStatuses.length > 0) {
+        return new Set(allStatuses);
       }
-      const next = new Set([...prev].filter(s => statuses.includes(s)));
+      const next = new Set([...prev].filter(s => allStatuses.includes(s)));
       return next;
     });
-  }, [statuses]);
+  }, [allStatuses]);
 
   // Memoized filtered and sorted matches
   const filteredMatches = useMemo(() => {
@@ -115,7 +198,7 @@ const ActiveMatchesTab = ({
     const receivedByTravelerStatuses = ['received_by_traveler'];
     const completedStatuses = ['completed'];
 
-    return matchedPackages
+    return allMatchedPackages
       .filter(pkg => {
         const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
         
@@ -139,6 +222,13 @@ const ActiveMatchesTab = ({
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
+        // Broken matches always go to the bottom
+        const aIsBroken = BROKEN_STATUSES.includes(a.status);
+        const bIsBroken = BROKEN_STATUSES.includes(b.status);
+        
+        if (aIsBroken && !bIsBroken) return 1;
+        if (!aIsBroken && bIsBroken) return -1;
+        
         const aAdminAction = adminActionStatuses.includes(a.status);
         const bAdminAction = adminActionStatuses.includes(b.status);
         
@@ -176,7 +266,36 @@ const ActiveMatchesTab = ({
         
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
-  }, [matchedPackages, trips, searchTerm, selectedStatuses]);
+  }, [allMatchedPackages, trips, searchTerm, selectedStatuses]);
+
+  // Visible matches with lazy loading
+  const visibleMatches = useMemo(() => 
+    filteredMatches.slice(0, visibleCount), 
+    [filteredMatches, visibleCount]
+  );
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < filteredMatches.length) {
+          setVisibleCount(prev => Math.min(prev + MATCHES_PER_PAGE, filteredMatches.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, [visibleCount, filteredMatches.length]);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(MATCHES_PER_PAGE);
+  }, [searchTerm, selectedStatuses]);
 
   const togglePackage = (packageId: string) => {
     setExpandedPackages(prev => {
@@ -203,12 +322,12 @@ const ActiveMatchesTab = ({
   };
 
   const toggleAllStatuses = () => {
-    if (selectedStatuses.size === statuses.length) {
+    if (selectedStatuses.size === allStatuses.length) {
       // Si todos están seleccionados, deseleccionar todos
       setSelectedStatuses(new Set());
     } else {
       // Si no todos están seleccionados, seleccionar todos
-      setSelectedStatuses(new Set(statuses));
+      setSelectedStatuses(new Set(allStatuses));
     }
   };
 
@@ -239,7 +358,7 @@ const ActiveMatchesTab = ({
             <Button variant="outline" className="w-full sm:w-auto justify-between">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
-                <span>Estados ({selectedStatuses.size}/{statuses.length})</span>
+                <span>Estados ({selectedStatuses.size}/{allStatuses.length})</span>
               </div>
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -248,23 +367,23 @@ const ActiveMatchesTab = ({
             <DropdownMenuLabel className="flex items-center justify-between">
               <span>Filtrar por estados</span>
               <span className="text-xs text-muted-foreground">
-                {selectedStatuses.size}/{statuses.length} sel.
+                {selectedStatuses.size}/{allStatuses.length} sel.
               </span>
             </DropdownMenuLabel>
             
             <DropdownMenuSeparator />
             
             <DropdownMenuCheckboxItem
-              checked={selectedStatuses.size === statuses.length}
+              checked={selectedStatuses.size === allStatuses.length}
               onCheckedChange={toggleAllStatuses}
               className="font-medium"
             >
-              {selectedStatuses.size === statuses.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
+              {selectedStatuses.size === allStatuses.length ? 'Deseleccionar todos' : 'Seleccionar todos'}
             </DropdownMenuCheckboxItem>
             
             <DropdownMenuSeparator />
             
-            {statuses.map(status => {
+            {allStatuses.map(status => {
               const info = getStatusInfo(status);
               return (
                 <DropdownMenuCheckboxItem
@@ -300,33 +419,80 @@ const ActiveMatchesTab = ({
             </CardContent>
           </Card>
         ) : (
-          filteredMatches.map(pkg => {
-            const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+          <>
+            {visibleMatches.map(pkg => {
+              const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
+              
+              return (
+                <MatchCard
+                  key={pkg.id}
+                  pkg={pkg}
+                  matchedTrip={matchedTrip}
+                  isExpanded={expandedPackages.has(pkg.id)}
+                  onToggle={() => togglePackage(pkg.id)}
+                  onViewDetail={() => onViewPackageDetail(pkg)}
+                  onOpenChat={() => {
+                    // Cache modal data when opening chat
+                    const matchedTrip = trips.find(t => t.id === pkg.matched_trip_id);
+                    console.log('💾 Caching chat modal data:', { package: pkg.id, trip: matchedTrip?.id });
+                    setSelectedChatPackage(pkg);
+                  }}
+                  onConfirmOfficeReception={() => onConfirmOfficeReception(pkg.id)}
+                  onConfirmDeliveryComplete={() => onConfirmDeliveryComplete(pkg.id)}
+                  onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
+                  onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
+                  onOpenActionsModal={onOpenActionsModal}
+                  unreadCount={unreadCounts[pkg.id] || 0}
+                  hasMessages={hasMessages(pkg.id)}
+                />
+              );
+            })}
             
-            return (
-              <MatchCard
-                key={pkg.id}
-                pkg={pkg}
-                matchedTrip={matchedTrip}
-                isExpanded={expandedPackages.has(pkg.id)}
-                onToggle={() => togglePackage(pkg.id)}
-                onViewDetail={() => onViewPackageDetail(pkg)}
-                onOpenChat={() => {
-                  // Cache modal data when opening chat
-                  const matchedTrip = trips.find(t => t.id === pkg.matched_trip_id);
-                  console.log('💾 Caching chat modal data:', { package: pkg.id, trip: matchedTrip?.id });
-                  setSelectedChatPackage(pkg);
-                }}
-                onConfirmOfficeReception={() => onConfirmOfficeReception(pkg.id)}
-                onConfirmDeliveryComplete={() => onConfirmDeliveryComplete(pkg.id)}
-                onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
-                onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
-                onOpenActionsModal={onOpenActionsModal}
-                unreadCount={unreadCounts[pkg.id] || 0}
-                hasMessages={hasMessages(pkg.id)}
-              />
-            );
-          })
+            {/* Load more trigger for infinite scroll */}
+            {visibleCount < filteredMatches.length && (
+              <div ref={loadMoreRef} className="flex justify-center py-4">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Cargando más matches...</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Show count */}
+            {visibleCount >= filteredMatches.length && filteredMatches.length > MATCHES_PER_PAGE && (
+              <div className="text-center text-sm text-muted-foreground py-2">
+                Mostrando todos los {filteredMatches.length} matches
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* Button to load broken matches */}
+        {!showBrokenMatches && brokenMatchesCount > 0 && (
+          <Button 
+            variant="outline" 
+            onClick={loadBrokenMatches}
+            disabled={loadingBroken}
+            className="w-full mt-4"
+          >
+            {loadingBroken ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Cargando matches rotos...
+              </>
+            ) : (
+              <>
+                <Archive className="h-4 w-4 mr-2" />
+                Cargar {brokenMatchesCount} matches rotos (rechazados, cancelados, expirados)
+              </>
+            )}
+          </Button>
+        )}
+        
+        {showBrokenMatches && brokenMatches.length > 0 && (
+          <div className="text-center text-sm text-muted-foreground py-2">
+            ✓ {brokenMatches.length} matches rotos cargados
+          </div>
         )}
       </div>
 
