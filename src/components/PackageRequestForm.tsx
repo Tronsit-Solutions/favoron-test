@@ -4,10 +4,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,7 +23,6 @@ import type { Product } from "@/types";
 import { MetaPixel } from "@/lib/metaPixel";
 import "./ui/mobile-safe-form.css";
 
-
 interface PackageRequestFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,8 +33,11 @@ interface PackageRequestFormProps {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   const { openModal, closeModal } = useModalState();
+  const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
-
+  
+  // State for "Don't show again" checkbox
+  const [skipIntroduction, setSkipIntroduction] = useState(false);
   // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
@@ -133,12 +137,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Track which wizard step we're on (1-4 for the actual form)
   const totalSteps = 4;
 
-  // Reset step when modal opens - always start at intro (step 0)
+  // Reset step when modal opens - check if should skip intro based on user preference
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(0);
+      // In edit mode, always start at step 1 (skip intro)
+      // Otherwise, check user's stored preference
+      const shouldSkipIntro = editMode || profile?.ui_preferences?.skip_package_intro === true;
+      setCurrentStep(shouldSkipIntro ? 1 : 0);
+      setSkipIntroduction(false); // Reset checkbox state
     }
-  }, [isOpen]);
+  }, [isOpen, editMode, profile?.ui_preferences?.skip_package_intro]);
 
   // Desestructurar estado para facilitar acceso
   const products = formState.products;
@@ -651,6 +659,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Don't show again checkbox */}
+      <div className="flex items-center space-x-2 pt-4 border-t border-border/50">
+        <Checkbox 
+          id="skip-intro" 
+          checked={skipIntroduction}
+          onCheckedChange={(checked) => setSkipIntroduction(checked === true)}
+        />
+        <Label 
+          htmlFor="skip-intro" 
+          className="text-sm text-muted-foreground cursor-pointer"
+        >
+          No volver a mostrar esta introducción
+        </Label>
       </div>
     </div>
   );
@@ -1337,6 +1360,24 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
+  // Handler for continuing from intro step - saves preference if checkbox is checked
+  const handleContinueFromIntro = async () => {
+    if (skipIntroduction) {
+      try {
+        await updateProfile({
+          ui_preferences: {
+            ...profile?.ui_preferences,
+            skip_package_intro: true
+          }
+        });
+      } catch (error) {
+        console.error('Error saving intro preference:', error);
+        // Continue anyway even if save fails
+      }
+    }
+    setCurrentStep(1);
+  };
+
   // ============= NAVIGATION BUTTONS =============
   const renderNavigationButtons = () => {
     // Step 0 (intro) has special navigation
@@ -1346,7 +1387,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
             Cancelar
           </Button>
-          <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
+          <Button type="button" variant="shopper" onClick={handleContinueFromIntro} className="flex-1">
             Continuar
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
