@@ -45,14 +45,34 @@ export interface DynamicReportsData {
 }
 
 export const useDynamicReports = (months: number = 12) => {
-  // Fetch users data
+  // Fetch exact counts (not limited by default 1000 row limit)
+  const { data: countsData, isLoading: countsLoading } = useQuery({
+    queryKey: ['dynamic-reports-counts'],
+    queryFn: async () => {
+      const [usersCount, packagesCount, tripsCount] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('packages').select('*', { count: 'exact', head: true }),
+        supabase.from('trips').select('*', { count: 'exact', head: true }),
+      ]);
+      
+      return {
+        totalUsers: usersCount.count ?? 0,
+        totalPackages: packagesCount.count ?? 0,
+        totalTrips: tripsCount.count ?? 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch users data with higher limit for monthly calculations
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['dynamic-reports-users', months],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, created_at')
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(10000);
       
       if (error) throw error;
       return data;
@@ -60,14 +80,15 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch packages data
+  // Fetch packages data with higher limit
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
     queryKey: ['dynamic-reports-packages', months],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
         .select('id, created_at, status, quote')
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(10000);
       
       if (error) throw error;
       return data;
@@ -75,14 +96,15 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch trips data
+  // Fetch trips data with higher limit
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
     queryKey: ['dynamic-reports-trips', months],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')
         .select('id, created_at, status')
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(10000);
       
       if (error) throw error;
       return data;
@@ -91,7 +113,7 @@ export const useDynamicReports = (months: number = 12) => {
   });
 
   const processedData = useMemo(() => {
-    if (!usersData || !packagesData || !tripsData) {
+    if (!usersData || !packagesData || !tripsData || !countsData) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
@@ -212,13 +234,13 @@ export const useDynamicReports = (months: number = 12) => {
       });
     }
 
-    // Calculate KPIs
-    const totalUsers = usersData.length;
-    const totalPackages = packagesData.length;
+    // Calculate KPIs - use exact counts from countsData
+    const totalUsers = countsData?.totalUsers ?? usersData.length;
+    const totalPackages = countsData?.totalPackages ?? packagesData.length;
     const completedPackagesTotal = packagesData.filter(p => 
       ['completed', 'delivered_to_office'].includes(p.status)
     ).length;
-    const totalTrips = tripsData.length;
+    const totalTrips = countsData?.totalTrips ?? tripsData.length;
     
     let totalRevenue = 0;
     let totalTips = 0;
@@ -267,9 +289,9 @@ export const useDynamicReports = (months: number = 12) => {
     };
 
     return { monthlyData, kpis };
-  }, [usersData, packagesData, tripsData, months]);
+  }, [usersData, packagesData, tripsData, countsData, months]);
 
-  const isLoading = usersLoading || packagesLoading || tripsLoading;
+  const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading;
 
   return {
     ...processedData,
