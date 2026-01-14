@@ -820,6 +820,7 @@ export type Database = {
           prime_expires_at: string | null
           referrer_name: string | null
           trust_level: Database["public"]["Enums"]["trust_level"] | null
+          ui_preferences: Json | null
           updated_at: string | null
           username: string | null
           whatsapp_notification_preferences: Json | null
@@ -847,6 +848,7 @@ export type Database = {
           prime_expires_at?: string | null
           referrer_name?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          ui_preferences?: Json | null
           updated_at?: string | null
           username?: string | null
           whatsapp_notification_preferences?: Json | null
@@ -874,6 +876,7 @@ export type Database = {
           prime_expires_at?: string | null
           referrer_name?: string | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          ui_preferences?: Json | null
           updated_at?: string | null
           username?: string | null
           whatsapp_notification_preferences?: Json | null

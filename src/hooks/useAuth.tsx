@@ -10,6 +10,12 @@ import {
   SensitiveOperationLimiter 
 } from '@/lib/sessionSecurity';
 
+interface UiPreferences {
+  skip_package_intro?: boolean;
+  skip_trip_intro?: boolean;
+  [key: string]: boolean | undefined; // Allow additional boolean preferences
+}
+
 interface Profile {
   id: string;
   first_name: string | null;
@@ -25,6 +31,7 @@ interface Profile {
   email_notifications: boolean | null;
   email_notification_preferences: any | null;
   prime_expires_at: string | null;
+  ui_preferences: UiPreferences | null;
 }
 
 interface UserRole {
@@ -137,7 +144,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (profileResult.data) {
         console.log('✅ Setting profile:', profileResult.data.email);
-        setProfile(profileResult.data);
+        // Cast ui_preferences from Json to UiPreferences
+        const profileData = {
+          ...profileResult.data,
+          ui_preferences: profileResult.data.ui_preferences as UiPreferences | null
+        } as Profile;
+        setProfile(profileData);
       } else {
         console.log('⚠️ No profile data found');
       }
@@ -395,7 +407,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .single();
 
       if (error) throw error;
-      if (data) setProfile(data);
+      if (data) {
+        // Cast ui_preferences from Json to UiPreferences
+        const profileData = {
+          ...data,
+          ui_preferences: data.ui_preferences as UiPreferences | null
+        } as Profile;
+        setProfile(profileData);
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
