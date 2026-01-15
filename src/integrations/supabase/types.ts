@@ -725,6 +725,36 @@ export type Database = {
           },
         ]
       }
+      platform_stats_snapshot: {
+        Row: {
+          id: string
+          total_packages_completed: number
+          total_tips_distributed: number
+          total_trips: number
+          total_users: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          total_packages_completed?: number
+          total_tips_distributed?: number
+          total_trips?: number
+          total_users?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          total_packages_completed?: number
+          total_tips_distributed?: number
+          total_trips?: number
+          total_users?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       prime_memberships: {
         Row: {
           amount: number
@@ -1434,6 +1464,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_cached_public_stats: {
+        Args: never
+        Returns: {
+          total_packages_completed: number
+          total_tips_distributed: number
+          total_trips: number
+          total_users: number
+          updated_at: string
+        }[]
+      }
       get_database_stats: {
         Args: never
         Returns: {
@@ -1558,6 +1598,7 @@ export type Database = {
         Args: { _account_number: string }
         Returns: string
       }
+      refresh_platform_stats: { Args: never; Returns: undefined }
       send_assignment_warnings: { Args: never; Returns: undefined }
       send_quote_reminders: { Args: never; Returns: undefined }
       traveler_reject_assignment: {
