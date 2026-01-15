@@ -5,13 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
+import { useTravelerTipsReport } from "@/hooks/useTravelerTipsReport";
 import { UserGrowthChart } from "./charts/UserGrowthChart";
 import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
 import { AvgPackageValueChart } from "./charts/AvgPackageValueChart";
 import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { KPICards } from "./charts/KPICards";
-import { BarChart3, Download, RefreshCw, Calendar } from "lucide-react";
+import { TravelerTipsCard } from "./charts/TravelerTipsCard";
+import { BarChart3, Download, Calendar } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,6 +21,7 @@ export const DynamicReportsTab = () => {
   const [months, setMonths] = useState<number>(12);
   const { monthlyData, kpis, isLoading } = useDynamicReports(months);
   const { acquisitionData, summaryKPIs, isLoading: acquisitionLoading } = useAcquisitionAnalytics();
+  const { data: travelerTipsData, isLoading: travelerTipsLoading } = useTravelerTipsReport();
   const { toast } = useToast();
 
   const handleExportExcel = () => {
@@ -93,6 +96,15 @@ export const DynamicReportsTab = () => {
         'Revenue por Usuario (Q)': d.avgRevenuePerUser.toFixed(2),
       }));
 
+      // Traveler Tips sheet
+      const travelerTipsSheetData = [{
+        'Viajeros Activos': travelerTipsData.totalTravelersWithCompleted,
+        'Paquetes Entregados': travelerTipsData.totalCompletedPackages,
+        'Total Tips (Q)': travelerTipsData.totalTipsDistributed.toFixed(2),
+        'Promedio por Paquete (Q)': travelerTipsData.avgTipPerPackage.toFixed(2),
+        'Promedio por Viajero (Q)': travelerTipsData.avgTipPerTraveler.toFixed(2),
+      }];
+
       const wb = XLSX.utils.book_new();
       
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(kpisData), "KPIs");
@@ -101,6 +113,7 @@ export const DynamicReportsTab = () => {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tripsData), "Viajes");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(revenueData), "Ingresos");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(acquisitionSheetData), "Adquisición");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(travelerTipsSheetData), "Tips Viajeros");
 
       const filename = `Reportes_Dinamicos_Favoron_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(wb, filename);
@@ -119,7 +132,7 @@ export const DynamicReportsTab = () => {
     }
   };
 
-  if (isLoading || acquisitionLoading) {
+  if (isLoading || acquisitionLoading || travelerTipsLoading) {
     return (
       <div className="flex items-center justify-center h-48">
         <div className="text-center">
@@ -192,6 +205,9 @@ export const DynamicReportsTab = () => {
         <>
           {/* KPI Cards */}
           <KPICards kpis={kpis} />
+
+          {/* Traveler Tips Card */}
+          <TravelerTipsCard data={travelerTipsData} isLoading={travelerTipsLoading} />
 
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
