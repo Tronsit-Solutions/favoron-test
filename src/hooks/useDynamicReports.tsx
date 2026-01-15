@@ -150,12 +150,16 @@ export const useDynamicReports = (months: number = 12) => {
     }).length;
     accumulatedUsers = usersBeforeFirstMonth;
 
+    // Use exact total from countsData for accurate accumulated users
+    const exactTotalUsers = countsData?.totalUsers ?? usersData.length;
+
     for (let i = monthsToProcess - 1; i >= 0; i--) {
       const monthDate = subMonths(now, i);
       const monthStart = startOfMonth(monthDate);
       const monthEnd = endOfMonth(monthDate);
       const monthKey = format(monthDate, 'yyyy-MM');
       const monthLabel = format(monthDate, 'MMM yy', { locale: es });
+      const isCurrentMonth = i === 0;
 
       // Users for this month
       const monthUsers = usersData.filter(u => {
@@ -164,6 +168,9 @@ export const useDynamicReports = (months: number = 12) => {
       });
       const newUsers = monthUsers.length;
       accumulatedUsers += newUsers;
+      
+      // For the current month, use exact count from database to ensure accuracy
+      const displayAccumulatedUsers = isCurrentMonth ? exactTotalUsers : accumulatedUsers;
 
       // Packages for this month
       const monthPackages = packagesData.filter(p => {
@@ -220,7 +227,7 @@ export const useDynamicReports = (months: number = 12) => {
         month: monthKey,
         monthLabel,
         newUsers,
-        accumulatedUsers,
+        accumulatedUsers: displayAccumulatedUsers,
         totalPackages,
         completedPackages,
         pendingPackages,
