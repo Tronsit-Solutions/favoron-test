@@ -4,9 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 export type AcquisitionSource = 
-  | 'instagram_facebook_ads' // Histórico - mantener por compatibilidad
-  | 'instagram_ads'
-  | 'facebook_ads'
+  | 'instagram_facebook_ads' // Meta Ads (Instagram/Facebook unificado)
   | 'tiktok'
   | 'reels'
   | 'friend_referral'
