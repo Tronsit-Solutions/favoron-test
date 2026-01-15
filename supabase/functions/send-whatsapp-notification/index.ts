@@ -329,6 +329,12 @@ serve(async (req) => {
         }
       }
     }
+    
+    // If no name from profile, try to get it from variables (for test messages)
+    if (!userFullName && variables?.["1"]) {
+      userFullName = variables["1"];
+      console.log("👤 User name from variables:", userFullName);
+    }
 
     if (!targetPhone) {
       await logNotification(
