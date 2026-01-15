@@ -28,7 +28,10 @@ import {
   Phone,
   User,
   TestTube,
-  Zap
+  Zap,
+  Plus,
+  X,
+  Edit2
 } from 'lucide-react';
 import { useWhatsAppLogs, WhatsAppLog } from '@/hooks/useWhatsAppLogs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -129,6 +132,8 @@ const AdminWhatsApp = () => {
   const [whitelist, setWhitelist] = useState<string[]>([]);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [togglingMode, setTogglingMode] = useState(false);
+  const [newNumber, setNewNumber] = useState('');
+  const [editingWhitelist, setEditingWhitelist] = useState(false);
 
   // Load testing mode config
   useEffect(() => {
@@ -180,6 +185,66 @@ const AdminWhatsApp = () => {
       toast.error('Error al cambiar el modo');
     } finally {
       setTogglingMode(false);
+    }
+  };
+
+  // Add number to whitelist
+  const addNumberToWhitelist = async () => {
+    const trimmed = newNumber.trim();
+    if (!trimmed) return;
+    
+    // Ensure it starts with +
+    const formattedNumber = trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
+    
+    if (whitelist.includes(formattedNumber)) {
+      toast.error('Este número ya está en la lista');
+      return;
+    }
+    
+    const newWhitelist = [...whitelist, formattedNumber];
+    
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ 
+          value: { enabled: testingMode, whitelist: newWhitelist },
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        })
+        .eq('key', 'whatsapp_testing_mode');
+      
+      if (error) throw error;
+      
+      setWhitelist(newWhitelist);
+      setNewNumber('');
+      toast.success(`Número ${formattedNumber} agregado`);
+    } catch (err) {
+      console.error('Error adding number:', err);
+      toast.error('Error al agregar número');
+    }
+  };
+
+  // Remove number from whitelist
+  const removeNumberFromWhitelist = async (numberToRemove: string) => {
+    const newWhitelist = whitelist.filter(n => n !== numberToRemove);
+    
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ 
+          value: { enabled: testingMode, whitelist: newWhitelist },
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        })
+        .eq('key', 'whatsapp_testing_mode');
+      
+      if (error) throw error;
+      
+      setWhitelist(newWhitelist);
+      toast.success(`Número ${numberToRemove} eliminado`);
+    } catch (err) {
+      console.error('Error removing number:', err);
+      toast.error('Error al eliminar número');
     }
   };
 
@@ -289,7 +354,7 @@ const AdminWhatsApp = () => {
               : 'border-green-300 bg-green-50/50'
           }`}>
             <CardContent className="py-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   {testingMode ? (
                     <TestTube className="h-6 w-6 text-yellow-600" />
@@ -302,7 +367,7 @@ const AdminWhatsApp = () => {
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {testingMode 
-                        ? `Solo envía a: ${whitelist.join(', ') || 'Ningún número configurado'}`
+                        ? "Solo envía a números en la lista blanca"
                         : "Enviando a todos los usuarios con WhatsApp habilitado"
                       }
                     </p>
@@ -319,6 +384,80 @@ const AdminWhatsApp = () => {
                   />
                 </div>
               </div>
+
+              {/* Whitelist Editor - Only show in testing mode */}
+              {testingMode && (
+                <div className="pt-3 border-t border-yellow-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-yellow-800">
+                      Números permitidos ({whitelist.length})
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingWhitelist(!editingWhitelist)}
+                      className="text-yellow-700 hover:text-yellow-900 hover:bg-yellow-100"
+                    >
+                      <Edit2 className="h-4 w-4 mr-1" />
+                      {editingWhitelist ? 'Cerrar' : 'Editar'}
+                    </Button>
+                  </div>
+                  
+                  {/* Current whitelist */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {whitelist.length === 0 ? (
+                      <span className="text-sm text-yellow-600 italic">
+                        No hay números configurados
+                      </span>
+                    ) : (
+                      whitelist.map((number) => (
+                        <Badge 
+                          key={number} 
+                          variant="secondary"
+                          className="bg-yellow-100 text-yellow-800 border-yellow-300 flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          {number}
+                          {editingWhitelist && (
+                            <button
+                              onClick={() => removeNumberFromWhitelist(number)}
+                              className="ml-1 hover:text-red-600 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add new number form */}
+                  {editingWhitelist && (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="+502 1234 5678"
+                        value={newNumber}
+                        onChange={(e) => setNewNumber(e.target.value)}
+                        className="flex-1 bg-white border-yellow-300 focus:border-yellow-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addNumberToWhitelist();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={addNumberToWhitelist}
+                        disabled={!newNumber.trim()}
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Agregar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
