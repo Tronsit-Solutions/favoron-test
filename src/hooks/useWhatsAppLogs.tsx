@@ -157,13 +157,22 @@ export const useWhatsAppLogs = (options: UseWhatsAppLogsOptions = {}) => {
 
   const resendNotification = useCallback(async (log: WhatsAppLog) => {
     try {
+      // Build request body - if user_id exists, let edge function fetch updated phone from profile
+      const body: Record<string, unknown> = {
+        template_id: log.template_id,
+        variables: log.template_variables || {}
+      };
+      
+      if (log.user_id) {
+        body.user_id = log.user_id;
+        // Don't include phone_number - edge function will fetch corrected number from profile
+      } else {
+        // Only use log's phone_number if no user_id available
+        body.phone_number = log.phone_number;
+      }
+
       const { data, error } = await supabase.functions.invoke('send-whatsapp-notification', {
-        body: {
-          user_id: log.user_id,
-          phone_number: log.phone_number,
-          template_id: log.template_id,
-          variables: log.template_variables || {}
-        }
+        body
       });
 
       if (error) throw error;
