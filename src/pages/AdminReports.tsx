@@ -2,9 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BarChart3, TrendingUp } from "lucide-react";
+import { ArrowLeft, BarChart3, TrendingUp, Calculator } from "lucide-react";
 import MonthlyReportsTab from "@/components/admin/MonthlyReportsTab";
 import { DynamicReportsTab } from "@/components/admin/DynamicReportsTab";
+import { CACAnalysisTab } from "@/components/admin/cac/CACAnalysisTab";
 
 const AdminReports = () => {
   const navigate = useNavigate();
@@ -34,19 +35,27 @@ const AdminReports = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="dynamic" className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className="grid w-full max-w-lg grid-cols-3">
               <TabsTrigger value="dynamic" className="gap-2">
                 <TrendingUp className="h-4 w-4" />
-                Dashboard Dinámico
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="cac" className="gap-2">
+                <Calculator className="h-4 w-4" />
+                Análisis CAC
               </TabsTrigger>
               <TabsTrigger value="monthly" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Reportes Mensuales
+                Mensuales
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="dynamic">
               <DynamicReportsTab />
+            </TabsContent>
+
+            <TabsContent value="cac">
+              <CACAnalysisTab />
             </TabsContent>
 
             <TabsContent value="monthly">
