@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RequireAdmin } from '@/components/auth/RequireAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
@@ -25,11 +26,14 @@ import {
   Eye,
   MessageCircle,
   Phone,
-  User
+  User,
+  TestTube,
+  Zap
 } from 'lucide-react';
 import { useWhatsAppLogs, WhatsAppLog } from '@/hooks/useWhatsAppLogs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const TEMPLATE_OPTIONS = [
   { value: 'all', label: 'Todos los templates' },
@@ -119,6 +123,65 @@ const AdminWhatsApp = () => {
   // Detail modal
   const [selectedLog, setSelectedLog] = useState<WhatsAppLog | null>(null);
   const [resending, setResending] = useState<string | null>(null);
+  
+  // Testing mode state
+  const [testingMode, setTestingMode] = useState(true);
+  const [whitelist, setWhitelist] = useState<string[]>([]);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [togglingMode, setTogglingMode] = useState(false);
+
+  // Load testing mode config
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'whatsapp_testing_mode')
+          .single();
+        
+        if (data?.value && typeof data.value === 'object') {
+          const config = data.value as { enabled?: boolean; whitelist?: string[] };
+          setTestingMode(config.enabled ?? true);
+          setWhitelist(config.whitelist ?? []);
+        }
+      } catch (err) {
+        console.error('Error loading testing config:', err);
+      } finally {
+        setLoadingConfig(false);
+      }
+    };
+    loadConfig();
+  }, []);
+
+  // Toggle testing mode
+  const toggleTestingMode = async () => {
+    setTogglingMode(true);
+    try {
+      const newValue = !testingMode;
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ 
+          value: { enabled: newValue, whitelist },
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id
+        })
+        .eq('key', 'whatsapp_testing_mode');
+      
+      if (error) throw error;
+      
+      setTestingMode(newValue);
+      toast.success(newValue 
+        ? '🧪 Modo de prueba activado - Solo números en whitelist' 
+        : '🚀 Modo producción activado - Enviando a todos los usuarios'
+      );
+    } catch (err) {
+      console.error('Error toggling testing mode:', err);
+      toast.error('Error al cambiar el modo');
+    } finally {
+      setTogglingMode(false);
+    }
+  };
 
   const { logs, stats, loading, hasMore, loadMore, refresh, resendNotification } = useWhatsAppLogs({
     statusFilter,
@@ -218,6 +281,46 @@ const AdminWhatsApp = () => {
               Actualizar
             </Button>
           </div>
+
+          {/* Testing Mode Toggle */}
+          <Card className={`mb-6 border-2 transition-colors ${
+            testingMode 
+              ? 'border-yellow-300 bg-yellow-50/50' 
+              : 'border-green-300 bg-green-50/50'
+          }`}>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {testingMode ? (
+                    <TestTube className="h-6 w-6 text-yellow-600" />
+                  ) : (
+                    <Zap className="h-6 w-6 text-green-600" />
+                  )}
+                  <div>
+                    <h3 className="font-semibold">
+                      {testingMode ? "🧪 Modo de Prueba" : "🚀 Modo Producción"}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {testingMode 
+                        ? `Solo envía a: ${whitelist.join(', ') || 'Ningún número configurado'}`
+                        : "Enviando a todos los usuarios con WhatsApp habilitado"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {testingMode ? 'Prueba' : 'Producción'}
+                  </span>
+                  <Switch
+                    checked={!testingMode}
+                    onCheckedChange={() => toggleTestingMode()}
+                    disabled={loadingConfig || togglingMode}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Stats cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

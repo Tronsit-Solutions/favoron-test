@@ -6,13 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Template SIDs mapping - add more templates here as they get approved
-// 🧪 TESTING MODE - Solo enviar a números en whitelist
-const TESTING_MODE = true;
-const ALLOWED_TEST_NUMBERS = [
-  "+34699591457", // Número de prueba autorizado
-];
-
 const TEMPLATE_SIDS: Record<string, string | undefined> = {
   welcome: Deno.env.get("TWILIO_CONTENT_SID_WELCOME"),
   welcome_v2: Deno.env.get("TWILIO_CONTENT_SID_WELCOME_V2"),
@@ -21,11 +14,43 @@ const TEMPLATE_SIDS: Record<string, string | undefined> = {
   package_assigned: Deno.env.get("TWILIO_CONTENT_SID_PACKAGE_ASSIGNED"),
 };
 
+// Get testing mode configuration from database
+interface TestingConfig {
+  enabled: boolean;
+  whitelist: string[];
+}
+
+const getTestingConfig = async (): Promise<TestingConfig> => {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'whatsapp_testing_mode')
+      .single();
+
+    if (error || !data) {
+      console.log("⚠️ No testing config found, defaulting to TESTING_MODE = true");
+      return { enabled: true, whitelist: [] };
+    }
+
+    const config = data.value as TestingConfig;
+    console.log("🔧 Testing config loaded:", config);
+    return config;
+  } catch (err) {
+    console.error("❌ Error loading testing config:", err);
+    return { enabled: true, whitelist: [] };
+  }
+};
+
 // Verificar si el número está en la whitelist
-const isNumberAllowed = (phone: string): boolean => {
-  if (!TESTING_MODE) return true;
+const isNumberAllowed = (phone: string, config: TestingConfig): boolean => {
+  if (!config.enabled) return true;
   const normalized = normalizePhoneNumber(phone);
-  return ALLOWED_TEST_NUMBERS.some(allowed => 
+  return config.whitelist.some(allowed => 
     normalized === allowed || normalized.replace(/\s/g, '') === allowed
   );
 };
@@ -197,6 +222,9 @@ serve(async (req) => {
 
     console.log("📱 WhatsApp notification request:", { user_id, phone_number, template_id, variables });
 
+    // Load testing mode configuration from database
+    const testingConfig = await getTestingConfig();
+
     // Handle legacy API calls gracefully
     if (!template_id) {
       console.log("⏭️ Legacy API call detected (no template_id), skipping");
@@ -357,7 +385,7 @@ serve(async (req) => {
     }
 
     // Check testing mode whitelist
-    if (!isNumberAllowed(targetPhone)) {
+    if (!isNumberAllowed(targetPhone, testingConfig)) {
       console.log("⏭️ Testing mode: Número no está en whitelist:", targetPhone);
       const skipReason = `Testing mode: solo se permite enviar a números autorizados`;
       await logNotification(
@@ -371,7 +399,7 @@ serve(async (req) => {
         null,
         null,
         skipReason,
-        { testing_mode: true, allowed_numbers: ALLOWED_TEST_NUMBERS }
+        { testing_mode: true, allowed_numbers: testingConfig.whitelist }
       );
       return new Response(
         JSON.stringify({ 
