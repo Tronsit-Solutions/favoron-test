@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Users, Home, FileText, Shield, Sparkles, Settings, Eye, UserCog, Package } from "lucide-react";
+import { LogOut, User, Users, Home, FileText, Shield, Sparkles, Settings, Eye, UserCog, Package, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -93,6 +93,19 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             >
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Operaciones</span>
+            </Button>
+          )}
+          
+          {/* Botón de WhatsApp para admins */}
+          {user.role === 'admin' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/admin/whatsapp')}
+              className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
           )}
           
