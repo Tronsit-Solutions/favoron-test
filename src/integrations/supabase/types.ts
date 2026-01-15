@@ -1229,6 +1229,54 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_notification_logs: {
+        Row: {
+          created_at: string | null
+          error_code: number | null
+          error_message: string | null
+          id: string
+          phone_number: string
+          response_data: Json | null
+          skip_reason: string | null
+          status: string
+          template_id: string
+          template_variables: Json | null
+          twilio_sid: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_code?: number | null
+          error_message?: string | null
+          id?: string
+          phone_number: string
+          response_data?: Json | null
+          skip_reason?: string | null
+          status?: string
+          template_id: string
+          template_variables?: Json | null
+          twilio_sid?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_code?: number | null
+          error_message?: string | null
+          id?: string
+          phone_number?: string
+          response_data?: Json | null
+          skip_reason?: string | null
+          status?: string
+          template_id?: string
+          template_variables?: Json | null
+          twilio_sid?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

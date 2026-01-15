@@ -33,9 +33,8 @@ const isNumberAllowed = (phone: string): boolean => {
 interface WhatsAppTemplateRequest {
   user_id?: string;
   phone_number?: string;
-  template_id?: string; // Optional - if not provided, will skip gracefully
+  template_id?: string;
   variables?: Record<string, string>;
-  // Legacy fields (for backwards compatibility - will be skipped)
   title?: string;
   message?: string;
   type?: string;
@@ -44,12 +43,9 @@ interface WhatsAppTemplateRequest {
 
 // Normalize phone number to E.164 format
 const normalizePhoneNumber = (phone: string): string => {
-  // Remove all non-digit characters except +
   let cleaned = phone.replace(/[^\d+]/g, "");
   
-  // Ensure it starts with +
   if (!cleaned.startsWith("+")) {
-    // Assume Guatemala if 8 digits
     if (cleaned.length === 8) {
       cleaned = "+502" + cleaned;
     } else if (cleaned.startsWith("502") && cleaned.length === 11) {
@@ -60,6 +56,49 @@ const normalizePhoneNumber = (phone: string): string => {
   }
   
   return cleaned;
+};
+
+// Log notification to database
+const logNotification = async (
+  userId: string | null,
+  phoneNumber: string,
+  userName: string | null,
+  templateId: string,
+  variables: Record<string, string>,
+  status: 'sent' | 'failed' | 'skipped',
+  twilioSid: string | null,
+  errorMessage: string | null,
+  errorCode: number | null,
+  skipReason: string | null,
+  responseData: any
+) => {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    const { error } = await supabase.from('whatsapp_notification_logs').insert({
+      user_id: userId,
+      phone_number: phoneNumber,
+      user_name: userName,
+      template_id: templateId,
+      template_variables: variables,
+      status,
+      twilio_sid: twilioSid,
+      error_message: errorMessage,
+      error_code: errorCode,
+      skip_reason: skipReason,
+      response_data: responseData
+    });
+
+    if (error) {
+      console.error("❌ Error logging notification:", error);
+    } else {
+      console.log("📝 Notification logged:", { status, templateId, phoneNumber: phoneNumber.slice(0, 8) + '...' });
+    }
+  } catch (err) {
+    console.error("❌ Failed to log notification:", err);
+  }
 };
 
 // Send WhatsApp using Content Template API
@@ -96,8 +135,6 @@ const sendWhatsAppTemplate = async (
     ContentSid: contentSid,
   });
 
-  // Only include ContentVariables if the object has keys (non-empty)
-  // Twilio error 21656 occurs when sending variables to templates that don't expect them
   if (contentVariables && Object.keys(contentVariables).length > 0) {
     body.append('ContentVariables', JSON.stringify(contentVariables));
     console.log(`📝 ContentVariables included: ${JSON.stringify(contentVariables)}`);
@@ -151,7 +188,6 @@ const getTwilioErrorMessage = (errorCode: number, defaultMessage: string): strin
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -161,14 +197,9 @@ serve(async (req) => {
 
     console.log("📱 WhatsApp notification request:", { user_id, phone_number, template_id, variables });
 
-    // Handle legacy API calls gracefully (without template_id)
-    // These are calls that haven't been migrated yet - skip them without error
+    // Handle legacy API calls gracefully
     if (!template_id) {
-      console.log("⏭️ Legacy API call detected (no template_id), skipping:", { 
-        user_id, 
-        title: (req as any).title,
-        type: (req as any).type 
-      });
+      console.log("⏭️ Legacy API call detected (no template_id), skipping");
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -183,6 +214,19 @@ serve(async (req) => {
     const contentSid = TEMPLATE_SIDS[template_id];
     if (!contentSid) {
       console.error("❌ Template not found:", template_id);
+      await logNotification(
+        user_id || null,
+        phone_number || 'unknown',
+        null,
+        template_id,
+        variables || {},
+        'failed',
+        null,
+        `Template '${template_id}' not configured`,
+        null,
+        null,
+        null
+      );
       return new Response(
         JSON.stringify({ success: false, error: `Template '${template_id}' not configured` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -206,13 +250,25 @@ serve(async (req) => {
 
       if (profileError || !profile) {
         console.error("❌ Could not get user profile:", profileError);
+        await logNotification(
+          user_id,
+          phone_number || 'unknown',
+          null,
+          template_id,
+          variables || {},
+          'failed',
+          null,
+          "User profile not found",
+          null,
+          null,
+          null
+        );
         return new Response(
           JSON.stringify({ success: false, error: "User profile not found" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Extract user's full name for template variables
       if (profile.first_name) {
         userFullName = profile.last_name 
           ? `${profile.first_name} ${profile.last_name}`
@@ -223,23 +279,49 @@ serve(async (req) => {
       // Check if user has WhatsApp notifications enabled
       if (profile.whatsapp_notifications === false) {
         console.log("⏭️ WhatsApp notifications disabled for user:", user_id);
+        const skipReason = "WhatsApp notifications disabled by user";
+        await logNotification(
+          user_id,
+          profile.phone_number || phone_number || 'unknown',
+          userFullName,
+          template_id,
+          variables || {},
+          'skipped',
+          null,
+          null,
+          null,
+          skipReason,
+          null
+        );
         return new Response(
-          JSON.stringify({ success: true, skipped: true, reason: "WhatsApp notifications disabled" }),
+          JSON.stringify({ success: true, skipped: true, reason: skipReason }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Only use profile phone if no direct phone_number was provided
       if (!targetPhone) {
         if (!profile.phone_number) {
           console.log("⏭️ No phone number for user:", user_id);
+          const skipReason = "User has no phone number";
+          await logNotification(
+            user_id,
+            'unknown',
+            userFullName,
+            template_id,
+            variables || {},
+            'skipped',
+            null,
+            null,
+            null,
+            skipReason,
+            null
+          );
           return new Response(
-            JSON.stringify({ success: false, error: "User has no phone number" }),
+            JSON.stringify({ success: false, error: skipReason }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        // Combine country code and phone number if both exist
         if (profile.country_code && profile.phone_number) {
           targetPhone = `${profile.country_code}${profile.phone_number}`;
         } else {
@@ -249,21 +331,47 @@ serve(async (req) => {
     }
 
     if (!targetPhone) {
+      await logNotification(
+        user_id || null,
+        'unknown',
+        userFullName,
+        template_id,
+        variables || {},
+        'failed',
+        null,
+        "No phone number provided",
+        null,
+        null,
+        null
+      );
       return new Response(
         JSON.stringify({ success: false, error: "No phone number provided" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 🧪 Verificar whitelist en modo testing
+    // Check testing mode whitelist
     if (!isNumberAllowed(targetPhone)) {
       console.log("⏭️ Testing mode: Número no está en whitelist:", targetPhone);
-      console.log("🧪 Números permitidos:", ALLOWED_TEST_NUMBERS);
+      const skipReason = `Testing mode: solo se permite enviar a números autorizados`;
+      await logNotification(
+        user_id || null,
+        targetPhone,
+        userFullName,
+        template_id,
+        variables || {},
+        'skipped',
+        null,
+        null,
+        null,
+        skipReason,
+        { testing_mode: true, allowed_numbers: ALLOWED_TEST_NUMBERS }
+      );
       return new Response(
         JSON.stringify({ 
           success: true, 
           skipped: true, 
-          reason: `Testing mode: solo se permite enviar a números autorizados`,
+          reason: skipReason,
           targetPhone: targetPhone
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -273,21 +381,30 @@ serve(async (req) => {
     console.log("✅ Número autorizado para envío:", targetPhone);
 
     // Enrich variables with user's name automatically
-    // Variable "1" is used for the user's name in most templates
     const enrichedVariables: Record<string, string> = {};
-    
-    // Set user's name as variable "1" if we have it
     if (userFullName) {
       enrichedVariables["1"] = userFullName;
     }
-    
-    // Merge with explicitly passed variables (explicit ones take precedence)
     const finalVariables = { ...enrichedVariables, ...(variables || {}) };
-    
     console.log("📝 Final template variables:", finalVariables);
 
     // Send the WhatsApp template message
     const result = await sendWhatsAppTemplate(targetPhone, contentSid, finalVariables);
+
+    // Log the result
+    await logNotification(
+      user_id || null,
+      targetPhone,
+      userFullName,
+      template_id,
+      finalVariables,
+      result.success ? 'sent' : 'failed',
+      result.data?.sid || null,
+      result.success ? null : result.error || null,
+      result.success ? null : result.errorCode || null,
+      null,
+      result.data || null
+    );
 
     if (!result.success) {
       return new Response(
