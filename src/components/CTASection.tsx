@@ -1,34 +1,17 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Check, Plane } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { usePublicStats } from "@/hooks/usePublicStats";
+
 interface CTASectionProps {
   onOpenAuth: (mode: "login" | "register") => void;
 }
+
 const CTASection = ({
   onOpenAuth
 }: CTASectionProps) => {
-  // Historical users as base
-  const HISTORICAL_USERS = 188;
-  
-  const [totalUsers, setTotalUsers] = useState(HISTORICAL_USERS);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_public_stats');
-        if (error) throw error;
-        if (data && data.length > 0) {
-          setTotalUsers(HISTORICAL_USERS + (data[0].total_users || 0));
-        }
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        setTotalUsers(HISTORICAL_USERS);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  // Reuse the cached stats hook instead of fetching separately
+  const { stats } = usePublicStats();
+  const totalUsers = stats.total_users;
 
   return (
     <section className="relative py-20 bg-gradient-to-br from-shopper via-traveler to-primary overflow-hidden animate-fade-in">

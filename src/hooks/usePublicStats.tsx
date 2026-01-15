@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 export interface PublicStats {
   total_users: number;
@@ -10,12 +9,12 @@ export interface PublicStats {
 }
 
 export const usePublicStats = () => {
-  // Historical values as fallbacks
-  const FALLBACK_STATS = {
-    total_users: 188,
-    total_trips: 110,
-    total_packages_completed: 202,
-    total_tips_distributed: 30000
+  // Fallback values in case the cached stats can't be loaded
+  const FALLBACK_STATS: PublicStats = {
+    total_users: 1255,
+    total_trips: 220,
+    total_packages_completed: 520,
+    total_tips_distributed: 85000
   };
 
   const CACHE_KEY = 'public_stats_cache';
@@ -74,24 +73,25 @@ export const usePublicStats = () => {
 
     try {
       setFetching(true);
-      console.log('📊 Fetching public stats from database');
+      console.log('📊 Fetching cached public stats from database');
       
-      const { data, error } = await supabase.rpc('get_public_stats');
+      // Use the fast cached function instead of counting records
+      const { data, error } = await supabase.rpc('get_cached_public_stats');
 
       if (error) {
         throw error;
       }
 
       if (data && data.length > 0) {
-        const newStats = data[0];
-        const finalStats = {
-          total_users: FALLBACK_STATS.total_users + (Number(newStats.total_users) || 0),
-          total_trips: FALLBACK_STATS.total_trips + (Number(newStats.total_trips) || 0),
-          total_packages_completed: FALLBACK_STATS.total_packages_completed + (Number(newStats.total_packages_completed) || 0),
-          total_tips_distributed: FALLBACK_STATS.total_tips_distributed + (Number(newStats.total_tips_distributed) || 0)
+        // Values from the snapshot already include historical data
+        const finalStats: PublicStats = {
+          total_users: Number(data[0].total_users) || FALLBACK_STATS.total_users,
+          total_trips: Number(data[0].total_trips) || FALLBACK_STATS.total_trips,
+          total_packages_completed: Number(data[0].total_packages_completed) || FALLBACK_STATS.total_packages_completed,
+          total_tips_distributed: Number(data[0].total_tips_distributed) || FALLBACK_STATS.total_tips_distributed
         };
         
-        console.log('✅ Public stats fetched successfully');
+        console.log('✅ Cached public stats loaded successfully');
         setStats(finalStats);
         setCachedStats(finalStats);
         setError(null);
