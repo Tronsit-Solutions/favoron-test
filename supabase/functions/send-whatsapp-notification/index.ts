@@ -304,13 +304,27 @@ serve(async (req) => {
       }
       console.log("👤 User name extracted:", userFullName);
 
+      // Build the full phone number FIRST (before any checks that might skip/return)
+      if (!targetPhone && profile.phone_number) {
+        if (profile.country_code) {
+          targetPhone = `${profile.country_code}${profile.phone_number}`;
+        } else {
+          targetPhone = profile.phone_number;
+        }
+        console.log("📞 Phone number construction:", {
+          profilePhone: profile.phone_number,
+          countryCode: profile.country_code,
+          fullNumber: targetPhone
+        });
+      }
+
       // Check if user has WhatsApp notifications enabled
       if (profile.whatsapp_notifications === false) {
         console.log("⏭️ WhatsApp notifications disabled for user:", user_id);
         const skipReason = "WhatsApp notifications disabled by user";
         await logNotification(
           user_id,
-          profile.phone_number || phone_number || 'unknown',
+          targetPhone || phone_number || 'unknown',
           userFullName,
           template_id,
           variables || {},
@@ -328,33 +342,25 @@ serve(async (req) => {
       }
 
       if (!targetPhone) {
-        if (!profile.phone_number) {
-          console.log("⏭️ No phone number for user:", user_id);
-          const skipReason = "User has no phone number";
-          await logNotification(
-            user_id,
-            'unknown',
-            userFullName,
-            template_id,
-            variables || {},
-            'skipped',
-            null,
-            null,
-            null,
-            skipReason,
-            null
-          );
-          return new Response(
-            JSON.stringify({ success: false, error: skipReason }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        if (profile.country_code && profile.phone_number) {
-          targetPhone = `${profile.country_code}${profile.phone_number}`;
-        } else {
-          targetPhone = profile.phone_number;
-        }
+        console.log("⏭️ No phone number for user:", user_id);
+        const skipReason = "User has no phone number";
+        await logNotification(
+          user_id,
+          'unknown',
+          userFullName,
+          template_id,
+          variables || {},
+          'skipped',
+          null,
+          null,
+          null,
+          skipReason,
+          null
+        );
+        return new Response(
+          JSON.stringify({ success: false, error: skipReason }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
     
