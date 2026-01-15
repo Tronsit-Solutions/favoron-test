@@ -306,16 +306,24 @@ serve(async (req) => {
 
       // Build the full phone number FIRST (before any checks that might skip/return)
       if (!targetPhone && profile.phone_number) {
-        if (profile.country_code) {
-          targetPhone = `${profile.country_code}${profile.phone_number}`;
-        } else {
+        // Check if phone already has country code (starts with +)
+        if (profile.phone_number.startsWith('+')) {
+          // Phone already has country code, use as-is
           targetPhone = profile.phone_number;
+          console.log("📞 Phone already has country code:", targetPhone);
+        } else if (profile.country_code) {
+          // Phone doesn't have + prefix, add country code
+          targetPhone = `${profile.country_code}${profile.phone_number}`;
+          console.log("📞 Phone number construction:", {
+            profilePhone: profile.phone_number,
+            countryCode: profile.country_code,
+            fullNumber: targetPhone
+          });
+        } else {
+          // No country code available, use phone as-is (normalizePhoneNumber will handle it)
+          targetPhone = profile.phone_number;
+          console.log("📞 Phone without country code:", targetPhone);
         }
-        console.log("📞 Phone number construction:", {
-          profilePhone: profile.phone_number,
-          countryCode: profile.country_code,
-          fullNumber: targetPhone
-        });
       }
 
       // Check if user has WhatsApp notifications enabled
