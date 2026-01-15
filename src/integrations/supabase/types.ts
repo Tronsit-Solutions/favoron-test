@@ -434,6 +434,47 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_investments: {
+        Row: {
+          channel: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          investment: number
+          month: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          investment?: number
+          month: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          investment?: number
+          month?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_investments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
