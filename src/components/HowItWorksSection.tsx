@@ -31,7 +31,7 @@ const HowItWorksSection = () => {
                   <Package className="h-8 w-8" />
                 </div>
                 <span className="bg-gradient-to-r from-shopper to-shopper/80 bg-clip-text text-transparent font-bold">
-                  Para Compradores
+                  Para Shoppers
                 </span>
               </CardTitle>
               <p className="text-muted-foreground mt-2">Consigue productos del extranjero fácil y rápido</p>
@@ -39,10 +39,10 @@ const HowItWorksSection = () => {
             <CardContent className="space-y-6 relative">
               {[
                 { icon: Search, title: "Crea tu solicitud", desc: "Describe el producto que necesitas y de dónde lo quieres" },
-                { icon: Star, title: "Te emparejamos", desc: "Conectamos tu solicitud con viajeros verificados" },
-                { icon: DollarSign, title: "Recibe cotización", desc: "El viajero te envía el precio y detalles transparentes" },
+                { icon: Star, title: "Te conectamos", desc: "Te conectamos con un viajero de confianza" },
+                { icon: DollarSign, title: "Recibe cotización", desc: "El viajero te envía cotización y detalles por el Favorón" },
                 { icon: ShoppingCart, title: "Realizas la compra", desc: "Compras el producto y lo envías a la dirección del viajero" },
-                { icon: Truck, title: "Retira en oficina", desc: "Recoge tu producto en la oficina de Favoron" }
+                { icon: Truck, title: "Recibe tu producto", desc: "Retira en oficina o recibe a domicilio" }
               ].map((step, index) => (
                 <div key={index} className="flex items-start space-x-4 group">
                   <div className="flex-shrink-0">
