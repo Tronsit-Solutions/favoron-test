@@ -48,6 +48,18 @@ export interface GlobalKPIs {
   ltvCacRatio: number;
 }
 
+export interface MonthlyCAC {
+  month: string;
+  newUsers: number;
+  activeUsers: number;
+  monetizedUsers: number;
+  investment: number;
+  revenue: number;
+  cac: number;
+  ltv: number;
+  ltvCacRatio: number;
+}
+
 const CHANNEL_LABELS: Record<string, string> = {
   instagram_facebook_ads: "Meta Ads (FB/IG)",
   tiktok: "TikTok",
@@ -159,9 +171,9 @@ export const useCACAnalytics = (selectedMonth?: string) => {
   });
 
   // Process data to calculate CAC metrics
-  const { channelData, globalKPIs } = useMemo(() => {
+  const { channelData, globalKPIs, monthlyData } = useMemo(() => {
     if (!usersData || !packagesData) {
-      return { channelData: [], globalKPIs: getEmptyGlobalKPIs() };
+      return { channelData: [], globalKPIs: getEmptyGlobalKPIs(), monthlyData: [] };
     }
 
     // Create sets for active and monetized users
@@ -302,12 +314,84 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       ? globalKPIs.globalLTV / globalKPIs.globalCAC 
       : globalKPIs.globalLTV > 0 ? Infinity : 0;
 
-    return { channelData: result, globalKPIs };
+    // Calculate monthly data
+    const monthlyMap = new Map<string, {
+      newUsers: Set<string>;
+      activeUsers: Set<string>;
+      monetizedUsers: Set<string>;
+      revenue: number;
+    }>();
+
+    // Group users by registration month
+    usersData.forEach(user => {
+      if (!user.created_at) return;
+      const month = user.created_at.substring(0, 7); // YYYY-MM
+      
+      if (!monthlyMap.has(month)) {
+        monthlyMap.set(month, {
+          newUsers: new Set(),
+          activeUsers: new Set(),
+          monetizedUsers: new Set(),
+          revenue: 0,
+        });
+      }
+      
+      const data = monthlyMap.get(month)!;
+      data.newUsers.add(user.id);
+      
+      if (activeUserIds.has(user.id)) {
+        data.activeUsers.add(user.id);
+      }
+      
+      if (monetizedUserIds.has(user.id)) {
+        data.monetizedUsers.add(user.id);
+        data.revenue += userRevenue.get(user.id) || 0;
+      }
+    });
+
+    // Get investments by month (sum all channels)
+    const investmentsByMonth = new Map<string, number>();
+    if (investmentsData) {
+      investmentsData.forEach(inv => {
+        const current = investmentsByMonth.get(inv.month) || 0;
+        investmentsByMonth.set(inv.month, current + inv.investment);
+      });
+    }
+
+    // Build monthly data array
+    const monthlyData: MonthlyCAC[] = Array.from(monthlyMap.entries())
+      .map(([month, data]) => {
+        const newUsers = data.newUsers.size;
+        const activeUsers = data.activeUsers.size;
+        const monetizedUsers = data.monetizedUsers.size;
+        const investment = investmentsByMonth.get(month) || 0;
+        const revenue = data.revenue;
+        
+        const cac = monetizedUsers > 0 && investment > 0 ? investment / monetizedUsers : 0;
+        const ltv = monetizedUsers > 0 ? revenue / monetizedUsers : 0;
+        const ltvCacRatio = cac > 0 ? ltv / cac : ltv > 0 ? Infinity : 0;
+
+        return {
+          month,
+          newUsers,
+          activeUsers,
+          monetizedUsers,
+          investment,
+          revenue,
+          cac,
+          ltv,
+          ltvCacRatio,
+        };
+      })
+      .sort((a, b) => b.month.localeCompare(a.month)); // Most recent first
+
+    return { channelData: result, globalKPIs, monthlyData };
   }, [usersData, packagesData, investmentsData, selectedMonth]);
 
   return {
     channelData,
     globalKPIs,
+    monthlyData,
     investments: investmentsData || [],
     isLoading: usersLoading || packagesLoading || investmentsLoading,
     addInvestment,

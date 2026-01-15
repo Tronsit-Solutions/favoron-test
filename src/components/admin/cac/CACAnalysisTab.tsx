@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useCACAnalytics } from "@/hooks/useCACAnalytics";
 import { CACKPICards } from "./CACKPICards";
 import { CACTable } from "./CACTable";
+import { CACMonthlyTable } from "./CACMonthlyTable";
 import { InvestmentForm } from "./InvestmentForm";
 import { FunnelChart } from "./FunnelChart";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ export const CACAnalysisTab = () => {
   const {
     channelData,
     globalKPIs,
+    monthlyData,
     investments,
     isLoading,
     addInvestment,
@@ -59,6 +60,22 @@ export const CACAnalysisTab = () => {
         }))
       );
       XLSX.utils.book_append_sheet(wb, channelSheet, "Análisis por Canal");
+
+      // Monthly Data Sheet
+      const monthlySheet = XLSX.utils.json_to_sheet(
+        monthlyData.map((m) => ({
+          Mes: m.month,
+          "Nuevos Usuarios": m.newUsers,
+          Activos: m.activeUsers,
+          Monetizados: m.monetizedUsers,
+          "Tasa Conversión (%)": m.newUsers > 0 ? ((m.monetizedUsers / m.newUsers) * 100).toFixed(2) : "0",
+          "Inversión (Q)": m.investment.toFixed(2),
+          "CAC (Q)": m.cac.toFixed(2),
+          "LTV (Q)": m.ltv.toFixed(2),
+          "LTV/CAC": m.ltvCacRatio === Infinity ? "∞" : m.ltvCacRatio.toFixed(2),
+        }))
+      );
+      XLSX.utils.book_append_sheet(wb, monthlySheet, "Análisis Mensual");
 
       // Investments Sheet
       const investmentsSheet = XLSX.utils.json_to_sheet(
@@ -158,6 +175,19 @@ export const CACAnalysisTab = () => {
         </CardHeader>
         <CardContent>
           <CACTable data={channelData} />
+        </CardContent>
+      </Card>
+
+      {/* Monthly CAC Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Evolución Mensual de CAC</CardTitle>
+          <CardDescription>
+            Costo de adquisición por cohorte mensual de usuarios
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CACMonthlyTable data={monthlyData} />
         </CardContent>
       </Card>
 
