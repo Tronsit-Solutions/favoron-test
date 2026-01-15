@@ -863,6 +863,8 @@ export type Database = {
           banned_until: string | null
           country_code: string | null
           created_at: string | null
+          document_number: string | null
+          document_type: string | null
           email: string | null
           email_notification_preferences: Json | null
           email_notifications: boolean | null
@@ -891,6 +893,8 @@ export type Database = {
           banned_until?: string | null
           country_code?: string | null
           created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string | null
           email_notification_preferences?: Json | null
           email_notifications?: boolean | null
@@ -919,6 +923,8 @@ export type Database = {
           banned_until?: string | null
           country_code?: string | null
           created_at?: string | null
+          document_number?: string | null
+          document_type?: string | null
           email?: string | null
           email_notification_preferences?: Json | null
           email_notifications?: boolean | null
