@@ -660,27 +660,55 @@ const AdminMatchDialog = ({
                       </div>
                     </div>
 
-                    {/* Product Details */}
+                    {/* Product Details - Mostrar links de cada producto */}
                     <div className="space-y-2">
-                       {selectedPackage.item_link && (
-                         <div className="flex items-center space-x-2">
-                           <Package className="h-4 w-4 text-blue-600" />
-                           <div className="flex-1">
-                             <p className="text-xs text-blue-700">ENLACE DEL PRODUCTO</p>
-                             <a 
-                               href={selectedPackage.item_link}
+                      <div className="flex items-start space-x-2">
+                        <Package className="h-4 w-4 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs text-blue-700">PRODUCTOS ({fullPackage?.products_data?.length || 1})</p>
+                          
+                          {fullPackage?.products_data && Array.isArray(fullPackage.products_data) && fullPackage.products_data.length > 0 ? (
+                            <div className="space-y-2 mt-1">
+                              {fullPackage.products_data.map((product: any, index: number) => (
+                                <div key={index} className="flex items-center gap-2 text-sm">
+                                  <span className="font-medium text-blue-900 truncate flex-1">
+                                    {index + 1}. {product.itemDescription || product.item_description || 'Producto'}
+                                  </span>
+                                  {product.itemLink || product.item_link ? (
+                                    <a
+                                      href={product.itemLink || product.item_link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <ExternalLink className="h-3 w-3" />
+                                      Ver
+                                    </a>
+                                  ) : (
+                                    <span className="text-xs text-gray-400">Sin link</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : selectedPackage?.item_link ? (
+                            <a 
+                              href={selectedPackage.item_link}
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="font-medium text-sm text-blue-600 hover:underline truncate block"
+                              className="font-medium text-sm text-blue-600 hover:underline truncate block mt-1"
                             >
                               Ver producto
                             </a>
-                            <p className="text-xs text-blue-700 mt-1">
-                              Cantidad: {getTotalQuantity()} unidad{getTotalQuantity() !== 1 ? 'es' : ''}
-                            </p>
-                          </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 mt-1">Sin links de productos</p>
+                          )}
+                          
+                          <p className="text-xs text-blue-700 mt-1">
+                            Total: {getTotalQuantity()} unidad{getTotalQuantity() !== 1 ? 'es' : ''}
+                          </p>
                         </div>
-                      )}
+                      </div>
                        {selectedPackage.additional_notes && (
                          <div className="flex items-start space-x-2">
                            <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
