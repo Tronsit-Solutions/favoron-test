@@ -38,6 +38,73 @@ const TEMPLATE_OPTIONS = [
   { value: 'package_assigned', label: 'Package Assigned' }
 ];
 
+// Template content based on WHATSAPP_TEMPLATES.md
+const TEMPLATE_CONTENT: Record<string, string> = {
+  welcome_v2: `¡{{1}}, ya eres parte de Favoron!  🎉
+
+En Favoron puedes:
+
+🛒 Comprar productos de cualquier parte del mundo
+
+✈️ Ganar dinero extra en tus viajes
+
+Miles de usuarios ya confían en nosotros.
+
+Empieza ahora:👉 www.favoron.app
+
+_Este es un mensaje automático. No responder._`,
+
+  quote_received_v2: `¡Hola {{1}}! 🎉
+
+Has recibido una cotización para tu pedido.
+
+💰 Total: Q{{2}} 
+
+📦 Pedido: {{3}}
+
+Ingresa a tu dashboard para ver los detalles y aceptar:
+
+👉 www.favoron.app
+
+_Este es un mensaje automático. No responder._`,
+
+  package_assigned: `¡Hola {{1}}! 🎉
+
+Se te ha asignado un nuevo paquete para traer.
+
+📍 Destino: {{2}}
+
+💰 Propina: {{3}}
+
+Ingresa a tu dashboard para ver los detalles:
+
+👉 www.favoron.app
+
+_Este es un mensaje automático. No responder._`
+};
+
+// Function to render the message with variables substituted
+const renderMessage = (templateId: string, variables: Record<string, string> | null, userName?: string | null): string => {
+  const template = TEMPLATE_CONTENT[templateId];
+  if (!template) return `Template "${templateId}" no tiene contenido definido`;
+  
+  let message = template;
+  
+  // First substitute variable 1 with userName if available and not in variables
+  if (userName && (!variables || !variables["1"])) {
+    message = message.replace(/\{\{1\}\}/g, userName);
+  }
+  
+  // Then substitute all other variables
+  if (variables) {
+    Object.entries(variables).forEach(([key, value]) => {
+      message = message.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+    });
+  }
+  
+  return message;
+};
+
 const AdminWhatsApp = () => {
   const navigate = useNavigate();
   const { user, profile, userRole } = useAuth();
@@ -423,9 +490,26 @@ const AdminWhatsApp = () => {
                   )}
                 </div>
 
+                {/* Rendered Message Preview */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Mensaje Enviado</p>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <MessageCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans flex-1">
+                        {renderMessage(
+                          selectedLog.template_id, 
+                          selectedLog.template_variables as Record<string, string> | null,
+                          selectedLog.user_name
+                        )}
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+
                 {selectedLog.template_variables && Object.keys(selectedLog.template_variables).length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">Variables</p>
+                    <p className="text-sm text-muted-foreground mb-2">Variables (raw)</p>
                     <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">
                       {JSON.stringify(selectedLog.template_variables, null, 2)}
                     </pre>
