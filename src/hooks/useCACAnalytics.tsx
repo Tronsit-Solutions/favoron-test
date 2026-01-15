@@ -96,7 +96,9 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, acquisition_source, created_at');
+        .select('id, acquisition_source, created_at')
+        .order('created_at', { ascending: true })
+        .limit(10000);
       
       if (error) throw error;
       return data;
@@ -110,7 +112,9 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, user_id, status, quote, created_at');
+        .select('id, user_id, status, quote, created_at')
+        .order('created_at', { ascending: true })
+        .limit(20000);
       
       if (error) throw error;
       return data;
