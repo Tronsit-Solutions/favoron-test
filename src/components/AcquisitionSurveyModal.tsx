@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Instagram, Facebook, Music2, Video, Users, Search } from "lucide-react";
+import { Facebook, Music2, Video, Users, Search } from "lucide-react";
 import { useAcquisitionSurvey, AcquisitionSource } from "@/hooks/useAcquisitionSurvey";
 import { cn } from "@/lib/utils";
 
@@ -20,16 +20,10 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
 
   const surveyOptions = [
     {
-      value: 'instagram_ads' as AcquisitionSource,
-      label: 'Instagram',
-      icon: Instagram,
-      color: 'from-pink-500 to-purple-500'
-    },
-    {
-      value: 'facebook_ads' as AcquisitionSource,
-      label: 'Facebook',
+      value: 'instagram_facebook_ads' as AcquisitionSource,
+      label: 'Meta (Instagram/Facebook)',
       icon: Facebook,
-      color: 'from-blue-600 to-blue-400'
+      color: 'from-blue-600 to-pink-500'
     },
     {
       value: 'tiktok' as AcquisitionSource,

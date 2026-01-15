@@ -49,14 +49,20 @@ export interface GlobalKPIs {
 }
 
 const CHANNEL_LABELS: Record<string, string> = {
+  instagram_facebook_ads: "Meta Ads (FB/IG)",
   tiktok: "TikTok",
-  instagram_ads: "Instagram Ads",
-  facebook_ads: "Facebook Ads",
-  instagram_facebook_ads: "Instagram/Facebook Ads",
   friend_referral: "Referidos",
   reels: "Reels",
   other: "Otro",
   null: "Sin respuesta",
+};
+
+// Normaliza canales históricos de IG/FB al canal unificado Meta
+const normalizeChannel = (source: string | null): string => {
+  if (source === 'instagram_ads' || source === 'facebook_ads' || source === 'instagram_facebook_ads') {
+    return 'instagram_facebook_ads';
+  }
+  return source || 'null';
 };
 
 const PAID_STATUSES = [
@@ -191,7 +197,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
     // Initialize channels and count users
     usersData.forEach(user => {
-      const channel = user.acquisition_source || 'null';
+      const channel = normalizeChannel(user.acquisition_source);
       
       if (!channelMap.has(channel)) {
         channelMap.set(channel, {

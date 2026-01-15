@@ -33,10 +33,8 @@ interface InvestmentFormProps {
 }
 
 const CHANNELS = [
+  { value: "instagram_facebook_ads", label: "Meta Ads (FB/IG)" },
   { value: "tiktok", label: "TikTok" },
-  { value: "instagram_ads", label: "Instagram Ads" },
-  { value: "facebook_ads", label: "Facebook Ads" },
-  { value: "instagram_facebook_ads", label: "Instagram/Facebook Ads" },
   { value: "reels", label: "Reels" },
   { value: "friend_referral", label: "Referidos" },
   { value: "other", label: "Otro" },
