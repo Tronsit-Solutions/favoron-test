@@ -2,10 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BarChart3, TrendingUp, Calculator } from "lucide-react";
+import { ArrowLeft, BarChart3, TrendingUp, Calculator, Users } from "lucide-react";
 import MonthlyReportsTab from "@/components/admin/MonthlyReportsTab";
 import { DynamicReportsTab } from "@/components/admin/DynamicReportsTab";
 import { CACAnalysisTab } from "@/components/admin/cac/CACAnalysisTab";
+import { UserActivityTab } from "@/components/admin/UserActivityTab";
 
 const AdminReports = () => {
   const navigate = useNavigate();
@@ -35,23 +36,31 @@ const AdminReports = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="dynamic" className="space-y-6">
-            <TabsList className="grid w-full max-w-lg grid-cols-3">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4">
               <TabsTrigger value="dynamic" className="gap-2">
                 <TrendingUp className="h-4 w-4" />
-                Dashboard
+                <span className="hidden sm:inline">Dashboard</span>
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Actividad</span>
               </TabsTrigger>
               <TabsTrigger value="cac" className="gap-2">
                 <Calculator className="h-4 w-4" />
-                Análisis CAC
+                <span className="hidden sm:inline">CAC</span>
               </TabsTrigger>
               <TabsTrigger value="monthly" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Mensuales
+                <span className="hidden sm:inline">Mensuales</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="dynamic">
               <DynamicReportsTab />
+            </TabsContent>
+
+            <TabsContent value="activity">
+              <UserActivityTab />
             </TabsContent>
 
             <TabsContent value="cac">
