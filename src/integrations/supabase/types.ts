@@ -1676,6 +1676,18 @@ export type Database = {
           to_city: string
         }[]
       }
+      get_trip_with_traveler_info: {
+        Args: { trip_id: string }
+        Returns: {
+          arrival_date: string
+          delivery_date: string
+          from_city: string
+          id: string
+          to_city: string
+          traveler_name: string
+          user_id: string
+        }[]
+      }
       has_operations_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
