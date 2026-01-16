@@ -299,9 +299,10 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Package not found or permission denied');
 
       // Actualización optimista
       setPackages(prev => prev.map(pkg => (pkg.id === id ? { ...pkg, ...data } : pkg)));
