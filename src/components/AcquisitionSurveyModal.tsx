@@ -19,6 +19,7 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete, previewMode = false }: Acq
   const [selectedSource, setSelectedSource] = useState<AcquisitionSource | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [referrerName, setReferrerName] = useState('');
+  const [otherSource, setOtherSource] = useState('');
 
   const surveyOptions = [
     {
@@ -57,7 +58,11 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete, previewMode = false }: Acq
     if (!selectedSource) return;
 
     setIsSubmitting(true);
-    const result = await submitSurvey(selectedSource, referrerName || undefined);
+    
+    // Use otherSource when "other" is selected, otherwise use referrerName
+    const additionalInfo = selectedSource === 'other' ? otherSource : referrerName;
+    
+    const result = await submitSurvey(selectedSource, additionalInfo || undefined);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -129,6 +134,17 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete, previewMode = false }: Acq
                       placeholder="Nombre de quien te refirió (opcional)"
                       value={referrerName}
                       onChange={(e) => setReferrerName(e.target.value)}
+                      className="text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
+                {option.value === 'other' && isSelected && (
+                  <div className="ml-10 mt-1.5 animate-in slide-in-from-top-2">
+                    <Input
+                      placeholder="¿Cómo nos encontraste?"
+                      value={otherSource}
+                      onChange={(e) => setOtherSource(e.target.value)}
                       className="text-sm"
                       onClick={(e) => e.stopPropagation()}
                     />
