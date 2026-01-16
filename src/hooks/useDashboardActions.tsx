@@ -393,44 +393,45 @@ export const useDashboardActions = (
             // Original logic for other rejections (shoppers rejecting quotes)
             
             // Capture traveler info before clearing matched_trip_id
+            // Use RPC function to get traveler info (bypasses RLS for shopper access)
             let rejectedTravelerInfo = null;
             if (selectedPackage.matched_trip_id) {
-              // Try to find the trip in local state first
+              // First try to find the trip in local state (may have profiles loaded)
               let matchedTrip = trips.find(trip => trip.id === selectedPackage.matched_trip_id);
               
-              // If not found locally, try to fetch from database
-              if (!matchedTrip) {
-                try {
-                  const { data: tripData, error } = await supabase
-                    .from('trips')
-                    .select(`
-                      id, from_city, to_city, arrival_date, delivery_date, user_id,
-                      profiles (first_name, last_name, username)
-                    `)
-                    .eq('id', selectedPackage.matched_trip_id)
-                    .single();
-                  
-                  if (!error && tripData) {
-                    matchedTrip = tripData;
-                  }
-                } catch (e) {
-                  console.warn('Could not fetch rejected traveler info:', e);
-                }
-              }
-              
-              if (matchedTrip) {
+              if (matchedTrip && matchedTrip.profiles) {
+                // Use local data if available with profile info
                 const profile = matchedTrip.profiles;
                 rejectedTravelerInfo = {
                   trip_id: matchedTrip.id,
                   traveler_id: matchedTrip.user_id,
-                  traveler_name: profile ? 
-                    `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username : 
-                    'Desconocido',
+                  traveler_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || 'Desconocido',
                   arrival_date: matchedTrip.arrival_date,
                   delivery_date: matchedTrip.delivery_date,
                   from_city: matchedTrip.from_city,
                   to_city: matchedTrip.to_city,
                 };
+              } else {
+                // Use RPC function to get traveler info (SECURITY DEFINER bypasses RLS)
+                try {
+                  const { data: tripData, error } = await supabase
+                    .rpc('get_trip_with_traveler_info', { trip_id: selectedPackage.matched_trip_id });
+                  
+                  if (!error && tripData && tripData.length > 0) {
+                    const trip = tripData[0];
+                    rejectedTravelerInfo = {
+                      trip_id: trip.id,
+                      traveler_id: trip.user_id,
+                      traveler_name: trip.traveler_name || 'Desconocido',
+                      arrival_date: trip.arrival_date,
+                      delivery_date: trip.delivery_date,
+                      from_city: trip.from_city,
+                      to_city: trip.to_city,
+                    };
+                  }
+                } catch (e) {
+                  console.warn('Could not fetch rejected traveler info:', e);
+                }
               }
             }
             
