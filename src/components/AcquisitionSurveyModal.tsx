@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Facebook, Music2, Video, Users, Search } from "lucide-react";
 import { useAcquisitionSurvey, AcquisitionSource } from "@/hooks/useAcquisitionSurvey";
@@ -10,9 +11,10 @@ import { cn } from "@/lib/utils";
 interface AcquisitionSurveyModalProps {
   isOpen: boolean;
   onComplete: () => void;
+  previewMode?: boolean;
 }
 
-const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalProps) => {
+const AcquisitionSurveyModal = ({ isOpen, onComplete, previewMode = false }: AcquisitionSurveyModalProps) => {
   const { submitSurvey } = useAcquisitionSurvey();
   const [selectedSource, setSelectedSource] = useState<AcquisitionSource | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +71,12 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
         className="sm:max-w-[400px] max-h-[85vh] overflow-y-auto"
       >
         <DialogHeader>
-          <DialogTitle className="text-lg">¿Cómo conociste Favorón? 🎉</DialogTitle>
+          <DialogTitle className="text-lg flex items-center gap-2">
+            ¿Cómo conociste Favorón? 🎉
+            {previewMode && (
+              <Badge variant="outline" className="text-xs">Vista Previa</Badge>
+            )}
+          </DialogTitle>
           <DialogDescription className="text-sm">
             No queremos seguir tirando pisto en mala publicidad. Cuéntanos, ¿cómo nos encontraste?
           </DialogDescription>
@@ -133,13 +140,19 @@ const AcquisitionSurveyModal = ({ isOpen, onComplete }: AcquisitionSurveyModalPr
         </div>
 
         <div className="flex justify-end">
-          <Button
-            onClick={handleSubmit}
-            disabled={!selectedSource || isSubmitting}
-            className="w-full sm:w-auto"
-          >
-            {isSubmitting ? "Enviando..." : "Continuar"}
-          </Button>
+          {previewMode ? (
+            <Button variant="outline" onClick={onComplete} className="w-full sm:w-auto">
+              Cerrar Vista Previa
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={!selectedSource || isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting ? "Enviando..." : "Continuar"}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
