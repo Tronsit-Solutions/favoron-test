@@ -1,18 +1,21 @@
+import { useState } from "react";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, TrendingUp, Users, Download } from "lucide-react";
+import { ClipboardList, TrendingUp, Users, Download, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import AcquisitionSurveyModal from "@/components/AcquisitionSurveyModal";
 
 const AdminSurveys = () => {
+  const [showPreview, setShowPreview] = useState(false);
   const { user, profile, userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -108,10 +111,16 @@ const AdminSurveys = () => {
                 Resultados de la encuesta: ¿Cómo conociste Favorón?
               </p>
             </div>
-            <Button onClick={handleExportCSV} disabled={!surveyData || totalResponses === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowPreview(true)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Ver Encuesta
+              </Button>
+              <Button onClick={handleExportCSV} disabled={!surveyData || totalResponses === 0}>
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+            </div>
           </div>
 
           {/* Estadísticas Generales */}
@@ -262,6 +271,12 @@ const AdminSurveys = () => {
             </CardContent>
           </Card>
         </div>
+
+        <AcquisitionSurveyModal
+          isOpen={showPreview}
+          onComplete={() => setShowPreview(false)}
+          previewMode
+        />
       </div>
     </RequireAdmin>
   );
