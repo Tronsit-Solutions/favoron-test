@@ -6,6 +6,7 @@ export interface UserActivityData {
   email: string | null;
   first_name: string | null;
   last_name: string | null;
+  phone_number: string | null;
   created_at: string | null;
   // Package stats
   totalPackages: number;
@@ -16,6 +17,7 @@ export interface UserActivityData {
   totalTrips: number;
   completedTrips: number;
   tripsWithPackages: number;
+  tripsCompletedWithPackages: number;
   tripsWithoutCompletedPackages: number;
   // Classification
   userType: 'shopper_only' | 'traveler_only' | 'both' | 'inactive_traveler';
@@ -37,7 +39,7 @@ export const useUserActivityReport = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
+        .select('id, email, first_name, last_name, phone_number, created_at')
         .order('created_at', { ascending: false })
         .limit(10000);
       
@@ -142,24 +144,24 @@ export const useUserActivityReport = () => {
       
       // Count trips that had packages assigned
       let tripsWithPackages = 0;
-      let tripsWithCompletedPackages = 0;
+      let tripsCompletedWithPackages = 0;
       
       userTrips.forEach(trip => {
         const tripPackageStats = packagesPerTrip.get(trip.id);
         if (tripPackageStats && tripPackageStats.total > 0) {
           tripsWithPackages++;
           if (tripPackageStats.completed > 0) {
-            tripsWithCompletedPackages++;
+            tripsCompletedWithPackages++;
           }
         }
       });
 
-      const tripsWithoutCompletedPackages = totalTrips - tripsWithCompletedPackages;
+      const tripsWithoutCompletedPackages = totalTrips - tripsCompletedWithPackages;
 
       // Determine user type
       const hasShopped = totalPackages > 0;
       const hasTraveled = totalTrips > 0;
-      const hasCompletedAnyFavoron = tripsWithCompletedPackages > 0;
+      const hasCompletedAnyFavoron = tripsCompletedWithPackages > 0;
 
       let userType: UserActivityData['userType'];
       
@@ -183,6 +185,7 @@ export const useUserActivityReport = () => {
           email: profile.email,
           first_name: profile.first_name,
           last_name: profile.last_name,
+          phone_number: profile.phone_number,
           created_at: profile.created_at,
           totalPackages,
           completedPackages,
@@ -191,6 +194,7 @@ export const useUserActivityReport = () => {
           totalTrips,
           completedTrips,
           tripsWithPackages,
+          tripsCompletedWithPackages,
           tripsWithoutCompletedPackages,
           userType,
           hasActivity,
