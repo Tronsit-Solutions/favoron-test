@@ -762,11 +762,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
         {/* Origen del paquete */}
         <div className="space-y-2 pt-2">
-          <Label htmlFor="purchaseOrigin">¿Desde dónde {formRequestType === 'personal' ? 'viene el paquete' : 'compras'}? *</Label>
+          <Label htmlFor="purchaseOrigin">¿En qué país está {formRequestType === 'personal' ? 'tu PAQUETE' : 'la TIENDA'}? *</Label>
           <p className="text-xs text-muted-foreground">
             {formRequestType === 'personal' 
-              ? "El país desde donde sale tu paquete personal" 
-              : "El país donde se encuentra la tienda"}
+              ? "El país desde donde enviarás tu paquete personal" 
+              : "Donde comprarás tu producto (ej: Amazon USA, eBay)"}
           </p>
           <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
             <SelectTrigger>
