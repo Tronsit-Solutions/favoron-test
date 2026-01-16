@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUserActivityReport, UserActivityData } from "@/hooks/useUserActivityReport";
-import { Users, Package, Plane, Download, Search, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Users, Package, Plane, Download, Search, AlertTriangle, CheckCircle, Phone } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -63,6 +63,7 @@ export const UserActivityTab = () => {
       // Main users sheet
       const usersSheet = filteredData.map(user => ({
         'Email': user.email || 'N/A',
+        'WhatsApp': user.phone_number || 'N/A',
         'Nombre': user.first_name || '',
         'Apellido': user.last_name || '',
         'Fecha Registro': user.created_at ? format(new Date(user.created_at), 'dd/MM/yyyy', { locale: es }) : 'N/A',
@@ -72,9 +73,8 @@ export const UserActivityTab = () => {
         'Solicitudes Canceladas': user.cancelledPackages,
         'Solicitudes Pendientes': user.pendingPackages,
         'Total Viajes': user.totalTrips,
-        'Viajes Completados': user.completedTrips,
-        'Viajes con Paquetes': user.tripsWithPackages,
-        'Viajes sin Favorones Completados': user.tripsWithoutCompletedPackages,
+        'Viajes Completados con Entregas': user.tripsCompletedWithPackages,
+        'Viajes con Paquetes Asignados': user.tripsWithPackages,
       }));
 
       // Summary sheet
@@ -89,6 +89,7 @@ export const UserActivityTab = () => {
       // Inactive travelers sheet (special focus)
       const inactiveTravelers = data.filter(u => u.userType === 'inactive_traveler').map(user => ({
         'Email': user.email || 'N/A',
+        'WhatsApp': user.phone_number || 'N/A',
         'Nombre': `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A',
         'Fecha Registro': user.created_at ? format(new Date(user.created_at), 'dd/MM/yyyy', { locale: es }) : 'N/A',
         'Total Viajes Registrados': user.totalTrips,
@@ -261,6 +262,7 @@ export const UserActivityTab = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
+                  <TableHead>WhatsApp</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-center">Solicitudes</TableHead>
                   <TableHead className="text-center">Viajes</TableHead>
@@ -270,7 +272,7 @@ export const UserActivityTab = () => {
               <TableBody>
                 {filteredData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No se encontraron usuarios con los filtros aplicados
                     </TableCell>
                   </TableRow>
@@ -288,6 +290,21 @@ export const UserActivityTab = () => {
                         </div>
                       </TableCell>
                       <TableCell>
+                        {user.phone_number ? (
+                          <a 
+                            href={`https://wa.me/${user.phone_number.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-green-600 hover:underline text-sm"
+                          >
+                            <Phone className="h-3 w-3" />
+                            {user.phone_number}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <UserTypeBadge type={user.userType} />
                       </TableCell>
                       <TableCell className="text-center">
@@ -303,8 +320,8 @@ export const UserActivityTab = () => {
                         <div className="flex flex-col items-center gap-1">
                           <span className="font-medium">{user.totalTrips}</span>
                           {user.totalTrips > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              {user.tripsWithPackages} con paq.
+                            <div className="text-xs">
+                              <span className="text-green-600">{user.tripsCompletedWithPackages} completos</span>
                             </div>
                           )}
                         </div>
