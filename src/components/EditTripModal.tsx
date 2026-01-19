@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Combobox } from "@/components/ui/combobox";
 import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
+import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 interface EditTripModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,7 +32,7 @@ const EditTripModal = ({
     fromCountry: tripData?.from_country || '',
     toCity: tripData?.to_city || '',
     toCityOther: tripData?.toCityOther || '',
-    toCountry: tripData?.toCountry || 'Guatemala',
+    toCountry: tripData?.to_country || 'Guatemala',
     arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null as Date | null,
     // departureDate removed - using arrival_date consistently
     availableSpace: tripData?.available_space?.toString() || '',
@@ -69,7 +70,7 @@ const EditTripModal = ({
         fromCountry: tripData?.from_country || '',
         toCity: tripData?.to_city || '',
         toCityOther: tripData?.toCityOther || '',
-        toCountry: tripData?.toCountry || 'Guatemala',
+        toCountry: tripData?.to_country || 'Guatemala',
         arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null,
         availableSpace: tripData?.available_space?.toString() || '',
         deliveryMethod: tripData?.delivery_method || '',
@@ -99,8 +100,9 @@ const EditTripModal = ({
     }
   }, [tripData]);
 
-  const popularCities = ['Miami, FL', 'Los Angeles, CA', 'New York, NY', 'Houston, TX', 'Madrid, España', 'Barcelona, España', 'Ciudad de México', 'San Salvador', 'Otra ciudad'];
-  const guatemalanCities = ['Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'];
+  // Get cities dynamically based on selected country
+  const originCities = getCitiesByCountry(formData.fromCountry);
+  const destinationCities = getCitiesByCountry(formData.toCountry);
   
   // State for showing full country list
   const [showFullCountryListOrigin, setShowFullCountryListOrigin] = useState(false);
@@ -187,82 +189,150 @@ const EditTripModal = ({
               <h3 className="text-lg font-semibold text-primary">Información básica del viaje</h3>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fromCountry">País de origen *</Label>
-              {!showFullCountryListOrigin && isOriginInMainList ? (
-                <Select 
-                  value={formData.fromCountry}
-                  onValueChange={(value) => {
-                    if (value === '__otro__') {
-                      setShowFullCountryListOrigin(true);
-                    } else {
-                      handleInputChange('fromCountry', value);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el país de origen">
-                      {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    {COUNTRY_QUICK_OPTIONS.map(country => (
-                      <SelectItem key={country.value} value={country.value}>
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{country.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Combobox
-                  options={COUNTRIES}
-                  value={formData.fromCountry}
-                  onValueChange={value => handleInputChange('fromCountry', value)}
-                  placeholder="Buscar país..."
-                  searchPlaceholder="Buscar país..."
-                  emptyMessage="No se encontraron países"
-                  className="w-full"
-                />
-              )}
+            {/* Sección ORIGEN */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Plane className="h-4 w-4" />
+                Origen
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">País *</Label>
+                  {!showFullCountryListOrigin && isOriginInMainList ? (
+                    <Select 
+                      value={formData.fromCountry}
+                      onValueChange={(value) => {
+                        if (value === '__otro__') {
+                          setShowFullCountryListOrigin(true);
+                        } else {
+                          handleInputChange('fromCountry', value);
+                          handleInputChange('fromCity', ''); // Clear city when country changes
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="País">
+                          {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {COUNTRY_QUICK_OPTIONS.map(country => (
+                          <SelectItem key={country.value} value={country.value}>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{country.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Combobox
+                      options={COUNTRIES}
+                      value={formData.fromCountry}
+                      onValueChange={value => {
+                        handleInputChange('fromCountry', value);
+                        handleInputChange('fromCity', '');
+                      }}
+                      placeholder="Buscar país..."
+                      searchPlaceholder="Buscar país..."
+                      emptyMessage="No se encontraron países"
+                      className="w-full"
+                    />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Ciudad *</Label>
+                  {countryHasCities(formData.fromCountry) ? (
+                    <Combobox
+                      options={originCities}
+                      value={formData.fromCity}
+                      onValueChange={value => handleInputChange('fromCity', value)}
+                      placeholder="Selecciona ciudad"
+                      allowCustomValue={true}
+                    />
+                  ) : (
+                    <Input 
+                      placeholder="Ciudad de origen" 
+                      value={formData.fromCity}
+                      onChange={e => handleInputChange('fromCity', e.target.value)}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fromCity">Ciudad de origen *</Label>
-              <Select value={formData.fromCity} onValueChange={value => handleInputChange('fromCity', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona la ciudad de origen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {popularCities.map(city => <SelectItem key={city} value={city}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{city}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {formData.fromCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de origen" value={formData.fromCityOther} onChange={e => handleInputChange('fromCityOther', e.target.value)} className="mt-2" required />}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="toCity">Ciudad de destino *</Label>
-              <Select value={formData.toCity} onValueChange={value => handleInputChange('toCity', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona la ciudad de destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  {guatemalanCities.map(city => <SelectItem key={city} value={city}>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{city}</span>
-                      </div>
-                    </SelectItem>)}
-                </SelectContent>
-              </Select>
-              {formData.toCity === 'Otra ciudad' && <Input placeholder="Escribe tu ciudad de destino" value={formData.toCityOther} onChange={e => handleInputChange('toCityOther', e.target.value)} className="mt-2" required />}
+            {/* Sección DESTINO */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Destino
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">País *</Label>
+                  {!showFullCountryListDestination && isDestinationInMainList ? (
+                    <Select 
+                      value={formData.toCountry}
+                      onValueChange={(value) => {
+                        if (value === '__otro__') {
+                          setShowFullCountryListDestination(true);
+                        } else {
+                          handleInputChange('toCountry', value);
+                          handleInputChange('toCity', ''); // Clear city when country changes
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="País">
+                          {formData.toCountry && MAIN_COUNTRIES.find(c => c.value === formData.toCountry)?.label}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        {COUNTRY_QUICK_OPTIONS.map(country => (
+                          <SelectItem key={country.value} value={country.value}>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{country.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Combobox
+                      options={COUNTRIES}
+                      value={formData.toCountry}
+                      onValueChange={value => {
+                        handleInputChange('toCountry', value);
+                        handleInputChange('toCity', '');
+                      }}
+                      placeholder="Buscar país..."
+                      searchPlaceholder="Buscar país..."
+                      emptyMessage="No se encontraron países"
+                      className="w-full"
+                    />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Ciudad *</Label>
+                  {countryHasCities(formData.toCountry) ? (
+                    <Combobox
+                      options={destinationCities}
+                      value={formData.toCity}
+                      onValueChange={value => handleInputChange('toCity', value)}
+                      placeholder="Selecciona ciudad"
+                      allowCustomValue={true}
+                    />
+                  ) : (
+                    <Input 
+                      placeholder="Ciudad de destino" 
+                      value={formData.toCity}
+                      onChange={e => handleInputChange('toCity', e.target.value)}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
