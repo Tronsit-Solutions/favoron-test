@@ -151,6 +151,22 @@ const AdminMatchDialog = ({
       return 'guatemala';
     }
     
+    // Map El Salvador variations
+    if (normalized.includes('salvador') || normalized.includes('el salvador') ||
+        normalized.includes('san salvador') || normalized.includes('san miguel') ||
+        normalized.includes('santa ana') || normalized.includes('soyapango') ||
+        normalized.includes('santa tecla') || normalized.includes('san vicente') ||
+        normalized.includes('usulutan') || normalized.includes('usulután') ||
+        normalized.includes('ahuachapan') || normalized.includes('ahuachapán') ||
+        normalized.includes('sonsonate') || normalized.includes('la libertad') ||
+        normalized.includes('chalatenango') || normalized.includes('cuscatlan') ||
+        normalized.includes('cuscatlán') || normalized.includes('cabañas') ||
+        normalized.includes('morazan') || normalized.includes('morazán') ||
+        normalized.includes('la union') || normalized.includes('la unión') ||
+        normalized.includes('la paz')) {
+      return 'el_salvador';
+    }
+    
     return normalized;
   };
 
@@ -178,7 +194,7 @@ const AdminMatchDialog = ({
         const matchesOrigin = showAllTrips || tripOriginNormalized === packageOriginNormalized;
         
         // Filter by destination
-        const tripDestinationNormalized = normalizeCountry(trip.to_city || '');
+        const tripDestinationNormalized = normalizeCountry(trip.to_country || trip.to_city || '');
         const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
         
         let matchesDestination = false;
