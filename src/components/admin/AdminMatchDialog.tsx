@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
@@ -372,6 +373,11 @@ const AdminMatchDialog = ({
       return profile.email.split('@')[0];
     }
     return `Viajero #${userId.slice(-6)}`;
+  };
+
+  const truncateName = (name: string, maxLength: number = 25) => {
+    if (name.length <= maxLength) return name;
+    return name.slice(0, maxLength) + '...';
   };
 
   const handleTravelerClick = async (trip: any) => {
@@ -859,20 +865,27 @@ const AdminMatchDialog = ({
                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
-                               <div className="flex items-center space-x-2 min-w-fit">
-                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
+                               <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-[220px]">
+                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
                                    {trip.user_id?.toString().slice(-2) || '00'}
                                  </div>
-                                  <div>
-                                    <p 
-                                      className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleTravelerClick(trip);
-                                      }}
-                                    >
-                                      {getTravelerName(trip.user_id)}
-                                    </p>
+                                  <div className="min-w-0">
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <p 
+                                          className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline truncate"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleTravelerClick(trip);
+                                          }}
+                                        >
+                                          {truncateName(getTravelerName(trip.user_id), 25)}
+                                        </p>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="bg-white border shadow-lg z-50">
+                                        <p className="text-sm">{getTravelerName(trip.user_id)}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                   </div>
                                </div>
 
