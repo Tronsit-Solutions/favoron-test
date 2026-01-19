@@ -1732,15 +1732,25 @@ export type Database = {
       refresh_platform_stats: { Args: never; Returns: undefined }
       send_assignment_warnings: { Args: never; Returns: undefined }
       send_quote_reminders: { Args: never; Returns: undefined }
-      traveler_reject_assignment: {
-        Args: {
-          _additional_comments?: string
-          _package_id: string
-          _rejection_reason?: string
-          _wants_requote?: boolean
-        }
-        Returns: undefined
-      }
+      traveler_reject_assignment:
+        | {
+            Args: {
+              _additional_comments?: string
+              _package_id: string
+              _rejection_reason?: string
+              _wants_requote?: boolean
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _additional_comments?: string
+              _package_id: string
+              _rejection_reason?: string
+              _wants_requote?: boolean
+            }
+            Returns: undefined
+          }
       user_has_package_on_trip: {
         Args: { trip_id: string; user_id: string }
         Returns: boolean
