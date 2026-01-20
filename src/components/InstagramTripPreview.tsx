@@ -52,29 +52,31 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         boxSizing: 'border-box'
       }}
     >
-      {/* Header - Simple Title */}
-      <header style={{ 
-        position: 'relative', 
-        zIndex: 20, 
-        padding: forCapture ? '48px 64px 32px' : '36px 48px 24px',
-        textAlign: 'center'
-      }}>
-        <h1 
-          style={{ 
-            color: '#3a8ec1',
-            fontWeight: 700,
-            fontSize: forCapture ? '56px' : '44px',
-            lineHeight: 1.2,
-            letterSpacing: '-0.01em',
-            fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-            margin: 0
-          }}
-        >
-          Próximos Viajes
-        </h1>
-      </header>
+      {/* Header - Only on first page */}
+      {pageNumber === 1 && (
+        <header style={{ 
+          position: 'relative', 
+          zIndex: 20, 
+          padding: forCapture ? '48px 64px 32px' : '36px 48px 24px',
+          textAlign: 'center'
+        }}>
+          <h1 
+            style={{ 
+              color: '#3a8ec1',
+              fontWeight: 700,
+              fontSize: forCapture ? '56px' : '44px',
+              lineHeight: 1.2,
+              letterSpacing: '-0.01em',
+              fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+              margin: 0
+            }}
+          >
+            Próximos Viajes
+          </h1>
+        </header>
+      )}
 
       {/* Trips Cards - Itinerary Style */}
       <main style={{ 
