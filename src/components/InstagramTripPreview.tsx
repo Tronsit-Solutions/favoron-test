@@ -49,7 +49,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        paddingTop: forCapture ? '48px' : '36px',
+        paddingBottom: forCapture ? '48px' : '36px'
       }}
     >
       {/* Header - Only on first page */}
@@ -57,7 +59,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         <header style={{ 
           position: 'relative', 
           zIndex: 20, 
-          padding: forCapture ? '48px 64px 32px' : '36px 48px 24px',
+          padding: forCapture ? '0 64px 32px' : '0 48px 24px',
           textAlign: 'center'
         }}>
           <h1 
@@ -83,10 +85,10 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         position: 'relative', 
         zIndex: 10, 
         flex: 1, 
-        padding: forCapture ? '8px 64px 80px' : '6px 48px 60px',
+        padding: forCapture ? '8px 64px 0' : '6px 48px 0',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-start'
+        justifyContent: pageNumber === 1 ? 'flex-start' : 'center'
       }}>
         <div style={{ 
           display: 'flex', 
