@@ -101,22 +101,22 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         
         const element = captureRef.current;
         
-        // Hacer visible temporalmente para mejor captura
-        element.style.opacity = '1';
+        // Hacer visible para captura usando visibility
+        element.style.visibility = 'visible';
         element.style.position = 'fixed';
         element.style.left = '-9999px';
         element.style.top = '0';
-        element.style.zIndex = '-1';
+        element.style.zIndex = '9999';
         
         // Esperar a que se apliquen los estilos
         await new Promise(resolve => setTimeout(resolve, 300));
         
         const canvas = await html2canvas(element, {
           backgroundColor: '#f5f5f5',
-          scale: 3, // Mayor escala para mejor calidad
+          scale: 3,
           useCORS: true,
           allowTaint: false,
-          logging: false,
+          logging: true,
           width: 1080,
           height: 1350,
           windowWidth: 1080,
@@ -124,14 +124,16 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           scrollX: 0,
           scrollY: 0,
           imageTimeout: 0,
-          foreignObjectRendering: true, // Mejor renderizado de fuentes
+          foreignObjectRendering: false,
           removeContainer: false,
           onclone: (clonedDoc, clonedElement) => {
-            // Forzar visibilidad y estilos en el clon
+            // Forzar visibilidad completa en el clon
+            clonedElement.style.visibility = 'visible';
             clonedElement.style.opacity = '1';
             clonedElement.style.position = 'static';
             clonedElement.style.left = 'auto';
             clonedElement.style.top = 'auto';
+            clonedElement.style.display = 'block';
             
             // Forzar antialiasing en todos los elementos de texto
             const allElements = clonedElement.querySelectorAll('*');
@@ -147,9 +149,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         });
         
         // Restaurar elemento oculto
-        element.style.opacity = '0';
+        element.style.visibility = 'hidden';
         element.style.position = 'fixed';
-        element.style.left = '0';
+        element.style.left = '-9999px';
         element.style.top = '0';
         
         // Asegurar que la imagen final sea exactamente 1080x1350
@@ -281,9 +283,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         <div 
           ref={captureRef}
           style={{
-            opacity: 0,
+            visibility: 'hidden',
             position: 'fixed',
-            left: 0,
+            left: '-9999px',
             top: 0,
             width: '1080px',
             height: '1350px',
