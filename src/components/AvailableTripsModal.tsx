@@ -73,7 +73,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     setIsGenerating(true);
     
     try {
-      const TRIPS_PER_PAGE = 10;
+      const TRIPS_PER_PAGE = 7;
       const totalPages = Math.ceil(filteredTrips.length / TRIPS_PER_PAGE);
       
       // Precargar fuentes explícitamente con pesos específicos
@@ -118,9 +118,9 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           allowTaint: false,
           logging: false,
           width: 1080,
-          height: 1080,
+          height: 1350,
           windowWidth: 1080,
-          windowHeight: 1080,
+          windowHeight: 1350,
           scrollX: 0,
           scrollY: 0,
           imageTimeout: 0,
@@ -152,15 +152,15 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
         element.style.left = '0';
         element.style.top = '0';
         
-        // Asegurar que la imagen final sea exactamente 1080x1080
+        // Asegurar que la imagen final sea exactamente 1080x1350
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = 1080;
-        finalCanvas.height = 1080;
+        finalCanvas.height = 1350;
         const ctx = finalCanvas.getContext('2d');
         if (ctx) {
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1080, 1080);
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1080, 1350);
         }
         
         // Convertir canvas a data URL y descargar
@@ -286,7 +286,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
             left: 0,
             top: 0,
             width: '1080px',
-            height: '1080px',
+            height: '1350px',
             backgroundColor: '#f5f5f5',
             overflow: 'hidden',
             boxSizing: 'border-box',
@@ -332,7 +332,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           <div className="mt-6 flex flex-col items-center">
             <div className="space-y-4">
               <div className="w-full max-w-[700px]" style={{ backgroundColor: '#f5f5f5' }}>
-                <div className="w-full aspect-square">
+                <div className="w-full" style={{ aspectRatio: '4 / 5' }}>
                   <InstagramTripPreview trips={trips} searchTerm={searchTerm} forCapture={false} />
                 </div>
               </div>
@@ -341,7 +341,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
                   🎨 Diseño optimizado para Instagram
                 </p>
                 <p className="text-sm text-gray-600 font-medium">
-                  Formato cuadrado 1080x1080px • Bricolage Grotesque + Inter
+                  Formato portrait 1080x1350px (4:5) • Bricolage Grotesque + Inter
                 </p>
               </div>
             </div>
