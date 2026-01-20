@@ -22,7 +22,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
     };
   };
 
-  const TRIPS_PER_PAGE = 10;
+  // Reducido a 8 viajes por página para mejor espaciado
+  const TRIPS_PER_PAGE = 8;
   const pages = [];
   for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
     pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
@@ -52,14 +53,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
       <header style={{ 
         position: 'relative', 
         zIndex: 20, 
-        padding: forCapture ? '28px 40px 20px' : '24px 32px 16px',
+        padding: forCapture ? '36px 48px 24px' : '28px 36px 18px',
         textAlign: 'center'
       }}>
         <h1 
           style={{ 
             color: '#1a1a1a',
             fontWeight: 700,
-            fontSize: forCapture ? '52px' : '42px',
+            fontSize: forCapture ? '56px' : '44px',
             lineHeight: 1.1,
             letterSpacing: '0.01em',
             fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
@@ -74,7 +75,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
           style={{ 
             color: '#3a8ec1',
             fontWeight: 700,
-            fontSize: forCapture ? '52px' : '42px',
+            fontSize: forCapture ? '56px' : '44px',
             lineHeight: 1.1,
             marginTop: '8px',
             letterSpacing: '0.01em',
@@ -91,7 +92,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
       <div style={{ 
         position: 'relative', 
         zIndex: 10, 
-        padding: forCapture ? '16px 40px' : '12px 32px'
+        padding: forCapture ? '20px 48px 12px' : '16px 36px 10px'
       }}>
         <div style={{ 
           display: 'grid', 
@@ -101,19 +102,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Package 
               style={{ 
-                width: forCapture ? '36px' : '32px', 
-                height: forCapture ? '36px' : '32px', 
-                marginBottom: '8px',
+                width: forCapture ? '40px' : '34px', 
+                height: forCapture ? '40px' : '34px', 
+                marginBottom: '10px',
                 color: '#1a1a1a'
               }} 
             />
             <span 
               style={{ 
                 color: '#1a1a1a', 
-                fontSize: forCapture ? '18px' : '16px',
-                fontWeight: 600,
+                fontSize: forCapture ? '20px' : '17px',
+                fontWeight: 700,
                 fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 WebkitFontSmoothing: 'antialiased'
               }}
             >
@@ -123,19 +124,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <MapPin 
               style={{ 
-                width: forCapture ? '36px' : '32px', 
-                height: forCapture ? '36px' : '32px', 
-                marginBottom: '8px',
+                width: forCapture ? '40px' : '34px', 
+                height: forCapture ? '40px' : '34px', 
+                marginBottom: '10px',
                 color: '#1a1a1a'
               }} 
             />
             <span 
               style={{ 
                 color: '#1a1a1a', 
-                fontSize: forCapture ? '18px' : '16px',
-                fontWeight: 600,
+                fontSize: forCapture ? '20px' : '17px',
+                fontWeight: 700,
                 fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 WebkitFontSmoothing: 'antialiased'
               }}
             >
@@ -145,19 +146,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Plane 
               style={{ 
-                width: forCapture ? '36px' : '32px', 
-                height: forCapture ? '36px' : '32px', 
-                marginBottom: '8px',
+                width: forCapture ? '40px' : '34px', 
+                height: forCapture ? '40px' : '34px', 
+                marginBottom: '10px',
                 color: '#1a1a1a'
               }} 
             />
             <span 
               style={{ 
                 color: '#1a1a1a', 
-                fontSize: forCapture ? '18px' : '16px',
-                fontWeight: 600,
+                fontSize: forCapture ? '20px' : '17px',
+                fontWeight: 700,
                 fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 WebkitFontSmoothing: 'antialiased'
               }}
             >
@@ -172,12 +173,15 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         position: 'relative', 
         zIndex: 10, 
         flex: 1, 
-        padding: forCapture ? '12px 40px 24px' : '8px 32px 20px'
+        padding: forCapture ? '20px 48px 36px' : '16px 36px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start'
       }}>
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: forCapture ? '10px' : '8px'
+          gap: forCapture ? '16px' : '12px' // Aumentado el gap entre filas
         }}>
           {pageTrips.map((trip) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
@@ -187,25 +191,26 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: forCapture ? '16px' : '12px'
+                  gap: forCapture ? '20px' : '16px' // Aumentado el gap entre columnas
                 }}
               >
                 {/* Origin */}
                 <div 
                   style={{
                     backgroundColor: '#3a8ec1',
-                    borderRadius: '12px',
-                    padding: forCapture ? '14px 12px' : '12px 10px',
+                    borderRadius: '14px',
+                    padding: forCapture ? '18px 14px' : '14px 12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
                   <span 
                     style={{
                       color: '#ffffff',
                       fontWeight: 600,
-                      fontSize: forCapture ? '18px' : '16px',
+                      fontSize: forCapture ? '19px' : '16px',
                       fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
                       textAlign: 'center',
                       lineHeight: 1.2,
@@ -221,18 +226,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                 <div 
                   style={{
                     backgroundColor: '#3a8ec1',
-                    borderRadius: '12px',
-                    padding: forCapture ? '14px 12px' : '12px 10px',
+                    borderRadius: '14px',
+                    padding: forCapture ? '18px 14px' : '14px 12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
                   <span 
                     style={{
                       color: '#ffffff',
                       fontWeight: 600,
-                      fontSize: forCapture ? '18px' : '16px',
+                      fontSize: forCapture ? '19px' : '16px',
                       fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
                       textAlign: 'center',
                       lineHeight: 1.2,
@@ -248,18 +254,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                 <div 
                   style={{
                     backgroundColor: '#3a8ec1',
-                    borderRadius: '12px',
-                    padding: forCapture ? '14px 12px' : '12px 10px',
+                    borderRadius: '14px',
+                    padding: forCapture ? '18px 14px' : '14px 12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }}
                 >
                   <span 
                     style={{
                       color: '#ffffff',
                       fontWeight: 600,
-                      fontSize: forCapture ? '18px' : '16px',
+                      fontSize: forCapture ? '19px' : '16px',
                       fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
                       textAlign: 'center',
                       lineHeight: 1.2,
@@ -280,8 +287,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
       {pageNumber > 1 && (
         <div style={{ 
           position: 'absolute', 
-          bottom: forCapture ? '32px' : '24px', 
-          right: forCapture ? '32px' : '24px', 
+          bottom: forCapture ? '36px' : '28px', 
+          right: forCapture ? '36px' : '28px', 
           zIndex: 20 
         }}>
           <p 
