@@ -1,5 +1,4 @@
 import React from "react";
-import { Plane } from "lucide-react";
 
 interface InstagramTripPreviewProps {
   trips: any[];
@@ -165,13 +164,14 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
                     flexShrink: 0
                   }}
                 >
-                  <Plane 
+                  <span 
                     style={{ 
-                      width: forCapture ? '16px' : '14px', 
-                      height: forCapture ? '16px' : '14px',
-                      color: '#ffffff'
-                    }} 
-                  />
+                      fontSize: forCapture ? '16px' : '14px',
+                      lineHeight: 1
+                    }}
+                  >
+                    ✈️
+                  </span>
                   <span 
                     style={{
                       fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
