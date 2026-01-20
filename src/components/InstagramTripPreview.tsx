@@ -88,7 +88,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         padding: forCapture ? '8px 64px 0' : '6px 48px 0',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: pageNumber === 1 ? 'flex-start' : 'center'
+        justifyContent: 'flex-start'
       }}>
         <div style={{ 
           display: 'flex', 
