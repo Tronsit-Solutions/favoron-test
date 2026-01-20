@@ -202,36 +202,6 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         </div>
       </main>
 
-      {/* Footer with Branding */}
-      <footer style={{
-        position: 'absolute',
-        bottom: forCapture ? '32px' : '24px',
-        left: forCapture ? '64px' : '48px',
-        right: forCapture ? '64px' : '48px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 20
-      }}>
-        <span style={{
-          fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-          fontSize: forCapture ? '18px' : '14px',
-          fontWeight: 600,
-          color: '#64748b',
-          WebkitFontSmoothing: 'antialiased'
-        }}>
-          favoron.app
-        </span>
-        <span style={{
-          fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-          fontSize: forCapture ? '16px' : '12px',
-          fontWeight: 500,
-          color: '#94a3b8',
-          WebkitFontSmoothing: 'antialiased'
-        }}>
-          {pages.length > 1 ? `PÁGINA ${pageNumber}` : ''}
-        </span>
-      </footer>
     </div>
   );
 
