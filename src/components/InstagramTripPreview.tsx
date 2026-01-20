@@ -42,8 +42,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
       data-capture-element="true"
       style={{
         width: forCapture ? '1080px' : '100%',
-        height: forCapture ? '1080px' : 'auto',
-        aspectRatio: forCapture ? undefined : '1 / 1',
+        height: forCapture ? '1350px' : 'auto',
+        aspectRatio: forCapture ? undefined : '4 / 5',
         background: 'linear-gradient(180deg, #f8fafc 0%, #e8eef3 100%)',
         position: 'relative',
         overflow: 'hidden',
