@@ -52,7 +52,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         boxSizing: 'border-box'
       }}
     >
-      {/* Header - Promotional Title */}
+      {/* Header - Simple Title */}
       <header style={{ 
         position: 'relative', 
         zIndex: 20, 
@@ -61,9 +61,9 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
       }}>
         <h1 
           style={{ 
-            color: '#1a1a1a',
+            color: '#3a8ec1',
             fontWeight: 700,
-            fontSize: forCapture ? '46px' : '36px',
+            fontSize: forCapture ? '56px' : '44px',
             lineHeight: 1.2,
             letterSpacing: '-0.01em',
             fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
@@ -72,23 +72,8 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
             margin: 0
           }}
         >
-          Pide un <span style={{ color: '#3a8ec1' }}>FAVORÓN</span>
+          Próximos Viajes
         </h1>
-        <h2 
-          style={{ 
-            color: '#3a8ec1',
-            fontWeight: 700,
-            fontSize: forCapture ? '40px' : '32px',
-            lineHeight: 1.2,
-            marginTop: '4px',
-            letterSpacing: '-0.01em',
-            fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale'
-          }}
-        >
-          PRÓXIMOS VIAJEROS
-        </h2>
       </header>
 
       {/* Trips Cards - Itinerary Style */}
