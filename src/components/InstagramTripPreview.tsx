@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Package, Plane } from "lucide-react";
+import { Plane } from "lucide-react";
 
 interface InstagramTripPreviewProps {
   trips: any[];
@@ -22,16 +22,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
     };
   };
 
-  // Reducido a 8 viajes por página para mejor espaciado
-  const TRIPS_PER_PAGE = 8;
+  // 7 viajes por página para el nuevo diseño con cards horizontales
+  const TRIPS_PER_PAGE = 7;
   const pages = [];
   for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
     pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
   }
 
   const formatCityName = (city: string) => {
-    if (city === "Guatemala City") return "GUATEMALA";
-    return city.toUpperCase();
+    if (city === "Guatemala City") return "Guatemala";
+    // Capitalize first letter of each word
+    return city.split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
   };
 
   const renderTripPage = (pageTrips: any[], pageNumber: number) => (
@@ -41,7 +44,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         width: forCapture ? '1080px' : '100%',
         height: forCapture ? '1080px' : 'auto',
         aspectRatio: forCapture ? undefined : '1 / 1',
-        backgroundColor: '#f5f5f5',
+        background: 'linear-gradient(180deg, #f8fafc 0%, #e8eef3 100%)',
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
@@ -49,36 +52,36 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         boxSizing: 'border-box'
       }}
     >
-      {/* Header - Promotional Title with Bricolage Grotesque */}
+      {/* Header - Promotional Title */}
       <header style={{ 
         position: 'relative', 
         zIndex: 20, 
-        padding: forCapture ? '36px 48px 24px' : '28px 36px 18px',
+        padding: forCapture ? '48px 64px 32px' : '36px 48px 24px',
         textAlign: 'center'
       }}>
         <h1 
           style={{ 
             color: '#1a1a1a',
             fontWeight: 700,
-            fontSize: forCapture ? '56px' : '44px',
-            lineHeight: 1.1,
-            letterSpacing: '0.01em',
+            fontSize: forCapture ? '46px' : '36px',
+            lineHeight: 1.2,
+            letterSpacing: '-0.01em',
             fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
             margin: 0
           }}
         >
-          Pide un <span style={{ color: '#3a8ec1' }}>FAVORÓN</span> con los
+          Pide un <span style={{ color: '#3a8ec1' }}>FAVORÓN</span>
         </h1>
         <h2 
           style={{ 
             color: '#3a8ec1',
             fontWeight: 700,
-            fontSize: forCapture ? '56px' : '44px',
-            lineHeight: 1.1,
-            marginTop: '8px',
-            letterSpacing: '0.01em',
+            fontSize: forCapture ? '40px' : '32px',
+            lineHeight: 1.2,
+            marginTop: '4px',
+            letterSpacing: '-0.01em',
             fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale'
@@ -88,92 +91,12 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         </h2>
       </header>
 
-      {/* Icons with Labels - Inter font */}
-      <div style={{ 
-        position: 'relative', 
-        zIndex: 10, 
-        padding: forCapture ? '20px 48px 12px' : '16px 36px 10px'
-      }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: forCapture ? '24px' : '20px'
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Package 
-              style={{ 
-                width: forCapture ? '40px' : '34px', 
-                height: forCapture ? '40px' : '34px', 
-                marginBottom: '10px',
-                color: '#1a1a1a'
-              }} 
-            />
-            <span 
-              style={{ 
-                color: '#1a1a1a', 
-                fontSize: forCapture ? '20px' : '17px',
-                fontWeight: 700,
-                fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.08em',
-                WebkitFontSmoothing: 'antialiased'
-              }}
-            >
-              ORIGEN
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <MapPin 
-              style={{ 
-                width: forCapture ? '40px' : '34px', 
-                height: forCapture ? '40px' : '34px', 
-                marginBottom: '10px',
-                color: '#1a1a1a'
-              }} 
-            />
-            <span 
-              style={{ 
-                color: '#1a1a1a', 
-                fontSize: forCapture ? '20px' : '17px',
-                fontWeight: 700,
-                fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.08em',
-                WebkitFontSmoothing: 'antialiased'
-              }}
-            >
-              DESTINO
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Plane 
-              style={{ 
-                width: forCapture ? '40px' : '34px', 
-                height: forCapture ? '40px' : '34px', 
-                marginBottom: '10px',
-                color: '#1a1a1a'
-              }} 
-            />
-            <span 
-              style={{ 
-                color: '#1a1a1a', 
-                fontSize: forCapture ? '20px' : '17px',
-                fontWeight: 700,
-                fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                letterSpacing: '0.08em',
-                WebkitFontSmoothing: 'antialiased'
-              }}
-            >
-              SALIDA
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Trips Cards */}
+      {/* Trips Cards - Itinerary Style */}
       <main style={{ 
         position: 'relative', 
         zIndex: 10, 
         flex: 1, 
-        padding: forCapture ? '20px 48px 36px' : '16px 36px 28px',
+        padding: forCapture ? '8px 64px 80px' : '6px 48px 60px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start'
@@ -181,7 +104,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: forCapture ? '16px' : '12px' // Aumentado el gap entre filas
+          gap: forCapture ? '14px' : '10px'
         }}>
           {pageTrips.map((trip) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
@@ -189,89 +112,85 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
               <article
                 key={trip.id}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: forCapture ? '20px' : '16px' // Aumentado el gap entre columnas
+                  backgroundColor: '#ffffff',
+                  borderRadius: forCapture ? '16px' : '12px',
+                  padding: forCapture ? '20px 28px' : '16px 22px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: forCapture ? '16px' : '12px'
                 }}
               >
-                {/* Origin */}
-                <div 
-                  style={{
-                    backgroundColor: '#3a8ec1',
-                    borderRadius: '14px',
-                    padding: forCapture ? '18px 14px' : '14px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
+                {/* Route: Origin → Destination */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: forCapture ? '14px' : '10px', 
+                  flex: 1,
+                  minWidth: 0
+                }}>
                   <span 
                     style={{
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      fontSize: forCapture ? '19px' : '16px',
-                      fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      textAlign: 'center',
-                      lineHeight: 1.2,
-                      letterSpacing: '0.02em',
-                      WebkitFontSmoothing: 'antialiased'
+                      fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                      fontSize: forCapture ? '22px' : '18px',
+                      fontWeight: 700,
+                      color: '#1a1a1a',
+                      WebkitFontSmoothing: 'antialiased',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {formatCityName(trip.from_city)}
                   </span>
-                </div>
-
-                {/* Destination */}
-                <div 
-                  style={{
-                    backgroundColor: '#3a8ec1',
-                    borderRadius: '14px',
-                    padding: forCapture ? '18px 14px' : '14px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
-                >
+                  <span style={{ 
+                    color: '#94a3b8', 
+                    fontSize: forCapture ? '24px' : '20px',
+                    fontWeight: 300,
+                    lineHeight: 1
+                  }}>
+                    →
+                  </span>
                   <span 
                     style={{
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      fontSize: forCapture ? '19px' : '16px',
-                      fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      textAlign: 'center',
-                      lineHeight: 1.2,
-                      letterSpacing: '0.02em',
-                      WebkitFontSmoothing: 'antialiased'
+                      fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+                      fontSize: forCapture ? '22px' : '18px',
+                      fontWeight: 700,
+                      color: '#3a8ec1',
+                      WebkitFontSmoothing: 'antialiased',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {formatCityName(trip.to_city)}
                   </span>
                 </div>
 
-                {/* Date */}
+                {/* Date Badge */}
                 <div 
                   style={{
                     backgroundColor: '#3a8ec1',
-                    borderRadius: '14px',
-                    padding: forCapture ? '18px 14px' : '14px 12px',
+                    borderRadius: forCapture ? '10px' : '8px',
+                    padding: forCapture ? '10px 16px' : '8px 12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    gap: forCapture ? '8px' : '6px',
+                    flexShrink: 0
                   }}
                 >
+                  <Plane 
+                    style={{ 
+                      width: forCapture ? '16px' : '14px', 
+                      height: forCapture ? '16px' : '14px',
+                      color: '#ffffff'
+                    }} 
+                  />
                   <span 
                     style={{
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      fontSize: forCapture ? '19px' : '16px',
                       fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      textAlign: 'center',
-                      lineHeight: 1.2,
-                      letterSpacing: '0.02em',
-                      WebkitFontSmoothing: 'antialiased'
+                      fontSize: forCapture ? '15px' : '13px',
+                      fontWeight: 600,
+                      color: '#ffffff',
+                      WebkitFontSmoothing: 'antialiased',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {dateInfo.day} {dateInfo.month}
@@ -283,28 +202,36 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         </div>
       </main>
 
-      {/* Page Number - Bottom Right */}
-      {pageNumber > 1 && (
-        <div style={{ 
-          position: 'absolute', 
-          bottom: forCapture ? '36px' : '28px', 
-          right: forCapture ? '36px' : '28px', 
-          zIndex: 20 
+      {/* Footer with Branding */}
+      <footer style={{
+        position: 'absolute',
+        bottom: forCapture ? '32px' : '24px',
+        left: forCapture ? '64px' : '48px',
+        right: forCapture ? '64px' : '48px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 20
+      }}>
+        <span style={{
+          fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+          fontSize: forCapture ? '18px' : '14px',
+          fontWeight: 600,
+          color: '#64748b',
+          WebkitFontSmoothing: 'antialiased'
         }}>
-          <p 
-            style={{ 
-              color: '#666666',
-              fontSize: forCapture ? '16px' : '14px',
-              fontWeight: 600,
-              fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-              margin: 0,
-              WebkitFontSmoothing: 'antialiased'
-            }}
-          >
-            PÁGINA {pageNumber}
-          </p>
-        </div>
-      )}
+          favoron.app
+        </span>
+        <span style={{
+          fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+          fontSize: forCapture ? '16px' : '12px',
+          fontWeight: 500,
+          color: '#94a3b8',
+          WebkitFontSmoothing: 'antialiased'
+        }}>
+          {pages.length > 1 ? `PÁGINA ${pageNumber}` : ''}
+        </span>
+      </footer>
     </div>
   );
 
